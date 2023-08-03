@@ -1,11 +1,15 @@
 package com.toasterofbread.spmp.api
 
 import SpMp
+import com.toasterofbread.Database
 import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
 import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.api.Api.Companion.ytUrl
+import com.toasterofbread.spmp.api.model.YoutubeiBrowseResponse
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.SongData
+import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -48,9 +52,37 @@ private suspend fun loadBrowseEndpoint(browse_id: String): Result<List<RelatedGr
     }
 }
 
-suspend fun getSongRelated(song: Song): Result<List<RelatedGroup>> {
-    return song.getRelatedBrowseId().fold(
-        { loadBrowseEndpoint(it) },
-        { Result.failure(it) }
-    )
+suspend fun getSongRelated(song: Song, db: Database): Result<List<RelatedGroup>> {
+    var already_loaded = false
+    var related_browse_id = db.transactionWithResult {
+        val related_browse_id = db.songQueries.relatedBrowseIdById(song.id).executeAsOne().related_browse_id
+        if (related_browse_id != null) {
+            return@transactionWithResult related_browse_id
+        }
+
+        val loaded = db.mediaItemQueries.loadedById(song.id).executeAsOne().loaded != null
+        if (loaded) {
+            already_loaded = true
+        }
+
+        return@transactionWithResult null
+    }
+
+    if (related_browse_id == null && !already_loaded) {
+        val load_result = MediaItemLoader.loadSong(
+            if (song is SongData) song else SongData(song.id),
+            db
+        )
+
+        related_browse_id = load_result.fold(
+            { it.related_browse_id },
+            { return Result.failure(it) }
+        )
+    }
+
+    if (related_browse_id == null) {
+        return Result.failure(RuntimeException("Song has no related_browse_id"))
+    }
+
+    return loadBrowseEndpoint(related_browse_id)
 }

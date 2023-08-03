@@ -53,11 +53,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.api.getOrReport
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.mediaitem.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.createLocalPlaylist
+import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.getEditor
+import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.isPlaylistEditable
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
@@ -195,7 +197,7 @@ class MediaItemMultiSelectContext(
     }
 
     @Composable
-    private fun AddToPlaylistDialog(items: List<MediaItem>, coroutine_scope: CoroutineScope, onFinished: () -> Unit) {
+    private fun AddToPlaylistDialog(items: List<Song>, coroutine_scope: CoroutineScope, onFinished: () -> Unit) {
         val selected_playlists = remember { mutableStateListOf<Playlist>() }
         val button_colours = IconButtonDefaults.iconButtonColors(
             containerColor = Theme.accent,
@@ -210,10 +212,11 @@ class MediaItemMultiSelectContext(
             if (selected_playlists.isNotEmpty()) {
                 coroutine_scope.launch {
                     for (playlist in selected_playlists) {
-                        for (item in items) {
-                            playlist.addItem(item)
+                        SpMp.context.database.transaction {
+                            for (item in items) {
+                                playlist.Items.addItem(item, null, SpMp.context.database)
+                            }
                         }
-                        playlist.saveItems()
                     }
 
                     SpMp.context.sendToast(getString("toast_playlist_added"))
@@ -233,7 +236,7 @@ class MediaItemMultiSelectContext(
 
                     Button(
                         { coroutine_scope.launch {
-                            val playlist = LocalPlaylist.createLocalPlaylist(SpMp.context)
+                            val playlist = createLocalPlaylist(SpMp.context.database)
                             selected_playlists.add(playlist)
                         }},
                         colors = ButtonDefaults.buttonColors(
@@ -266,17 +269,22 @@ class MediaItemMultiSelectContext(
 
     @Composable
     private fun RowScope.GeneralSelectedItemActions() {
-        val coroutine_scope = rememberCoroutineScope()
+        val db = SpMp.context.database
         val player = LocalPlayerState.current
+        val coroutine_scope = rememberCoroutineScope()
 
-        val all_are_pinned by remember { derivedStateOf {
-            selected_items.isNotEmpty() && selected_items.all { it.first.pinned_to_home }
-        } }
+        val all_are_pinned =
+            if (selected_items.isEmpty()) false
+            else selected_items.all { item ->
+                item.first.PinnedToHome.observe(db).value
+            }
+
         val any_are_songs by remember { derivedStateOf {
             selected_items.any { it.first is Song }
         } }
+
         val all_are_editable_playlists by remember { derivedStateOf {
-            selected_items.isNotEmpty() && selected_items.all { it.first is Playlist && (it.first as Playlist).is_editable == true }
+            selected_items.isNotEmpty() && selected_items.all { it.first is Playlist && (it.first as Playlist).isPlaylistEditable() }
         } }
 
         var adding_to_playlist: List<Song>? by remember { mutableStateOf(null) }
@@ -289,7 +297,7 @@ class MediaItemMultiSelectContext(
             IconButton({
                 all_are_pinned.also { pinned ->
                     for (item in getUniqueSelectedItems()) {
-                        item.setPinnedToHome(!pinned)
+                        item.PinnedToHome.set(!pinned, SpMp.context.database)
                     }
                 }
                 onActionPerformed()
@@ -327,7 +335,7 @@ class MediaItemMultiSelectContext(
                 getUniqueSelectedItems().map { playlist ->
                     launch {
                         if (playlist is Playlist) {
-                            playlist.deletePlaylist().getOrReport("deletePlaylist")
+                            playlist.getEditor(db).deletePlaylist().getOrReport("deletePlaylist")
                         }
                     }
                 }.joinAll()

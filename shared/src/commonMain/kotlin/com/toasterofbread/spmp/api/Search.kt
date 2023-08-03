@@ -5,13 +5,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.toasterofbread.Database
 import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
 import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.api.Api.Companion.ytUrl
+import com.toasterofbread.spmp.api.model.NavigationEndpoint
+import com.toasterofbread.spmp.api.model.TextRuns
 import com.toasterofbread.spmp.api.model.YoutubeiShelf
-import com.toasterofbread.spmp.model.mediaitem.Artist
-import com.toasterofbread.spmp.model.mediaitem.Playlist
-import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.ArtistData
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
+import com.toasterofbread.spmp.model.mediaitem.PlaylistData
+import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
@@ -67,7 +71,7 @@ enum class SearchType {
 data class SearchFilter(val type: SearchType, val params: String)
 data class SearchResults(val suggested_correction: String?, val categories: List<Pair<MediaItemLayout, SearchFilter?>>)
 
-suspend fun searchYoutubeMusic(query: String, params: String?): Result<SearchResults> = withContext(Dispatchers.IO) {
+suspend fun searchYoutubeMusic(query: String, params: String?, db: Database): Result<SearchResults> = withContext(Dispatchers.IO) {
     val hl = SpMp.data_language
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/search")
@@ -108,14 +112,13 @@ suspend fun searchYoutubeMusic(query: String, params: String?): Result<SearchRes
     val chips = tab.content.sectionListRenderer.header!!.chipCloudRenderer!!.chips
 
     for (category in categories.withIndex()) {
-
         val card = category.value.musicCardShelfRenderer
         if (card != null) {
             category_layouts.add(Pair(
                 MediaItemLayout(
+                    mutableListOf(card.getMediaItem()),
                     LocalisedYoutubeString.Type.SEARCH_PAGE.create(card.header.musicCardShelfHeaderBasicRenderer!!.title!!.first_text),
                     null,
-                    items = mutableListOf(card.getMediaItem()), 
                     type = MediaItemLayout.Type.CARD
                 ),
                 null
@@ -124,24 +127,32 @@ suspend fun searchYoutubeMusic(query: String, params: String?): Result<SearchRes
         }
 
         val shelf = category.value.musicShelfRenderer ?: continue
-        val items = shelf.contents?.mapNotNull { it.toMediaItem(hl)?.first }?.toMutableList() ?: continue
+        val items = shelf.contents?.mapNotNull { it.toMediaItemData(hl)?.first }?.toMutableList() ?: continue
         val search_params = if (category.index == 0) null else chips[category.index - 1].chipCloudChipRenderer.navigationEndpoint.searchEndpoint!!.params
 
         category_layouts.add(Pair(
-            MediaItemLayout(LocalisedYoutubeString.Type.SEARCH_PAGE.create(shelf.title!!.first_text), null, items = items),
+            MediaItemLayout(items, LocalisedYoutubeString.Type.SEARCH_PAGE.create(shelf.title!!.first_text), null),
             search_params?.let {
                 val item = items.firstOrNull() ?: return@let null
                 SearchFilter(when (item) {
-                    is Song -> if (item.song_type == SongType.VIDEO) SearchType.VIDEO else SearchType.SONG
-                    is Artist -> SearchType.ARTIST
-                    is Playlist -> when (item.playlist_type) {
+                    is SongData -> if (item.song_type == SongType.VIDEO) SearchType.VIDEO else SearchType.SONG
+                    is ArtistData -> SearchType.ARTIST
+                    is PlaylistData -> when (item.playlist_type) {
                         PlaylistType.ALBUM -> SearchType.ALBUM
                         else -> SearchType.PLAYLIST
                     }
-                    else -> throw NotImplementedError(item.type.toString())
+                    else -> throw NotImplementedError(item.getType().toString())
                 }, it)
             }
         ))
+    }
+
+    db.transaction {
+        for (category in category_layouts) {
+            for (item in category.first.items) {
+                (item as MediaItemData).saveToDatabase(db)
+            }
+        }
     }
 
     return@withContext Result.success(SearchResults(correction_suggestion, category_layouts))

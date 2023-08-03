@@ -23,11 +23,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.api.Api
-import com.toasterofbread.spmp.model.mediaitem.AccountPlaylist
-import com.toasterofbread.spmp.model.mediaitem.LocalPlaylist
-import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.PlaylistData
+import com.toasterofbread.spmp.model.mediaitem.rememberLocalPlaylists
 import com.toasterofbread.spmp.platform.composable.SwipeRefresh
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.addUnique
 import com.toasterofbread.utils.launchSingle
@@ -40,7 +40,7 @@ fun PlaylistSelectMenu(
     val player = LocalPlayerState.current
     val auth = Api.ytm_auth
 
-    val local_playlists = LocalPlaylist.rememberLocalPlaylistsListener()
+    val local_playlists = rememberLocalPlaylists(SpMp.context.database)
     val account_playlists = Api.ytm_auth.own_playlists
     var loading by remember { mutableStateOf(false) }
     val coroutine_scope = rememberCoroutineScope()
@@ -86,7 +86,7 @@ fun PlaylistSelectMenu(
                     PlaylistItem(selected, playlist)
                 }
                 items(account_playlists) { playlist ->
-                    PlaylistItem(selected, AccountPlaylist.fromId(playlist))
+                    PlaylistItem(selected, PlaylistData(playlist))
                 }
             }
         }
@@ -112,6 +112,6 @@ private fun PlaylistItem(selected: SnapshotStateList<Playlist>, playlist: Playli
                 checkmarkColor = Theme.on_accent
             )
         )
-        playlist.PreviewLong(MediaItemPreviewParams())
+        MediaItemPreviewLong(playlist)
     }
 }

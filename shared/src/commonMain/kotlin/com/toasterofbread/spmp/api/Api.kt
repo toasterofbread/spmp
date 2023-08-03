@@ -9,12 +9,11 @@ import com.beust.klaxon.Json
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.JsonValue
 import com.beust.klaxon.Klaxon
-import com.beust.klaxon.KlaxonException
 import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.model.Cache
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
-import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringArray
@@ -129,7 +128,7 @@ fun <T> Result.Companion.failure(response: Response, is_gzip: Boolean = true): R
     return failure(RuntimeException(body))
 }
 
-fun <I, O> Result<I>.cast(transform: (I) -> O = { it as O }): Result<O> {
+inline fun <I, O> Result<I>.cast(transform: (I) -> O = { it as O }): Result<O> {
     return fold(
         { runCatching { transform(it) } },
         { Result.failure(it) }
@@ -143,14 +142,11 @@ fun <T> Result<T>.unit(): Result<Unit> {
     )
 }
 
-val <T> Result<T>.data get() = getOrThrowHere()
-
-fun <T> Result<T>.getOrThrowHere(): T {
-    if (isFailure) {
-        throw Exception(exceptionOrNull()!!)
-    }
-    return getOrThrow()
-}
+fun <T> Result<T>.getOrThrowHere(): T =
+    fold(
+        { it },
+        { throw Exception(it) }
+    )
 
 fun <T> Result<T>.getOrReport(error_key: String): T? {
     return fold(
@@ -203,73 +199,73 @@ class Api {
                 return "\"${(value as Enum<*>).name}\""
             }
         }
-        private val mediaitem_converter = object : Converter {
-            override fun canConvert(cls: Class<*>): Boolean {
-                return MediaItem::class.java.isAssignableFrom(cls)
-            }
-
-            override fun fromJson(jv: JsonValue): Any? {
-                if (jv.array == null) {
-                    return null
-                }
-
-                try {
-                    return MediaItem.fromDataItems(jv.array!!.toList(), klaxon)
-                }
-                catch (e: Exception) {
-                    throw RuntimeException("Couldn't parse MediaItem (${jv.obj})", e)
-                }
-            }
-
-            override fun toJson(value: Any): String {
-                if (value !is MediaItem) {
-                    throw KlaxonException("Value $value is not a MediaItem")
-                }
-
-                val string = StringBuilder("[${value.type.ordinal},\"${value.id}\"")
-
-                for (item in value.getSerialisedData(klaxon)) {
-                    string.append(',')
-                    string.append(item)
-                }
-
-                string.append(']')
-                return string.toString()
-            }
-        }
-        private val mediaitem_ref_converter = object : Converter {
-            override fun canConvert(cls: Class<*>): Boolean {
-                return MediaItem::class.java.isAssignableFrom(cls)
-            }
-
-            override fun fromJson(jv: JsonValue): Any? {
-                if (jv.array == null) {
-                    return null
-                }
-
-                try {
-                    return MediaItem.fromDataItems(jv.array!!.toList(), klaxon.converter(this))
-                }
-                catch (e: Exception) {
-                    throw RuntimeException("Couldn't parse MediaItem ($jv)", e)
-                }
-            }
-
-            override fun toJson(value: Any): String {
-                if (value !is MediaItem) {
-                    throw KlaxonException("Value $value is not a MediaItem")
-                }
-                return "[${value.type.ordinal},\"${value.id}\"]"
-            }
-        }
+//        private val mediaitem_converter = object : Converter {
+//            override fun canConvert(cls: Class<*>): Boolean {
+//                return MediaItem::class.java.isAssignableFrom(cls)
+//            }
+//
+//            override fun fromJson(jv: JsonValue): Any? {
+//                if (jv.array == null) {
+//                    return null
+//                }
+//
+//                try {
+//                    return MediaItem.fromDataItems(jv.array!!.toList(), klaxon)
+//                }
+//                catch (e: Exception) {
+//                    throw RuntimeException("Couldn't parse MediaItem (${jv.obj})", e)
+//                }
+//            }
+//
+//            override fun toJson(value: Any): String {
+//                if (value !is MediaItem) {
+//                    throw KlaxonException("Value $value is not a MediaItem")
+//                }
+//
+//                val string = StringBuilder("[${value.type.ordinal},\"${value.id}\"")
+//
+//                for (item in value.getSerialisedData(klaxon)) {
+//                    string.append(',')
+//                    string.append(item)
+//                }
+//
+//                string.append(']')
+//                return string.toString()
+//            }
+//        }
+//        private val mediaitem_ref_converter = object : Converter {
+//            override fun canConvert(cls: Class<*>): Boolean {
+//                return MediaItem::class.java.isAssignableFrom(cls)
+//            }
+//
+//            override fun fromJson(jv: JsonValue): Any? {
+//                if (jv.array == null) {
+//                    return null
+//                }
+//
+//                try {
+//                    return MediaItem.fromDataItems(jv.array!!.toList(), klaxon.converter(this))
+//                }
+//                catch (e: Exception) {
+//                    throw RuntimeException("Couldn't parse MediaItem ($jv)", e)
+//                }
+//            }
+//
+//            override fun toJson(value: Any): String {
+//                if (value !is MediaItem) {
+//                    throw KlaxonException("Value $value is not a MediaItem")
+//                }
+//                return "[${value.type.ordinal},\"${value.id}\"]"
+//            }
+//        }
 
         val klaxon: Klaxon get() = Klaxon()
             .converter(enum_converter)
-            .converter(mediaitem_ref_converter)
+//            .converter(mediaitem_ref_converter)
 
-        val mediaitem_klaxon: Klaxon get() = Klaxon()
-            .converter(enum_converter)
-            .converter(mediaitem_converter)
+//        val mediaitem_klaxon: Klaxon get() = Klaxon()
+//            .converter(enum_converter)
+//            .converter(mediaitem_converter)
 
         enum class YoutubeiContextType {
             BASE,
@@ -430,14 +426,15 @@ class Api {
                         .method(request.httpMethod(), request_body).url(url)
                         .addHeader("User-Agent", user_agent)
 
-                    for ((headerName, headerValueList) in request.headers()) {
-                        if (headerValueList.size > 1) {
-                            request_builder.removeHeader(headerName)
-                            for (headerValue in headerValueList) {
-                                request_builder.addHeader(headerName, headerValue)
+                    for ((header_name, header_value_list) in request.headers()) {
+                        if (header_value_list.size > 1) {
+                            request_builder.removeHeader(header_name)
+                            for (headerValue in header_value_list) {
+                                request_builder.addHeader(header_name, headerValue)
                             }
-                        } else if (headerValueList.size == 1) {
-                            request_builder.header(headerName, headerValueList[0])
+                        }
+                        else if (header_value_list.size == 1) {
+                            request_builder.header(header_name, header_value_list[0])
                         }
                     }
 
@@ -491,3 +488,6 @@ class Api {
         }
     }
 }
+
+fun Artist.isOwnChannel(): Boolean =
+    id == Api.ytm_auth.getOwnChannelOrNull()?.id

@@ -2,7 +2,9 @@ package com.toasterofbread.spmp.platform
 
 import com.toasterofbread.spmp.PlayerDownloadService
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.enums.SongAudioQuality
+import com.toasterofbread.spmp.model.mediaitem.SongRef
+import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
+import com.toasterofbread.spmp.model.mediaitem.song.getSongTargetDownloadQuality
 import java.io.File
 
 actual class PlayerDownloadManager actual constructor(val context: PlatformContext) {
@@ -106,7 +108,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
             val data = PlayerDownloadService.getFilenameData(file.name)
             if (data.id == song.id) {
                 callback(DownloadStatus(
-                    Song.fromId(data.id),
+                    SongRef(data.id),
                     if (data.downloading) DownloadStatus.Status.IDLE else DownloadStatus.Status.FINISHED,
                     data.quality,
                     if (data.downloading) -1f else 1f,
@@ -134,7 +136,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
 
                 val data = PlayerDownloadService.getFilenameData(file.name)
                 DownloadStatus(
-                    Song.fromId(data.id),
+                    SongRef(data.id),
                     if (data.downloading) DownloadStatus.Status.IDLE else DownloadStatus.Status.FINISHED,
                     data.quality,
                     if (data.downloading) -1f else 1f,
@@ -148,7 +150,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
     fun getSongLocalFile(song: Song): File? {
         val files = getDownloadDir(context).listFiles() ?: return null
         for (file in files) {
-            if (PlayerDownloadService.fileMatchesDownload(file.name, song.id, Song.getTargetDownloadQuality()) == true) {
+            if (PlayerDownloadService.fileMatchesDownload(file.name, song.id, getSongTargetDownloadQuality()) == true) {
                 return file
             }
         }

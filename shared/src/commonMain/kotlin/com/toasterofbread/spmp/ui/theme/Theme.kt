@@ -24,7 +24,6 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.utils.compare
 import com.toasterofbread.utils.contrastAgainst
 import com.toasterofbread.utils.getContrasted

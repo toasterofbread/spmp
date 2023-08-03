@@ -6,7 +6,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.enums.SongAudioQuality
+import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 
 expect class PlayerDownloadManager(context: PlatformContext) {
     class DownloadStatus {

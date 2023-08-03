@@ -17,7 +17,7 @@ internal class KugouLyricsSource(source_idx: Int): LyricsSource(source_idx) {
 
         return Result.success(
             SongLyrics(
-                LyricsReference(lyrics_id, source_idx),
+                LyricsReference(source_idx, lyrics_id),
                 SongLyrics.SyncType.LINE_SYNC,
                 lines
             )

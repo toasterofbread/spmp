@@ -16,6 +16,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -43,7 +44,7 @@ fun InfoDialog(item: MediaItem, close: () -> Unit) {
         title = { Text(getStringTODO(when (item) {
             is Artist -> "Artist info"
             is Playlist -> "Playlist info"
-            else -> throw NotImplementedError(item.type.toString())
+            else -> throw NotImplementedError(item.getType().toString())
         })) },
         text = {
             @Composable
@@ -84,9 +85,10 @@ fun InfoDialog(item: MediaItem, close: () -> Unit) {
             }
 
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Center) {
-                InfoValue("Name", item.title ?: "")
+                val item_title: String? by item.Title.observe(SpMp.context.database)
+                InfoValue("Name", item_title ?: "")
                 InfoValue("Id", item.id)
-                InfoValue("Url", item.url.toString())
+                InfoValue("Url", item.getURL())
             }
         }
     )

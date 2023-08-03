@@ -1,23 +1,31 @@
 package com.toasterofbread.spmp.model.mediaitem.enums
 
-import SpMp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlaylistPlay
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.beust.klaxon.JsonObject
-import com.toasterofbread.spmp.api.Api
-import com.toasterofbread.spmp.model.mediaitem.AccountPlaylist
+import com.toasterofbread.spmp.model.mediaitem.AccountPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.Artist
-import com.toasterofbread.spmp.model.mediaitem.LocalPlaylist
+import com.toasterofbread.spmp.model.mediaitem.ArtistRef
+import com.toasterofbread.spmp.model.mediaitem.LocalPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemDataRegistry
-import com.toasterofbread.spmp.model.mediaitem.PlaylistDataRegistryEntry
+import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.SongDataRegistryEntry
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.model.mediaitem.SongRef
 import com.toasterofbread.spmp.resources.getString
+
+fun MediaItem.getType(): MediaItemType =
+    when(this) {
+        is Song -> MediaItemType.SONG
+        is Artist -> MediaItemType.ARTIST
+        is AccountPlaylistRef -> MediaItemType.PLAYLIST_ACC
+        is LocalPlaylistRef -> MediaItemType.PLAYLIST_LOC
+        is PlaylistData ->
+            if (isLocalPlaylist()) MediaItemType.PLAYLIST_LOC
+            else MediaItemType.PLAYLIST_ACC
+        else -> throw NotImplementedError(this::class.toString())
+    }
 
 enum class MediaItemType {
     SONG, ARTIST, PLAYLIST_ACC, PLAYLIST_LOC, PLAYLIST_BROWSEPARAMS;
@@ -45,23 +53,11 @@ enum class MediaItemType {
         )
     }
 
-    fun parseRegistryEntry(obj: JsonObject): MediaItemDataRegistry.Entry {
-        if (isPlaylist()) {
-            return Api.klaxon.parseFromJsonObject<PlaylistDataRegistryEntry>(obj)!!
-        }
-        else if (this == SONG) {
-            return Api.klaxon.parseFromJsonObject<SongDataRegistryEntry>(obj)!!
-        }
-        else {
-            return Api.klaxon.parseFromJsonObject(obj)!!
-        }
-    }
-
-    suspend fun fromId(id: String, context: PlatformContext = SpMp.context): MediaItem = when (this) {
-        SONG -> Song.fromId(id, context)
-        ARTIST -> Artist.fromId(id, context)
-        PLAYLIST_ACC -> AccountPlaylist.fromId(id, context)
-        PLAYLIST_LOC -> LocalPlaylist.fromId(id, context)
+    fun referenceFromId(id: String): MediaItem = when (this) {
+        SONG -> SongRef(id)
+        ARTIST -> ArtistRef(id)
+        PLAYLIST_ACC -> AccountPlaylistRef(id)
+        PLAYLIST_LOC -> LocalPlaylistRef(id)
         PLAYLIST_BROWSEPARAMS -> throw NotImplementedError(id)
     }
 

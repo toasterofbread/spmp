@@ -1,0 +1,33 @@
+CREATE TABLE Artist (
+    id TEXT NOT NULL PRIMARY KEY,
+
+    subscribe_channel_id TEXT,
+    subscriber_count INTEGER,
+
+    --
+
+    subscribed INTEGER,
+    is_for_item INTEGER,
+
+    FOREIGN KEY (id) REFERENCES MediaItem(id)
+);
+
+byPinned: SELECT Artist.id FROM Artist, MediaItem WHERE MediaItem.id == Artist.id AND MediaItem.pinned_to_home == :pinned;
+byHidden: SELECT Artist.id FROM Artist, MediaItem WHERE MediaItem.id == Artist.id AND MediaItem.hidden == :hidden;
+
+insertById {
+    INSERT OR IGNORE INTO MediaItem(id) VALUES(:id);
+    INSERT OR IGNORE INTO Artist(id) VALUES(:id);
+}
+
+subscribeChannelIdById: SELECT subscribe_channel_id FROM Artist WHERE id == :id;
+updateSubscribeChannelIdById: UPDATE Artist SET subscribe_channel_id = :subscribe_channel_id WHERE id == :id;
+
+subscriberCountById: SELECT subscriber_count FROM Artist WHERE id == :id;
+updateSubscriberCountById: UPDATE Artist SET subscriber_count = :subscriber_count WHERE id == :id;
+
+subscribedById: SELECT subscribed FROM Artist WHERE id == :id;
+updateSubscribedById: UPDATE Artist SET subscribed = :subscribed WHERE id == :id;
+
+isForItemById: SELECT is_for_item FROM Artist WHERE id == :id;
+updateIsForItemById: UPDATE Artist SET is_for_item = :is_for_item WHERE id == :id;

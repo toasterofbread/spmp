@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.component.mediaitempreview
 
 import LocalPlayerState
+import SpMp
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -15,7 +16,6 @@ import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SubdirectoryArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,37 +26,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.api.getOrReport
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.rememberEditorOrNull
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuActionProvider
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.utils.composable.WidthShrinkText
 import kotlinx.coroutines.launch
-
-@Composable
-fun PlaylistPreviewSquare(
-    playlist: Playlist,
-    params: MediaItemPreviewParams
-) {
-    val long_press_menu_data = remember(playlist) {
-        getPlaylistLongPressMenuData(playlist, multiselect_context = params.multiselect_context)
-    }
-    MediaItemPreviewSquare(playlist, params, long_press_menu_data)
-}
-
-@Composable
-fun PlaylistPreviewLong(
-    playlist: Playlist,
-    params: MediaItemPreviewParams
-) {
-    val long_press_menu_data = remember(playlist) {
-        getPlaylistLongPressMenuData(playlist, multiselect_context = params.multiselect_context)
-    }
-
-    MediaItemPreviewLong(playlist, params, long_press_menu_data)
-}
 
 fun getPlaylistLongPressMenuData(
     playlist: Playlist,
@@ -105,10 +82,17 @@ fun LongPressMenuActionProvider.PlaylistLongPressMenuActions(playlist: MediaItem
         }
     )
 
-    if (playlist.is_editable == true) {
-        ActionButton(Icons.Default.Delete, getString("playlist_delete"), onClick = { coroutine_context.launch {
-            playlist.deletePlaylist().getOrReport("deletePlaylist")
-        } })
+    val playlist_editor = playlist.rememberEditorOrNull(SpMp.context.database)
+    if (playlist_editor != null) {
+        ActionButton(
+            Icons.Default.Delete,
+            getString("playlist_delete"),
+            onClick = {
+                coroutine_context.launch {
+                    playlist_editor.deletePlaylist().getOrReport("deletePlaylist")
+                }
+            }
+        )
     }
 }
 

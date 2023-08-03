@@ -45,11 +45,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.mediaitem.LocalPlaylist
+import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.MEDIA_ITEM_RELATED_CONTENT_ICON
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.createLocalPlaylist
 import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.resources.getString
@@ -63,41 +64,6 @@ import com.toasterofbread.utils.composable.WidthShrinkText
 import kotlinx.coroutines.launch
 
 val SONG_THUMB_CORNER_ROUNDING = 10.dp
-
-@Composable
-fun SongPreviewSquare(
-    song: Song,
-    params: MediaItemPreviewParams,
-    queue_index: Int? = null
-) {
-    val long_press_menu_data = remember(song, params.multiselect_context) {
-        getSongLongPressMenuData(
-            song,
-            multiselect_key = queue_index,
-            multiselect_context = params.multiselect_context,
-            getInfoText = params.getInfoText
-        )
-    }
-    MediaItemPreviewSquare(song, params, long_press_menu_data)
-}
-
-@Composable
-fun SongPreviewLong(
-    song: Song,
-    params: MediaItemPreviewParams,
-    queue_index: Int? = null
-) {
-    val long_press_menu_data = remember(song, queue_index) {
-        getSongLongPressMenuData(
-            song,
-            multiselect_key = queue_index,
-            multiselect_context = params.multiselect_context,
-            getInfoText = params.getInfoText
-        )
-    }
-
-    MediaItemPreviewLong(song, params, long_press_menu_data)
-}
 
 fun getSongLongPressMenuData(
     song: Song,
@@ -169,8 +135,8 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
 
                     Button(
                         { coroutine_scope.launch {
-                                val playlist = LocalPlaylist.createLocalPlaylist(SpMp.context)
-                                selected_playlists.add(playlist)
+                            val playlist = createLocalPlaylist(SpMp.context.database)
+                            selected_playlists.add(playlist)
                         }},
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Theme.accent,
@@ -184,9 +150,10 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
                         {
                             if (selected_playlists.isNotEmpty()) {
                                 withSong { song ->
-                                    for (playlist in selected_playlists) {
-                                        playlist.addItem(song)
-                                        playlist.saveItems()
+                                    SpMp.context.database.transaction {
+                                        for (playlist in selected_playlists) {
+                                            playlist.Items.addItem(song, null, SpMp.context.database)
+                                        }
                                     }
                                     SpMp.context.sendToast(getString("toast_playlist_added"))
                                 }
@@ -274,15 +241,18 @@ private fun LongPressMenuActionProvider.LPMActions(
         }
     })
 
-    item.artist?.also { artist ->
-        ActionButton(Icons.Default.Person, getString("lpm_action_go_to_artist"), onClick = {
-            player.openMediaItem(artist)
-        })
+    if (item is MediaItem.WithArtist) {
+        val item_artist: Artist? by item.Artist.observe(SpMp.context.database)
+        item_artist?.also { artist ->
+            ActionButton(Icons.Default.Person, getString("lpm_action_go_to_artist"), onClick = {
+                player.openMediaItem(artist,)
+            })
+        }
     }
 
-    ActionButton(MediaItem.RELATED_CONTENT_ICON, getString("lpm_action_song_related"), onClick = {
+    ActionButton(MEDIA_ITEM_RELATED_CONTENT_ICON, getString("lpm_action_song_related"), onClick = {
         withSong {
-            player.openMediaItem(it)
+            player.openMediaItem(it,)
         }
     })
 }

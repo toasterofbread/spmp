@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.api
 
-import com.toasterofbread.spmp.model.mediaitem.enums.SongAudioQuality
+import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.resources.getString
 import okhttp3.Request
 import org.schabi.newpipe.extractor.NewPipe
@@ -278,7 +278,7 @@ private fun getVideoFormatsFallback3(id: String, filter: ((YoutubeVideoFormat) -
         }
 
         return Result.success(Pair(
-            decrypter_result.data,
+            decrypter_result.getOrThrowHere(),
             streaming_data.streamingData!!.adaptiveFormats + streaming_data.streamingData!!.formats
         ))
     }
@@ -293,7 +293,7 @@ private fun getVideoFormatsFallback3(id: String, filter: ((YoutubeVideoFormat) -
             return result.cast()
         }
 
-        val (decrypter, formats) = result.data
+        val (decrypter, formats) = result.getOrThrowHere()
         var valid: Boolean = true
 
         for (format in formats) {
@@ -418,7 +418,7 @@ class SignatureCipherDecrypter(base_js: String) {
 
             val result = fromPlayerPage(response_result.getOrThrowHere().body!!.string())
             if (result.isSuccess) {
-                cached_instance = result.data
+                cached_instance = result.getOrThrowHere()
             }
             return result
         }

@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.overlay.lyrics
 
 import LocalPlayerState
+import SpMp
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -96,9 +97,11 @@ fun LyricsSyncMenu(
                 if (line_offset == 0) {
                     PlayerControls(player) {
                         val current_time: Long = player?.current_position_ms ?: return@PlayerControls
-                        song.song_reg_entry.lyrics_sync_offset = (lines[line_index].getLineRange().first - current_time).toInt()
-
-                        song.saveRegistry()
+                        SpMp.context.database.songQueries
+                            .updateLyricsSyncOffsetById(
+                                lines[line_index].getLineRange().first - current_time,
+                                song.id
+                            )
                         close()
                     }
                 }

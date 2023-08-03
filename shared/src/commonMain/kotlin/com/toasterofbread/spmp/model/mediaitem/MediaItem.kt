@@ -1,372 +1,98 @@
 package com.toasterofbread.spmp.model.mediaitem
 
-import SpMp
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material3.Icon
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
-import com.beust.klaxon.*
-import com.toasterofbread.spmp.api.*
-import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.mediaitem.data.MediaItemData
+import app.cash.sqldelight.Query
+import com.toasterofbread.Database
+import com.toasterofbread.spmp.api.DEFAULT_CONNECT_TIMEOUT
+import com.toasterofbread.spmp.api.model.TextRun
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
-import com.toasterofbread.spmp.model.mediaitem.enums.SongType
-import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
-import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.platform.toImageBitmap
-import com.toasterofbread.utils.*
-import com.toasterofbread.utils.composable.SubtleLoadingIndicator
-import kotlinx.coroutines.*
-import java.io.File
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.net.URL
-import java.time.Duration
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType as PlaylistTypeEnum
 
-abstract class MediaItem(val id: String, context: PlatformContext): MediaItemHolder {
-    val uid: String get() = "${type.ordinal}$id"
-    abstract val url: String?
+val MEDIA_ITEM_RELATED_CONTENT_ICON: ImageVector get() = Icons.Default.GridView
 
-    val type: MediaItemType
-        get() = when(this) {
-            is Song -> MediaItemType.SONG
-            is Artist -> MediaItemType.ARTIST
-            is AccountPlaylist -> MediaItemType.PLAYLIST_ACC
-            is LocalPlaylist -> MediaItemType.PLAYLIST_LOC
-            is BrowseParamsPlaylist -> MediaItemType.PLAYLIST_BROWSEPARAMS
-            else -> throw NotImplementedError(this.javaClass.name)
-        }
+class PropertyRememberer {
+    private val properties: MutableMap<String, Property<*>> = mutableMapOf()
+    private val list_properties: MutableMap<String, ListProperty<*, *>> = mutableMapOf()
 
-    fun getReadableType(plural: Boolean): String =
-        when(this) {
-            is Song ->
-                if (song_type == SongType.PODCAST)
-                    PlaylistType.PODCAST.getReadable(plural)
-                else if (album?.playlist_type == PlaylistType.PODCAST || album?.playlist_type == PlaylistType.AUDIOBOOK)
-                    album?.playlist_type.getReadable(plural)
-                else MediaItemType.SONG.getReadable(plural)
-            else -> type.getReadable(plural)
-        }
-
-    abstract val data: MediaItemData
-    val registry_entry: MediaItemDataRegistry.Entry
-
-    var pinned_to_home: Boolean by mutableStateOf(false)
-        private set
-    var hidden: Boolean by mutableStateOf(false)
-        private set
-    var loading: Boolean by mutableStateOf(false)
-        private set
-
-    val original_title: String? get() = data.original_title
-    val title: String? get() = registry_entry.title ?: original_title
-    val title_listeners: ValueListeners<String?> get() = data.title_listeners
-    val artist: Artist? get() =
-        if (this is Artist) this
-        else data.artist
-    val artist_listeners: ValueListeners<Artist?> get() = data.artist_listeners
-    val description: String? get() = data.description
-    val thumbnail_provider: MediaItemThumbnailProvider? get() = data.thumbnail_provider
-
-    suspend fun getTitle(): Result<String> =
-        getGeneralValue { title }
-
-    suspend fun getDescription(): Result<String> =
-        getGeneralValue { description }
-
-    suspend fun getArtist(): Result<Artist> =
-        getGeneralValue { artist }
-
-    suspend fun getArtistOrNull(): Result<Artist?> =
-        getGeneralValueOrNull { artist }
-
-    // TODO remove
-    suspend fun getThumbnailProvider(): Result<MediaItemThumbnailProvider> =
-        getGeneralValue { thumbnail_provider }
-
-    open fun canLoadThumbnail(): Boolean = thumbnail_provider != null
-
-    override fun toString(): String {
-        val artist_str = if (this is Artist) "" else ", artist=$artist"
-        return "$type(id=$id, title=$title$artist_str)"
+    fun <T, Q: Any> rememberSingleProperty(
+        key: String,
+        getQuery: Database.() -> Query<Q>,
+        getValue: Q.() -> T,
+        setValue: Database.(T) -> Unit,
+        getDefault: () -> T = { null as T }
+    ): Property<T> {
+        return properties.getOrPut(key) {
+            SingleProperty(getQuery, getValue, setValue, getDefault)
+        } as Property<T>
     }
 
+    fun <T, Q: Any> rememberListProperty(
+        key: String,
+        getQuery: Database.() -> Query<Q>,
+        getValue: List<Q>.() -> List<T>,
+        getSize: Database.() -> Long,
+        addItem: Database.(item: T, index: Long) -> Unit,
+        removeItem: Database.(index: Long) -> Unit,
+        setItemIndex: Database.(from: Long, to: Long) -> Unit,
+        clearItems: Database.(from_index: Long) -> Unit,
+        prerequisite: Property<Boolean>? = null
+    ): ListProperty<T, Q> {
+        return list_properties.getOrPut(key) {
+            ListProperty(getQuery, getValue, getSize, addItem, removeItem, setItemIndex, clearItems, prerequisite)
+        } as ListProperty<T, Q>
+    }
+}
+
+sealed interface MediaItem: MediaItemHolder {
+    val id: String
     override val item: MediaItem get() = this
-    open fun getHolder(): MediaItemHolder = this
 
-    fun getSerialisedData(klaxon: Klaxon = Api.klaxon): List<String> {
-        return data.getSerialisedData(klaxon)
-    }
+    override fun toString(): String
+    fun getHolder(): MediaItemHolder = this
+    fun getType(): MediaItemType
+    fun getURL(): String
 
-    fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItem {
-        this@MediaItem.data.supplyFromSerialisedData(data, klaxon)
-        return this
-    }
-
-    fun <T> editData(action: MediaItemData.() -> T): T {
-        val ret = action(data)
-        saveToCache()
-        return ret
-    }
-
-    suspend fun <T> editDataSuspend(action: suspend MediaItemData.() -> T): T {
-        val ret = action(data)
-        saveToCache()
-        return ret
-    }
-
-    fun loadFromCache() {
-        data.load()
-    }
-
-    private fun saveToCache(): MediaItem {
-        data.save()
-        return this
-    }
-
-    fun getThumbUrl(quality: MediaItemThumbnailProvider.Quality): String? =
-        thumbnail_provider?.getThumbnailUrl(quality)
-
-    fun isThumbnailLoaded(quality: MediaItemThumbnailProvider.Quality): Boolean =
-        thumb_states[quality]!!.image != null
-
-    suspend fun loadThumbnail(quality: MediaItemThumbnailProvider.Quality, context: PlatformContext = SpMp.context, allow_lower: Boolean = false): ImageBitmap? {
-        if (!canLoadThumbnail()) {
-            return null
-        }
-
-        for (q in quality.ordinal downTo 0) {
-            val state = thumb_states[quality]!!
-            state.load(context)
-
-            if (state.image != null) {
-                return state.image
-            }
-
-            if (!allow_lower) {
-                break
-            }
-        }
-
-        return null
-    }
-
-    fun getThumbnail(quality: MediaItemThumbnailProvider.Quality): ImageBitmap? =
-        thumb_states[quality]!!.image
-
-    fun getThumbnailLocalFile(quality: MediaItemThumbnailProvider.Quality, context: PlatformContext = SpMp.context): File =
-        thumb_states[quality]!!.getCacheFile(context)
-
-    fun setPinnedToHome(value: Boolean) {
-        if (value == pinned_to_home) {
-            return
-        }
-
-        val set: Set<String> = Settings.INTERNAL_PINNED_ITEMS.get()
-        if (value) {
-            Settings.INTERNAL_PINNED_ITEMS.set(set.plus(uid))
-        }
-        else {
-            Settings.INTERNAL_PINNED_ITEMS.set(set.minus(uid))
-        }
-
-        pinned_to_home = value
-
-        SpMp.context.player_state.onMediaItemPinnedChanged(this, value)
-    }
-
-    fun setItemHidden(value: Boolean) {
-        if (value == hidden) {
-            return
-        }
-
-        hidden = value
-
-        val set: Set<String> = Settings.INTERNAL_HIDDEN_ITEMS.get()
-        if (value) {
-            Settings.INTERNAL_HIDDEN_ITEMS.set(set.plus(uid))
-        }
-        else {
-            Settings.INTERNAL_HIDDEN_ITEMS.set(set.minus(uid))
+    fun createDbEntry(db: Database)
+    fun getEmptyData(): MediaItemData
+    fun populateData(data: MediaItemData, db: Database) {
+        data.apply {
+            loaded = Loaded.get(db)
+            title = Title.get(db)
+            original_title = OriginalTitle.get(db)
+            description = Description.get(db)
+            thumbnail_provider = ThumbnailProvider.get(db)
         }
     }
 
-    @Composable
-    abstract fun PreviewSquare(params: MediaItemPreviewParams)
-    @Composable
-    abstract fun PreviewLong(params: MediaItemPreviewParams)
-
-    @Composable
-    open fun getThumbnailHolder(): MediaItem = this
-
-    @Composable
-    open fun Thumbnail(
-        quality: MediaItemThumbnailProvider.Quality,
-        modifier: Modifier = Modifier,
-        failure_icon: ImageVector? = Icons.Default.CloudOff,
-        contentColourProvider: (() -> Color)? = null,
-        onLoaded: ((ImageBitmap) -> Unit)? = null
-    ) {
-        val thumb_item = getThumbnailHolder()
-        LaunchedEffect(thumb_item, quality, thumb_item.canLoadThumbnail()) {
-            if (!thumb_item.canLoadThumbnail()) {
-                val provider_result = thumb_item.getThumbnailProvider()
-                if (provider_result.isFailure) {
-                    thumb_item.thumb_states[quality]!!.loaded = true
-                    return@LaunchedEffect
-                }
-            }
-            thumb_item.loadThumbnail(quality)
+    suspend fun loadData(db: Database, populate_data: Boolean = true): Result<MediaItemData> {
+        val data = getEmptyData()
+        if (Loaded.get(db)) {
+            populateData(data, db)
+            return Result.success(data)
         }
-
-        var loaded by remember { mutableStateOf(false) }
-        LaunchedEffect(thumb_item) {
-            loaded = false
-        }
-
-        val state = thumb_item.thumb_states.values.lastOrNull { state ->
-            state.quality <= quality && state.image != null
-        } ?: thumb_item.thumb_states[quality]!!
-
-        if (state.loading || (state.image == null && !state.loaded)) {
-            SubtleLoadingIndicator(modifier.fillMaxSize(), getColour = contentColourProvider)
-        }
-        else if (state.image != null) {
-            state.image!!.also { thumbnail ->
-                if (!loaded) {
-                    onLoaded?.invoke(thumbnail)
-                    loaded = true
-                }
-
-                Image(
-                    thumbnail,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = modifier
-                )
-            }
-        }
-        else if (state.loaded) {
-            if (failure_icon != null) {
-                Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Icon(failure_icon, null)
-                }
-            }
-        }
+        return MediaItemLoader.loadUnknown(getEmptyData(), db)
     }
 
-    open fun canGetThemeColour(): Boolean = thumb_states.values.any { it.image != null }
-
-    open fun getThemeColour(): Color? {
-        return getDefaultThemeColour()
-    }
-
-    fun getDefaultThemeColour(): Color? {
-        for (quality in MediaItemThumbnailProvider.Quality.values()) {
-            val state = thumb_states[quality]!!
-            if (state.image != null) {
-                return state.image?.getThemeColour()
-            }
-        }
-        return null
-    }
-
-    fun saveRegistry() {
-        data_registry.save()
-    }
-    fun editRegistry(action: (MediaItemDataRegistry.Entry) -> Unit) {
-        action(registry_entry)
-        saveRegistry()
-    }
-
-    private val thumb_states: Map<MediaItemThumbnailProvider.Quality, ThumbState>
-
-    private var loaded_callbacks: MutableList<(MediaItem) -> Unit>? = mutableListOf()
-    private val loading_lock = ReentrantLock()
-    private val load_condition = loading_lock.newCondition()
-    private var load_result: Result<Unit>? = null
-
-    init {
-        // Populate thumb_states
-        val states = mutableMapOf<MediaItemThumbnailProvider.Quality, ThumbState>()
-        for (quality in MediaItemThumbnailProvider.Quality.values()) {
-            states[quality] = ThumbState(this, quality, ::downloadThumbnail)
-        }
-        thumb_states = states
-
-        // Get registry
-        registry_entry = data_registry.getEntry(this) { getDefaultRegistryEntry() }
-
-        // Get pinned status
-        pinned_to_home = Settings.INTERNAL_PINNED_ITEMS.get<Set<String>>(context).contains(uid)
-
-        // Get hidden status
-        hidden = Settings.INTERNAL_HIDDEN_ITEMS.get<Set<String>>(context).contains(uid)
-    }
-
-    protected open suspend fun loadGeneralData(item_id: String = id, browse_params: String? = null): Result<Unit> = withContext(Dispatchers.IO) {
-        loading_lock.withLock {
-            if (loading) {
-                load_condition.await()
-                return@withContext load_result ?: Result.failure(CancellationException())
-            }
-            loading = true
-        }
-
-        coroutineContext.job.invokeOnCompletion {
-            loading_lock.withLock {
-                loading = false
-                load_condition.signalAll()
-                load_result = null
-            }
-        }
-
-        load_result = loadMediaItemData(this@MediaItem, item_id, browse_params)
-        loading_lock.withLock {
-            loaded_callbacks?.forEach { it.invoke(this@MediaItem) }
-            loaded_callbacks = null
-        }
-
-        return@withContext load_result!!
-    }
-
-    protected suspend inline fun <reified T> getGeneralValueOrNull(getValue: () -> T?): Result<T?> {
-        getValue()?.also { return Result.success(it) }
-        val result = loadGeneralData()
-        if (result.isFailure) {
-            return result.cast()
-        }
-        return Result.success(getValue())
-    }
-
-    protected suspend inline fun <reified T> getGeneralValue(getValue: () -> T?): Result<T> {
-        return getGeneralValueOrNull(getValue).fold(
-            { value ->
-                if (value != null) Result.success(value)
-                else Result.failure(RuntimeException("Value with type '${T::class.simpleName}' not loaded in item $this"))
-            },
-            { Result.failure(it) }
-        )
-    }
-
-    protected open fun getDefaultRegistryEntry(): MediaItemDataRegistry.Entry = MediaItemDataRegistry.Entry().apply { item = this@MediaItem }
-
-    protected open fun downloadThumbnail(quality: MediaItemThumbnailProvider.Quality): Result<ImageBitmap> {
-        val url = getThumbUrl(quality) ?: return Result.failure(RuntimeException("getThumbUrl returned null"))
-
-        try {
+    suspend fun downloadThumbnailData(url: String): Result<ImageBitmap> = withContext(Dispatchers.IO) {
+        return@withContext runCatching {
             val connection = URL(url).openConnection()
             connection.connectTimeout = DEFAULT_CONNECT_TIMEOUT
 
@@ -374,65 +100,187 @@ abstract class MediaItem(val id: String, context: PlatformContext): MediaItemHol
             val bytes = stream.readBytes()
             stream.close()
 
-            return Result.success(bytes.toImageBitmap())
-        }
-        catch (e: Throwable) {
-            return Result.failure(e)
+            return@runCatching bytes.toImageBitmap()
         }
     }
 
-    companion object {
-        val CACHE_LIFETIME: Duration = Duration.ofDays(1)
-        private val data_registry: MediaItemDataRegistry = MediaItemDataRegistry()
+    val property_rememberer: PropertyRememberer
 
-        fun init(prefs: ProjectPreferences) {
-            data_registry.load(prefs)
+    val Loaded: Property<Boolean> get() = property_rememberer.rememberSingleProperty(
+        "Loaded", { mediaItemQueries.loadedById(id) }, { loaded.fromSQLBoolean() }, { mediaItemQueries.updateLoadedById(it.toSQLBoolean(), id) }, { false }
+    )
+    val Title: Property<String?> get() = property_rememberer.rememberSingleProperty(
+        "Title", { mediaItemQueries.titleById(id) }, { title }, { mediaItemQueries.updateTitleById(it, id) }
+    )
+    val OriginalTitle: Property<String?> get() = property_rememberer.rememberSingleProperty(
+        "OriginalTitle", { mediaItemQueries.originalTitleById(id) }, { original_title }, { mediaItemQueries.updateOriginalTitleById(it, id) }
+    )
+    val Description: Property<String?> get() = property_rememberer.rememberSingleProperty(
+        "Description", { mediaItemQueries.descriptionById(id) }, { description }, { mediaItemQueries.updateDescriptionById(it, id) }
+    )
+    val ThumbnailProvider: Property<MediaItemThumbnailProvider?> get() = property_rememberer.rememberSingleProperty(
+        "ThumbnailProvider",
+        { mediaItemQueries.thumbnailProviderById(id) },
+        { this.toThumbnailProvider() },
+        {
+            require(it is MediaItemThumbnailProviderImpl?)
+            mediaItemQueries.updateThumbnailProviderById(it?.url_a, it?.url_b, id)
         }
+    )
 
-        suspend fun fromUid(uid: String, context: PlatformContext = SpMp.context): MediaItem {
-            val type_index = uid[0].toString().toInt()
-            require(type_index in 0 until MediaItemType.values().size) { uid }
+    val ThemeColour: Property<Color?> get() = property_rememberer.rememberSingleProperty(
+        "ThemeColour", { mediaItemQueries.themeColourById(id) }, { theme_colour?.let { Color(it) } }, { mediaItemQueries.updateThemeColourById(it?.toArgb()?.toLong(), id) }
+    )
+    val PinnedToHome: Property<Boolean> get() = property_rememberer.rememberSingleProperty(
+        "PinnedToHome", { mediaItemQueries.pinnedToHomeById(id) }, { pinned_to_home.fromSQLBoolean() }, { println("SETPINNED $this $it"); mediaItemQueries.updatePinnedToHomeById(it.toSQLBoolean(), id) }, { false }
+    )
+    val Hidden: Property<Boolean> get() = property_rememberer.rememberSingleProperty(
+        "Hidden", { mediaItemQueries.isHiddenById(id) }, { hidden.fromSQLBoolean() }, { mediaItemQueries.updateIsHiddenById(it.toSQLBoolean(), id) }, { false }
+    )
 
-            val type = MediaItemType.values()[type_index]
-            return type.fromId(uid.substring(1), context)
-        }
+    interface WithArtist: MediaItem {
+        val Artist: Property<Artist?>
 
-        fun fromDataItems(data: List<Any?>, klaxon: Klaxon = Api.klaxon): MediaItem {
-            require(data.size >= 2)
-
-            val type = MediaItemType.values()[data[0] as Int]
-            val id = data[1] as String
-
-            return runBlocking {
-                val item = when (type) {
-                    MediaItemType.SONG -> Song.fromId(id)
-                    MediaItemType.ARTIST -> Artist.fromId(id)
-                    MediaItemType.PLAYLIST_ACC -> AccountPlaylist.fromId(id)
-                    MediaItemType.PLAYLIST_LOC -> LocalPlaylist.fromId(id)
-                    MediaItemType.PLAYLIST_BROWSEPARAMS -> throw IllegalStateException(id)
-                }
-
-                if (data.size > 2) {
-                    item.editData {
-                        item.supplyFromSerialisedData(data.toMutableList(), klaxon)
-                    }
-                }
-                return@runBlocking item
+        override fun populateData(data: MediaItemData, db: Database) {
+            super.populateData(data, db)
+            (data as DataWithArtist).apply {
+                artist = Artist.get(db)
             }
         }
+    }
 
-        fun fromBrowseEndpointType(page_type: String, id: String): MediaItem {
+    abstract class DataWithArtist: MediaItemData(), WithArtist {
+        abstract var artist: Artist?
+
+        override fun saveToDatabase(db: Database, apply_to_item: MediaItem) {
+            db.transaction { with(apply_to_item as WithArtist) {
+                super.saveToDatabase(db, apply_to_item)
+
+                val artist_data = artist
+                if (artist_data is ArtistData) {
+                    artist_data.saveToDatabase(db)
+                }
+
+                Artist.setNotNull(artist, db)
+            }}
+        }
+    }
+}
+
+sealed class MediaItemData: MediaItem {
+    var loaded: Boolean = false
+    var title: String? = null
+        set(value) {
+            field = value
+            original_title = value
+        }
+    var original_title: String? = null
+    var description: String? = null
+    var thumbnail_provider: MediaItemThumbnailProvider? = null
+
+    override val Loaded: Property<Boolean>
+        get() = loaded.asMediaItemProperty(super.Loaded) { loaded = it }
+    override val Title: Property<String?>
+        get() = title.asMediaItemProperty(super.Title) { title = it }
+    override val ThumbnailProvider: Property<MediaItemThumbnailProvider?>
+        get() = thumbnail_provider.asMediaItemProperty(super.ThumbnailProvider) { thumbnail_provider = it }
+
+    companion object {
+        fun fromBrowseEndpointType(page_type: String, id: String): MediaItemData {
             return when (page_type) {
                 "MUSIC_PAGE_TYPE_PLAYLIST", "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_AUDIOBOOK" ->
-                    AccountPlaylist.fromId(id).editPlaylistData { supplyPlaylistType(PlaylistType.fromTypeString(page_type), true) }
+                    PlaylistData(id).apply { playlist_type = PlaylistTypeEnum.fromTypeString(page_type) }
                 "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" ->
-                    Artist.fromId(id)
+                    ArtistData(id)
                 "MUSIC_PAGE_TYPE_NON_MUSIC_AUDIO_TRACK_PAGE" ->
-                    Song.fromId(id)
+                    SongData(id)
                 else -> throw NotImplementedError("page_type=$page_type, id=$page_type")
             }
         }
-
-        val RELATED_CONTENT_ICON: ImageVector get() = Icons.Default.GridView
     }
+
+    open fun saveToDatabase(db: Database, apply_to_item: MediaItem = this) {
+        db.transaction { with(apply_to_item) {
+            createDbEntry(db)
+
+            if (loaded) {
+                Loaded.set(true, db)
+            }
+            Title.setNotNull(title, db)
+            OriginalTitle.setNotNull(original_title, db)
+            Description.setNotNull(description, db)
+            ThumbnailProvider.setNotNull(thumbnail_provider, db)
+        }}
+    }
+
+    open fun supplyDataFromSubtitle(runs: List<TextRun>) {
+        var artist_found = false
+        for (run in runs) {
+            val type = run.browse_endpoint_type ?: continue
+            when (MediaItemType.fromBrowseEndpointType(type)) {
+                MediaItemType.ARTIST -> {
+                    if (this is MediaItem.DataWithArtist) {
+                        val item = run.navigationEndpoint?.browseEndpoint?.getMediaItem()
+                        if (item is Artist) {
+                            artist = item
+                        }
+                    }
+                    artist_found = true
+                }
+                MediaItemType.PLAYLIST_ACC -> {
+                    if (this is SongData) {
+                        val playlist = run.navigationEndpoint?.browseEndpoint?.getMediaItem()
+                        if (playlist is PlaylistData) {
+                            assert(playlist.playlist_type == PlaylistTypeEnum.ALBUM)
+                            playlist.title = run.text
+                            album = playlist
+                        }
+                    }
+                }
+                else -> {}
+            }
+        }
+
+        if (!artist_found && this is MediaItem.DataWithArtist) {
+            artist = ArtistData.createForItem(this).also {
+                it.title = runs.getOrNull(1)?.text
+            }
+        }
+    }
+}
+
+@Composable
+fun <T, Q: Query<*>> Q.observeAsState(
+    mapValue: (Q) -> T = { it as T },
+    onExternalChange: (suspend (T) -> Unit)?
+): MutableState<T> {
+    val state = remember(this) { mutableStateOf(mapValue(this)) }
+    var current_value by remember(state) { mutableStateOf(state.value) }
+
+    DisposableEffect(state) {
+        val listener = Query.Listener {
+            current_value = mapValue(this@observeAsState)
+            state.value = current_value
+        }
+
+        addListener(listener)
+        onDispose {
+            removeListener(listener)
+        }
+    }
+
+    LaunchedEffect(state.value) {
+        if (state.value != current_value) {
+            current_value = state.value
+
+            if (onExternalChange != null) {
+                onExternalChange(current_value)
+            }
+            else {
+                throw IllegalStateException("onExternalChange has not been defined ($this, ${state.value}, $current_value)")
+            }
+        }
+    }
+
+    return state
 }

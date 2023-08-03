@@ -1,17 +1,7 @@
 package com.toasterofbread.spmp.api.model
 
-import com.toasterofbread.spmp.api.GridRenderer
-import com.toasterofbread.spmp.api.ItemSectionRenderer
-import com.toasterofbread.spmp.api.MusicCardShelfRenderer
-import com.toasterofbread.spmp.api.MusicCarouselShelfRenderer
-import com.toasterofbread.spmp.api.MusicDescriptionShelfRenderer
 import com.toasterofbread.spmp.api.MusicShelfRenderer
-import com.toasterofbread.spmp.api.MusicThumbnailRenderer
-import com.toasterofbread.spmp.api.NavigationEndpoint
-import com.toasterofbread.spmp.api.TextRun
-import com.toasterofbread.spmp.api.TextRuns
-import com.toasterofbread.spmp.api.Thumbnails
-import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 
 data class YoutubeiShelf(
     val musicShelfRenderer: MusicShelfRenderer? = null,
@@ -55,19 +45,19 @@ data class YoutubeiShelf(
     fun getNavigationEndpoint(): NavigationEndpoint? =
         musicShelfRenderer?.bottomEndpoint ?: musicCarouselShelfRenderer?.header?.getRenderer()?.moreContentButton?.buttonRenderer?.navigationEndpoint
 
-    fun getMediaItems(hl: String): List<MediaItem> =
+    fun getMediaItems(hl: String): List<MediaItemData> =
         (musicShelfRenderer?.contents ?: musicCarouselShelfRenderer?.contents ?: musicPlaylistShelfRenderer?.contents ?: gridRenderer!!.items).mapNotNull {
-            it.toMediaItem(hl)?.first
+            it.toMediaItemData(hl)?.first
         }
 
-    fun getMediaItemsOrNull(hl: String): List<MediaItem>? =
+    fun getMediaItemsOrNull(hl: String): List<MediaItemData>? =
         (musicShelfRenderer?.contents ?: musicCarouselShelfRenderer?.contents ?: musicPlaylistShelfRenderer?.contents ?: gridRenderer?.items)?.mapNotNull {
-            it.toMediaItem(hl)?.first
+            it.toMediaItemData(hl)?.first
         }
 
-    fun getMediaItemsAndSetIds(hl: String): List<Pair<MediaItem, String?>> =
+    fun getMediaItemsAndSetIds(hl: String): List<Pair<MediaItemData, String?>> =
         (musicShelfRenderer?.contents ?: musicCarouselShelfRenderer?.contents ?: musicPlaylistShelfRenderer?.contents ?: gridRenderer?.items ?: emptyList()).mapNotNull {
-            it.toMediaItem(hl)
+            it.toMediaItemData(hl)
         }
 
     fun getRenderer(): Any? =

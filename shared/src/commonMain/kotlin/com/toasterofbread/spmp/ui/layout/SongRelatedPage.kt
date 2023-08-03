@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout
 
+import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
@@ -30,11 +31,12 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.api.RelatedGroup
 import com.toasterofbread.spmp.api.getSongRelated
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
+import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.getContrasted
@@ -57,7 +59,7 @@ fun SongRelatedPage(
     var related_result: Result<List<RelatedGroup>>? by remember { mutableStateOf(null) }
     LaunchedEffect(song) {
         related_result = null
-        related_result = getSongRelated(song)
+        related_result = getSongRelated(song, SpMp.context.database)
     }
 
     Crossfade(related_result, modifier) { result ->
@@ -87,10 +89,11 @@ fun SongRelatedPage(
                     ) {
                         item {
                             Box(Modifier.background(accent_colour, RoundedCornerShape(16.dp))) {
-                                song.PreviewLong(MediaItemPreviewParams(
+                                MediaItemPreviewLong(
+                                    song,
                                     Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 3.dp),
                                     contentColour = { accent_colour.getContrasted() }
-                                ))
+                                )
                             }
                         }
 

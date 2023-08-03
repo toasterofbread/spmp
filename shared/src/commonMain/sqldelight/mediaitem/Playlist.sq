@@ -1,0 +1,64 @@
+CREATE TABLE Playlist (
+    id TEXT NOT NULL PRIMARY KEY,
+
+    browse_params TEXT,
+    playlist_type INTEGER,
+    item_count INTEGER,
+    total_duration INTEGER,
+    year INTEGER,
+    artist TEXT,
+    continuation_token TEXT,
+    continuation_type INTEGER,
+
+    custom_image_url_a TEXT,
+    custom_image_url_b TEXT,
+    image_width REAL,
+
+    FOREIGN KEY (artist) REFERENCES Artist(id),
+
+    FOREIGN KEY (id) REFERENCES MediaItem(id)
+);
+
+byType: SELECT id FROM Playlist WHERE playlist_type = :playlist_type;
+byPinned: SELECT Playlist.id, playlist_type FROM Playlist, MediaItem WHERE MediaItem.id == Playlist.id AND MediaItem.pinned_to_home == :pinned;
+byHidden: SELECT Playlist.id, playlist_type FROM Playlist, MediaItem WHERE MediaItem.id == Playlist.id AND MediaItem.hidden == :hidden;
+
+insertById {
+    INSERT OR IGNORE INTO MediaItem(id) VALUES(:id);
+    INSERT OR IGNORE INTO Playlist(id, playlist_type) VALUES(:id, :type);
+}
+removeById: DELETE FROM Playlist WHERE id == :id;
+
+getLargestIdByType:
+SELECT MAX(id)
+FROM Playlist
+WHERE playlist_type = :playlist_type;
+
+browseParamsById: SELECT browse_params FROM Playlist WHERE id == :id;
+updateBrowseParamsById: UPDATE Playlist SET browse_params = :browse_params WHERE id == :id;
+
+playlistTypeById: SELECT playlist_type FROM Playlist WHERE id == :id;
+updatePlaylistTypeById: UPDATE Playlist SET playlist_type = :playlist_type WHERE id == :id;
+
+itemCountById: SELECT item_count FROM Playlist WHERE id == :id;
+updateItemCountById: UPDATE Playlist SET item_count = :item_count WHERE id == :id;
+
+totalDurationById: SELECT total_duration FROM Playlist WHERE id == :id;
+updateTotalDurationById: UPDATE Playlist SET total_duration = :total_duration WHERE id == :id;
+
+yearById: SELECT year FROM Playlist WHERE id == :id;
+updateYearById: UPDATE Playlist SET year = :year WHERE id == :id;
+
+artistById: SELECT artist FROM Playlist WHERE id == :id;
+updateArtistById: UPDATE Playlist SET artist = :artist WHERE id == :id;
+
+continuationById: SELECT continuation_token, continuation_type FROM Playlist WHERE id == :id;
+updateContinuationById: UPDATE Playlist SET continuation_token = :continuation_token, continuation_type = :continuation_type WHERE id == :id;
+
+--
+
+customImageProviderById: SELECT custom_image_url_a, custom_image_url_b FROM Playlist WHERE id == :id;
+updateCustomImageProviderById: UPDATE Playlist SET custom_image_url_a = :image_url_a, custom_image_url_b = :image_url_b WHERE id == :id;
+
+imageWidthById: SELECT image_width FROM Playlist WHERE id == :id;
+updateImageWidthById: UPDATE Playlist SET image_width = :image_width WHERE id == :id;

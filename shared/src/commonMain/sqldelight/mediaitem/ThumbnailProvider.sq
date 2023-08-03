@@ -1,0 +1,15 @@
+CREATE TABLE ThumbnailProvider (
+    item_id INTEGER NOT NULL,
+
+    url_a TEXT NOT NULL,
+    url_b TEXT
+);
+
+byId:
+SELECT url_a, url_b
+FROM ThumbnailProvider
+WHERE item_id == ?;
+
+insert:
+INSERT INTO ThumbnailProvider
+VALUES (:item_id, :url_a, :url_b);

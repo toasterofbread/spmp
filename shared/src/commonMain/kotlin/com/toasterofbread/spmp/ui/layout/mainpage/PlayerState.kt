@@ -9,10 +9,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import com.toasterofbread.spmp.PlayerService
-import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.spmp.platform.MediaPlayerRepeatMode
 import com.toasterofbread.spmp.platform.MediaPlayerService
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
@@ -104,7 +105,6 @@ open class PlayerState protected constructor(
     open val main_multiselect_context: MediaItemMultiSelectContext get() = upstream!!.main_multiselect_context
     open val np_theme_mode: ThemeMode get() = upstream!!.np_theme_mode
     open val np_overlay_menu: MutableState<OverlayMenu?> get() = upstream!!.np_overlay_menu
-    open val pinned_items: List<MediaItemHolder> get() = upstream!!.pinned_items
 
     open val player: PlayerService? get() = upstream!!.player
     open fun withPlayer(action: PlayerService.() -> Unit) {
@@ -144,7 +144,7 @@ open class PlayerState protected constructor(
                 val channel_id = path_parts.elementAtOrNull(1) ?: return failure("No channel ID")
 
                 interactService {
-                    openMediaItem(Artist.fromId(channel_id))
+                    openMediaItem(ArtistData(channel_id))
                 }
             }
             "watch" -> {
@@ -152,7 +152,7 @@ open class PlayerState protected constructor(
                 val v_end = uri.query.indexOfOrNull("&", v_start) ?: uri.query.length
 
                 interactService {
-                    playMediaItem(Song.fromId(uri.query.substring(v_start, v_end)))
+                    playMediaItem(SongData(uri.query.substring(v_start, v_end)))
                 }
             }
             else -> return failure("Uri path not implemented")
@@ -198,8 +198,6 @@ open class PlayerState protected constructor(
     open fun playPlaylist(playlist: Playlist, from_index: Int = 0) { upstream!!.playPlaylist(playlist, from_index) }
     open fun openViewMorePage(browse_id: String) { upstream!!.openViewMorePage(browse_id) }
     open fun openNowPlayingOverlayMenu(menu: OverlayMenu? = null) { upstream!!.openNowPlayingOverlayMenu(menu) }
-
-    open fun onMediaItemPinnedChanged(item: MediaItem, pinned: Boolean) { upstream!!.onMediaItemPinnedChanged(item, pinned) }
 
     open fun showLongPressMenu(data: LongPressMenuData) { upstream!!.showLongPressMenu(data) }
     fun showLongPressMenu(item: MediaItem) { showLongPressMenu(LongPressMenuData(item)) }

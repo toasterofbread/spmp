@@ -13,7 +13,9 @@ import androidx.core.app.NotificationManagerCompat
 import com.toasterofbread.spmp.api.cast
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.enums.SongAudioQuality
+import com.toasterofbread.spmp.model.mediaitem.SongData
+import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
+import com.toasterofbread.spmp.model.mediaitem.song.getSongFormatByQuality
 import com.toasterofbread.spmp.platform.PlatformBinder
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformServiceImpl
@@ -48,7 +50,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
                     broadcastStatus()
                 }
             }
-        val song: Song get() = Song.fromId(id)
+//        val song: Song get() = SongData(id)
 
         val finished: Boolean get() = status == DownloadStatus.Status.ALREADY_FINISHED || status == DownloadStatus.Status.FINISHED
         val downloading: Boolean get() = status == DownloadStatus.Status.DOWNLOADING || status == DownloadStatus.Status.PAUSED
@@ -64,7 +66,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
 
         fun getStatusObject(): DownloadStatus =
             DownloadStatus(
-                song,
+                SongData(id),
                 status,
                 quality,
                 progress,
@@ -159,7 +161,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
         }
 
         fun getFilenameSong(filename: String): Song {
-            return Song.fromId(filename.take(filename.indexOf('.')))
+            return SongData(filename.take(filename.indexOf('.')))
         }
 
         // Filename format: id.quality.mediatype(.part)
@@ -361,13 +363,12 @@ class PlayerDownloadService: PlatformServiceImpl() {
     }
 
     private fun performDownload(download: Download): Result<File?> {
+        val format = getSongFormatByQuality(download.id, download.quality).fold(
+            { it },
+            { return Result.failure(it) }
+        )
 
-        val format = download.song.getFormatByQuality(download.quality)
-        if (format.isFailure) {
-            return format.cast()
-        }
-
-        val connection = URL(format.getOrThrow().stream_url).openConnection() as HttpURLConnection
+        val connection = URL(format.stream_url).openConnection() as HttpURLConnection
         connection.setRequestProperty("Range", "bytes=${download.downloaded}-")
         connection.connect()
 
@@ -518,8 +519,9 @@ class PlayerDownloadService: PlatformServiceImpl() {
                     builder.setProgress(100, (total_progress * 100).toInt(), false)
 
                     val title = if (downloads.size == 1) {
-                        if (downloads.first().song.title != null) {
-                            "Downloading ${downloads.first().song.title}"
+                        val song_title = context.database.mediaItemQueries.titleById(downloads.first().id).executeAsOne().title
+                        if (song_title != null) {
+                            "Downloading $song_title"
                         }
                         else {
                             "Downloading 1 song"

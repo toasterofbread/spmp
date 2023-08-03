@@ -53,6 +53,7 @@ import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.rememberSongDownloads
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.YoutubeMusicLoginConfirmation
 import com.toasterofbread.spmp.ui.layout.mainpage.MainPage
@@ -161,7 +162,7 @@ class LibraryPage(state: MainPageState): MainPage(state) {
 
             Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 WidthShrinkText(
-                    ytm_auth.own_channel.title ?: "---",
+                    ytm_auth.own_channel.Title.get(SpMp.context.database) ?: "---",
                     Modifier.fillMaxHeight().weight(1f),
                     style = MaterialTheme.typography.headlineSmall
                 )

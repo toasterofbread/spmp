@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.api.radio
 
+import SpMp
 import com.toasterofbread.spmp.api.Api
 import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
 import com.toasterofbread.spmp.api.Api.Companion.getStream
@@ -7,7 +8,7 @@ import com.toasterofbread.spmp.api.Api.Companion.ytUrl
 import com.toasterofbread.spmp.api.DataParseException
 import com.toasterofbread.spmp.api.RadioModifier
 import com.toasterofbread.spmp.api.cast
-import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.SongData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
@@ -15,7 +16,7 @@ import okhttp3.Request
 private const val RADIO_ID_PREFIX = "RDAMVM"
 private const val MODIFIED_RADIO_ID_PREFIX = "RDAT"
 
-data class RadioData(val items: List<Song>, var continuation: String?, val filters: List<List<RadioModifier>>?)
+data class RadioData(val items: List<SongData>, var continuation: String?, val filters: List<List<RadioModifier>>?)
 
 suspend fun getSongRadio(
     video_id: String, 
@@ -77,26 +78,18 @@ suspend fun getSongRadio(
             RadioData(
                 radio.contents.map { item ->
                     val renderer = item.getRenderer()
-                    val song = Song.fromId(renderer.videoId)
-                    val error = song.editSongDataSuspend<Result<RadioData>?> {
-                        supplyTitle(renderer.title.first_text)
+                    val song = SongData(renderer.videoId)
 
-                        val artist_result = renderer.getArtist(song)
-                        if (artist_result.isFailure) {
-                            return@editSongDataSuspend artist_result.cast()
-                        }
+                    song.title = renderer.title.first_text
 
-                        val (artist, certain) = artist_result.getOrThrow()
-                        if (artist != null) {
-                            supplyArtist(artist, certain)
-                        }
-
-                        null
-                    }
-
-                    if (error != null) {
-                        return@withContext error
-                    }
+                    renderer.getArtist(song, SpMp.context.database).fold(
+                        { artist ->
+                            if (artist != null) {
+                                song.artist = artist
+                            }
+                        },
+                        { return@withContext Result.failure(it) }
+                    )
 
                     return@map song
                 },

@@ -18,6 +18,8 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.toasterofbread.spmp.exovisualiser.ExoVisualizer
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.SongData
+import com.toasterofbread.spmp.model.mediaitem.SongRef
 import com.toasterofbread.utils.synchronizedBlock
 import kotlin.properties.Delegates
 import androidx.media3.common.MediaItem as ExoMediaItem
@@ -26,6 +28,13 @@ import androidx.media3.common.MediaItem as ExoMediaItem
 
 @UnstableApi
 actual open class MediaPlayerService {
+    actual var context: PlatformContext by Delegates.notNull()
+    private lateinit var player: MediaController
+
+    fun init(context: PlatformContext, player: MediaController) {
+        this.context = context
+        this.player = player
+    }
 
     actual interface UndoRedoAction {
         actual fun undo()
@@ -52,7 +61,7 @@ actual open class MediaPlayerService {
             var current_song: Song? = null
             override fun onMediaItemTransition(item: ExoMediaItem?, reason: Int) {
                 val song = item?.getSong()
-                if (song == current_song) {
+                if (song?.id == current_song?.id) {
                     return
                 }
                 current_song = song
@@ -83,8 +92,6 @@ actual open class MediaPlayerService {
         }
     }
 
-    private lateinit var player: MediaController
-//    private lateinit var cache: Cache
     private val listeners: MutableList<Listener> = mutableListOf()
 
     // Undo
@@ -111,7 +118,6 @@ actual open class MediaPlayerService {
     }
 
     actual var session_started: Boolean by mutableStateOf(false)
-    actual var context: PlatformContext by Delegates.notNull()
 
     actual val state: MediaPlayerState get() = convertState(player.playbackState)
     actual val is_playing: Boolean get() = player.isPlaying
@@ -173,7 +179,6 @@ actual open class MediaPlayerService {
 
         val item = ExoMediaItem.Builder()
             .setRequestMetadata(ExoMediaItem.RequestMetadata.Builder().setMediaUri(song.id.toUri()).build())
-            .setTag(song)
             .setUri(song.id)
             .setCustomCacheKey(song.id)
             .setMediaMetadata(
@@ -383,8 +388,7 @@ actual open class MediaPlayerService {
             controller_future.addListener(
                 {
                     val controller = instance ?: cls.newInstance()
-                    controller.player = controller_future.get()
-                    controller.context = PlatformContext(ctx)
+                    controller.init(PlatformContext(ctx), controller_future.get())
                     if (instance == null) {
                         controller.onCreate()
                     }
@@ -405,13 +409,5 @@ private fun convertState(exo_state: Int): MediaPlayerState {
     return MediaPlayerState.values()[exo_state - 1]
 }
 
-fun ExoMediaItem.getSong(): Song {
-    return when (val tag = localConfiguration?.tag) {
-        is IndexedValue<*> -> tag.value as Song
-        is Song -> tag
-        else -> {
-            check(mediaId.isNotBlank())
-            Song.fromId(mediaId)
-        }
-    }
-}
+fun ExoMediaItem.getSong(): Song =
+    SongRef(localConfiguration?.uri?.toString() ?: mediaId)

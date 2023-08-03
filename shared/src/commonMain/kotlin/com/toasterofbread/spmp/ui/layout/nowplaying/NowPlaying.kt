@@ -23,7 +23,6 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.BackHandler
 import com.toasterofbread.spmp.platform.composable.scrollWheelSwipeable
 import com.toasterofbread.spmp.platform.composeScope
-import com.toasterofbread.spmp.platform.getNavigationBarHeightDp
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NowPlayingMainTab
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.QueueTab
 import com.toasterofbread.spmp.ui.theme.Theme
@@ -102,6 +101,9 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
                 }
             }
 
+            val song_gradient_depth: Float? =
+                player.status.m_song?.PlayerGradientDepth?.observe(SpMp.context.database)?.value
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -135,7 +137,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
                             val screen_height_px = screen_height.toPx()
                             val v_offset = (expansion.get() - 1f).coerceAtLeast(0f) * screen_height_px
 
-                            val gradient_depth = 1f - (player.status.m_song?.song_reg_entry?.np_gradient_depth ?: default_gradient_depth)
+                            val gradient_depth = 1f - (song_gradient_depth ?: default_gradient_depth)
                             check(gradient_depth in 0f .. 1f)
 
                             Brush.verticalGradient(

@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.api
 import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.api.Api.Companion.ytUrl
 import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.ArtistRef
 import com.toasterofbread.spmp.ui.layout.CreateChannelResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -39,7 +40,7 @@ suspend fun createYoutubeChannel(
     try {
         val response: CreateChannelResponse = Api.klaxon.parse(stream)!!
         delay(1000) // Give YouTube time to update the account before we load it
-        return@withContext Result.success(Artist.fromId(response.navigationEndpoint.browseEndpoint.browseId))
+        return@withContext Result.success(ArtistRef(response.navigationEndpoint.browseEndpoint.browseId))
     } catch (e: Throwable) {
         return@withContext Result.failure(e)
     } finally {

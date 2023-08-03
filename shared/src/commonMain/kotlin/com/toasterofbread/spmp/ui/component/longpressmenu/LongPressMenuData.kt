@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.component.longpressmenu
 
+import SpMp
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -14,8 +15,8 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewInteractionPressStage
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.ui.component.mediaitempreview.ArtistLongPressMenuActions
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
+import com.toasterofbread.spmp.ui.component.mediaitempreview.ArtistLongPressMenuActions
 import com.toasterofbread.spmp.ui.component.mediaitempreview.PlaylistLongPressMenuActions
 import com.toasterofbread.spmp.ui.component.mediaitempreview.SongLongPressMenuActions
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -55,13 +56,15 @@ data class LongPressMenuData(
                         if (item is Song) {
                             callback(item)
                         }
-                        else {
-                            check(item is Playlist)
-                            item.getFeedLayouts().onSuccess { layouts ->
-                                layouts.firstOrNull()?.items?.firstOrNull()?.also {
-                                    callback(it as Song)
+                        else if (item is Playlist) {
+                            item.loadData(SpMp.context.database).onSuccess {
+                                item.Items.get(SpMp.context.database)?.firstOrNull()?.also { item ->
+                                    callback(item as Song)
                                 }
                             }
+                        }
+                        else {
+                            throw NotImplementedError(item::class.toString())
                         }
                     }
                 }
@@ -73,7 +76,7 @@ data class LongPressMenuData(
                 ArtistLongPressMenuActions(item)
             }
             else {
-                throw NotImplementedError(item.type.toString())
+                throw NotImplementedError(item.getType().toString())
             }
         }
     }
@@ -83,6 +86,7 @@ data class LongPressMenuData(
         when (item) {
             is Song -> LikeDislikeButton(item, modifier) { background.getContrasted() }
             is Artist -> ArtistSubscribeButton(item, modifier)
+            else -> {}
         }
     }
 }

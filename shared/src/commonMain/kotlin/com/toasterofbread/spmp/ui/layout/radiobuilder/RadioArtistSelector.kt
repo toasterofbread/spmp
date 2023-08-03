@@ -38,10 +38,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.api.RadioBuilderArtist
-import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.PillMenu
+import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.mediaitempreview.ARTIST_THUMB_CORNER_ROUNDING
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getArtistLongPressMenuData
@@ -112,9 +113,9 @@ internal fun RadioArtistSelector(
 
                     val radio_artist = artists[index]
                     val artist = remember(radio_artist) {
-                        Artist.createTemp(index.toString()).editArtistData {
-                            supplyTitle(radio_artist.name)
-                            supplyThumbnailProvider(MediaItemThumbnailProvider.fromThumbnails(listOf(radio_artist.thumbnail)))
+                        ArtistData(index.toString()).apply {
+                            title = radio_artist.name
+                            thumbnail_provider = MediaItemThumbnailProvider.fromThumbnails(listOf(radio_artist.thumbnail))
                         }
                     }
 

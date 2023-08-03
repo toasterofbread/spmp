@@ -4,6 +4,7 @@ import SpMp
 import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
 import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.api.Api.Companion.ytUrl
+import com.toasterofbread.spmp.api.model.YoutubeiBrowseResponse
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

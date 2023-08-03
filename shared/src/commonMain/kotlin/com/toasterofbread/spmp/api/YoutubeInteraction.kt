@@ -1,10 +1,14 @@
 package com.toasterofbread.spmp.api
 
+import SpMp
+import com.toasterofbread.Database
 import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
 import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.api.Api.Companion.ytUrl
 import com.toasterofbread.spmp.model.mediaitem.Artist
-import com.toasterofbread.utils.printJson
+import com.toasterofbread.spmp.model.mediaitem.SongLikedStatus
+import com.toasterofbread.spmp.model.mediaitem.toLong
+import com.toasterofbread.utils.lazyAssert
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -20,8 +24,10 @@ class ArtistBrowseResponse(val header: Header) {
     fun getSubscribed(): Boolean? = header.musicImmersiveHeaderRenderer?.subscriptionButton?.subscribeButtonRenderer?.subscribed
 }
 
-suspend fun isSubscribedToArtist(artist: Artist): Result<Boolean?> = withContext(Dispatchers.IO) {
-    check(!artist.is_for_item)
+suspend fun isSubscribedToArtist(artist: Artist): Result<Boolean> = withContext(Dispatchers.IO) {
+    lazyAssert {
+        !artist.IsForItem.get(SpMp.context.database)
+    }
 
     val request: Request = Request.Builder()
         .ytUrl("/youtubei/v1/browse")
@@ -45,21 +51,29 @@ suspend fun isSubscribedToArtist(artist: Artist): Result<Boolean?> = withContext
         stream.close()
     }
 
-    return@withContext Result.success(parsed.getSubscribed())
+    return@withContext Result.success(parsed.getSubscribed() == true)
 }
 
-fun subscribeOrUnsubscribeArtist(artist: Artist, subscribe: Boolean): Result<Any> {
+suspend fun subscribeOrUnsubscribeArtist(
+    artist: Artist,
+    subscribe: Boolean,
+    db: Database = SpMp.context.database
+): Result<Unit> = withContext(Dispatchers.IO) {
     check(Api.ytm_authenticated)
+
+    val subscribe_channel_id =
+        db.artistQueries.subscribeChannelIdById(artist.id).executeAsOneOrNull()?.subscribe_channel_id
+            ?: artist.id
 
     val request: Request = Request.Builder()
         .url("https://music.youtube.com/youtubei/v1/subscription/${if (subscribe) "subscribe" else "unsubscribe"}")
         .addYtHeaders()
         .post(Api.getYoutubeiRequestBody(
-            mapOf("channelIds" to listOf(artist.subscribe_channel_id))
+            mapOf("channelIds" to listOf(subscribe_channel_id))
         ))
         .build()
 
-    return Api.request(request)
+    return@withContext Api.request(request).cast()
 }
 
 private data class PlayerLikeResponse(
@@ -73,7 +87,7 @@ private data class PlayerLikeResponse(
     data class LikeButtonRenderer(val likeStatus: String, val likesAllowed: Boolean)
 }
 
-fun getSongLiked(id: String): Result<Boolean?> {
+suspend fun loadSongLiked(id: String): Result<SongLikedStatus> = withContext(Dispatchers.IO) {
     val request: Request = Request.Builder()
         .url("https://music.youtube.com/youtubei/v1/next")
         .addYtHeaders()
@@ -81,45 +95,48 @@ fun getSongLiked(id: String): Result<Boolean?> {
         .build()
 
     val result = Api.request(request)
-    if (result.isFailure) {
-        return result.cast()
-    }
+    val stream = result.getOrNull()?.getStream() ?: return@withContext result.cast()
 
-    val stream = result.getOrThrow().getStream()
     val parsed: PlayerLikeResponse = try {
         Api.klaxon.parse(stream)!!
     }
     catch (e: Throwable) {
-        return Result.failure(e)
+        return@withContext Result.failure(e)
     }
     finally {
         stream.close()
     }
 
-    return Result.success(when (parsed.status.likeStatus) {
-        "LIKE" -> true
-        "DISLIKE" -> false
-        "INDIFFERENT" -> null
+    return@withContext Result.success(when (parsed.status.likeStatus) {
+        "LIKE" -> SongLikedStatus.LIKED
+        "DISLIKE" -> SongLikedStatus.DISLIKED
+        "INDIFFERENT" -> SongLikedStatus.NEUTRAL
         else -> throw NotImplementedError(parsed.status.likeStatus)
     })
 }
 
-fun setSongLiked(id: String, liked: Boolean?): Result<Any> {
+suspend fun setSongLiked(song_id: String, liked: SongLikedStatus, db: Database? = null): Result<Unit> = withContext(Dispatchers.IO) {
     val request: Request = Request.Builder()
         .url("https://music.youtube.com/youtubei/v1/" + when (liked) {
-            true -> "like/like"
-            false -> "like/dislike"
-            null -> "like/removelike"
+            SongLikedStatus.NEUTRAL -> "like/removelike"
+            SongLikedStatus.LIKED -> "like/like"
+            SongLikedStatus.DISLIKED -> "like/dislike"
         })
         .addYtHeaders()
         .post(Api.getYoutubeiRequestBody(
-            mapOf("target" to mapOf("videoId" to id))
+            mapOf("target" to mapOf("videoId" to song_id))
         ))
         .build()
 
-    val result = Api.request(request)
-    result.getOrNull()?.close()
-    return result
+    return@withContext Api.request(request).fold(
+        {
+            runCatching {
+                db?.songQueries?.updatelikedById(liked.toLong(), song_id)
+                it.close()
+            }
+        },
+        { Result.failure(it) }
+    )
 }
 
 private data class PlaybackTrackingRepsonse(
@@ -149,13 +166,13 @@ private fun buildPlayerRequest(id: String, alt: Boolean): Request {
         .build()
 }
 
-fun markSongAsWatched(id: String): Result<Any> {
+suspend fun markSongAsWatched(id: String): Result<Any> = withContext(Dispatchers.IO) {
     var result = Api.request(buildPlayerRequest(id, false))
     if (result.isFailure) {
         result = Api.request(buildPlayerRequest(id, true))
     }
 
-    val response = result.getOrNull() ?: return result.cast()
+    val response = result.getOrNull() ?: return@withContext result.cast()
 
     val stream = response.getStream()
     val data: PlaybackTrackingRepsonse =
@@ -163,7 +180,7 @@ fun markSongAsWatched(id: String): Result<Any> {
             Api.klaxon.parse(stream)!!
         }
         catch (e: Throwable) {
-            return Result.failure(e)
+            return@withContext Result.failure(e)
         }
         finally {
             stream.close()
@@ -183,5 +200,5 @@ fun markSongAsWatched(id: String): Result<Any> {
         .addYtHeaders(include = listOf("cookie", "user-agent"))
         .build()
 
-    return Api.request(request).unit()
+    return@withContext Api.request(request).unit()
 }

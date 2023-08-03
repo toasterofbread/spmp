@@ -20,10 +20,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.api.*
+import com.toasterofbread.spmp.api.Api
+import com.toasterofbread.spmp.api.YoutubeAccountCreationForm
+import com.toasterofbread.spmp.api.cast
+import com.toasterofbread.spmp.api.getYoutubeAccountCreationForm
+import com.toasterofbread.spmp.api.model.BrowseEndpoint
+import com.toasterofbread.spmp.api.model.MusicThumbnailRenderer
+import com.toasterofbread.spmp.api.model.NavigationEndpoint
+import com.toasterofbread.spmp.api.model.TextRuns
 import com.toasterofbread.spmp.model.YoutubeChannelNotCreatedException
 import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
 import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.platform.WebViewLogin
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
@@ -220,10 +228,10 @@ data class YTAccountMenuResponse(val actions: List<Action>) {
     data class ActiveAccountHeaderRenderer(val accountName: TextRuns, val accountPhoto: MusicThumbnailRenderer.Thumbnail)
 
     fun getAritst(): Artist? {
-        val account = actions.first().openPopupAction.popup.multiPageMenuRenderer.header?.activeAccountHeaderRenderer ?: return null
-        return Artist.fromId(getChannelId() ?: return null).editArtistData {
-            supplyTitle(account.accountName.first_text)
-            supplyThumbnailProvider(MediaItemThumbnailProvider.fromThumbnails(account.accountPhoto.thumbnails))
+        val account = actions.first().openPopupAction.popup.multiPageMenuRenderer.header!!.activeAccountHeaderRenderer
+        return ArtistData(getChannelId() ?: return null).apply {
+            title = account.accountName.first_text
+            thumbnail_provider = MediaItemThumbnailProvider.fromThumbnails(account.accountPhoto.thumbnails)
         }
     }
 

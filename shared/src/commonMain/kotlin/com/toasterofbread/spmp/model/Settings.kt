@@ -8,8 +8,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.beust.klaxon.Klaxon
 import com.toasterofbread.spmp.ProjectBuildConfig
-import com.toasterofbread.spmp.model.mediaitem.Artist
-import com.toasterofbread.spmp.model.mediaitem.enums.SongAudioQuality
+import com.toasterofbread.spmp.model.mediaitem.ArtistData
+import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.spmp.resources.getString
@@ -164,10 +164,8 @@ enum class Settings {
     KEY_TREAT_SINGLES_AS_SONG,
 
     // Internal
-    INTERNAL_PINNED_ITEMS,
     INTERNAL_TOPBAR_MODE_HOME,
     INTERNAL_TOPBAR_MODE_NOWPLAYING,
-    INTERNAL_HIDDEN_ITEMS,
 
     ;
 
@@ -304,7 +302,7 @@ enum class Settings {
                     with(ProjectBuildConfig) {
                         if (YTM_CHANNEL_ID != null && YTM_COOKIE != null && YTM_HEADERS != null)
                             YoutubeMusicAuthInfo(
-                                Artist.fromId(YTM_CHANNEL_ID),
+                                ArtistData(YTM_CHANNEL_ID),
                                 YTM_COOKIE,
                                 Klaxon().parse(YTM_HEADERS.reader())!!
                             )
@@ -344,10 +342,8 @@ enum class Settings {
                 KEY_SPMS_PORT -> 3973
 
                 // Internal
-                INTERNAL_PINNED_ITEMS -> emptySet<String>()
                 INTERNAL_TOPBAR_MODE_HOME -> MusicTopBarMode.LYRICS.ordinal
                 INTERNAL_TOPBAR_MODE_NOWPLAYING -> MusicTopBarMode.LYRICS.ordinal
-                INTERNAL_HIDDEN_ITEMS -> emptySet<String>()
             } as T
         }
 

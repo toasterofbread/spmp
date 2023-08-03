@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.artist.toReadableSubscriberCount
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
@@ -67,7 +68,9 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Bottom)
         ) {
             if (editing) {
-                var edited_title by remember(item) { mutableStateOf(item.title!!) }
+                var edited_title by remember(item) {
+                    mutableStateOf(SpMp.context.database.mediaItemQueries.titleById(item.id).executeAsOne().title ?: "")
+                }
 
                 Column(Modifier.fillMaxWidth().padding(end = horizontal_padding), horizontalAlignment = Alignment.End) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.End)) {
@@ -86,11 +89,11 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                         }
 
                         Action(Icons.Filled.Close) { editing_title = false }
-                        Action(Icons.Filled.Refresh) { edited_title = item.original_title!! }
+                        Action(Icons.Filled.Refresh) {
+                            edited_title = SpMp.context.database.mediaItemQueries.originalTitleById(item.id).executeAsOne().original_title ?: ""
+                        }
                         Action(Icons.Filled.Done) {
-                            item.editRegistry {
-                                it.title = edited_title
-                            }
+                            SpMp.context.database.mediaItemQueries.updateTitleById(edited_title, item.id)
                             editing_title = false
                         }
                     }
@@ -108,9 +111,7 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                         },
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = {
-                            item.editRegistry {
-                                it.title = edited_title
-                            }
+                            SpMp.context.database.mediaItemQueries.updateTitleById(edited_title, item.id)
                             editing_title = false
                         }),
                         colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -123,8 +124,10 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                 }
 
             } else {
+                val item_title: String? by item.Title.observe(SpMp.context.database)
+
                 WidthShrinkText(
-                    item.title ?: "",
+                    item_title ?: "",
                     Modifier
                         .combinedClickable(
                             onClick = {},
@@ -143,8 +146,11 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (item is Artist && (item.subscriber_count ?: 0) > 0) {
-                    Text(item.getReadableSubscriberCount(), style = MaterialTheme.typography.labelLarge )
+                if (item is Artist) {
+                    val subscriber_count: Int = item.SubscriberCount.observe(SpMp.context.database).value ?: 0
+                    if (subscriber_count > 0) {
+                        Text(subscriber_count.toReadableSubscriberCount(), style = MaterialTheme.typography.labelLarge )
+                    }
                 }
 
                 Spacer(Modifier.fillMaxWidth().weight(1f))
@@ -153,8 +159,9 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                     ArtistSubscribeButton(item)
                 }
 
-                Crossfade(item.pinned_to_home) { pinned ->
-                    IconButton({ item.setPinnedToHome(!pinned) }) {
+                var item_pinned by item.PinnedToHome.observe(SpMp.context.database)
+                Crossfade(item_pinned) { pinned ->
+                    IconButton({ item_pinned = !pinned }) {
                         Icon(if (pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null)
                     }
                 }

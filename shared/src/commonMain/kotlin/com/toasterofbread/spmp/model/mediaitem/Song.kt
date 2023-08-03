@@ -1,218 +1,172 @@
 package com.toasterofbread.spmp.model.mediaitem
 
-import SpMp
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.unit.IntOffset
+import com.toasterofbread.Database
 import com.toasterofbread.spmp.api.DEFAULT_CONNECT_TIMEOUT
-import com.toasterofbread.spmp.api.YoutubeVideoFormat
-import com.toasterofbread.spmp.api.cast
-import com.toasterofbread.spmp.api.getVideoFormats
-import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.mediaitem.data.SongItemData
-import com.toasterofbread.spmp.model.mediaitem.enums.SongAudioQuality
+import com.toasterofbread.spmp.api.lyrics.LyricsReference
+import com.toasterofbread.spmp.api.lyrics.toLyricsReference
+import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
-import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.crop
 import com.toasterofbread.spmp.platform.toImageBitmap
-import com.toasterofbread.spmp.ui.component.mediaitempreview.SongPreviewLong
-import com.toasterofbread.spmp.ui.component.mediaitempreview.SongPreviewSquare
-import okhttp3.internal.filterList
+import com.toasterofbread.utils.lazyAssert
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.net.URL
 
-class Song private constructor (id: String, context: PlatformContext): MediaItem(id, context) {
-    override val url: String get() = "https://music.youtube.com/watch?v=$id"
+class SongRef(override val id: String): Song {
+    override val creation: Throwable = Exception()
+    override fun toString(): String = "SongRef($id)"
 
-    override val data = SongItemData(this)
-    val song_reg_entry: SongDataRegistryEntry = registry_entry as SongDataRegistryEntry
+    override val property_rememberer: PropertyRememberer = PropertyRememberer()
 
-    val like_status = SongLikeStatus(id)
-    val lyrics = SongLyricsHolder(this)
+    init {
+        lazyAssert { id.isNotBlank() }
+    }
+}
 
-    val song_type: SongType? get() = data.song_type
-    val duration: Long? get() = data.duration
-    val album: Playlist? get() = data.album
+interface Song: MediaItem.WithArtist {
+    override fun getType(): MediaItemType = MediaItemType.SONG
+    override fun getURL(): String = "https://music.youtube.com/watch?v=$id"
 
-    var theme_colour: Color?
-        get() = song_reg_entry.theme_colour?.let { Color(it) }
-        set(value) {
-            editRegistry {
-                (it as SongDataRegistryEntry).theme_colour = value?.toArgb()
-            }
+    override fun createDbEntry(db: Database) {
+        db.songQueries.insertById(id)
+    }
+    override fun getEmptyData(): SongData = SongData(id)
+    override fun populateData(data: MediaItemData, db: Database) {
+        super.populateData(data, db)
+        (data as SongData).apply {
+            song_type = TypeOfSong.get(db)
+            duration = Duration.get(db)
+            album = Album.get(db)
+            related_browse_id = RelatedBrowseId.get(db)
         }
-
-    override fun canGetThemeColour(): Boolean = theme_colour != null || super.canGetThemeColour()
-    override fun getThemeColour(): Color? = theme_colour ?: super.getThemeColour()
-
-    suspend fun getRelatedBrowseId(): Result<String> =
-        getGeneralValue { data.related_browse_id }
-
-    fun <T> editSongData(action: SongItemData.() -> T): T {
-        val ret = editData {
-            action(this as SongItemData)
-        }
-        return ret
     }
 
-    suspend fun <T> editSongDataSuspend(action: suspend SongItemData.() -> T): T {
-        val ret = editDataSuspend {
-            action(this as SongItemData)
-        }
-        return ret
+    override suspend fun loadData(db: Database, populate_data: Boolean): Result<SongData> {
+        return super.loadData(db, populate_data) as Result<SongData>
     }
 
-    fun editSongDataManual(action: SongItemData.() -> Unit): SongItemData {
-        action(data)
-        return data
-    }
+    override suspend fun downloadThumbnailData(url: String): Result<ImageBitmap> = withContext(Dispatchers.IO) {
+        return@withContext kotlin.runCatching {
+            val connection = URL(url).openConnection()
+            connection.connectTimeout = DEFAULT_CONNECT_TIMEOUT
 
-    fun getFormatByQuality(quality: SongAudioQuality): Result<YoutubeVideoFormat> {
-        val formats = getAudioFormats()
-        if (formats.isFailure) {
-            return formats.cast()
-        }
+            val stream = connection.getInputStream()
+            val bytes = stream.readBytes()
+            stream.close()
 
-        return Result.success(formats.getOrThrow().getByQuality(quality))
-    }
-
-    fun getStreamFormat(): Result<YoutubeVideoFormat> {
-        val quality: SongAudioQuality = getTargetStreamQuality()
-        if (stream_format?.matched_quality != quality) {
-            val formats = getAudioFormats()
-            if (formats.isFailure) {
-                return formats.cast()
+            val image = bytes.toImageBitmap()
+            if (image.width == image.height) {
+                return@runCatching image
             }
 
-            stream_format = formats.getOrThrow().getByQuality(quality)
+            // Crop image to 1:1
+            val size = (image.width * (9f/16f)).toInt()
+            return@runCatching image.crop((image.width - size) / 2, (image.height - size) / 2, size, size)
         }
-
-        return Result.success(stream_format!!)
     }
 
-    override fun canLoadThumbnail(): Boolean = true
+    val TypeOfSong: Property<SongType?> get() = property_rememberer.rememberSingleProperty(
+        "TypeOfSong",
+        { songQueries.songTypeById(id) },
+        { song_type?.let { SongType.values()[it.toInt()] } },
+        { songQueries.updateSongTypeById(it?.ordinal?.toLong(), id) }
+    )
+    val Duration: Property<Long?> get() = property_rememberer.rememberSingleProperty(
+        "Duration", { songQueries.durationById(id) }, { duration }, { songQueries.updateDurationById(it, id) }
+    )
+    override val Artist: Property<Artist?> get() = property_rememberer.rememberSingleProperty(
+        "Artist", { songQueries.artistById(id) }, { artist?.let { ArtistRef(it) } }, { songQueries.updateArtistById(it?.id, id) }
+    )
+    val Album: Property<Playlist?> get() = property_rememberer.rememberSingleProperty(
+        "Album", { songQueries.albumById(id) }, { album?.let { AccountPlaylistRef(it) } }, { songQueries.updateAlbumById(it?.id, id) }
+    )
+    val RelatedBrowseId: Property<String?> get() = property_rememberer.rememberSingleProperty(
+        "RelatedBrowseId", { songQueries.relatedBrowseIdById(id) }, { related_browse_id }, { songQueries.updateRelatedBrowseIdById(it, id) }
+    )
 
-    @Composable
-    override fun PreviewSquare(params: MediaItemPreviewParams) {
-        SongPreviewSquare(this, params)
-    }
+    val Lyrics: Property<LyricsReference?> get() = property_rememberer.rememberSingleProperty(
+        "Lyrics", { songQueries.lyricsById(id) }, { this.toLyricsReference() }, { songQueries.updateLyricsById(it?.source_idx?.toLong(), it?.id, id) }
+    )
+    val LyricsSyncOffset: Property<Long?> get() = property_rememberer.rememberSingleProperty(
+        "LyricsSyncOffset", { songQueries.lyricsSyncOffsetById(id) }, { lyrics_sync_offset }, { songQueries.updateLyricsSyncOffsetById(it, id) }
+    )
+    val PlayerGradientDepth: Property<Float?> get() = property_rememberer.rememberSingleProperty(
+        "PlayerGradientDepth", { songQueries.npGradientDepthById(id) }, { np_gradient_depth?.toFloat() }, { songQueries.updateNpGradientDepthById(it?.toDouble(), id) }
+    )
+    val ThumbnailRounding: Property<Int?> get() = property_rememberer.rememberSingleProperty(
+        "ThumbnailRounding", { songQueries.thumbnailRoundingById(id) }, { thumbnail_rounding?.toInt() }, { songQueries.updateThumbnailRoundingById(it?.toLong(), id) }
+    )
+    val NotificationImageOffset: Property<IntOffset?> get() = property_rememberer.rememberSingleProperty(
+        "NotificationImageOffset",
+        { songQueries.notifImageOffsetById(id) },
+        {
+            if (notif_image_offset_x != null || notif_image_offset_y != null) IntOffset(
+                notif_image_offset_x?.toInt() ?: 0,
+                notif_image_offset_y?.toInt() ?: 0
+            )
+            else null
+        },
+        { songQueries.updateNotifImageOffsetById(it?.x?.toLong(), it?.y?.toLong(), id) }
+    )
+    val Liked: Property<SongLikedStatus?> get() = property_rememberer.rememberSingleProperty(
+        "Liked", { songQueries.likedById(id) }, { liked.toSongLikedStatus() }, { songQueries.updatelikedById(it.toLong(), id) }
+    )
 
-    @Composable
-    fun PreviewSquare(params: MediaItemPreviewParams, queue_index: Int?) {
-        SongPreviewSquare(this, params, queue_index = queue_index)
-    }
-
-    @Composable
-    override fun PreviewLong(params: MediaItemPreviewParams) {
-        SongPreviewLong(this, params)
-    }
-
-    @Composable
-    fun PreviewLong(params: MediaItemPreviewParams, queue_index: Int?) {
-        SongPreviewLong(this, params, queue_index = queue_index)
-    }
-
-    override fun getDefaultRegistryEntry(): MediaItemDataRegistry.Entry = SongDataRegistryEntry()
-
-    private var audio_formats: List<YoutubeVideoFormat>? = null
-    private var stream_format: YoutubeVideoFormat? = null
-
-    override fun downloadThumbnail(quality: MediaItemThumbnailProvider.Quality): Result<ImageBitmap> {
-        // Iterate through getThumbUrl URL and ThumbnailQuality URLs for passed quality and each lower quality
-        for (i in 0 .. quality.ordinal + 1) {
-
-            // Some static thumbnails are cropped for some reason
-            if (i == 0 && thumbnail_provider !is MediaItemThumbnailProvider.DynamicProvider) {
-                continue
-            }
-
-            val url = if (i == 0) getThumbUrl(quality) ?: continue else {
-                when (MediaItemThumbnailProvider.Quality.values()[quality.ordinal - i + 1]) {
-                    MediaItemThumbnailProvider.Quality.LOW -> "https://img.youtube.com/vi/$id/0.jpg"
-                    MediaItemThumbnailProvider.Quality.HIGH -> "https://img.youtube.com/vi/$id/maxresdefault.jpg"
-                }
-            }
-
-            try {
-                val connection = URL(url).openConnection()
-                connection.connectTimeout = DEFAULT_CONNECT_TIMEOUT
-
-                val stream = connection.getInputStream()
-                val bytes = stream.readBytes()
-                stream.close()
-
-                val image = bytes.toImageBitmap()
-                if (image.width == image.height) {
-                    return Result.success(image)
+    override val ThumbnailProvider: Property<MediaItemThumbnailProvider?>
+        get() = object : Property<MediaItemThumbnailProvider?> {
+            override fun get(db: Database): MediaItemThumbnailProvider =
+                MediaItemThumbnailProvider { quality ->
+                    when (quality) {
+                        MediaItemThumbnailProvider.Quality.LOW -> "https://img.youtube.com/vi/$id/0.jpg"
+                        MediaItemThumbnailProvider.Quality.HIGH -> "https://img.youtube.com/vi/$id/maxresdefault.jpg"
+                    }
                 }
 
-                // Crop image to 1:1
-                val size = (image.width * (9f/16f)).toInt()
-                return Result.success(image.crop((image.width - size) / 2, (image.height - size) / 2, size, size))
-            }
-            catch (e: Throwable) {
-                if (i == quality.ordinal + 1) {
-                    return Result.failure(e)
-                }
-            }
+            override fun set(value: MediaItemThumbnailProvider?, db: Database) {}
+
+            @Composable
+            override fun observe(db: Database): MutableState<MediaItemThumbnailProvider?> =
+                mutableStateOf(get(db))
         }
 
-        return Result.failure(IllegalStateException())
+    val creation: Throwable
+}
+
+class SongData(
+    override var id: String,
+    override var artist: Artist? = null,
+
+    var song_type: SongType? = null,
+    var duration: Long? = null,
+    var album: Playlist? = null,
+    var related_browse_id: String? = null
+): MediaItem.DataWithArtist(), Song {
+    override val creation: Throwable = Exception()
+    override fun toString(): String = "SongData($id)"
+
+    override fun saveToDatabase(db: Database, apply_to_item: MediaItem) {
+        db.transaction { with(apply_to_item as Song) {
+            super.saveToDatabase(db, apply_to_item)
+
+            TypeOfSong.setNotNull(song_type, db)
+            Duration.setNotNull(duration, db)
+            Album.setNotNull(album, db)
+            RelatedBrowseId.setNotNull(related_browse_id, db)
+        }}
     }
 
-    // Expects formats to be sorted by bitrate (descending)
-    private fun List<YoutubeVideoFormat>.getByQuality(quality: SongAudioQuality): YoutubeVideoFormat {
-        check(isNotEmpty())
-        return when (quality) {
-            SongAudioQuality.HIGH -> firstOrNull { it.audio_only } ?: first()
-            SongAudioQuality.MEDIUM -> {
-                val audio_formats = filterList { audio_only }
-                if (audio_formats.isNotEmpty()) {
-                    audio_formats[audio_formats.size / 2]
-                }
-                else {
-                    get(size / 2)
-                }
-            }
-            SongAudioQuality.LOW -> lastOrNull { it.audio_only } ?: last()
-        }.also { it.matched_quality = quality }
-    }
+    override val ThumbnailProvider: Property<MediaItemThumbnailProvider?>
+        get() = super<MediaItem.DataWithArtist>.ThumbnailProvider
 
-    @Synchronized
-    private fun getAudioFormats(): Result<List<YoutubeVideoFormat>> {
-        if (audio_formats == null) {
-            val result = getVideoFormats(id) { it.audio_only }
-            if (result.isFailure) {
-                return result.cast()
-            }
+    override val property_rememberer: PropertyRememberer = PropertyRememberer()
 
-            if (result.getOrThrow().isEmpty()) {
-                return Result.failure(Exception("No formats returned by getVideoFormats($id)"))
-            }
-
-            audio_formats = result.getOrThrow().sortedByDescending { it.bitrate }
-        }
-        return Result.success(audio_formats!!)
-    }
-
-    companion object {
-        private val songs: MutableMap<String, Song> = mutableMapOf()
-
-        @Synchronized
-        fun fromId(id: String, context: PlatformContext = SpMp.context): Song {
-            return songs.getOrPut(id) {
-                val song = Song(id, context)
-                song.loadFromCache()
-                return@getOrPut song
-            }
-        }
-
-        fun getTargetStreamQuality(): SongAudioQuality {
-            return Settings.getEnum(Settings.KEY_STREAM_AUDIO_QUALITY)
-        }
-
-        fun getTargetDownloadQuality(): SongAudioQuality {
-            return Settings.getEnum(Settings.KEY_DOWNLOAD_AUDIO_QUALITY)
-        }
+    init {
+        lazyAssert { id.isNotBlank() }
     }
 }

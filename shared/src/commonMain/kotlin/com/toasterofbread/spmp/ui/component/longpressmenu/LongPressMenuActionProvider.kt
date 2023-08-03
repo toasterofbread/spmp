@@ -27,19 +27,19 @@ import androidx.compose.ui.graphics.isUnspecified
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.vibrateShort
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 
 class LongPressMenuActionProvider(
-    val content_colour: () -> Color,
-    val accent_colour: () -> Color,
-    val background_colour: () -> Color,
+    val getContentColour: () -> Color,
+    val getAccentColour: () -> Color,
+    val getBackgroundColour: () -> Color,
     val onAction: () -> Unit
 ) {
     @Composable
     fun ActionButton(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit, onLongClick: (() -> Unit)? = null, onAction: () -> Unit = this.onAction, fill_width: Boolean = true) =
-        ActionButton(icon, label, accent_colour, modifier = modifier, onClick = onClick, onLongClick = onLongClick, onAction = onAction, fill_width = fill_width)
+        ActionButton(icon, label, getAccentColour, modifier = modifier, onClick = onClick, onLongClick = onLongClick, onAction = onAction, fill_width = fill_width)
 
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
@@ -91,10 +91,10 @@ class LongPressMenuActionProvider(
                                     service.updateActiveQueueIndex(Int.MIN_VALUE)
                                 }
                             ),
-                            color = accent_colour(),
+                            color = getAccentColour(),
                             shape = CircleShape
                         ) {
-                            Icon(Icons.Filled.Remove, null, tint = background_colour())
+                            Icon(Icons.Filled.Remove, null, tint = getBackgroundColour())
                         }
 
                         Surface(
@@ -109,19 +109,21 @@ class LongPressMenuActionProvider(
                                     service.updateActiveQueueIndex(Int.MAX_VALUE)
                                 }
                             ),
-                            color = accent_colour(),
+                            color = getAccentColour(),
                             shape = CircleShape
                         ) {
-                            Icon(Icons.Filled.Add, null, tint = background_colour())
+                            Icon(Icons.Filled.Add, null, tint = getBackgroundColour())
                         }
                     }
                 }
 
-                Crossfade(active_queue_item, animationSpec = tween(100)) {
-                    CompositionLocalProvider(
-                        LocalPlayerState provides remember { player.copy(onClickedOverride = { item, _ -> player.openMediaItem(item) }) }
-                    ) {
-                        it?.PreviewLong(MediaItemPreviewParams(contentColour = content_colour))
+                CompositionLocalProvider(
+                    LocalPlayerState provides remember { player.copy(onClickedOverride = { item, _ -> player.openMediaItem(item,) }) }
+                ) {
+                    Crossfade(active_queue_item, animationSpec = tween(100)) { active_item ->
+                        if (active_item != null) {
+                            MediaItemPreviewLong(active_item, contentColour = getContentColour)
+                        }
                     }
                 }
             }

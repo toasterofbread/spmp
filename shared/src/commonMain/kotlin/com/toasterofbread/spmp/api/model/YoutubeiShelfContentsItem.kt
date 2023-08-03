@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.api.model
 
-import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 
 data class YoutubeiShelfContentsItem(
     val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = null,
@@ -8,7 +8,7 @@ data class YoutubeiShelfContentsItem(
     val musicMultiRowListItemRenderer: MusicMultiRowListItemRenderer? = null
 ) {
     // Pair(item, playlistSetVideoId)
-    fun toMediaItem(hl: String): Pair<MediaItem, String?>? {
+    fun toMediaItemData(hl: String): Pair<MediaItemData, String?>? {
         if (musicTwoRowItemRenderer != null) {
             return musicTwoRowItemRenderer.toMediaItem(hl)?.let { Pair(it, null) }
         }

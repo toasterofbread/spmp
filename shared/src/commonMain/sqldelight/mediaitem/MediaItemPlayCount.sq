@@ -1,0 +1,22 @@
+CREATE TABLE MediaItemPlayCount(
+    day INTEGER NOT NULL,
+    item_id TEXT NOT NULL,
+
+    play_count INTEGER NOT NULL DEFAULT 0,
+
+    FOREIGN KEY (item_id) REFERENCES MediaItem(id),
+    PRIMARY KEY (day, item_id)
+);
+
+byDay: SELECT item_id, play_count FROM MediaItemPlayCount WHERE day == :day;
+byItemId: SELECT day, play_count FROM MediaItemPlayCount WHERE item_id == :item_id;
+byItemIdSince: SELECT day, play_count FROM MediaItemPlayCount WHERE item_id == :item_id AND day >= :since_day;
+
+insertOrIgnore:
+INSERT OR IGNORE INTO MediaItemPlayCount(day, item_id) VALUES (:day, :item_id);
+
+increment:
+UPDATE MediaItemPlayCount SET play_count = play_count + :by WHERE item_id == :item_id AND day == :day;
+
+updateItemId:
+UPDATE MediaItemPlayCount SET item_id = :to_id WHERE item_id = :from_id;

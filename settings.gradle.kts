@@ -12,18 +12,18 @@ pluginManagement {
     }
 
     plugins {
-        val kotlinVersion = extra["kotlin.version"] as String
-        val agpVersion = extra["agp.version"] as String
-        val composeVersion = extra["compose.version"] as String
+        val kotlin_version = extra["kotlin.version"] as String
+        val agp_version = extra["agp.version"] as String
+        val compose_version = extra["compose.version"] as String
 
-        kotlin("jvm").version(kotlinVersion)
-        kotlin("multiplatform").version(kotlinVersion)
-        kotlin("android").version(kotlinVersion)
+        kotlin("jvm").version(kotlin_version)
+        kotlin("multiplatform").version(kotlin_version)
+        kotlin("android").version(kotlin_version)
 
-        id("com.android.application").version(agpVersion)
-        id("com.android.library").version(agpVersion)
+        id("com.android.application").version(agp_version)
+        id("com.android.library").version(agp_version)
 
-        id("org.jetbrains.compose").version(composeVersion)
+        id("org.jetbrains.compose").version(compose_version)
     }
 }
 

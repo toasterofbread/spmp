@@ -42,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.Database
 import com.toasterofbread.spmp.api.Api
 import com.toasterofbread.spmp.api.HomeFeedLoadResult
 import com.toasterofbread.spmp.api.cast
@@ -50,6 +51,8 @@ import com.toasterofbread.spmp.api.unit
 import com.toasterofbread.spmp.model.FilterChip
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.ArtistRef
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mutableSettingsState
 import com.toasterofbread.spmp.platform.composable.SwipeRefresh
 import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
@@ -137,19 +140,20 @@ class SongFeedPage(state: MainPageState): MainPage(state) {
         val player = LocalPlayerState.current
         val artists_layout: MediaItemLayout = remember {
             MediaItemLayout(
+                mutableStateListOf(),
                 null,
                 null,
-                items = mutableStateListOf(),
-                type = MediaItemLayout.Type.ROW,
-                itemSizeProvider = {
-                    val size = 80.dp
-                    DpSize(size, size + 30.dp)
-                }
+                type = MediaItemLayout.Type.ROW
             )
         }
 
         LaunchedEffect(layouts) {
-            populateArtistsLayout(artists_layout, layouts, Api.ytm_auth.getOwnChannelOrNull())
+            populateArtistsLayout(
+                artists_layout.items as MutableList<MediaItem>,
+                layouts,
+                Api.ytm_auth.getOwnChannelOrNull(),
+                SpMp.context.database
+            )
         }
 
         LaunchedEffect(Unit) {
@@ -188,10 +192,7 @@ class SongFeedPage(state: MainPageState): MainPage(state) {
 
             @Composable
             fun TopContent() {
-                val pinned_items = player.pinned_items
-                AnimatedVisibility(pinned_items.isNotEmpty()) {
-                    PinnedItemsRow(Modifier.padding(bottom = 10.dp), pinned_items)
-                }
+                PinnedItemsRow(Modifier.padding(bottom = 10.dp))
             }
 
             current_state.also { state ->
@@ -321,17 +322,10 @@ class SongFeedPage(state: MainPageState): MainPage(state) {
             load_lock.unlock()
         }
 
-        val result = loadFeedLayouts(min_rows, allow_cached, filter_params, if (continue_feed) continuation else null)
+        val result = loadFeedLayouts(min_rows, allow_cached, filter_params, if (continue_feed) continuation else null, SpMp.context.database)
 
         result.fold(
             { data ->
-                val square_item_max_text_rows: Int = Settings.KEY_FEED_SQUARE_PREVIEW_TEXT_LINES.get()
-                val itemSizeProvider: @Composable () -> DpSize = { getMainPageItemSize() }
-                for (layout in data.layouts) {
-                    layout.itemSizeProvider = itemSizeProvider
-                    layout.square_item_max_text_rows = square_item_max_text_rows
-                }
-
                 if (continue_feed) {
                     layouts = (layouts ?: emptyList()) + data.layouts
                 } else {
@@ -354,35 +348,37 @@ class SongFeedPage(state: MainPageState): MainPage(state) {
     }
 }
 
-private fun populateArtistsLayout(artists_layout: MediaItemLayout, layouts: List<MediaItemLayout>?, own_channel: Artist?) {
-    artists_layout.items.clear()
-    
-    if (layouts?.isNotEmpty() != true) {
-        return
-    }
-    
-    val artists_map: MutableMap<Artist, Int?> = mutableMapOf()
-    for (layout in layouts) {
+private fun populateArtistsLayout(
+    artists_layout_items: MutableList<MediaItem>,
+    layouts: List<MediaItemLayout>?,
+    own_channel: Artist?,
+    db: Database
+) {
+    val artists_map: MutableMap<String, Int?> = mutableMapOf()
+    for (layout in layouts.orEmpty()) {
         for (item in layout.items) {
             if (item is Artist) {
-                artists_map[item] = null
+                artists_map[item.id] = null
                 continue
             }
 
-            item.artist?.also { artist ->
-                if (artist == own_channel) {
-                    return@also
-                }
+            if (item !is MediaItem.WithArtist) {
+                continue
+            }
 
-                if (artists_map.containsKey(artist)) {
-                    val current = artists_map[artist]
-                    if (current != null) {
-                        artists_map[artist] = current + 1
-                    }
+            val artist = item.Artist.get(db) ?: continue
+            if (artist.id == own_channel?.id) {
+                continue
+            }
+
+            if (artists_map.containsKey(artist.id)) {
+                val current = artists_map[artist.id]
+                if (current != null) {
+                    artists_map[artist.id] = current + 1
                 }
-                else {
-                    artists_map[artist] = 1
-                }
+            }
+            else {
+                artists_map[artist.id] = 1
             }
         }
     }
@@ -392,8 +388,9 @@ private fun populateArtistsLayout(artists_layout: MediaItemLayout, layouts: List
         else Pair(artist.key, artist.value)
     }.sortedByDescending { it.second }
 
+    artists_layout_items.clear()
     for (artist in artists) {
-        artists_layout.items.add(artist.first)
+        artists_layout_items.add(ArtistRef(artist.first))
     }
 }
 
@@ -402,8 +399,10 @@ private suspend fun loadFeedLayouts(
     allow_cached: Boolean,
     params: String?,
     continuation: String? = null,
+    db: Database
 ): Result<HomeFeedLoadResult> {
     val result = getHomeFeed(
+        db,
         allow_cached = allow_cached,
         min_rows = min_rows,
         params = params,

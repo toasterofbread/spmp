@@ -10,13 +10,13 @@ import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.api.Api.Companion.ytUrl
 import com.toasterofbread.spmp.api.cast
 import com.toasterofbread.spmp.api.getAccountPlaylists
-import com.toasterofbread.spmp.model.mediaitem.AccountPlaylist
 import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.ArtistData
+import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.ui.layout.YTAccountMenuResponse
 import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 
@@ -40,7 +40,7 @@ class YoutubeMusicAuthInfo: Set<String> {
     var own_playlists_loaded: Boolean by mutableStateOf(false)
     var own_playlists: MutableList<String> = mutableStateListOf()
         private set
-    fun onOwnPlaylistDeleted(playlist: AccountPlaylist) {
+    fun onOwnPlaylistDeleted(playlist: PlaylistData) {
         own_playlists.remove(playlist.id)
     }
 
@@ -51,8 +51,6 @@ class YoutubeMusicAuthInfo: Set<String> {
 
     constructor(own_channel: Artist, cookie: String, headers: Map<String, String>) {
         this.own_channel = own_channel
-        own_channel.is_own_channel = true
-
         this.cookie = cookie
         this.headers = headers
         is_initialised = true
@@ -68,13 +66,7 @@ class YoutubeMusicAuthInfo: Set<String> {
         for (item in set) {
             val value = item.substring(1)
             when (ValueType.values()[item.take(1).toInt()]) {
-                ValueType.CHANNEL -> own_channel = Artist.fromId(value).also {
-                    runBlocking {
-                        withContext(Dispatchers.IO) {
-                            it.is_own_channel = true
-                        }
-                    }
-                }
+                ValueType.CHANNEL -> own_channel = ArtistData(value)
                 ValueType.COOKIE -> cookie = value
                 ValueType.HEADER -> stringToHeader(value).also { set_headers[it.first] = it.second }
                 ValueType.PLAYLIST -> own_playlists.add(value)

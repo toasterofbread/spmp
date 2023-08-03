@@ -3,44 +3,40 @@ package com.toasterofbread.spmp.ui.layout.mainpage
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.Text
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.Database
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.SearchPage
 import com.toasterofbread.spmp.ui.layout.library.LibraryPage
 import com.toasterofbread.spmp.ui.layout.songfeedpage.SongFeedPage
 import com.toasterofbread.spmp.ui.theme.Theme
 
-class MainPageState {
+class MainPageState(database: Database) {
     val SongFeed = SongFeedPage(this)
     val Library = LibraryPage(this)
-    val Search = SearchPage(this)
+    val Search = SearchPage(this, database)
     val Default: MainPage = SongFeed
 
     var current_page by mutableStateOf(Default)
 
-    fun setPage(page: MainPage? = null): Boolean {
+    fun setPage(page: MainPage? = null, going_back: Boolean = false): Boolean {
         val new_page = page ?: Default
         if (new_page != current_page) {
             current_page = new_page
-            new_page.onOpened()
+            if (!going_back) {
+                new_page.onOpened()
+            }
             return true
         }
         return false

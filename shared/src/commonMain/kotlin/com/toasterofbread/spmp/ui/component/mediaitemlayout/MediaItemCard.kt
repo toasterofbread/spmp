@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.component.mediaitemlayout
 
 import LocalPlayerState
+import SpMp
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -31,11 +32,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,7 +43,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
@@ -52,8 +50,11 @@ import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
 import com.toasterofbread.spmp.model.mediaitem.isMediaItemHidden
+import com.toasterofbread.spmp.model.mediaitem.rememberThemeColour
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getArtistLongPressMenuData
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getPlaylistLongPressMenuData
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getSongLongPressMenuData
@@ -69,12 +70,12 @@ fun MediaItemCard(
     multiselect_context: MediaItemMultiSelectContext? = null,
     apply_filter: Boolean = false
 ) {
-    val item: MediaItem = layout.items.single()
-    if (apply_filter && isMediaItemHidden(item)) {
+    val item: MediaItem = layout.items.first()
+    if (apply_filter && isMediaItemHidden(item, SpMp.context.database)) {
         return
     }
 
-    var accent_colour: Color? by remember { mutableStateOf(null) }
+    val accent_colour: Color? = item.rememberThemeColour(SpMp.context.database)
     val player = LocalPlayerState.current
 
     val shape = RoundedCornerShape(16.dp)
@@ -85,21 +86,6 @@ fun MediaItemCard(
             is Artist -> getArtistLongPressMenuData(item, multiselect_context = multiselect_context)
             is Playlist -> getPlaylistLongPressMenuData(item, shape, multiselect_context = multiselect_context)
             else -> throw NotImplementedError(item.javaClass.name)
-        }
-    }
-
-    LaunchedEffect(item.canGetThemeColour()) {
-        if (accent_colour != null) {
-            return@LaunchedEffect
-        }
-
-        if (item is Song && item.theme_colour != null) {
-            accent_colour = item.theme_colour
-            return@LaunchedEffect
-        }
-
-        if (item.canGetThemeColour()) {
-            accent_colour = item.getDefaultThemeColour()
         }
     }
 
@@ -124,9 +110,13 @@ fun MediaItemCard(
         ) {
             layout.TitleBar(Modifier.fillMaxWidth().weight(1f), multiselect_context = multiselect_context)
 
+            val playlist_type: State<PlaylistType?>? =
+                if (item is Playlist) item.TypeOfPlaylist.observe(SpMp.context.database)
+                else null
+
             Text(
-                if (item is Playlist) item.playlist_type.getReadable(false)
-                else item.type.getReadable(false),
+                if (item is Playlist) playlist_type?.value.getReadable(false)
+                else item.getType().getReadable(false),
                 fontSize = 15.sp
             )
 
@@ -135,8 +125,8 @@ fun MediaItemCard(
                     is Song -> Icons.Filled.MusicNote
                     is Artist -> Icons.Filled.Person
                     is Playlist -> {
-                        when (item.playlist_type) {
-                            PlaylistType.PLAYLIST, null -> Icons.Filled.PlaylistPlay
+                        when (playlist_type?.value) {
+                            PlaylistType.PLAYLIST, PlaylistType.LOCAL, null -> Icons.Filled.PlaylistPlay
                             PlaylistType.ALBUM -> Icons.Filled.Album
                             PlaylistType.AUDIOBOOK -> Icons.Filled.Book
                             PlaylistType.PODCAST -> Icons.Filled.Podcasts
@@ -144,7 +134,7 @@ fun MediaItemCard(
                         }
                     }
 
-                    else -> throw NotImplementedError(item.type.toString())
+                    else -> throw NotImplementedError(item::class.toString())
                 },
                 null,
                 Modifier.size(15.dp)
@@ -175,16 +165,20 @@ fun MediaItemCard(
                     .padding(horizontal = 15.dp, vertical = 5.dp),
                 verticalArrangement = Arrangement.SpaceEvenly
             ) {
+                val item_title: String? by item.Title.observe(SpMp.context.database)
                 Text(
-                    item.title!!,
+                    item_title ?: "",
                     style = LocalTextStyle.current.copy(color = (accent_colour ?: Theme.accent).getContrasted()),
                     softWrap = false,
                     overflow = TextOverflow.Ellipsis
                 )
-                item.artist?.PreviewLong(
-                    MediaItemPreviewParams(
-                        contentColour = { (accent_colour ?: Theme.accent).getContrasted() }
-                    ))
+
+                if (item is MediaItem.WithArtist) {
+                    val item_artist: Artist? by item.Artist.observe(SpMp.context.database)
+                    item_artist?.also { artist ->
+                        MediaItemPreviewLong(artist, contentColour = { (accent_colour ?: Theme.accent).getContrasted() })
+                    }
+                }
             }
         }
 
@@ -204,7 +198,7 @@ fun MediaItemCard(
             ) {
                 Text(
                     getString(
-                        when (item.type) {
+                        when (item.getType()) {
                             MediaItemType.SONG -> "media_play"
                             MediaItemType.ARTIST -> "artist_chip_play"
                             MediaItemType.PLAYLIST_ACC, MediaItemType.PLAYLIST_LOC, MediaItemType.PLAYLIST_BROWSEPARAMS -> "playlist_chip_play"

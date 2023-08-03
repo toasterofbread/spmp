@@ -231,7 +231,6 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
 
                         item {
                             val navbar_height = SpMp.context.getNavigationBarHeightDp()
-                            println("BAR HEIGHT $navbar_height")
                             Spacer(Modifier.height(
                                 NOW_PLAYING_TOP_BAR_HEIGHT.dp
                                 + MINIMISED_NOW_PLAYING_HEIGHT_DP.dp

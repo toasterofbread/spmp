@@ -19,7 +19,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.coerceAtLeast
@@ -34,6 +36,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_VERTICAL_PAGE_CO
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThumbnailRow
 import com.toasterofbread.spmp.ui.layout.nowplaying.TopBar
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.getThemeColour
 import kotlin.math.absoluteValue
 
 const val NOW_PLAYING_MAIN_PADDING = 10f
@@ -46,14 +49,19 @@ internal const val SEEK_BAR_GRADIENT_OVERFLOW_RATIO = 0.3f
 
 @Composable
 fun ColumnScope.NowPlayingMainTab() {
+    val db = SpMp.context.database
     val player = LocalPlayerState.current
+
     val current_song: Song? = player.status.m_song
     val expansion = LocalNowPlayingExpansion.current
 
     var theme_colour by remember { mutableStateOf<Color?>(null) }
     fun setThemeColour(value: Color?) {
         theme_colour = value
-        current_song?.theme_colour = theme_colour
+
+        current_song?.id?.also { song_id ->
+            db.mediaItemQueries.updateThemeColourById(theme_colour?.toArgb()?.toLong(), song_id)
+        }
     }
 
     var seek_state by remember { mutableStateOf(-1f) }
@@ -62,7 +70,7 @@ fun ColumnScope.NowPlayingMainTab() {
         Theme.currentThumbnnailColourChanged(theme_colour)
     }
 
-    fun onThumbnailLoaded(song: Song?) {
+    fun onThumbnailLoaded(song: Song?, image: ImageBitmap?) {
         if (song != current_song) {
             return
         }
@@ -70,16 +78,19 @@ fun ColumnScope.NowPlayingMainTab() {
         if (song == null) {
             theme_colour = null
         }
-        else if (song.theme_colour != null) {
-            theme_colour = song.theme_colour
-        }
-        else if (song.canGetThemeColour()) {
-            theme_colour = song.getDefaultThemeColour()
+        else {
+            val song_theme = song.ThemeColour.get(db)
+            if (song_theme != null) {
+                theme_colour = song_theme
+            }
+            else {
+                theme_colour = image?.getThemeColour()
+            }
         }
     }
 
     LaunchedEffect(current_song) {
-        onThumbnailLoaded(current_song)
+        onThumbnailLoaded(current_song, null)
     }
 
     val screen_height = SpMp.context.getScreenHeight()
@@ -126,7 +137,7 @@ fun ColumnScope.NowPlayingMainTab() {
                         screen_width -
                             (2 * (MINIMISED_NOW_PLAYING_HORIZ_PADDING.dp + ((MINIMISED_NOW_PLAYING_HORIZ_PADDING.dp - NOW_PLAYING_MAIN_PADDING.dp) * expansion.getAbsolute())))
                     ),
-                onThumbnailLoaded = { onThumbnailLoaded(it) },
+                onThumbnailLoaded = { song, image -> onThumbnailLoaded(song, image) },
                 setThemeColour = { setThemeColour(it) },
                 getSeekState = { seek_state }
             )

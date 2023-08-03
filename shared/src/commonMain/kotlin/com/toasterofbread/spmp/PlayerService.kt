@@ -1,31 +1,43 @@
 package com.toasterofbread.spmp
 
 import SpMp
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.toasterofbread.spmp.api.*
+import androidx.compose.ui.Modifier
+import app.cash.sqldelight.Query
+import com.toasterofbread.spmp.api.RadioModifier
+import com.toasterofbread.spmp.api.getOrThrowHere
+import com.toasterofbread.spmp.api.markSongAsWatched
 import com.toasterofbread.spmp.api.radio.RadioInstance
 import com.toasterofbread.spmp.api.radio.RadioInstance.RadioState
-import com.toasterofbread.spmp.model.*
-import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.platform.*
+import com.toasterofbread.spmp.model.mediaitem.incrementMediaItemPlayCount
+import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
+import com.toasterofbread.spmp.model.mediaitem.toThumbnailProvider
+import com.toasterofbread.spmp.platform.DiscordStatus
+import com.toasterofbread.spmp.platform.MediaPlayerService
+import com.toasterofbread.spmp.platform.MediaPlayerState
+import com.toasterofbread.spmp.platform.Platform
+import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.sync.withPermit
-import java.io.*
-import java.util.*
+import kotlinx.coroutines.withContext
+import java.util.Timer
+import java.util.TimerTask
 import kotlin.random.Random
 import kotlin.random.nextInt
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 
 // Radio continuation will be added if the amount of remaining songs (including current) falls below this
 private const val RADIO_MIN_LENGTH: Int = 10
@@ -36,7 +48,7 @@ private const val SONG_MARK_WATCHED_POSITION = 1000 // ms
 private const val DISCORD_APPLICATION_ID = "1081929293979992134"
 private const val DISCORD_ASSET_ICON_PRIMARY = "1103702923852132372"
 
-class PlayerService : MediaPlayerService() {
+class PlayerService: MediaPlayerService() {
 
     var stop_after_current_song: Boolean by mutableStateOf(false)
     var active_queue_index: Int by mutableStateOf(0)
@@ -99,9 +111,7 @@ class PlayerService : MediaPlayerService() {
                 val final_index = if (item != null) item_index else index
 
                 if (final_item !is Song) {
-                    final_item.editRegistry {
-                        it.incrementPlayCount()
-                    }
+                    context.database.incrementMediaItemPlayCount(final_item.id)
                 }
 
                 return@customUndoableAction getRadioChangeUndoRedo(
@@ -374,7 +384,7 @@ class PlayerService : MediaPlayerService() {
 
     // --- Internal ---
 
-    private val radio = RadioInstance()
+    private lateinit var radio: RadioInstance
     private fun setRadioFilter(filter_index: Int?) = synchronized(radio) {
         if (filter_index == radio.state.current_filter) {
             return
@@ -436,22 +446,22 @@ class PlayerService : MediaPlayerService() {
     private var tracking_song_index = 0
     private val player_listener = object : Listener() {
         var current_song: Song? = null
-        val song_title_listener: (String?) -> Unit = {
-            updateDiscordStatus(current_song)
-        }
-        val song_artist_listener: (Artist?) -> Unit = {
+
+        val song_metadata_listener = Query.Listener {
             updateDiscordStatus(current_song)
         }
 
         override fun onSongTransition(song: Song?) {
-            current_song?.apply {
-                title_listeners.remove(song_title_listener)
-                artist_listeners.remove(song_artist_listener)
-            }
-            current_song = song
-            current_song?.apply {
-                title_listeners.add(song_title_listener)
-                artist_listeners.add(song_artist_listener)
+            with(context.database) {
+                current_song?.also { current ->
+                    mediaItemQueries.titleById(current.id).removeListener(song_metadata_listener)
+                    songQueries.artistById(current.id).removeListener(song_metadata_listener)
+                }
+                current_song = song
+                current_song?.also { current ->
+                    mediaItemQueries.titleById(current.id).addListener(song_metadata_listener)
+                    songQueries.artistById(current.id).addListener(song_metadata_listener)
+                }
             }
 
             savePersistentQueue()
@@ -521,20 +531,31 @@ class PlayerService : MediaPlayerService() {
     }
 
     @Synchronized
-    private fun updateDiscordStatus(song: Song?) {
+    private fun updateDiscordStatus(song: Song?): Unit = with(context.database) {
         discord_status_update_job?.cancel()
         discord_rpc?.apply {
-            val song = song ?: getSong()
-            if (song?.title == null) {
+            val status_song = song ?: getSong()
+            if (status_song == null) {
+                close()
+                return
+            }
+
+            val song_title = status_song.Title.get(context.database)
+            if (song_title == null) {
                 close()
                 return
             }
 
             discord_status_update_job = coroutine_scope.launch {
                 fun formatText(text: String): String {
+                    val artist_id = songQueries.artistById(status_song.id).executeAsOne().artist
+                    val artist_title = artist_id?.let {
+                        mediaItemQueries.titleById(it).executeAsOne().title
+                    }
+
                     return text
-                        .replace("\$artist", song.artist?.title ?: getStringTODO("Unknown"))
-                        .replace("\$song", song.title!!)
+                        .replace("\$artist", artist_title ?: getStringTODO("Unknown"))
+                        .replace("\$song", song_title)
                 }
 
                 val name = formatText(Settings.KEY_DISCORD_STATUS_NAME.get())
@@ -546,11 +567,22 @@ class PlayerService : MediaPlayerService() {
                 val small_image: String?
 
                 try {
-                    large_image = getCustomImage(song.id) { song.loadThumbnail(MediaItemThumbnailProvider.Quality.LOW)!! }.getOrThrow()
-                    small_image = song.artist?.let { artist ->
-                        getCustomImage(artist.id) {
-                            artist.loadThumbnail(MediaItemThumbnailProvider.Quality.LOW)
-                        }.getOrThrow()
+                    large_image = getCustomImage(status_song.id) {
+                        val thumbnail_provider = mediaItemQueries.thumbnailProviderById(status_song.id).executeAsOne().toThumbnailProvider()
+                            ?: return@getCustomImage null
+                        MediaItemThumbnailLoader.loadItemThumbnail(status_song, thumbnail_provider, MediaItemThumbnailProvider.Quality.LOW, context).getOrThrowHere()
+                    }.getOrNull()
+
+                    val artist = songQueries.artistById(status_song.id).executeAsOne().artist?.let { ArtistData(it) }
+                    if (artist != null) {
+                        small_image = getCustomImage(artist.id) {
+                            val thumbnail_provider = mediaItemQueries.thumbnailProviderById(artist.id).executeAsOne().toThumbnailProvider()
+                                ?: return@getCustomImage null
+                            MediaItemThumbnailLoader.loadItemThumbnail(artist, thumbnail_provider, MediaItemThumbnailProvider.Quality.LOW, context).getOrThrowHere()
+                        }.getOrNull()
+                    }
+                    else {
+                        small_image = null
                     }
                 }
                 catch (e: Throwable) {
@@ -559,7 +591,7 @@ class PlayerService : MediaPlayerService() {
 
                 val buttons = mutableListOf<Pair<String, String>>().apply {
                     if (Settings.KEY_DISCORD_SHOW_BUTTON_SONG.get()) {
-                        add(Settings.KEY_DISCORD_BUTTON_SONG_TEXT.get<String>() to song.url)
+                        add(Settings.KEY_DISCORD_BUTTON_SONG_TEXT.get<String>() to status_song.getURL())
                     }
                     if (Settings.KEY_DISCORD_SHOW_BUTTON_PROJECT.get()) {
                         add(Settings.KEY_DISCORD_BUTTON_PROJECT_TEXT.get<String>() to getString("project_url"))
@@ -575,7 +607,9 @@ class PlayerService : MediaPlayerService() {
                     large_image = large_image,
                     large_text = text_c.ifEmpty { null },
                     small_image = small_image,
-                    small_text = if (small_image != null) song.artist?.title else null,
+                    small_text =
+                        if (small_image != null) status_song.Artist.get(context.database)?.Title?.get(context.database)
+                        else null,
                     application_id = DISCORD_APPLICATION_ID
                 )
             }
@@ -610,92 +644,93 @@ class PlayerService : MediaPlayerService() {
     }
 
     suspend fun loadPersistentQueue(apply: Boolean = true) = withContext(Dispatchers.IO) {
-        if (Platform.is_desktop) {
-            return@withContext
-        }
-
-        if (!apply) {
-            persistent_queue_loaded = true
-            return@withContext
-        }
-
-        queue_lock.withLock {
-            val reader: BufferedReader
-            try {
-                reader = context.openFileInput("persistent_queue").bufferedReader()
-            }
-            catch (_: FileNotFoundException) {
-                SpMp.Log.info("loadPersistentQueue no file found")
-                persistent_queue_loaded = true
-                return@withContext
-            }
-
-            coroutineContext.job.invokeOnCompletion {
-                reader.close()
-            }
-
-            val pos_data = (reader.readLine() ?: return@withLock).split(',')
-
-            val songs: MutableList<Song?> = mutableListOf()
-            val request_limit = Semaphore(10)
-            val jobs: MutableList<Job> = mutableListOf()
-
-            var i = 0
-            var line = reader.readLine()
-            while (line != null) {
-                val song = Song.fromId(line)
-                val index = i++
-                line = reader.readLine()
-
-                if (song.title != null) {
-                    songs.add(song)
-                    continue
-                }
-
-                songs.add(null)
-
-                jobs.add(
-                    launch {
-                        request_limit.withPermit {
-                            song.getTitle().getOrReport("loadPersistentQueue") ?: return@launch
-                            song.getArtist().getOrReport("loadPersistentQueue")
-                            song.getThumbnailProvider()
-
-                            synchronized(songs) {
-                                songs[index] = song
-                            }
-                        }
-                    }
-                )
-            }
-
-            jobs.joinAll()
-
-            val to_add = songs.filterIsInstance<Song>()
-            if (to_add.isEmpty()) {
-                return@withContext
-            }
-
-            SpMp.Log.info("loadPersistentQueue adding ${songs.size} songs to $pos_data")
-
-            withContext(Dispatchers.Main) {
-                if (song_count == 0) {
-                    clearQueue(save = false)
-                    addMultipleToQueue(to_add, 0)
-                    seekToSong(pos_data[0].toInt())
-                    seekTo(pos_data[1].toLong())
-                }
-
-                persistent_queue_loaded = true
-                check(queue_lock.isLocked)
-            }
-        }
+//        if (Platform.is_desktop) {
+//            return@withContext
+//        }
+//
+//        if (!apply) {
+//            persistent_queue_loaded = true
+//            return@withContext
+//        }
+//
+//        queue_lock.withLock {
+//            val reader: BufferedReader
+//            try {
+//                reader = context.openFileInput("persistent_queue").bufferedReader()
+//            }
+//            catch (_: FileNotFoundException) {
+//                SpMp.Log.info("loadPersistentQueue no file found")
+//                persistent_queue_loaded = true
+//                return@withContext
+//            }
+//
+//            coroutineContext.job.invokeOnCompletion {
+//                reader.close()
+//            }
+//
+//            val pos_data = (reader.readLine() ?: return@withLock).split(',')
+//
+//            val songs: MutableList<Song?> = mutableListOf()
+//            val request_limit = Semaphore(10)
+//            val jobs: MutableList<Job> = mutableListOf()
+//
+//            var i = 0
+//            var line = reader.readLine()
+//            while (line != null) {
+//                val index = i++
+//                line = reader.readLine()
+//
+//                val song = SongData(line)
+//
+//                if (song.Loaded.get(context.database)) {
+//                    songs.add(song)
+//                    continue
+//                }
+//
+//                songs.add(null)
+//
+//                jobs.add(
+//                    launch {
+//                        request_limit.withPermit {
+//                            MediaItemLoader.loadSong(song, context.database)
+//
+//                            synchronized(songs) {
+//                                songs[index] = song
+//                            }
+//                        }
+//                    }
+//                )
+//            }
+//
+//            jobs.joinAll()
+//
+//            val to_add = songs.filterIsInstance<Song>()
+//            if (to_add.isEmpty()) {
+//                return@withContext
+//            }
+//
+//            SpMp.Log.info("loadPersistentQueue adding ${songs.size} songs to $pos_data")
+//
+//            withContext(Dispatchers.Main) {
+//                if (song_count == 0) {
+//                    clearQueue(save = false)
+//                    addMultipleToQueue(to_add, 0)
+//                    seekToSong(pos_data[0].toInt())
+//                    seekTo(pos_data[1].toLong())
+//                }
+//
+//                persistent_queue_loaded = true
+//                check(queue_lock.isLocked)
+//            }
+//        }
     }
 
     override fun onCreate() {
         super.onCreate()
 
         addListener(player_listener)
+
+        radio = RadioInstance(context.database)
 
         val prefs = context.getPrefs()
         prefs.addListener(prefs_listener)
@@ -803,10 +838,9 @@ class PlayerService : MediaPlayerService() {
                         ) {
                             song_marked_as_watched = true
 
-                            val song = getSong()!!
-                            song.editRegistry {
-                                it.incrementPlayCount()
-                            }
+                            val song = getSong() ?: return@withContext
+
+                            context.database.incrementMediaItemPlayCount(song.id)
 
                             if (Settings.KEY_ADD_SONGS_TO_HISTORY.get(context)) {
                                 withContext(Dispatchers.IO) {

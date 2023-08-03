@@ -9,6 +9,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.Database
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerStateImpl
 import java.io.File
 import java.io.FileInputStream
@@ -52,6 +53,7 @@ fun PlatformContext.getNavigationBarHeightDp(): Dp = with(LocalDensity.current) 
 
 expect class PlatformContext {
     val player_state: PlayerStateImpl
+    val database: Database
 
     fun getPrefs(): ProjectPreferences
 

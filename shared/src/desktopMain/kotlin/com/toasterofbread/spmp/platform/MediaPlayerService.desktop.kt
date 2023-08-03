@@ -72,7 +72,7 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
 
             assert(playlist.isEmpty())
             for (id in state.playlist) {
-                playlist.add(Song.fromId(id).loadData().getOrThrowHere() as Song)
+                playlist.add(SongData(id).loadData().getOrThrowHere() as Song)
             }
 
             if (state.state != _state.ordinal) {
@@ -195,7 +195,7 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
                     listeners.forEach { it.onSeeked(position_ms) }
                 }
                 "SongAdded" -> {
-                    val song = Song.fromId(event["song_id"] as String)
+                    val song = SongData(event["song_id"] as String)
                     val index = event["index"] as Int
                     playlist.add(index, song)
                     listeners.forEach { it.onSongAdded(index, song) }

@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.sp
 import com.github.krottv.compose.sliders.DefaultThumb
 import com.github.krottv.compose.sliders.DefaultTrack
 import com.github.krottv.compose.sliders.SliderValueHorizontal
+import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.vibrateShort
@@ -69,7 +70,14 @@ internal fun Controls(
     seek: (Float) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val db = SpMp.context.database
     val player = LocalPlayerState.current
+
+    val song_title: String? = song?.Title?.observe(db)?.value
+    val song_artist_title: String? = song?.Artist?.observeOn(db) {
+        it?.Title
+    }
+
     var show_title_edit_dialog: Boolean by remember { mutableStateOf(false) }
 
     LaunchedEffect(song) {
@@ -134,7 +142,7 @@ internal fun Controls(
 
                 Marquee(Modifier.fillMaxWidth()) {
                     Text(
-                        song?.title ?: "",
+                        song_title ?: "",
                         fontSize = 20.sp,
                         color = getNPOnBackground(),
                         textAlign = TextAlign.Center,
@@ -154,7 +162,7 @@ internal fun Controls(
                 }
 
                 Text(
-                    song?.artist?.title ?: "",
+                    song_artist_title ?: "",
                     fontSize = 12.sp,
                     color = getNPOnBackground(),
                     textAlign = TextAlign.Center,
@@ -164,18 +172,16 @@ internal fun Controls(
                         .fillMaxWidth()
                         .platformClickable(
                             onClick = {
-                                if (song?.artist?.is_for_item == false) {
-                                    player.status.m_song?.artist?.also {
-                                        player.onMediaItemClicked(it)
-                                    }
+                                val artist: Artist? = song?.Artist?.get(db)
+                                if (artist?.IsForItem?.get(db) == false) {
+                                    player.onMediaItemClicked(artist)
                                 }
                             },
                             onAltClick = {
-                                if (song?.artist?.is_for_item == false) {
-                                    player.status.m_song?.artist?.also {
-                                        player.onMediaItemLongClicked(it)
-                                        SpMp.context.vibrateShort()
-                                    }
+                                val artist: Artist? = song?.Artist?.get(db)
+                                if (artist?.IsForItem?.get(db) == false) {
+                                    player.onMediaItemLongClicked(artist)
+                                    SpMp.context.vibrateShort()
                                 }
                             }
                         )

@@ -22,11 +22,11 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.api.Api
 import com.toasterofbread.spmp.api.setSongLiked
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.SongLikedStatus
+import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLikedLoader
 import com.toasterofbread.spmp.model.mediaitem.observeAsState
-import com.toasterofbread.spmp.model.mediaitem.toLong
-import com.toasterofbread.spmp.model.mediaitem.toSongLikedStatus
+import com.toasterofbread.spmp.model.mediaitem.song.toLong
+import com.toasterofbread.spmp.model.mediaitem.song.toSongLikedStatus
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 

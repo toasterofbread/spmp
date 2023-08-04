@@ -16,7 +16,6 @@ import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.layout.SongRelatedPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
-import com.toasterofbread.spmp.ui.theme.Theme
 
 class RelatedContentOverlayMenu : OverlayMenu() {
     override fun closeOnTap(): Boolean = false

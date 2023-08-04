@@ -7,14 +7,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -39,8 +36,8 @@ import com.toasterofbread.spmp.model.mediaitem.AccountPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.LocalPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.createLocalPlaylist
-import com.toasterofbread.spmp.model.mediaitem.rememberLocalPlaylists
+import com.toasterofbread.spmp.model.mediaitem.playlist.createLocalPlaylist
+import com.toasterofbread.spmp.model.mediaitem.playlist.rememberLocalPlaylists
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid

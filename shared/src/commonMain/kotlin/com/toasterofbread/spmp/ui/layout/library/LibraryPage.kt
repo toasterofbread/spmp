@@ -3,7 +3,6 @@ package com.toasterofbread.spmp.ui.layout.library
 import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,11 +11,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MusicNote
@@ -24,18 +21,12 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonRemove
 import androidx.compose.material.icons.filled.PlaylistPlay
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CardElevation
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -48,8 +39,6 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.platform.PlayerDownloadManager
-import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.rememberSongDownloads
 import com.toasterofbread.spmp.resources.getString
@@ -60,10 +49,7 @@ import com.toasterofbread.spmp.ui.layout.mainpage.MainPage
 import com.toasterofbread.spmp.ui.layout.mainpage.MainPageState
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerOverlayPage
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
-import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.blendWith
 import com.toasterofbread.utils.composable.WidthShrinkText
-import com.toasterofbread.utils.contrastAgainst
 
 enum class LibrarySubPage { SONGS }
 

@@ -1,9 +1,10 @@
-package com.toasterofbread.spmp.model.mediaitem
+package com.toasterofbread.spmp.model.mediaitem.playlist
 
 import androidx.compose.runtime.Composable
 import com.toasterofbread.Database
-import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
+import com.toasterofbread.spmp.model.mediaitem.LocalPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.spmp.model.mediaitem.observeAsState
 
 @Composable
 fun rememberLocalPlaylists(db: Database): List<LocalPlaylistRef> {

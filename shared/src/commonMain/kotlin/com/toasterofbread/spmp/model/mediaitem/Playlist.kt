@@ -1,8 +1,11 @@
 package com.toasterofbread.spmp.model.mediaitem
 
 import com.toasterofbread.Database
+import com.toasterofbread.spmp.model.mediaitem.db.ListProperty
+import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistHolder
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.utils.lazyAssert
 import mediaitem.PlaylistItem
@@ -71,7 +74,8 @@ sealed interface Playlist: MediaItem.WithArtist {
         return super.loadData(db, populate_data) as Result<PlaylistData>
     }
 
-    val Items: ListProperty<Song, PlaylistItem> get() = property_rememberer.rememberListProperty(
+    val Items: ListProperty<Song, PlaylistItem>
+        get() = property_rememberer.rememberListProperty(
         "Items",
         getQuery = { playlistItemQueries.byPlaylistId(id) },
         getValue = { this.map { SongRef(it.song_id) } },
@@ -89,28 +93,35 @@ sealed interface Playlist: MediaItem.WithArtist {
             playlistItemQueries.clearItems(id, from_index)
         }
     )
-    val ItemCount: Property<Int?> get() = property_rememberer.rememberSingleProperty(
+    val ItemCount: Property<Int?>
+        get() = property_rememberer.rememberSingleProperty(
         "ItemCount", { playlistQueries.itemCountById(id) }, { item_count?.toInt() }, { playlistQueries.updateItemCountById(it?.toLong(), id) }
     )
-    val TypeOfPlaylist: Property<PlaylistType?> get() = property_rememberer.rememberSingleProperty(
+    val TypeOfPlaylist: Property<PlaylistType?>
+        get() = property_rememberer.rememberSingleProperty(
         "TypeOfPlaylist",
         { playlistQueries.playlistTypeById(id) },
         { playlist_type?.let { PlaylistType.values()[it.toInt()] } },
         { playlistQueries.updatePlaylistTypeById(it?.ordinal?.toLong(), id) }
     )
-    val BrowseParams: Property<String?> get() = property_rememberer.rememberSingleProperty(
+    val BrowseParams: Property<String?>
+        get() = property_rememberer.rememberSingleProperty(
         "BrowseParams", { playlistQueries.browseParamsById(id) }, { browse_params }, { playlistQueries.updateBrowseParamsById(it, id) }
     )
-    val TotalDuration: Property<Long?> get() = property_rememberer.rememberSingleProperty(
+    val TotalDuration: Property<Long?>
+        get() = property_rememberer.rememberSingleProperty(
         "TotalDuration", { playlistQueries.totalDurationById(id) }, { total_duration }, { playlistQueries.updateTotalDurationById(it, id) }
     )
-    val Year: Property<Int?> get() = property_rememberer.rememberSingleProperty(
+    val Year: Property<Int?>
+        get() = property_rememberer.rememberSingleProperty(
         "Year", { playlistQueries.yearById(id) }, { year?.toInt() }, { playlistQueries.updateYearById(it?.toLong(), id) }
     )
-    override val Artist: Property<Artist?> get() = property_rememberer.rememberSingleProperty(
+    override val Artist: Property<Artist?>
+        get() = property_rememberer.rememberSingleProperty(
         "Artist", { playlistQueries.artistById(id) }, { artist?.let { ArtistRef(it) } }, { playlistQueries.updateArtistById(it?.id, id) }
     )
-    val Continuation: Property<MediaItemLayout.Continuation?> get() = property_rememberer.rememberSingleProperty(
+    val Continuation: Property<MediaItemLayout.Continuation?>
+        get() = property_rememberer.rememberSingleProperty(
         "Continuation",
         { playlistQueries.continuationById(id) },
         { continuation_token?.let {
@@ -122,7 +133,8 @@ sealed interface Playlist: MediaItem.WithArtist {
         { playlistQueries.updateContinuationById(it?.token, it?.type?.ordinal?.toLong(), id) }
     )
 
-    val CustomImageProvider: Property<MediaItemThumbnailProvider?> get() = property_rememberer.rememberSingleProperty(
+    val CustomImageProvider: Property<MediaItemThumbnailProvider?>
+        get() = property_rememberer.rememberSingleProperty(
         "CustomImageProvider",
         { playlistQueries.customImageProviderById(id) },
         { this.toThumbnailProvider() },
@@ -131,7 +143,8 @@ sealed interface Playlist: MediaItem.WithArtist {
             playlistQueries.updateCustomImageProviderById(it?.url_a, it?.url_b, id)
         }
     )
-    val ImageWidth: Property<Float?> get() = property_rememberer.rememberSingleProperty(
+    val ImageWidth: Property<Float?>
+        get() = property_rememberer.rememberSingleProperty(
         "ImageWidth", { playlistQueries.imageWidthById(id) }, { image_width?.toFloat() }, { playlistQueries.updateImageWidthById(it?.toDouble(), id) }
     )
 

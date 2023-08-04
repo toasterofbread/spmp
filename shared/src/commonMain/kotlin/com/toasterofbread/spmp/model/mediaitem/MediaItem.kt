@@ -18,6 +18,12 @@ import app.cash.sqldelight.Query
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.api.DEFAULT_CONNECT_TIMEOUT
 import com.toasterofbread.spmp.api.model.TextRun
+import com.toasterofbread.spmp.model.mediaitem.db.ListProperty
+import com.toasterofbread.spmp.model.mediaitem.db.Property
+import com.toasterofbread.spmp.model.mediaitem.db.SingleProperty
+import com.toasterofbread.spmp.model.mediaitem.db.asMediaItemProperty
+import com.toasterofbread.spmp.model.mediaitem.db.fromSQLBoolean
+import com.toasterofbread.spmp.model.mediaitem.db.toSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.platform.toImageBitmap
@@ -106,19 +112,24 @@ sealed interface MediaItem: MediaItemHolder {
 
     val property_rememberer: PropertyRememberer
 
-    val Loaded: Property<Boolean> get() = property_rememberer.rememberSingleProperty(
+    val Loaded: Property<Boolean>
+        get() = property_rememberer.rememberSingleProperty(
         "Loaded", { mediaItemQueries.loadedById(id) }, { loaded.fromSQLBoolean() }, { mediaItemQueries.updateLoadedById(it.toSQLBoolean(), id) }, { false }
     )
-    val Title: Property<String?> get() = property_rememberer.rememberSingleProperty(
+    val Title: Property<String?>
+        get() = property_rememberer.rememberSingleProperty(
         "Title", { mediaItemQueries.titleById(id) }, { title }, { mediaItemQueries.updateTitleById(it, id) }
     )
-    val OriginalTitle: Property<String?> get() = property_rememberer.rememberSingleProperty(
+    val OriginalTitle: Property<String?>
+        get() = property_rememberer.rememberSingleProperty(
         "OriginalTitle", { mediaItemQueries.originalTitleById(id) }, { original_title }, { mediaItemQueries.updateOriginalTitleById(it, id) }
     )
-    val Description: Property<String?> get() = property_rememberer.rememberSingleProperty(
+    val Description: Property<String?>
+        get() = property_rememberer.rememberSingleProperty(
         "Description", { mediaItemQueries.descriptionById(id) }, { description }, { mediaItemQueries.updateDescriptionById(it, id) }
     )
-    val ThumbnailProvider: Property<MediaItemThumbnailProvider?> get() = property_rememberer.rememberSingleProperty(
+    val ThumbnailProvider: Property<MediaItemThumbnailProvider?>
+        get() = property_rememberer.rememberSingleProperty(
         "ThumbnailProvider",
         { mediaItemQueries.thumbnailProviderById(id) },
         { this.toThumbnailProvider() },
@@ -128,13 +139,16 @@ sealed interface MediaItem: MediaItemHolder {
         }
     )
 
-    val ThemeColour: Property<Color?> get() = property_rememberer.rememberSingleProperty(
+    val ThemeColour: Property<Color?>
+        get() = property_rememberer.rememberSingleProperty(
         "ThemeColour", { mediaItemQueries.themeColourById(id) }, { theme_colour?.let { Color(it) } }, { mediaItemQueries.updateThemeColourById(it?.toArgb()?.toLong(), id) }
     )
-    val PinnedToHome: Property<Boolean> get() = property_rememberer.rememberSingleProperty(
+    val PinnedToHome: Property<Boolean>
+        get() = property_rememberer.rememberSingleProperty(
         "PinnedToHome", { mediaItemQueries.pinnedToHomeById(id) }, { pinned_to_home.fromSQLBoolean() }, { println("SETPINNED $this $it"); mediaItemQueries.updatePinnedToHomeById(it.toSQLBoolean(), id) }, { false }
     )
-    val Hidden: Property<Boolean> get() = property_rememberer.rememberSingleProperty(
+    val Hidden: Property<Boolean>
+        get() = property_rememberer.rememberSingleProperty(
         "Hidden", { mediaItemQueries.isHiddenById(id) }, { hidden.fromSQLBoolean() }, { mediaItemQueries.updateIsHiddenById(it.toSQLBoolean(), id) }, { false }
     )
 

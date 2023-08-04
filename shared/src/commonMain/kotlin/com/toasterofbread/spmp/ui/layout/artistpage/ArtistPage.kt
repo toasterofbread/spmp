@@ -30,7 +30,9 @@ import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.api.Api
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
+import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
+import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
 import com.toasterofbread.spmp.ui.component.MusicTopBar

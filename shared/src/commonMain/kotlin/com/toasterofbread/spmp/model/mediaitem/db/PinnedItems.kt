@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.model.mediaitem
+package com.toasterofbread.spmp.model.mediaitem.db
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -8,6 +8,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import app.cash.sqldelight.Query
 import com.toasterofbread.Database
+import com.toasterofbread.spmp.model.mediaitem.AccountPlaylistRef
+import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.ArtistRef
+import com.toasterofbread.spmp.model.mediaitem.LocalPlaylistRef
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.SongRef
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import mediaitem.ArtistQueries
 import mediaitem.MediaItemQueries

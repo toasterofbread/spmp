@@ -10,7 +10,6 @@ import android.graphics.drawable.Icon
 import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
-import com.toasterofbread.spmp.api.cast
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongData

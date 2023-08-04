@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.model.mediaitem
+package com.toasterofbread.spmp.model.mediaitem.db
 
 import SpMp
 import androidx.compose.runtime.Composable
@@ -7,6 +7,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.Database
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.utils.getThemeColour
 

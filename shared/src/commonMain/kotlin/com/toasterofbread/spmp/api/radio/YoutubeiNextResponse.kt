@@ -11,7 +11,7 @@ import com.toasterofbread.spmp.api.model.WatchEndpoint
 import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.loadMediaItemValue
+import com.toasterofbread.spmp.model.mediaitem.db.loadMediaItemValue
 
 data class YoutubeiNextResponse(
     val contents: Contents

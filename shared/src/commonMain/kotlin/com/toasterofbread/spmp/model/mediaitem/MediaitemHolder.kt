@@ -2,10 +2,10 @@ package com.toasterofbread.spmp.model.mediaitem
 
 import SpMp
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.db.rememberHiddenItems
 
 interface MediaItemHolder {
     // If item is null, consider it deleted

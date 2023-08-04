@@ -21,7 +21,6 @@ import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
-import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.utils.indexOfOrNull
 import java.net.URI
 import java.net.URISyntaxException

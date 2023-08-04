@@ -6,7 +6,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSpec
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.SongRef
-import com.toasterofbread.spmp.model.mediaitem.getMediaItemPlayCount
+import com.toasterofbread.spmp.model.mediaitem.db.getMediaItemPlayCount
 import com.toasterofbread.spmp.model.mediaitem.song.getSongStreamFormat
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking

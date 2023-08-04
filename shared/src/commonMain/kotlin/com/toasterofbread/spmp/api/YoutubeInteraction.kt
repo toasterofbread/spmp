@@ -6,8 +6,8 @@ import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
 import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.api.Api.Companion.ytUrl
 import com.toasterofbread.spmp.model.mediaitem.Artist
-import com.toasterofbread.spmp.model.mediaitem.SongLikedStatus
-import com.toasterofbread.spmp.model.mediaitem.toLong
+import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
+import com.toasterofbread.spmp.model.mediaitem.song.toLong
 import com.toasterofbread.utils.lazyAssert
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

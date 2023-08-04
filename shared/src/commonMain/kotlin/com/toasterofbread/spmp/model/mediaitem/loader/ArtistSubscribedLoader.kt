@@ -3,7 +3,7 @@ package com.toasterofbread.spmp.model.mediaitem.loader
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.api.isSubscribedToArtist
 import com.toasterofbread.spmp.model.mediaitem.Artist
-import com.toasterofbread.spmp.model.mediaitem.toSQLBoolean
+import com.toasterofbread.spmp.model.mediaitem.db.toSQLBoolean
 
 internal object ArtistSubscribedLoader: ItemStateLoader<String, Boolean>() {
     suspend fun loadArtistSubscribed(artist: Artist, db: Database): Result<Boolean> {

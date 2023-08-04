@@ -46,7 +46,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.getMediaItemPlayCount
+import com.toasterofbread.spmp.model.mediaitem.db.getMediaItemPlayCount
 import com.toasterofbread.spmp.model.mediaitem.isMediaItemHidden
 import com.toasterofbread.spmp.model.mediaitem.loader.loadDataOnChange
 import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction

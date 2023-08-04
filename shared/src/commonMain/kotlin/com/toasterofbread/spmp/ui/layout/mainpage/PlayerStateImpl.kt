@@ -13,10 +13,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
-import com.toasterofbread.Database
 import com.toasterofbread.spmp.PlayerService
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
+import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.ui.component.*
@@ -26,7 +28,6 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.*
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.*
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistPage
-import com.toasterofbread.spmp.ui.layout.library.LibraryPage
 import com.toasterofbread.spmp.ui.layout.library.PlaylistsPage
 import com.toasterofbread.spmp.ui.layout.library.SongsPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_VERTICAL_PAGE_COUNT

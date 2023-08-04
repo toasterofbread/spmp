@@ -1,6 +1,7 @@
-package com.toasterofbread.spmp.model.mediaitem
+package com.toasterofbread.spmp.model.mediaitem.db
 
 import com.toasterofbread.Database
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import mediaitem.ByItemId

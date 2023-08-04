@@ -9,8 +9,12 @@ import com.toasterofbread.Database
 import com.toasterofbread.spmp.api.DEFAULT_CONNECT_TIMEOUT
 import com.toasterofbread.spmp.api.lyrics.LyricsReference
 import com.toasterofbread.spmp.api.lyrics.toLyricsReference
+import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
+import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
+import com.toasterofbread.spmp.model.mediaitem.song.toLong
+import com.toasterofbread.spmp.model.mediaitem.song.toSongLikedStatus
 import com.toasterofbread.spmp.platform.crop
 import com.toasterofbread.spmp.platform.toImageBitmap
 import com.toasterofbread.utils.lazyAssert
@@ -71,38 +75,48 @@ interface Song: MediaItem.WithArtist {
         }
     }
 
-    val TypeOfSong: Property<SongType?> get() = property_rememberer.rememberSingleProperty(
+    val TypeOfSong: Property<SongType?>
+        get() = property_rememberer.rememberSingleProperty(
         "TypeOfSong",
         { songQueries.songTypeById(id) },
         { song_type?.let { SongType.values()[it.toInt()] } },
         { songQueries.updateSongTypeById(it?.ordinal?.toLong(), id) }
     )
-    val Duration: Property<Long?> get() = property_rememberer.rememberSingleProperty(
+    val Duration: Property<Long?>
+        get() = property_rememberer.rememberSingleProperty(
         "Duration", { songQueries.durationById(id) }, { duration }, { songQueries.updateDurationById(it, id) }
     )
-    override val Artist: Property<Artist?> get() = property_rememberer.rememberSingleProperty(
+    override val Artist: Property<Artist?>
+        get() = property_rememberer.rememberSingleProperty(
         "Artist", { songQueries.artistById(id) }, { artist?.let { ArtistRef(it) } }, { songQueries.updateArtistById(it?.id, id) }
     )
-    val Album: Property<Playlist?> get() = property_rememberer.rememberSingleProperty(
+    val Album: Property<Playlist?>
+        get() = property_rememberer.rememberSingleProperty(
         "Album", { songQueries.albumById(id) }, { album?.let { AccountPlaylistRef(it) } }, { songQueries.updateAlbumById(it?.id, id) }
     )
-    val RelatedBrowseId: Property<String?> get() = property_rememberer.rememberSingleProperty(
+    val RelatedBrowseId: Property<String?>
+        get() = property_rememberer.rememberSingleProperty(
         "RelatedBrowseId", { songQueries.relatedBrowseIdById(id) }, { related_browse_id }, { songQueries.updateRelatedBrowseIdById(it, id) }
     )
 
-    val Lyrics: Property<LyricsReference?> get() = property_rememberer.rememberSingleProperty(
+    val Lyrics: Property<LyricsReference?>
+        get() = property_rememberer.rememberSingleProperty(
         "Lyrics", { songQueries.lyricsById(id) }, { this.toLyricsReference() }, { songQueries.updateLyricsById(it?.source_idx?.toLong(), it?.id, id) }
     )
-    val LyricsSyncOffset: Property<Long?> get() = property_rememberer.rememberSingleProperty(
+    val LyricsSyncOffset: Property<Long?>
+        get() = property_rememberer.rememberSingleProperty(
         "LyricsSyncOffset", { songQueries.lyricsSyncOffsetById(id) }, { lyrics_sync_offset }, { songQueries.updateLyricsSyncOffsetById(it, id) }
     )
-    val PlayerGradientDepth: Property<Float?> get() = property_rememberer.rememberSingleProperty(
+    val PlayerGradientDepth: Property<Float?>
+        get() = property_rememberer.rememberSingleProperty(
         "PlayerGradientDepth", { songQueries.npGradientDepthById(id) }, { np_gradient_depth?.toFloat() }, { songQueries.updateNpGradientDepthById(it?.toDouble(), id) }
     )
-    val ThumbnailRounding: Property<Int?> get() = property_rememberer.rememberSingleProperty(
+    val ThumbnailRounding: Property<Int?>
+        get() = property_rememberer.rememberSingleProperty(
         "ThumbnailRounding", { songQueries.thumbnailRoundingById(id) }, { thumbnail_rounding?.toInt() }, { songQueries.updateThumbnailRoundingById(it?.toLong(), id) }
     )
-    val NotificationImageOffset: Property<IntOffset?> get() = property_rememberer.rememberSingleProperty(
+    val NotificationImageOffset: Property<IntOffset?>
+        get() = property_rememberer.rememberSingleProperty(
         "NotificationImageOffset",
         { songQueries.notifImageOffsetById(id) },
         {
@@ -114,7 +128,8 @@ interface Song: MediaItem.WithArtist {
         },
         { songQueries.updateNotifImageOffsetById(it?.x?.toLong(), it?.y?.toLong(), id) }
     )
-    val Liked: Property<SongLikedStatus?> get() = property_rememberer.rememberSingleProperty(
+    val Liked: Property<SongLikedStatus?>
+        get() = property_rememberer.rememberSingleProperty(
         "Liked", { songQueries.likedById(id) }, { liked.toSongLikedStatus() }, { songQueries.updatelikedById(it.toLong(), id) }
     )
 

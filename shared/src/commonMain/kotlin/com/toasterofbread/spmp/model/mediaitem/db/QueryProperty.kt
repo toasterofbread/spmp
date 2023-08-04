@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.model.mediaitem
+package com.toasterofbread.spmp.model.mediaitem.db
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import app.cash.sqldelight.Query
 import com.toasterofbread.Database
+import com.toasterofbread.spmp.model.mediaitem.observeAsState
 
 interface Property<T> {
     fun get(db: Database): T

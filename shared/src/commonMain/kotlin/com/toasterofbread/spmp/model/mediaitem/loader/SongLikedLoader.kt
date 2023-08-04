@@ -1,8 +1,8 @@
 package com.toasterofbread.spmp.model.mediaitem.loader
 
 import com.toasterofbread.Database
-import com.toasterofbread.spmp.model.mediaitem.SongLikedStatus
-import com.toasterofbread.spmp.model.mediaitem.toLong
+import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
+import com.toasterofbread.spmp.model.mediaitem.song.toLong
 
 internal object SongLikedLoader: ItemStateLoader<String, SongLikedStatus>() {
     suspend fun loadSongLiked(song_id: String, db: Database): Result<SongLikedStatus> {

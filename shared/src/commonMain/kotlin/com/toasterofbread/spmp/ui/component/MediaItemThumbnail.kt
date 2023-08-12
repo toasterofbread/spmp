@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.component
 
 import SpMp
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,12 +33,28 @@ fun MediaItem.Thumbnail(
     contentColourProvider: (() -> Color)? = null,
     onLoaded: ((ImageBitmap) -> Unit)? = null
 ) {
-    var image: ImageBitmap? by remember { mutableStateOf(null) }
-    var loading by remember { mutableStateOf(true) }
+    var loading by remember { mutableStateOf(false) }
+    var image: Pair<ImageBitmap, MediaItemThumbnailProvider.Quality>? by remember {
+        val provider = ThumbnailProvider.get(SpMp.context.database)
+        if (provider != null) {
+            for (quality in MediaItemThumbnailProvider.Quality.byQuality(target_quality)) {
+                val loaded_image = MediaItemThumbnailLoader.getLoadedItemThumbnail(this, quality, provider)
+                if (loaded_image != null) {
+                    onLoaded?.invoke(loaded_image)
+                    return@remember mutableStateOf(Pair(loaded_image, quality))
+                }
+            }
+        }
+
+        return@remember mutableStateOf(null)
+    }
 
     LaunchedEffect(target_quality) {
+        if ((image?.second?.ordinal ?: -1) >= target_quality.ordinal) {
+            return@LaunchedEffect
+        }
+
         loading = true
-        image = null
 
         var thumbnail_provider = ThumbnailProvider.get(SpMp.context.database)
         if (thumbnail_provider == null) {
@@ -49,8 +66,9 @@ fun MediaItem.Thumbnail(
             for (quality in MediaItemThumbnailProvider.Quality.byQuality(target_quality)) {
                 val load_result = MediaItemThumbnailLoader.loadItemThumbnail(this@Thumbnail, thumbnail_provider, quality, SpMp.context)
                 if (load_result.isSuccess) {
-                    image = load_result.getOrThrow()
-                    onLoaded?.invoke(image!!)
+                    val loaded_image = load_result.getOrThrow()
+                    image = Pair(loaded_image, quality)
+                    onLoaded?.invoke(loaded_image)
                     break
                 }
             }
@@ -59,22 +77,22 @@ fun MediaItem.Thumbnail(
         loading = false
     }
 
-    if (loading) {
-        SubtleLoadingIndicator(modifier.fillMaxSize(), getColour = contentColourProvider)
-    }
-    else if (image != null) {
-        image?.also { thumbnail ->
+    Crossfade(image?.first ?: loading) { state ->
+        if (state is ImageBitmap) {
             Image(
-                thumbnail,
+                state,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = modifier
             )
         }
-    }
-    else if (failure_icon != null) {
-        Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Icon(failure_icon, null)
+        else if (state == true) {
+            SubtleLoadingIndicator(modifier.fillMaxSize(), getColour = contentColourProvider)
+        }
+        else if (failure_icon != null) {
+            Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Icon(failure_icon, null)
+            }
         }
     }
 }

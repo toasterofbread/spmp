@@ -13,7 +13,7 @@ import com.toasterofbread.spmp.api.markSongAsWatched
 import com.toasterofbread.spmp.api.radio.RadioInstance
 import com.toasterofbread.spmp.api.radio.RadioInstance.RadioState
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.mediaitem.ArtistData
+import com.toasterofbread.spmp.model.mediaitem.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Song
@@ -573,7 +573,7 @@ class PlayerService: MediaPlayerService() {
                         MediaItemThumbnailLoader.loadItemThumbnail(status_song, thumbnail_provider, MediaItemThumbnailProvider.Quality.LOW, context).getOrThrowHere()
                     }.getOrNull()
 
-                    val artist = songQueries.artistById(status_song.id).executeAsOne().artist?.let { ArtistData(it) }
+                    val artist = songQueries.artistById(status_song.id).executeAsOne().artist?.let { ArtistRef(it) }
                     if (artist != null) {
                         small_image = getCustomImage(artist.id) {
                             val thumbnail_provider = mediaItemQueries.thumbnailProviderById(artist.id).executeAsOne().toThumbnailProvider()

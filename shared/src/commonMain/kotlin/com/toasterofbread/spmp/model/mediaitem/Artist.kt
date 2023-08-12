@@ -12,15 +12,15 @@ import com.toasterofbread.spmp.model.mediaitem.db.fromSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.db.toNullableSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.db.toSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.utils.lazyAssert
+//import com.toasterofbread.utils.lazyAssert
 
 class ArtistRef(override val id: String): Artist {
     override fun toString(): String = "ArtistRef($id)"
 
     override val property_rememberer: PropertyRememberer = PropertyRememberer()
-    init {
-        lazyAssert { id.isNotBlank() || IsForItem.get(SpMp.context.database) }
-    }
+//    init {
+//        lazyAssert { id.isNotBlank() || IsForItem.get(SpMp.context.database) }
+//    }
 }
 
 sealed interface Artist: MediaItem {
@@ -132,9 +132,9 @@ class ArtistData(
     }
 
     override val property_rememberer: PropertyRememberer = PropertyRememberer()
-    init {
-        lazyAssert { is_for_item || id.isNotBlank() || IsForItem.get(SpMp.context.database) }
-    }
+//    init {
+//        lazyAssert { is_for_item || id.isNotBlank() || IsForItem.get(SpMp.context.database) }
+//    }
 
     companion object {
         fun createForItem(item: MediaItem): ArtistData =

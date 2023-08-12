@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun RadioBuilderIcon(modifier: Modifier = Modifier) {
-    Row(modifier.requiredSize(RADIO_BUILDER_ICON_WIDTH.dp, 25.dp)) {
+    Row(modifier.requiredSize(RADIO_BUILDER_ICON_WIDTH_DP.dp, 24.dp)) {
         Icon(Icons.Default.Radio, null, Modifier.align(Alignment.CenterVertically))
         Icon(Icons.Default.Add, null, Modifier.align(Alignment.Top))
     }

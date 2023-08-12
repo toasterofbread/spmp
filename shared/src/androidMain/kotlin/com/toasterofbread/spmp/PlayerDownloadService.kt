@@ -12,7 +12,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.SongData
+import com.toasterofbread.spmp.model.mediaitem.SongRef
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.model.mediaitem.song.getSongFormatByQuality
 import com.toasterofbread.spmp.platform.PlatformBinder
@@ -49,7 +49,6 @@ class PlayerDownloadService: PlatformServiceImpl() {
                     broadcastStatus()
                 }
             }
-//        val song: Song get() = SongData(id)
 
         val finished: Boolean get() = status == DownloadStatus.Status.ALREADY_FINISHED || status == DownloadStatus.Status.FINISHED
         val downloading: Boolean get() = status == DownloadStatus.Status.DOWNLOADING || status == DownloadStatus.Status.PAUSED
@@ -65,7 +64,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
 
         fun getStatusObject(): DownloadStatus =
             DownloadStatus(
-                SongData(id),
+                SongRef(id),
                 status,
                 quality,
                 progress,
@@ -160,7 +159,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
         }
 
         fun getFilenameSong(filename: String): Song {
-            return SongData(filename.take(filename.indexOf('.')))
+            return SongRef(filename.take(filename.indexOf('.')))
         }
 
         // Filename format: id.quality.mediatype(.part)

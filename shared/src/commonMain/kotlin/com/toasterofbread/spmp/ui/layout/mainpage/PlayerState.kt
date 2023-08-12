@@ -9,11 +9,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import com.toasterofbread.spmp.PlayerService
-import com.toasterofbread.spmp.model.mediaitem.ArtistData
+import com.toasterofbread.spmp.model.mediaitem.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.SongData
+import com.toasterofbread.spmp.model.mediaitem.SongRef
 import com.toasterofbread.spmp.platform.MediaPlayerRepeatMode
 import com.toasterofbread.spmp.platform.MediaPlayerService
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
@@ -143,7 +143,7 @@ open class PlayerState protected constructor(
                 val channel_id = path_parts.elementAtOrNull(1) ?: return failure("No channel ID")
 
                 interactService {
-                    openMediaItem(ArtistData(channel_id))
+                    openMediaItem(ArtistRef(channel_id))
                 }
             }
             "watch" -> {
@@ -151,7 +151,7 @@ open class PlayerState protected constructor(
                 val v_end = uri.query.indexOfOrNull("&", v_start) ?: uri.query.length
 
                 interactService {
-                    playMediaItem(SongData(uri.query.substring(v_start, v_end)))
+                    playMediaItem(SongRef(uri.query.substring(v_start, v_end)))
                 }
             }
             else -> return failure("Uri path not implemented")

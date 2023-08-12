@@ -54,7 +54,10 @@ class LongPressMenuActionProvider(
         var active_queue_item: Song? by remember { mutableStateOf(null) }
         AnimatedVisibility(service.active_queue_index < player.status.m_song_count) {
             if (service.active_queue_index < player.status.m_song_count) {
-                active_queue_item = service.getSong(service.active_queue_index)
+                val current_song = service.getSong(service.active_queue_index)
+                if (current_song?.id != active_queue_item?.id) {
+                    active_queue_item = current_song
+                }
             }
 
             Column {

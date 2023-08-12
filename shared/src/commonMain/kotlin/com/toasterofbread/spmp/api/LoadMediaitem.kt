@@ -10,6 +10,7 @@ import com.toasterofbread.spmp.api.radio.YoutubeiNextResponse
 import com.toasterofbread.spmp.model.mediaitem.AccountPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.ArtistData
+import com.toasterofbread.spmp.model.mediaitem.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
@@ -115,7 +116,7 @@ suspend fun loadMediaItemData(
 
             item.title = video_data.videoDetails.title
             if (item is MediaItem.DataWithArtist) {
-                item.artist = ArtistData(video_data.videoDetails.channelId)
+                item.artist = ArtistRef(video_data.videoDetails.channelId)
             }
 
             return@withContext Result.success(Unit)

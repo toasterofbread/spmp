@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.*
+import androidx.compose.ui.zIndex
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.api.*
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
@@ -200,7 +201,7 @@ class SearchPage(state: MainPageState, val db: Database): MainPage(state) {
 
             SearchBar(
                 focus_state,
-                player.nowPlayingTopOffset(Modifier.align(Alignment.BottomCenter)),
+                player.nowPlayingTopOffset(Modifier.align(Alignment.BottomCenter)).zIndex(100f),
                 close
             )
         }

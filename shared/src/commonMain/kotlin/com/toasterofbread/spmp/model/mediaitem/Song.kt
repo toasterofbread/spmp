@@ -31,6 +31,7 @@ class SongRef(override val id: String): Song {
     init {
         lazyAssert { id.isNotBlank() }
     }
+
 }
 
 interface Song: MediaItem.WithArtist {
@@ -136,12 +137,7 @@ interface Song: MediaItem.WithArtist {
     override val ThumbnailProvider: Property<MediaItemThumbnailProvider?>
         get() = object : Property<MediaItemThumbnailProvider?> {
             override fun get(db: Database): MediaItemThumbnailProvider =
-                MediaItemThumbnailProvider { quality ->
-                    when (quality) {
-                        MediaItemThumbnailProvider.Quality.LOW -> "https://img.youtube.com/vi/$id/0.jpg"
-                        MediaItemThumbnailProvider.Quality.HIGH -> "https://img.youtube.com/vi/$id/maxresdefault.jpg"
-                    }
-                }
+                SongThumbnailProvider(id)
 
             override fun set(value: MediaItemThumbnailProvider?, db: Database) {}
 
@@ -151,6 +147,14 @@ interface Song: MediaItem.WithArtist {
         }
 
     val creation: Throwable
+}
+
+private data class SongThumbnailProvider(val id: String): MediaItemThumbnailProvider {
+    override fun getThumbnailUrl(quality: MediaItemThumbnailProvider.Quality): String? =
+        when (quality) {
+            MediaItemThumbnailProvider.Quality.LOW -> "https://img.youtube.com/vi/$id/0.jpg"
+            MediaItemThumbnailProvider.Quality.HIGH -> "https://img.youtube.com/vi/$id/maxresdefault.jpg"
+        }
 }
 
 class SongData(

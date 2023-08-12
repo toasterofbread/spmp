@@ -7,6 +7,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -14,9 +15,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.requiredWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -25,14 +28,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.ui.component.MusicTopBarWithVisualiser
-import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.layout.YoutubeMusicLoginConfirmation
+import com.toasterofbread.spmp.ui.layout.radiobuilder.RADIO_BUILDER_ICON_WIDTH_DP
 import com.toasterofbread.spmp.ui.layout.radiobuilder.RadioBuilderIcon
 
 @Composable
@@ -41,7 +46,18 @@ fun MainPageTopBar(modifier: Modifier = Modifier) {
 
     Column(modifier) {
         Row(Modifier.height(IntrinsicSize.Min)) {
-            RadioBuilderButton()
+            Crossfade(player.main_page == player.main_page_state.Default) { default_open ->
+                if (default_open) {
+                    IconButton({ player.setOverlayPage(PlayerOverlayPage.RadioBuilderPage) }) {
+                        RadioBuilderIcon()
+                    }
+                }
+                else {
+                    IconButton({ player.setOverlayPage(PlayerOverlayPage.SettingsPage) }) {
+                        Icon(Icons.Default.Settings, null, Modifier.width(RADIO_BUILDER_ICON_WIDTH_DP.dp))
+                    }
+                }
+            }
 
             MusicTopBarWithVisualiser(
                 Settings.INTERNAL_TOPBAR_MODE_HOME,
@@ -97,13 +113,5 @@ fun MainPageTopBar(modifier: Modifier = Modifier) {
         }
 
         WaveBorder(Modifier.requiredWidth(SpMp.context.getScreenWidth()))
-    }
-}
-
-@Composable
-private fun RadioBuilderButton() {
-    val player = LocalPlayerState.current
-    IconButton({ player.setOverlayPage(PlayerOverlayPage.RadioBuilderPage) }) {
-        RadioBuilderIcon()
     }
 }

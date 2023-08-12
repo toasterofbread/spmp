@@ -4,8 +4,9 @@ import androidx.compose.ui.unit.IntSize
 import mediaitem.CustomImageProviderById
 import mediaitem.ThumbnailProviderById
 
-fun interface MediaItemThumbnailProvider {
+interface MediaItemThumbnailProvider {
     fun getThumbnailUrl(quality: Quality): String?
+    override fun equals(other: Any?): Boolean
 
     data class Thumbnail(val url: String, val width: Int, val height: Int)
     enum class Quality {

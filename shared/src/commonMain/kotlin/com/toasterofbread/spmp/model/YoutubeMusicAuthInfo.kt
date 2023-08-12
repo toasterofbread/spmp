@@ -16,6 +16,7 @@ import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.ui.layout.YTAccountMenuResponse
 import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
+import com.toasterofbread.spmp.model.mediaitem.ArtistRef
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
@@ -66,7 +67,7 @@ class YoutubeMusicAuthInfo: Set<String> {
         for (item in set) {
             val value = item.substring(1)
             when (ValueType.values()[item.take(1).toInt()]) {
-                ValueType.CHANNEL -> own_channel = ArtistData(value)
+                ValueType.CHANNEL -> own_channel = ArtistRef(value)
                 ValueType.COOKIE -> cookie = value
                 ValueType.HEADER -> stringToHeader(value).also { set_headers[it.first] = it.second }
                 ValueType.PLAYLIST -> own_playlists.add(value)

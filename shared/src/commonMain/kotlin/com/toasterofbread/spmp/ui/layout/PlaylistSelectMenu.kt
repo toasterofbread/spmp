@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.api.Api
+import com.toasterofbread.spmp.model.mediaitem.AccountPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.rememberLocalPlaylists
@@ -86,7 +87,7 @@ fun PlaylistSelectMenu(
                     PlaylistItem(selected, playlist)
                 }
                 items(account_playlists) { playlist ->
-                    PlaylistItem(selected, PlaylistData(playlist))
+                    PlaylistItem(selected, AccountPlaylistRef(playlist))
                 }
             }
         }

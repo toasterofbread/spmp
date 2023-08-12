@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.beust.klaxon.Klaxon
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.mediaitem.ArtistData
+import com.toasterofbread.spmp.model.mediaitem.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.ProjectPreferences
@@ -281,7 +282,7 @@ enum class Settings {
                 KEY_TOPBAR_LYRICS_SHOW_FURIGANA -> true
                 KEY_TOPBAR_SHOW_LYRICS_IN_QUEUE -> true
                 KEY_TOPBAR_SHOW_VISUALISER_IN_QUEUE -> false
-                KEY_TOPBAR_VISUALISER_WIDTH -> 0.8f
+                KEY_TOPBAR_VISUALISER_WIDTH -> 0.9f
                 KEY_TOPBAR_DISPLAY_OVER_ARTIST_IMAGE -> false
 
                 // Recommendation feed
@@ -302,7 +303,7 @@ enum class Settings {
                     with(ProjectBuildConfig) {
                         if (YTM_CHANNEL_ID != null && YTM_COOKIE != null && YTM_HEADERS != null)
                             YoutubeMusicAuthInfo(
-                                ArtistData(YTM_CHANNEL_ID),
+                                ArtistRef(YTM_CHANNEL_ID),
                                 YTM_COOKIE,
                                 Klaxon().parse(YTM_HEADERS.reader())!!
                             )

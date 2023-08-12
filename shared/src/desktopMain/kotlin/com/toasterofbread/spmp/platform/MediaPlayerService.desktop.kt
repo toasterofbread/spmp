@@ -7,6 +7,7 @@ import com.beust.klaxon.Klaxon
 import com.toasterofbread.spmp.api.getOrThrowHere
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.SongRef
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ.Socket
@@ -413,9 +414,9 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
         sendRequest("seekToPrevious")
     }
 
-    actual fun getSong(): Song? = playlist.getOrNull(_current_song_index)
+    actual fun getSong(): SongRef? = playlist.getOrNull(_current_song_index)
 
-    actual fun getSong(index: Int): Song? = playlist.getOrNull(index)
+    actual fun getSong(index: Int): SongRef? = playlist.getOrNull(index)
 
     actual fun addSong(song: Song) = addSong(song, song_count)
 

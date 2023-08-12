@@ -27,6 +27,13 @@ internal data class MediaItemThumbnailLoaderKey(
 internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoaderKey, ImageBitmap>() {
     private val loaded_images: MutableMap<MediaItemThumbnailLoaderKey, WeakReference<ImageBitmap>> = mutableMapOf()
 
+    fun getLoadedItemThumbnail(item: MediaItem, quality: MediaItemThumbnailProvider.Quality, thumbnail_provider: MediaItemThumbnailProvider): ImageBitmap? {
+        val key = MediaItemThumbnailLoaderKey(thumbnail_provider, quality, item.id)
+        synchronized(loaded_images) {
+            return loaded_images[key]?.get()
+        }
+    }
+
     suspend fun loadItemThumbnail(
         item: MediaItem,
         quality: MediaItemThumbnailProvider.Quality,
@@ -56,12 +63,18 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
             ?: return Result.failure(RuntimeException("No thumbnail URL available"))
 
         return performLoad(key) {
-            performLoad(
+            val result = performLoad(
                 item,
                 quality,
                 thumbnail_url,
                 context
             )
+
+            result.onSuccess { image ->
+                synchronized(loaded_images) {
+                    loaded_images[key] = WeakReference(image)
+                }
+            }
         }
     }
 
@@ -149,5 +162,5 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
         return state
     }
 
-    override val listeners: MutableList<ListenerLoader.Listener<MediaItemThumbnailLoaderKey, ImageBitmap>> = mutableListOf()
+    override val listeners: MutableList<Listener<MediaItemThumbnailLoaderKey, ImageBitmap>> = mutableListOf()
 }

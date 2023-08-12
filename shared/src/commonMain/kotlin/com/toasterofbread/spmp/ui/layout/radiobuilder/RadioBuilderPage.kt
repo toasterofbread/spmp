@@ -35,7 +35,7 @@ import com.toasterofbread.spmp.ui.component.WaveBorder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-const val RADIO_BUILDER_ICON_WIDTH = 35f
+const val RADIO_BUILDER_ICON_WIDTH_DP = 37f
 
 @Composable
 fun RadioBuilderPage(
@@ -87,7 +87,7 @@ fun RadioBuilderPage(
                                 style = MaterialTheme.typography.headlineMedium
                             )
     
-                            Spacer(Modifier.width(RADIO_BUILDER_ICON_WIDTH.dp))
+                            Spacer(Modifier.width(RADIO_BUILDER_ICON_WIDTH_DP.dp))
                         }
     
                         if (selected == null) {

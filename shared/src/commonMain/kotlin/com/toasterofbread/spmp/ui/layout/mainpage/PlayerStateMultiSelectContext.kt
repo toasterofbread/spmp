@@ -86,7 +86,7 @@ private fun MultiSelectNextRowActions() {
             }
 
         CompositionLocalProvider(LocalPlayerState provides remember {
-            player.copy(onClickedOverride = { item, _ -> player.openMediaItem(item,) })
+            player.copy(onClickedOverride = { item, _ -> player.openMediaItem(item) })
         }) {
             Crossfade(active_queue_item, animationSpec = tween(100), modifier = Modifier.weight(1f)) { song ->
                 if (song != null) {

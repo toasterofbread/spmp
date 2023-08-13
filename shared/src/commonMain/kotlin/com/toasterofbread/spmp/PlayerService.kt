@@ -386,11 +386,11 @@ class PlayerService: MediaPlayerService() {
 
     private lateinit var radio: RadioInstance
     private fun setRadioFilter(filter_index: Int?) = synchronized(radio) {
-        if (filter_index == radio.state.current_filter) {
+        val previous_filter_index = radio.state.current_filter
+        if (filter_index == previous_filter_index) {
             return
         }
 
-        val previous_filter_index = radio.state.current_filter
         radio.setFilter(filter_index)
 
         val item = radio.state.item
@@ -418,7 +418,7 @@ class PlayerService: MediaPlayerService() {
                 }
             }
 
-            object : UndoRedoAction {
+            return@customUndoableAction object : UndoRedoAction {
                 override fun redo() {
                     radio.setFilter(filter_index)
                 }

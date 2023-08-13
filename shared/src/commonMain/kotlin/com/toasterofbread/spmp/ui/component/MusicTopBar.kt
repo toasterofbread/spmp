@@ -61,7 +61,8 @@ fun MusicTopBarWithVisualiser(
     can_show_visualiser: Boolean = false,
     hide_while_inactive: Boolean = true,
     padding: PaddingValues = PaddingValues(),
-    onShowingChanged: ((Boolean) -> Unit)? = null
+    onShowingChanged: ((Boolean) -> Unit)? = null,
+    d: Boolean = false
 ) {
     var target_mode: MusicTopBarMode by target_mode_key.rememberMutableEnumState()
     val show_toast = remember { mutableStateOf(false) }
@@ -74,6 +75,7 @@ fun MusicTopBarWithVisualiser(
         modifier,
         song,
         padding,
+        d = d,
         innerContent = { mode ->
             Crossfade(Pair(target_mode, mode), Modifier.fillMaxSize()) { state ->
                 val (target, current) = state
@@ -159,10 +161,11 @@ private fun MusicTopBar(
     getBottomBorderOffset: ((height: Int) -> Int)? = null,
     getBottomBorderColour: (() -> Color)? = null,
     onClick: (() -> Unit)? = null,
-    onShowingChanged: ((Boolean) -> Unit)? = null
+    onShowingChanged: ((Boolean) -> Unit)? = null,
+    d: Boolean = false
 ) {
     val player = LocalPlayerState.current
-    val lyrics = loadLyricsOnSongChange(song, SpMp.context, getTargetMode() == MusicTopBarMode.LYRICS)
+    val lyrics = loadLyricsOnSongChange(song, SpMp.context, getTargetMode() == MusicTopBarMode.LYRICS, d = d)
     var mode_state: MusicTopBarMode by mutableStateOf(getTargetMode())
 
     val visualiser_width: Float by Settings.KEY_TOPBAR_VISUALISER_WIDTH.rememberMutableState()
@@ -170,7 +173,7 @@ private fun MusicTopBar(
 
     val sync_offset: Long? = song?.LyricsSyncOffset?.observe(SpMp.context.database)?.value
 
-    val current_state by remember {
+    val current_state by remember(lyrics) {
         derivedStateOf {
             val target = getTargetMode()
             for (mode_i in target.ordinal downTo 0) {

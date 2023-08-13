@@ -145,7 +145,7 @@ sealed interface MediaItem: MediaItemHolder {
     )
     val PinnedToHome: Property<Boolean>
         get() = property_rememberer.rememberSingleProperty(
-        "PinnedToHome", { mediaItemQueries.pinnedToHomeById(id) }, { pinned_to_home.fromSQLBoolean() }, { println("SETPINNED $this $it"); mediaItemQueries.updatePinnedToHomeById(it.toSQLBoolean(), id) }, { false }
+        "PinnedToHome", { mediaItemQueries.pinnedToHomeById(id) }, { pinned_to_home.fromSQLBoolean() }, { mediaItemQueries.updatePinnedToHomeById(it.toSQLBoolean(), id) }, { false }
     )
     val Hidden: Property<Boolean>
         get() = property_rememberer.rememberSingleProperty(

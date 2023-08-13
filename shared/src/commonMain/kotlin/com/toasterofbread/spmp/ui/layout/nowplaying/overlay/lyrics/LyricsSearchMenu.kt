@@ -260,7 +260,9 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
                 IconButton(
                     {
                         if (edit_page_open) {
-                            search_state = !search_state
+                            if (!loading) {
+                                search_state = !search_state
+                            }
                         }
                         else {
                             edit_page_open = true

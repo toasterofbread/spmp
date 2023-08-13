@@ -19,8 +19,8 @@ data class SongLyrics(
         LINE_SYNC,
         WORD_SYNC;
 
-        val readable: String
-            get() = when (this) {
+        fun getReadable(): String =
+            when (this) {
                 NONE -> getString("lyrics_sync_none")
                 LINE_SYNC -> getString("lyrics_sync_line")
                 WORD_SYNC -> getString("lyrics_sync_word")

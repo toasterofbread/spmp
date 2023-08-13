@@ -26,6 +26,7 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLon
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.utils.getContrasted
 import com.toasterofbread.utils.modifier.background
+import com.toasterofbread.utils.setAlpha
 
 @Composable
 fun CurrentRadioIndicator(
@@ -144,6 +145,10 @@ private fun FiltersRow(
                     labelColor = LocalContentColor.current,
                     selectedContainerColor = accentColourProvider(),
                     selectedLabelColor = accentColourProvider().getContrasted()
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    borderColor = LocalContentColor.current.setAlpha(0.25f),
+                    selectedBorderColor = Color.Transparent
                 )
             )
         }

@@ -29,11 +29,11 @@ import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 fun MediaItem.Thumbnail(
     target_quality: MediaItemThumbnailProvider.Quality,
     modifier: Modifier = Modifier,
-    failure_icon: ImageVector? = Icons.Default.CloudOff,
+    load_failed_icon: ImageVector? = Icons.Default.CloudOff,
     contentColourProvider: (() -> Color)? = null,
     onLoaded: ((ImageBitmap) -> Unit)? = null
 ) {
-    var loading by remember { mutableStateOf(false) }
+    var loading by remember { mutableStateOf(true) }
     var image: Pair<ImageBitmap, MediaItemThumbnailProvider.Quality>? by remember {
         val provider = ThumbnailProvider.get(SpMp.context.database)
         if (provider != null) {
@@ -89,9 +89,9 @@ fun MediaItem.Thumbnail(
         else if (state == true) {
             SubtleLoadingIndicator(modifier.fillMaxSize(), getColour = contentColourProvider)
         }
-        else if (failure_icon != null) {
+        else if (load_failed_icon != null) {
             Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Icon(failure_icon, null)
+                Icon(load_failed_icon, null)
             }
         }
     }

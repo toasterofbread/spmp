@@ -32,6 +32,7 @@ import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.composable.Marquee
 import com.toasterofbread.utils.getContrasted
 import com.toasterofbread.utils.setAlpha
 
@@ -49,7 +50,7 @@ internal fun ColumnScope.LyricsSearchResults(results_and_source: Pair<List<Searc
             verticalArrangement = Arrangement.spacedBy(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            items(results.size + 1, { if (it == results.size) 0 else results[it].id }) {
+            items(results.size + 1) {
 
                 if (it == results.size) {
                     Text(getString("lyrics_no_more_results"), color = Theme.accent)
@@ -78,9 +79,14 @@ internal fun ColumnScope.LyricsSearchResults(results_and_source: Pair<List<Searc
 
                             val shape = RoundedCornerShape(16)
 
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Text(result.name, color = Theme.on_accent)
+                            Marquee(Modifier.fillMaxWidth()) {
+                                Text(result.name, color = Theme.on_accent, softWrap = false)
+                            }
 
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.End)
+                            ) {
                                 @Composable
                                 fun text(text: String, colour: Color) {
                                     Text(
@@ -92,14 +98,12 @@ internal fun ColumnScope.LyricsSearchResults(results_and_source: Pair<List<Searc
                                     )
                                 }
 
-                                Spacer(Modifier.fillMaxWidth().weight(1f))
-
                                 val sync_colour = if (result.sync_type == SongLyrics.SyncType.NONE) Color.LightGray else Color.Magenta
                                 Box(Modifier.background(sync_colour, CircleShape)) {
-                                    text(result.sync_type.readable, sync_colour.getContrasted())
+                                    text(result.sync_type.getReadable(), sync_colour.getContrasted())
                                 }
 
-                                val source = remember(source_idx) { LyricsSource.fromIdx(source_idx) } 
+                                val source = remember(source_idx) { LyricsSource.fromIdx(source_idx) }
                                 val source_colour = source.getColour()
                                 Box(Modifier.background(source_colour, CircleShape)) {
                                     text(source.getReadable(), source_colour.getContrasted())

@@ -15,18 +15,36 @@ import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.utils.launchSingle
 
 @Composable
-fun loadLyricsOnSongChange(song: Song?, context: PlatformContext, load_lyrics: Boolean = true): SongLyrics? {
+fun loadLyricsOnSongChange(song: Song?, context: PlatformContext, load_lyrics: Boolean = true, d: Boolean = false): SongLyrics? {
+    val db = context.database
     val coroutine_scope = rememberCoroutineScope()
-    var current_song: Song? by remember { mutableStateOf(song) }
-    var lyrics: SongLyrics? by remember { mutableStateOf(null) }
+    var current_song: Song? by remember { mutableStateOf(null) }
+
+    var lyrics: SongLyrics? by remember {
+        mutableStateOf(
+            if (song != null) SongLyricsLoader.getLoadedByLyrics(song.Lyrics.get(db))
+            else null
+        )
+    }
 
     val lyrics_listener = remember {
         Query.Listener {
+            if (song == null) {
+                return@Listener
+            }
+
+            val reference = song.Lyrics.get(db)
+            if (lyrics != null && lyrics?.reference == reference) {
+                return@Listener
+            }
+
             lyrics = null
 
-            if (load_lyrics && song != null) {
+            if (load_lyrics) {
                 coroutine_scope.launchSingle {
-                    val result = SongLyricsLoader.loadBySong(song, context)
+                    val result =
+                        if (reference != null) SongLyricsLoader.loadByLyrics(reference)
+                        else SongLyricsLoader.loadBySong(song, context)
                     result.onSuccess {
                         lyrics = it
                     }
@@ -36,15 +54,26 @@ fun loadLyricsOnSongChange(song: Song?, context: PlatformContext, load_lyrics: B
     }
 
     DisposableEffect(song?.id) {
-        lyrics = null
-
         if (song != null) {
-            context.database.songQueries.lyricsById(song.id).addListener(lyrics_listener)
-            if (load_lyrics && current_song?.id != song.id) {
-                coroutine_scope.launchSingle {
-                    val result = SongLyricsLoader.loadBySong(song, context)
-                    result.onSuccess {
-                        lyrics = it
+            db.songQueries.lyricsById(song.id).addListener(lyrics_listener)
+
+            if (current_song?.id != song.id) {
+                val reference = song.Lyrics.get(db)
+                if (lyrics == null || lyrics?.reference != reference) {
+                    val loaded_lyrics = reference?.let {
+                        SongLyricsLoader.getLoadedByLyrics(it)
+                    }
+
+                    if (loaded_lyrics != null) {
+                        lyrics = loaded_lyrics
+                    }
+                    else if (load_lyrics) {
+                        coroutine_scope.launchSingle {
+                            val result = SongLyricsLoader.loadBySong(song, context)
+                            result.onSuccess {
+                                lyrics = it
+                            }
+                        }
                     }
                 }
             }
@@ -53,7 +82,7 @@ fun loadLyricsOnSongChange(song: Song?, context: PlatformContext, load_lyrics: B
 
         onDispose {
             current_song?.id?.also { current_song_id ->
-                context.database.songQueries.lyricsById(current_song_id).removeListener(lyrics_listener)
+                db.songQueries.lyricsById(current_song_id).removeListener(lyrics_listener)
             }
         }
     }

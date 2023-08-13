@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -120,17 +121,18 @@ internal suspend inline fun <K, V> performSafeLoad(
         }
     }
 
-    val load_job: Deferred<Result<V>> = coroutineScope {
-        async {
+    val result = coroutineScope {
+        val load_job: Deferred<Result<V>> = async(start = CoroutineStart.LAZY) {
             performLoad()
         }
-    }
 
-    lock.withLock {
-        running[instance_key] = load_job
-    }
+        lock.withLock {
+            running[instance_key] = load_job
+        }
 
-    val result = load_job.await()
+        load_job.start()
+        load_job.await()
+    }
 
     if (listeners != null) {
         result.fold(

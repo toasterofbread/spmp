@@ -25,9 +25,11 @@ import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.launchSingle
 import com.toasterofbread.utils.synchronizedBlock
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.job
 
 class RadioInstance(
@@ -51,6 +53,12 @@ class RadioInstance(
         var current_filter: Int? by mutableStateOf(null)
         var shuffle: Boolean = false
 
+        internal fun setFilter(filter_index: Int?) {
+            current_filter = filter_index
+            continuation = null
+            initial_songs_loaded = false
+        }
+
         override fun toString(): String {
             return "RadioState(item=$item, continuation=$continuation)"
         }
@@ -70,9 +78,7 @@ class RadioInstance(
             if (filter_index == state.current_filter) {
                 return
             }
-            state.current_filter = filter_index
-            state.continuation = null
-
+            state.setFilter(filter_index)
             cancelJob()
         }
     }
@@ -143,9 +149,11 @@ class RadioInstance(
     ) {
         synchronized(lock) {
             coroutine_scope.launchSingle {
-                coroutineContext.job.invokeOnCompletion {
-                    synchronized(lock) {
-                        loading = false
+                coroutineContext.job.invokeOnCompletion { cause ->
+                    if (cause !is CancellationException) {
+                        synchronized(lock) {
+                            loading = false
+                        }
                     }
                 }
                 synchronized(lock) {

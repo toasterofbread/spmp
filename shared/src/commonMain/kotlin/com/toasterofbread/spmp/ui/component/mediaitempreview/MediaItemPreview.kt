@@ -59,16 +59,18 @@ fun MediaItemPreviewSquare(
     modifier: Modifier = Modifier,
     contentColour: (() -> Color)? = null,
     enable_long_press_menu: Boolean = true,
-    show_type: Boolean = true,
     multiselect_context: MediaItemMultiSelectContext? = null,
     multiselect_key: Int? = null,
     getInfoText: (@Composable () -> String?)? = null,
     max_text_rows: Int? = null,
-    long_press_menu_data: LongPressMenuData = remember(item) { item.getLongPressMenuData(
-        multiselect_context,
-        multiselect_key,
-        getInfoText
-    ) }
+    long_press_menu_data: LongPressMenuData =
+        remember(item, multiselect_context, multiselect_key, getInfoText) {
+            item.getLongPressMenuData(
+                multiselect_context,
+                multiselect_key,
+                getInfoText
+            )
+        }
 ) {
     Column(
         modifier.mediaItemPreviewInteraction(item, long_press_menu_data),
@@ -111,11 +113,14 @@ fun MediaItemPreviewLong(
     multiselect_context: MediaItemMultiSelectContext? = null,
     multiselect_key: Int? = null,
     getInfoText: (@Composable () -> String?)? = null,
-    long_press_menu_data: LongPressMenuData = remember(item) { item.getLongPressMenuData(
-        multiselect_context,
-        multiselect_key,
-        getInfoText
-    ) }
+    long_press_menu_data: LongPressMenuData =
+        remember(item, multiselect_context, multiselect_key, getInfoText) {
+            item.getLongPressMenuData(
+                multiselect_context,
+                multiselect_key,
+                getInfoText
+            )
+        }
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,

@@ -32,8 +32,16 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
+    - name: Build debug APK
+      run: ./gradlew packageDebug
     - name: Build release APK
       run: ./gradlew packageRelease
+
+    - name: Upload universal debug APK artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: androidApp-universal-debug.apk
+        path: androidApp/build/outputs/apk/debug/androidApp-universal-debug.apk
 
     - name: Upload universal release APK artifact
       uses: actions/upload-artifact@v3

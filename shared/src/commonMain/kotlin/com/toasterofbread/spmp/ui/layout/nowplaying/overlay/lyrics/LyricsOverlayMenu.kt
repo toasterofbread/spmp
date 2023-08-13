@@ -8,12 +8,17 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,13 +26,19 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,11 +60,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import androidx.compose.ui.zIndex
+import com.toasterofbread.spmp.api.lyrics.LyricsSource
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.platform.composable.BackHandler
+import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.PillMenu
@@ -91,7 +104,7 @@ class LyricsOverlayMenu: OverlayMenu() {
         val scroll_state = rememberLazyListState()
         val coroutine_scope = rememberCoroutineScope()
 
-        val lyrics_state = remember(song.id) { SongLyricsLoader.getItemState(song.id) }
+        val lyrics_state = remember(song.id) { SongLyricsLoader.getItemState(song, SpMp.context.database) }
         var show_furigana: Boolean by remember { mutableStateOf(Settings.KEY_LYRICS_DEFAULT_FURIGANA.get()) }
 
         var submenu: LyricsOverlaySubmenu? by remember { mutableStateOf(null) }
@@ -107,6 +120,10 @@ class LyricsOverlayMenu: OverlayMenu() {
             }
         }
 
+        LaunchedEffect(lyrics_state) {
+            SongLyricsLoader.loadBySong(song, SpMp.context)
+        }
+
         LaunchedEffect(lyrics_state.loading) {
             if (!lyrics_state.loading && lyrics_state.lyrics == null && submenu == null) {
                 submenu = LyricsOverlaySubmenu.SEARCH
@@ -120,10 +137,50 @@ class LyricsOverlayMenu: OverlayMenu() {
         }
 
         Box(contentAlignment = Alignment.Center) {
+            var show_lyrics_info by remember { mutableStateOf(false) }
+            if (show_lyrics_info) {
+                PlatformAlertDialog(
+                    { show_lyrics_info = false },
+                    {
+                        Button({ show_lyrics_info = false }) {
+                            Text(getString("action_close"))
+                        }
+                    }
+                ) {
+                    Crossfade(lyrics_state.lyrics) { lyrics ->
+                        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(15.dp)) {
+                            if (lyrics == null) {
+                                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                    Icon(Icons.Default.Close, null)
+                                }
+                            }
+                            else {
+                                @Composable
+                                fun Item(title: String, text: String) {
+                                    val faint_colour = LocalContentColor.current.setAlpha(0.75f)
+                                    Column(Modifier.fillMaxWidth().border(1.dp, faint_colour, RoundedCornerShape(16.dp)).padding(10.dp)) {
+                                        Text(title, style = MaterialTheme.typography.bodySmall, color = faint_colour)
+                                        Spacer(Modifier.height(5.dp))
+
+                                        SelectionContainer {
+                                            Text(text, style = MaterialTheme.typography.titleMedium)
+                                        }
+                                    }
+                                }
+
+                                Item(getString("lyrics_info_key_source"), LyricsSource.fromIdx(lyrics.source_idx).getReadable())
+                                Item(getString("lyrics_info_key_id"), lyrics.id)
+                                Item(getString("lyrics_info_key_sync_type"), lyrics.sync_type.getReadable())
+                            }
+                        }
+                    }
+                }
+            }
+
             // Pill menu
             AnimatedVisibility(submenu != LyricsOverlaySubmenu.SEARCH, Modifier.zIndex(10f), enter = fadeIn(), exit = fadeOut()) {
                 pill_menu.PillMenu(
-                    if (submenu != null || selecting_sync_line) 1 else if (lyrics_state.lyrics?.synced == true) 4 else 3,
+                    if (submenu != null || selecting_sync_line) 1 else if (lyrics_state.lyrics?.synced == true) 5 else 4,
                     { index, _ ->
                         when (index) {
                             0 -> ActionButton(Icons.Filled.Close) {
@@ -137,8 +194,9 @@ class LyricsOverlayMenu: OverlayMenu() {
                                     submenu = null
                                 }
                             }
-                            1 -> ActionButton(Icons.Filled.Search) { submenu = LyricsOverlaySubmenu.SEARCH }
-                            2 -> Box(
+                            1 -> ActionButton(Icons.Outlined.Info) { show_lyrics_info = !show_lyrics_info }
+                            2 -> ActionButton(Icons.Filled.Search) { submenu = LyricsOverlaySubmenu.SEARCH }
+                            3 -> Box(
                                 Modifier.size(48.dp),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -153,7 +211,7 @@ class LyricsOverlayMenu: OverlayMenu() {
                                         })
                                 )
                             }
-                            3 -> ActionButton(Icons.Default.HourglassEmpty) { selecting_sync_line = true }
+                            4 -> ActionButton(Icons.Default.HourglassEmpty) { selecting_sync_line = true }
                         }
                     },
                     _background_colour = Theme.accent_provider,
@@ -161,11 +219,11 @@ class LyricsOverlayMenu: OverlayMenu() {
                 )
             }
 
-            Crossfade(Triple(submenu, getSong(), lyrics_state.lyrics), Modifier.fillMaxSize()) { state ->
+            Crossfade(Triple(submenu, getSong(), lyrics_state.lyrics ?: lyrics_state.loading), Modifier.fillMaxSize()) { state ->
                 val (current_submenu, song, lyrics) = state
 
                 if (current_submenu == LyricsOverlaySubmenu.SEARCH) {
-                    LyricsSearchMenu(getSong(), Modifier.fillMaxSize()) { changed ->
+                    LyricsSearchMenu(song, Modifier.fillMaxSize()) { changed ->
                         submenu = null
                         if (changed) {
                             coroutine_scope.launchSingle {
@@ -182,7 +240,7 @@ class LyricsOverlayMenu: OverlayMenu() {
                     }
                 }
                 else if (current_submenu == LyricsOverlaySubmenu.SYNC) {
-                    if (lyrics != null) {
+                    if (lyrics is SongLyrics) {
                         lyrics_sync_line_data?.also { line_data ->
                             LyricsSyncMenu(
                                 song, 
@@ -199,7 +257,7 @@ class LyricsOverlayMenu: OverlayMenu() {
                         submenu = null
                     }
                 }
-                else if (lyrics != null) {
+                else if (lyrics is SongLyrics) {
                     Box(Modifier.fillMaxSize()) {
                         val lyrics_follow_enabled: Boolean by Settings.KEY_LYRICS_FOLLOW_ENABLED.rememberMutableState()
 

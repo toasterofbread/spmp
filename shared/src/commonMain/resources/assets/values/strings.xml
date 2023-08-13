@@ -149,6 +149,9 @@
     <string name="lyrics_sync_select_line">Select line to sync by</string>
     <string name="lyrics_sync_press_button_when_line_begins">Press button when this line begins</string>
     
+    <string name="lyrics_info_key_source">Source</string>
+    <string name="lyrics_info_key_id">ID</string>
+    <string name="lyrics_info_key_sync_type">Sync type</string>
     <string name="lyrics_source_petit">PetitLyrics</string>
     <string name="lyrics_source_kugou">KuGou</string>
 

@@ -210,3 +210,16 @@ fun Float.roundTo(decimals: Int): Float {
 inline fun synchronizedBlock(lock: Any, block: () -> Unit) {
 	synchronized(lock, block)
 }
+
+fun String.substringBetween(start: String, end: String, ignore_case: Boolean = false): String? {
+	val start_index = indexOf(start, ignoreCase = ignore_case) + start.length
+	if (start_index < start.length) {
+		return null
+	}
+	val end_index = indexOf(end, start_index, ignoreCase = ignore_case)
+	if (end_index == -1) {
+		return null
+	}
+
+	return substring(start_index, end_index)
+}

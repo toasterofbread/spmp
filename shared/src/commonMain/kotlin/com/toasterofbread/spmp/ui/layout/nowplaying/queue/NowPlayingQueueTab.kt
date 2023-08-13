@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredWidth
@@ -18,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -32,8 +34,12 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -183,18 +189,20 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
                 QueueBorder(wave_border_mode, list_padding, queue_list_state)
 
                 CompositionLocalProvider(
-                    LocalPlayerState provides remember { player.copy(onClickedOverride = { _, index: Int? ->
+                    LocalPlayerState provides remember { player.copy(onClickedOverride = { song, index: Int? ->
                         player.player?.seekToSong(index!!)
                     }) }
                 ) {
                     var list_position by remember { mutableStateOf(0.dp) }
+                    val top_padding = (
+                        list_padding
+                        // Extra space to prevent initial wave border overlap
+                        + if (wave_border_mode != NowPlayingQueueWaveBorderMode.LINE) 15.dp else 0.dp
+                    )
+
                     LazyColumn(
                         state = queue_list_state.listState,
-                        contentPadding = PaddingValues(
-                            top = list_padding +
-                                // Extra space to prevent initial wave border overlap
-                                if (wave_border_mode != NowPlayingQueueWaveBorderMode.LINE) 15.dp else 0.dp
-                        ),
+                        contentPadding = PaddingValues(top = top_padding),
                         modifier = Modifier
                             .reorderable(queue_list_state)
                             .padding(horizontal = list_padding)
@@ -221,24 +229,27 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
                         item {
                             player.player?.RadioLoadStatus(
                                 Modifier
-                                    // .heightIn(min = 50.dp)
+                                    .heightIn(min = 50.dp)
                                     .padding(top = list_padding)
                                     .fillMaxWidth(),
-                                expanded_modifier = Modifier.height(page_height)
+                                expanded_modifier = Modifier.height(page_height / 2)
                             )
                         }
 
-
                         item {
-                            val navbar_height = SpMp.context.getNavigationBarHeightDp()
-                            Spacer(Modifier.height(
+                            var bottom_padding: Dp = (
                                 NOW_PLAYING_TOP_BAR_HEIGHT.dp
-                                + MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
                                 + list_position
-                                + list_padding
+                                + top_padding
 //                                + SpMp.context.getNavigationBarHeightDp()
 //                                - SpMp.context.getStatusBarHeight()
-                            ))
+                            )
+
+                            if (player.player?.radio_loading == true) {
+                                bottom_padding = page_height - bottom_padding
+                            }
+
+                            Spacer(Modifier.height(bottom_padding))
                         }
                     }
                 }

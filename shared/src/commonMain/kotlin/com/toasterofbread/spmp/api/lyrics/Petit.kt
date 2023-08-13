@@ -9,25 +9,40 @@ import com.toasterofbread.spmp.api.lyrics.petit.parseTimedLyrics
 import com.toasterofbread.spmp.api.lyrics.petit.searchPetitLyrics
 import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.utils.substringBetween
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.nio.ByteBuffer
+import java.nio.charset.Charset
 import java.util.Base64
+import java.util.UnknownFormatConversionException
 
 private const val DATA_START = "<lyricsData>"
 private const val DATA_END = "</lyricsData>"
+private const val ENCODING_START = "encoding='"
+private const val ENCODING_END = "'"
 
 internal class PetitLyricsSource(source_idx: Int): LyricsSource(source_idx) {
     override fun getReadable(): String = getString("lyrics_source_petit")
     override fun getColour(): Color = Color(0xFFBD0A0F)
     
     override suspend fun getLyrics(lyrics_id: String): Result<SongLyrics> {
+        var exception: Throwable? = null
+
         for (sync_type in SongLyrics.SyncType.byPriority()) {
             val result = getLyricsData(lyrics_id.toInt(), sync_type)
 
-            val data = result.getOrNull() ?: return result.cast()
+            val data = result.getOrNull()
+            if (data == null) {
+                if (exception == null) {
+                    exception = result.exceptionOrNull()
+                }
+                continue
+            }
+
             if (data.startsWith("<wsy>")) {
                 val parse_result = parseTimedLyrics(data)
                 val lyrics = parse_result.getOrNull() ?: return parse_result.cast()
@@ -51,14 +66,16 @@ internal class PetitLyricsSource(source_idx: Int): LyricsSource(source_idx) {
             }
         }
 
-        return Result.failure(IllegalStateException())
+        return Result.failure(exception ?: IllegalStateException())
     }
 
     private suspend fun getLyricsData(lyrics_id: Int, sync_type: SongLyrics.SyncType): Result<String> = withContext(Dispatchers.IO) {
-        val body = "key_lyricsId=$lyrics_id&lyricsType=${sync_type.ordinal + 1}&terminalType=10&clientAppId=on354007".toRequestBody("application/x-www-form-urlencoded; charset=utf-8".toMediaType())
         val request = Request.Builder()
             .url("https://p1.petitlyrics.com/api/GetPetitLyricsData.php")
-            .post(body)
+            .post(
+                "key_lyricsId=$lyrics_id&lyricsType=${sync_type.ordinal + 1}&terminalType=10&clientAppId=on354007"
+                    .toRequestBody("application/x-www-form-urlencoded; charset=utf-8".toMediaType())
+            )
             .build()
     
         val result = Api.request(request)
@@ -66,12 +83,24 @@ internal class PetitLyricsSource(source_idx: Int): LyricsSource(source_idx) {
             return@withContext result.cast()
         }
     
-        val xml = result.getOrThrowHere().body!!.string()
-        val start = xml.indexOf(DATA_START)
-        val end = xml.indexOf(DATA_END, start + DATA_START.length)
-    
-        val decoded = Base64.getDecoder().decode(xml.substring(start + DATA_START.length, end))
-        return@withContext Result.success(String(decoded))
+        val xml: String = result.getOrThrowHere().body!!.string()
+
+        val lyrics_data: ByteArray = Base64.getDecoder().decode(xml.substringBetween(DATA_START, DATA_END))
+        val lyrics_data_encoding: String = xml.substringBetween(ENCODING_START, ENCODING_END)!! // TODO use UTF-8 as default
+
+        val string_decoder = Charset.forName(lyrics_data_encoding)
+
+        try {
+            val string = string_decoder.decode(ByteBuffer.wrap(lyrics_data)).toString()
+            if (string.contains('�')) {
+                throw UnknownFormatConversionException(lyrics_data_encoding)
+            }
+
+            return@withContext Result.success(string)
+        }
+        catch (e: Throwable) {
+            return@withContext Result.failure(RuntimeException("Decoding lyrics data with encoding $lyrics_data_encoding failed", e))
+        }
     }
     
     override suspend fun searchForLyrics(title: String, artist_name: String?): Result<List<SearchResult>> {

@@ -41,10 +41,9 @@ fun rememberTopBarShouldShowInQueue(mode: MusicTopBarMode): State<Boolean> {
     val show_lyrics_in_queue: Boolean by Settings.KEY_TOPBAR_SHOW_LYRICS_IN_QUEUE.rememberMutableState()
     val show_visualiser_in_queue: Boolean by Settings.KEY_TOPBAR_SHOW_VISUALISER_IN_QUEUE.rememberMutableState()
 
-
     return remember(player.status.m_song?.id) {
-        val lyrics_state = player.status.m_song?.id?.let { song_id ->
-            SongLyricsLoader.getItemState(song_id)
+        val lyrics_state = player.status.m_song?.let { song ->
+            SongLyricsLoader.getItemState(song, SpMp.context.database)
         }
 
         derivedStateOf {
@@ -111,7 +110,8 @@ fun TopBar(modifier: Modifier = Modifier) {
                 MusicTopBarWithVisualiser(
                     Settings.INTERNAL_TOPBAR_MODE_NOWPLAYING,
                     Modifier.fillMaxSize(),
-                    song = song
+                    song = song,
+                    d = true
                 )
             }
 

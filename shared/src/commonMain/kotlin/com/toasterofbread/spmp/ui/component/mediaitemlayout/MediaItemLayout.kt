@@ -190,10 +190,11 @@ data class MediaItemLayout(
     }
 
     data class MediaItemViewMore(
-        val media_item: MediaItem
+        val media_item: MediaItem,
+        val browse_params: String? = null
     ): ViewMore {
         override fun execute(player: PlayerState, title: LocalisedYoutubeString?) {
-            player.openMediaItem(media_item, true)
+            player.openMediaItem(media_item, true, browse_params)
         }
     }
 
@@ -213,7 +214,7 @@ data class MediaItemLayout(
                 )
             }
             else {
-                player.openViewMorePage(list_page_browse_id)
+                player.openViewMorePage(list_page_browse_id, title?.getString())
             }
         }
     }
@@ -224,7 +225,7 @@ data class MediaItemLayout(
         font_size: TextUnit? = null,
         multiselect_context: MediaItemMultiSelectContext? = null
     ) {
-        TitleBar(title, subtitle, modifier, view_more, font_size, multiselect_context)
+        TitleBar(items, title, subtitle, modifier, view_more, font_size, multiselect_context)
     }
 }
 
@@ -236,6 +237,7 @@ internal fun shouldShowTitleBar(
 
 @Composable
 internal fun TitleBar(
+    items: List<MediaItemHolder>,
     title: LocalisedYoutubeString?,
     subtitle: LocalisedYoutubeString?,
     modifier: Modifier = Modifier,
@@ -273,16 +275,16 @@ internal fun TitleBar(
                 }
             }
 
-//            Row {
-//                view_more?.also { view_more ->
-//                    val player = LocalPlayerState.current
-//                    IconButton({ view_more.openViewMore(player, title) }, Modifier.height(20.dp)) {
-//                        Icon(Icons.Default.MoreHoriz, null)
-//                    }
-//                }
-//
-//                multiselect_context?.CollectionToggleButton(items)
-//            }
+            Row {
+                view_more?.also { view_more ->
+                    val player = LocalPlayerState.current
+                    IconButton({ view_more.execute(player, title) }) {
+                        Icon(Icons.Default.MoreHoriz, null)
+                    }
+                }
+
+                multiselect_context?.CollectionToggleButton(items)
+            }
         }
     }
 }
@@ -419,7 +421,7 @@ fun MediaItemCard(
                 Text(getString(when (item.getType()) {
                     MediaItemType.SONG -> "media_play"
                     MediaItemType.ARTIST -> "artist_chip_play"
-                    MediaItemType.PLAYLIST_ACC, MediaItemType.PLAYLIST_LOC, MediaItemType.PLAYLIST_BROWSEPARAMS -> "playlist_chip_play"
+                    MediaItemType.PLAYLIST_ACC, MediaItemType.PLAYLIST_LOC -> "playlist_chip_play"
                 }))
             }
         }

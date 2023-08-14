@@ -1,6 +1,8 @@
 <resources>
+    <string name="language_name">日本語</string>
+
     <string name="project_url_name">プロジェクトのURL</string>
-    
+
     <string name="home_feed_listen_again">もう一度聴く</string>
     <string name="home_feed_mixed_for_you">おすすめのミックス</string>
     <string name="home_feed_new_releases">新作</string>

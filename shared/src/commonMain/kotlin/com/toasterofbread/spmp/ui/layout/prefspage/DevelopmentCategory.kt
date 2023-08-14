@@ -88,7 +88,7 @@ private fun UnlocalisedString.InfoDisplay() {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.fillMaxWidth().weight(1f)) {
             Text("Key: $key")
-            Text("Lang: ${SpMp.getLanguageCode(source_language)}")
+            Text("Lang: $source_language")
         }
 
         SpMp.context.CopyShareButtons {

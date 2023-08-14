@@ -30,6 +30,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Info
@@ -98,13 +99,11 @@ class LyricsOverlayMenu: OverlayMenu() {
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
-        val song = getSong()
-
         val pill_menu = remember { PillMenu(expand_state = mutableStateOf(false)) }
         val scroll_state = rememberLazyListState()
         val coroutine_scope = rememberCoroutineScope()
 
-        val lyrics_state = remember(song.id) { SongLyricsLoader.getItemState(song, SpMp.context.database) }
+        val lyrics_state = remember(getSong().id) { SongLyricsLoader.getItemState(getSong(), SpMp.context.database) }
         var show_furigana: Boolean by remember { mutableStateOf(Settings.KEY_LYRICS_DEFAULT_FURIGANA.get()) }
 
         var submenu: LyricsOverlaySubmenu? by remember { mutableStateOf(null) }
@@ -121,7 +120,7 @@ class LyricsOverlayMenu: OverlayMenu() {
         }
 
         LaunchedEffect(lyrics_state) {
-            SongLyricsLoader.loadBySong(song, SpMp.context)
+            SongLyricsLoader.loadBySong(getSong(), SpMp.context)
         }
 
         LaunchedEffect(lyrics_state.loading) {
@@ -220,7 +219,9 @@ class LyricsOverlayMenu: OverlayMenu() {
             }
 
             Crossfade(Triple(submenu, getSong(), lyrics_state.lyrics ?: lyrics_state.loading), Modifier.fillMaxSize()) { state ->
-                val (current_submenu, song, lyrics) = state
+                val (current_submenu, song, l) = state
+                val lyrics: SongLyrics? = if (l is SongLyrics) l else null
+                val loading: Boolean = l == true
 
                 if (current_submenu == LyricsOverlaySubmenu.SEARCH) {
                     LyricsSearchMenu(song, Modifier.fillMaxSize()) { changed ->
@@ -228,14 +229,15 @@ class LyricsOverlayMenu: OverlayMenu() {
                         if (changed) {
                             coroutine_scope.launchSingle {
                                 val result = SongLyricsLoader.loadBySong(getSong(), SpMp.context)
-                                result.fold(
-                                    {},
-                                    { error ->
-                                        // TODO
-                                        SpMp.context.sendToast(error.toString())
-                                    }
-                                )
+                                result.onFailure { error ->
+                                    // TODO
+                                    throw error
+                                    SpMp.context.sendToast(error.toString())
+                                }
                             }
+                        }
+                        else if (!loading && lyrics == null) {
+                            openMenu(null)
                         }
                     }
                 }
@@ -257,7 +259,7 @@ class LyricsOverlayMenu: OverlayMenu() {
                         submenu = null
                     }
                 }
-                else if (lyrics is SongLyrics) {
+                else if (lyrics != null) {
                     Box(Modifier.fillMaxSize()) {
                         val lyrics_follow_enabled: Boolean by Settings.KEY_LYRICS_FOLLOW_ENABLED.rememberMutableState()
 
@@ -283,7 +285,7 @@ class LyricsOverlayMenu: OverlayMenu() {
                         }
                     }
                 }
-                else {
+                else if (loading) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         SubtleLoadingIndicator(message = getString("lyrics_loading"))
                     }

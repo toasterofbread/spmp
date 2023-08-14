@@ -103,7 +103,6 @@ internal suspend inline fun <K, V> performSafeLoad(
     instance_key: K,
     lock: ReentrantLock,
     running: MutableMap<K, Deferred<Result<V>>>,
-    keep_results: Boolean = false,
     listeners: List<ListenerLoader.Listener<K, V>>? = null,
     crossinline performLoad: suspend () -> Result<V>
 ): Result<V> {
@@ -149,11 +148,9 @@ internal suspend inline fun <K, V> performSafeLoad(
         )
     }
 
-    if (!keep_results || result.isFailure) {
-        @Suppress("DeferredResultUnused")
-        lock.withLock {
-            running.remove(instance_key)
-        }
+    @Suppress("DeferredResultUnused")
+    lock.withLock {
+        running.remove(instance_key)
     }
 
     return result

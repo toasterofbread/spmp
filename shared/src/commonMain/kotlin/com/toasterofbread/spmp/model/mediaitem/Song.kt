@@ -173,6 +173,15 @@ class SongData(
         db.transaction { with(apply_to_item as Song) {
             super.saveToDatabase(db, apply_to_item)
 
+            album?.also { album ->
+                if (album is PlaylistData) {
+                    album.saveToDatabase(db)
+                }
+                else {
+                    album.createDbEntry(db)
+                }
+            }
+
             TypeOfSong.setNotNull(song_type, db)
             Duration.setNotNull(duration, db)
             Album.setNotNull(album, db)

@@ -61,7 +61,7 @@ interface PlayerOverlayPage {
 
     open fun getItem(): MediaItem? = null
 
-    data class MediaItemPage(private val holder: MediaItemHolder): PlayerOverlayPage {
+    data class MediaItemPage(private val holder: MediaItemHolder, private val browse_params: String? = null): PlayerOverlayPage {
         override fun getItem(): MediaItem? = holder.item
 
         @Composable
@@ -74,7 +74,7 @@ interface PlayerOverlayPage {
                     PaddingValues(top = SpMp.context.getStatusBarHeight(), bottom = bottom_padding),
                     close
                 )
-                is Artist -> ArtistPage(item, previous_item?.item, bottom_padding, close)
+                is Artist -> ArtistPage(item, previous_item?.item, bottom_padding, browse_params, close)
                 is Song -> SongRelatedPage(
                     item,
                     Modifier.fillMaxSize(),
@@ -108,16 +108,16 @@ interface PlayerOverlayPage {
         }
     }
 
-    private data class GenericFeedViewMorePage(private val browse_id: String): PlayerOverlayPage {
+    private data class GenericFeedViewMorePage(private val browse_id: String, private val title: String?): PlayerOverlayPage {
         @Composable
         override fun Page(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
-            GenericFeedViewMorePage(browse_id, Modifier.fillMaxSize(), bottom_padding = bottom_padding)
+            GenericFeedViewMorePage(browse_id, Modifier.fillMaxSize(), bottom_padding = bottom_padding, title = title)
         }
     }
 
     companion object {
-        fun getViewMorePage(browse_id: String): PlayerOverlayPage = when (browse_id) {
-            "FEmusic_listen_again", "FEmusic_mixed_for_you", "FEmusic_new_releases_albums" -> GenericFeedViewMorePage(browse_id)
+        fun getViewMorePage(browse_id: String, title: String?): PlayerOverlayPage = when (browse_id) {
+            "FEmusic_listen_again", "FEmusic_mixed_for_you", "FEmusic_new_releases_albums" -> GenericFeedViewMorePage(browse_id, title)
             "FEmusic_moods_and_genres" -> TODO(browse_id)
             "FEmusic_charts" -> TODO(browse_id)
             else -> throw NotImplementedError(browse_id)
@@ -336,15 +336,15 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
         hideLongPressMenu()
     }
 
-    override fun openMediaItem(item: MediaItem, from_current: Boolean) {
+    override fun openMediaItem(item: MediaItem, from_current: Boolean, browse_params: String?) {
         if (item is Artist && item.IsForItem.get(context.database)) {
             return
         }
-        openPage(PlayerOverlayPage.MediaItemPage(item.getHolder()), from_current)
+        openPage(PlayerOverlayPage.MediaItemPage(item.getHolder(), browse_params), from_current)
     }
 
-    override fun openViewMorePage(browse_id: String) {
-        openPage(PlayerOverlayPage.getViewMorePage(browse_id))
+    override fun openViewMorePage(browse_id: String, title: String?) {
+        openPage(PlayerOverlayPage.getViewMorePage(browse_id, title))
     }
 
     override fun openNowPlayingOverlayMenu(menu: OverlayMenu?) {

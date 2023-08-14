@@ -6,7 +6,7 @@ class UnlocalisedStringCollector {
     data class UnlocalisedString(
         val type: String, 
         val key: String?, 
-        val source_language: Int
+        val source_language: String
     ) {
         val stacktrace = Throwable().getStackTrace().takeLast(5)
         

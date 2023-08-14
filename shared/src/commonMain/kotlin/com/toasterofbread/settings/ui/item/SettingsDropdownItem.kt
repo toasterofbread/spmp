@@ -51,9 +51,7 @@ class SettingsDropdownItem(
         openPage: (Int) -> Unit,
         openCustomPage: (SettingsPage) -> Unit
     ) {
-
         Row(verticalAlignment = Alignment.CenterVertically) {
-
             Column(
                 Modifier
                     .fillMaxWidth()

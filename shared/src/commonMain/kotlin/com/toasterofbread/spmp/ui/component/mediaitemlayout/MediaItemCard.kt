@@ -201,7 +201,7 @@ fun MediaItemCard(
                         when (item.getType()) {
                             MediaItemType.SONG -> "media_play"
                             MediaItemType.ARTIST -> "artist_chip_play"
-                            MediaItemType.PLAYLIST_ACC, MediaItemType.PLAYLIST_LOC, MediaItemType.PLAYLIST_BROWSEPARAMS -> "playlist_chip_play"
+                            MediaItemType.PLAYLIST_ACC, MediaItemType.PLAYLIST_LOC -> "playlist_chip_play"
                         }
                     )
                 )

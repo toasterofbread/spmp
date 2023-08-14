@@ -46,8 +46,7 @@ data class VideoDetails(
 
 suspend fun loadMediaItemData(
     item: MediaItemData,
-    db: Database,
-    browse_params: String? = null
+    db: Database
 ): Result<Unit> {
     val item_id = item.id
 
@@ -63,13 +62,9 @@ suspend fun loadMediaItemData(
                         "videoId" to item_id,
                     )
                 else
-                    mutableMapOf(
+                    mapOf(
                         "browseId" to item_id
-                    ).apply {
-                        if (browse_params != null) {
-                            put("params", browse_params)
-                        }
-                    }
+                    )
 
             val hl = SpMp.data_language
             var request: Request = Request.Builder()
@@ -301,9 +296,6 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                             )
                         }
                         item.item_set_ids = if (items.all { it.second != null }) items.map { it.second!! } else null
-
-                        println("LOADED CONT ${item.title} ${item.continuation}")
-
                         break
                     }
 

@@ -5,10 +5,10 @@ CREATE TABLE ArtistLayout (
 --  items ArtistLayoutItem
     title_type INTEGER,
     title_key TEXT,
-    title_lang INTEGER,
+    title_lang TEXT,
     subtitle_type INTEGER,
     subtitle_key TEXT,
-    subtitle_lang INTEGER,
+    subtitle_lang TEXT,
     type INTEGER,
     view_more_type INTEGER,
     view_more_data TEXT,

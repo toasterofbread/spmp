@@ -36,19 +36,9 @@ suspend fun isSubscribedToArtist(artist: Artist): Result<Boolean> = withContext(
         .build()
 
     val result = Api.request(request)
-    if (result.isFailure) {
-        return@withContext result.cast()
-    }
 
-    val stream = result.getOrThrow().getStream()
-    val parsed: ArtistBrowseResponse = try {
-        Api.klaxon.parse(stream)!!
-    }
-    catch (e: Throwable) {
-        return@withContext Result.failure(e)
-    }
-    finally {
-        stream.close()
+    val parsed: ArtistBrowseResponse = result.parseJsonResponse {
+        return@withContext Result.failure(it)
     }
 
     return@withContext Result.success(parsed.getSubscribed() == true)

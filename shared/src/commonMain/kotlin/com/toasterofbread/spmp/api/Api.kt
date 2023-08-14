@@ -491,3 +491,24 @@ class Api {
 
 fun Artist.isOwnChannel(): Boolean =
     id == Api.ytm_auth.getOwnChannelOrNull()?.id
+
+inline fun <reified T> Result<Response>.parseJsonResponse(
+    klaxon: Klaxon = Api.klaxon,
+    onFailure: (Throwable) -> T
+): T {
+    return try {
+        fold(
+            { response ->
+                response.getStream().use { stream ->
+                    klaxon.parse(stream)!!
+                }
+            },
+            { error ->
+                onFailure(error)
+            }
+        )
+    }
+    catch (e: Throwable) {
+        onFailure(e)
+    }
+}

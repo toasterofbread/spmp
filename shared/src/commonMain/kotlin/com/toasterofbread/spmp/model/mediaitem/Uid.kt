@@ -19,5 +19,4 @@ fun MediaItem.getUid(): String =
         MediaItemType.ARTIST -> "a$id"
         MediaItemType.PLAYLIST_ACC -> "p$id"
         MediaItemType.PLAYLIST_LOC -> "l$id"
-        MediaItemType.PLAYLIST_BROWSEPARAMS -> throw IllegalStateException(id)
     }

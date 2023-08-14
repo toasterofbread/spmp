@@ -1,29 +1,28 @@
 package com.toasterofbread.spmp.resources.uilocalisation
 
-import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.resources.uilocalisation.localised.Languages
+import com.toasterofbread.spmp.resources.uilocalisation.localised.UILanguages
 import com.toasterofbread.spmp.resources.uilocalisation.localised.getYoutubeArtistPageLocalisations
 import com.toasterofbread.spmp.resources.uilocalisation.localised.getYoutubeFilterChipsLocalisations
 import com.toasterofbread.spmp.resources.uilocalisation.localised.getYoutubeHomeFeedLocalisations
 import com.toasterofbread.spmp.resources.uilocalisation.localised.getYoutubeOwnChannelLocalisations
 import com.toasterofbread.spmp.resources.uilocalisation.localised.getYoutubeSearchPageLocalisations
 
-class YoutubeUILocalisation(languages: Languages) {
+class YoutubeUILocalisation(languages: UILanguages) {
     enum class StringID {
         ARTIST_PAGE_SINGLES
     }
 
     class LocalisationSet {
-        val items: MutableList<Map<Int, Pair<String, String?>>> = mutableListOf()
+        val items: MutableList<Map<String, Pair<String, String?>>> = mutableListOf()
         val item_ids: MutableMap<Int, StringID> = mutableMapOf()
 
         @Synchronized
-        fun add(vararg strings: Pair<Int, String>, id: StringID? = null) {
+        fun add(vararg strings: Pair<String, String>, id: StringID? = null) {
             if (id != null) {
                 item_ids[items.size] = id
             }
 
-            items.add(mutableMapOf<Int, Pair<String, String?>>().also { map ->
+            items.add(mutableMapOf<String, Pair<String, String?>>().also { map ->
                 for (string in strings) {
                     val existing = map[string.first]
                     if (existing != null) {
@@ -43,8 +42,8 @@ class YoutubeUILocalisation(languages: Languages) {
     internal val SEARCH_PAGE_STRINGS: LocalisationSet = getYoutubeSearchPageLocalisations(languages)
     internal val FILTER_CHIPS: LocalisationSet = getYoutubeFilterChipsLocalisations(languages)
 
-    internal fun getLocalised(string: String, localisations: LocalisationSet, source_language: Int): Pair<String, StringID?>? {
-        val target: Int = Settings.KEY_LANG_UI.get()
+    internal fun getLocalised(string: String, localisations: LocalisationSet, source_language: String?): Pair<String, StringID?>? {
+        val target: String = SpMp.ui_language
 
         for (localisation in localisations.items.withIndex()) {
             if (localisation.value[source_language]?.first == string) {

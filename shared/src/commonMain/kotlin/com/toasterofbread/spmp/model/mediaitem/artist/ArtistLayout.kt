@@ -100,13 +100,13 @@ sealed interface ArtistLayout {
         get() = SingleProperty(
         { artistLayoutQueries.titleByIndex(artist_id, layout_index!!) },
         { title_type.toLocalisedYoutubeString(title_key, title_lang) },
-        { artistLayoutQueries.updateTitleByIndex(it?.type?.ordinal?.toLong(), it?.key, it?.source_language?.toLong(), artist_id, layout_index!!) }
+        { artistLayoutQueries.updateTitleByIndex(it?.type?.ordinal?.toLong(), it?.key, it?.source_language, artist_id, layout_index!!) }
     )
     val Subtitle: Property<LocalisedYoutubeString?>
         get() = SingleProperty(
         { artistLayoutQueries.subtitleByIndex(artist_id, layout_index!!) },
         { subtitle_type.toLocalisedYoutubeString(subtitle_key, subtitle_lang) },
-        { artistLayoutQueries.updateSubtitleByIndex(it?.type?.ordinal?.toLong(), it?.key, it?.source_language?.toLong(), artist_id, layout_index!!) }
+        { artistLayoutQueries.updateSubtitleByIndex(it?.type?.ordinal?.toLong(), it?.key, it?.source_language, artist_id, layout_index!!) }
     )
     val Type: Property<MediaItemLayout.Type?>
         get() = SingleProperty(
@@ -135,7 +135,10 @@ sealed interface ArtistLayout {
 
         fun getViewMore(data: String): MediaItemLayout.ViewMore =
             when (this) {
-                MediaItem -> MediaItemLayout.MediaItemViewMore(getMediaItemFromUid(data))
+                MediaItem -> {
+                    val split = data.split(VIEW_MORE_SPLIT_CHAR, limit = 2)
+                    MediaItemLayout.MediaItemViewMore(getMediaItemFromUid(split[0]), split.getOrNull(1))
+                }
                 ListPage -> {
                     val split = data.split(VIEW_MORE_SPLIT_CHAR, limit = 2)
                     MediaItemLayout.ListPageBrowseIdViewMore(split[0], split.getOrNull(1))
@@ -146,7 +149,7 @@ sealed interface ArtistLayout {
             private const val VIEW_MORE_SPLIT_CHAR = '|'
             fun fromViewMore(view_more: MediaItemLayout.ViewMore): Pair<Long, String> =
                 when (view_more) {
-                    is MediaItemLayout.MediaItemViewMore -> Pair(MediaItem.ordinal.toLong(), view_more.media_item.getUid())
+                    is MediaItemLayout.MediaItemViewMore -> Pair(MediaItem.ordinal.toLong(), view_more.media_item.getUid() + VIEW_MORE_SPLIT_CHAR + (view_more.browse_params ?: ""))
                     is MediaItemLayout.ListPageBrowseIdViewMore -> Pair(ListPage.ordinal.toLong(), view_more.list_page_browse_id + VIEW_MORE_SPLIT_CHAR + (view_more.browse_params ?: ""))
                     is MediaItemLayout.LambdaViewMore -> throw NotImplementedError(view_more.toString())
                 }

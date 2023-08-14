@@ -14,6 +14,7 @@ import com.toasterofbread.composesettings.ui.SettingsPageWithItems
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
+import com.toasterofbread.spmp.resources.Languages
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.theme.Theme
 
@@ -24,6 +25,7 @@ internal fun rememberPrefsPageSettingsInterface(
     getCategory: () -> PrefsPageCategory?, 
     close: () -> Unit
 ): SettingsInterface {
+
     return remember {
         lateinit var settings_interface: SettingsInterface
         val pill_menu_action_overrider: @Composable PillMenu.Action.(i: Int) -> Boolean = { i ->
@@ -50,7 +52,7 @@ internal fun rememberPrefsPageSettingsInterface(
             SettingsValueState<String>(Settings.KEY_DISCORD_ACCOUNT_TOKEN.name).init(Settings.prefs, Settings.Companion::provideDefault)
 
         val categories = mapOf(
-            PrefsPageCategory.GENERAL to lazy { getGeneralCategory() },
+            PrefsPageCategory.GENERAL to lazy { getGeneralCategory(Languages.loadAvailableLanugages(SpMp.context)) },
             PrefsPageCategory.FILTER to lazy { getFilterCategory() },
             PrefsPageCategory.FEED to lazy { getFeedCategory() },
             PrefsPageCategory.PLAYER to lazy { getPlayerCategory() },

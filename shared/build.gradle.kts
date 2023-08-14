@@ -105,11 +105,11 @@ kotlin {
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
 
-                implementation("com.squareup.okhttp3:okhttp:4.10.0")
+                implementation("com.github.TeamNewPipe:NewPipeExtractor")
 
+                implementation("com.squareup.okhttp3:okhttp:4.10.0")
                 implementation("com.beust:klaxon:5.5")
                 implementation("com.godaddy.android.colorpicker:compose-color-picker:0.7.0")
-                implementation("com.github.TeamNewPipe:NewPipeExtractor:v0.22.1")
                 implementation("org.apache.commons:commons-text:1.10.0")
                 implementation("com.atilika.kuromoji:kuromoji-ipadic:0.9.0")
                 implementation("org.jsoup:jsoup:1.15.3")
@@ -117,7 +117,6 @@ kotlin {
                 implementation("com.github.SvenWoltmann:color-thief-java:v1.1.2")
                 implementation("com.github.catppuccin:java:v1.0.0")
                 implementation("com.github.paramsen:noise:2.0.0")
-                implementation("com.github.jeziellago:compose-markdown:0.3.3")
 //                implementation("org.xmlpull:xmlpull:1.1.4.0")
             }
             kotlin.srcDir(buildConfigDir)
@@ -129,7 +128,7 @@ kotlin {
                 api("androidx.core:core-ktx:1.9.0")
                 api("androidx.appcompat:appcompat:1.6.1")
 
-                val media3_version = "1.1.0-beta01"
+                val media3_version = "1.1.0"
                 implementation("androidx.media3:media3-exoplayer:$media3_version")
                 implementation("androidx.media3:media3-ui:$media3_version")
                 implementation("androidx.media3:media3-session:$media3_version")

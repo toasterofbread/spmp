@@ -237,7 +237,7 @@ enum class Settings {
         @Suppress("IMPLICIT_CAST_TO_ANY", "UNCHECKED_CAST")
         fun <T> getDefault(enum_key: Settings): T {
             return when (enum_key) {
-                KEY_LANG_UI, KEY_LANG_DATA -> SpMp.getLanguageIndex(Locale.getDefault().language)
+                KEY_LANG_UI, KEY_LANG_DATA -> ""
 
                 KEY_LPM_CLOSE_ON_ACTION -> true
                 KEY_LPM_INCREMENT_PLAY_AFTER -> true

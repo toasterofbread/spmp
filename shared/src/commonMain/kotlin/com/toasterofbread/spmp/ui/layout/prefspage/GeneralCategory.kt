@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.ui.layout.prefspage
 
-import SpMp
 import com.toasterofbread.composesettings.ui.item.SettingsComposableItem
 import com.toasterofbread.composesettings.ui.item.SettingsDropdownItem
 import com.toasterofbread.composesettings.ui.item.SettingsGroupItem
@@ -9,41 +8,82 @@ import com.toasterofbread.composesettings.ui.item.SettingsSliderItem
 import com.toasterofbread.composesettings.ui.item.SettingsToggleItem
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.resources.getLanguageName
+import com.toasterofbread.spmp.resources.Languages
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.utils.composable.WidthShrinkText
 
-internal fun getGeneralCategory(): List<SettingsItem> {
+// TODO Allow setting to any language
+fun getLanguageDropdownItem(
+    key: Settings,
+    available_languages: List<Languages.LanguageInfo>,
+    title: String,
+    subtitle: String?
+): SettingsItem {
+    return SettingsDropdownItem(
+        SettingsValueState(
+            key.name,
+            getValueConverter = {
+                val language_code = it as String
+                if (language_code.isBlank()) {
+                    return@SettingsValueState 0
+                }
+
+                val index = available_languages.indexOfFirst { it.code == language_code }
+                if (index == -1) {
+                    key.set(null)
+                    return@SettingsValueState 0
+                }
+                else {
+                    return@SettingsValueState index + 1
+                }
+            },
+            setValueConverter = { index ->
+                if (index == 0) {
+                    ""
+                }
+                else {
+                    available_languages[index - 1].code
+                }
+            }
+        ),
+        title, subtitle,
+        available_languages.size + 1,
+        { i ->
+            if (i == 0) {
+                "System language"
+            }
+            else {
+                available_languages[i - 1].readable_name
+            }
+        }
+    ) { i ->
+        if (i == 0) {
+            "System language"
+        }
+        else {
+            val lang = available_languages[i - 1]
+            "${lang.code} / ${lang.readable_name}"
+        }
+    }
+}
+
+internal fun getGeneralCategory(available_languages: List<Languages.LanguageInfo>): List<SettingsItem> {
     return listOf(
         SettingsComposableItem {
             WidthShrinkText(getString("language_change_restart_notice"))
         },
 
-        SettingsDropdownItem(
-            SettingsValueState(Settings.KEY_LANG_UI.name),
-            getString("s_key_interface_lang"), getString("s_sub_interface_lang"),
-            SpMp.getLanguageCount(),
-            { i ->
-                getLanguageName(i)
-            }
-        ) { i ->
-            val code = SpMp.getLanguageCode(i)
-            val name = getLanguageName(i)
-            "$code / $name"
-        },
+        getLanguageDropdownItem(
+            Settings.KEY_LANG_UI,
+            available_languages,
+            getString("s_key_interface_lang"), getString("s_sub_interface_lang")
+        ),
 
-        SettingsDropdownItem(
-            SettingsValueState(Settings.KEY_LANG_DATA.name),
-            getString("s_key_data_lang"), getString("s_sub_data_lang"),
-            SpMp.getLanguageCount(),
-            { i ->
-                getLanguageName(i)
-            }
-        ) { i ->
-            val code = SpMp.getLanguageCode(i)
-            val name = getLanguageName(i)
-            "$code / $name"
-        },
+        getLanguageDropdownItem(
+            Settings.KEY_LANG_DATA,
+            available_languages,
+            getString("s_key_data_lang"), getString("s_sub_data_lang")
+        ),
 
         SettingsSliderItem(
             SettingsValueState<Int>(Settings.KEY_VOLUME_STEPS.name),

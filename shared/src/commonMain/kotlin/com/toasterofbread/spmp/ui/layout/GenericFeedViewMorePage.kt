@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,7 +37,7 @@ import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 
 @Composable
-fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, bottom_padding: Dp = 0.dp) {
+fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, bottom_padding: Dp = 0.dp, title: String? = null) {
     var items_result: Result<List<MediaItem>>? by remember { mutableStateOf(null) }
     LaunchedEffect(browse_id) {
         items_result = null
@@ -72,6 +74,12 @@ fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, bo
                         verticalArrangement = item_arrangement,
                         horizontalArrangement = item_arrangement
                     ) {
+                        if (title != null) {
+                            item(span = { GridItemSpan(Int.MAX_VALUE) }) {
+                                Text(title, Modifier.fillMaxWidth(), style = MaterialTheme.typography.headlineMedium)
+                            }
+                        }
+
                         items(items) { item ->
                             MediaItemPreviewSquare(
                                 item,

@@ -1,7 +1,6 @@
 CREATE TABLE Playlist (
     id TEXT NOT NULL PRIMARY KEY,
 
-    browse_params TEXT,
     playlist_type INTEGER,
     item_count INTEGER,
     total_duration INTEGER,
@@ -33,9 +32,6 @@ getLargestIdByType:
 SELECT MAX(id)
 FROM Playlist
 WHERE playlist_type = :playlist_type;
-
-browseParamsById: SELECT browse_params FROM Playlist WHERE id == :id;
-updateBrowseParamsById: UPDATE Playlist SET browse_params = :browse_params WHERE id == :id;
 
 playlistTypeById: SELECT playlist_type FROM Playlist WHERE id == :id;
 updatePlaylistTypeById: UPDATE Playlist SET playlist_type = :playlist_type WHERE id == :id;

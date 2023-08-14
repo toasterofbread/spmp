@@ -20,9 +20,6 @@ class Cache {
 
             if (!cache_dir.exists()) {
                 cache_dir.mkdirs()
-                if (!cache_dir.exists()) {
-                    throw FileNotFoundException("Could not create cache dir")
-                }
             }
 
             thread {
@@ -31,21 +28,29 @@ class Cache {
         }
 
         fun clean() {
+            if (!cache_dir.exists()) {
+                return
+            }
+
             val now = Instant.now()
-            for (file in cache_dir.walkTopDown()) {
-                if (file.isDirectory) {
-                    continue
-                }
 
-                val reader = file.bufferedReader()
-                val metadata: String? = reader.readLine()
-                reader.close()
+            try {
+                for (file in cache_dir.walkTopDown()) {
+                    if (file.isDirectory) {
+                        continue
+                    }
 
-                if (metadata == null || parseCacheMetadata(metadata).isBefore(now)) {
-                    file.delete()
-                    println("Deleted expired/invalid cache file at ${file.toPath().relativeTo(cache_dir.toPath())}")
+                    val reader = file.bufferedReader()
+                    val metadata: String? = reader.readLine()
+                    reader.close()
+
+                    if (metadata == null || parseCacheMetadata(metadata).isBefore(now)) {
+                        file.delete()
+                        println("Deleted expired/invalid cache file at ${file.toPath().relativeTo(cache_dir.toPath())}")
+                    }
                 }
             }
+            finally {}
         }
 
         fun reset() {
@@ -53,6 +58,10 @@ class Cache {
         }
 
         fun set(path: String, value: Reader?, lifetime: Duration?) {
+            if (!cache_dir.exists()) {
+                return
+            }
+
             val file = cache_dir.resolve(path)
             if (value == null) {
                 file.delete()

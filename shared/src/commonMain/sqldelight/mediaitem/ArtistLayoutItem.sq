@@ -28,7 +28,8 @@ updateItemIndex:
 UPDATE ArtistLayoutItem SET item_index = :to WHERE item_index == :from AND artist_id == :artist_id AND layout_index == :layout_index;
 
 itemCount:
-SELECT COUNT(IIF(ArtistLayoutItem.artist_id = :artist_id AND ArtistLayoutItem.layout_index = :layout_index, 1, NULL)) FROM ArtistLayoutItem;
+SELECT COUNT(*) FROM ArtistLayoutItem
+WHERE artist_id = :artist_id AND layout_index = :layout_index;
 
 clearItems:
 DELETE FROM ArtistLayoutItem WHERE artist_id = :artist_id AND layout_index = :layout_index AND item_index >= :from_index;

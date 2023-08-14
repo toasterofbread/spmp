@@ -11,7 +11,6 @@ import com.toasterofbread.spmp.api.Api.Companion.ytUrl
 import com.toasterofbread.spmp.api.cast
 import com.toasterofbread.spmp.api.getAccountPlaylists
 import com.toasterofbread.spmp.model.mediaitem.Artist
-import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.ui.layout.YTAccountMenuResponse
 import com.toasterofbread.spmp.platform.ProjectPreferences
@@ -187,7 +186,7 @@ class YoutubeMusicAuthInfo: Set<String> {
         fun getSettingsValueState(prefs: ProjectPreferences = Settings.prefs) =
             SettingsValueState(
                 Settings.KEY_YTM_AUTH.name,
-                converter = { set ->
+                getValueConverter = { set ->
                     set?.let { YoutubeMusicAuthInfo(it as Set<String>) } ?: YoutubeMusicAuthInfo()
                 }
             ).init(prefs, Settings.Companion::provideDefault)

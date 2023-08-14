@@ -24,8 +24,8 @@ fun Long?.fromNullableSQLBoolean(): Boolean? =
         else -> null
     }
 
-fun Long?.toLocalisedYoutubeString(key: String?, source_language: Long?): LocalisedYoutubeString? =
-    if (this != null) LocalisedYoutubeString(key!!, LocalisedYoutubeString.Type.values()[this.toInt()], source_language!!.toInt())
+fun Long?.toLocalisedYoutubeString(key: String?, source_language: String?): LocalisedYoutubeString? =
+    if (this != null) LocalisedYoutubeString(key!!, LocalisedYoutubeString.Type.values()[this.toInt()], source_language!!)
     else null
 
 suspend fun <T, ItemType: MediaItemData> Database.loadMediaItemValue(item: ItemType, getValue: ItemType.() -> T?): Result<T>? {

@@ -71,7 +71,7 @@ class PlayerService: MediaPlayerService() {
         require(start_radio || !shuffle)
 
         undoableAction {
-            if (song == getSong() && start_radio) {
+            if (song.id == getSong()?.id && start_radio) {
                 clearQueue(keep_current = true, save = false)
             }
             else {

@@ -16,6 +16,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.toasterofbread.Database
 import com.toasterofbread.spmp.exovisualiser.ExoVisualizer
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongRef
@@ -176,16 +177,7 @@ actual open class MediaPlayerService {
             return
         }
 
-        val item = ExoMediaItem.Builder()
-            .setRequestMetadata(ExoMediaItem.RequestMetadata.Builder().setMediaUri(song.id.toUri()).build())
-            .setUri(song.id)
-            .setCustomCacheKey(song.id)
-            .setMediaMetadata(
-                MediaMetadata.Builder().setArtworkUri(
-                    song.id.toUri()
-                ).build()
-            )
-            .build()
+        val item = song.buildExoMediaItem(context.database)
         performAction(AddAction(item, add_index))
 
         session_started = true // TODO
@@ -386,6 +378,10 @@ actual open class MediaPlayerService {
 
             controller_future.addListener(
                 {
+                    if (controller_future.isCancelled) {
+                        return@addListener
+                    }
+
                     val controller = instance ?: cls.newInstance()
                     controller.init(PlatformContext(ctx), controller_future.get())
                     if (instance == null) {
@@ -410,3 +406,24 @@ private fun convertState(exo_state: Int): MediaPlayerState {
 
 fun ExoMediaItem.getSong(): Song =
     SongRef(localConfiguration?.uri?.toString() ?: mediaId)
+
+@UnstableApi
+private fun Song.buildExoMediaItem(db: Database): ExoMediaItem =
+    ExoMediaItem.Builder()
+        .setRequestMetadata(ExoMediaItem.RequestMetadata.Builder().setMediaUri(id.toUri()).build())
+        .setUri(id)
+        .setCustomCacheKey(id)
+        .setMediaMetadata(
+            MediaMetadata.Builder()
+                .apply {
+                    setArtworkUri(id.toUri())
+                    setTitle(Title.get(db))
+                    setArtist(Artist.get(db)?.Title?.get(db))
+
+                    val album = Album.get(db)
+                    setAlbumTitle(album?.Title?.get(db))
+                    setAlbumArtist(album?.Artist?.get(db)?.Title?.get(db))
+                }
+                .build()
+        )
+        .build()

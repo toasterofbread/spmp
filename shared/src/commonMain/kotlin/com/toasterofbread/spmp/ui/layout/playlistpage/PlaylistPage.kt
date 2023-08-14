@@ -292,14 +292,14 @@ private fun LazyListScope.PlaylistItems(
 ) {
     if (sorted_items.isEmpty()) {
         item {
-            Crossfade(loading, Modifier.fillMaxWidth()) {
-                if (it) {
-                    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            Crossfade(loading, Modifier.fillMaxWidth()) { playlist_loading ->
+                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    if (playlist_loading) {
                         SubtleLoadingIndicator()
                     }
-                }
-                else {
-                    Text(getString("playlist_empty"), Modifier.padding(top = 15.dp))
+                    else {
+                        Text(getString("playlist_empty"), Modifier.padding(top = 15.dp))
+                    }
                 }
             }
         }

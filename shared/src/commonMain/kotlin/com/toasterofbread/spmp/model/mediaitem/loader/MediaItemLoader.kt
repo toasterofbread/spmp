@@ -48,6 +48,10 @@ internal object MediaItemLoader {
         lock: ReentrantLock,
         db: Database
     ): Result<ItemType> {
+        if (item is PlaylistData && item.id == "UCZkClY03Vnv-X9qMnEHzxHQ") {
+            println("LOAD $item ${item.browse_params}")
+        }
+
         return performSafeLoad(
             item.id,
             lock,

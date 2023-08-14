@@ -50,18 +50,18 @@ internal fun ColumnScope.LyricsSearchResults(results_and_source: Pair<List<Searc
             verticalArrangement = Arrangement.spacedBy(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            items(results.size + 1) {
+            items(results.size + 1) { index ->
 
-                if (it == results.size) {
+                if (index == results.size) {
                     Text(getString("lyrics_no_more_results"), color = Theme.accent)
                 }
                 else {
-                    val result = results[it]
+                    val result = results[index]
                     Box(
                         Modifier
                             .background(Theme.accent, RoundedCornerShape(16))
                             .clickable {
-                                onFinished(it)
+                                onFinished(index)
                             }
                     ) {
                         Column(

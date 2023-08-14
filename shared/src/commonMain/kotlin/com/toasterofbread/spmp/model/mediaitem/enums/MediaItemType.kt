@@ -28,10 +28,10 @@ fun MediaItem.getType(): MediaItemType =
     }
 
 enum class MediaItemType {
-    SONG, ARTIST, PLAYLIST_ACC, PLAYLIST_LOC, PLAYLIST_BROWSEPARAMS;
+    SONG, ARTIST, PLAYLIST_ACC, PLAYLIST_LOC;
 
     fun isPlaylist(): Boolean = when (this) {
-        PLAYLIST_ACC, PLAYLIST_LOC, PLAYLIST_BROWSEPARAMS -> true
+        PLAYLIST_ACC, PLAYLIST_LOC -> true
         else -> false
     }
 
@@ -39,7 +39,7 @@ enum class MediaItemType {
         return when (this) {
             SONG     -> Icons.Filled.MusicNote
             ARTIST   -> Icons.Filled.Person
-            PLAYLIST_ACC, PLAYLIST_LOC, PLAYLIST_BROWSEPARAMS -> Icons.Filled.PlaylistPlay
+            PLAYLIST_ACC, PLAYLIST_LOC -> Icons.Filled.PlaylistPlay
         }
     }
 
@@ -48,7 +48,7 @@ enum class MediaItemType {
             when (this) {
                 SONG -> if (plural) "songs" else "song"
                 ARTIST -> if (plural) "artists" else "artist"
-                PLAYLIST_ACC, PLAYLIST_LOC, PLAYLIST_BROWSEPARAMS -> if (plural) "playlists" else "playlist"
+                PLAYLIST_ACC, PLAYLIST_LOC -> if (plural) "playlists" else "playlist"
             }
         )
     }
@@ -58,7 +58,6 @@ enum class MediaItemType {
         ARTIST -> ArtistRef(id)
         PLAYLIST_ACC -> AccountPlaylistRef(id)
         PLAYLIST_LOC -> LocalPlaylistRef(id)
-        PLAYLIST_BROWSEPARAMS -> throw NotImplementedError(id)
     }
 
     override fun toString(): String {

@@ -8,7 +8,7 @@ data class LocalisedYoutubeString constructor(
     val key: String,
     val type: Type,
     @Suppress("MemberVisibilityCanBePrivate")
-    val source_language: Int
+    val source_language: String
 ) {
     private var localised: Pair<String, YoutubeUILocalisation.StringID?>? = null
 
@@ -21,7 +21,7 @@ data class LocalisedYoutubeString constructor(
         SEARCH_PAGE,
         FILTER_CHIP;
 
-        fun create(key: String, source_language: Int = current_source_language): LocalisedYoutubeString =
+        fun create(key: String, source_language: String = current_source_language): LocalisedYoutubeString =
             LocalisedYoutubeString(key, this, source_language)
     }
 
@@ -66,11 +66,11 @@ data class LocalisedYoutubeString constructor(
     }
 
     companion object {
-        private val current_source_language: Int get() = Settings.KEY_LANG_DATA.get()
+        private val current_source_language: String get() = SpMp.data_language
 
         fun mediaItemPage(key: String, item_type: MediaItemType): LocalisedYoutubeString =
             when (item_type) {
-                MediaItemType.ARTIST, MediaItemType.PLAYLIST_BROWSEPARAMS -> Type.ARTIST_PAGE.create(key)
+                MediaItemType.ARTIST -> Type.ARTIST_PAGE.create(key)
                 else -> {
                     SpMp.onUnlocalisedStringFound(item_type.toString(), key, current_source_language)
                     Type.RAW.create(key)

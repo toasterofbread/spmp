@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Request
+import java.io.IOException
 import java.nio.charset.Charset
 import java.util.Base64
 
@@ -34,10 +35,15 @@ suspend fun loadKugouLyrics(hash: String): Result<List<List<SongLyrics.Term>>> =
         }
 
         if (search_response.status != 200) {
-            return@withContext Result.failure(RuntimeException(search_response.errmsg))
+            return@withContext Result.failure(IOException("Fetching lyrics for has $hash failed: ${search_response.status} ${search_response.errmsg}"))
         }
 
-        val lyrics_data = downloadSearchCandidate(search_response.getBestCandidate()).getOrThrow()
+        val candidate = search_response.getBestCandidate()
+        if (candidate == null) {
+            return@withContext Result.failure(RuntimeException("No candidates for hash $hash"))
+        }
+
+        val lyrics_data = downloadSearchCandidate(candidate).getOrThrow()
 
         val reverse_lines: MutableList<SongLyrics.Term> = mutableListOf()
         var previous_time: Long? = null
@@ -142,5 +148,5 @@ private class KugouHashSearchResponse(
         val id: String,
         val accesskey: String
     )
-    fun getBestCandidate(): Candidate = candidates.first()
+    fun getBestCandidate(): Candidate? = candidates.firstOrNull()
 }

@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
+import com.toasterofbread.spmp.model.mediaitem.getUid
 import com.toasterofbread.spmp.model.mediaitem.rememberFilteredItems
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_LONG_HEIGHT
@@ -80,6 +81,7 @@ fun MediaItemGrid(
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         TitleBar(
+            items,
             title,
             subtitle,
             view_more = view_more,
@@ -97,7 +99,7 @@ fun MediaItemGrid(
             ) {
                 startContent?.invoke(this)
 
-                items(filtered_items.size, { filtered_items[it].item?.id ?: "" }) { i ->
+                items(filtered_items.size, { filtered_items[it].item?.getUid() ?: "" }) { i ->
                     val item = filtered_items[i].item ?: return@items
                     val preview_modifier = Modifier.animateItemPlacement().then(
                         if (alt_style) Modifier.width(maxWidth * 0.9f)

@@ -137,7 +137,6 @@ class MediaPlayerServiceSession: MediaSessionService() {
         }
 
         val song_liked_listener = Query.Listener {
-
             onSongLikeStatusChanged()
         }
 
@@ -249,8 +248,8 @@ class MediaPlayerServiceSession: MediaSessionService() {
             }
 
             val db = context.database
-            setContentTitle(song?.Title?.get(db) ?: "")
-            setContentText(song?.Artist?.get(db)?.Title?.get(db) ?: "")
+            setContentTitle(song?.Title?.get(db) ?: "---")
+            setContentText(song?.Artist?.get(db)?.Title?.get(db) ?: "---")
         }
 
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
@@ -408,6 +407,7 @@ class MediaPlayerServiceSession: MediaSessionService() {
                 }
             })
             .build()
+
     }
 
     private fun createDataSourceFactory(): DataSource.Factory {

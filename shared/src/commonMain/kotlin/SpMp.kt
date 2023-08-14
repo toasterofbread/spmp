@@ -31,16 +31,15 @@ import com.beust.klaxon.KlaxonException
 import com.toasterofbread.spmp.api.Api
 import com.toasterofbread.spmp.model.Cache
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
-import com.toasterofbread.spmp.platform.createDatabase
 import com.toasterofbread.spmp.platform.vibrateShort
+import com.toasterofbread.spmp.resources.Languages
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.resources.initResources
-import com.toasterofbread.spmp.resources.uilocalisation.localised.Languages
+import com.toasterofbread.spmp.resources.uilocalisation.localised.UILanguages
 import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.resources.uilocalisation.UnlocalisedStringCollector
@@ -52,10 +51,10 @@ import com.toasterofbread.utils.*
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.composable.ShapedIconButton
 import com.toasterofbread.utils.composable.WidthShrinkText
+import java.text.DateFormat
 import java.util.*
 import java.util.concurrent.CancellationException
 import java.util.logging.Logger
-import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 
 expect fun getPlatformName(): String
@@ -63,9 +62,7 @@ expect fun getPlatformName(): String
 val LocalPlayerState: ProvidableCompositionLocal<PlayerState> = staticCompositionLocalOf { SpMp.context.player_state }
 
 object SpMp {
-    private val LANGUAGES = listOf("af", "am", "ar", "as", "az", "be", "bg", "bn", "bs", "ca", "cs", "da", "de", "el", "en-GB", "en-IN", "en", "es", "es-419", "es-US", "et", "eu", "fa", "fi", "fil", "fr-CA", "fr", "gl", "gu", "hi", "hr", "hu", "hy", "id", "is", "it", "iw", "ja", "ka", "kk", "km", "kn", "ko", "ky", "lo", "lt", "lv", "mk", "ml", "mn", "mr", "ms", "my", "no", "ne", "nl", "or", "pa", "pl", "pt", "pt-PT", "ro", "ru", "si", "sk", "sl", "sq", "sr-Latn", "sr", "sv", "sw", "ta", "te", "th", "tr", "uk", "ur", "uz", "vi", "zh-CN", "zh-HK", "zh-TW", "zu")
-
-    val Log = Logger.getLogger(SpMp::class.java.name)
+    val Log: Logger = Logger.getLogger(SpMp::class.java.name)
     lateinit var context: PlatformContext
     lateinit var error_manager: ErrorManager
 
@@ -80,12 +77,18 @@ object SpMp {
 
     private val low_memory_listeners: MutableList<() -> Unit> = mutableListOf()
 
-    fun getLanguageCode(index: Int): String = LANGUAGES[index]
-    fun getLanguageIndex(language_code: String): Int = LANGUAGES.indexOf(language_code)
-    fun getLanguageCount(): Int = LANGUAGES.size
+//    fun getLanguageCode(index: Int): String = LANGUAGES[index]
+//    fun getLanguageIndex(language_code: String): Int {
+//        val language_index = LANGUAGES.indexOf(language_code)
+//        if (language_index == -1) {
+//            throw NotImplementedError(language_code)
+//        }
+//        return language_index
+//    }
+//    fun getLanguageCount(): Int = LANGUAGES.size
 
-    val ui_language: String get() = getLanguageCode(Settings.get(Settings.KEY_LANG_UI))
-    val data_language: String get() = getLanguageCode(Settings.get(Settings.KEY_LANG_DATA))
+    val ui_language: String get() = Settings.KEY_LANG_UI.get<String>().ifEmpty { Locale.getDefault().toLanguageTag() }
+    val data_language: String get() = Settings.KEY_LANG_DATA.get<String>().ifEmpty { Locale.getDefault().toLanguageTag() }
 
     fun init(context: PlatformContext) {
         this.context = context
@@ -94,15 +97,8 @@ object SpMp {
         context.getPrefs().addListener(prefs_change_listener)
         error_manager = ErrorManager(context)
 
-        val ui_lang: Int = Settings.get(Settings.KEY_LANG_UI)
-        initResources(LANGUAGES.elementAt(ui_lang), context)
-
-        val language_data = Languages { key ->
-            LANGUAGES.indexOf(key).also {
-                check(it != -1)
-            }
-        }
-        _yt_ui_localisation = YoutubeUILocalisation(language_data)
+        initResources(ui_language, context)
+        _yt_ui_localisation = YoutubeUILocalisation(UILanguages())
 
         Api.initialise()
     }
@@ -191,14 +187,12 @@ object SpMp {
 
     fun onUnlocalisedStringFound(string: UnlocalisedStringCollector.UnlocalisedString) {
         if (unlocalised_string_collector?.add(string) == true) {
-            Log.warning("String key '${string.key}' of type ${string.type} has not been localised (source lang=${SpMp.getLanguageCode(string.source_language)})")
+            Log.warning("String key '${string.key}' of type ${string.type} has not been localised (source lang=${string.source_language})")
         }
     }
 
-    fun onUnlocalisedStringFound(type: String, key: String?, source_language: Int) =
-    onUnlocalisedStringFound(UnlocalisedStringCollector.UnlocalisedString(type, key, source_language))
     fun onUnlocalisedStringFound(type: String, key: String?, source_language: String) =
-    onUnlocalisedStringFound(UnlocalisedStringCollector.UnlocalisedString(type, key, getLanguageIndex(source_language)))
+        onUnlocalisedStringFound(UnlocalisedStringCollector.UnlocalisedString(type, key, source_language))
     
     fun onUnlocalisedStringFound(string: LocalisedYoutubeString) =
         onUnlocalisedStringFound(UnlocalisedStringCollector.UnlocalisedString.fromLocalised(string))

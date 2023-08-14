@@ -209,22 +209,26 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
                 }
             }
             else if (search_results != null) {
-                val results = search_results!!
+                val results = search_results ?: Pair(emptyList(), 0)
                 LyricsSearchResults(results) { index ->
-                    if (index != null) {
-                        val selected = results.first[index]
-                        val lyrics_source = results.second
-
-                        val current_lyrics = song.Lyrics.get(SpMp.context.database)
-
-                        if (selected.id != current_lyrics?.id || lyrics_source != current_lyrics.source_idx) {
-                            song.Lyrics.set(LyricsReference(lyrics_source, selected.id), SpMp.context.database)
-                            close(true)
-                        }
-                        else {
-                            close(false)
-                        }
+                    if (index == null) {
+                        close(false)
+                        return@LyricsSearchResults
                     }
+
+                    val selected = results.first[index]
+                    val lyrics_source = results.second
+
+                    val current_lyrics = song.Lyrics.get(SpMp.context.database)
+
+                    if (selected.id != current_lyrics?.id || lyrics_source != current_lyrics.source_idx) {
+                        song.Lyrics.set(LyricsReference(lyrics_source, selected.id), SpMp.context.database)
+                        close(true)
+                    }
+                    else {
+                        close(false)
+                    }
+
                     search_results = null
                 }
             }

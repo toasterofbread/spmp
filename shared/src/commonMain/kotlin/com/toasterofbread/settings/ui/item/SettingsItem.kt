@@ -86,7 +86,8 @@ interface BasicSettingsValueState<T: Any> {
 class SettingsValueState<T: Any>(
     val key: String,
     private val onChanged: ((value: T) -> Unit)? = null,
-    private val converter: (Any?) -> T? = { it as T }
+    private val getValueConverter: (Any?) -> T? = { it as T },
+    private val setValueConverter: (T) -> Any = { it }
 ): BasicSettingsValueState<T>, State<T> {
     var autosave: Boolean = true
 
@@ -115,7 +116,7 @@ class SettingsValueState<T: Any>(
 
     private fun updateValue() {
         val default = defaultProvider(key) as T
-        _value = converter(when (default) {
+        _value = getValueConverter(when (default) {
             is Boolean -> prefs.getBoolean(key, default as Boolean)
             is Float -> prefs.getFloat(key, default as Float)
             is Int -> prefs.getInt(key, default as Int)
@@ -156,7 +157,7 @@ class SettingsValueState<T: Any>(
     }
 
     override fun reset() {
-        _value = converter(defaultProvider(key) as T)!!
+        _value = getValueConverter(defaultProvider(key) as T)!!
         if (autosave) {
             save()
         }
@@ -165,13 +166,13 @@ class SettingsValueState<T: Any>(
 
     override fun save() {
         prefs.edit {
-            val value = get()
+            val value = setValueConverter(get())
             when (value) {
-                is Boolean -> putBoolean(key, value as Boolean)
-                is Float -> putFloat(key, value as Float)
-                is Int -> putInt(key, value as Int)
-                is Long -> putLong(key, value as Long)
-                is String -> putString(key, value as String)
+                is Boolean -> putBoolean(key, value)
+                is Float -> putFloat(key, value)
+                is Int -> putInt(key, value)
+                is Long -> putLong(key, value)
+                is String -> putString(key, value)
                 is Set<*> -> putStringSet(key, value as Set<String>)
                 else -> throw ClassCastException(value::class.toString())
             }

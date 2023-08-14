@@ -35,7 +35,7 @@ data class NavigationEndpoint(
         if (browseEndpoint != null) {
             browseEndpoint.getViewMore().also { return it }
         }
-        return getMediaItem()?.let { MediaItemLayout.MediaItemViewMore(it) }
+        return getMediaItem()?.let { MediaItemLayout.MediaItemViewMore(it, null) }
     }
 }
 

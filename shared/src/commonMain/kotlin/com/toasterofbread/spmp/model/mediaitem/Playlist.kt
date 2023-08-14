@@ -27,6 +27,7 @@ class AccountPlaylistRef(override val id: String): PlaylistRef {
         lazyAssert { id.isNotBlank() }
     }
 }
+
 class LocalPlaylistRef(override val id: String): PlaylistRef {
     override fun isLocalPlaylist(): Boolean = true
 
@@ -63,7 +64,6 @@ sealed interface Playlist: MediaItem.WithArtist {
             }
             item_count = ItemCount.get(db)
             playlist_type = TypeOfPlaylist.get(db)
-            browse_params = BrowseParams.get(db)
             total_duration = TotalDuration.get(db)
             year = Year.get(db)
             continuation = Continuation.get(db)
@@ -103,10 +103,6 @@ sealed interface Playlist: MediaItem.WithArtist {
         { playlistQueries.playlistTypeById(id) },
         { playlist_type?.let { PlaylistType.values()[it.toInt()] } },
         { playlistQueries.updatePlaylistTypeById(it?.ordinal?.toLong(), id) }
-    )
-    val BrowseParams: Property<String?>
-        get() = property_rememberer.rememberSingleProperty(
-        "BrowseParams", { playlistQueries.browseParamsById(id) }, { browse_params }, { playlistQueries.updateBrowseParamsById(it, id) }
     )
     val TotalDuration: Property<Long?>
         get() = property_rememberer.rememberSingleProperty(
@@ -153,7 +149,7 @@ sealed interface Playlist: MediaItem.WithArtist {
     }
 }
 
-class PlaylistData(
+open class PlaylistData(
     override var id: String,
     override var artist: Artist? = null,
 
@@ -191,7 +187,6 @@ class PlaylistData(
 
             ItemCount.setNotNull(item_count, db)
             TypeOfPlaylist.setNotNull(playlist_type, db)
-            BrowseParams.setNotNull(browse_params, db)
             TotalDuration.setNotNull(total_duration, db)
             Year.setNotNull(year, db)
             Continuation.setNotNull(continuation, db)

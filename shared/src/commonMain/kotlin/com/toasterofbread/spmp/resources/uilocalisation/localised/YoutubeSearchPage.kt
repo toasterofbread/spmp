@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.resources.uilocalisation.localised
 
 import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
 
-fun getYoutubeSearchPageLocalisations(languages: Languages): YoutubeUILocalisation.LocalisationSet =
+fun getYoutubeSearchPageLocalisations(languages: UILanguages): YoutubeUILocalisation.LocalisationSet =
     with(languages) {
         YoutubeUILocalisation.LocalisationSet().apply {
             add(

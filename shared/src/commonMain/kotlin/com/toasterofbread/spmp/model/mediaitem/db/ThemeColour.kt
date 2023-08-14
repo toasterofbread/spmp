@@ -14,7 +14,7 @@ import com.toasterofbread.utils.getThemeColour
 
 @Composable
 fun MediaItem.rememberThemeColour(db: Database = SpMp.context.database): Color? {
-    val thumbnail_state = MediaItemThumbnailLoader.rememberItemState(this)
+    val thumbnail_state = MediaItemThumbnailLoader.rememberItemState(this, db)
     val item_colour: Color? by ThemeColour.observe(db)
 
     val colour: Color? by remember(thumbnail_state, item_colour) { derivedStateOf {
@@ -23,7 +23,7 @@ fun MediaItem.rememberThemeColour(db: Database = SpMp.context.database): Color? 
         }
 
         for (quality in MediaItemThumbnailProvider.Quality.values()) {
-            val image = thumbnail_state.loaded_images[quality] ?: continue
+            val image = thumbnail_state.loaded_images[quality]?.get() ?: continue
             return@derivedStateOf image.getThemeColour()
         }
         return@derivedStateOf null

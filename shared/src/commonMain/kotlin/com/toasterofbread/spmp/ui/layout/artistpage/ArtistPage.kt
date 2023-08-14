@@ -10,12 +10,15 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,18 +30,24 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.*
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
+import com.toasterofbread.Database
 import com.toasterofbread.spmp.api.Api
+import com.toasterofbread.spmp.api.ArtistWithParamsRow
+import com.toasterofbread.spmp.api.loadArtistWithParams
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
 import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
+import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemList
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
@@ -58,19 +67,45 @@ fun ArtistPage(
     artist: Artist,
     previous_item: MediaItem? = null,
     bottom_padding: Dp = 0.dp,
+    browse_params: String?,
     close: () -> Unit
 ) {
+    val db = SpMp.context.database
+
     lazyAssert {
-        !artist.IsForItem.get(SpMp.context.database)
+        !artist.IsForItem.get(db)
     }
 
-    val item_layouts by artist.Layouts.observe(SpMp.context.database)
-    val single_layout = item_layouts?.singleOrNull()?.rememberMediaItemLayout(SpMp.context.database)
-    val thumbnail_provider: MediaItemThumbnailProvider? by artist.ThumbnailProvider.observe(SpMp.context.database)
-    val thumbnail_load_state = MediaItemThumbnailLoader.rememberItemState(artist)
+    var load_error: Throwable? by remember { mutableStateOf(null) }
 
-    LaunchedEffect(artist) {
-        artist.loadData(SpMp.context.database, false)
+    val item_layouts: List<ArtistLayout>? by artist.Layouts.observe(db)
+    val single_layout: MediaItemLayout? = item_layouts?.singleOrNull()?.rememberMediaItemLayout(db)
+    var browse_params_rows: List<ArtistWithParamsRow>? by remember { mutableStateOf(null) }
+
+    val thumbnail_provider: MediaItemThumbnailProvider? by artist.ThumbnailProvider.observe(db)
+    val thumbnail_load_state = MediaItemThumbnailLoader.rememberItemState(artist, db)
+
+    LaunchedEffect(artist.id, browse_params) {
+        if (browse_params == null) {
+            load_error = null
+            artist.loadData(db, false).onFailure { error ->
+                load_error = error
+            }
+        }
+    }
+
+    LaunchedEffect(artist.id, browse_params) {
+        browse_params_rows = null
+
+        if (browse_params == null) {
+            return@LaunchedEffect
+        }
+
+        load_error = null
+        loadArtistWithParams(artist.id, browse_params).fold(
+            { browse_params_rows = it },
+            { load_error = it }
+        )
     }
 
     LaunchedEffect(thumbnail_provider) {
@@ -155,7 +190,7 @@ fun ArtistPage(
             }
 
             // Thumbnail
-            Crossfade(thumbnail_load_state.loaded_images.values.firstOrNull()) { thumbnail ->
+            Crossfade(thumbnail_load_state.loaded_images.values.firstOrNull()?.get()) { thumbnail ->
                 if (thumbnail != null) {
                     if (accent_colour == null) {
                         accent_colour = Theme.makeVibrant(thumbnail.getThemeColour() ?: Theme.accent)
@@ -232,7 +267,7 @@ fun ArtistPage(
                                 item {
                                     ElevatedAssistChip(
                                         onClick,
-                                        { Text(text, style = MaterialTheme.typography.labelLarge) },
+                                        { Text(text, style = typography.labelLarge) },
                                         Modifier.height(filter_bar_height),
                                         leadingIcon = {
                                             Icon(icon, null, tint = accent_colour ?: Color.Unspecified)
@@ -249,7 +284,7 @@ fun ArtistPage(
                             chip(getString("artist_chip_shuffle"), Icons.Outlined.Shuffle) { player.playMediaItem(artist, true) }
 
                             if (SpMp.context.canShare()) {
-                                chip(getString("action_share"), Icons.Outlined.Share) { SpMp.context.shareText(artist.getURL(), artist.Title.get(SpMp.context.database) ?: "") }
+                                chip(getString("action_share"), Icons.Outlined.Share) { SpMp.context.shareText(artist.getURL(), artist.Title.get(db) ?: "") }
                             }
                             if (SpMp.context.canOpenUrl()) {
                                 chip(getString("artist_chip_open"), Icons.Outlined.OpenInNew) { SpMp.context.openUrl(artist.getURL()) }
@@ -273,26 +308,42 @@ fun ArtistPage(
                     }
                 }
 
-                if (item_layouts == null) {
+                if (load_error != null) {
+                    TODO(load_error.toString())
+                }
+                else if ((browse_params != null && browse_params_rows == null) || (browse_params == null && item_layouts == null)) {
                     item {
                         Box(background_modifier.fillMaxSize().padding(content_padding), contentAlignment = Alignment.Center) {
                             CircularProgressIndicator(color = accent_colour ?: Color.Unspecified)
                         }
                     }
-                } else if (single_layout != null) {
+                }
+                else if (browse_params != null) {
+                    items(browse_params_rows.orEmpty()) { row ->
+                        MediaItemList(
+                            row.items,
+                            background_modifier.padding(content_padding),
+                            title = row.title?.let { title ->
+                                LocalisedYoutubeString.Type.RAW.create(title)
+                            }
+                        )
+                    }
+                }
+                else if (single_layout != null) {
                     item {
                         single_layout.TitleBar(background_modifier.padding(content_padding).padding(bottom = 5.dp))
                     }
 
-                    items(single_layout.items.size) { i ->
+                    items(single_layout.items) { item ->
                         Row(background_modifier.padding(content_padding), verticalAlignment = Alignment.CenterVertically) {
                             MediaItemPreviewLong(
-                                single_layout.items[i],
+                                item,
                                 multiselect_context = multiselect_context
                             )
                         }
                     }
-                } else {
+                }
+                else {
                     item {
                         Column(
                             background_modifier
@@ -301,7 +352,7 @@ fun ArtistPage(
                             verticalArrangement = Arrangement.spacedBy(30.dp)
                         ) {
                             for (artist_layout in item_layouts ?: emptyList()) {
-                                val layout = artist_layout.rememberMediaItemLayout(SpMp.context.database)
+                                val layout = artist_layout.rememberMediaItemLayout(db)
                                 val is_singles =
                                     Settings.KEY_TREAT_SINGLES_AS_SONG.get() && layout.title?.getID() == YoutubeUILocalisation.StringID.ARTIST_PAGE_SINGLES
 
@@ -339,7 +390,7 @@ fun ArtistPage(
                                 }
                             }
 
-                            val artist_description: String? by artist.Description.observe(SpMp.context.database)
+                            val artist_description: String? by artist.Description.observe(db)
                             artist_description?.also { description ->
                                 if (description?.isNotBlank() == true) {
                                     DescriptionCard(description, { Theme.background }, { accent_colour }) { show_info = !show_info }

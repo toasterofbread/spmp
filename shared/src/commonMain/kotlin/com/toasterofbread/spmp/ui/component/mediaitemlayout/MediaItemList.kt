@@ -42,6 +42,7 @@ fun MediaItemList(
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         TitleBar(
+            items,
             title,
             subtitle,
             Modifier.padding(bottom = 5.dp),

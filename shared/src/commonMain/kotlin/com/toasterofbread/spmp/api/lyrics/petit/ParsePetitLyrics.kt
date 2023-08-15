@@ -8,22 +8,6 @@ import com.toasterofbread.spmp.resources.getStringTODO
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 
-internal fun parseStaticLyrics(data: String): List<List<SongLyrics.Term>> {
-    val tokeniser = Tokenizer()
-
-    val ret: MutableList<List<SongLyrics.Term>> = mutableListOf()
-
-    for (line in data.split('\n')) {
-        val tokens = tokeniser.tokenize(line)
-        ret.add(tokens.mapNotNull { token ->
-            if (token.surface.isBlank()) null
-            else SongLyrics.Term(listOf(SongLyrics.Term.Text(token.surface, token.reading)), ret.size)
-        })
-    }
-
-    return ret
-}
-
 internal fun parseTimedLyrics(data: String): Result<List<List<SongLyrics.Term>>> {
     val parser = XmlPullParserFactory.newInstance().newPullParser()
     parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false)

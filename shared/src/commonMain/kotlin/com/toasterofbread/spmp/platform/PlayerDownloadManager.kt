@@ -38,11 +38,11 @@ expect class PlayerDownloadManager(context: PlatformContext) {
 
 @Composable
 fun rememberSongDownloads(): List<PlayerDownloadManager.DownloadStatus> {
-    val player = LocalPlayerState.current
+    val download_manager = SpMp.context.download_manager
     val downloads: MutableList<PlayerDownloadManager.DownloadStatus> = remember { mutableStateListOf() }
 
     DisposableEffect(Unit) {
-        player.download_manager.getDownloads {
+        download_manager.getDownloads {
             downloads.addAll(it)
         }
 
@@ -61,10 +61,10 @@ fun rememberSongDownloads(): List<PlayerDownloadManager.DownloadStatus> {
                 }
             }
         }
-        player.download_manager.addDownloadStatusListener(listener)
+        download_manager.addDownloadStatusListener(listener)
 
         onDispose {
-            player.download_manager.removeDownloadStatusListener(listener)
+            download_manager.removeDownloadStatusListener(listener)
         }
     }
 

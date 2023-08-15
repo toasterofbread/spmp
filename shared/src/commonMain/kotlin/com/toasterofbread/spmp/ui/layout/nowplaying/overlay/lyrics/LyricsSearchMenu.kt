@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.overlay.lyrics
 
 import SpMp
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -8,8 +9,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.shape.CircleShape
@@ -18,6 +21,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
@@ -26,6 +30,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -49,6 +54,7 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.LargeDropdownMenu
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.setAlpha
@@ -60,7 +66,11 @@ private const val LYRICS_SEARCH_RETRY_COUNT = 3
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
-fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed: Boolean) -> Unit) {
+fun LyricsSearchMenu(
+    song: Song,
+    modifier: Modifier = Modifier,
+    close: (changed: Boolean) -> Unit,
+) {
     val db = SpMp.context.database
 
     val song_title: String? by song.Title.observe(db)
@@ -92,7 +102,12 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
     val title = remember (song_title) { mutableStateOf(TextFieldValue(song_title ?: "")) }
     val artist = remember (song_artist_title) { mutableStateOf(TextFieldValue(song_artist_title ?: "")) }
     var search_state: Boolean by remember { mutableStateOf(false) }
-    var selected_source_idx: Int by remember { mutableStateOf(Settings.KEY_LYRICS_DEFAULT_SOURCE.get()) }
+
+    var selected_source: LyricsSource by remember {
+        mutableStateOf(
+            LyricsSource.fromIdx(Settings.KEY_LYRICS_DEFAULT_SOURCE.get())
+        )
+    }
 
     var search_results: Pair<List<LyricsSource.SearchResult>, Int>? by remember { mutableStateOf(null) }
     var edit_page_open by remember { mutableStateOf(true) }
@@ -106,32 +121,55 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
                 loading = true
             }
 
-            var result: Result<List<LyricsSource.SearchResult>>? = null
-            var retry_count = LYRICS_SEARCH_RETRY_COUNT
-            val source = LyricsSource.fromIdx(selected_source_idx)
+            if (selected_source.supportsLyricsBySearching()) {
+                var result: Result<List<LyricsSource.SearchResult>>? = null
+                var retry_count = LYRICS_SEARCH_RETRY_COUNT
 
-            while (retry_count-- > 0) {
-                result = source.searchForLyrics(title.value.text, if (artist.value.text.trim().isEmpty()) null else artist.value.text)
-                
-                val error = result.exceptionOrNull() ?: break
-                if (error !is IOException) {
-                    SpMp.reportActionError(error)
-                    break
+                while (retry_count-- > 0) {
+                    result = selected_source.searchForLyrics(
+                        title.value.text,
+                        if (artist.value.text.trim().isEmpty()) null else artist.value.text
+                    )
+
+                    val error = result.exceptionOrNull() ?: break
+                    if (error !is IOException) {
+                        SpMp.reportActionError(error)
+                        break
+                    }
                 }
-            }
 
-            result?.fold(
-                {
-                    search_results = Pair(it, source.source_idx)
-                    if (search_results?.first?.isNotEmpty() == true) {
-                        edit_page_open = false
+                result?.fold(
+                    {
+                        search_results = Pair(it, selected_source.source_index)
+                        if (search_results?.first?.isNotEmpty() == true) {
+                            edit_page_open = false
+                        }
+                        else {
+                            SpMp.context.sendToast(getString("lyrics_none_found"))
+                        }
+                    },
+                    { SpMp.reportActionError(it) }
+                )
+            }
+            else if (selected_source.supportsLyricsBySong()) {
+                selected_source.getReferenceBySong(song, db).fold(
+                    { lyrics_reference ->
+                        if (lyrics_reference != song.Lyrics.get(db)) {
+                            song.Lyrics.set(lyrics_reference, db)
+                            close(true)
+                        }
+                        else {
+                            close(false)
+                        }
+                    },
+                    { error ->
+                        SpMp.reportActionError(error)
                     }
-                    else {
-                        SpMp.context.sendToast(getString("lyrics_none_found"))
-                    }
-                },
-                { SpMp.reportActionError(it) }
-            )
+                )
+            }
+            else {
+                throw NotImplementedError(selected_source::class.toString())
+            }
 
             synchronized(load_lock) {
                 loading = false
@@ -161,9 +199,9 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
                         Icon(Icons.Default.ArrowDropDown, null, tint = on_accent)
 
                         Text(
-                            remember(selected_source_idx) {
+                            remember(selected_source) {
                                 getString("lyrics_search_on_\$source")
-                                    .replace("\$source", LyricsSource.fromIdx(selected_source_idx).getReadable())
+                                    .replace("\$source", selected_source.getReadable())
                             },
                             color = on_accent
                         )
@@ -172,19 +210,21 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
                             source_selector_open,
                             { source_selector_open = false },
                             LyricsSource.SOURCE_AMOUNT,
-                            selected_source_idx,
+                            selected_source.source_index,
                             { source_idx ->
-                                LyricsSource.fromIdx(source_idx).getReadable()
+                                remember(source_idx) {
+                                    LyricsSource.fromIdx(source_idx).getReadable()
+                                }
                             },
                             selected_item_colour = Theme.vibrant_accent
                         ) { source_idx ->
-                            selected_source_idx = source_idx
+                            selected_source = LyricsSource.fromIdx(source_idx)
                             source_selector_open = false
                         }
                     }
 
                     @Composable
-                    fun Field(state: MutableState<TextFieldValue>, label: String) {
+                    fun Field(state: MutableState<TextFieldValue>, label: String, enabled: Boolean) {
                         TextField(
                             state.value,
                             { state.value = it },
@@ -200,12 +240,25 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
                                 }
                             },
                             colors = text_field_colours,
-                            modifier = Modifier.clickable {}
+                            modifier = Modifier.clickable {},
+                            enabled = enabled
                         )
                     }
 
-                    Field(title, getString("song_name"))
-                    Field(artist, getString("artist"))
+                    Crossfade(selected_source.supportsLyricsBySearching()) { search_supported ->
+                        Column {
+                            Field(title, getString("song_name"), search_supported)
+                            Spacer(Modifier.height(10.dp))
+                            Field(artist, getString("artist"), search_supported)
+                        }
+                    }
+
+                    AnimatedVisibility(!selected_source.supportsLyricsBySearching()) {
+                        Text(
+                            getStringTODO("Source does not support searching"),
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
                 }
             }
             else if (search_results != null) {
@@ -221,7 +274,7 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
 
                     val current_lyrics = song.Lyrics.get(SpMp.context.database)
 
-                    if (selected.id != current_lyrics?.id || lyrics_source != current_lyrics.source_idx) {
+                    if (selected.id != current_lyrics?.id || lyrics_source != current_lyrics.source_index) {
                         song.Lyrics.set(LyricsReference(lyrics_source, selected.id), SpMp.context.database)
                         close(true)
                     }
@@ -274,12 +327,27 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
                     },
                     Modifier.background(Theme.accent, CircleShape).requiredSize(40.dp),
                 ) {
-                    Crossfade(if (loading) 0 else if (edit_page_open) 1 else 2) { icon ->
+                    Crossfade(
+                        // Loading
+                        if (loading) 0
+                        else if (edit_page_open) (
+                            // Search
+                            if (selected_source.supportsLyricsBySearching()) 1
+                            // Load directly
+                            else 2
+                        )
+                        // Open edit page
+                        else 3
+                    ) { icon ->
                         when (icon) {
                             0 -> CircularProgressIndicator(Modifier.requiredSize(22.dp), color = on_accent, strokeWidth = 3.dp)
                             else -> {
                                 Icon(
-                                    if (icon == 1) Icons.Default.Search else Icons.Default.Edit,
+                                    when (icon) {
+                                        1 -> Icons.Default.Search
+                                        2 -> Icons.Default.Download
+                                        else -> Icons.Default.Edit
+                                    },
                                     null,
                                     tint = on_accent
                                 )

@@ -12,7 +12,7 @@ data class SongLyrics(
 ) {
     val synced: Boolean get() = sync_type != SyncType.NONE
     val id: String get() = reference.id
-    val source_idx: Int get() = reference.source_idx
+    val source_idx: Int get() = reference.source_index
 
     enum class SyncType {
         NONE,

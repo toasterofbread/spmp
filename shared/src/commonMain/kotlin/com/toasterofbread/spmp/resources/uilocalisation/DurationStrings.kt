@@ -65,7 +65,7 @@ fun parseYoutubeDurationString(string: String, hl: String): Long? {
     var hms = getHoursMinutesSecondsSuffixes(hl)
     if (hms == null) {
         SpMp.Log.warning("HMS duration strings not implemented for language '$hl'")
-        hms = getHoursMinutesSecondsSuffixes("en")
+        hms = getHoursMinutesSecondsSuffixes(null)
     }
 
     return parseHhMmSsDurationString(string, hms!!)

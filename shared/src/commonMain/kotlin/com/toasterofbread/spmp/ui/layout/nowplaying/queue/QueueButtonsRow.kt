@@ -33,7 +33,7 @@ fun QueueButtonsRow(
 ) {
     val padding = 10.dp
     val player = LocalPlayerState.current
-    val background_colour = getNPBackground()
+    val background_colour = player.getNPBackground()
 
     Row(
         Modifier

@@ -157,7 +157,7 @@ fun ThumbnailRow(
             Crossfade(current_song, animationSpec = tween(250)) { song ->
                 song?.Thumbnail(
                     MediaItemThumbnailProvider.Quality.HIGH,
-                    contentColourProvider = { getNPOnBackground() },
+                    contentColourProvider = { player.getNPOnBackground() },
                     onLoaded = {
                         current_thumb_image = it
                         onThumbnailLoaded(song, it)
@@ -266,13 +266,13 @@ fun ThumbnailRow(
                 Text(
                     song_title ?: "",
                     maxLines = 1,
-                    color = getNPOnBackground(),
+                    color = player.getNPOnBackground(),
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     song_artist_title ?: "",
                     maxLines = 1,
-                    color = getNPOnBackground(),
+                    color = player.getNPOnBackground(),
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodySmall
                 )
@@ -283,7 +283,7 @@ fun ThumbnailRow(
                 Image(
                     if (player.status.m_playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                     getString(if (player.status.m_playing) "media_pause" else "media_play"),
-                    colorFilter = ColorFilter.tint(getNPOnBackground())
+                    colorFilter = ColorFilter.tint(player.getNPOnBackground())
                 )
             }
 
@@ -291,7 +291,7 @@ fun ThumbnailRow(
                 Image(
                     Icons.Rounded.SkipNext,
                     null,
-                    colorFilter = ColorFilter.tint(getNPOnBackground())
+                    colorFilter = ColorFilter.tint(player.getNPOnBackground())
                 )
             }
         }

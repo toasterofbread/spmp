@@ -31,7 +31,7 @@ class SettingsDropdownItem(
     val subtitle: String?,
     val item_count: Int,
     val getButtonItem: ((Int) -> String)? = null,
-    val getItem: (Int) -> String,
+    val getItem: @Composable (Int) -> String,
 ): SettingsItem() {
 
     override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {

@@ -44,6 +44,7 @@ import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.resources.uilocalisation.UnlocalisedStringCollector
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
+import com.toasterofbread.spmp.ui.layout.mainpage.PlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.mainpage.RootView
 import com.toasterofbread.spmp.ui.theme.ApplicationTheme
 import com.toasterofbread.spmp.ui.theme.Theme
@@ -59,12 +60,13 @@ import kotlin.math.roundToInt
 
 expect fun getPlatformName(): String
 
-val LocalPlayerState: ProvidableCompositionLocal<PlayerState> = staticCompositionLocalOf { SpMp.context.player_state }
+val LocalPlayerState: ProvidableCompositionLocal<PlayerState> = staticCompositionLocalOf { SpMp.player_state }
 
 object SpMp {
     val Log: Logger = Logger.getLogger(SpMp::class.java.name)
     lateinit var context: PlatformContext
     lateinit var error_manager: ErrorManager
+    lateinit var player_state: PlayerStateImpl
 
     private var _yt_ui_localisation: YoutubeUILocalisation? = null
     val yt_ui_localisation: YoutubeUILocalisation get() = _yt_ui_localisation!!
@@ -92,6 +94,9 @@ object SpMp {
 
     fun init(context: PlatformContext) {
         this.context = context
+
+        player_state = PlayerStateImpl(context)
+
         Cache.init(context)
 
         context.getPrefs().addListener(prefs_change_listener)
@@ -108,11 +113,11 @@ object SpMp {
     }
 
     fun onStart() {
-        context.player_state.onStart()
+        player_state.onStart()
     }
 
     fun onStop() {
-        context.player_state.onStop()
+        player_state.onStop()
     }
 
     @Composable
@@ -120,21 +125,20 @@ object SpMp {
         Theme.ApplicationTheme(context, getFontFamily(context)) {
             Theme.Update(context)
 
-            val player = context.player_state
-            player.initComposable(context)
+            player_state.initComposable(context)
 
             LaunchedEffect(open_uri) {
                 if (open_uri != null) {
-                    player.openUri(open_uri).onFailure {
+                    player_state.openUri(open_uri).onFailure {
                         context.sendNotification(it)
                     }
                 }
             }
 
             Surface(modifier = Modifier.fillMaxSize()) {
-                CompositionLocalProvider(LocalPlayerState provides context.player_state) {
-                    if (player.service_connected) {
-                        RootView(player)
+                CompositionLocalProvider(LocalPlayerState provides player_state) {
+                    if (player_state.service_connected) {
+                        RootView(player_state)
                     }
                 }
                 error_manager.Indicator(Theme.accent_provider)

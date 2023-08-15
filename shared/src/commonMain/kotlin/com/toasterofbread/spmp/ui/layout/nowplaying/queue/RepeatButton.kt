@@ -42,13 +42,13 @@ fun RepeatButton(backgroundColourProvider: () -> Color, modifier: Modifier = Mod
                     player.player?.repeat_mode =
                         when (player.player?.repeat_mode) {
                             MediaPlayerRepeatMode.ALL -> MediaPlayerRepeatMode.ONE
-                            MediaPlayerRepeatMode.ONE -> MediaPlayerRepeatMode.OFF
+                            MediaPlayerRepeatMode.ONE -> MediaPlayerRepeatMode.NONE
                             else -> MediaPlayerRepeatMode.ALL
                         }
                 }
             )
             .crossOut(
-                crossed_out = player.status.m_repeat_mode == MediaPlayerRepeatMode.OFF,
+                crossed_out = player.status.m_repeat_mode == MediaPlayerRepeatMode.NONE,
                 colourProvider = { backgroundColourProvider().getContrasted() },
             ) {
                 return@crossOut IntSize(

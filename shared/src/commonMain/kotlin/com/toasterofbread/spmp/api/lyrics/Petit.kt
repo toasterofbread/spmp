@@ -4,7 +4,6 @@ import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.api.Api
 import com.toasterofbread.spmp.api.cast
 import com.toasterofbread.spmp.api.getOrThrowHere
-import com.toasterofbread.spmp.api.lyrics.petit.parseStaticLyrics
 import com.toasterofbread.spmp.api.lyrics.petit.parseTimedLyrics
 import com.toasterofbread.spmp.api.lyrics.petit.searchPetitLyrics
 import com.toasterofbread.spmp.model.SongLyrics
@@ -49,7 +48,7 @@ internal class PetitLyricsSource(source_idx: Int): LyricsSource(source_idx) {
 
                 return Result.success(
                     SongLyrics(
-                        LyricsReference(source_idx, lyrics_id),
+                        LyricsReference(source_index, lyrics_id),
                         sync_type,
                         lyrics
                     )
@@ -58,7 +57,7 @@ internal class PetitLyricsSource(source_idx: Int): LyricsSource(source_idx) {
             else {
                 return Result.success(
                     SongLyrics(
-                        LyricsReference(source_idx, lyrics_id),
+                        LyricsReference(source_index, lyrics_id),
                         SongLyrics.SyncType.NONE,
                         parseStaticLyrics(data)
                     )

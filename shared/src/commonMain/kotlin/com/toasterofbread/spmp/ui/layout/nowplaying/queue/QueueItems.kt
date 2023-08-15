@@ -41,8 +41,8 @@ fun LazyListScope.QueueItems(
                     {
                         val playing_key = getPlayingKey()
                         val current = if (playing_key != null) playing_key == item.key else player.status.m_index == index
-                        if (current) getNPBackground()
-                        else getNPAltOnBackground()
+                        if (current) player.getNPBackground()
+                        else player.getNPAltOnBackground()
                     },
                     multiselect_context
                 ) {

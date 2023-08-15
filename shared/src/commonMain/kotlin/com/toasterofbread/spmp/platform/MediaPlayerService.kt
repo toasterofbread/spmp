@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.SongRef
 
 internal const val AUTO_DOWNLOAD_SOFT_TIMEOUT = 1500 // ms
 
@@ -16,7 +15,7 @@ enum class MediaPlayerState {
 }
 
 enum class MediaPlayerRepeatMode {
-    OFF, 
+    NONE,
     ONE, 
     ALL
 }

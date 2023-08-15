@@ -6,6 +6,7 @@ CREATE TABLE Song (
     artist TEXT,
     album TEXT,
     related_browse_id TEXT,
+    lyrics_browse_id TEXT,
 
     --
 
@@ -49,6 +50,9 @@ updateAlbumById: UPDATE Song SET album = :value WHERE id == :id;
 
 relatedBrowseIdById: SELECT related_browse_id FROM Song WHERE id == :id;
 updateRelatedBrowseIdById: UPDATE Song SET related_browse_id = :related_browse_id WHERE id == :id;
+
+lyricsBrowseIdById: SELECT lyrics_browse_id FROM Song WHERE id == :id;
+updateLyricsBrowseIdById: UPDATE Song SET lyrics_browse_id = :lyrics_browse_id WHERE id == :id;
 
 --
 

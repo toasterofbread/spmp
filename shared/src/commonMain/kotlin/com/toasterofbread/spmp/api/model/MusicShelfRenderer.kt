@@ -9,7 +9,7 @@ data class MusicCarouselShelfRenderer(
     val contents: List<YoutubeiShelfContentsItem>
 ): YoutubeiHeaderContainer
 
-data class MusicDescriptionShelfRenderer(val header: TextRuns, val description: TextRuns)
+data class MusicDescriptionShelfRenderer(val description: TextRuns, val header: TextRuns? = null)
 
 data class MusicCardShelfRenderer(
     val thumbnail: ThumbnailRenderer,

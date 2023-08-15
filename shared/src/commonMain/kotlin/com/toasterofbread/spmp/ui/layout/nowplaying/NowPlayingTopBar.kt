@@ -101,7 +101,7 @@ fun TopBar(modifier: Modifier = Modifier) {
                         song,
                         Modifier.fillMaxSize().graphicsLayer { alpha = buttons_alpha },
                         { 1f - expansion.getDisappearing() > 0f },
-                        { getNPOnBackground().setAlpha(0.5f) }
+                        { player.getNPOnBackground().setAlpha(0.5f) }
                     )
                 }
             }
@@ -124,7 +124,7 @@ fun TopBar(modifier: Modifier = Modifier) {
                     },
                     Modifier.graphicsLayer { alpha = buttons_alpha }.width(40.dp * buttons_alpha)
                 ) {
-                    Icon(Icons.Filled.MoreHoriz, null, tint = getNPOnBackground().setAlpha(0.5f))
+                    Icon(Icons.Filled.MoreHoriz, null, tint = player.getNPOnBackground().setAlpha(0.5f))
                 }
             }
         }

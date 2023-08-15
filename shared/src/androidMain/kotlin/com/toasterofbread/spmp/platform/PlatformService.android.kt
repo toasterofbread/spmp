@@ -20,7 +20,7 @@ actual open class PlatformServiceImpl: Service(), PlatformService {
     actual override fun onBind(): PlatformBinder? = null
     override fun onBind(p0: Intent?): IBinder? = onBind()
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        return START_NOT_STICKY
+        return START_STICKY
     }
     private val message_receivers: MutableList<(Any?) -> Unit> = mutableListOf()
     actual override fun sendMessageOut(data: Any?) {

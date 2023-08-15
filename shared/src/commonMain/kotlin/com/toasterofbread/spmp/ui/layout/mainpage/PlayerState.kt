@@ -8,7 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
-import com.toasterofbread.spmp.PlayerService
+import com.toasterofbread.spmp.service.playerservice.PlayerService
 import com.toasterofbread.spmp.model.mediaitem.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.Playlist
@@ -16,7 +16,6 @@ import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongRef
 import com.toasterofbread.spmp.platform.MediaPlayerRepeatMode
 import com.toasterofbread.spmp.platform.MediaPlayerService
-import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
@@ -110,7 +109,6 @@ open class PlayerState protected constructor(
         upstream!!.withPlayer(action)
     }
 
-    open val download_manager: PlayerDownloadManager get() = upstream!!.download_manager
     open val status: PlayerStatus get() = upstream!!.status
     open val session_started: Boolean get() = upstream!!.session_started
 

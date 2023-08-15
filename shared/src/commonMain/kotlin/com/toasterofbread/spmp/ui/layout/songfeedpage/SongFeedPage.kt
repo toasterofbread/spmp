@@ -150,10 +150,7 @@ class SongFeedPage(state: MainPageState): MainPage(state) {
         LaunchedEffect(Unit) {
             if (layouts == null) {
                 coroutine_scope.launchSingle {
-                    player.player?.also { player ->
-                        val result = loadFeed(Settings.get(Settings.KEY_FEED_INITIAL_ROWS), allow_cached = true, continue_feed = false)
-                        player.loadPersistentQueue(result.isSuccess)
-                    }
+                    loadFeed(Settings.get(Settings.KEY_FEED_INITIAL_ROWS), allow_cached = true, continue_feed = false)
                 }
             }
         }

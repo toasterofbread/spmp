@@ -177,12 +177,14 @@ class MediaPlayerServiceSession: MediaSessionService() {
         notification_builder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_spmp)
             .setStyle(MediaStyleNotificationHelper.MediaStyle(media_session))
-            .setContentIntent(PendingIntent.getActivity(
-                this,
-                1,
-                packageManager.getLaunchIntentForPackage(packageName),
-                PendingIntent.FLAG_IMMUTABLE
-            ))
+            .setContentIntent(
+                PendingIntent.getActivity(
+                    this,
+                    1,
+                    packageManager.getLaunchIntentForPackage(packageName),
+                    PendingIntent.FLAG_IMMUTABLE
+                )
+            )
 
         setMediaNotificationProvider(object : MediaNotification.Provider {
             override fun createNotification(
@@ -201,7 +203,7 @@ class MediaPlayerServiceSession: MediaSessionService() {
             }
 
             override fun handleCustomCommand(session: MediaSession, action: String, extras: Bundle): Boolean {
-                TODO("Action $action")
+                TODO("Action $action $extras")
             }
         })
     }
@@ -333,10 +335,11 @@ class MediaPlayerServiceSession: MediaSessionService() {
                 }
 
                 override fun loadBitmap(uri: Uri): ListenableFuture<Bitmap> {
-                    val song = SongRef(uri.toString())
                     return executor.submit<Bitmap> {
                         runBlocking {
+                            val song = SongRef(uri.toString())
                             var fail_error: Throwable? = null
+
                             for (quality in MediaItemThumbnailProvider.Quality.byQuality()) {
                                 val load_result = MediaItemThumbnailLoader.loadItemThumbnail(song, quality, context)
                                 load_result.fold(

@@ -59,9 +59,9 @@ actual class PlatformContext(private val context: Context, onInit: ((PlatformCon
         onInit?.invoke(this)
     }
 
-    actual val database = createDatabase()
     // TODO This should be a singleton
-    actual val player_state = PlayerStateImpl(this)
+    actual val database = createDatabase()
+    actual val download_manager = PlayerDownloadManager(this)
 
     val ctx: Context get() = context
 
@@ -124,7 +124,7 @@ actual class PlatformContext(private val context: Context, onInit: ((PlatformCon
 
     @SuppressLint("InternalInsetResource", "DiscouragedApi")
     actual fun getNavigationBarHeight(): Int {
-        val resources = SpMp.context.ctx.resources
+        val resources = ctx.resources
         val resource_id = resources.getIdentifier("navigation_bar_height", "dimen", "android")
         return if (resource_id > 0) resources.getDimensionPixelSize(resource_id) else 0
     }
@@ -170,6 +170,7 @@ actual class PlatformContext(private val context: Context, onInit: ((PlatformCon
         vibrator?.vibrate(VibrationEffect.createOneShot((duration * 1000.0).toLong(), VibrationEffect.DEFAULT_AMPLITUDE))
     }
 
+    actual fun deleteFile(name: String): Boolean = ctx.deleteFile(name)
     actual fun openFileInput(name: String): FileInputStream = ctx.openFileInput(name)
     actual fun openFileOutput(name: String, append: Boolean): FileOutputStream = ctx.openFileOutput(name, if (append) MODE_APPEND else MODE_PRIVATE)
 
@@ -209,7 +210,7 @@ actual class PlatformContext(private val context: Context, onInit: ((PlatformCon
     actual fun getScreenHeight(): Dp {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val window_manager = ctx.getSystemService(Service.WINDOW_SERVICE) as WindowManager
-            return with(LocalDensity.current) { window_manager.currentWindowMetrics.bounds.height().toDp() } - SpMp.context.getNavigationBarHeightDp()
+            return with(LocalDensity.current) { window_manager.currentWindowMetrics.bounds.height().toDp() } - getNavigationBarHeightDp()
         }
         return LocalConfiguration.current.screenHeightDp.dp
     }

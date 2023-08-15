@@ -62,8 +62,8 @@ fun SeekBar(seek: (Float) -> Unit) {
 
         Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
             Row(Modifier.fillMaxWidth().padding(horizontal = 7.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                SeekBarTimeText(player.status.getPositionMillis(), getNPOnBackground())
-                SeekBarTimeText(player.status.m_duration_ms, getNPOnBackground())
+                SeekBarTimeText(player.status.getPositionMillis(), player.getNPOnBackground())
+                SeekBarTimeText(player.status.m_duration_ms, player.getNPOnBackground())
             }
 
             SliderValueHorizontal(
@@ -77,8 +77,8 @@ fun SeekBar(seek: (Float) -> Unit) {
                     cancel_area_side = null
                 },
                 thumbSizeInDp = DpSize(12.dp, 12.dp),
-                track = { a, b, _, _, e -> SeekTrack(a, b, e, getNPAltOnBackground(), getNPOnBackground()) },
-                thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, getNPOnBackground(), 1f) }
+                track = { a, b, _, _, e -> SeekTrack(a, b, e, player.getNPAltOnBackground(), player.getNPOnBackground()) },
+                thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, player.getNPOnBackground(), 1f) }
             )
         }
     }

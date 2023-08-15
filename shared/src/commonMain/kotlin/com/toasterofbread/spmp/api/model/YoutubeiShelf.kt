@@ -35,7 +35,7 @@ data class YoutubeiShelf(
     val title: TextRun? get() =
         if (musicShelfRenderer != null) musicShelfRenderer.title?.runs?.firstOrNull()
         else if (musicCarouselShelfRenderer != null) musicCarouselShelfRenderer.header.getRenderer()?.title?.runs?.firstOrNull()
-        else if (musicDescriptionShelfRenderer != null) musicDescriptionShelfRenderer.header.runs?.firstOrNull()
+        else if (musicDescriptionShelfRenderer != null) musicDescriptionShelfRenderer.header?.runs?.firstOrNull()
         else if (musicCardShelfRenderer != null) musicCardShelfRenderer.title.runs?.firstOrNull()
         else if (gridRenderer != null) gridRenderer.header?.gridHeaderRenderer?.title?.runs?.firstOrNull()
         else null

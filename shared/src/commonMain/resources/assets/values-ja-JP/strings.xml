@@ -149,6 +149,7 @@
     <string name="lyrics_info_key_sync_type">シンク方法</string>
     <string name="lyrics_source_petit">プチリリ</string>
     <string name="lyrics_source_kugou">KuGou</string>
+    <string name="lyrics_source_ytm">YouTube Music</string>
 
     <string name="lyrics_sync_none">シンクなし</string>
     <string name="lyrics_sync_line">行をシンク</string>

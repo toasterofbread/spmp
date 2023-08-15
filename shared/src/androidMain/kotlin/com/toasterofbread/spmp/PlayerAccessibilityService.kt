@@ -25,6 +25,7 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.service.playerservice.PlayerService
 import com.toasterofbread.utils.Permissions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -115,7 +116,8 @@ actual class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner
         if (event.keyCode == KEYCODE_VOLUME_UP || event.keyCode == KEYCODE_VOLUME_DOWN) {
             when (volume_intercept_mode) {
                 PlayerAccessibilityServiceVolumeInterceptMode.ALWAYS -> {
-                    !context.player_state.isRunningAndFocused()
+                    // TODO
+//                    !context.player_state.isRunningAndFocused()
                 }
                 PlayerAccessibilityServiceVolumeInterceptMode.APP_OPEN -> {
                     if (!context.isAppInForeground()) {

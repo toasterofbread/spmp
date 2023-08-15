@@ -52,8 +52,8 @@ class MainOverlayMenu(
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
         val db = SpMp.context.database
-        val player = LocalPlayerState.current
         val song = getSong()
+        val download_manager = SpMp.context.download_manager
 
         val song_artist: Artist? by song.Artist.observe(db)
 
@@ -66,7 +66,7 @@ class MainOverlayMenu(
             download_progress.snapTo(0f)
             download_progress_target = 0f
 
-            player.download_manager.getDownload(song) {
+            download_manager.getDownload(song) {
                 download_status = it
             }
         }
@@ -79,10 +79,10 @@ class MainOverlayMenu(
                     }
                 }
             }
-            player.download_manager.addDownloadStatusListener(status_listener)
+            download_manager.addDownloadStatusListener(status_listener)
 
             onDispose {
-                player.download_manager.removeDownloadStatusListener(status_listener)
+                download_manager.removeDownloadStatusListener(status_listener)
             }
         }
 
@@ -93,7 +93,7 @@ class MainOverlayMenu(
         LaunchedEffect(Unit) {
             while (true) {
                 if (download_status?.status == DownloadStatus.Status.DOWNLOADING || download_status?.status == DownloadStatus.Status.PAUSED) {
-                    player.download_manager.getDownload(getSong()) {
+                    download_manager.getDownload(getSong()) {
                         download_progress_target = it!!.progress
                     }
                 }
@@ -222,7 +222,7 @@ class MainOverlayMenu(
                             .fillMaxSize()
                             .clickable {
                                 if (download_status?.status != DownloadStatus.Status.FINISHED && download_status?.status != DownloadStatus.Status.ALREADY_FINISHED) {
-                                    player.download_manager.startDownload(getSong().id)
+                                    download_manager.startDownload(getSong().id)
                                 }
                             },
                         contentAlignment = Alignment.Center

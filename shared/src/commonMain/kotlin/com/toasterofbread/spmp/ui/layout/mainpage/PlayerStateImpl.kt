@@ -13,7 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
-import com.toasterofbread.spmp.PlayerService
+import com.toasterofbread.spmp.service.playerservice.PlayerService
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.model.mediaitem.Artist
@@ -161,9 +161,9 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
     @Composable
     private fun getCurrentBottomPadding(): Float =
         with(LocalDensity.current) {
-            (session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT_DP.dp.toPx()) + SpMp.context.getNavigationBarHeight()
+            (session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT_DP.dp.toPx()) + context.getNavigationBarHeight()
         }
-    private val bottom_padding_anim = Animatable(SpMp.context.getNavigationBarHeight().toFloat())
+    private val bottom_padding_anim = Animatable(context.getNavigationBarHeight().toFloat())
 
     private val low_memory_listener: () -> Unit
     private val prefs_listener: ProjectPreferences.Listener
@@ -180,7 +180,6 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
     private var np_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
 
     val expansion_state = NowPlayingExpansionState(np_swipe_state, context)
-    override var download_manager = PlayerDownloadManager(context)
 
     override val main_page_state = MainPageState(context.database)
     override var overlay_page: Pair<PlayerOverlayPage, MediaItem?>? by mutableStateOf(null)
@@ -207,7 +206,6 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
                 }
             }
         }
-        val prefs = context.getPrefs()
         context.getPrefs().addListener(prefs_listener)
     }
 
@@ -243,7 +241,6 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
 
     fun onStop() {
         MediaPlayerService.disconnect(context, service_connection)
-        download_manager.release()
         SpMp.removeLowMemoryListener(low_memory_listener)
         Settings.prefs.removeListener(prefs_listener)
         _player = null
@@ -265,7 +262,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
         val density = LocalDensity.current
         val screen_height = context.getScreenHeight()
         val bottom_padding = context.getNavigationBarHeightDp()
-        val keyboard_insets = SpMp.context.getImeInsets()
+        val keyboard_insets = context.getImeInsets()
 
         return base.offset {
             val keyboard_bottom_padding = if (keyboard_insets == null || np_swipe_state.value.targetValue != 0) 0 else keyboard_insets.getBottom(density)
@@ -496,7 +493,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
                     else {
                         page.first.Page(
                             page.second,
-                            (if (session_started) MINIMISED_NOW_PLAYING_HEIGHT_DP.dp else 0.dp) + SpMp.context.getNavigationBarHeightDp() + SpMp.context.getDefaultVerticalPadding(),
+                            (if (session_started) MINIMISED_NOW_PLAYING_HEIGHT_DP.dp else 0.dp) + context.getNavigationBarHeightDp() + context.getDefaultVerticalPadding(),
                             close
                         )
                     }
@@ -517,6 +514,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
     private var service_connecting = false
     private var service_connected_listeners = mutableListOf<(PlayerService) -> Unit>()
     private lateinit var service_connection: Any
+    private lateinit var service_bind_connection: Any
 
     override lateinit var status: PlayerStatus
         private set

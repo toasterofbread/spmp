@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.overlay
 
+import LocalPlayerState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,6 +29,8 @@ class RelatedContentOverlayMenu : OverlayMenu() {
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
+        val player = LocalPlayerState.current
+
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomEnd) {
             SongRelatedPage(
                 getSong(),
@@ -36,11 +39,11 @@ class RelatedContentOverlayMenu : OverlayMenu() {
                 description_text_style = MaterialTheme.typography.bodyMedium,
                 close = { openMenu(null) },
                 padding = PaddingValues(10.dp),
-                accent_colour = getNPBackground()
+                accent_colour = player.getNPBackground()
             )
 
             val pill_menu = remember { PillMenu(
-                _background_colour = { getNPBackground() }
+                _background_colour = { player.getNPBackground() }
             ) }
             pill_menu.PillMenu(
                 1,

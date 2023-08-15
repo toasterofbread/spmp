@@ -311,7 +311,7 @@ class MediaItemMultiSelectContext(
             IconButton({
                 for (item in getUniqueSelectedItems()) {
                     if (item is Song) {
-                        player.download_manager.startDownload(item.id)
+                        SpMp.context.download_manager.startDownload(item.id)
                     }
                 }
                 onActionPerformed()

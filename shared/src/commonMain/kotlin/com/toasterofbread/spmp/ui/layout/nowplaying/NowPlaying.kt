@@ -23,6 +23,7 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.BackHandler
 import com.toasterofbread.spmp.platform.composable.scrollWheelSwipeable
 import com.toasterofbread.spmp.platform.composeScope
+import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NowPlayingMainTab
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.QueueTab
 import com.toasterofbread.spmp.ui.theme.Theme
@@ -41,40 +42,40 @@ const val POSITION_UPDATE_INTERVAL_MS: Long = 100
 private const val GRADIENT_BOTTOM_PADDING_DP = 100
 private const val GRADIENT_TOP_START_RATIO = 0.7f
 
-internal fun getNPBackground(): Color {
-    return when (SpMp.context.player_state.np_theme_mode) {
+internal fun PlayerState.getNPBackground(): Color {
+    return when (np_theme_mode) {
         ThemeMode.BACKGROUND -> Theme.accent
         ThemeMode.ELEMENTS -> Theme.background
         ThemeMode.NONE -> Theme.background
     }
 }
 
-internal fun getNPOnBackground(): Color {
-    return when (SpMp.context.player_state.np_theme_mode) {
+internal fun PlayerState.getNPOnBackground(): Color {
+    return when (np_theme_mode) {
         ThemeMode.BACKGROUND -> Theme.on_accent
         ThemeMode.ELEMENTS -> Theme.accent
         ThemeMode.NONE -> Theme.on_background
     }
 }
 
-internal fun getNPAltBackground(): Color {
-    return when (SpMp.context.player_state.np_theme_mode) {
+internal fun PlayerState.getNPAltBackground(): Color {
+    return when (np_theme_mode) {
         ThemeMode.BACKGROUND -> getNPBackground().amplifyPercent(-0.4f, opposite_percent = -0.2f)
         else -> Theme.background
     }
 }
 
-internal fun getNPAltOnBackground(): Color =
+internal fun PlayerState.getNPAltOnBackground(): Color =
     getNPBackground().amplifyPercent(-0.4f, opposite_percent = -0.1f)
 
-val LocalNowPlayingExpansion: ProvidableCompositionLocal<NowPlayingExpansionState> = staticCompositionLocalOf { SpMp.context.player_state.expansion_state }
+val LocalNowPlayingExpansion: ProvidableCompositionLocal<NowPlayingExpansionState> = staticCompositionLocalOf { SpMp.player_state.expansion_state }
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>) {
     LocalNowPlayingExpansion.current.init()
 
-    CompositionLocalProvider(LocalNowPlayingExpansion provides SpMp.context.player_state.expansion_state) {
+    CompositionLocalProvider(LocalNowPlayingExpansion provides SpMp.player_state.expansion_state) {
         LocalNowPlayingExpansion.current.init()
         AnimatedVisibility(
             LocalPlayerState.current.session_started,
@@ -141,7 +142,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
                             check(gradient_depth in 0f .. 1f)
 
                             Brush.verticalGradient(
-                                listOf(getNPBackground(), getNPAltBackground()),
+                                listOf(player.getNPBackground(), player.getNPAltBackground()),
                                 startY = v_offset + (screen_height.toPx() * GRADIENT_TOP_START_RATIO),
                                 endY = v_offset - GRADIENT_BOTTOM_PADDING_DP.dp.toPx() + (
                                     screen_height_px * (1.2f + (gradient_depth * 2f))
@@ -154,7 +155,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
                     switch_to_page = swipe_state.targetValue - 1
                 }
 
-                CompositionLocalProvider(LocalContentColor provides getNPOnBackground()) {
+                CompositionLocalProvider(LocalContentColor provides player.getNPOnBackground()) {
                     Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
                         NowPlayingCardContent(screen_height)
                     }
@@ -168,7 +169,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
 private fun StatusBarColourHandler(page_height: Dp) {
     val expansion = LocalNowPlayingExpansion.current
     val status_bar_height = SpMp.context.getStatusBarHeight()
-    val background_colour = getNPBackground()
+    val background_colour = LocalPlayerState.current.getNPBackground()
 
     val status_bar_height_percent = (
         status_bar_height.value * (if (SpMp.context.isDisplayingAboveNavigationBar()) 1f else 0.75f)
@@ -223,13 +224,15 @@ private fun NowPlayingCardContent(page_height: Dp) {
 @Composable
 fun MinimisedProgressBar(modifier: Modifier = Modifier) {
     val expansion = LocalNowPlayingExpansion.current
+    val player = LocalPlayerState.current
+
     RecomposeOnInterval(POSITION_UPDATE_INTERVAL_MS) { state ->
         state
 
         LinearProgressIndicator(
-            progress = LocalPlayerState.current.status.getProgress(),
-            color = getNPOnBackground(),
-            trackColor = getNPOnBackground().setAlpha(0.5f),
+            progress = player.status.getProgress(),
+            color = player.getNPOnBackground(),
+            trackColor = player.getNPOnBackground().setAlpha(0.5f),
             modifier = modifier
                 .requiredHeight(2.dp)
                 .fillMaxWidth()

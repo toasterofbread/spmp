@@ -167,7 +167,12 @@ class LyricsOverlayMenu: OverlayMenu() {
                                     }
                                 }
 
-                                Item(getString("lyrics_info_key_source"), LyricsSource.fromIdx(lyrics.source_idx).getReadable())
+                                Item(
+                                    getString("lyrics_info_key_source"),
+                                    remember(lyrics.source_idx) {
+                                        LyricsSource.fromIdx(lyrics.source_idx).getReadable()
+                                    }
+                                )
                                 Item(getString("lyrics_info_key_id"), lyrics.id)
                                 Item(getString("lyrics_info_key_sync_type"), lyrics.sync_type.getReadable())
                             }
@@ -231,7 +236,6 @@ class LyricsOverlayMenu: OverlayMenu() {
                                 val result = SongLyricsLoader.loadBySong(getSong(), SpMp.context)
                                 result.onFailure { error ->
                                     // TODO
-                                    throw error
                                     SpMp.context.sendToast(error.toString())
                                 }
                             }
@@ -481,7 +485,7 @@ fun List<ReadingTextData>.getTermRangeOfTime(lyrics: SongLyrics, time: Long): Pa
     var last_before: Int? = null
 
     for (item in withIndex()) {
-        val term = item.value.data as SongLyrics.Term
+        val term = (item.value.data ?: continue) as SongLyrics.Term
 
         val range =
             if (lyrics.sync_type == SongLyrics.SyncType.WORD_SYNC && !Settings.get<Boolean>(Settings.KEY_LYRICS_ENABLE_WORD_SYNC)) {
@@ -526,6 +530,11 @@ fun SongLyrics.getReadingTerms(): MutableList<ReadingTextData> =
     mutableListOf<ReadingTextData>().apply {
         synchronized(lines) {
             for (line in lines) {
+                if (line.isEmpty()) {
+                    add(ReadingTextData("\n"))
+                    continue
+                }
+
                 for (term in line.withIndex()) {
                     for (subterm in term.value.subterms.withIndex()) {
                         if (subterm.index + 1 == term.value.subterms.size && term.index + 1 == line.size) {

@@ -261,7 +261,7 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
     private var _is_playing: Boolean = false
     private var _current_song_index: Int = -1
     private var _duration_ms: Long = -1
-    private var _repeat_mode: MediaPlayerRepeatMode = MediaPlayerRepeatMode.OFF
+    private var _repeat_mode: MediaPlayerRepeatMode = MediaPlayerRepeatMode.NONE
     private var _volume: Float = 1f
     private var current_song_time: Long = -1
 
@@ -380,7 +380,7 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
         }
 
         val target_index = when (_repeat_mode) {
-            MediaPlayerRepeatMode.OFF -> if (_current_song_index + 1 == playlist.size) return else _current_song_index + 1
+            MediaPlayerRepeatMode.NONE -> if (_current_song_index + 1 == playlist.size) return else _current_song_index + 1
             MediaPlayerRepeatMode.ONE -> _current_song_index
             MediaPlayerRepeatMode.ALL -> if (_current_song_index + 1 == playlist.size) 0 else _current_song_index + 1
         }
@@ -400,7 +400,7 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
         }
 
         val target_index = when (_repeat_mode) {
-            MediaPlayerRepeatMode.OFF -> if (_current_song_index == 0) return else _current_song_index - 1
+            MediaPlayerRepeatMode.NONE -> if (_current_song_index == 0) return else _current_song_index - 1
             MediaPlayerRepeatMode.ONE -> _current_song_index
             MediaPlayerRepeatMode.ALL -> if (_current_song_index == 0) playlist.size - 1 else _current_song_index - 1
         }

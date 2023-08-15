@@ -144,6 +144,7 @@
     
     <string name="lyrics_source_petit">Słowa utworu</string>
     <string name="lyrics_source_kugou">KuGou</string>
+    <string name="lyrics_source_ytm">YouTube Music</string>
 
     <string name="lyrics_sync_none">Brak synchronizacji</string>
     <string name="lyrics_sync_line">Synchronizacja liniowa</string>

@@ -226,7 +226,7 @@ private fun LongPressMenuActionProvider.LPMActions(
 
     ActionButton(Icons.Default.Download, getString("lpm_action_download"), onClick = {
         withSong {
-            player.download_manager.startDownload(it.id) { status: DownloadStatus ->
+            SpMp.context.download_manager.startDownload(it.id) { status: DownloadStatus ->
                 when (status.status) {
                     DownloadStatus.Status.FINISHED -> SpMp.context.sendToast(getString("notif_download_finished"))
                     DownloadStatus.Status.ALREADY_FINISHED -> SpMp.context.sendToast(getString("notif_download_already_finished"))

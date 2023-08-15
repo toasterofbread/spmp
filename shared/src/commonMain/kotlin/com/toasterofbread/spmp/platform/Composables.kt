@@ -27,7 +27,7 @@ fun LargeDropdownMenu(
     onDismissRequest: () -> Unit,
     item_count: Int,
     selected: Int,
-    getItem: (Int) -> String,
+    getItem: @Composable (Int) -> String,
     modifier: Modifier = Modifier,
     item_colour: Color = MaterialTheme.colorScheme.primary,
     selected_item_colour: Color = MaterialTheme.colorScheme.onSurface,

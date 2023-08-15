@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.platform
 
-import SpMp
 import android.net.Uri
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSpec
@@ -18,7 +17,7 @@ import java.time.Duration
 internal fun processMediaDataSpec(data_spec: DataSpec, context: PlatformContext, metered: Boolean): DataSpec {
     val song = SongRef(data_spec.uri.toString())
 
-    val download_manager = SpMp.context.player_state.download_manager
+    val download_manager = context.download_manager
     var local_file: File? = download_manager.getSongLocalFile(song)
     if (local_file != null) {
         println("Playing song ${song.id} from local file $local_file")

@@ -52,8 +52,8 @@ fun PlatformContext.getNavigationBarHeightDp(): Dp = with(LocalDensity.current) 
 }
 
 expect class PlatformContext {
-    val player_state: PlayerStateImpl
     val database: Database
+    val download_manager: PlayerDownloadManager
 
     fun getPrefs(): ProjectPreferences
 
@@ -92,6 +92,7 @@ expect class PlatformContext {
 
     fun vibrate(duration: Double)
 
+    fun deleteFile(name: String): Boolean
     fun openFileInput(name: String): FileInputStream
     fun openFileOutput(name: String, append: Boolean = false): FileOutputStream
 

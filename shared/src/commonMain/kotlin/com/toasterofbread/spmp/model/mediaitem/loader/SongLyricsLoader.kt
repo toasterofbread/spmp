@@ -6,8 +6,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.api.lyrics.LyricsReference
+import com.toasterofbread.spmp.api.lyrics.LyricsSource
 import com.toasterofbread.spmp.api.lyrics.loadLyrics
-import com.toasterofbread.spmp.api.lyrics.searchAndLoadSongLyrics
 import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.PlatformContext
@@ -41,7 +41,7 @@ internal object SongLyricsLoader {
             lock,
             loading_by_id
         ) {
-            val result = searchAndLoadSongLyrics(song, context.database)
+            val result = LyricsSource.searchSongLyricsByPriority(song, context.database)
             result.onSuccess { lyrics ->
                 loaded_by_reference[lyrics.reference] = WeakReference(lyrics)
                 song.Lyrics.set(lyrics.reference, context.database)

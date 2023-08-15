@@ -49,17 +49,16 @@ class MainActivity : ComponentActivity() {
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        val context = PlatformContext(this) { context ->
-            SpMp.init(context)
+        val context = PlatformContext(this)
+        SpMp.init(context)
 
-            if (!context.isDisplayingAboveNavigationBar()) {
-                window.setFlags(
-                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-                )
-            }
-            context.setNavigationBarColour(null)
+        if (!context.isDisplayingAboveNavigationBar()) {
+            window.setFlags(
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+            )
         }
+        context.setNavigationBarColour(null)
 
         val open_uri: Uri? =
             if (intent.action == Intent.ACTION_VIEW) intent.data

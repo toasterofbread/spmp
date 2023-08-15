@@ -114,7 +114,7 @@ private fun _mergeAndFuriganiseTerms(tokeniser: Tokenizer, terms: List<SongLyric
     }
 
     val ret: MutableList<SongLyrics.Term> = mutableListOf()
-    val line_range = terms.first().line_range!!
+    val line_range = terms.first().line_range
     val line_index = terms.first().line_index
 
     var terms_text: String = ""
@@ -131,14 +131,19 @@ private fun _mergeAndFuriganiseTerms(tokeniser: Tokenizer, terms: List<SongLyric
         val token_base = token.surface
 
         var text: String = ""
-        var start: Long = Long.MAX_VALUE
-        var end: Long = Long.MIN_VALUE
+        var start: Long? = null
+        var end: Long? = null
 
         while (text.length < token_base.length) {
             val term = terms[current_term]
             val subterm = term.subterms.single()
-            start = minOf(start, term.start!!)
-            end = maxOf(end, term.end!!)
+
+            if (term.start != null && (start == null || term.start < start)) {
+                start = term.start
+            }
+            if (term.end != null && (end == null || term.end > end)) {
+                end = term.end
+            }
 
             val needed = token_base.length - text.length
             if (needed < subterm.text.length - term_head) {

@@ -31,7 +31,6 @@ class SongRef(override val id: String): Song {
     init {
         lazyAssert { id.isNotBlank() }
     }
-
 }
 
 interface Song: MediaItem.WithArtist {
@@ -49,6 +48,7 @@ interface Song: MediaItem.WithArtist {
             duration = Duration.get(db)
             album = Album.get(db)
             related_browse_id = RelatedBrowseId.get(db)
+            lyrics_browse_id = LyricsBrowseId.get(db)
         }
     }
 
@@ -99,10 +99,14 @@ interface Song: MediaItem.WithArtist {
         get() = property_rememberer.rememberSingleProperty(
         "RelatedBrowseId", { songQueries.relatedBrowseIdById(id) }, { related_browse_id }, { songQueries.updateRelatedBrowseIdById(it, id) }
     )
+    val LyricsBrowseId: Property<String?>
+        get() = property_rememberer.rememberSingleProperty(
+        "LyricsBrowseId", { songQueries.lyricsBrowseIdById(id) }, { lyrics_browse_id }, { songQueries.updateLyricsBrowseIdById(it, id) }
+    )
 
     val Lyrics: Property<LyricsReference?>
         get() = property_rememberer.rememberSingleProperty(
-        "Lyrics", { songQueries.lyricsById(id) }, { this.toLyricsReference() }, { songQueries.updateLyricsById(it?.source_idx?.toLong(), it?.id, id) }
+        "Lyrics", { songQueries.lyricsById(id) }, { this.toLyricsReference() }, { songQueries.updateLyricsById(it?.source_index?.toLong(), it?.id, id) }
     )
     val LyricsSyncOffset: Property<Long?>
         get() = property_rememberer.rememberSingleProperty(
@@ -164,7 +168,8 @@ class SongData(
     var song_type: SongType? = null,
     var duration: Long? = null,
     var album: Playlist? = null,
-    var related_browse_id: String? = null
+    var related_browse_id: String? = null,
+    var lyrics_browse_id: String? = null
 ): MediaItem.DataWithArtist(), Song {
     override val creation: Throwable = Exception()
     override fun toString(): String = "SongData($id)"
@@ -186,6 +191,7 @@ class SongData(
             Duration.setNotNull(duration, db)
             Album.setNotNull(album, db)
             RelatedBrowseId.setNotNull(related_browse_id, db)
+            LyricsBrowseId.setNotNull(lyrics_browse_id, db)
         }}
     }
 

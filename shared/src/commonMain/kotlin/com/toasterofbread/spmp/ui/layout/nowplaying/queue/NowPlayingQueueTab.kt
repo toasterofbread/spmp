@@ -130,8 +130,8 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
         }
     }
 
-    val backgroundColourProvider = { getNPBackground() }
-    val queue_background_colour = getNPAltOnBackground()
+    val backgroundColourProvider = { player.getNPBackground() }
+    val queue_background_colour = player.getNPAltOnBackground()
 
     val shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp)
 
@@ -266,11 +266,12 @@ private fun QueueBorder(
     list_padding: Dp,
     queue_list_state: ReorderableLazyListState
 ) {
+    val player = LocalPlayerState.current
+
     if (wave_border_mode == NowPlayingQueueWaveBorderMode.LINE) {
-        Divider(Modifier.padding(horizontal = list_padding), 1.dp, getNPBackground())
+        Divider(Modifier.padding(horizontal = list_padding), 1.dp, player.getNPBackground())
     }
     else {
-        val player = LocalPlayerState.current
         var wave_border_offset: Float by remember { mutableStateOf(0f) }
 
         LaunchedEffect(wave_border_mode) {
@@ -294,7 +295,7 @@ private fun QueueBorder(
 
         WaveBorder(
             Modifier.fillMaxWidth().zIndex(1f),
-            getColour = { getNPAltOnBackground() },
+            getColour = { player.getNPAltOnBackground() },
             getWaveOffset = {
                 when (wave_border_mode) {
                     NowPlayingQueueWaveBorderMode.SCROLL -> {
@@ -304,7 +305,7 @@ private fun QueueBorder(
                 }
             },
             border_thickness = 1.5.dp,
-            border_colour = getNPBackground()
+            border_colour = player.getNPBackground()
         )
     }
 }

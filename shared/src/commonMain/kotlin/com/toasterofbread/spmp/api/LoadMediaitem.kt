@@ -140,6 +140,7 @@ suspend fun processSong(song: SongData, response_body: InputStream, db: Database
         return Result.failure(e)
     }
 
+    song.lyrics_browse_id = tabs.getOrNull(1)?.tabRenderer?.endpoint?.browseEndpoint?.browseId
     song.related_browse_id = tabs.getOrNull(2)?.tabRenderer?.endpoint?.browseEndpoint?.browseId
 
     val video: YoutubeiNextResponse.PlaylistPanelVideoRenderer = try {

@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.overlay
 
+import LocalPlayerState
 import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
@@ -69,14 +70,15 @@ class PaletteSelectorOverlayMenu(
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
         val db = SpMp.context.database
+        val player = LocalPlayerState.current
 
         val song = getSong()
         val thumb_image = getCurrentSongThumb()
         var palette_colours by remember { mutableStateOf<List<Color>?>(null) }
         var colourpick_requested by remember { mutableStateOf(false) }
         val button_colours = ButtonDefaults.buttonColors(
-            containerColor = getNPBackground(),
-            contentColor = getNPOnBackground()
+            containerColor = player.getNPBackground(),
+            contentColor = player.getNPOnBackground()
         )
 
         var np_gradient_depth: Float? by song.PlayerGradientDepth.observe(db)
@@ -142,7 +144,7 @@ class PaletteSelectorOverlayMenu(
                         Modifier.offset(y = 10.dp),
                         fontSize = 15.sp
                     )
-                    val background_colour = getNPBackground()
+                    val background_colour = player.getNPBackground()
 
                     Row {
                         Slider(
@@ -197,7 +199,7 @@ class PaletteSelectorOverlayMenu(
                         Modifier.offset(y = 10.dp),
                         fontSize = 15.sp
                     )
-                    val background_colour = getNPBackground()
+                    val background_colour = player.getNPBackground()
 
                     Row {
                         Slider(

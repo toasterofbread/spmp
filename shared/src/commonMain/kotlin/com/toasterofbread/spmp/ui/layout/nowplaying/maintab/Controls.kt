@@ -128,7 +128,7 @@ internal fun Controls(
                     val gradient_end = this@Canvas.size.width * 1.7f
                     drawRect(
                         Brush.linearGradient(
-                            listOf(getNPOnBackground(), getNPBackground()),
+                            listOf(player.getNPOnBackground(), player.getNPBackground()),
                             end = Offset(gradient_end, gradient_end)
                         ),
                         blendMode = BlendMode.SrcAtop
@@ -144,7 +144,7 @@ internal fun Controls(
                     Text(
                         song_title ?: "",
                         fontSize = 20.sp,
-                        color = getNPOnBackground(),
+                        color = player.getNPOnBackground(),
                         textAlign = TextAlign.Center,
                         maxLines = 1,
                         softWrap = false,
@@ -164,7 +164,7 @@ internal fun Controls(
                 Text(
                     song_artist_title ?: "",
                     fontSize = 12.sp,
-                    color = getNPOnBackground(),
+                    color = player.getNPOnBackground(),
                     textAlign = TextAlign.Center,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -225,7 +225,7 @@ internal fun Controls(
 
             Spacer(Modifier.fillMaxHeight().weight(1f))
 
-            val bottom_row_colour = getNPOnBackground().setAlpha(0.5f)
+            val bottom_row_colour = player.getNPOnBackground().setAlpha(0.5f)
             Row(
                 Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,

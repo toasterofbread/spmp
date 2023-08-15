@@ -34,6 +34,7 @@ actual open class MediaPlayerService {
     fun init(context: PlatformContext, player: MediaController) {
         this.context = context
         this.player = player
+        listener.addToPlayer(player)
     }
 
     actual interface UndoRedoAction {
@@ -57,7 +58,7 @@ actual open class MediaPlayerService {
 
         actual open fun onEvents() {}
 
-        private val listener = object : Player.Listener {
+        private val player_listener = object : Player.Listener {
             var current_song: Song? = null
             override fun onMediaItemTransition(item: ExoMediaItem?, reason: Int) {
                 val song = item?.getSong()
@@ -85,20 +86,37 @@ actual open class MediaPlayerService {
         }
 
         internal fun addToPlayer(player: Player) {
-            player.addListener(listener)
+            player.addListener(player_listener)
         }
         internal fun removeFromPlayer(player: Player) {
-            player.removeListener(listener)
+            player.removeListener(player_listener)
         }
     }
 
-    private val listeners: MutableList<Listener> = mutableListOf()
+    private val listener = object : Listener() {
+        override fun onSongTransition(song: Song?) {
+            pending_seek_position = null
+        }
+
+        override fun onStateChanged(state: MediaPlayerState) {
+            if (state == MediaPlayerState.READY) {
+                pending_seek_position?.also { position_ms ->
+                    seekTo(position_ms)
+                    pending_seek_position = null
+                }
+            }
+        }
+    }
+    private val listeners: MutableList<Listener> = mutableListOf(listener)
 
     // Undo
     private var current_action: MutableList<UndoRedoAction>? = null
     private var current_action_is_further: Boolean = false
     private val action_list: MutableList<List<UndoRedoAction>> = mutableListOf()
     private var action_head: Int = 0
+
+    // Seek
+    private var pending_seek_position: Long? = null
 
     actual open fun onCreate() {
         session_started = player.mediaItemCount > 0
@@ -151,7 +169,13 @@ actual open class MediaPlayerService {
     }
 
     actual open fun seekTo(position_ms: Long) {
-        player.seekTo(position_ms)
+        if (player.playbackState != Player.STATE_READY) {
+            pending_seek_position = position_ms
+        }
+        else {
+            player.seekTo(position_ms)
+        }
+
         listeners.forEach { it.onSeeked(position_ms) }
     }
     actual open fun seekToSong(index: Int) {

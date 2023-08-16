@@ -2,12 +2,16 @@ package com.toasterofbread.spmp.ui.layout.playlistpage
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Reorder
@@ -23,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,9 +35,11 @@ import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor
 import com.toasterofbread.spmp.platform.LargeDropdownMenu
+import kotlinx.coroutines.launch
 
 @Composable
 internal fun InteractionBar(
+    list_state: LazyListState,
     playlist: Playlist,
     playlist_editor: PlaylistEditor?,
     reorderable: Boolean,
@@ -44,13 +51,14 @@ internal fun InteractionBar(
     modifier: Modifier = Modifier
 ) {
     // 0 -> search, 1 -> sort
-    var opened_menu: Int by remember { mutableStateOf(-1) }
+    var opened_menu: Int? by remember { mutableStateOf(null) }
+    val coroutine_scope = rememberCoroutineScope()
 
     Row(modifier) {
         // Filter button
         IconButton(
             {
-                if (opened_menu == 0) opened_menu = -1
+                if (opened_menu == 0) opened_menu = null
                 else opened_menu = 0
             },
             enabled = !reorderable
@@ -61,13 +69,13 @@ internal fun InteractionBar(
         }
 
         // Animate between filter bar and remaining buttons
-        Box(Modifier.fillMaxWidth()) {
+        Box(Modifier.fillMaxWidth().weight(1f)) {
             this@Row.AnimatedVisibility(opened_menu != 0) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     // Sort
                     IconButton(
                         {
-                            if (opened_menu == 1) opened_menu = -1
+                            if (opened_menu == 1) opened_menu = null
                             else opened_menu = 1
                         },
                         enabled = !reorderable
@@ -95,18 +103,43 @@ internal fun InteractionBar(
                 InteractionBarFilterBox(filter, setFilter, Modifier.fillMaxWidth())
             }
         }
+
+        AnimatedVisibility(opened_menu != 0) {
+            Row {
+                Crossfade(list_state.canScrollBackward) { enabled ->
+                    IconButton(
+                        { coroutine_scope.launch {
+                            list_state.scrollToItem(0)
+                        } },
+                        enabled = enabled
+                    ) {
+                        Icon(Icons.Default.ArrowUpward, null)
+                    }
+                }
+                Crossfade(list_state.canScrollForward) { enabled ->
+                    IconButton(
+                        { coroutine_scope.launch {
+                            list_state.scrollToItem(Int.MAX_VALUE)
+                        } },
+                        enabled = enabled
+                    ) {
+                        Icon(Icons.Default.ArrowDownward, null)
+                    }
+                }
+            }
+        }
     }
 
     // Sort options
     LargeDropdownMenu(
         opened_menu == 1,
-        { if (opened_menu == 1) opened_menu = -1 },
+        { if (opened_menu == 1) opened_menu = null },
         SortOption.values().size,
         sort_option.ordinal,
         { SortOption.values()[it].getReadable() }
     ) {
         setSortOption(SortOption.values()[it])
-        opened_menu = -1
+        opened_menu = null
     }
 }
 

@@ -14,6 +14,7 @@ import com.toasterofbread.spmp.model.mediaitem.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongData
@@ -24,6 +25,7 @@ import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeDurationString
 import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeSubscribersString
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
+import com.toasterofbread.utils.lazyAssert
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
@@ -31,24 +33,43 @@ import okhttp3.Request
 import okhttp3.Response
 import java.io.InputStream
 
-data class PlayerData(
-    val videoDetails: VideoDetails? = null,
-//    val streamingData: StreamingData? = null
-) {
-//    data class StreamingData(val formats: List<YoutubeVideoFormat>, val adaptiveFormats: List<YoutubeVideoFormat>)
-}
-
-data class VideoDetails(
-    val videoId: String,
-    val title: String,
-    val channelId: String,
-)
-
 suspend fun loadMediaItemData(
     item: MediaItemData,
-    db: Database
+    db: Database,
+    continuation: MediaItemLayout.Continuation? = null
 ): Result<Unit> {
     val item_id = item.id
+
+    if (continuation != null) {
+        check(item is PlaylistData && !item.isLocalPlaylist())
+
+        continuation.loadContinuation(db).fold(
+            {
+                val (items, ctoken) = it
+                item.items = item.items?.plus(items as List<SongData>)
+
+                println("ADDITEMS $items")
+
+                withContext(Dispatchers.IO) {
+                    db.transaction {
+                        for (playlist_item in items) {
+                            playlist_item.saveToDatabase(db)
+                            item.Items.addItem(playlist_item as Song, null, db)
+                        }
+                        item.Continuation.set(
+                            ctoken?.let { token ->
+                                continuation.copy(token = token)
+                            },
+                            db
+                        )
+                    }
+                }
+
+                return Result.success(Unit)
+            },
+            { return Result.failure(it) }
+        )
+    }
 
     val result =
         if (item is ArtistData && item.is_for_item) Result.success(Unit)
@@ -60,6 +81,10 @@ suspend fun loadMediaItemData(
                         "enablePersistentPlaylistPanel" to true,
                         "isAudioOnly" to true,
                         "videoId" to item_id,
+                    )
+                else if (item is Playlist && !item.id.startsWith("VL"))
+                    mapOf(
+                        "browseId" to "VL$item_id"
                     )
                 else
                     mapOf(
@@ -77,17 +102,21 @@ suspend fun loadMediaItemData(
                 ))
                 .build()
 
-            val response = Api.request(request).getOrNull()
-            coroutineContext.job.invokeOnCompletion {
-                response?.close()
-            }
-
-            if (response != null) {
-                val result = processDefaultResponse(item, response, hl, db)
-                if (result != null) {
-                    return@withContext result
+            Api.request(request).fold(
+                { response ->
+                    val result = processDefaultResponse(item, response, hl, db)
+                    if (result.isSuccess || item !is Song) {
+                        return@withContext result
+                    }
+                },
+                { error ->
+                    if (item !is Song) {
+                        return@withContext Result.failure(error)
+                    }
                 }
-            }
+            )
+
+            check(item is Song)
 
             // 'next' endpoint has no artist, use 'player' instead
             request = Request.Builder()
@@ -118,8 +147,10 @@ suspend fun loadMediaItemData(
         }
 
     result.onSuccess {
-        item.loaded = true
-        item.saveToDatabase(db)
+        withContext(Dispatchers.IO) {
+            item.loaded = true
+            item.saveToDatabase(db)
+        }
     }
 
     return result
@@ -127,7 +158,7 @@ suspend fun loadMediaItemData(
 
 class InvalidRadioException: Throwable()
 
-suspend fun processSong(song: SongData, response_body: InputStream, db: Database): Result<Unit>? {
+suspend fun processSong(song: SongData, response_body: InputStream, db: Database): Result<Unit> {
     val tabs: List<YoutubeiNextResponse.Tab> = try {
         Api.klaxon.parse<YoutubeiNextResponse>(response_body)!!
             .contents
@@ -161,7 +192,7 @@ suspend fun processSong(song: SongData, response_body: InputStream, db: Database
     )
 }
 
-suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: String, db: Database): Result<Unit>? {
+suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: String, db: Database): Result<Unit> {
     return withContext(Dispatchers.IO) {
         val response_body = response.getStream()
         return@withContext response_body.use {
@@ -264,10 +295,6 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                     }
                 }
 
-                if (item is PlaylistData) {
-
-                }
-
                 for (row in section_list_renderer.contents.orEmpty().withIndex()) {
                     val description = row.value.description
                     if (description != null) {
@@ -285,8 +312,7 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                     }
 
                     val continuation_token =
-                        section_list_renderer.continuations?.firstOrNull()?.nextContinuationData?.continuation
-                            ?: row.value.musicPlaylistShelfRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation
+                        row.value.musicPlaylistShelfRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation
 
                     if (item is PlaylistData) {
                         item.items = items_mapped.filterIsInstance<SongData>()
@@ -336,4 +362,14 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
             return@use Result.success(Unit)
         }
     }
+}
+
+private data class PlayerData(
+    val videoDetails: VideoDetails? = null,
+) {
+    class VideoDetails(
+        val videoId: String,
+        val title: String,
+        val channelId: String,
+    )
 }

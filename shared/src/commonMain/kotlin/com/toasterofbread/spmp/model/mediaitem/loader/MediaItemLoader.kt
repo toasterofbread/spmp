@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.model.mediaitem.loader
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -12,10 +13,11 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.SongData
+import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import kotlinx.coroutines.Deferred
 import java.util.concurrent.locks.ReentrantLock
 
-internal object MediaItemLoader {
+internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
     private val song_lock = ReentrantLock()
     private val artist_lock = ReentrantLock()
     private val playlist_lock = ReentrantLock()
@@ -38,36 +40,67 @@ internal object MediaItemLoader {
     suspend fun loadArtist(artist: ArtistData, db: Database): Result<ArtistData> {
         return loadItem(artist, loading_artists, artist_lock, db)
     }
-    suspend fun loadPlaylist(playlist: PlaylistData, db: Database): Result<PlaylistData> {
-        return loadItem(playlist, loading_playlists, playlist_lock, db)
+    suspend fun loadPlaylist(playlist: PlaylistData, db: Database, continuation: MediaItemLayout.Continuation? = null): Result<PlaylistData> {
+        return loadItem(playlist, loading_playlists, playlist_lock, db, continuation)
     }
+
+    override val listeners: MutableList<Listener<String, MediaItemData>> = mutableListOf()
 
     private suspend fun <ItemType: MediaItemData> loadItem(
         item: ItemType,
         loading_items: MutableMap<String, Deferred<Result<ItemType>>>,
         lock: ReentrantLock,
-        db: Database
+        db: Database,
+        continuation: MediaItemLayout.Continuation? = null
     ): Result<ItemType> {
         return performSafeLoad(
             item.id,
             lock,
-            loading_items
+            loading_items,
+            listeners = listeners
         ) {
-            loadMediaItemData(item, db).fold(
+            loadMediaItemData(item, db, continuation).fold(
                 { Result.success(item) },
                 { Result.failure(it) }
             )
         }
     }
+
 }
 
 @Composable
 fun MediaItem.loadDataOnChange(db: Database): State<Boolean> {
     val loading_state = remember(this) { mutableStateOf(false) }
-    LaunchedEffect(this) {
-        loading_state.value = true
-        loadData(db)
-        loading_state.value = false
+
+    DisposableEffect(this) {
+        val listener = object : ListenerLoader.Listener<String, MediaItemData> {
+            override fun onLoadStarted(key: String) {
+                if (key == id) {
+                    loading_state.value = true
+                }
+            }
+            override fun onLoadFinished(key: String, value: MediaItemData) {
+                if (key == id) {
+                    loading_state.value = false
+                }
+            }
+            override fun onLoadFailed(key: String, error: Throwable) {
+                if (key == id) {
+                    loading_state.value = false
+                }
+            }
+        }
+
+        MediaItemLoader.addListener(listener)
+
+        onDispose {
+            MediaItemLoader.removeListener(listener)
+        }
     }
+
+    LaunchedEffect(this) {
+        loadData(db)
+    }
+
     return loading_state
 }

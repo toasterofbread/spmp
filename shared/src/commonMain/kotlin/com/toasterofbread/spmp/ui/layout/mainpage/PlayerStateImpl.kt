@@ -149,7 +149,7 @@ interface PlayerOverlayPage {
 }
 
 @OptIn(ExperimentalMaterialApi::class)
-class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, null, null) {
+class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, null, null) {
     private var _player: PlayerService? by mutableStateOf(null)
     override val session_started: Boolean get() = _player?.session_started == true
 

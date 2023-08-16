@@ -46,6 +46,7 @@ import com.toasterofbread.spmp.resources.uilocalisation.UnlocalisedStringCollect
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.mainpage.RootView
+import com.toasterofbread.spmp.ui.layout.mainpage.ServiceNotConnectedView
 import com.toasterofbread.spmp.ui.theme.ApplicationTheme
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.*
@@ -139,6 +140,9 @@ object SpMp {
                 CompositionLocalProvider(LocalPlayerState provides player_state) {
                     if (player_state.service_connected) {
                         RootView(player_state)
+                    }
+                    else {
+                        ServiceNotConnectedView()
                     }
                 }
                 error_manager.Indicator(Theme.accent_provider)

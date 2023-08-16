@@ -14,7 +14,7 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 internal abstract class ListenerLoader<K, V>: BasicLoader<K, V>() {
-    abstract val listeners: MutableList<Listener<K, V>>
+    protected abstract val listeners: MutableList<Listener<K, V>>
 
     fun addListener(listener: Listener<K, V>) { listeners.add(listener) }
     fun removeListener(listener: Listener<K, V>) { listeners.remove(listener) }
@@ -103,7 +103,7 @@ internal suspend inline fun <K, V> performSafeLoad(
     instance_key: K,
     lock: ReentrantLock,
     running: MutableMap<K, Deferred<Result<V>>>,
-    listeners: List<ListenerLoader.Listener<K, V>>? = null,
+    listeners: List<ListenerLoader.Listener<K, in V>>? = null,
     crossinline performLoad: suspend () -> Result<V>
 ): Result<V> {
     val loading = lock.withLock {

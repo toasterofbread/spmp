@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
+import com.toasterofbread.spmp.model.mediaitem.AccountPlaylistRef
 import com.toasterofbread.spmp.service.playerservice.PlayerService
 import com.toasterofbread.spmp.model.mediaitem.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
@@ -16,6 +17,7 @@ import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongRef
 import com.toasterofbread.spmp.platform.MediaPlayerRepeatMode
 import com.toasterofbread.spmp.platform.MediaPlayerService
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
@@ -95,6 +97,8 @@ open class PlayerState protected constructor(
     private val onLongClickedOverride: ((item: MediaItem, long_press_data: LongPressMenuData?) -> Unit)? = null,
     private val upstream: PlayerState? = null
 ) {
+    open val context: PlatformContext get() = upstream!!.context
+
     open val main_page_state: MainPageState get() = upstream!!.main_page_state
     val main_page: MainPage get() = main_page_state.current_page
 
@@ -141,7 +145,9 @@ open class PlayerState protected constructor(
                 val channel_id = path_parts.elementAtOrNull(1) ?: return failure("No channel ID")
 
                 interactService {
-                    openMediaItem(ArtistRef(channel_id))
+                    val artist = ArtistRef(channel_id)
+                    artist.createDbEntry(context.database)
+                    openMediaItem(artist)
                 }
             }
             "watch" -> {
@@ -149,7 +155,19 @@ open class PlayerState protected constructor(
                 val v_end = uri.query.indexOfOrNull("&", v_start) ?: uri.query.length
 
                 interactService {
-                    playMediaItem(SongRef(uri.query.substring(v_start, v_end)))
+                    val song = SongRef(uri.query.substring(v_start, v_end))
+                    song.createDbEntry(context.database)
+                    playMediaItem(song)
+                }
+            }
+            "playlist" -> {
+                val list_start = (uri.query.indexOfOrNull("list=") ?: return failure("'list' query parameter not found")) + 5
+                val list_end = uri.query.indexOfOrNull("&", list_start) ?: uri.query.length
+
+                interactService {
+                    val playlist = AccountPlaylistRef(uri.query.substring(list_start, list_end))
+                    playlist.createDbEntry(context.database)
+                    openMediaItem(playlist)
                 }
             }
             else -> return failure("Uri path not implemented")

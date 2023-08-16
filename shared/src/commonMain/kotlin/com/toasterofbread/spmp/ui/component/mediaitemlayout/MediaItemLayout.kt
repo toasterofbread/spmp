@@ -113,7 +113,8 @@ data class MediaItemLayout(
             }
         }
 
-        suspend fun loadContinuation(database: Database, filters: List<RadioModifier> = emptyList()): Result<Pair<List<MediaItem>, String?>> {
+        suspend fun loadContinuation(database: Database, filters: List<RadioModifier> = emptyList()): Result<Pair<List<MediaItemData>, String?>> {
+            println("LOADCONT $this $type")
             return when (type) {
                 Type.SONG -> loadSongContinuation(filters)
                 Type.PLAYLIST -> loadPlaylistContinuation(database, false)
@@ -131,12 +132,12 @@ data class MediaItemLayout(
         private suspend fun loadSongContinuation(filters: List<RadioModifier>): Result<Pair<List<MediaItemData>, String?>> {
             val result = getSongRadio(param as String, token, filters)
             return result.fold(
-                {Result.success(Pair(it.items, it.continuation)) },
+                { Result.success(Pair(it.items, it.continuation)) },
                 { Result.failure(it) }
             )
         }
 
-        private suspend fun loadPlaylistContinuation(db: Database, initial: Boolean): Result<Pair<List<MediaItem>, String?>> = withContext(Dispatchers.IO) {
+        private suspend fun loadPlaylistContinuation(db: Database, initial: Boolean): Result<Pair<List<MediaItemData>, String?>> = withContext(Dispatchers.IO) {
             if (initial) {
                 val playlist = AccountPlaylistRef(token)
                 playlist.loadData(db, false).onFailure {
@@ -146,7 +147,7 @@ data class MediaItemLayout(
                 val items = playlist.Items.get(db) ?: return@withContext Result.failure(IllegalStateException("Items for loaded $playlist is null"))
 
                 return@withContext Result.success(Pair(
-                    items.subList(param as Int, items.size - 1),
+                    items.subList(param as Int, items.size - 1).map { it.getEmptyData() },
                     playlist.Continuation.get(db)?.token
                 ))
             }

@@ -242,7 +242,7 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
                                 + list_position
                                 + top_padding
 //                                + SpMp.context.getNavigationBarHeightDp()
-//                                - SpMp.context.getStatusBarHeight()
+                                + SpMp.context.getStatusBarHeight()
                             )
 
                             if (player.player?.radio_loading == true) {

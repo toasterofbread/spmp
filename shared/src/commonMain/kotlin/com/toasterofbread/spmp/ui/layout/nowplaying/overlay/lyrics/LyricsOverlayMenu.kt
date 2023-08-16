@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -55,6 +56,8 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -300,6 +303,44 @@ class LyricsOverlayMenu: OverlayMenu() {
 }
 
 @Composable
+private fun LyricsTextElement(
+    lyrics: SongLyrics,
+    current_range: IntRange?,
+    onLongClick: ((line_data: Pair<Int, List<AnnotatedReadingTerm>>) -> Unit)?,
+    is_reading: Boolean,
+    text: String,
+    text_style: TextStyle,
+    index: Int,
+    modifier: Modifier,
+    getLine: () -> Pair<Int, List<AnnotatedReadingTerm>>
+) {
+    val is_current by remember(index, current_range, lyrics.synced) {
+        derivedStateOf { !lyrics.synced || current_range?.contains(index) == true }
+    }
+    val colour by animateColorAsState(
+        LocalContentColor.current.let { colour ->
+            colour.setAlpha(
+                if (colour.alpha == 0f) 1f
+                else if (colour.alpha == 1f && is_current) 1f
+                else 0.65f
+            )
+        }
+    )
+
+    Text(
+        text,
+        modifier.thenIf(onLongClick != null) {
+            platformClickable(
+                onAltClick = { onLongClick?.invoke(getLine()) }
+            )
+        },
+        style = text_style,
+        color = colour,
+        overflow = TextOverflow.Visible
+    )
+}
+
+@Composable
 fun CoreLyricsDisplay(
     lyrics: SongLyrics,
     song: Song,
@@ -353,7 +394,7 @@ fun CoreLyricsDisplay(
     }
 
     val font_size_percent: Float by Settings.KEY_LYRICS_FONT_SIZE.rememberMutableState()
-    val font_size = (10 + (font_size_percent * 20)).sp
+    val text_style = getLyricsTextStyle((10 + (font_size_percent * 20)).sp)
 
     var data_with_readings: List<AnnotatedReadingTerm>? by remember { mutableStateOf(null) }
     var data_without_readings: List<AnnotatedReadingTerm>? by remember { mutableStateOf(null) }
@@ -362,47 +403,23 @@ fun CoreLyricsDisplay(
         data_with_readings = null
         data_without_readings = null
 
-        val text_element: @Composable (is_reading: Boolean, text: String, font_size: TextUnit, index: Int, modifier: Modifier, getLine: () -> Pair<Int, List<AnnotatedReadingTerm>>) -> Unit =
-            { is_reading: Boolean, text: String, font_size: TextUnit, index: Int, modifier: Modifier, getLine: () -> Pair<Int, List<AnnotatedReadingTerm>> ->
-                val is_current by remember { derivedStateOf { !lyrics.synced || current_range?.contains(index) == true } }
-                val colour by animateColorAsState(
-                    LocalContentColor.current.let { colour ->
-                        colour.setAlpha(
-                            if (colour.alpha == 0f) 1f
-                            else if (colour.alpha == 1f && is_current) 1f
-                            else 0.65f
-                        )
-                    }
-                )
-
-                val onLongClick = getOnLongClick()
-
-                Text(
-                    text,
-                    modifier.thenIf(
-                        onLongClick != null,
-                        Modifier.platformClickable(
-                            onAltClick = { onLongClick?.invoke(getLine()) }
-                        )
-                    ),
-                    fontSize = font_size,
-                    color = colour
-                )
-            }
+        val text_element = @Composable { a: Boolean, b: String, c: TextStyle, d: Int, e: Modifier, f: () -> Pair<Int, List<AnnotatedReadingTerm>> ->
+            LyricsTextElement(lyrics, current_range, getOnLongClick(), a, b, c, d, e, f)
+        }
 
         if (show_furigana) {
-            data_with_readings = calculateReadingsAnnotatedString(terms, true, font_size, text_element) { 
+            data_with_readings = calculateReadingsAnnotatedString(terms, true, text_style, text_element) {
                 data_with_readings!!.getLineIndexOfTerm(it)
             }
-            data_without_readings = calculateReadingsAnnotatedString(terms, false, font_size, text_element) { 
+            data_without_readings = calculateReadingsAnnotatedString(terms, false, text_style, text_element) {
                 data_without_readings!!.getLineIndexOfTerm(it)
             }
         }
         else {
-            data_without_readings = calculateReadingsAnnotatedString(terms, false, font_size, text_element) { 
+            data_without_readings = calculateReadingsAnnotatedString(terms, false, text_style, text_element) {
                 data_without_readings!!.getLineIndexOfTerm(it)
             }
-            data_with_readings = calculateReadingsAnnotatedString(terms, true, font_size, text_element) { 
+            data_with_readings = calculateReadingsAnnotatedString(terms, true, text_style, text_element) {
                 data_with_readings!!.getLineIndexOfTerm(it)
             }
         }
@@ -464,11 +481,11 @@ fun CoreLyricsDisplay(
                     )
                 }
             ) {
-                itemsIndexed(text_data) { line, item ->
+                items(text_data) { item ->
                     Text(
                         item.annotated_string,
                         inlineContent = item.inline_content,
-                        style = getLyricsTextStyle(font_size)
+                        style = text_style
                     )
                 }
             }
@@ -565,5 +582,7 @@ fun List<AnnotatedReadingTerm>.getLineIndexOfTerm(term_index: Int): Int {
 fun getLyricsTextStyle(font_size: TextUnit): TextStyle =
     LocalTextStyle.current.copy(
         fontSize = font_size,
-        lineHeight = ((font_size.value * 1.5) + 10).sp
+        lineHeight = ((font_size.value * 1.5) + 10).sp,
+        letterSpacing = 0.sp,
+        textAlign = TextAlign.Start
     )

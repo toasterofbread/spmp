@@ -146,12 +146,19 @@ suspend fun loadLyrics(reference: LyricsReference): Result<SongLyrics> {
 internal fun parseStaticLyrics(lyrics_text: String): List<List<SongLyrics.Term>> {
     val tokeniser = createTokeniser()
     return lyrics_text.split('\n').map { line ->
-        mergeAndFuriganiseTerms(
-            tokeniser,
-            if (line.isBlank()) emptyList()
-            else listOf(
-                SongLyrics.Term(listOf(SongLyrics.Term.Text(line)), -1)
-            )
-        )
+        val terms: MutableList<SongLyrics.Term> = mutableListOf()
+        val split = line.split(' ')
+
+        if (split.any { it.isNotBlank() }) {
+            for (term in split.withIndex()) {
+                val text = SongLyrics.Term.Text(
+                    if (term.index + 1 != split.size) term.value + ' '
+                    else term.value
+                )
+                terms.add(SongLyrics.Term(listOf(text), -1))
+            }
+        }
+
+        mergeAndFuriganiseTerms(tokeniser, terms)
     }
 }

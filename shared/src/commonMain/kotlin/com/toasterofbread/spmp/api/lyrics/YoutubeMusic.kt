@@ -70,12 +70,6 @@ internal class YoutubeMusicLyricsSource(source_idx: Int): LyricsSource(source_id
             return@withContext Result.failure(RuntimeException("Browse response for ID $lyrics_id contained no lyrics"))
         }
 
-        val l =             SongLyrics(
-            LyricsReference(source_index, lyrics_id),
-            SongLyrics.SyncType.NONE,
-            parseStaticLyrics(lyrics_text)
-        )
-
         return@withContext Result.success(
             SongLyrics(
                 LyricsReference(source_index, lyrics_id),

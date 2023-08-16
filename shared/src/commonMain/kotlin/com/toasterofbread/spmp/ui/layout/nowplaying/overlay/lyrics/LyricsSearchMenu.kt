@@ -54,7 +54,6 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.LargeDropdownMenu
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.setAlpha
@@ -255,7 +254,7 @@ fun LyricsSearchMenu(
 
                     AnimatedVisibility(!selected_source.supportsLyricsBySearching()) {
                         Text(
-                            getStringTODO("Source does not support searching"),
+                            getString("lyrics_source_cannot_search"),
                             style = MaterialTheme.typography.labelLarge
                         )
                     }

@@ -141,6 +141,7 @@
     <string name="lyrics_no_more_results">以上</string>
     <string name="lyrics_search_on_$source">$sourceで歌詞を探す</string>
     <string name="lyrics_loading">歌詞をロード中</string>
+    <string name="lyrics_source_cannot_search">この歌詞源で検索はできません</string>
     <string name="lyrics_sync_select_line">シンクに使う行を選んでください</string>
     <string name="lyrics_sync_press_button_when_line_begins">この行が始まったらボタンを押して下さい</string>
 
@@ -336,7 +337,7 @@
 
     <string name="s_cat_lyrics">歌詞</string>
 
-    <string name="s_key_lyrics_default_source">デフォルトの歌詞元</string>
+    <string name="s_key_lyrics_default_source">デフォルトの歌詞源</string>
 
     <string name="s_key_lyrics_follow_enabled">現在の行をたどる</string>
     <string name="s_sub_lyrics_follow_enabled">同期可能こ歌詞が表示されてる時、自動的に現在の行までスクロールします</string>

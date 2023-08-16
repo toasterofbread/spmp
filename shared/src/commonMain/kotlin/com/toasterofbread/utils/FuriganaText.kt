@@ -24,6 +24,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -45,11 +46,11 @@ data class AnnotatedReadingTerm(
 fun calculateReadingsAnnotatedString(
     text_content: List<ReadingTextData>,
     show_readings: Boolean,
-    font_size: TextUnit,
+    text_style: TextStyle,
     textElement: @Composable (
         is_reading: Boolean,
         text: String,
-        font_size: TextUnit,
+        text_style: TextStyle,
         index: Int,
         modifier: Modifier,
         getLine: () -> Pair<Int, List<AnnotatedReadingTerm>>
@@ -61,7 +62,7 @@ fun calculateReadingsAnnotatedString(
     var string = AnnotatedString.Builder()
 
     for (element in text_content.withIndex()) {
-        annotateString(element.value, element.index, inline_content, string, show_readings, font_size, textElement) { Pair(getLine(it), ret) }
+        annotateString(element.value, element.index, inline_content, string, show_readings, text_style, textElement) { Pair(getLine(it), ret) }
 
         var first = true
         for (char in element.value.text) {
@@ -144,15 +145,8 @@ private fun annotateString(
     inline_content: MutableMap<String, InlineTextContent>,
     string: AnnotatedString.Builder,
     show_readings: Boolean,
-    font_size: TextUnit,
-    textElement: @Composable (
-        is_reading: Boolean,
-        text: String,
-        font_size: TextUnit,
-        index: Int,
-        modifier: Modifier,
-        getLine: () -> Pair<Int, List<AnnotatedReadingTerm>>
-    ) -> Unit,
+    text_style: TextStyle,
+    textElement: @Composable (is_reading: Boolean, text: String, text_style: TextStyle, index: Int, modifier: Modifier, getLine: () -> Pair<Int, List<AnnotatedReadingTerm>>) -> Unit,
     getLine: (term_index: Int) -> Pair<Int, List<AnnotatedReadingTerm>>
 ) {
     val text = elem.text.filterNot { it == '\n' }
@@ -161,14 +155,14 @@ private fun annotateString(
     }
 
     val reading = elem.reading
-    val reading_font_size = font_size / 2
+    val reading_font_size = text_style.fontSize / 2
 
     string.appendInlineContent(text, index.toString())
 
     inline_content[text] = InlineTextContent(
         placeholder = Placeholder(
             width = (text.length.toDouble() + (text.length - 1) * 0.05).em * (
-                if (text.any { it.isJP() }) 1f
+                if (text.any { it.isFullWidth() }) 1f
                 else 0.5f
             ),
             height = 1.97.em,
@@ -180,16 +174,16 @@ private fun annotateString(
 
             Column(
                 modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Bottom,
             ) {
                 Box(modifier = Modifier.requiredHeight(box_height + 3.dp)) {
                     if (show_readings && reading != null) {
-                        textElement(true, reading, reading_font_size, child_index, Modifier.wrapContentWidth(unbounded = true)) { getLine(child_index) }
+                        textElement(true, reading, text_style.copy(fontSize = reading_font_size), child_index, Modifier.wrapContentWidth(unbounded = true)) { getLine(child_index) }
                     }
                 }
 
-                textElement(false, text, font_size, child_index, Modifier) { getLine(child_index) }
+                textElement(false, text, text_style, child_index, Modifier) { getLine(child_index) }
             }
         }
     )

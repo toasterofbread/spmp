@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.platform
 
-import SpMp
 import android.annotation.SuppressLint
 import android.app.*
 import android.content.Context
@@ -38,12 +37,10 @@ import androidx.core.app.NotificationManagerCompat
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
-import com.toasterofbread.spmp.ui.layout.mainpage.PlayerStateImpl
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
-
 
 private const val DEFAULT_NOTIFICATION_CHANNEL_ID = "default_channel"
 private const val ERROR_NOTIFICATION_CHANNEL_ID = "download_error_channel"

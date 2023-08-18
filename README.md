@@ -77,6 +77,15 @@ The app is currently being developed for both English and Japanese. Contribution
 - [ExoVisualizer](https://github.com/dzolnai/ExoVisualizer): Music visualiser implementation
 - [ViMusic](https://github.com/vfsfitvnm/ViMusic): A major inspiration for this project
 
+#### Libraries (see all in [shared/build.gradle.kts](/shared/build.gradle.kts))
+- [NewPipeExtractor](https://github.com/TeamNewPipe/NewPipeExtractor): Provides stream URLs for music playback
+- [SQLDelight](https://github.com/cashapp/sqldelight): Database for media metadata
+- [Kuromoji](https://github.com/atilika/kuromoji): Generates furigana (readings) for Japanese lyrics
+- [KizzyRPC](https://github.com/dead8309/KizzyRPC) and [Kord](https://github.com/kordlib/kord): Discord status functionality and custom image support
+- [ComposeReorderable](https://github.com/aclassen/ComposeReorderable): Reorderable lists like the song queue
+- [compose-color-picker](https://github.com/godaddy/compose-color-picker): Theme editor colour wheel
+- [Catppuccin](https://github.com/catppuccin/java): Themes included as options in-app
+
 ## Disclaimer
 This project and its contents are not affiliated with, funded, authorized, endorsed by, or in any way associated with YouTube, Google LLC or any of its affiliates and subsidiaries.
 

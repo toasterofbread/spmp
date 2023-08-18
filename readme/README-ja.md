@@ -77,6 +77,15 @@ Pull requestと機能の提案は歓迎です！これは僕の初めてのCompo
 - [ExoVisualizer](https://github.com/dzolnai/ExoVisualizer): 音楽ビジュアライザの実装の参考にさせてもらいました
 - [ViMusic](https://github.com/vfsfitvnm/ViMusic): このプロジェクトへの大きなインスピレーションでした
 
+#### ライブラリ（すべてのライブラリを[shared/build.gradle.kts](/shared/build.gradle.kts)確認できます）
+- [NewPipeExtractor](https://github.com/TeamNewPipe/NewPipeExtractor): 曲再生用のストリームURLを提供
+- [SQLDelight](https://github.com/cashapp/sqldelight): メディアのメタデータ用データベース
+- [Kuromoji](https://github.com/atilika/kuromoji): 日本語歌詞のふりがなを生成
+- [KizzyRPC](https://github.com/dead8309/KizzyRPC) and [Kord](https://github.com/kordlib/kord): Discordステータスとその画像機能
+- [ComposeReorderable](https://github.com/aclassen/ComposeReorderable): 曲キューなどの順序変更可能なリスト
+- [compose-color-picker](https://github.com/godaddy/compose-color-picker): テーマエディター内のカラーセレクター
+- [Catppuccin](https://github.com/catppuccin/java): テーマがアプリのにオプションに含まれています
+
 ## 免責事項
 このプロジェクトおよびその内容は、YouTube、Google LLC、またはそれらの関連会社といかなる関連性も持っておらず、それらによって承認されたものではありません。
 

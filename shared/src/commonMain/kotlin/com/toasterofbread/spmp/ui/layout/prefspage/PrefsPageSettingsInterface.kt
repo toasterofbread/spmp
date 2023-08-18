@@ -52,7 +52,7 @@ internal fun rememberPrefsPageSettingsInterface(
             SettingsValueState<String>(Settings.KEY_DISCORD_ACCOUNT_TOKEN.name).init(Settings.prefs, Settings.Companion::provideDefault)
 
         val categories = mapOf(
-            PrefsPageCategory.GENERAL to lazy { getGeneralCategory(Languages.loadAvailableLanugages(SpMp.context)) },
+            PrefsPageCategory.GENERAL to lazy { getGeneralCategory(SpMp.ui_language, Languages.loadAvailableLanugages(SpMp.context)) },
             PrefsPageCategory.FILTER to lazy { getFilterCategory() },
             PrefsPageCategory.FEED to lazy { getFeedCategory() },
             PrefsPageCategory.PLAYER to lazy { getPlayerCategory() },

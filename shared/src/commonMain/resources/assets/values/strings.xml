@@ -8,6 +8,10 @@
 
     <string name="project_url_name">project URL</string>
 
+    <string name="font_option_default_$x">Default ($x)</string>
+    <string name="font_option_system">System font</string>
+    <string name="font_option_hc_maru_gothic">HC Maru Gothic</string>
+
     <string name="home_feed_listen_again">Listen again</string>
     <string name="home_feed_mixed_for_you">Mixed for you</string>
     <string name="home_feed_new_releases">New releases</string>
@@ -311,6 +315,8 @@
 
     <string name="s_key_treat_singles_as_song">Treat artist singles as a song</string>
     <string name="s_sub_treat_singles_as_song">Playlists contained in the 'Singles' tab on an artist's page will be treated as the contained song, if there is only one</string>
+
+    <string name="s_key_font">Font</string>
 
     <string name="s_cat_player">Player</string>
 

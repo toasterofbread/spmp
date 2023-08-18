@@ -30,19 +30,19 @@ import com.beust.klaxon.Klaxon
 import com.beust.klaxon.KlaxonException
 import com.toasterofbread.spmp.api.Api
 import com.toasterofbread.spmp.model.Cache
+import com.toasterofbread.spmp.model.FontMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.platform.vibrateShort
-import com.toasterofbread.spmp.resources.Languages
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.resources.initResources
-import com.toasterofbread.spmp.resources.uilocalisation.localised.UILanguages
-import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.resources.uilocalisation.UnlocalisedStringCollector
+import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
+import com.toasterofbread.spmp.resources.uilocalisation.localised.UILanguages
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.mainpage.RootView
@@ -53,7 +53,6 @@ import com.toasterofbread.utils.*
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.composable.ShapedIconButton
 import com.toasterofbread.utils.composable.WidthShrinkText
-import java.text.DateFormat
 import java.util.*
 import java.util.concurrent.CancellationException
 import java.util.logging.Logger
@@ -80,18 +79,10 @@ object SpMp {
 
     private val low_memory_listeners: MutableList<() -> Unit> = mutableListOf()
 
-//    fun getLanguageCode(index: Int): String = LANGUAGES[index]
-//    fun getLanguageIndex(language_code: String): Int {
-//        val language_index = LANGUAGES.indexOf(language_code)
-//        if (language_index == -1) {
-//            throw NotImplementedError(language_code)
-//        }
-//        return language_index
-//    }
-//    fun getLanguageCount(): Int = LANGUAGES.size
-
-    val ui_language: String get() = Settings.KEY_LANG_UI.get<String>().ifEmpty { Locale.getDefault().toLanguageTag() }
-    val data_language: String get() = Settings.KEY_LANG_DATA.get<String>().ifEmpty { Locale.getDefault().toLanguageTag() }
+    val ui_language: String get() =
+        Settings.KEY_LANG_UI.get<String>(context.getPrefs()).ifEmpty { Locale.getDefault().toLanguageTag() }
+    val data_language: String get() =
+        Settings.KEY_LANG_DATA.get<String>(context.getPrefs()).ifEmpty { Locale.getDefault().toLanguageTag() }
 
     fun init(context: PlatformContext) {
         this.context = context
@@ -123,7 +114,7 @@ object SpMp {
 
     @Composable
     fun App(open_uri: String? = null) {
-        Theme.ApplicationTheme(context, getFontFamily(context)) {
+        Theme.ApplicationTheme(context, getFontFamily(context) ?: FontFamily.Default) {
             Theme.Update(context)
 
             player_state.initComposable(context)
@@ -172,21 +163,10 @@ object SpMp {
         Text(exception.toString())
     }
 
-    private fun getFontFamily(context: PlatformContext): FontFamily {
-        val locale = ui_language
-        val font_dirs = context.listResourceFiles("")!!.filter { it.length > 4 && it.startsWith("font") }
-
-        var font_dir: String? = font_dirs.firstOrNull { it.endsWith("-$locale") }
-        if (font_dir == null) {
-            val locale_split = locale.indexOf('-')
-            if (locale_split > 0) {
-                val sublocale = locale.take(locale_split)
-                font_dir = font_dirs.firstOrNull { it.endsWith("-$sublocale") }
-            }
-        }
-
-        val font_name = font_dir ?: "font"
-        return FontFamily(context.loadFontFromFile("$font_name/regular.ttf"))
+    private fun getFontFamily(context: PlatformContext): FontFamily? {
+        val font_mode: FontMode = Settings.KEY_FONT.getEnum(context.getPrefs())
+        val font_path: String = font_mode.getFontFilePath(ui_language) ?: return null
+        return FontFamily(context.loadFontFromFile("font/$font_path"))
     }
 
     val app_name: String get() = getString("app_name")

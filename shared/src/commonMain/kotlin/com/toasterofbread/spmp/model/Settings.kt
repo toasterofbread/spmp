@@ -50,6 +50,35 @@ enum class NowPlayingQueueWaveBorderMode {
     TIME, TIME_SYNC, SCROLL, NONE, LINE
 }
 
+enum class FontMode {
+    DEFAULT, SYSTEM, HC_MARU_GOTHIC;
+
+    fun getFontFilePath(language: String): String? =
+        when (this) {
+            DEFAULT -> getDefaultFont(language).getFontFilePath(language)
+            SYSTEM -> null
+            HC_MARU_GOTHIC -> "hc-maru-gothic/font.ttf"
+        }
+
+    fun getReadable(language: String): String =
+        when (this) {
+            DEFAULT -> {
+                val default_font = getDefaultFont(language).getReadable(language)
+                getString("font_option_default_\$x").replace("\$x", default_font)
+            }
+            SYSTEM -> getString("font_option_system")
+            HC_MARU_GOTHIC -> getString("font_option_hc_maru_gothic")
+        }
+
+    companion object {
+        fun getDefaultFont(language: String): FontMode =
+            when (language) {
+                "ja-JP" -> HC_MARU_GOTHIC
+                else -> SYSTEM
+            }
+    }
+}
+
 enum class Settings {
     // Language
     KEY_LANG_UI,
@@ -163,6 +192,7 @@ enum class Settings {
     KEY_PERSISTENT_QUEUE,
     KEY_ADD_SONGS_TO_HISTORY,
     KEY_TREAT_SINGLES_AS_SONG,
+    KEY_FONT,
 
     // Internal
     INTERNAL_TOPBAR_MODE_HOME,
@@ -178,7 +208,7 @@ enum class Settings {
         return Settings.get(this, context.getPrefs())
     }
 
-    inline fun <reified T: Enum<T>> getEnum(): T = Settings.getEnum(this)
+    inline fun <reified T: Enum<T>> getEnum(preferences: ProjectPreferences = prefs): T = Settings.getEnum(this, preferences)
 
     fun <T> set(value: T?, preferences: ProjectPreferences = prefs) {
         Settings.set(this, value, preferences)
@@ -339,6 +369,7 @@ enum class Settings {
                 KEY_PERSISTENT_QUEUE -> true
                 KEY_ADD_SONGS_TO_HISTORY -> false
                 KEY_TREAT_SINGLES_AS_SONG -> false
+                KEY_FONT -> FontMode.DEFAULT.ordinal
 
                 KEY_SPMS_PORT -> 3973
 

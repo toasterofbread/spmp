@@ -3,6 +3,10 @@
 
     <string name="project_url_name">プロジェクトのURL</string>
 
+    <string name="font_option_default_$x">デフォルト（$x）</string>
+    <string name="font_option_system">システムフォント</string>
+    <string name="font_option_hc_maru_gothic">HC Maru Gothic</string>
+
     <string name="home_feed_listen_again">もう一度聴く</string>
     <string name="home_feed_mixed_for_you">おすすめのミックス</string>
     <string name="home_feed_new_releases">新作</string>
@@ -306,6 +310,8 @@
 
     <string name="s_key_treat_singles_as_song">アーティストのシングルを曲として扱う</string>
     <string name="s_sub_treat_singles_as_song">アーティストの「シングル」セクションに入ってるプレイリストは、曲が一つしか含まれていなければその曲として扱われます</string>
+
+    <string name="s_key_font">フォント</string>
 
     <string name="s_cat_player">プレイヤー</string>
 

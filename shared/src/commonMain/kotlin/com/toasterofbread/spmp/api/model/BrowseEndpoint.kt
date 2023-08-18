@@ -1,12 +1,6 @@
 package com.toasterofbread.spmp.api.model
 
-import com.toasterofbread.spmp.model.mediaitem.AccountPlaylistRef
-import com.toasterofbread.spmp.model.mediaitem.ArtistData
-import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
-import com.toasterofbread.spmp.model.mediaitem.PlaylistData
-import com.toasterofbread.spmp.model.mediaitem.PlaylistRef
-import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 

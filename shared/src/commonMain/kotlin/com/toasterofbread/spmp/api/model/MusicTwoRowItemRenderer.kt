@@ -73,20 +73,20 @@ class MusicTwoRowItemRenderer(
             val browse_id = navigationEndpoint.browseEndpoint!!.browseId
             val page_type = navigationEndpoint.browseEndpoint.getPageType()!!
 
-            item = when (page_type) {
-                "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_PLAYLIST", "MUSIC_PAGE_TYPE_AUDIOBOOK", "MUSIC_PAGE_TYPE_PODCAST_SHOW_DETAIL_PAGE" -> {
+            item = when (MediaItemType.fromBrowseEndpointType(page_type)) {
+                MediaItemType.PLAYLIST_ACC -> {
                     if (Playlist.formatYoutubeId(browse_id).startsWith("RDAT") && !Settings.get<Boolean>(Settings.KEY_FEED_SHOW_RADIOS)) {
                         return null
                     }
 
                     PlaylistData(browse_id).also { data ->
-                        data.playlist_type = PlaylistType.fromTypeString(page_type)
+                        data.playlist_type = PlaylistType.fromBrowseEndpointType(page_type)
                         data.artist = getArtist(data)
 //                        is_editable = menu?.menuRenderer?.items
 //                            ?.any { it.menuNavigationItemRenderer?.icon?.iconType == "DELETE" } == true
                     }
                 }
-                "MUSIC_PAGE_TYPE_ARTIST" -> ArtistData(browse_id)
+                MediaItemType.ARTIST -> ArtistData(browse_id)
                 else -> throw NotImplementedError("$page_type ($browse_id)")
             }
 

@@ -33,6 +33,7 @@ import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.platform.WebViewLogin
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
@@ -241,7 +242,7 @@ data class YTAccountMenuResponse(val actions: List<Action>) {
         for (section in getSections()) {
             for (item in section.multiPageMenuSectionRenderer.items) {
                 val browse_endpoint = item.compactLinkRenderer.navigationEndpoint?.browseEndpoint
-                if (browse_endpoint?.getPageType() == "MUSIC_PAGE_TYPE_USER_CHANNEL") {
+                if (browse_endpoint?.getMediaItemType() == MediaItemType.ARTIST) {
                     return browse_endpoint.browseId
                 }
             }

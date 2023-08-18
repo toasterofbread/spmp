@@ -200,17 +200,8 @@ sealed class MediaItemData: MediaItem {
         get() = thumbnail_provider.asMediaItemProperty(super.ThumbnailProvider) { thumbnail_provider = it }
 
     companion object {
-        fun fromBrowseEndpointType(page_type: String, id: String): MediaItemData {
-            return when (page_type) {
-                "MUSIC_PAGE_TYPE_PLAYLIST", "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_AUDIOBOOK" ->
-                    PlaylistData(id).apply { playlist_type = PlaylistTypeEnum.fromTypeString(page_type) }
-                "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" ->
-                    ArtistData(id)
-                "MUSIC_PAGE_TYPE_NON_MUSIC_AUDIO_TRACK_PAGE" ->
-                    SongData(id)
-                else -> throw NotImplementedError("page_type=$page_type, id=$page_type")
-            }
-        }
+        fun fromBrowseEndpointType(page_type: String, id: String): MediaItemData =
+            MediaItemType.fromBrowseEndpointType(page_type).referenceFromId(id).getEmptyData()
     }
 
     open fun saveToDatabase(db: Database, apply_to_item: MediaItem = this) {

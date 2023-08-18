@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.model.mediaitem.loader
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,7 +70,7 @@ internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
 }
 
 @Composable
-fun MediaItem.loadDataOnChange(db: Database): State<Boolean> {
+fun MediaItem.loadDataOnChange(db: Database, load: Boolean = true, onLoadFailed: ((Throwable?) -> Unit)? = null): State<Boolean> {
     val loading_state = remember(this) { mutableStateOf(false) }
 
     DisposableEffect(this) {
@@ -86,6 +87,7 @@ fun MediaItem.loadDataOnChange(db: Database): State<Boolean> {
             }
             override fun onLoadFailed(key: String, error: Throwable) {
                 if (key == id) {
+                    onLoadFailed?.invoke(error)
                     loading_state.value = false
                 }
             }
@@ -98,8 +100,11 @@ fun MediaItem.loadDataOnChange(db: Database): State<Boolean> {
         }
     }
 
-    LaunchedEffect(this) {
-        loadData(db)
+    LaunchedEffect(this, load) {
+        if (load) {
+            onLoadFailed?.invoke(null)
+            loadData(db)
+        }
     }
 
     return loading_state

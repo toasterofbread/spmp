@@ -12,6 +12,7 @@ import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.db.loadMediaItemValue
+import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 
 data class YoutubeiNextResponse(
     val contents: Contents
@@ -69,7 +70,10 @@ data class YoutubeiNextResponse(
         suspend fun getArtist(host_item: Song, db: Database): Result<ArtistData?> {
             // Get artist ID directly
             for (run in longBylineText.runs!! + title.runs!!) {
-                if (run.browse_endpoint_type != "MUSIC_PAGE_TYPE_ARTIST" && run.browse_endpoint_type != "MUSIC_PAGE_TYPE_USER_CHANNEL") {
+                val page_type = run.browse_endpoint_type?.let { type ->
+                    MediaItemType.fromBrowseEndpointType(type)
+                }
+                if (page_type != MediaItemType.ARTIST) {
                     continue
                 }
 

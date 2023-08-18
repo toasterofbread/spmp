@@ -86,12 +86,10 @@ open class ListProperty<T, Q: Any>(
         )
 
         if (prerequisite != null) {
-            val pr: Boolean by prerequisite.observe(db)
-            return remember {
-                derivedStateOf {
-                    if (!pr) null
-                    else value_state.value
-                }
+            val prerequisite_state: State<Boolean> = prerequisite.observe(db)
+            return derivedStateOf {
+                if (!prerequisite_state.value) null
+                else value_state.value
             }
         }
 

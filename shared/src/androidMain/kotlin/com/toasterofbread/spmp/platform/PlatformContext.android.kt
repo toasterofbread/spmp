@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.platform
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.*
 import android.content.Context
@@ -19,6 +20,9 @@ import android.view.Window
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
@@ -45,17 +49,43 @@ import java.io.InputStream
 private const val DEFAULT_NOTIFICATION_CHANNEL_ID = "default_channel"
 private const val ERROR_NOTIFICATION_CHANNEL_ID = "download_error_channel"
 
+class NotificationPermissionRequester(activity: ComponentActivity) {
+    private val callbacks: MutableList<(Boolean) -> Unit> = mutableListOf()
+
+    private val launcher = activity.registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        synchronized(callbacks) {
+            for (callback in callbacks) {
+                callback(granted)
+            }
+            callbacks.clear()
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    fun requestNotficationPermission(callback: (granted: Boolean) -> Unit) {
+        synchronized(callbacks) {
+//            if (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED) {
+//                callback(true)
+//                return
+//            }
+
+            callbacks.add(callback)
+            if (callbacks.size == 1) {
+                launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+}
+
 fun getAppName(context: Context): String {
     val info = context.applicationInfo
     val string_id = info.labelRes
     return if (string_id == 0) info.nonLocalizedLabel.toString() else context.getString(string_id)
 }
 
-actual class PlatformContext(private val context: Context, onInit: ((PlatformContext) -> Unit)? = null) {
-    init {
-        onInit?.invoke(this)
-    }
-
+actual class PlatformContext(private val context: Context, val notification_permission_requester: NotificationPermissionRequester? = null) {
     // TODO This should be a singleton
     actual val database = createDatabase()
     actual val download_manager = PlayerDownloadManager(this)

@@ -34,7 +34,7 @@ fun MediaItem.Thumbnail(
     onLoaded: ((ImageBitmap) -> Unit)? = null
 ) {
     var loading by remember { mutableStateOf(true) }
-    var image: Pair<ImageBitmap, MediaItemThumbnailProvider.Quality>? by remember {
+    var image: Pair<ImageBitmap, MediaItemThumbnailProvider.Quality>? by remember(id) {
         val provider = ThumbnailProvider.get(SpMp.context.database)
         if (provider != null) {
             for (quality in MediaItemThumbnailProvider.Quality.byQuality(target_quality)) {
@@ -49,9 +49,12 @@ fun MediaItem.Thumbnail(
         return@remember mutableStateOf(null)
     }
 
-    LaunchedEffect(target_quality) {
-        if ((image?.second?.ordinal ?: -1) >= target_quality.ordinal) {
-            return@LaunchedEffect
+    LaunchedEffect(id, target_quality) {
+        image?.also { im ->
+            if (im.second.ordinal >= target_quality.ordinal) {
+                onLoaded?.invoke(im.first)
+                return@LaunchedEffect
+            }
         }
 
         loading = true

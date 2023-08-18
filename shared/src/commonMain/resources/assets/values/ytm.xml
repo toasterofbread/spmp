@@ -1,4 +1,5 @@
 <resources>
+    <string name="yt_i_api_key" translatable="false">AIzaSyAOghZGza2MQSZkY_zfZ370N-PUdXEo8AI</string>
     <string name="ytm_user_agent" translatable="false">Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0</string>
     <string-array name="ytm_headers" translatable="false">
         <item>accept</item> <item>*/*</item>

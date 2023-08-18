@@ -29,13 +29,16 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.db.observePlayCount
 import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction
+import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 
 const val MEDIA_ITEM_PREVIEW_LONG_HEIGHT: Float = 40f
+private const val INFO_SPLITTER: String = "\u2022"
 
 fun MediaItem.getLongPressMenuData(
     multiselect_context: MediaItemMultiSelectContext? = null,
@@ -110,6 +113,8 @@ fun MediaItemPreviewLong(
     contentColour: (() -> Color)? = null,
     enable_long_press_menu: Boolean = true,
     show_type: Boolean = true,
+    show_play_count: Boolean = false,
+    getExtraInfo: (@Composable () -> List<String>)? = null,
     multiselect_context: MediaItemMultiSelectContext? = null,
     multiselect_key: Int? = null,
     getInfoText: (@Composable () -> String?)? = null,
@@ -159,21 +164,43 @@ fun MediaItemPreviewLong(
             )
 
             Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                if (show_type) {
-                    InfoText(item.getType().getReadable(false), contentColour)
+                var text_displayed = false
+
+                @Composable
+                fun InfoText(text: String) {
+                    if (text_displayed) {
+                        InfoText(INFO_SPLITTER, contentColour)
+                    }
+                    text_displayed = true
+                    InfoText(text, contentColour)
                 }
 
-                if (item is MediaItem.WithArtist) {
-                    val artist_title: String? = item.Artist.observeOn(SpMp.context.database) {
-                        it?.Title
-                    }
+                if (show_play_count) {
+                    val play_count = item.observePlayCount(SpMp.context.database)
+                    InfoText(
+                        getString("mediaitem_play_count_\$x_short")
+                            .replace("\$x", play_count.toString())
+                    )
+                }
 
-                    artist_title?.also { title ->
-                        if (show_type) {
-                            InfoText("\u2022", contentColour)
+                if (show_type) {
+                    InfoText(item.getType().getReadable(false))
+                }
+
+                val extra_info = getExtraInfo?.invoke() ?: emptyList()
+                for (info in extra_info) {
+                    InfoText(info)
+                }
+
+                val artist_title: String? =
+                    if (item is MediaItem.WithArtist)
+                        item.Artist.observeOn(SpMp.context.database) {
+                            it?.Title
                         }
-                        InfoText(title, contentColour)
-                    }
+                    else null
+
+                if (artist_title != null) {
+                    InfoText(artist_title)
                 }
             }
         }

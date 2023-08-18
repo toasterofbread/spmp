@@ -3,8 +3,11 @@ package com.toasterofbread.spmp.platform
 import LocalPlayerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 
@@ -39,26 +42,30 @@ expect class PlayerDownloadManager(context: PlatformContext) {
 @Composable
 fun rememberSongDownloads(): List<PlayerDownloadManager.DownloadStatus> {
     val download_manager = SpMp.context.download_manager
-    val downloads: MutableList<PlayerDownloadManager.DownloadStatus> = remember { mutableStateListOf() }
+    var downloads: List<PlayerDownloadManager.DownloadStatus> by remember { mutableStateOf(emptyList()) }
 
     DisposableEffect(Unit) {
         download_manager.getDownloads {
-            downloads.addAll(it)
+            downloads = it
         }
 
         val listener = object : PlayerDownloadManager.DownloadStatusListener() {
             override fun onDownloadAdded(status: PlayerDownloadManager.DownloadStatus) {
-                downloads.add(status)
+                downloads += status
             }
             override fun onDownloadRemoved(id: String) {
-                downloads.removeIf { it.id == id }
+                downloads = downloads.toMutableList().apply {
+                    removeIf { it.id == id }
+                }
             }
             override fun onDownloadChanged(status: PlayerDownloadManager.DownloadStatus) {
+                val temp = downloads.toMutableList()
                 for (i in downloads.indices) {
                     if (downloads[i].id == status.id) {
-                        downloads[i] = status
+                        temp[i] = status
                     }
                 }
+                downloads = temp
             }
         }
         download_manager.addDownloadStatusListener(listener)

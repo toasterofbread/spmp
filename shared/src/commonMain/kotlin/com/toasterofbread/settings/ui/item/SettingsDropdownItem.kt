@@ -89,8 +89,7 @@ class SettingsDropdownItem(
                         { open = false },
                         item_count,
                         state.get(),
-                        getItem,
-                        selected_item_colour = Theme.vibrant_accent
+                        getItem
                     ) {
                         state.set(it)
                         open = false

@@ -11,6 +11,7 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.view.WindowCompat
+import com.toasterofbread.spmp.platform.NotificationPermissionRequester
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.isDark
@@ -49,7 +50,7 @@ class MainActivity : ComponentActivity() {
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        val context = PlatformContext(this)
+        val context = PlatformContext(this, NotificationPermissionRequester(this))
         SpMp.init(context)
 
         if (!context.isDisplayingAboveNavigationBar()) {

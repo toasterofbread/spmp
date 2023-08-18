@@ -32,19 +32,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.toasterofbread.Database
 import com.toasterofbread.spmp.api.getOrReport
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.Playlist
-import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.db.getMediaItemPlayCount
+import com.toasterofbread.spmp.model.mediaitem.MediaItemSortOption
 import com.toasterofbread.spmp.model.mediaitem.isMediaItemHidden
+import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.loadDataOnChange
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.rememberEditorOrNull
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
-import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.platform.composable.SwipeRefresh
 import com.toasterofbread.spmp.ui.component.MultiselectAndMusicTopBar
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.theme.Theme
@@ -67,14 +66,17 @@ fun PlaylistPage(
     val coroutine_scope = rememberCoroutineScope()
 
     val loading by playlist.loadDataOnChange(db)
+    var refreshed by remember { mutableStateOf(false) }
+
     val playlist_items: List<MediaItem>? by playlist.Items.observe(db)
+    val sorted_items: MutableList<Pair<MediaItem, Int>> = remember { mutableStateListOf() }
     val playlist_editor = playlist.rememberEditorOrNull(db)
 
     val apply_item_filter: Boolean by Settings.KEY_FILTER_APPLY_TO_PLAYLIST_ITEMS.rememberMutableState()
     var accent_colour: Color? by remember { mutableStateOf(null) }
     var reorderable: Boolean by remember { mutableStateOf(false) }
     var current_filter: String? by remember { mutableStateOf(null) }
-    var current_sort_option: SortOption by remember { mutableStateOf(SortOption.PLAYLIST) }
+    var current_sort_option: MediaItemSortOption by remember { mutableStateOf(MediaItemSortOption.NATIVE) }
     val vertical_padding = SpMp.context.getDefaultVerticalPadding()
     val top_padding = padding.calculateTopPadding() + vertical_padding
 
@@ -123,7 +125,6 @@ fun PlaylistPage(
         // TODO
         // val thumb_item = playlist.getThumbnailHolder().getHolder()
 
-        val sorted_items: MutableList<Pair<MediaItem, Int>> = remember { mutableStateListOf() }
         LaunchedEffect(playlist_items, current_sort_option, current_filter, apply_item_filter) {
             sorted_items.clear()
             playlist_items?.also { items ->
@@ -156,7 +157,7 @@ fun PlaylistPage(
             onMove = { from, to ->
                 check(reorderable)
                 check(current_filter == null)
-                check(current_sort_option == SortOption.PLAYLIST)
+                check(current_sort_option == MediaItemSortOption.NATIVE)
 
                 if (to.index >= items_above && from.index >= items_above) {
                     sorted_items.add(to.index - items_above, sorted_items.removeAt(from.index - items_above))
@@ -184,117 +185,99 @@ fun PlaylistPage(
             )
         )
 
-        LazyColumn(
-            state = list_state.listState,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.reorderable(list_state),
-            contentPadding = final_padding
+        SwipeRefresh(
+            state = refreshed && loading,
+            onRefresh = {
+                refreshed = true
+                coroutine_scope.launch {
+                    MediaItemLoader.loadPlaylist(playlist.getEmptyData(), db)
+                }
+            },
+            swipe_enabled = !loading,
+            modifier = Modifier.fillMaxSize()
         ) {
-            item {
-                PlaylistTopInfo(
+            LazyColumn(
+                state = list_state.listState,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.reorderable(list_state),
+                contentPadding = final_padding
+            ) {
+                item {
+                    PlaylistTopInfo(
+                        playlist,
+                        accent_colour ?: Theme.accent,
+                        editing_info,
+                        { editing_info = it }
+                    ) { image ->
+                        accent_colour = image.getThemeColour()
+                    }
+                }
+
+                item {
+                    PlaylistButtonBar(
+                        playlist,
+                        accent_colour ?: Theme.accent,
+                        editing_info,
+                        { editing_info = it }
+                    )
+                }
+
+                stickyHeaderWithTopPadding(
+                    list_state.listState,
+                    final_padding.calculateTopPadding(),
+                    Modifier.zIndex(1f),
+                    Theme.background_provider
+                ) {
+                    InteractionBar(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .clickable(remember { MutableInteractionSource() }, indication = null) {},
+                        list_state = list_state.listState,
+                        playlist = playlist,
+                        playlist_editor = playlist_editor,
+                        reorderable = reorderable,
+                        setReorderable = {
+                            reorderable = playlist_editor != null && it
+                            if (reorderable) {
+                                current_sort_option = MediaItemSortOption.NATIVE
+                                current_filter = null
+                            }
+                            else {
+                                coroutine_scope.launch {
+                                    playlist_editor!!.applyItemChanges().getOrReport("PlaylistPageItemReorder")
+                                }
+                            }
+                        },
+                        filter = current_filter,
+                        setFilter = {
+                            check(!reorderable)
+                            current_filter = it
+                        },
+                        sort_option = current_sort_option,
+                        setSortOption = {
+                            check(!reorderable)
+                            current_sort_option = it
+                        }
+                    )
+                }
+
+                PlaylistItems(
                     playlist,
-                    accent_colour ?: Theme.accent,
-                    editing_info,
-                    { editing_info = it }
-                ) { image ->
-                    accent_colour = image.getThemeColour()
+                    loading,
+                    list_state,
+                    sorted_items,
+                    multiselect_context,
+                    reorderable,
+                    current_sort_option,
+                    player,
+                    db
+                )
+
+                item {
+                    PlaylistFooter(playlist, loading && !refreshed, Modifier.fillMaxWidth())
                 }
             }
-
-            item {
-                PlaylistButtonBar(
-                    playlist,
-                    accent_colour ?: Theme.accent,
-                    editing_info,
-                    { editing_info = it }
-                )
-            }
-
-            stickyHeaderWithTopPadding(
-                list_state.listState,
-                final_padding.calculateTopPadding(),
-                Modifier.zIndex(1f),
-                Theme.background_provider
-            ) {
-                InteractionBar(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .clickable(remember { MutableInteractionSource() }, indication = null) {},
-                    list_state = list_state.listState,
-                    playlist = playlist,
-                    playlist_editor = playlist_editor,
-                    reorderable = reorderable,
-                    setReorderable = {
-                        reorderable = playlist_editor != null && it
-                        if (reorderable) {
-                            current_sort_option = SortOption.PLAYLIST
-                            current_filter = null
-                        }
-                        else {
-                            coroutine_scope.launch {
-                                playlist_editor!!.applyItemChanges().getOrReport("PlaylistPageItemReorder")
-                            }
-                        }
-                    },
-                    filter = current_filter,
-                    setFilter = {
-                        check(!reorderable)
-                        current_filter = it
-                    },
-                    sort_option = current_sort_option,
-                    setSortOption = {
-                        check(!reorderable)
-                        current_sort_option = it
-                    }
-                )
-            }
-
-            PlaylistItems(
-                playlist,
-                loading,
-                list_state,
-                sorted_items,
-                multiselect_context,
-                reorderable,
-                current_sort_option,
-                player,
-                db
-            )
-
-            item {
-                PlaylistFooter(playlist, loading, Modifier.fillMaxWidth())
-            }
         }
-    }
-}
-
-internal enum class SortOption {
-    PLAYLIST, ALPHABET, DURATION, PLAY_COUNT;
-
-    fun getReadable(): String =
-        getString(when(this) {
-            PLAYLIST ->   "playlist_sort_option_playlist"
-            ALPHABET ->   "playlist_sort_option_alphabet"
-            DURATION ->   "playlist_sort_option_duration"
-            PLAY_COUNT -> "playlist_sort_option_playcount"
-        })
-
-    fun sortItems(items: List<MediaItem>, db: Database, reversed: Boolean = false): List<MediaItem> {
-        val selector: (MediaItem) -> Comparable<*> = when (this) {
-            PLAYLIST ->
-                return if (reversed) items.asReversed()
-                else items
-            ALPHABET -> {
-                { it.Title.get(db) ?: "" }
-            }
-            DURATION -> {
-                { if (it is Song) it.Duration.get(db) ?: 0 else 0 }
-            }
-            PLAY_COUNT -> {
-                { SpMp.context.database.getMediaItemPlayCount(it.id) }
-            }
-        }
-        return items.sortedWith(if (reversed) compareByDescending(selector) else compareBy(selector))
     }
 }

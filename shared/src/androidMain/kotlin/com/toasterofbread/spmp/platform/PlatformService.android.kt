@@ -10,7 +10,7 @@ import android.os.IBinder
 actual abstract class PlatformBinder: Binder()
 
 actual open class PlatformServiceImpl: Service(), PlatformService {
-    actual override val context: PlatformContext get() = PlatformContext(this)
+    actual override val context: PlatformContext by lazy { PlatformContext(this) }
     actual override fun onCreate() {
         super.onCreate()
     }

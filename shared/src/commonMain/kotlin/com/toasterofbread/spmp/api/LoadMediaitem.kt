@@ -48,8 +48,6 @@ suspend fun loadMediaItemData(
                 val (items, ctoken) = it
                 item.items = item.items?.plus(items as List<SongData>)
 
-                println("ADDITEMS $items")
-
                 withContext(Dispatchers.IO) {
                     db.transaction {
                         for (playlist_item in items) {

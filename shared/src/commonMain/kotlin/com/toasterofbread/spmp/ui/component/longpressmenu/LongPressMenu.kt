@@ -24,6 +24,7 @@ import com.toasterofbread.spmp.model.mediaitem.db.rememberThemeColour
 import com.toasterofbread.spmp.platform.composable.PlatformDialog
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.contrastAgainst
 import kotlinx.coroutines.delay
 
 private const val LONG_PRESS_ICON_MENU_OPEN_ANIM_MS: Int = 150
@@ -79,7 +80,7 @@ fun LongPressMenu(
                 enter = EnterTransition.None,
                 exit = slideOutVertically(tween(LONG_PRESS_ICON_MENU_OPEN_ANIM_MS)) { it }
             ) {
-                var accent_colour: Color? = data.item.rememberThemeColour(SpMp.context.database)
+                var accent_colour: Color? = data.item.rememberThemeColour(SpMp.context.database)?.contrastAgainst(Theme.background)
 
                 DisposableEffect(Unit) {
                     val theme_colour = data.item.ThemeColour.get(SpMp.context.database)

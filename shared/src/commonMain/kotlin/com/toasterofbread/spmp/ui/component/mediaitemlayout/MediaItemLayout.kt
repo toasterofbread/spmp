@@ -114,7 +114,6 @@ data class MediaItemLayout(
         }
 
         suspend fun loadContinuation(database: Database, filters: List<RadioModifier> = emptyList()): Result<Pair<List<MediaItemData>, String?>> {
-            println("LOADCONT $this $type")
             return when (type) {
                 Type.SONG -> loadSongContinuation(filters)
                 Type.PLAYLIST -> loadPlaylistContinuation(database, false)

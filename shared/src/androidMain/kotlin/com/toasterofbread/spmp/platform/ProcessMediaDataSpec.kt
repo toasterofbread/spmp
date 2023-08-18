@@ -5,7 +5,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSpec
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.SongRef
-import com.toasterofbread.spmp.model.mediaitem.db.getMediaItemPlayCount
+import com.toasterofbread.spmp.model.mediaitem.db.getPlayCount
 import com.toasterofbread.spmp.model.mediaitem.song.getSongStreamFormat
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -25,7 +25,7 @@ internal fun processMediaDataSpec(data_spec: DataSpec, context: PlatformContext,
     }
 
     if (
-        context.database.getMediaItemPlayCount(song.id, Duration.ofDays(7)) >= Settings.KEY_AUTO_DOWNLOAD_THRESHOLD.get<Int>(context)
+        song.getPlayCount(context.database, Duration.ofDays(7)) >= Settings.KEY_AUTO_DOWNLOAD_THRESHOLD.get<Int>(context)
         && (Settings.KEY_AUTO_DOWNLOAD_ON_METERED.get(context) || !metered)
     ) {
         var done = false

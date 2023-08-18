@@ -12,7 +12,7 @@ import com.toasterofbread.spmp.api.markSongAsWatched
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.db.incrementMediaItemPlayCount
+import com.toasterofbread.spmp.model.mediaitem.db.incrementPlayCount
 import com.toasterofbread.spmp.platform.MediaPlayerService
 import com.toasterofbread.spmp.platform.MediaPlayerState
 import com.toasterofbread.spmp.platform.ProjectPreferences
@@ -95,7 +95,7 @@ class PlayerService: MediaPlayerService() {
                 val final_index = if (item != null) item_index else index
 
                 if (final_item !is Song) {
-                    context.database.incrementMediaItemPlayCount(final_item.id)
+                    final_item.incrementPlayCount(context.database)
                 }
 
                 return@customUndoableAction radio.getRadioChangeUndoRedo(
@@ -518,10 +518,10 @@ class PlayerService: MediaPlayerService() {
 
                             val song = getSong() ?: return@withContext
 
-                            context.database.incrementMediaItemPlayCount(song.id)
+                            withContext(Dispatchers.IO) {
+                                song.incrementPlayCount(context.database)
 
-                            if (Settings.KEY_ADD_SONGS_TO_HISTORY.get(context)) {
-                                withContext(Dispatchers.IO) {
+                                if (Settings.KEY_ADD_SONGS_TO_HISTORY.get(context)) {
                                     val result = markSongAsWatched(song.id)
                                     if (result.isFailure) {
                                         SpMp.error_manager.onError("autoMarkSongAsWatched", result.exceptionOrNull()!!)

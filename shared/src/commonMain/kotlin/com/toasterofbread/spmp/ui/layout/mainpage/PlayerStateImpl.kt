@@ -226,17 +226,21 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
         service_connection = MediaPlayerService.connect(
             context,
             PlayerService::class.java,
-            _player
-        ) { service ->
-            synchronized(service_connected_listeners) {
-                _player = service
-                status = PlayerStatus(_player!!)
-                service_connecting = false
+            _player,
+            { service ->
+                synchronized(service_connected_listeners) {
+                    _player = service
+                    status = PlayerStatus(_player!!)
+                    service_connecting = false
 
-                service_connected_listeners.forEach { it(service) }
-                service_connected_listeners.clear()
+                    service_connected_listeners.forEach { it(service) }
+                    service_connected_listeners.clear()
+                }
+            },
+            {
+                service_connecting = false
             }
-        }
+        )
     }
 
     fun onStop() {
@@ -514,7 +518,6 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
     private var service_connecting = false
     private var service_connected_listeners = mutableListOf<(PlayerService) -> Unit>()
     private lateinit var service_connection: Any
-    private lateinit var service_bind_connection: Any
 
     override lateinit var status: PlayerStatus
         private set

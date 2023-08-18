@@ -14,6 +14,10 @@ fun getYoutubeFilterChipsLocalisations(languages: UILanguages): YoutubeUILocalis
                 ja to "エナジー"
             )
             add(
+                en to "Energise",
+                ja to "エナジー"
+            )
+            add(
                 en to "Workout",
                 ja to "ワークアウト"
             )

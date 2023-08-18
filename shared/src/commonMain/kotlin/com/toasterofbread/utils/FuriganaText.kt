@@ -2,14 +2,10 @@ package com.toasterofbread.utils
 
 // Originally based on https://github.com/mainrs/android-compose-furigana
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
@@ -98,33 +94,13 @@ fun BasicFuriganaText(
 
     for (term in terms) {
         for (subterm in term.subterms) {
-            if (subterm.furi == null || !show_readings) {
-                string_builder.append(subterm.text)
-            }
-            else {
-                val furi = subterm.furi!!
-                string_builder.appendInlineContent(subterm.text, furi)
+            string_builder.appendInlineContent(subterm.text)
 
-                inline_content.putIfAbsent(subterm.text) {
-                    val text = subterm.text
-                    val width = (text.length.toDouble() + (text.length - 1) * 0.05).em
-
-                    InlineTextContent(
-                        placeholder = Placeholder(
-                            width = width,
-                            height = (font_size.value + (reading_font_size.value * 2)).sp,
-                            placeholderVerticalAlign = PlaceholderVerticalAlign.Center,
-                        )
-                    ) { furi ->
-                        Column(
-                            Modifier.fillMaxHeight().padding(bottom = with(LocalDensity.current) { reading_font_size.toDp() }),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Bottom,
-                        ) {
-                            Text(furi, Modifier.wrapContentWidth(unbounded = true), fontSize = reading_font_size, color = text_colour)
-                            Text(text, fontSize = font_size, color = text_colour)
-                        }
-                    }
+            inline_content.putIfAbsent(subterm.text) {
+                getLyricsInlineTextContent(
+                    subterm.text, subterm.furi, show_readings, font_size, reading_font_size
+                ) { is_reading, text, alternate_text, font_size, modifier ->
+                    Text(text, modifier, fontSize = font_size, color = text_colour)
                 }
             }
         }
@@ -159,31 +135,55 @@ private fun annotateString(
 
     string.appendInlineContent(text, index.toString())
 
-    inline_content[text] = InlineTextContent(
+    inline_content[text] = getLyricsInlineTextContent(
+        text, reading, show_readings, text_style.fontSize, reading_font_size
+    ) { is_reading, text, alternate_text, font_size, modifier ->
+        val child_index = alternate_text.toInt()
+        textElement(is_reading, text, text_style.copy(fontSize = font_size), child_index, modifier) {
+            getLine(child_index)
+        }
+    }
+}
+
+private fun getLyricsInlineTextContent(
+    text: String,
+    reading: String?,
+    show_readings: Boolean,
+    font_size: TextUnit,
+    reading_font_size: TextUnit,
+    textElement: @Composable (is_reading: Boolean, text: String, alternate_text: String, font_size: TextUnit, modifier: Modifier) -> Unit
+): InlineTextContent {
+    return InlineTextContent(
         placeholder = Placeholder(
             width = (text.length.toDouble() + (text.length - 1) * 0.05).em * (
                 if (text.any { it.isFullWidth() }) 1f
                 else 0.5f
             ),
-            height = 1.97.em,
+            height = (font_size.value + (reading_font_size.value * 2)).sp,
             placeholderVerticalAlign = PlaceholderVerticalAlign.Bottom,
         ),
-        children = {
-            val child_index = it.toInt()
-            val box_height = with(LocalDensity.current) { reading_font_size.toDp() }
-
-            Column(
+        children = { alternate_text ->
+            Box(
                 modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.Bottom,
+                contentAlignment = Alignment.Center
             ) {
-                Box(modifier = Modifier.requiredHeight(box_height + 3.dp)) {
-                    if (show_readings && reading != null) {
-                        textElement(true, reading, text_style.copy(fontSize = reading_font_size), child_index, Modifier.wrapContentWidth(unbounded = true)) { getLine(child_index) }
-                    }
+                if (show_readings && reading != null) {
+                    textElement(
+                        true,
+                        reading,
+                        alternate_text,
+                        reading_font_size,
+                        Modifier
+                            .wrapContentWidth(unbounded = true)
+                            .offset(
+                                y = with(LocalDensity.current) {
+                                    (font_size.toDp() * -0.5f) - reading_font_size.toDp() + 3.dp
+                                }
+                            )
+                    )
                 }
 
-                textElement(false, text, text_style, child_index, Modifier) { getLine(child_index) }
+                textElement(false, text, alternate_text, font_size, Modifier)
             }
         }
     )

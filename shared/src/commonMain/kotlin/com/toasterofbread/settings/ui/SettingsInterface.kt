@@ -78,8 +78,8 @@ class SettingsInterface(
     }
 
     @Composable
-    fun Interface(height: Dp, modifier: Modifier = Modifier, content_padding: PaddingValues = PaddingValues(0.dp)) {
-        Crossfade(current_page, modifier = modifier.requiredHeight(height)) { page ->
+    fun Interface(modifier: Modifier = Modifier, content_padding: PaddingValues = PaddingValues(0.dp)) {
+        Crossfade(current_page, modifier = modifier) { page ->
             var width by remember { mutableStateOf(0) }
 
             Column(
@@ -88,7 +88,6 @@ class SettingsInterface(
                     .thenIf(!page.disable_padding, Modifier.padding(top = 18.dp, start = 20.dp, end = 20.dp))
                     .onSizeChanged { width = it.width }
             ) {
-
                 var go_back by remember { mutableStateOf(false) }
                 LaunchedEffect(go_back) {
                     if (go_back) {

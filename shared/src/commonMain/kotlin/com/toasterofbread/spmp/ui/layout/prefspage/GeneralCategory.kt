@@ -7,6 +7,7 @@ import com.toasterofbread.composesettings.ui.item.SettingsItem
 import com.toasterofbread.composesettings.ui.item.SettingsSliderItem
 import com.toasterofbread.composesettings.ui.item.SettingsToggleItem
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
+import com.toasterofbread.spmp.model.FontMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.Languages
 import com.toasterofbread.spmp.resources.getString
@@ -67,7 +68,7 @@ fun getLanguageDropdownItem(
     }
 }
 
-internal fun getGeneralCategory(available_languages: List<Languages.LanguageInfo>): List<SettingsItem> {
+internal fun getGeneralCategory(language: String, available_languages: List<Languages.LanguageInfo>): List<SettingsItem> {
     return listOf(
         SettingsComposableItem {
             WidthShrinkText(getString("language_change_restart_notice"))
@@ -123,6 +124,15 @@ internal fun getGeneralCategory(available_languages: List<Languages.LanguageInfo
             getString("s_key_treat_singles_as_song"),
             getString("s_sub_treat_singles_as_song")
         ),
+
+        SettingsDropdownItem(
+            SettingsValueState(Settings.KEY_FONT.name),
+            getString("s_key_font"),
+            null,
+            FontMode.values().size,
+        ) { index ->
+            FontMode.values()[index].getReadable(language)
+        },
 
         SettingsGroupItem(getString("s_group_long_press_menu")),
 

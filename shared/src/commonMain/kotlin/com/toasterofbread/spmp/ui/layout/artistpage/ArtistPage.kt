@@ -375,7 +375,8 @@ fun ArtistPage(
                                 for (artist_layout in item_layouts ?: emptyList()) {
                                     val layout = artist_layout.rememberMediaItemLayout(db)
                                     val is_singles =
-                                        Settings.KEY_TREAT_SINGLES_AS_SONG.get() && layout.title?.getID() == YoutubeUILocalisation.StringID.ARTIST_PAGE_SINGLES
+                                        Settings.KEY_TREAT_SINGLES_AS_SONG.get()
+                                        && layout.title?.getID() == YoutubeUILocalisation.StringID.ARTIST_PAGE_SINGLES
 
                                     CompositionLocalProvider(LocalPlayerState provides remember {
                                         if (!is_singles) player

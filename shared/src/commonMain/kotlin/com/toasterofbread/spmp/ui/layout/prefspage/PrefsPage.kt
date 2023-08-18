@@ -259,7 +259,7 @@ fun PrefsPage(
                     ) {
                         CompositionLocalProvider(LocalContentColor provides Theme.on_background) {
                             settings_interface.Interface(
-                                SpMp.context.getScreenHeight() - SpMp.context.getStatusBarHeight(),
+                                Modifier.fillMaxSize(),
                                 content_padding = PaddingValues(bottom = bottom_padding)
                             )
                         }

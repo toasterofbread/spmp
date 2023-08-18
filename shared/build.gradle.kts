@@ -105,7 +105,7 @@ kotlin {
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
 
-                implementation("com.github.TeamNewPipe:NewPipeExtractor")
+                implementation("com.github.TeamNewPipe:NewPipeExtractor") // Submodule
 
                 implementation("com.squareup.okhttp3:okhttp:4.10.0")
                 implementation("com.beust:klaxon:5.5")
@@ -117,7 +117,6 @@ kotlin {
                 implementation("com.github.SvenWoltmann:color-thief-java:v1.1.2")
                 implementation("com.github.catppuccin:java:v1.0.0")
                 implementation("com.github.paramsen:noise:2.0.0")
-//                implementation("org.xmlpull:xmlpull:1.1.4.0")
             }
             kotlin.srcDir(buildConfigDir)
         }

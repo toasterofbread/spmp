@@ -45,22 +45,14 @@ internal fun LazyListScope.PlaylistItems(
     playlist: Playlist,
     loading: Boolean,
     list_state: ReorderableLazyListState,
-    sorted_items: List<Pair<MediaItem, Int>>,
+    sorted_items: List<Pair<MediaItem, Int>>?,
     multiselect_context: MediaItemMultiSelectContext,
     reorderable: Boolean,
     sort_option: MediaItemSortOption,
     player: PlayerState,
     db: Database
 ) {
-    item {
-        AnimatedVisibility(!loading && sorted_items.isEmpty()) {
-            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                Text(getString("playlist_empty"), Modifier.padding(top = 15.dp))
-            }
-        }
-    }
-
-    items(sorted_items, key = { it.second }) {
+    items(sorted_items ?: emptyList(), key = { it.second }) {
         val (item, index) = it
         check(item is Song)
 

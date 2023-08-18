@@ -65,11 +65,12 @@ fun PlaylistPage(
     val player = LocalPlayerState.current
     val coroutine_scope = rememberCoroutineScope()
 
-    val loading by playlist.loadDataOnChange(db)
+    var load_error: Throwable? by remember { mutableStateOf(null) }
+    val loading by playlist.loadDataOnChange(db) { load_error = it }
     var refreshed by remember { mutableStateOf(false) }
 
     val playlist_items: List<MediaItem>? by playlist.Items.observe(db)
-    val sorted_items: MutableList<Pair<MediaItem, Int>> = remember { mutableStateListOf() }
+    var sorted_items: List<Pair<MediaItem, Int>>? by remember { mutableStateOf(null) }
     val playlist_editor = playlist.rememberEditorOrNull(db)
 
     val apply_item_filter: Boolean by Settings.KEY_FILTER_APPLY_TO_PLAYLIST_ITEMS.rememberMutableState()
@@ -126,8 +127,7 @@ fun PlaylistPage(
         // val thumb_item = playlist.getThumbnailHolder().getHolder()
 
         LaunchedEffect(playlist_items, current_sort_option, current_filter, apply_item_filter) {
-            sorted_items.clear()
-            playlist_items?.also { items ->
+            sorted_items = playlist_items?.let { items ->
                 val filtered_items = current_filter.let { filter ->
                     items.filter { item ->
                         if (filter != null && item.Title.get(db)?.contains(filter, true) != true) {
@@ -142,13 +142,11 @@ fun PlaylistPage(
                     }
                 }
 
-                sorted_items.addAll(
-                    current_sort_option
-                        .sortItems(filtered_items, db)
-                        .mapIndexed { index, value ->
-                            Pair(value, index)
-                        }
-                )
+                current_sort_option
+                    .sortItems(filtered_items, db)
+                    .mapIndexed { index, value ->
+                        Pair(value, index)
+                    }
             }
         }
 
@@ -160,7 +158,9 @@ fun PlaylistPage(
                 check(current_sort_option == MediaItemSortOption.NATIVE)
 
                 if (to.index >= items_above && from.index >= items_above) {
-                    sorted_items.add(to.index - items_above, sorted_items.removeAt(from.index - items_above))
+                    sorted_items = sorted_items?.toMutableList()?.apply {
+                        add(to.index - items_above, removeAt(from.index - items_above))
+                    }
                 }
             },
             onDragEnd = { from, to ->
@@ -189,6 +189,7 @@ fun PlaylistPage(
             state = refreshed && loading,
             onRefresh = {
                 refreshed = true
+                load_error = null
                 coroutine_scope.launch {
                     MediaItemLoader.loadPlaylist(playlist.getEmptyData(), db)
                 }
@@ -275,7 +276,7 @@ fun PlaylistPage(
                 )
 
                 item {
-                    PlaylistFooter(playlist, loading && !refreshed, Modifier.fillMaxWidth())
+                    PlaylistFooter(playlist, sorted_items, loading && !refreshed, load_error, Modifier.fillMaxWidth())
                 }
             }
         }

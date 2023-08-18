@@ -19,6 +19,7 @@ import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
+import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
@@ -80,7 +81,7 @@ suspend fun loadMediaItemData(
                         "isAudioOnly" to true,
                         "videoId" to item_id,
                     )
-                else if (item is Playlist && !item.id.startsWith("VL"))
+                else if (item is Playlist && !item.id.startsWith("VL") && !item.id.startsWith("MPREb_"))
                     mapOf(
                         "browseId" to "VL$item_id"
                     )
@@ -249,7 +250,7 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                     header_renderer.subtitle?.runs?.also { subtitle ->
                         if (item is MediaItem.DataWithArtist) {
                             val artist_run = subtitle.firstOrNull {
-                                it.navigationEndpoint?.browseEndpoint?.getPageType() == "MUSIC_PAGE_TYPE_USER_CHANNEL"
+                                it.navigationEndpoint?.browseEndpoint?.getMediaItemType() == MediaItemType.ARTIST
                             }
                             if (artist_run != null) {
                                 item.artist = ArtistData(artist_run.navigationEndpoint!!.browseEndpoint!!.browseId).apply {

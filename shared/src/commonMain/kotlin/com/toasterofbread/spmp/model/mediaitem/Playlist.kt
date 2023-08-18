@@ -91,7 +91,8 @@ sealed interface Playlist: MediaItem.WithArtist {
         },
         clearItems = { from_index ->
             playlistItemQueries.clearItems(id, from_index)
-        }
+        },
+        prerequisite = Loaded
     )
     val ItemCount: Property<Int?>
         get() = property_rememberer.rememberSingleProperty(

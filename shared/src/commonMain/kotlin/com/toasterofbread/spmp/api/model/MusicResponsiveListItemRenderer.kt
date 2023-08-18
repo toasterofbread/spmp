@@ -30,17 +30,22 @@ data class MusicResponsiveListItemRenderer(
 
         if (video_id == null) {
             val page_type = navigationEndpoint?.browseEndpoint?.getPageType()
-            when (page_type) {
-                "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_PLAYLIST" -> {
+            when (
+                page_type?.let { type ->
+                    MediaItemType.fromBrowseEndpointType(type)
+                }
+            ) {
+                MediaItemType.PLAYLIST_ACC -> {
                     video_is_main = false
                     playlist = PlaylistData(navigationEndpoint!!.browseEndpoint!!.browseId).apply {
-                        playlist_type = PlaylistType.fromTypeString(page_type)
+                        playlist_type = PlaylistType.fromBrowseEndpointType(page_type)
                     }
                 }
-                "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" -> {
+                MediaItemType.ARTIST -> {
                     video_is_main = false
                     artist = ArtistData(navigationEndpoint!!.browseEndpoint!!.browseId)
                 }
+                else -> {}
             }
         }
 
@@ -68,13 +73,9 @@ data class MusicResponsiveListItemRenderer(
                     }
 
                     val browse_endpoint = run.navigationEndpoint.browseEndpoint
-                    when (browse_endpoint?.getPageType()) {
-                        "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" -> {
-                            if (artist == null) {
-                                artist = ArtistData(browse_endpoint.browseId)
-                                artist.title = run.text
-                            }
-                        }
+                    if (artist == null && browse_endpoint?.getMediaItemType() == MediaItemType.ARTIST) {
+                        artist = ArtistData(browse_endpoint.browseId)
+                        artist.title = run.text
                     }
                 }
             }

@@ -6,7 +6,7 @@ enum class PlaylistType {
     LOCAL, PLAYLIST, ALBUM, AUDIOBOOK, PODCAST, RADIO;
 
     companion object {
-        fun fromTypeString(type: String): PlaylistType {
+        fun fromBrowseEndpointType(type: String): PlaylistType {
             return when (type) {
                 "MUSIC_PAGE_TYPE_PLAYLIST" -> PLAYLIST
                 "MUSIC_PAGE_TYPE_ALBUM" -> ALBUM

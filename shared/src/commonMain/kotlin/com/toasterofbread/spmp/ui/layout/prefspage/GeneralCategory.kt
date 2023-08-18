@@ -50,7 +50,7 @@ fun getLanguageDropdownItem(
         available_languages.size + 1,
         { i ->
             if (i == 0) {
-                "System language"
+                getString("system_language")
             }
             else {
                 available_languages[i - 1].readable_name
@@ -58,7 +58,7 @@ fun getLanguageDropdownItem(
         }
     ) { i ->
         if (i == 0) {
-            "System language"
+            getString("system_language")
         }
         else {
             val lang = available_languages[i - 1]

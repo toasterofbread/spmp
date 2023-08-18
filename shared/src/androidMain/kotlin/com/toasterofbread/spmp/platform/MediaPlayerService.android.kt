@@ -393,7 +393,13 @@ actual open class MediaPlayerService {
     }
     
     actual companion object {
-        actual fun <T: MediaPlayerService> connect(context: PlatformContext, cls: Class<T>, instance: T?, onConnected: (controller: T) -> Unit): Any {
+        actual fun <T: MediaPlayerService> connect(
+            context: PlatformContext,
+            cls: Class<T>,
+            instance: T?,
+            onConnected: (controller: T) -> Unit,
+            onCancelled: () -> Unit
+        ): Any {
             val ctx = context.ctx.applicationContext
             val controller_future = MediaController.Builder(
                 ctx,
@@ -403,11 +409,13 @@ actual open class MediaPlayerService {
             controller_future.addListener(
                 {
                     if (controller_future.isCancelled) {
+                        onCancelled()
                         return@addListener
                     }
 
                     val controller = instance ?: cls.newInstance()
-                    controller.init(PlatformContext(ctx), controller_future.get())
+//                    controller.init(PlatformContext(ctx), controller_future.get())
+                    controller.init(context, controller_future.get())
                     if (instance == null) {
                         controller.onCreate()
                     }

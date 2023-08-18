@@ -98,7 +98,13 @@ expect open class MediaPlayerService() {
     fun removeListener(listener: Listener)
 
     companion object {
-        fun <T: MediaPlayerService> connect(context: PlatformContext, cls: Class<T>, instance: T? = null, onConnected: (service: T) -> Unit): Any
+        fun <T: MediaPlayerService> connect(
+            context: PlatformContext,
+            cls: Class<T>,
+            instance: T? = null,
+            onConnected: (service: T) -> Unit,
+            onCancelled: () -> Unit
+        ): Any
         fun disconnect(context: PlatformContext, connection: Any)
     }
 }

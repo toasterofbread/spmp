@@ -56,7 +56,7 @@ fun Theme.ApplicationTheme(
             inverseOnSurface = vibrant_accent.getContrasted(),
 
             outline = on_background,
-            outlineVariant = accent
+            outlineVariant = vibrant_accent
 //            error: Color = this.error,
 //            onError: Color = this.onError,
 //            errorContainer: Color = this.errorContainer,

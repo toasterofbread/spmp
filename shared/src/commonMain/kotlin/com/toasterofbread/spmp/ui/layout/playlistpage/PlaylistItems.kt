@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.ui.layout.playlistpage
 
 import SpMp
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.MediaItemSortOption
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
@@ -46,7 +48,7 @@ internal fun LazyListScope.PlaylistItems(
     sorted_items: List<Pair<MediaItem, Int>>,
     multiselect_context: MediaItemMultiSelectContext,
     reorderable: Boolean,
-    sort_option: SortOption,
+    sort_option: MediaItemSortOption,
     player: PlayerState,
     db: Database
 ) {

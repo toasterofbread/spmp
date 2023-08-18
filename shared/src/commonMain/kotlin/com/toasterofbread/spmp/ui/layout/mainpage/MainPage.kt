@@ -26,6 +26,7 @@ class MainPageState(database: Database) {
     val SongFeed = SongFeedPage(this)
     val Library = LibraryPage(this)
     val Search = SearchPage(this, database)
+
     val Default: MainPage = SongFeed
 
     var current_page by mutableStateOf(Default)

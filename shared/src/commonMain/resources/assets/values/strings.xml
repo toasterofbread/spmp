@@ -2,14 +2,12 @@
     <string name="language_name">English</string>
 
     <string name="version_string" translatable="false">0.1.3</string>
-
     <string name="app_name" translatable="false">SpMp</string>
     <string name="app_name_debug" translatable="false">SpMp (debug)</string>
-    <string name="yt_i_api_key" translatable="false">AIzaSyAOghZGza2MQSZkY_zfZ370N-PUdXEo8AI</string>
-
     <string name="project_url" translatable="false">https://github.com/toasterofbread/spmp</string>
+
     <string name="project_url_name">project URL</string>
-    
+
     <string name="home_feed_listen_again">Listen again</string>
     <string name="home_feed_mixed_for_you">Mixed for you</string>
     <string name="home_feed_new_releases">New releases</string>
@@ -32,12 +30,11 @@
     <string name="home_feed_filter_commute">Commute</string>
     <string name="home_feed_filter_focus">Focus</string>
 
-    <string name="library_main_page_title">Library</string>
-    <string name="library_songs_page_title">Songs</string>
-
     <string name="library_tab_playlists">Playlists</string>
     <string name="library_tab_local_songs">Local songs</string>
-    <string name="library_tab_profile">Profile</string>
+    <string name="library_tab_albums">Albums</string>
+    <string name="library_tab_artists">Artists</string>
+    <string name="library_tab_history">History</string>
 
     <string name="library_x_more_songs">and $x more songs</string>
     <string name="library_row_downloads">Downloads</string>
@@ -49,6 +46,7 @@
     <string name="library_recent_songs_week">Week</string>
     <string name="library_recent_songs_day">Day</string>
 
+    <string name="mediaitem_play_count_$x_short">$x plays</string>
     <string name="song_name">Song name</string>
     <string name="videos">Videos</string>
 
@@ -68,6 +66,8 @@
     <string name="podcasts">Podcasts</string>
     <string name="radio">Radio</string>
     <string name="radios">Radios</string>
+
+    <string name="system_language">System language</string>
 
     <string name="edit_$x_title_dialog_title">Edit $x title</string>
 
@@ -109,10 +109,10 @@
 
     <string name="playlist_upload_to_account">Upload to account</string>
 
-    <string name="playlist_sort_option_playlist">Playlist order</string>
-    <string name="playlist_sort_option_alphabet">Name</string>
-    <string name="playlist_sort_option_duration">Duration</string>
-    <string name="playlist_sort_option_playcount">Listen count</string>
+    <string name="sort_option_playlist">Playlist order</string>
+    <string name="sort_option_alphabet">Name</string>
+    <string name="sort_option_duration">Duration</string>
+    <string name="sort_option_playcount">Listen count</string>
 
     <string name="playlist_chip_play">Play</string>
     <string name="playlist_chip_shuffle">Shuffle</string>

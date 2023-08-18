@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.toasterofbread.spmp.model.mediaitem.MediaItemSortOption
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor
 import com.toasterofbread.spmp.platform.LargeDropdownMenu
@@ -46,8 +47,8 @@ internal fun InteractionBar(
     setReorderable: (Boolean) -> Unit,
     filter: String?,
     setFilter: (String?) -> Unit,
-    sort_option: SortOption,
-    setSortOption: (SortOption) -> Unit,
+    sort_option: MediaItemSortOption,
+    setSortOption: (MediaItemSortOption) -> Unit,
     modifier: Modifier = Modifier
 ) {
     // 0 -> search, 1 -> sort
@@ -130,17 +131,13 @@ internal fun InteractionBar(
         }
     }
 
-    // Sort options
-    LargeDropdownMenu(
+    MediaItemSortOption.SelectionMenu(
         opened_menu == 1,
-        { if (opened_menu == 1) opened_menu = null },
-        SortOption.values().size,
-        sort_option.ordinal,
-        { SortOption.values()[it].getReadable() }
-    ) {
-        setSortOption(SortOption.values()[it])
-        opened_menu = null
-    }
+        sort_option,
+        { opened_menu = null },
+        { setSortOption(it) },
+        "sort_option_playlist"
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

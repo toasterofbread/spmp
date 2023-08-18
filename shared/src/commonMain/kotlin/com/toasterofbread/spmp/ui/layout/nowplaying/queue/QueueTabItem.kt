@@ -110,6 +110,7 @@ class QueueTabItem(val song: Song, val key: Int) {
                             thresholds = { _, _ -> FractionalThreshold(0.2f) }
                         ),
                     contentColour = { backgroundColourProvider().getContrasted() },
+                    show_type = false,
                     multiselect_context = multiselect_context,
                     multiselect_key = index,
                     getInfoText = { getInfoText(index) }

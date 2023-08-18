@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
+import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.AccountPlaylistRef
 import com.toasterofbread.spmp.service.playerservice.PlayerService
 import com.toasterofbread.spmp.model.mediaitem.ArtistRef
@@ -97,6 +98,7 @@ open class PlayerState protected constructor(
     private val onLongClickedOverride: ((item: MediaItem, long_press_data: LongPressMenuData?) -> Unit)? = null,
     private val upstream: PlayerState? = null
 ) {
+    val database: Database get() = context.database
     open val context: PlatformContext get() = upstream!!.context
 
     open val main_page_state: MainPageState get() = upstream!!.main_page_state

@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp
 
+import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -7,15 +8,17 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.drawable.Icon
+import android.media.MediaMetadataRetriever
 import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
+import androidx.core.content.PermissionChecker
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongRef
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.model.mediaitem.song.getSongFormatByQuality
-import com.toasterofbread.spmp.model.mediaitem.song.getSongTargetDownloadQuality
 import com.toasterofbread.spmp.platform.PlatformBinder
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformServiceImpl
@@ -34,6 +37,7 @@ import java.util.concurrent.Executors
 private const val FILE_DOWNLOADING_SUFFIX = ".part"
 private const val NOTIFICATION_ID = 1
 private const val NOTIFICATION_CHANNEL_ID = "download_channel"
+private const val DOWNLOAD_MAX_RETRY_COUNT = 3
 
 class PlayerDownloadService: PlatformServiceImpl() {
     private inner class Download(
@@ -102,6 +106,9 @@ class PlayerDownloadService: PlatformServiceImpl() {
                 mapOf("status" to getStatusObject(), "started" to started)
             ))
         }
+
+        override fun toString(): String =
+            "Download(id=$id, quality=$quality, silent=$silent, instance=$instance, file=$file)"
     }
 
     private var download_inc: Int = 0
@@ -243,7 +250,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
     private fun onActionIntentReceived(message: PlayerDownloadManager.PlayerDownloadMessage) {
         when (message.action) {
             IntentAction.STOP -> {
-                println("Download service stopping...")
+                SpMp.Log.info("Download service stopping...")
                 synchronized(executor) {
                     stopping = true
                 }
@@ -286,6 +293,14 @@ class PlayerDownloadService: PlatformServiceImpl() {
             synchronized(downloads) {
                 if (downloads.isEmpty()) {
                     if (!download.silent) {
+                        if (
+                            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                            && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PermissionChecker.PERMISSION_GRANTED
+                        ) {
+                            context.sendToast("(BUG) No notification permission")
+                            return
+                        }
+
                         notification_builder = getNotificationBuilder()
                         startForeground(NOTIFICATION_ID, notification_builder!!.build())
                     }
@@ -305,10 +320,16 @@ class PlayerDownloadService: PlatformServiceImpl() {
         executor.submit {
             runBlocking {
                 var result: Result<File?>? = null
-                while (result == null || download.status == DownloadStatus.Status.IDLE || download.status == DownloadStatus.Status.PAUSED) {
+                var retry_count: Int = 0
+
+                while (
+                    retry_count++ < DOWNLOAD_MAX_RETRY_COUNT && (
+                        result == null || download.status == DownloadStatus.Status.IDLE || download.status == DownloadStatus.Status.PAUSED
+                    )
+                ) {
                     if (paused && !download.cancelled) {
                         onDownloadProgress()
-                        delay(1000)
+                        delay(500)
                         continue
                     }
 
@@ -327,11 +348,11 @@ class PlayerDownloadService: PlatformServiceImpl() {
                         stopForeground(false)
                     }
 
-                    if (result.isFailure) {
-                        failed_downloads += 1
+                    if (result?.isSuccess == true) {
+                        completed_downloads += 1
                     }
                     else {
-                        completed_downloads += 1
+                        failed_downloads += 1
                     }
                 }
 
@@ -356,6 +377,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
     }
 
     private fun cancelAllDownloads(message: PlayerDownloadManager.PlayerDownloadMessage) {
+        SpMp.Log.info("Download manager cancelling all downloads $downloads")
         synchronized(downloads) {
             downloads.forEach { it.cancel() }
         }
@@ -368,21 +390,29 @@ class PlayerDownloadService: PlatformServiceImpl() {
         )
 
         val connection = URL(format.stream_url).openConnection() as HttpURLConnection
+        connection.connectTimeout = 3000
         connection.setRequestProperty("Range", "bytes=${download.downloaded}-")
-        connection.connect()
+
+        try {
+            connection.connect()
+        }
+        catch (e: Throwable) {
+            return Result.failure(RuntimeException(connection.url.toString(), e))
+        }
 
         if (connection.responseCode != 200 && connection.responseCode != 206) {
             return Result.failure(ConnectException(
                 "${download.id}: Server returned code ${connection.responseCode} ${connection.responseMessage}"
             ))
         }
-        
+
         var file: File? = download.file
         download_dir.mkdirs()
 
         if (file == null) {
             val extension = when (connection.contentType) {
                 "audio/webm" -> "webm"
+                "audio/mp4" -> "mp4"
                 else -> return Result.failure(NotImplementedError(connection.contentType))
             }
             file = download_dir.resolve(download.generatePath(extension, true))
@@ -426,6 +456,12 @@ class PlayerDownloadService: PlatformServiceImpl() {
 
             onDownloadProgress()
         }
+
+        val metadata_retriever = MediaMetadataRetriever()
+        metadata_retriever.setDataSource(file.absolutePath)
+
+        val duration_ms = metadata_retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong()
+        SongRef(download.id).Duration.setNotNull(duration_ms, context.database)
 
         close(DownloadStatus.Status.FINISHED)
 
@@ -558,11 +594,16 @@ class PlayerDownloadService: PlatformServiceImpl() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-//        val action = intent?.extras?.get("action")
-//        if (action is IntentAction) {
-//            onActionIntentReceived(action, intent)
-//            return super.onStartCommand(intent, flags, startId)
-//        }
+        val action = intent?.extras?.get("action")
+        if (action is IntentAction) {
+            SpMp.Log.info("Download service received action $action")
+            onActionIntentReceived(
+                PlayerDownloadManager.PlayerDownloadMessage(
+                    action,
+                    emptyMap()
+                )
+            )
+        }
 
         return super.onStartCommand(intent, flags, startId)
     }

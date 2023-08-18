@@ -215,7 +215,7 @@ fun LyricsSearchMenu(
                                     LyricsSource.fromIdx(source_idx).getReadable()
                                 }
                             },
-                            selected_item_colour = Theme.vibrant_accent
+                            selected_border_colour = Theme.vibrant_accent
                         ) { source_idx ->
                             selected_source = LyricsSource.fromIdx(source_idx)
                             source_selector_open = false

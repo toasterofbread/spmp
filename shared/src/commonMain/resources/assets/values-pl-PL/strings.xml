@@ -100,10 +100,10 @@
 
     <string name="playlist_upload_to_account">Prześlij na konto</string>
 
-    <string name="playlist_sort_option_playlist">Kolejność listy odtwarzania</string>
-    <string name="playlist_sort_option_alphabet">Nazwa</string>
-    <string name="playlist_sort_option_duration">Czas trwania</string>
-    <string name="playlist_sort_option_playcount">Liczba odsłuchań</string>
+    <string name="sort_option_playlist">Kolejność listy odtwarzania</string>
+    <string name="sort_option_alphabet">Nazwa</string>
+    <string name="sort_option_duration">Czas trwania</string>
+    <string name="sort_option_playcount">Liczba odsłuchań</string>
 
     <string name="playlist_chip_play">Odtwórz</string>
     <string name="playlist_chip_shuffle">Losowo</string>

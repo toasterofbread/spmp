@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.platform
 
+import android.os.Build
 import com.toasterofbread.spmp.PlayerDownloadService
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongRef
@@ -63,13 +64,15 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
         when (result.action) {
             PlayerDownloadService.IntentAction.START_DOWNLOAD -> {
                 val result = data["result"] as Result<File?>
-                if (result.isFailure) {
-                    context.sendNotification(result.exceptionOrNull()!!)
-                    download_status_listeners.forEach { it.onDownloadRemoved(status.id) }
-                }
-                else {
-                    download_status_listeners.forEach { it.onDownloadChanged(status) }
-                }
+                result.fold(
+                    {
+                        download_status_listeners.forEach { it.onDownloadChanged(status) }
+                    },
+                    { error ->
+                        context.sendNotification(error)
+                        download_status_listeners.forEach { it.onDownloadRemoved(status.id) }
+                    }
+                )
             }
             PlayerDownloadService.IntentAction.STATUS_CHANGED -> {
                 if (data["started"] as Boolean) {
@@ -159,6 +162,20 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
 
     @Synchronized
     actual fun startDownload(song_id: String, silent: Boolean, onCompleted: ((DownloadStatus) -> Unit)?) {
+        // If needed, get notification permission on A13 and above
+        if (!silent && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.notification_permission_requester?.requestNotficationPermission() { granted ->
+                if (granted) {
+                    performDownload(song_id, silent, onCompleted)
+                }
+            }
+        }
+        else {
+            performDownload(song_id, silent, onCompleted)
+        }
+    }
+
+    private fun performDownload(song_id: String, silent: Boolean, onCompleted: ((DownloadStatus) -> Unit)?) {
         onService {
             val instance = result_callback_id++
             if (onCompleted != null) {
@@ -176,18 +193,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
                 instance
             ))
         }
-//        onStateChanged()
     }
-
-//    fun getSongDownloadProgress(song_id: String, callback: (Float) -> Unit) {
-//        if (service == null) {
-//            startService({ getSongDownloadProgress(song_id, callback) })
-//        }
-//
-//        context.networkThread {
-//            callback(service!!.getDownloadProgress(song_id))
-//        }
-//    }
 
     @Synchronized
     private fun startService(onConnected: ((PlayerDownloadService) -> Unit)? = null, onDisconnected: (() -> Unit)? = null) {

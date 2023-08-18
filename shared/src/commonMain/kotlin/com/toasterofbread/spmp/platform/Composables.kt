@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.platform
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.composable.PlatformDialog
+import com.toasterofbread.utils.thenIf
 
 @Composable
 fun LargeDropdownMenu(
@@ -29,12 +31,13 @@ fun LargeDropdownMenu(
     selected: Int,
     getItem: @Composable (Int) -> String,
     modifier: Modifier = Modifier,
-    item_colour: Color = MaterialTheme.colorScheme.primary,
-    selected_item_colour: Color = MaterialTheme.colorScheme.onSurface,
     container_colour: Color = MaterialTheme.colorScheme.surface,
+    selected_border_colour: Color = MaterialTheme.colorScheme.outlineVariant,
     onSelected: (index: Int) -> Unit
 ) {
-    require(selected in 0 until item_count)
+    require(selected in 0 until item_count) {
+        "selected=$selected, item_count=$item_count"
+    }
 
     if (expanded) {
         PlatformDialog(
@@ -56,12 +59,15 @@ fun LargeDropdownMenu(
                             Modifier
                                 .clickable { onSelected(index) }
                                 .fillMaxWidth()
-                                .padding(16.dp)
+                                .padding(8.dp)
+                                .thenIf(index == selected) {
+                                    border(1.dp, selected_border_colour, RoundedCornerShape(16.dp))
+                                }
+                                .padding(8.dp)
                         ) {
                             Text(
                                 text = getItem(index),
-                                style = MaterialTheme.typography.titleSmall,
-                                color = if (index == selected) selected_item_colour else item_colour
+                                style = MaterialTheme.typography.titleSmall
                             )
                         }
 

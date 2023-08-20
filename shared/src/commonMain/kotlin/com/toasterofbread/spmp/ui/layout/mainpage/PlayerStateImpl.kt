@@ -13,6 +13,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
+import com.toasterofbread.composesettings.ui.SettingsInterface
+import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.service.playerservice.PlayerService
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
@@ -37,7 +39,9 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.toasterofbread.spmp.ui.layout.playlistpage.PlaylistPage
 import com.toasterofbread.spmp.ui.layout.prefspage.PrefsPage
 import com.toasterofbread.spmp.ui.layout.prefspage.PrefsPageCategory
+import com.toasterofbread.spmp.ui.layout.prefspage.getPrefsPageSettingsInterface
 import com.toasterofbread.spmp.ui.layout.radiobuilder.RadioBuilderPage
+import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.YoutubeMusicLogin
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.init
@@ -136,10 +140,14 @@ interface PlayerOverlayPage {
 
         val SettingsPage = object : PlayerOverlayPage {
             val current_category: MutableState<PrefsPageCategory?> = mutableStateOf(null)
+            val pill_menu: PillMenu = PillMenu(follow_player = true)
+            val ytm_auth: SettingsValueState<YoutubeMusicAuthInfo> = YoutubeMusicAuthInfo.getSettingsValueState()
+            val settings_interface: SettingsInterface =
+                getPrefsPageSettingsInterface(pill_menu, ytm_auth, { current_category.value }, { current_category.value = null })
 
             @Composable
             override fun Page(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
-                PrefsPage(bottom_padding, current_category, Modifier.fillMaxSize(), close)
+                PrefsPage(bottom_padding, current_category, pill_menu, settings_interface, ytm_auth, Modifier.fillMaxSize(), close)
             }
         }
 

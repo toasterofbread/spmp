@@ -524,6 +524,7 @@
     <string name="youtube_manual_login_field">Headers</string>
 
     <string name="youtube_login_load_message">Loading login page</string>
+    <string name="youtube_account_selection_title">Select account</string>
     <string name="youtube_channel_creation_load_message">Loading channel creation form</string>
 
     <string name="youtube_channel_creation_title">Register YouTube Music profile</string>

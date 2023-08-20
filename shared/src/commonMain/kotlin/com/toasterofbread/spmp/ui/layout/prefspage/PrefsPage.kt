@@ -107,16 +107,14 @@ enum class PrefsPageCategory {
 fun PrefsPage(
     bottom_padding: Dp,
     category_state: MutableState<PrefsPageCategory?>,
+    pill_menu: PillMenu,
+    settings_interface: SettingsInterface,
+    ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>,
     modifier: Modifier = Modifier,
     close: () -> Unit,
 ) {
-    val ytm_auth = remember { YoutubeMusicAuthInfo.getSettingsValueState() }
-    val pill_menu = remember { PillMenu(follow_player = true) }
-
     var current_category by category_state
     val category_open by remember { derivedStateOf { current_category != null } }
-    val settings_interface: SettingsInterface =
-        rememberPrefsPageSettingsInterface(pill_menu, ytm_auth, { current_category }, { current_category = null })
     val show_reset_confirmation = remember { mutableStateOf(false) }
 
     ResetConfirmationDialog(

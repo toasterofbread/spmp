@@ -4,6 +4,7 @@ import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.api.Api.Companion.ytUrl
 import com.toasterofbread.spmp.api.model.MusicThumbnailRenderer
 import com.toasterofbread.spmp.api.model.TextRuns
+import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Headers.Companion.toHeaders
@@ -62,9 +63,11 @@ data class YoutubeAccountCreationForm(
         val collectFamilyName: Boolean,
         val familyNameLabel: TextRuns? = null,
         val familyNameValue: String? = null,
-        val profilePhoto: MusicThumbnailRenderer.Thumbnail,
+        val profilePhoto: ProfilePhoto,
         val missingNameErrorMessage: TextRuns
     ) {
+        data class ProfilePhoto(val thumbnails: List<Thumbnail>)
+        data class Thumbnail(val url: String)
         data class InputField(val label: String?, val default: String?, val key: String)
 
         fun getInputFields(): List<InputField> {

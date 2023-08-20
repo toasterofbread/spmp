@@ -287,14 +287,14 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
 
                 val section_list_renderer = with (parsed.contents!!) {
                     if (singleColumnBrowseResultsRenderer != null) {
-                        singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer
+                        singleColumnBrowseResultsRenderer.tabs.firstOrNull()?.tabRenderer?.content?.sectionListRenderer
                     }
                     else {
-                        twoColumnBrowseResultsRenderer!!.secondaryContents.sectionListRenderer
+                        twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer
                     }
                 }
 
-                for (row in section_list_renderer.contents.orEmpty().withIndex()) {
+                for (row in section_list_renderer?.contents.orEmpty().withIndex()) {
                     val description = row.value.description
                     if (description != null) {
                         item.description = description

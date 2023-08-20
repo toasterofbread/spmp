@@ -4,7 +4,7 @@ import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.api.Api.Companion.ytUrl
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.ArtistRef
-import com.toasterofbread.spmp.ui.layout.CreateChannelResponse
+import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.CreateChannelResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext

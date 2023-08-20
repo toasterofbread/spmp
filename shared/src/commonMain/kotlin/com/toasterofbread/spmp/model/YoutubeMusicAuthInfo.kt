@@ -12,7 +12,7 @@ import com.toasterofbread.spmp.api.cast
 import com.toasterofbread.spmp.api.getAccountPlaylists
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.PlaylistData
-import com.toasterofbread.spmp.ui.layout.YTAccountMenuResponse
+import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.YTAccountMenuResponse
 import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.mediaitem.ArtistRef

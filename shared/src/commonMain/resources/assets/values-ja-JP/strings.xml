@@ -519,6 +519,7 @@
     <string name="youtube_manual_login_field">ヘッダー</string>
 
     <string name="youtube_login_load_message">ログインページをロード中</string>
+    <string name="youtube_account_selection_title">アカウントの選択</string>
     <string name="youtube_channel_creation_load_message">チャンネル作成ページをロード中</string>
 
     <string name="youtube_channel_creation_title">YouTube Musicプロフィールを作成</string>

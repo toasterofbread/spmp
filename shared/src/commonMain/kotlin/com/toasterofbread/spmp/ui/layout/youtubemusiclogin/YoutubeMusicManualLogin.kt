@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.ui.layout
+package com.toasterofbread.spmp.ui.layout.youtubemusiclogin
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
@@ -6,6 +6,7 @@ import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringArray
+import com.toasterofbread.spmp.ui.layout.ManualLoginPage
 import com.toasterofbread.utils.indexOfOrNull
 import kotlinx.coroutines.launch
 

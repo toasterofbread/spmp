@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.ui.layout
+package com.toasterofbread.spmp.ui.layout.youtubemusiclogin
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade

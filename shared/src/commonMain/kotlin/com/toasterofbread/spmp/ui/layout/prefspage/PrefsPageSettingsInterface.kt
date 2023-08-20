@@ -18,94 +18,91 @@ import com.toasterofbread.spmp.resources.Languages
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.theme.Theme
 
-@Composable
-internal fun rememberPrefsPageSettingsInterface(
-    pill_menu: PillMenu, 
-    ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, 
-    getCategory: () -> PrefsPageCategory?, 
+internal fun getPrefsPageSettingsInterface(
+    pill_menu: PillMenu,
+    ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>,
+    getCategory: () -> PrefsPageCategory?,
     close: () -> Unit
 ): SettingsInterface {
+    lateinit var settings_interface: SettingsInterface
 
-    return remember {
-        lateinit var settings_interface: SettingsInterface
-        val pill_menu_action_overrider: @Composable PillMenu.Action.(i: Int) -> Boolean = { i ->
-            if (i == 0) {
-                var go_back by remember { mutableStateOf(false) }
-                LaunchedEffect(go_back) {
-                    if (go_back) {
-                        settings_interface.goBack()
-                    }
+    val pill_menu_action_overrider: @Composable PillMenu.Action.(i: Int) -> Boolean = { i ->
+        if (i == 0) {
+            var go_back by remember { mutableStateOf(false) }
+            LaunchedEffect(go_back) {
+                if (go_back) {
+                    settings_interface.goBack()
                 }
-
-                ActionButton(
-                    Icons.Filled.ArrowBack
-                ) {
-                    go_back = true
-                }
-                true
-            } else {
-                false
             }
+
+            ActionButton(
+                Icons.Filled.ArrowBack
+            ) {
+                go_back = true
+            }
+            true
+        } else {
+            false
         }
-
-        val discord_auth =
-            SettingsValueState<String>(Settings.KEY_DISCORD_ACCOUNT_TOKEN.name).init(Settings.prefs, Settings.Companion::provideDefault)
-
-        val categories = mapOf(
-            PrefsPageCategory.GENERAL to lazy { getGeneralCategory(SpMp.ui_language, Languages.loadAvailableLanugages(SpMp.context)) },
-            PrefsPageCategory.FILTER to lazy { getFilterCategory() },
-            PrefsPageCategory.FEED to lazy { getFeedCategory() },
-            PrefsPageCategory.PLAYER to lazy { getPlayerCategory() },
-            PrefsPageCategory.LIBRARY to lazy { getLibraryCategory() },
-            PrefsPageCategory.THEME to lazy { getThemeCategory(Theme) },
-            PrefsPageCategory.LYRICS to lazy { getLyricsCategory() },
-            PrefsPageCategory.DOWNLOAD to lazy { getDownloadCategory() },
-            PrefsPageCategory.DISCORD_STATUS to lazy { getDiscordStatusGroup(discord_auth) },
-            PrefsPageCategory.OTHER to lazy { getOtherCategory() },
-            PrefsPageCategory.DEVELOPMENT to lazy { getDevelopmentCategory() }
-        )
-
-        settings_interface = SettingsInterface(
-            { Theme },
-            PrefsPageScreen.ROOT.ordinal,
-            SpMp.context,
-            Settings.prefs,
-            Settings.Companion::provideDefault,
-            pill_menu,
-            {
-                when (PrefsPageScreen.values()[it]) {
-                    PrefsPageScreen.ROOT -> SettingsPageWithItems(
-                        { getCategory()?.getTitle() },
-                        { categories[getCategory()]?.value ?: emptyList() },
-                        getIcon = {
-                            val icon = getCategory()?.getIcon()
-                            var current_icon by remember { mutableStateOf(icon) }
-
-                            LaunchedEffect(icon) {
-                                if (icon != null) {
-                                    current_icon = icon
-                                }
-                            }
-
-                            return@SettingsPageWithItems current_icon
-                        }
-                    )
-                    PrefsPageScreen.YOUTUBE_MUSIC_LOGIN -> getYoutubeMusicLoginPage(ytm_auth)
-                    PrefsPageScreen.YOUTUBE_MUSIC_MANUAL_LOGIN -> getYoutubeMusicLoginPage(ytm_auth, manual = true)
-                    PrefsPageScreen.DISCORD_LOGIN -> getDiscordLoginPage(discord_auth)
-                    PrefsPageScreen.DISCORD_MANUAL_LOGIN -> getDiscordLoginPage(discord_auth, manual = true)
-                }
-            },
-            { page: Int? ->
-                if (page == PrefsPageScreen.ROOT.ordinal) {
-                    pill_menu.removeActionOverrider(pill_menu_action_overrider)
-                } else {
-                    pill_menu.addActionOverrider(pill_menu_action_overrider)
-                }
-            },
-            close
-        )
-
-        return@remember settings_interface
     }
+
+    val discord_auth =
+        SettingsValueState<String>(Settings.KEY_DISCORD_ACCOUNT_TOKEN.name).init(Settings.prefs, Settings.Companion::provideDefault)
+
+    val categories = mapOf(
+        PrefsPageCategory.GENERAL to lazy { getGeneralCategory(SpMp.ui_language, Languages.loadAvailableLanugages(SpMp.context)) },
+        PrefsPageCategory.FILTER to lazy { getFilterCategory() },
+        PrefsPageCategory.FEED to lazy { getFeedCategory() },
+        PrefsPageCategory.PLAYER to lazy { getPlayerCategory() },
+        PrefsPageCategory.LIBRARY to lazy { getLibraryCategory() },
+        PrefsPageCategory.THEME to lazy { getThemeCategory(Theme) },
+        PrefsPageCategory.LYRICS to lazy { getLyricsCategory() },
+        PrefsPageCategory.DOWNLOAD to lazy { getDownloadCategory() },
+        PrefsPageCategory.DISCORD_STATUS to lazy { getDiscordStatusGroup(discord_auth) },
+        PrefsPageCategory.OTHER to lazy { getOtherCategory() },
+        PrefsPageCategory.DEVELOPMENT to lazy { getDevelopmentCategory() }
+    )
+
+    settings_interface = SettingsInterface(
+        { Theme },
+        PrefsPageScreen.ROOT.ordinal,
+        SpMp.context,
+        Settings.prefs,
+        Settings.Companion::provideDefault,
+        pill_menu,
+        {
+            when (PrefsPageScreen.values()[it]) {
+                PrefsPageScreen.ROOT -> SettingsPageWithItems(
+                    { getCategory()?.getTitle() },
+                    { categories[getCategory()]?.value ?: emptyList() },
+                    getIcon = {
+                        val icon = getCategory()?.getIcon()
+                        var current_icon by remember { mutableStateOf(icon) }
+
+                        LaunchedEffect(icon) {
+                            if (icon != null) {
+                                current_icon = icon
+                            }
+                        }
+
+                        return@SettingsPageWithItems current_icon
+                    }
+                )
+                PrefsPageScreen.YOUTUBE_MUSIC_LOGIN -> getYoutubeMusicLoginPage(ytm_auth)
+                PrefsPageScreen.YOUTUBE_MUSIC_MANUAL_LOGIN -> getYoutubeMusicLoginPage(ytm_auth, manual = true)
+                PrefsPageScreen.DISCORD_LOGIN -> getDiscordLoginPage(discord_auth)
+                PrefsPageScreen.DISCORD_MANUAL_LOGIN -> getDiscordLoginPage(discord_auth, manual = true)
+            }
+        },
+        { page: Int? ->
+            if (page == PrefsPageScreen.ROOT.ordinal) {
+                pill_menu.removeActionOverrider(pill_menu_action_overrider)
+            } else {
+                pill_menu.addActionOverrider(pill_menu_action_overrider)
+            }
+        },
+        close
+    )
+
+    return settings_interface
 }

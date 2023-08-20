@@ -59,7 +59,7 @@ import com.toasterofbread.spmp.platform.rememberSongDownloads
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.YoutubeMusicLoginConfirmation
+import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.YoutubeMusicLoginConfirmation
 import com.toasterofbread.spmp.ui.layout.mainpage.MainPage
 import com.toasterofbread.spmp.ui.layout.mainpage.MainPageState
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerOverlayPage

@@ -10,7 +10,7 @@ import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
-import com.toasterofbread.spmp.ui.layout.YoutubeMusicLoginConfirmation
+import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.YoutubeMusicLoginConfirmation
 import androidx.compose.runtime.*
 
 @Composable

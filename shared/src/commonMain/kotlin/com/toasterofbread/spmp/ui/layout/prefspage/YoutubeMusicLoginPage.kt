@@ -11,7 +11,8 @@ import com.toasterofbread.composesettings.ui.SettingsPage
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.layout.YoutubeMusicLogin
+import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.YoutubeMusicLogin
+import java.net.SocketException
 
 internal fun getYoutubeMusicLoginPage(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, manual: Boolean = false): SettingsPage {
     return object : SettingsPage() {
@@ -24,18 +25,26 @@ internal fun getYoutubeMusicLoginPage(ytm_auth: SettingsValueState<YoutubeMusicA
             get() = if (manual) Icons.Default.PlayCircle else null
 
         @Composable
+        override fun TitleBar(is_root: Boolean, modifier: Modifier, goBack: () -> Unit) {}
+
+        @Composable
         override fun PageView(
             content_padding: PaddingValues,
             openPage: (Int) -> Unit,
             openCustomPage: (SettingsPage) -> Unit,
             goBack: () -> Unit,
         ) {
-            YoutubeMusicLogin(Modifier.fillMaxSize(), manual = manual) { auth_info ->
-                auth_info?.fold({
-                    ytm_auth.set(it)
-                }, {
-                    throw RuntimeException(it)
-                })
+            YoutubeMusicLogin(Modifier.fillMaxSize(), manual = manual) { result ->
+                result?.fold(
+                    { auth_info ->
+                        ytm_auth.set(auth_info)
+                    },
+                    { error ->
+                        if (error !is SocketException) {
+                            throw RuntimeException(error)
+                        }
+                    }
+                )
                 goBack()
             }
         }

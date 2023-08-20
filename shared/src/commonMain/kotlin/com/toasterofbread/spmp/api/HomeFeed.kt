@@ -41,10 +41,10 @@ suspend fun getHomeFeed(
 ): Result<HomeFeedLoadResult> = withContext(Dispatchers.IO) {
     val hl = SpMp.data_language
     val suffix = params ?: ""
-    val rows_cache_key = "feed_rows$suffix"
-    val ctoken_cache_key = "feed_ctoken$suffix"
-    val chips_cache_key = "feed_chips$suffix"
-
+//    val rows_cache_key = "feed_rows$suffix"
+//    val ctoken_cache_key = "feed_ctoken$suffix"
+//    val chips_cache_key = "feed_chips$suffix"
+//
 //    if (allow_cached && continuation == null) {
 //        Cache.get(rows_cache_key)?.use { cached_rows ->
 //            val rows = Api.klaxon.parseArray<MediaItemLayout>(cached_rows)!!
@@ -96,32 +96,27 @@ suspend fun getHomeFeed(
         var data = performRequest(continuation).getOrThrow()
 
         val rows: MutableList<MediaItemLayout> = processRows(data.getShelves(continuation != null), hl, db).toMutableList()
-        check(rows.isNotEmpty())
-
-        val chips = data.getHeaderChips()
 
         var ctoken: String? = data.ctoken
-        while (min_rows >= 1 && rows.size < min_rows) {
-            if (ctoken == null) {
+        while (ctoken != null && min_rows >= 1 && rows.size < min_rows) {
+            data = performRequest(ctoken).getOrThrow()
+            ctoken = data.ctoken
+
+            val shelves = data.getShelves(true)
+            if (shelves.isEmpty()) {
                 break
             }
 
-            data = performRequest(ctoken).getOrThrow()
-
-            val shelves = data.getShelves(true)
-            check(shelves.isNotEmpty())
             rows.addAll(processRows(shelves, hl, db))
-
-            ctoken = data.ctoken
         }
 
-        if (continuation == null) {
+//        if (continuation == null) {
 //            Cache.set(rows_cache_key, Api.klaxon.toJsonString(rows).reader(), CACHE_LIFETIME)
 //            Cache.set(ctoken_cache_key, ctoken?.reader(), CACHE_LIFETIME)
 //            Cache.set(chips_cache_key, Api.klaxon.toJsonString(chips).reader(), CACHE_LIFETIME)
-        }
+//        }
 
-        return@withContext Result.success(HomeFeedLoadResult(rows, ctoken, chips))
+        return@withContext Result.success(HomeFeedLoadResult(rows, ctoken, data.getHeaderChips()))
     }
     catch (error: Throwable) {
         val request = last_request ?: return@withContext Result.failure(error)

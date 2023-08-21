@@ -317,7 +317,7 @@ enum class Settings {
 
                 // Recommendation feed
                 KEY_FEED_SHOW_FILTERS -> true
-                KEY_FEED_INITIAL_ROWS -> 5
+                KEY_FEED_INITIAL_ROWS -> 1
                 KEY_FEED_SQUARE_PREVIEW_TEXT_LINES -> 2
                 KEY_FEED_SHOW_RADIOS -> false
                 KEY_FEED_SHOW_LISTEN_ROW -> true

@@ -94,6 +94,7 @@ suspend fun getHomeFeed(
 
     try {
         var data = performRequest(continuation).getOrThrow()
+        val header_chips = data.getHeaderChips()
 
         val rows: MutableList<MediaItemLayout> = processRows(data.getShelves(continuation != null), hl, db).toMutableList()
 
@@ -116,7 +117,7 @@ suspend fun getHomeFeed(
 //            Cache.set(chips_cache_key, Api.klaxon.toJsonString(chips).reader(), CACHE_LIFETIME)
 //        }
 
-        return@withContext Result.success(HomeFeedLoadResult(rows, ctoken, data.getHeaderChips()))
+        return@withContext Result.success(HomeFeedLoadResult(rows, ctoken, header_chips))
     }
     catch (error: Throwable) {
         val request = last_request ?: return@withContext Result.failure(error)

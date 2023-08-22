@@ -23,7 +23,8 @@ internal fun getFeedCategory(): List<SettingsItem> {
             getString("s_sub_feed_initial_rows"),
             "1",
             "10",
-            range = 1f..10f
+            range = 1f..10f,
+            steps = 10
         ),
 
         SettingsSliderItem(

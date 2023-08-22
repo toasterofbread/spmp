@@ -6,6 +6,7 @@ import androidx.compose.runtime.remember
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.db.rememberHiddenItems
+import com.toasterofbread.spmp.platform.PlatformContext
 
 interface MediaItemHolder {
     // If item is null, consider it deleted
@@ -38,12 +39,12 @@ fun isMediaItemHidden(item: MediaItem, db: Database, hidden_items: List<MediaIte
 }
 
 @Composable
-fun List<MediaItemHolder>.rememberFilteredItems(apply_filter: Boolean, db: Database = SpMp.context.database): List<MediaItemHolder> {
-    val hidden_items: List<MediaItem> = rememberHiddenItems(db)
+fun List<MediaItemHolder>.rememberFilteredItems(apply_filter: Boolean, context: PlatformContext = SpMp.context): List<MediaItemHolder> {
+    val hidden_items: List<MediaItem> = rememberHiddenItems(context)
     return remember(this, apply_filter, hidden_items) {
         if (apply_filter) mapNotNull {
             val item = it.item
-            if (item != null && isMediaItemHidden(item, db, hidden_items)) {
+            if (item != null && isMediaItemHidden(item, context.database, hidden_items)) {
                 return@mapNotNull null
             }
             return@mapNotNull it

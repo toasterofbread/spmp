@@ -10,6 +10,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.Database
+import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -53,6 +54,7 @@ fun PlatformContext.getNavigationBarHeightDp(): Dp = with(LocalDensity.current) 
 expect class PlatformContext {
     val database: Database
     val download_manager: PlayerDownloadManager
+    val ytapi: YoutubeApi
 
     fun getPrefs(): ProjectPreferences
 

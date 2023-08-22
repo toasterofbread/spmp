@@ -7,7 +7,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.ImageBitmap
-import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
@@ -117,7 +116,7 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
     }
 
     @Composable
-    fun rememberItemState(item: MediaItem, db: Database): ItemState {
+    fun rememberItemState(item: MediaItem, context: PlatformContext): ItemState {
         val state = remember(item) {
             object : ItemState {
                 override val loaded_images: MutableMap<MediaItemThumbnailProvider.Quality, WeakReference<ImageBitmap>> = mutableStateMapOf()
@@ -128,7 +127,7 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
         LaunchedEffect(state) {
             withContext(Dispatchers.Default) {
                 MediaItemThumbnailLoader.lock.withLock {
-                    val provider = item.ThumbnailProvider.get(db) ?: return@withContext
+                    val provider = item.ThumbnailProvider.get(context.database) ?: return@withContext
 
                     for (quality in MediaItemThumbnailProvider.Quality.values()) {
                         val key = MediaItemThumbnailLoaderKey(provider, quality, item.id)

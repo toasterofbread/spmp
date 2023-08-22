@@ -40,9 +40,7 @@ import org.jetbrains.compose.resources.*
 internal enum class PrefsPageScreen {
     ROOT,
     YOUTUBE_MUSIC_LOGIN,
-    YOUTUBE_MUSIC_MANUAL_LOGIN,
-    DISCORD_LOGIN,
-    DISCORD_MANUAL_LOGIN
+    DISCORD_LOGIN
 }
 enum class PrefsPageCategory {
     GENERAL,
@@ -109,7 +107,7 @@ fun PrefsPage(
     category_state: MutableState<PrefsPageCategory?>,
     pill_menu: PillMenu,
     settings_interface: SettingsInterface,
-    ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>,
+    ytm_auth: SettingsValueState<Set<String>>,
     modifier: Modifier = Modifier,
     close: () -> Unit,
 ) {

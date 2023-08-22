@@ -26,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -171,7 +172,7 @@ private fun MusicTopBar(
     val visualiser_width: Float by Settings.KEY_TOPBAR_VISUALISER_WIDTH.rememberMutableState()
     check(visualiser_width in 0f .. 1f)
 
-    val sync_offset: Long? = song?.LyricsSyncOffset?.observe(SpMp.context.database)?.value
+    val sync_offset_state: State<Long?>? = song?.LyricsSyncOffset?.observe(SpMp.context.database)
 
     val current_state by remember(lyrics) {
         derivedStateOf {
@@ -224,7 +225,7 @@ private fun MusicTopBar(
                                     state,
                                     {
                                         (player.player?.current_position_ms ?: 0) +
-                                            (sync_offset ?: 0)
+                                            (sync_offset_state?.value ?: 0)
                                     },
                                     linger,
                                     show_furigana,

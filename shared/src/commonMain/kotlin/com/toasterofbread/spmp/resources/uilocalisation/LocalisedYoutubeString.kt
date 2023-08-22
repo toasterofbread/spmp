@@ -1,8 +1,8 @@
 package com.toasterofbread.spmp.resources.uilocalisation
 
-import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.model.Settings
+import SpMp
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
+import com.toasterofbread.spmp.resources.getString
 
 data class LocalisedYoutubeString constructor(
     val key: String,

@@ -1,8 +1,8 @@
 package com.toasterofbread.spmp.model.mediaitem.db
 
-import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 
 fun Boolean.toSQLBoolean(): Long? = if (this) 0L else null
@@ -25,9 +25,9 @@ fun Long?.toLocalisedYoutubeString(key: String?, source_language: String?): Loca
     if (this != null) LocalisedYoutubeString(key!!, LocalisedYoutubeString.Type.values()[this.toInt()], source_language!!)
     else null
 
-suspend fun <T, ItemType: MediaItemData> Database.loadMediaItemValue(item: ItemType, getValue: ItemType.() -> T?): Result<T>? {
+suspend fun <T, ItemType: MediaItemData> PlatformContext.loadMediaItemValue(item: ItemType, getValue: ItemType.() -> T?): Result<T>? {
     // If the item is marked as already loaded, give up
-    val loaded = mediaItemQueries.loadedById(item.id).executeAsOneOrNull()?.loaded.fromSQLBoolean()
+    val loaded = database.mediaItemQueries.loadedById(item.id).executeAsOneOrNull()?.loaded.fromSQLBoolean()
     if (loaded) {
         return null
     }

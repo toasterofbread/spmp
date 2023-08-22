@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp
 
+import SpMp
 import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
@@ -384,7 +385,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
     }
 
     private fun performDownload(download: Download): Result<File?> {
-        val format = getSongFormatByQuality(download.id, download.quality).fold(
+        val format = getSongFormatByQuality(download.id, download.quality, context).fold(
             { it },
             { return Result.failure(it) }
         )

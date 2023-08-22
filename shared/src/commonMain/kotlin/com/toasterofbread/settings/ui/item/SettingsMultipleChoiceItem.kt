@@ -53,7 +53,7 @@ class SettingsMultipleChoiceItem(
     @Composable
     override fun GetItem(
         theme: Theme,
-        openPage: (Int) -> Unit,
+        openPage: (Int, Any?) -> Unit,
         openCustomPage: (SettingsPage) -> Unit
     ) {
         Column {

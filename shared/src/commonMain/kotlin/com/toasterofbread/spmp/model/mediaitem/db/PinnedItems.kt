@@ -7,7 +7,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import app.cash.sqldelight.Query
-import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.AccountPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.ArtistRef
@@ -17,13 +16,16 @@ import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongRef
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.spmp.platform.PlatformContext
 import mediaitem.ArtistQueries
 import mediaitem.MediaItemQueries
 import mediaitem.PlaylistQueries
 import mediaitem.SongQueries
 
 @Composable
-fun rememberAnyItemsArePinned(db: Database, pinned: Boolean = true): Boolean {
+fun rememberAnyItemsArePinned(context: PlatformContext, pinned: Boolean = true): Boolean {
+    val db = context.database
+
     val any_are_pinned = remember { mutableStateOf(
         db.mediaItemQueries.anyArePinned(pinned)
     ) }
@@ -45,7 +47,9 @@ fun rememberAnyItemsArePinned(db: Database, pinned: Boolean = true): Boolean {
 }
 
 @Composable
-fun rememberPinnedItems(db: Database, pinned: Boolean = true): List<MediaItem> {
+fun rememberPinnedItems(context: PlatformContext, pinned: Boolean = true): List<MediaItem> {
+    val db = context.database
+
     var pinned_songs: List<Song> by remember { mutableStateOf(
         db.songQueries.getByPinned(pinned)
     ) }

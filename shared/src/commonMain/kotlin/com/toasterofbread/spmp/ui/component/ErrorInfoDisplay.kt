@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.component
 
+import LocalPlayerState
 import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
@@ -46,11 +47,10 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.ProjectBuildConfig
-import com.toasterofbread.spmp.api.Api
-import com.toasterofbread.spmp.api.DataParseException
-import com.toasterofbread.spmp.api.cast
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
 import com.toasterofbread.utils.composable.ShapedIconButton
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.composable.WidthShrinkText
@@ -153,6 +153,8 @@ fun ErrorInfoDisplay(
 @Composable
 private fun ExpandedContent(error: Throwable, shape: Shape, disable_parent_scroll: Boolean) {
     val coroutine_scope = rememberCoroutineScope()
+    val player = LocalPlayerState.current
+
     var text_to_show: String? by remember { mutableStateOf(null) }
     var wrap_text by remember { mutableStateOf(false) }
     val button_colours = ButtonDefaults.buttonColors(
@@ -187,7 +189,7 @@ private fun ExpandedContent(error: Throwable, shape: Shape, disable_parent_scrol
                         Button(
                             {
                                 coroutine_scope.launch {
-                                    text_to_show = uploadErrorToPasteEe(error, paste_token).getOrElse { it.toString() }
+                                    text_to_show = uploadErrorToPasteEe(error, paste_token, player.context).getOrElse { it.toString() }
                                 }
                             },
                             colors = button_colours,
@@ -230,7 +232,7 @@ private fun ExpandedContent(error: Throwable, shape: Shape, disable_parent_scrol
                 val extra_button_text =
                     if (text_to_show != null) getString("action_cancel")
                     else when (error) {
-                        is DataParseException -> getString("error_info_display_show_json_data")
+                        is com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException -> getString("error_info_display_show_json_data")
                         else -> null
                     }
 
@@ -247,7 +249,7 @@ private fun ExpandedContent(error: Throwable, shape: Shape, disable_parent_scrol
                                 text_to_show = null
                             } else {
                                 when (error) {
-                                    is DataParseException -> {
+                                    is com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException -> {
                                         coroutine_scope.launch {
                                             coroutineContext.job.invokeOnCompletion {
                                                 cause_data_loading = false
@@ -291,13 +293,13 @@ private fun ExpandedContent(error: Throwable, shape: Shape, disable_parent_scrol
     }
 }
 
-private suspend fun uploadErrorToPasteEe(error: Throwable, token: String): Result<String> = withContext(Dispatchers.IO) {
+private suspend fun uploadErrorToPasteEe(error: Throwable, token: String, context: PlatformContext): Result<String> = withContext(Dispatchers.IO) {
     val sections = mutableListOf(
         mapOf("name" to "MESSAGE", "contents" to error.message.toString()),
         mapOf("name" to "STACKTRACE", "contents" to error.stackTraceToString()),
     )
 
-    if (error is DataParseException) {
+    if (error is com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException) {
         val cause_data_result = error.getCauseData()
         val cause_data = cause_data_result.getOrNull() ?: return@withContext cause_data_result.cast()
 
@@ -313,7 +315,7 @@ private suspend fun uploadErrorToPasteEe(error: Throwable, token: String): Resul
         .url("https://api.paste.ee/v1/pastes")
         .header("X-Auth-Token", token)
         .post(
-            Api.klaxon.toJsonString(mapOf("sections" to sections))
+            context.ytapi.klaxon.toJsonString(mapOf("sections" to sections))
                 .toRequestBody("application/json".toMediaType())
         )
         .build()
@@ -321,7 +323,7 @@ private suspend fun uploadErrorToPasteEe(error: Throwable, token: String): Resul
     try {
         val result = OkHttpClient().newCall(request).execute()
         val response = result.use {
-            Api.klaxon.parseJsonObject(it.body!!.charStream())
+            context.ytapi.klaxon.parseJsonObject(it.body!!.charStream())
         }
 
         if (response["success"] != true || response["link"] == null) {

@@ -19,6 +19,7 @@ CREATE TABLE Playlist (
 );
 
 byType: SELECT id FROM Playlist WHERE playlist_type = :playlist_type;
+byArtist: SELECT id FROM Playlist WHERE artist = :artist_id;
 byPinned: SELECT Playlist.id, playlist_type FROM Playlist, MediaItem WHERE MediaItem.id == Playlist.id AND MediaItem.pinned_to_home == :pinned;
 byHidden: SELECT Playlist.id, playlist_type FROM Playlist, MediaItem WHERE MediaItem.id == Playlist.id AND MediaItem.hidden == :hidden;
 

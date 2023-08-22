@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.service.playerservice
 
+import SpMp
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongData
@@ -131,7 +132,7 @@ internal class PersistentQueueHandler(val player: PlayerService, val context: Pl
                         jobs.add(
                             launch {
                                 request_limit.withPermit {
-                                    MediaItemLoader.loadSong(song, context.database)
+                                    MediaItemLoader.loadSong(song, context)
                                 }
                             }
                         )

@@ -139,7 +139,7 @@
     <string name="lyrics_no_more_results">Brak wyników</string>
     <string name="lyrics_search_on_$source">Szukaj tekstów w $źródle</string>
     <string name="lyrics_loading">Wczytywanie tekstu utworu</string>
-    <string name="lyrics_sync_select_line">Wybierz linię do zsynchronizowania</string>
+    <string name="lyrics_sync_long_press_line">Wybierz linię do zsynchronizowania</string>
     <string name="lyrics_sync_press_button_when_line_begins">Naciśnij przycisk, gdy linia się rozpocznie</string>
     
     <string name="lyrics_source_petit">Słowa utworu</string>

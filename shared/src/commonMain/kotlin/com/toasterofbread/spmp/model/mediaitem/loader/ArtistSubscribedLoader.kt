@@ -1,15 +1,19 @@
 package com.toasterofbread.spmp.model.mediaitem.loader
 
-import com.toasterofbread.Database
-import com.toasterofbread.spmp.api.isSubscribedToArtist
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.toSQLBoolean
+import com.toasterofbread.spmp.platform.PlatformContext
 
 internal object ArtistSubscribedLoader: ItemStateLoader<String, Boolean>() {
-    suspend fun loadArtistSubscribed(artist: Artist, db: Database): Result<Boolean> {
+    suspend fun loadArtistSubscribed(artist: Artist, context: PlatformContext): Result<Boolean>? {
+        val endpoint = context.ytapi.user_auth_state?.SubscribedToArtist
+        if (endpoint?.isImplemented() != true) {
+            return null
+        }
+
         return performLoad(artist.id) {
-            isSubscribedToArtist(artist).onSuccess { subscribed ->
-                db.artistQueries.updateSubscribedById(subscribed.toSQLBoolean(), artist.id)
+            endpoint.isSubscribedToArtist(artist).onSuccess { subscribed ->
+                context.database.artistQueries.updateSubscribedById(subscribed.toSQLBoolean(), artist.id)
             }
         }
     }

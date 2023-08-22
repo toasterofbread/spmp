@@ -80,7 +80,7 @@ fun LongPressMenu(
                 enter = EnterTransition.None,
                 exit = slideOutVertically(tween(LONG_PRESS_ICON_MENU_OPEN_ANIM_MS)) { it }
             ) {
-                var accent_colour: Color? = data.item.rememberThemeColour(SpMp.context.database)?.contrastAgainst(Theme.background)
+                var accent_colour: Color? = data.item.rememberThemeColour(SpMp.context)?.contrastAgainst(Theme.background)
 
                 DisposableEffect(Unit) {
                     val theme_colour = data.item.ThemeColour.get(SpMp.context.database)

@@ -186,7 +186,7 @@ fun ThumbnailRow(
                 enter = fadeIn(tween(OVERLAY_MENU_ANIMATION_DURATION)),
                 exit = fadeOut(tween(OVERLAY_MENU_ANIMATION_DURATION))
             ) {
-                val overlay_background_alpha by animateFloatAsState(if (colourpick_callback != null) 0.4f else 0.85f)
+                val overlay_background_alpha by animateFloatAsState(if (colourpick_callback != null) 0.4f else 0.8f)
 
                 Box(
                     Modifier

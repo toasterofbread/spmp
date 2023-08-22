@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.beust.klaxon.Klaxon
 import com.beust.klaxon.KlaxonException
-import com.toasterofbread.spmp.api.Api
 import com.toasterofbread.spmp.model.Cache
 import com.toasterofbread.spmp.model.FontMode
 import com.toasterofbread.spmp.model.Settings
@@ -53,6 +52,10 @@ import com.toasterofbread.utils.*
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.composable.ShapedIconButton
 import com.toasterofbread.utils.composable.WidthShrinkText
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import java.util.*
 import java.util.concurrent.CancellationException
 import java.util.logging.Logger
@@ -78,6 +81,7 @@ object SpMp {
         }
 
     private val low_memory_listeners: MutableList<() -> Unit> = mutableListOf()
+    private val coroutine_scope = CoroutineScope(Dispatchers.Main)
 
     val ui_language: String get() =
         Settings.KEY_LANG_UI.get<String>(context.getPrefs()).ifEmpty { Locale.getDefault().toLanguageTag() }
@@ -86,6 +90,10 @@ object SpMp {
 
     fun init(context: PlatformContext) {
         this.context = context
+
+        coroutine_scope.launch {
+            context.ytapi.init()
+        }
 
         player_state = PlayerStateImpl(context)
 
@@ -96,12 +104,11 @@ object SpMp {
 
         initResources(ui_language, context)
         _yt_ui_localisation = YoutubeUILocalisation(UILanguages())
-
-        Api.initialise()
     }
 
     fun release() {
         _yt_ui_localisation = null
+        coroutine_scope.cancel()
     }
 
     fun onStart() {

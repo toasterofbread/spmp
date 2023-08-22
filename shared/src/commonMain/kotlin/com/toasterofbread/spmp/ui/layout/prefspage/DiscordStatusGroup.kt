@@ -57,10 +57,7 @@ internal fun getDiscordStatusGroup(discord_auth: SettingsValueState<String>): Li
                 DiscordLoginConfirmation { manual ->
                     dismiss()
                     if (manual != null) {
-                        openPage(
-                            if (manual) PrefsPageScreen.DISCORD_MANUAL_LOGIN.ordinal
-                            else PrefsPageScreen.DISCORD_LOGIN.ordinal
-                        )
+                        openPage(PrefsPageScreen.DISCORD_LOGIN.ordinal, manual)
                     }
                 }
             },
@@ -71,7 +68,7 @@ internal fun getDiscordStatusGroup(discord_auth: SettingsValueState<String>): Li
             }
         ) { target, setEnabled, _, openPage ->
             if (target) {
-                openPage(PrefsPageScreen.DISCORD_LOGIN.ordinal)
+                openPage(PrefsPageScreen.DISCORD_LOGIN.ordinal, null)
             } else {
                 setEnabled(false)
             }

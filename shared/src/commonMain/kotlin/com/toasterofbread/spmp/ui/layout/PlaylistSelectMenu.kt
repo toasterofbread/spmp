@@ -22,44 +22,49 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.api.Api
-import com.toasterofbread.spmp.model.mediaitem.AccountPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.Playlist
-import com.toasterofbread.spmp.model.mediaitem.PlaylistData
+import com.toasterofbread.spmp.model.mediaitem.playlist.rememberArtistPlaylists
 import com.toasterofbread.spmp.model.mediaitem.playlist.rememberLocalPlaylists
 import com.toasterofbread.spmp.platform.composable.SwipeRefresh
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.utils.addUnique
 import com.toasterofbread.utils.launchSingle
 
 @Composable
 fun PlaylistSelectMenu(
     selected: SnapshotStateList<Playlist>,
+    auth_state: YoutubeApi.UserAuthState?,
     modifier: Modifier = Modifier
 ) {
     val player = LocalPlayerState.current
-    val auth = Api.ytm_auth
-
-    val local_playlists = rememberLocalPlaylists(SpMp.context.database)
-    val account_playlists = Api.ytm_auth.own_playlists
-    var loading by remember { mutableStateOf(false) }
     val coroutine_scope = rememberCoroutineScope()
 
+    var loading by remember { mutableStateOf(false) }
+
+    val local_playlists: List<Playlist> = rememberLocalPlaylists(player.context)
+    val account_playlists: List<Playlist>? = auth_state?.own_channel?.let { channel ->
+        rememberArtistPlaylists(channel, player.context)
+    }
+
     fun refreshAccountPlaylists() {
+        val playlists_endpoint = auth_state?.AccountPlaylists
+        if (playlists_endpoint?.isImplemented() != true) {
+            return
+        }
+
         coroutine_scope.launchSingle {
-            if (!auth.own_playlists_loaded && auth.is_initialised) {
-                loading = true
-                val result = auth.loadOwnPlaylists()
-                result.onFailure { error ->
-                    SpMp.context.sendToast(error.toString())
-                }
+            loading = true
+            val result = playlists_endpoint.getAccountPlaylists()
+            result.onFailure { error ->
+                SpMp.context.sendToast(error.toString())
             }
             loading = false
         }
     }
 
-    LaunchedEffect(auth) {
+    LaunchedEffect(auth_state) {
         refreshAccountPlaylists()
     }
 
@@ -80,14 +85,14 @@ fun PlaylistSelectMenu(
             loading,
             { refreshAccountPlaylists() },
             modifier,
-            swipe_enabled = auth.is_initialised
+            swipe_enabled = auth_state?.AccountPlaylists?.isImplemented() == true
         ) {
             LazyColumn(Modifier.fillMaxSize()) {
                 items(local_playlists) { playlist ->
                     PlaylistItem(selected, playlist)
                 }
-                items(account_playlists) { playlist ->
-                    PlaylistItem(selected, AccountPlaylistRef(playlist))
+                items(account_playlists ?: emptyList()) { playlist ->
+                    PlaylistItem(selected, playlist)
                 }
             }
         }

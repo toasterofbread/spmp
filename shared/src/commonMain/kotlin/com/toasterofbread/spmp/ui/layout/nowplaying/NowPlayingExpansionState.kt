@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying
 
 import SpMp
-import kotlin.math.roundToInt
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
 import androidx.compose.runtime.*
@@ -9,6 +8,7 @@ import androidx.compose.ui.unit.Dp
 import com.toasterofbread.spmp.model.MusicTopBarMode
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.MIN_EXPANSION
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterialApi::class)
 class NowPlayingExpansionState(swipe_state: State<SwipeableState<Int>>, private val context: PlatformContext = SpMp.context) {

@@ -17,6 +17,7 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.util.BitmapLoader
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DataSpec
@@ -32,7 +33,6 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.extractor.mkv.MatroskaExtractor
 import androidx.media3.extractor.mp4.FragmentedMp4Extractor
-import androidx.media3.common.util.BitmapLoader
 import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaNotification
 import androidx.media3.session.MediaSession
@@ -45,14 +45,12 @@ import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
-import com.toasterofbread.Database
-import com.toasterofbread.spmp.api.setSongLiked
 import com.toasterofbread.spmp.exovisualiser.FFTAudioProcessor
-import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
 import com.toasterofbread.spmp.model.mediaitem.SongRef
+import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
+import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
 import com.toasterofbread.spmp.model.mediaitem.song.toSongLikedStatus
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.shared.R
@@ -101,10 +99,10 @@ fun getMediaNotificationImageSize(image: Bitmap): IntSize {
 private fun formatMediaNotificationImage(
     image: Bitmap,
     song: Song,
-    db: Database
+    context: PlatformContext
 ): Bitmap {
     val dimensions = getMediaNotificationImageSize(image)
-    val offset = song.NotificationImageOffset.get(db) ?: IntOffset.Zero
+    val offset = song.NotificationImageOffset.get(context.database) ?: IntOffset.Zero
 
     return Bitmap.createBitmap(
         image,
@@ -168,7 +166,7 @@ class MediaPlayerServiceSession: MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
 
-        context = PlatformContext(this)
+        context = PlatformContext(this, coroutine_scope).init()
 
         initialiseSessionAndPlayer()
         createNotificationChannel()
@@ -264,7 +262,7 @@ class MediaPlayerServiceSession: MediaSessionService() {
         for (quality in MediaItemThumbnailProvider.Quality.byQuality()) {
             val load_result = MediaItemThumbnailLoader.loadItemThumbnail(song, thumbnail_provider, quality, context)
             load_result.onSuccess { image ->
-                return formatMediaNotificationImage(image.asAndroidBitmap(), song, context.database)
+                return formatMediaNotificationImage(image.asAndroidBitmap(), song, context)
             }
         }
 
@@ -347,7 +345,7 @@ class MediaPlayerServiceSession: MediaSessionService() {
                                         return@runBlocking formatMediaNotificationImage(
                                             image.asAndroidBitmap(),
                                             song,
-                                            context.database
+                                            context
                                         )
                                     },
                                     { error ->
@@ -398,11 +396,11 @@ class MediaPlayerServiceSession: MediaSessionService() {
                         when (customCommand.customAction) {
                             COMMAND_SET_LIKE_TRUE ->
                                 coroutine_scope.launch {
-                                    setSongLiked(song.id, SongLikedStatus.LIKED, context.database)
+                                    context.ytapi.user_auth_state?.SetSongLiked?.setSongLiked(song, SongLikedStatus.LIKED)
                                 }
                             COMMAND_SET_LIKE_NEUTRAL ->
                                 coroutine_scope.launch {
-                                    setSongLiked(song.id, SongLikedStatus.NEUTRAL, context.database)
+                                    context.ytapi.user_auth_state?.SetSongLiked?.setSongLiked(song, SongLikedStatus.NEUTRAL)
                                 }
                         }
                     }

@@ -1,14 +1,14 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying
 
 import LocalPlayerState
+import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.width
@@ -43,7 +43,7 @@ fun rememberTopBarShouldShowInQueue(mode: MusicTopBarMode): State<Boolean> {
 
     return remember(player.status.m_song?.id) {
         val lyrics_state = player.status.m_song?.let { song ->
-            SongLyricsLoader.getItemState(song, SpMp.context.database)
+            SongLyricsLoader.getItemState(song, SpMp.context)
         }
 
         derivedStateOf {
@@ -97,12 +97,16 @@ fun TopBar(modifier: Modifier = Modifier) {
 
             composeScope {
                 Box(Modifier.width(40.dp * buttons_alpha)) {
-                    LikeDislikeButton(
-                        song,
-                        Modifier.fillMaxSize().graphicsLayer { alpha = buttons_alpha },
-                        { 1f - expansion.getDisappearing() > 0f },
-                        { player.getNPOnBackground().setAlpha(0.5f) }
-                    )
+                    val auth_state = player.context.ytapi.user_auth_state
+                    if (auth_state != null) {
+                        LikeDislikeButton(
+                            song,
+                            auth_state,
+                            Modifier.fillMaxSize().graphicsLayer { alpha = buttons_alpha },
+                            { 1f - expansion.getDisappearing() > 0f },
+                            { player.getNPOnBackground().setAlpha(0.5f) }
+                        )
+                    }
                 }
             }
 

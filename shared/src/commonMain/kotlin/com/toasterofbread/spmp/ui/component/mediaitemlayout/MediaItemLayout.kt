@@ -20,23 +20,12 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.Database
-import com.toasterofbread.spmp.api.*
-import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
-import com.toasterofbread.spmp.api.Api.Companion.getStream
-import com.toasterofbread.spmp.api.Api.Companion.ytUrl
-import com.toasterofbread.spmp.api.model.YoutubeiBrowseResponse
-import com.toasterofbread.spmp.api.radio.getSongRadio
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
-import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
-import com.toasterofbread.spmp.model.mediaitem.AccountPlaylistRef
-import com.toasterofbread.spmp.model.mediaitem.Playlist
-import com.toasterofbread.spmp.model.mediaitem.PlaylistData
-import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.ui.component.Thumbnail
@@ -45,11 +34,9 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.*
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.spmp.youtubeapi.*
 import com.toasterofbread.utils.*
 import com.toasterofbread.utils.composable.WidthShrinkText
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import okhttp3.Request
 
 fun getDefaultMediaItemPreviewSize(): DpSize = DpSize(100.dp, 120.dp)
 
@@ -113,11 +100,11 @@ data class MediaItemLayout(
             }
         }
 
-        suspend fun loadContinuation(database: Database, filters: List<RadioModifier> = emptyList()): Result<Pair<List<MediaItemData>, String?>> {
+        suspend fun loadContinuation(context: PlatformContext, filters: List<RadioBuilderModifier> = emptyList()): Result<Pair<List<MediaItemData>, String?>> {
             return when (type) {
-                Type.SONG -> loadSongContinuation(filters)
-                Type.PLAYLIST -> loadPlaylistContinuation(database, false)
-                Type.PLAYLIST_INITIAL -> loadPlaylistContinuation(database, true)
+                Type.SONG -> loadSongContinuation(filters, context)
+                Type.PLAYLIST -> loadPlaylistContinuation(false, context)
+                Type.PLAYLIST_INITIAL -> loadPlaylistContinuation(true, context)
             }
         }
 
@@ -128,54 +115,27 @@ data class MediaItemLayout(
             }
         }
 
-        private suspend fun loadSongContinuation(filters: List<RadioModifier>): Result<Pair<List<MediaItemData>, String?>> {
-            val result = getSongRadio(param as String, token, filters)
+        private suspend fun loadSongContinuation(filters: List<RadioBuilderModifier>, context: PlatformContext): Result<Pair<List<MediaItemData>, String?>> {
+            val radio_endpoint = context.ytapi.SongRadio
+            if (!radio_endpoint.isImplemented()) {
+                return Result.failure(EndpointNotImplementedException(radio_endpoint))
+            }
+
+            val result = radio_endpoint.getSongRadio(param as String, token, filters)
             return result.fold(
                 { Result.success(Pair(it.items, it.continuation)) },
                 { Result.failure(it) }
             )
         }
 
-        private suspend fun loadPlaylistContinuation(db: Database, initial: Boolean): Result<Pair<List<MediaItemData>, String?>> = withContext(Dispatchers.IO) {
-            if (initial) {
-                val playlist = AccountPlaylistRef(token)
-                playlist.loadData(db, false).onFailure {
-                    return@withContext Result.failure(it)
-                }
+        private suspend fun loadPlaylistContinuation(initial: Boolean, context: PlatformContext): Result<Pair<List<MediaItemData>, String?>> {
+            val continuation_endpoint = context.ytapi.PlaylistContinuation
 
-                val items = playlist.Items.get(db) ?: return@withContext Result.failure(IllegalStateException("Items for loaded $playlist is null"))
-
-                return@withContext Result.success(Pair(
-                    items.subList(param as Int, items.size - 1).map { it.getEmptyData() },
-                    playlist.Continuation.get(db)?.token
-                ))
+            if (!continuation_endpoint.isImplemented()) {
+                return Result.failure(EndpointNotImplementedException(continuation_endpoint))
             }
 
-            val hl = SpMp.data_language
-            val request = Request.Builder()
-                .ytUrl("/youtubei/v1/browse?ctoken=$token&continuation=$token&type=next")
-                .addYtHeaders()
-                .post(Api.getYoutubeiRequestBody())
-                .build()
-
-            val stream = Api.request(request).fold(
-                { it.getStream() },
-                { return@withContext Result.failure(it) }
-            )
-
-            return@withContext runCatching {
-                val parsed: YoutubeiBrowseResponse = stream.use { Api.klaxon.parse(it)!! }
-                val shelf = parsed.continuationContents?.musicPlaylistShelfContinuation ?: return@runCatching Pair(emptyList(), null)
-
-                val items: List<MediaItemData> =
-                    shelf.contents!!.mapNotNull { item ->
-                        item.toMediaItemData(hl)?.first
-                    }
-
-                val continuation: String? = shelf.continuations?.firstOrNull()?.nextContinuationData?.continuation
-
-                return@runCatching Pair(items, continuation)
-            }
+            return continuation_endpoint.getPlaylistContinuation(initial, token, if (initial) param as Int else 0)
         }
     }
 

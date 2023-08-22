@@ -2,7 +2,6 @@ package com.toasterofbread.spmp.ui.layout.playlistpage
 
 import SpMp
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,14 +22,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortOption
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
@@ -49,8 +46,7 @@ internal fun LazyListScope.PlaylistItems(
     multiselect_context: MediaItemMultiSelectContext,
     reorderable: Boolean,
     sort_option: MediaItemSortOption,
-    player: PlayerState,
-    db: Database
+    player: PlayerState
 ) {
     items(sorted_items ?: emptyList(), key = { it.second }) {
         val (item, index) = it
@@ -91,13 +87,13 @@ internal fun LazyListScope.PlaylistItems(
                     Modifier.fillMaxWidth().weight(1f),
                     verticalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
-                    val item_title: String? by item.Title.observe(db)
+                    val item_title: String? by item.Title.observe(player.context.database)
                     Text(
                         item_title ?: "",
                         style = MaterialTheme.typography.titleSmall
                     )
 
-                    val item_duration: Long? by item.Duration.observe(db)
+                    val item_duration: Long? by item.Duration.observe(player.context.database)
                     val duration_text = remember(item_duration) {
                         item_duration?.let { duration ->
                             durationToString(duration, true, hl = SpMp.ui_language)

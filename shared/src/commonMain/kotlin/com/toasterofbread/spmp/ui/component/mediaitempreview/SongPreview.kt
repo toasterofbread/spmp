@@ -90,6 +90,7 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
     queue_index: Int?,
     withSong: (suspend (Song) -> Unit) -> Unit,
 ) {
+    val player = LocalPlayerState.current
     val density = LocalDensity.current
     val coroutine_scope = rememberCoroutineScope()
 
@@ -119,7 +120,11 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
                     )
             ) {
                 val selected_playlists = remember { mutableStateListOf<Playlist>() }
-                PlaylistSelectMenu(selected_playlists, Modifier.fillMaxHeight().weight(1f))
+                PlaylistSelectMenu(
+                    selected_playlists,
+                    player.context.ytapi.user_auth_state,
+                    Modifier.fillMaxHeight().weight(1f)
+                )
                 
                 val button_colours = IconButtonDefaults.iconButtonColors(
                     containerColor = Theme.accent,
@@ -135,7 +140,7 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
 
                     Button(
                         { coroutine_scope.launch {
-                            val playlist = createLocalPlaylist(SpMp.context.database)
+                            val playlist = createLocalPlaylist(player.context)
                             selected_playlists.add(playlist)
                         }},
                         colors = ButtonDefaults.buttonColors(

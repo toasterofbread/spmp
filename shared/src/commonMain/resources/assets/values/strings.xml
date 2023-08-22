@@ -153,7 +153,7 @@
     <string name="lyrics_search_on_$source">Search for lyrics on $source</string>
     <string name="lyrics_loading">Loading lyrics</string>
     <string name="lyrics_source_cannot_search">Source does not support searching</string>
-    <string name="lyrics_sync_select_line">Select line to sync by</string>
+    <string name="lyrics_sync_long_press_line">Long press line to sync by</string>
     <string name="lyrics_sync_press_button_when_line_begins">Press button when this line begins</string>
 
     <string name="lyrics_info_key_source">Source</string>

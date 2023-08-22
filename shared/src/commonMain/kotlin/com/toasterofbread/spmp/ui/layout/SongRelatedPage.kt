@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.ui.layout
 
-import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
@@ -28,8 +27,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.api.RelatedGroup
-import com.toasterofbread.spmp.api.getSongRelated
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.resources.getStringTODO
@@ -37,6 +34,8 @@ import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.youtubeapi.SongRelatedContentEndpoint
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.RelatedGroup
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.getContrasted
 import com.toasterofbread.utils.modifier.horizontal
@@ -45,6 +44,7 @@ import com.toasterofbread.utils.modifier.vertical
 @Composable
 fun SongRelatedPage(
     song: Song,
+    related_endpoint: SongRelatedContentEndpoint,
     modifier: Modifier = Modifier,
     previous_item: MediaItem? = null,
     padding: PaddingValues = PaddingValues(),
@@ -53,12 +53,14 @@ fun SongRelatedPage(
     accent_colour: Color = LocalContentColor.current,
     close: () -> Unit
 ) {
+    require(related_endpoint.isImplemented())
+
     val multiselect_context = remember { MediaItemMultiSelectContext() }
 
     var related_result: Result<List<RelatedGroup>>? by remember { mutableStateOf(null) }
     LaunchedEffect(song) {
         related_result = null
-        related_result = getSongRelated(song, SpMp.context.database)
+        related_result = related_endpoint.getSongRelated(song)
     }
 
     Crossfade(related_result, modifier) { result ->

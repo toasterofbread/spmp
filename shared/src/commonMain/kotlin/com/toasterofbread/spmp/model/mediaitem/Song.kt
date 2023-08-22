@@ -6,17 +6,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.IntOffset
 import com.toasterofbread.Database
-import com.toasterofbread.spmp.api.DEFAULT_CONNECT_TIMEOUT
-import com.toasterofbread.spmp.api.lyrics.LyricsReference
-import com.toasterofbread.spmp.api.lyrics.toLyricsReference
 import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
 import com.toasterofbread.spmp.model.mediaitem.song.toLong
 import com.toasterofbread.spmp.model.mediaitem.song.toSongLikedStatus
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.crop
 import com.toasterofbread.spmp.platform.toImageBitmap
+import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
+import com.toasterofbread.spmp.youtubeapi.lyrics.toLyricsReference
 import com.toasterofbread.utils.lazyAssert
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -52,14 +52,14 @@ interface Song: MediaItem.WithArtist {
         }
     }
 
-    override suspend fun loadData(db: Database, populate_data: Boolean): Result<SongData> {
-        return super.loadData(db, populate_data) as Result<SongData>
+    override suspend fun loadData(context: PlatformContext, populate_data: Boolean): Result<SongData> {
+        return super.loadData(context, populate_data) as Result<SongData>
     }
 
     override suspend fun downloadThumbnailData(url: String): Result<ImageBitmap> = withContext(Dispatchers.IO) {
         return@withContext kotlin.runCatching {
             val connection = URL(url).openConnection()
-            connection.connectTimeout = DEFAULT_CONNECT_TIMEOUT
+            connection.connectTimeout = com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DEFAULT_CONNECT_TIMEOUT
 
             val stream = connection.getInputStream()
             val bytes = stream.readBytes()

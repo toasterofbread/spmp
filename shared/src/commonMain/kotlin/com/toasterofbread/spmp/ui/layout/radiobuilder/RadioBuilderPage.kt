@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.radiobuilder
 
+import LocalPlayerState
 import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
@@ -24,14 +25,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.toasterofbread.spmp.api.RadioBuilderArtist
-import com.toasterofbread.spmp.api.getRadioBuilderArtists
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.WaveBorder
+import com.toasterofbread.spmp.youtubeapi.RadioBuilderArtist
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -46,9 +46,12 @@ fun RadioBuilderPage(
     var artists_result: Result<List<RadioBuilderArtist>>? by remember { mutableStateOf(null) }
     var selected_artists: Set<Int>? by remember { mutableStateOf(null) }
 
+    val builder_endpoint = LocalPlayerState.current.context.ytapi.RadioBuilder
+    check(builder_endpoint.isImplemented())
+
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
-            artists_result = getRadioBuilderArtists { thumbnails ->
+            artists_result = builder_endpoint.getRadioBuilderArtists { thumbnails ->
                 thumbnails.maxBy { it.width * it.height }
             }
         }

@@ -30,8 +30,8 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun PlaylistFooter(playlist: Playlist, items: List<Pair<MediaItem, Int>>?, loading: Boolean, load_error: Throwable?, modifier: Modifier = Modifier) {
-    val db = LocalPlayerState.current.context.database
-    val continuation: MediaItemLayout.Continuation? by playlist.Continuation.observe(db)
+    val player = LocalPlayerState.current
+    val continuation: MediaItemLayout.Continuation? by playlist.Continuation.observe(player.context.database)
     val coroutine_scope = rememberCoroutineScope()
 
     Crossfade(
@@ -61,7 +61,7 @@ fun PlaylistFooter(playlist: Playlist, items: List<Pair<MediaItem, Int>>?, loadi
                     if (state is MediaItemLayout.Continuation) {
                         Button({
                             coroutine_scope.launch {
-                                MediaItemLoader.loadPlaylist(playlist.getEmptyData(), db, state)
+                                MediaItemLoader.loadPlaylist(playlist.getEmptyData(), player.context, state)
                             }
                         }) {
                             if (loading) {

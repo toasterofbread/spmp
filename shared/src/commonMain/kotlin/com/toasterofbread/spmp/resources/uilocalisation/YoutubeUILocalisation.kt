@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.resources.uilocalisation
 
+import SpMp
 import com.toasterofbread.spmp.resources.uilocalisation.localised.UILanguages
 import com.toasterofbread.spmp.resources.uilocalisation.localised.getYoutubeArtistPageLocalisations
 import com.toasterofbread.spmp.resources.uilocalisation.localised.getYoutubeFilterChipsLocalisations

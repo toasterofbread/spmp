@@ -76,7 +76,7 @@ class SettingsStringSetItem(
     @Composable
     override fun GetItem(
         theme: Theme,
-        openPage: (Int) -> Unit,
+        openPage: (Int, Any?) -> Unit,
         openCustomPage: (SettingsPage) -> Unit
     ) {
         val icon_button_colours = IconButtonDefaults.iconButtonColors(

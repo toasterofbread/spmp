@@ -2,8 +2,8 @@ package com.toasterofbread.spmp.platform
 
 import androidx.sqlite.db.SupportSQLiteDatabase
 import app.cash.sqldelight.db.SqlDriver
-import com.toasterofbread.Database
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
+import com.toasterofbread.Database
 
 actual fun PlatformContext.getSqlDriver(): SqlDriver =
     AndroidSqliteDriver(

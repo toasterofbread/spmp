@@ -73,7 +73,7 @@ class SettingsItemThemeSelector(
     @Composable
     override fun GetItem(
         theme: Theme,
-        openPage: (Int) -> Unit,
+        openPage: (Int, Any?) -> Unit,
         openCustomPage: (SettingsPage) -> Unit
     ) {
         Column {
@@ -178,7 +178,9 @@ private fun getEditPage(
     onEditCompleted: (theme_data: ThemeData) -> Unit
 ): SettingsPage {
     return object : SettingsPage() {
-        override val title: String? = editor_title
+        override val title: String?
+            @Composable
+            get() = editor_title
 
         private var reset by mutableStateOf(false)
         private var close by mutableStateOf(false)
@@ -194,7 +196,7 @@ private fun getEditPage(
         @Composable
         override fun PageView(
             content_padding: PaddingValues,
-            openPage: (Int) -> Unit,
+            openPage: (Int, Any?) -> Unit,
             openCustomPage: (SettingsPage) -> Unit,
             goBack: () -> Unit,
         ) {

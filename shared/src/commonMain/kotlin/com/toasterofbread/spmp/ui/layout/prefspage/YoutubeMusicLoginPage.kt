@@ -1,28 +1,40 @@
 package com.toasterofbread.spmp.ui.layout.prefspage
 
+import LocalPlayerState
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.composesettings.ui.SettingsPage
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
-import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
-import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.YoutubeMusicLogin
+import com.toasterofbread.spmp.youtubeapi.composable.LoginPage
 import java.net.SocketException
 
-internal fun getYoutubeMusicLoginPage(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, manual: Boolean = false): SettingsPage {
+internal fun getYoutubeMusicLoginPage(
+    ytm_auth: SettingsValueState<Set<String>>,
+    confirm_param: Any?
+): SettingsPage {
     return object : SettingsPage() {
-        override val disable_padding: Boolean = !manual
-        override val scrolling: Boolean = false
+        val login_page: LoginPage
+            @Composable
+            get() {
+                return LocalPlayerState.current.context.ytapi.LoginPage
+            }
 
-        override val title: String? = if (manual) getString("youtube_manual_login_title") else null
+        override val disable_padding: Boolean
+            @Composable
+            get() = login_page.targetsDisabledPadding(confirm_param)
+        override val scrolling: Boolean
+            @Composable
+            get() = false
+
+        override val title: String?
+            @Composable
+            get() = login_page.getTitle(confirm_param)
         override val icon: ImageVector?
             @Composable
-            get() = if (manual) Icons.Default.PlayCircle else null
+            get() = login_page.getIcon(confirm_param)
 
         @Composable
         override fun TitleBar(is_root: Boolean, modifier: Modifier, goBack: () -> Unit) {}
@@ -30,14 +42,14 @@ internal fun getYoutubeMusicLoginPage(ytm_auth: SettingsValueState<YoutubeMusicA
         @Composable
         override fun PageView(
             content_padding: PaddingValues,
-            openPage: (Int) -> Unit,
+            openPage: (Int, Any?) -> Unit,
             openCustomPage: (SettingsPage) -> Unit,
             goBack: () -> Unit,
         ) {
-            YoutubeMusicLogin(Modifier.fillMaxSize(), manual = manual) { result ->
+            login_page.LoginPage(Modifier.fillMaxSize(), confirm_param) { result ->
                 result?.fold(
                     { auth_info ->
-                        ytm_auth.set(auth_info)
+                        ytm_auth.set(auth_info.getSetData())
                     },
                     { error ->
                         if (error !is SocketException) {

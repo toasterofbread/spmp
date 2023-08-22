@@ -26,7 +26,7 @@ private fun getMusicTopBarGroup(): List<SettingsItem> {
             SettingsValueState<Float>(Settings.KEY_TOPBAR_VISUALISER_WIDTH.name),
             getString("s_key_topbar_visualiser_width"), null,
             getValueText = { value ->
-                "${(value * 100f).roundToInt()}%"
+                "${(value.toFloat() * 100f).roundToInt()}%"
             }
         ),
 

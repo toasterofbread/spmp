@@ -79,7 +79,7 @@ internal fun processMediaDataSpec(data_spec: DataSpec, context: PlatformContext,
         }
     }
 
-    val format = getSongStreamFormat(song.id).fold(
+    val format = getSongStreamFormat(song.id, context).fold(
         { it },
         { throw IOException(it) }
     )

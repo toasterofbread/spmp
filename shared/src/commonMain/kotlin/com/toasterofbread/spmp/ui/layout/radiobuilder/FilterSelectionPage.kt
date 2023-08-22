@@ -35,16 +35,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.api.InvalidRadioException
-import com.toasterofbread.spmp.api.RadioBuilderArtist
-import com.toasterofbread.spmp.api.RadioModifier
-import com.toasterofbread.spmp.api.buildRadioToken
-import com.toasterofbread.spmp.api.getBuiltRadio
 import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.spmp.youtubeapi.RadioBuilderArtist
+import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.InvalidRadioException
 import com.toasterofbread.utils.composable.ShapedIconButton
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.Dispatchers
@@ -59,22 +57,25 @@ fun FilterSelectionPage(
 ) {
     val player = LocalPlayerState.current
 
+    val builder_endpoint = player.context.ytapi.RadioBuilder
+    check(builder_endpoint.isImplemented())
+
     var is_loading by remember { mutableStateOf(false) }
     var preview_loading by remember { mutableStateOf(false) }
     var preview_playlist: PlaylistData? by remember { mutableStateOf(null) }
     var invalid_modifiers: Boolean by remember { mutableStateOf(false) }
     val coroutine_scope = rememberCoroutineScope()
 
-    val selection_type = remember { mutableStateOf(RadioModifier.SelectionType.BLEND) }
+    val selection_type = remember { mutableStateOf(RadioBuilderModifier.SelectionType.BLEND) }
     SelectionTypeRow(selection_type)
 
-    val artist_variety = remember { mutableStateOf(RadioModifier.Variety.MEDIUM) }
+    val artist_variety = remember { mutableStateOf(RadioBuilderModifier.Variety.MEDIUM) }
     ArtistVarietyRow(artist_variety)
 
-    val filter_a: MutableState<RadioModifier.FilterA?> = remember { mutableStateOf(null) }
+    val filter_a: MutableState<RadioBuilderModifier.FilterA?> = remember { mutableStateOf(null) }
     FilterARow(filter_a)
 
-    val filter_b: MutableState<RadioModifier.FilterB?> = remember { mutableStateOf(null) }
+    val filter_b: MutableState<RadioBuilderModifier.FilterB?> = remember { mutableStateOf(null) }
     FilterBRow(filter_b)
 
     fun loadRadio(preview: Boolean) {
@@ -82,7 +83,7 @@ fun FilterSelectionPage(
             return
         }
 
-        val radio_token = buildRadioToken(
+        val radio_token = builder_endpoint.buildRadioToken(
             selected_artists.map { artists[it] }.toSet(),
             setOf(selection_type.value, artist_variety.value, filter_a.value, filter_b.value)
         )
@@ -100,7 +101,7 @@ fun FilterSelectionPage(
         }
 
         coroutine_scope.launch {
-            val result = getBuiltRadio(radio_token, SpMp.context.database)
+            val result = builder_endpoint.getBuiltRadio(radio_token, SpMp.context)
             result.fold(
                 { playlist ->
                     if (playlist == null) {
@@ -152,7 +153,7 @@ fun FilterSelectionPage(
 
                         Row {
                             SpMp.context.CopyShareButtons(name = "") {
-                                buildRadioToken(
+                                builder_endpoint.buildRadioToken(
                                     selected_artists.map { i -> artists[i] }.toSet(),
                                     setOf(selection_type.value, artist_variety.value, filter_a.value, filter_b.value)
                                 )

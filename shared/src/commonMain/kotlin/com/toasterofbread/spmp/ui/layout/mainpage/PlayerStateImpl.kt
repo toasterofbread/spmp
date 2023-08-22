@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.mainpage
 
+import LocalPlayerState
 import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
@@ -15,14 +16,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import com.toasterofbread.composesettings.ui.SettingsInterface
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
-import com.toasterofbread.spmp.service.playerservice.PlayerService
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
-import com.toasterofbread.spmp.model.mediaitem.Artist
-import com.toasterofbread.spmp.model.mediaitem.Playlist
-import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.platform.composable.BackHandler
+import com.toasterofbread.spmp.service.playerservice.PlayerService
 import com.toasterofbread.spmp.ui.component.*
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenu
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
@@ -41,8 +39,8 @@ import com.toasterofbread.spmp.ui.layout.prefspage.PrefsPage
 import com.toasterofbread.spmp.ui.layout.prefspage.PrefsPageCategory
 import com.toasterofbread.spmp.ui.layout.prefspage.getPrefsPageSettingsInterface
 import com.toasterofbread.spmp.ui.layout.radiobuilder.RadioBuilderPage
-import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.YoutubeMusicLogin
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.spmp.youtubeapi.composable.LoginPage
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.init
 import com.toasterofbread.utils.toFloat
@@ -70,6 +68,8 @@ interface PlayerOverlayPage {
 
         @Composable
         override fun Page(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
+            val player = LocalPlayerState.current
+
             when (val item = holder.item) {
                 null -> close()
                 is Playlist -> PlaylistPage(
@@ -78,9 +78,18 @@ interface PlayerOverlayPage {
                     PaddingValues(top = SpMp.context.getStatusBarHeight(), bottom = bottom_padding),
                     close
                 )
-                is Artist -> ArtistPage(item, previous_item?.item, bottom_padding, browse_params, close)
+                is Artist -> ArtistPage(
+                    item,
+                    previous_item?.item,
+                    bottom_padding,
+                    browse_params?.let { params ->
+                        Pair(params, player.context.ytapi.ArtistsWithParams)
+                    },
+                    close
+                )
                 is Song -> SongRelatedPage(
                     item,
+                    player.context.ytapi.SongRelatedContent,
                     Modifier.fillMaxSize(),
                     previous_item?.item,
                     PaddingValues(
@@ -96,12 +105,12 @@ interface PlayerOverlayPage {
         }
     }
 
-    data class YtmLoginPage(private val manual: Boolean = false): PlayerOverlayPage {
+    data class YtmLoginPage(val page: LoginPage, private val confirm_param: Any? = null): PlayerOverlayPage {
         @Composable
         override fun Page(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
-            YoutubeMusicLogin(
+            page.LoginPage(
                 Modifier.fillMaxSize(),
-                manual = manual
+                confirm_param = confirm_param
             ) { result ->
                 result?.fold(
                     { Settings.KEY_YTM_AUTH.set(it) },
@@ -141,7 +150,10 @@ interface PlayerOverlayPage {
         val SettingsPage = object : PlayerOverlayPage {
             val current_category: MutableState<PrefsPageCategory?> = mutableStateOf(null)
             val pill_menu: PillMenu = PillMenu(follow_player = true)
-            val ytm_auth: SettingsValueState<YoutubeMusicAuthInfo> = YoutubeMusicAuthInfo.getSettingsValueState()
+            val ytm_auth: SettingsValueState<Set<String>> =
+                SettingsValueState<Set<String>>(
+                    Settings.KEY_YTM_AUTH.name
+                ).init(Settings.prefs, Settings.Companion::provideDefault)
             val settings_interface: SettingsInterface =
                 getPrefsPageSettingsInterface(pill_menu, ytm_auth, { current_category.value }, { current_category.value = null })
 
@@ -189,7 +201,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
 
     val expansion_state = NowPlayingExpansionState(np_swipe_state, context)
 
-    override val main_page_state = MainPageState(context.database)
+    override val main_page_state = MainPageState(context)
     override var overlay_page: Pair<PlayerOverlayPage, MediaItem?>? by mutableStateOf(null)
         private set
     override val bottom_padding: Float get() = bottom_padding_anim.value

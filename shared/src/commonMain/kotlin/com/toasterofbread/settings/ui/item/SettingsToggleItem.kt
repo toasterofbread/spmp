@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.composesettings.ui.SettingsPage
 import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.composable.RecomposeOnInterval
 import com.toasterofbread.utils.setAlpha
 
 class SettingsToggleItem(
@@ -47,7 +46,7 @@ class SettingsToggleItem(
     @Composable
     override fun GetItem(
         theme: Theme,
-        openPage: (Int) -> Unit,
+        openPage: (Int, Any?) -> Unit,
         openCustomPage: (SettingsPage) -> Unit
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {

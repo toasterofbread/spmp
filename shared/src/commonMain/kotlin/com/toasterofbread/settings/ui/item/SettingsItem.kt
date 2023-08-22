@@ -40,7 +40,7 @@ abstract class SettingsItem {
     @Composable
     abstract fun GetItem(
         theme: Theme,
-        openPage: (Int) -> Unit,
+        openPage: (Int, Any?) -> Unit,
         openCustomPage: (SettingsPage) -> Unit
     )
     

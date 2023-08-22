@@ -13,14 +13,13 @@ import com.toasterofbread.composesettings.ui.SettingsInterface
 import com.toasterofbread.composesettings.ui.SettingsPageWithItems
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
 import com.toasterofbread.spmp.resources.Languages
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.theme.Theme
 
 internal fun getPrefsPageSettingsInterface(
     pill_menu: PillMenu,
-    ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>,
+    ytm_auth: SettingsValueState<Set<String>>,
     getCategory: () -> PrefsPageCategory?,
     close: () -> Unit
 ): SettingsInterface {
@@ -70,8 +69,8 @@ internal fun getPrefsPageSettingsInterface(
         Settings.prefs,
         Settings.Companion::provideDefault,
         pill_menu,
-        {
-            when (PrefsPageScreen.values()[it]) {
+        { index, param ->
+            when (PrefsPageScreen.values()[index]) {
                 PrefsPageScreen.ROOT -> SettingsPageWithItems(
                     { getCategory()?.getTitle() },
                     { categories[getCategory()]?.value ?: emptyList() },
@@ -88,10 +87,8 @@ internal fun getPrefsPageSettingsInterface(
                         return@SettingsPageWithItems current_icon
                     }
                 )
-                PrefsPageScreen.YOUTUBE_MUSIC_LOGIN -> getYoutubeMusicLoginPage(ytm_auth)
-                PrefsPageScreen.YOUTUBE_MUSIC_MANUAL_LOGIN -> getYoutubeMusicLoginPage(ytm_auth, manual = true)
-                PrefsPageScreen.DISCORD_LOGIN -> getDiscordLoginPage(discord_auth)
-                PrefsPageScreen.DISCORD_MANUAL_LOGIN -> getDiscordLoginPage(discord_auth, manual = true)
+                PrefsPageScreen.YOUTUBE_MUSIC_LOGIN -> getYoutubeMusicLoginPage(ytm_auth, param)
+                PrefsPageScreen.DISCORD_LOGIN -> getDiscordLoginPage(discord_auth, manual = param == true)
             }
         },
         { page: Int? ->

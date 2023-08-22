@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.overlay
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
@@ -30,6 +29,7 @@ import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.spmp.youtubeapi.implementedOrNull
 import com.toasterofbread.utils.composable.OnChangedEffect
 import kotlinx.coroutines.delay
 
@@ -51,9 +51,10 @@ class MainOverlayMenu(
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
-        val db = SpMp.context.database
+        val player = LocalPlayerState.current
+        val db = player.context.database
         val song = getSong()
-        val download_manager = SpMp.context.download_manager
+        val download_manager = player.context.download_manager
 
         val song_artist: Artist? by song.Artist.observe(db)
 
@@ -202,17 +203,20 @@ class MainOverlayMenu(
                     Icon(Icons.Filled.MusicNote, null, tint = button_colour)
                 }
 
-                Box(
-                    button_modifier
-                        .clickable(
-                            remember { MutableInteractionSource() },
-                            null
-                        ) { 
-                            setOverlayMenu(RelatedContentOverlayMenu()) 
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(MEDIA_ITEM_RELATED_CONTENT_ICON, null, tint = button_colour)
+                val related_endpoint = player.context.ytapi.SongRelatedContent.implementedOrNull()
+                if (related_endpoint != null) {
+                    Box(
+                        button_modifier
+                            .clickable(
+                                remember { MutableInteractionSource() },
+                                null
+                            ) {
+                                setOverlayMenu(RelatedContentOverlayMenu(related_endpoint))
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(MEDIA_ITEM_RELATED_CONTENT_ICON, null, tint = button_colour)
+                    }
                 }
 
                 Box(contentAlignment = Alignment.Center) {

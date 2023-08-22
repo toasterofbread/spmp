@@ -1,10 +1,10 @@
 package com.toasterofbread.spmp.resources
 
 import com.toasterofbread.spmp.platform.PlatformContext
-import java.io.InputStream
-import java.util.MissingResourceException
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
+import java.io.InputStream
+import java.util.MissingResourceException
 
 private const val DEFAULT_LANGUAGE = "en-GB"
 

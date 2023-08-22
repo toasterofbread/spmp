@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -16,7 +15,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.platform.PlatformContext
@@ -32,17 +30,17 @@ class SettingsInterface(
     val prefs: ProjectPreferences,
     val default_provider: (String) -> Any,
     val pill_menu: PillMenu? = null,
-    private val getPage: (Int) -> SettingsPage,
+    private val getPage: (Int, Any?) -> SettingsPage,
     private val onPageChanged: ((page: Int?) -> Unit)? = null,
     private val onCloseRequested: (() -> Unit)? = null
 ) {
     val theme: Theme get() = themeProvider()
-    var current_page: SettingsPage by mutableStateOf(getUserPage(root_page))
+    var current_page: SettingsPage by mutableStateOf(getUserPage(root_page, null))
         private set
     private val page_stack = mutableListOf<SettingsPage>()
 
-    private fun getUserPage(page_id: Int): SettingsPage {
-        return getPage(page_id).also { page ->
+    private fun getUserPage(page_id: Int, param: Any?): SettingsPage {
+        return getPage(page_id, param).also { page ->
             page.id = page_id
             page.settings_interface = this
         }
@@ -73,8 +71,8 @@ class SettingsInterface(
         }
     }
 
-    fun openPageById(page_id: Int) {
-        openPage(getUserPage(page_id))
+    fun openPageById(page_id: Int, param: Any?) {
+        openPage(getUserPage(page_id, param))
     }
 
     @Composable
@@ -107,10 +105,10 @@ class SettingsInterface(
                 ) {
                     page.Page(
                         if (!page.disable_padding) content_padding else PaddingValues(0.dp),
-                        { target_page_id ->
+                        { target_page_id, param ->
                             if (current_page.id != target_page_id) {
                                 page_stack.add(current_page)
-                                current_page = getUserPage(target_page_id)
+                                current_page = getUserPage(target_page_id, param)
                                 onPageChanged?.invoke(current_page.id)
                             }
                         },

@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.model
 
-import com.toasterofbread.spmp.api.lyrics.LyricsReference
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.utils.lazyAssert
 import com.toasterofbread.utils.toHiragana
 

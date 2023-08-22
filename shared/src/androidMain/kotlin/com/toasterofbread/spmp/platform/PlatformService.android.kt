@@ -6,15 +6,21 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Binder
 import android.os.IBinder
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 
 actual abstract class PlatformBinder: Binder()
 
 actual open class PlatformServiceImpl: Service(), PlatformService {
-    actual override val context: PlatformContext by lazy { PlatformContext(this) }
+    private val coroutine_scope = CoroutineScope(Job())
+
+    actual override val context: PlatformContext by lazy { PlatformContext(this, coroutine_scope).init() }
     actual override fun onCreate() {
         super.onCreate()
     }
     actual override fun onDestroy() {
+        coroutine_scope.cancel()
         super.onDestroy()
     }
     actual override fun onBind(): PlatformBinder? = null

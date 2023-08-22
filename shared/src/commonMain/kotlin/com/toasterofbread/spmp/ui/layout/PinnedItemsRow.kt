@@ -25,8 +25,8 @@ import com.toasterofbread.spmp.ui.layout.mainpage.getMainPageItemSize
 fun PinnedItemsRow(
     modifier: Modifier = Modifier
 ) {
-    val db = SpMp.context.database
-    val pinned_items = rememberPinnedItems(db)
+    val player = LocalPlayerState.current
+    val pinned_items = rememberPinnedItems(player.context)
 
     AnimatedVisibility(pinned_items.isNotEmpty()) {
         MediaItemGrid(
@@ -44,9 +44,9 @@ fun PinnedItemsRow(
                             Icon(Icons.Filled.PushPin, null, Modifier.alpha(0.5f))
                         }
                         IconButton({
-                            db.transaction {
+                            player.context.database.transaction {
                                 for (item in pinned_items.toList()) {
-                                    item.item?.PinnedToHome?.set(false, db)
+                                    item.PinnedToHome.set(false, player.context.database)
                                 }
                             }
                         }, Modifier.size(30.dp)) {

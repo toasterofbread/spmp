@@ -23,9 +23,9 @@ import dev.kord.rest.builder.channel.TextChannelCreateBuilder
 import dev.kord.rest.route.Position
 import dev.kord.rest.service.ChannelService
 import dev.kord.rest.service.createTextChannel
-import io.ktor.client.network.sockets.*
-import io.ktor.client.request.forms.*
-import io.ktor.utils.io.jvm.javaio.*
+import io.ktor.client.network.sockets.ConnectTimeoutException
+import io.ktor.client.request.forms.ChannelProvider
+import io.ktor.utils.io.jvm.javaio.toByteReadChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
 import java.io.ByteArrayOutputStream

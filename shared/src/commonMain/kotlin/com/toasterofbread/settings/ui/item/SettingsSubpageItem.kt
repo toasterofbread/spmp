@@ -15,6 +15,7 @@ class SettingsSubpageItem(
     val title: String,
     val subtitle: String?,
     val target_page: Int,
+    val target_page_param: Any?
 ): SettingsItem() {
     override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {}
     override fun releaseValueStates(prefs: ProjectPreferences) {}
@@ -23,11 +24,11 @@ class SettingsSubpageItem(
     @Composable
     override fun GetItem(
         theme: Theme,
-        openPage: (Int) -> Unit,
+        openPage: (Int, Any?) -> Unit,
         openCustomPage: (SettingsPage) -> Unit
     ) {
         Button(
-            { openPage(target_page) },
+            { openPage(target_page, target_page_param) },
             Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(
                 containerColor = theme.vibrant_accent,

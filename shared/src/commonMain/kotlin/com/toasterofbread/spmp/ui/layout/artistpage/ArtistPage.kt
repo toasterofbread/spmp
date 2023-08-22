@@ -10,7 +10,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -30,17 +29,11 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.*
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
-import com.toasterofbread.Database
-import com.toasterofbread.spmp.api.Api
-import com.toasterofbread.spmp.api.ArtistWithParamsRow
-import com.toasterofbread.spmp.api.loadArtistWithParams
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
-import com.toasterofbread.spmp.model.mediaitem.Artist
-import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
-import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
+import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.loadDataOnChange
 import com.toasterofbread.spmp.platform.composable.SwipeRefresh
 import com.toasterofbread.spmp.resources.getString
@@ -56,6 +49,8 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLon
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsEndpoint
+import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsRow
 import com.toasterofbread.utils.*
 import com.toasterofbread.utils.composable.*
 import com.toasterofbread.utils.modifier.background
@@ -71,17 +66,18 @@ fun ArtistPage(
     artist: Artist,
     previous_item: MediaItem? = null,
     bottom_padding: Dp = 0.dp,
-    browse_params: String?,
+    browse_params: Pair<String, ArtistWithParamsEndpoint>?,
     close: () -> Unit
 ) {
-    val db = SpMp.context.database
+    val player = LocalPlayerState.current
+    val db = player.context.database
 
     lazyAssert {
         !artist.IsForItem.get(db)
     }
 
     var load_error: Throwable? by remember { mutableStateOf(null) }
-    val loading by artist.loadDataOnChange(db, load = browse_params == null) { load_error = it }
+    val loading by artist.loadDataOnChange(player.context, load = browse_params == null) { load_error = it }
     var refreshed by remember { mutableStateOf(false) }
 
     val item_layouts: List<ArtistLayout>? by artist.Layouts.observe(db)
@@ -89,7 +85,7 @@ fun ArtistPage(
     var browse_params_rows: List<ArtistWithParamsRow>? by remember { mutableStateOf(null) }
 
     val thumbnail_provider: MediaItemThumbnailProvider? by artist.ThumbnailProvider.observe(db)
-    val thumbnail_load_state = MediaItemThumbnailLoader.rememberItemState(artist, db)
+    val thumbnail_load_state = MediaItemThumbnailLoader.rememberItemState(artist, player.context)
 
     LaunchedEffect(artist.id, browse_params) {
         browse_params_rows = null
@@ -99,7 +95,11 @@ fun ArtistPage(
         }
 
         load_error = null
-        loadArtistWithParams(artist.id, browse_params).fold(
+
+        val (params, params_endpoint) = browse_params
+        require(params_endpoint.isImplemented())
+
+        params_endpoint.loadArtistWithParams(artist.id, params).fold(
             { browse_params_rows = it },
             { load_error = it }
         )
@@ -118,7 +118,6 @@ fun ArtistPage(
 
     // TODO display previous_item
 
-    val player = LocalPlayerState.current
     val screen_width = SpMp.context.getScreenWidth()
     val coroutine_scope = rememberCoroutineScope()
 
@@ -226,7 +225,7 @@ fun ArtistPage(
                     refreshed = true
                     load_error = null
                     coroutine_scope.launch {
-                        MediaItemLoader.loadArtist(artist.getEmptyData(), db)
+                        MediaItemLoader.loadArtist(artist.getEmptyData(), player.context)
                     }
                 },
                 swipe_enabled = !loading,
@@ -427,9 +426,10 @@ fun ArtistPage(
     }
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 private fun onSinglePlaylistClicked(playlist: Playlist, player: PlayerState) {
-    Api.scope.launch {
-        playlist.loadData(SpMp.context.database).onSuccess { data ->
+    GlobalScope.launch {
+        playlist.loadData(SpMp.context).onSuccess { data ->
             data.items?.firstOrNull()?.also { first_item ->
                 withContext(Dispatchers.Main) {
                     player.onMediaItemClicked(first_item)

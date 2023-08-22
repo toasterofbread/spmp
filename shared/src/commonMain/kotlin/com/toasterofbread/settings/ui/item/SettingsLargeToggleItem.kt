@@ -49,9 +49,9 @@ class SettingsLargeToggleItem(
     val disable_button: String,
     val enabled_content: (@Composable (Modifier) -> Unit)? = null,
     val disabled_content: (@Composable (Modifier) -> Unit)? = null,
-    val warningDialog: (@Composable (dismiss: () -> Unit, openPage: (Int) -> Unit) -> Unit)? = null,
-    val infoDialog: (@Composable (dismiss: () -> Unit, openPage: (Int) -> Unit) -> Unit)? = null,
-    val onClicked: (target: Boolean, setEnabled: (Boolean) -> Unit, setLoading: (Boolean) -> Unit, openPage: (Int) -> Unit) -> Unit =
+    val warningDialog: (@Composable (dismiss: () -> Unit, openPage: (Int, Any?) -> Unit) -> Unit)? = null,
+    val infoDialog: (@Composable (dismiss: () -> Unit, openPage: (Int, Any?) -> Unit) -> Unit)? = null,
+    val onClicked: (target: Boolean, setEnabled: (Boolean) -> Unit, setLoading: (Boolean) -> Unit, openPage: (Int, Any?) -> Unit) -> Unit =
         { target, setEnabled, _, _ -> setEnabled(target) }
 ): SettingsItem() {
     override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {
@@ -67,13 +67,13 @@ class SettingsLargeToggleItem(
     @Composable
     override fun GetItem(
         theme: Theme,
-        openPage: (Int) -> Unit,
+        openPage: (Int, Any?) -> Unit,
         openCustomPage: (SettingsPage) -> Unit
     ) {
         val shape = RoundedCornerShape(25.dp)
         var loading: Boolean by remember { mutableStateOf(false) }
 
-        var showing_dialog: (@Composable (dismiss: () -> Unit, openPage: (Int) -> Unit) -> Unit)? by remember { mutableStateOf(null) }
+        var showing_dialog: (@Composable (dismiss: () -> Unit, openPage: (Int, Any?) -> Unit) -> Unit)? by remember { mutableStateOf(null) }
 
         showing_dialog?.invoke(
             { showing_dialog = null },

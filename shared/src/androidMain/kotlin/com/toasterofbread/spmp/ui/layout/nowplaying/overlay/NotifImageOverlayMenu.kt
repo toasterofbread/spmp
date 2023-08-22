@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.overlay
 
+import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Canvas

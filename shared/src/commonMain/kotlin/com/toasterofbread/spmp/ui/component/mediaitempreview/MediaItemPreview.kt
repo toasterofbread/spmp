@@ -176,7 +176,7 @@ fun MediaItemPreviewLong(
                 }
 
                 if (show_play_count) {
-                    val play_count = item.observePlayCount(SpMp.context.database)
+                    val play_count = item.observePlayCount(SpMp.context)
                     InfoText(
                         getString("mediaitem_play_count_\$x_short")
                             .replace("\$x", play_count.toString())

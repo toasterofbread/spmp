@@ -1,9 +1,9 @@
 package com.toasterofbread.spmp.ui.layout
 
+import LocalPlayerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import com.toasterofbread.spmp.api.Api
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringArray
 import com.toasterofbread.utils.launchSingle
@@ -11,6 +11,7 @@ import com.toasterofbread.utils.launchSingle
 @Composable
 fun DiscordManualLogin(modifier: Modifier = Modifier, onFinished: (Result<String?>?) -> Unit) {
     val coroutine_scope = rememberCoroutineScope()
+    val player = LocalPlayerState.current
 
     ManualLoginPage(
         steps = getStringArray("discord_manual_login_steps"),
@@ -31,7 +32,7 @@ fun DiscordManualLogin(modifier: Modifier = Modifier, onFinished: (Result<String
                         val content = error.message
                         if (content != null) {
                             try {
-                                val parsed = Api.klaxon.parseJsonObject(content.reader())
+                                val parsed = player.context.ytapi.klaxon.parseJsonObject(content.reader())
                                 val message = parsed["message"] as String?
                                 if (message != null) {
                                     return@fold Result.failure(RuntimeException(message))

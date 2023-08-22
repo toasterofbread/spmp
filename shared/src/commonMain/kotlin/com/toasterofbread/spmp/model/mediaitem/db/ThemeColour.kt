@@ -6,16 +6,16 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
-import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.utils.getThemeColour
 
 @Composable
-fun MediaItem.rememberThemeColour(db: Database = SpMp.context.database): Color? {
-    val thumbnail_state = MediaItemThumbnailLoader.rememberItemState(this, db)
-    val item_colour: Color? by ThemeColour.observe(db)
+fun MediaItem.rememberThemeColour(context: PlatformContext = SpMp.context): Color? {
+    val thumbnail_state = MediaItemThumbnailLoader.rememberItemState(this, context)
+    val item_colour: Color? by ThemeColour.observe(context.database)
 
     val colour: Color? by remember(thumbnail_state, item_colour) { derivedStateOf {
         if (item_colour != null) {

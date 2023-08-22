@@ -148,7 +148,7 @@
     <string name="lyrics_search_on_$source">$sourceで歌詞を探す</string>
     <string name="lyrics_loading">歌詞をロード中</string>
     <string name="lyrics_source_cannot_search">この歌詞源で検索はできません</string>
-    <string name="lyrics_sync_select_line">シンクに使う行を選んでください</string>
+    <string name="lyrics_sync_long_press_line">シンクに使う行を長押ししてください</string>
     <string name="lyrics_sync_press_button_when_line_begins">この行が始まったらボタンを押して下さい</string>
 
     <string name="lyrics_info_key_source">源</string>

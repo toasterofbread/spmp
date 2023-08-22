@@ -8,12 +8,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.beust.klaxon.Klaxon
 import com.toasterofbread.spmp.ProjectBuildConfig
-import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.youtubeapi.YoutubeApi
+import okhttp3.Headers.Companion.toHeaders
 import java.util.*
 
 enum class AccentColourSource {
@@ -183,6 +184,10 @@ enum class Settings {
     KEY_FILTER_APPLY_TO_ARTIST_ITEMS,
     KEY_FILTER_APPLY_TO_PLAYLIST_ITEMS,
 
+    // YoutubeApi
+    KEY_YOUTUBEAPI_TYPE,
+    KEY_YOUTUBEAPI_URL,
+
     // Other
     KEY_OPEN_NP_ON_SONG_PLAYED,
     KEY_MULTISELECT_CANCEL_ON_ACTION,
@@ -331,11 +336,10 @@ enum class Settings {
 
                 KEY_YTM_AUTH -> {
                     with(ProjectBuildConfig) {
-                        if (YTM_CHANNEL_ID != null && YTM_COOKIE != null && YTM_HEADERS != null)
-                            YoutubeMusicAuthInfo(
+                        if (YTM_CHANNEL_ID != null && YTM_HEADERS != null)
+                            YoutubeApi.UserAuthState.packSetData(
                                 ArtistRef(YTM_CHANNEL_ID),
-                                YTM_COOKIE,
-                                Klaxon().parse(YTM_HEADERS.reader())!!
+                                Klaxon().parse<Map<String, String>>(YTM_HEADERS.reader())!!.toHeaders()
                             )
                         else emptySet()
                     }
@@ -360,6 +364,9 @@ enum class Settings {
                 KEY_FILTER_APPLY_TO_ARTISTS -> false
                 KEY_FILTER_APPLY_TO_ARTIST_ITEMS -> false
                 KEY_FILTER_APPLY_TO_PLAYLIST_ITEMS -> false
+
+                KEY_YOUTUBEAPI_TYPE -> YoutubeApi.Type.DEFAULT.ordinal
+                KEY_YOUTUBEAPI_URL -> YoutubeApi.Type.DEFAULT.getDefaultUrl()
 
                 KEY_VOLUME_STEPS -> 50
                 KEY_OPEN_NP_ON_SONG_PLAYED -> true

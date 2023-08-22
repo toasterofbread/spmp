@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.component.longpressmenu
 
+import LocalPlayerState
 import SpMp
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.Composable
@@ -57,7 +58,7 @@ data class LongPressMenuData(
                             callback(item)
                         }
                         else if (item is Playlist) {
-                            item.loadData(SpMp.context.database).onSuccess {
+                            item.loadData(SpMp.context).onSuccess {
                                 item.Items.get(SpMp.context.database)?.firstOrNull()?.also { item ->
                                     callback(item as Song)
                                 }
@@ -83,10 +84,14 @@ data class LongPressMenuData(
 
     @Composable
     fun SideButton(modifier: Modifier, background: Color) {
-        when (item) {
-            is Song -> LikeDislikeButton(item, modifier) { background.getContrasted() }
-            is Artist -> ArtistSubscribeButton(item, modifier)
-            else -> {}
+        val auth_state = LocalPlayerState.current.context.ytapi.user_auth_state
+
+        if (auth_state != null) {
+            when (item) {
+                is Song -> LikeDislikeButton(item, auth_state, modifier) { background.getContrasted() }
+                is Artist -> ArtistSubscribeButton(item, auth_state, modifier)
+                else -> {}
+            }
         }
     }
 }

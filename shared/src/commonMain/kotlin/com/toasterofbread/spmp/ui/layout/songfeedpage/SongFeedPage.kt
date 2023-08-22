@@ -34,18 +34,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.Database
-import com.toasterofbread.spmp.api.Api
-import com.toasterofbread.spmp.api.HomeFeedLoadResult
-import com.toasterofbread.spmp.api.cast
-import com.toasterofbread.spmp.api.getHomeFeed
-import com.toasterofbread.spmp.api.unit
 import com.toasterofbread.spmp.model.FilterChip
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mutableSettingsState
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.composable.SwipeRefresh
 import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
 import com.toasterofbread.spmp.resources.getString
@@ -58,6 +53,10 @@ import com.toasterofbread.spmp.ui.layout.mainpage.FeedLoadState
 import com.toasterofbread.spmp.ui.layout.mainpage.MainPage
 import com.toasterofbread.spmp.ui.layout.mainpage.MainPageState
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
+import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedLoadResult
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.unit
 import com.toasterofbread.utils.launchSingle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -68,6 +67,8 @@ import java.util.concurrent.locks.ReentrantLock
 
 class SongFeedPage(state: MainPageState): MainPage(state) {
     private val scroll_state = LazyListState()
+
+    private val feed_endpoint = state.context.ytapi.HomeFeed
 
     private var load_state by mutableStateOf(FeedLoadState.PREINIT)
     private var load_error: Throwable? by mutableStateOf(null)
@@ -128,6 +129,11 @@ class SongFeedPage(state: MainPageState): MainPage(state) {
         content_padding: PaddingValues,
         close: () -> Unit
     ) {
+        if (!feed_endpoint.isImplemented()) {
+            feed_endpoint.NotImplementedMessage(modifier.fillMaxSize())
+            return
+        }
+
         val player = LocalPlayerState.current
         val artists_layout: MediaItemLayout = remember {
             MediaItemLayout(
@@ -142,8 +148,8 @@ class SongFeedPage(state: MainPageState): MainPage(state) {
             populateArtistsLayout(
                 artists_layout.items as MutableList<MediaItem>,
                 layouts,
-                Api.ytm_auth.getOwnChannelOrNull(),
-                SpMp.context.database
+                player.context.ytapi.user_auth_state?.own_channel,
+                player.context
             )
         }
 
@@ -310,7 +316,7 @@ class SongFeedPage(state: MainPageState): MainPage(state) {
             load_lock.unlock()
         }
 
-        val result = loadFeedLayouts(min_rows, allow_cached, filter_params, if (continue_feed) continuation else null, SpMp.context.database)
+        val result = loadFeedLayouts(min_rows, allow_cached, filter_params, if (continue_feed) continuation else null)
 
         result.fold(
             { data ->
@@ -334,13 +340,34 @@ class SongFeedPage(state: MainPageState): MainPage(state) {
 
         return@withContext result.unit()
     }
+
+    private suspend fun loadFeedLayouts(
+        min_rows: Int,
+        allow_cached: Boolean,
+        params: String?,
+        continuation: String? = null
+    ): Result<HomeFeedLoadResult> {
+        val result = feed_endpoint.getHomeFeed(
+            allow_cached = allow_cached,
+            min_rows = min_rows,
+            params = params,
+            continuation = continuation
+        )
+
+        val data = result.getOrNull() ?: return result.cast()
+        return Result.success(
+            data.copy(
+                layouts = data.layouts.filter { it.items.isNotEmpty() }
+            )
+        )
+    }
 }
 
 private fun populateArtistsLayout(
     artists_layout_items: MutableList<MediaItem>,
     layouts: List<MediaItemLayout>?,
     own_channel: Artist?,
-    db: Database
+    context: PlatformContext
 ) {
     val artists_map: MutableMap<String, Int?> = mutableMapOf()
     for (layout in layouts.orEmpty()) {
@@ -354,7 +381,7 @@ private fun populateArtistsLayout(
                 continue
             }
 
-            val artist = item.Artist.get(db) ?: continue
+            val artist = item.Artist.get(context.database) ?: continue
             if (artist.id == own_channel?.id) {
                 continue
             }
@@ -380,27 +407,4 @@ private fun populateArtistsLayout(
     for (artist in artists) {
         artists_layout_items.add(ArtistRef(artist.first))
     }
-}
-
-private suspend fun loadFeedLayouts(
-    min_rows: Int,
-    allow_cached: Boolean,
-    params: String?,
-    continuation: String? = null,
-    db: Database
-): Result<HomeFeedLoadResult> {
-    val result = getHomeFeed(
-        db,
-        allow_cached = allow_cached,
-        min_rows = min_rows,
-        params = params,
-        continuation = continuation
-    )
-
-    val data = result.getOrNull() ?: return result.cast()
-    return Result.success(
-        data.copy(
-            layouts = data.layouts.filter { it.items.isNotEmpty() }
-        )
-    )
 }

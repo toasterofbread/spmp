@@ -16,8 +16,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import app.cash.sqldelight.Query
 import com.toasterofbread.Database
-import com.toasterofbread.spmp.api.DEFAULT_CONNECT_TIMEOUT
-import com.toasterofbread.spmp.api.model.TextRun
 import com.toasterofbread.spmp.model.mediaitem.db.ListProperty
 import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.db.SingleProperty
@@ -26,7 +24,9 @@ import com.toasterofbread.spmp.model.mediaitem.db.fromSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.db.toSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.toImageBitmap
+import com.toasterofbread.spmp.youtubeapi.model.TextRun
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.URL
@@ -88,19 +88,19 @@ sealed interface MediaItem: MediaItemHolder {
         }
     }
 
-    suspend fun loadData(db: Database, populate_data: Boolean = true): Result<MediaItemData> {
+    suspend fun loadData(context: PlatformContext, populate_data: Boolean = true): Result<MediaItemData> {
         val data = getEmptyData()
-        if (Loaded.get(db)) {
-            populateData(data, db)
+        if (Loaded.get(context.database)) {
+            populateData(data, context.database)
             return Result.success(data)
         }
-        return MediaItemLoader.loadUnknown(getEmptyData(), db)
+        return MediaItemLoader.loadUnknown(getEmptyData(), context)
     }
 
     suspend fun downloadThumbnailData(url: String): Result<ImageBitmap> = withContext(Dispatchers.IO) {
         return@withContext runCatching {
             val connection = URL(url).openConnection()
-            connection.connectTimeout = DEFAULT_CONNECT_TIMEOUT
+            connection.connectTimeout = com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DEFAULT_CONNECT_TIMEOUT
 
             val stream = connection.getInputStream()
             val bytes = stream.readBytes()

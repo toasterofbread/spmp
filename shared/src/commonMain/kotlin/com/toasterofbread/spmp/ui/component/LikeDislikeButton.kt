@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.component
 
+import LocalPlayerState
 import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
@@ -19,40 +20,44 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.api.Api
-import com.toasterofbread.spmp.api.setSongLiked
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLikedLoader
 import com.toasterofbread.spmp.model.mediaitem.observeAsState
+import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
 import com.toasterofbread.spmp.model.mediaitem.song.toLong
 import com.toasterofbread.spmp.model.mediaitem.song.toSongLikedStatus
 import com.toasterofbread.spmp.platform.vibrateShort
+import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LikeDislikeButton(
     song: Song,
+    auth_state: YoutubeApi.UserAuthState,
     modifier: Modifier = Modifier,
     getEnabled: (() -> Boolean)? = null,
     colourProvider: () -> Color
 ) {
-    if (!Api.ytm_authenticated) {
-        return
-    }
+    val context = LocalPlayerState.current.context
+    val db = context.database
 
-    val db = SpMp.context.database
+    val liked_endpoint = auth_state.SongLiked
+    check(liked_endpoint.isImplemented())
 
     var liked_status by db.songQueries
         .likedById(song.id)
         .observeAsState(
             mapValue = { it.executeAsOneOrNull()?.liked.toSongLikedStatus() },
             onExternalChange = { status ->
-                if (status != null) {
-                    setSongLiked(song.id, status)
+                with(auth_state.SetSongLiked) {
+                    if (isImplemented()) {
+                        if (status != null) {
+                            setSongLiked(song, status)
+                        }
+                        db.songQueries.updatelikedById(status.toLong(), song.id)
+                    }
                 }
-                db.songQueries.updatelikedById(status.toLong(), song.id)
             }
         )
     var loading by remember { mutableStateOf(false) }
@@ -61,7 +66,7 @@ fun LikeDislikeButton(
         if (liked_status == null) {
             loading = true
 
-            val load_result = SongLikedLoader.loadSongLiked(song.id, SpMp.context.database)
+            val load_result = SongLikedLoader.loadSongLiked(song.id, context, liked_endpoint)
             load_result.onSuccess {
                 liked_status = it
             }

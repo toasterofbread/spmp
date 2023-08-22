@@ -6,6 +6,7 @@ import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistHolder
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.utils.lazyAssert
 import mediaitem.PlaylistItem
@@ -70,8 +71,8 @@ sealed interface Playlist: MediaItem.WithArtist {
         }
     }
 
-    override suspend fun loadData(db: Database, populate_data: Boolean): Result<PlaylistData> {
-        return super.loadData(db, populate_data) as Result<PlaylistData>
+    override suspend fun loadData(context: PlatformContext, populate_data: Boolean): Result<PlaylistData> {
+        return super.loadData(context, populate_data) as Result<PlaylistData>
     }
 
     val Items: ListProperty<Song, PlaylistItem>

@@ -61,7 +61,7 @@ fun MediaItem.Thumbnail(
 
         var thumbnail_provider = ThumbnailProvider.get(SpMp.context.database)
         if (thumbnail_provider == null) {
-            loadData(SpMp.context.database)
+            loadData(SpMp.context)
             thumbnail_provider = ThumbnailProvider.get(SpMp.context.database)
         }
 

@@ -1,8 +1,8 @@
 package com.toasterofbread.spmp.model.mediaitem.song
 
-import com.toasterofbread.spmp.api.YoutubeVideoFormat
-import com.toasterofbread.spmp.api.getVideoFormats
 import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.youtubeapi.YoutubeVideoFormat
 import okhttp3.internal.filterList
 
 enum class SongAudioQuality {
@@ -15,17 +15,17 @@ fun getSongTargetStreamQuality(): SongAudioQuality =
 fun getSongTargetDownloadQuality(): SongAudioQuality =
     Settings.getEnum(Settings.KEY_DOWNLOAD_AUDIO_QUALITY)
 
-fun getSongFormatByQuality(song_id: String, quality: SongAudioQuality): Result<YoutubeVideoFormat> =
-    getAudioFormats(song_id).fold(
+fun getSongFormatByQuality(song_id: String, quality: SongAudioQuality, context: PlatformContext): Result<YoutubeVideoFormat> =
+    getAudioFormats(song_id, context).fold(
         { Result.success(it.getByQuality(quality)) },
         { Result.failure(it) }
     )
 
-fun getSongStreamFormat(song_id: String): Result<YoutubeVideoFormat> =
-    getSongFormatByQuality(song_id, getSongTargetStreamQuality())
+fun getSongStreamFormat(song_id: String, context: PlatformContext): Result<YoutubeVideoFormat> =
+    getSongFormatByQuality(song_id, getSongTargetStreamQuality(), context)
 
-private fun getAudioFormats(song_id: String): Result<List<YoutubeVideoFormat>> {
-    val result = getVideoFormats(song_id) { it.audio_only }
+private fun getAudioFormats(song_id: String, context: PlatformContext): Result<List<YoutubeVideoFormat>> {
+    val result = context.ytapi.VideoFormats.getVideoFormats(song_id) { it.audio_only }
 
     val formats = result.fold(
         { it },
@@ -54,5 +54,5 @@ private fun List<YoutubeVideoFormat>.getByQuality(quality: SongAudioQuality): Yo
             }
         }
         SongAudioQuality.LOW -> lastOrNull { it.audio_only } ?: last()
-    }.also { it.matched_quality = quality }
+    }
 }

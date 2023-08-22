@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.api.RadioModifier
+import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
 import com.toasterofbread.utils.setAlpha
 
 @Composable
@@ -34,10 +34,10 @@ internal fun RecordArc(size: Dp, arc_angle: Float, offset: Float = 0f, colour: C
     }
 }
 
-internal fun getRecordArcValues(type: RadioModifier.SelectionType, i: Int): Triple<Dp, Float, Float> {
+internal fun getRecordArcValues(type: RadioBuilderModifier.SelectionType, i: Int): Triple<Dp, Float, Float> {
     return when (type) {
-        RadioModifier.SelectionType.FAMILIAR -> Triple((20f + 10f * i).dp, 40f + 20f * i, 0f)
-        RadioModifier.SelectionType.BLEND -> Triple((20f + 10f * i).dp, 35f + 15f * i, -20f + i * 20f)
-        RadioModifier.SelectionType.DISCOVER -> Triple((20f + 10f * i).dp, 40f + 25f * i, -25f + i * 35f)
+        RadioBuilderModifier.SelectionType.FAMILIAR -> Triple((20f + 10f * i).dp, 40f + 20f * i, 0f)
+        RadioBuilderModifier.SelectionType.BLEND -> Triple((20f + 10f * i).dp, 35f + 15f * i, -20f + i * 20f)
+        RadioBuilderModifier.SelectionType.DISCOVER -> Triple((20f + 10f * i).dp, 40f + 25f * i, -25f + i * 35f)
     }
 }

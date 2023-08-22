@@ -17,8 +17,11 @@ import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.layout.SongRelatedPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
+import com.toasterofbread.spmp.youtubeapi.SongRelatedContentEndpoint
 
-class RelatedContentOverlayMenu : OverlayMenu() {
+class RelatedContentOverlayMenu(
+    private val related_endpoint: SongRelatedContentEndpoint
+) : OverlayMenu() {
     override fun closeOnTap(): Boolean = false
 
     @Composable
@@ -34,6 +37,7 @@ class RelatedContentOverlayMenu : OverlayMenu() {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomEnd) {
             SongRelatedPage(
                 getSong(),
+                related_endpoint,
                 Modifier.fillMaxSize(),
                 title_text_style = MaterialTheme.typography.headlineSmall,
                 description_text_style = MaterialTheme.typography.bodyMedium,

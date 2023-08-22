@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.library
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,13 +29,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.api.Api
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.AccountPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.LocalPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.playlist.createLocalPlaylist
+import com.toasterofbread.spmp.model.mediaitem.playlist.rememberArtistPlaylists
 import com.toasterofbread.spmp.model.mediaitem.playlist.rememberLocalPlaylists
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.resources.getString
@@ -77,23 +76,24 @@ private fun PlaylistsRow(
     multiselect_context: MediaItemMultiSelectContext,
     modifier: Modifier = Modifier
 ) {
-    val db = SpMp.context.database
     val player = LocalPlayerState.current
+    val auth_state = player.context.ytapi.user_auth_state
     val coroutine_scope = rememberCoroutineScope()
-    val ytm_auth = Api.ytm_auth
 
     val show_likes: Boolean by Settings.KEY_SHOW_LIKES_PLAYLIST.rememberMutableState()
 
-    val local_playlists: List<LocalPlaylistRef> = rememberLocalPlaylists(db)
-    val account_playlists: List<AccountPlaylistRef> = ytm_auth.own_playlists.mapNotNull { playlist_id ->
-        if (!show_likes && Playlist.formatYoutubeId(playlist_id) == "LM") {
-            return@mapNotNull null
+    val local_playlists: List<LocalPlaylistRef> = rememberLocalPlaylists(player.context)
+    val account_playlists: List<AccountPlaylistRef>? = auth_state?.own_channel?.let { channel ->
+        rememberArtistPlaylists(channel, player.context).mapNotNull { playlist ->
+            if (!show_likes && Playlist.formatYoutubeId(playlist.id) == "LM") {
+                return@mapNotNull null
+            }
+            return@mapNotNull AccountPlaylistRef(playlist.id)
         }
-        return@mapNotNull AccountPlaylistRef(playlist_id)
     }
 
     val playlists: List<Playlist> = remember(local_playlists, account_playlists) {
-        local_playlists + account_playlists
+        local_playlists + account_playlists.orEmpty()
     }
 
     PartialBorderBox(
@@ -123,7 +123,7 @@ private fun PlaylistsRow(
             Box(Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
                 IconButton({
                     coroutine_scope.launch {
-                        val new_playlist = createLocalPlaylist(db)
+                        val new_playlist = createLocalPlaylist(player.context)
                         player.openMediaItem(new_playlist)
                     }
                 }) {

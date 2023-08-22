@@ -13,10 +13,16 @@ import com.toasterofbread.spmp.ui.layout.DiscordLogin
 
 internal fun getDiscordLoginPage(discord_auth: SettingsValueState<String>, manual: Boolean = false): SettingsPage {
     return object : SettingsPage() {
-        override val disable_padding: Boolean = !manual
-        override val scrolling: Boolean = false
+        override val disable_padding: Boolean
+            @Composable
+            get() = !manual
+        override val scrolling: Boolean
+            @Composable
+            get() = false
 
-        override val title: String? = if (manual) getString("discord_manual_login_title") else null
+        override val title: String?
+            @Composable
+            get() = if (manual) getString("discord_manual_login_title") else null
         override val icon: ImageVector?
             @Composable
             get() = if (manual) PrefsPageCategory.DISCORD_STATUS.getIcon() else null
@@ -24,7 +30,7 @@ internal fun getDiscordLoginPage(discord_auth: SettingsValueState<String>, manua
         @Composable
         override fun PageView(
             content_padding: PaddingValues,
-            openPage: (Int) -> Unit,
+            openPage: (Int, Any?) -> Unit,
             openCustomPage: (SettingsPage) -> Unit,
             goBack: () -> Unit,
         ) {

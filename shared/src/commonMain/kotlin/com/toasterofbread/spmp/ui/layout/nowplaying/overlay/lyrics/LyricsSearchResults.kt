@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -25,13 +24,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.spmp.api.lyrics.LyricsSource
-import com.toasterofbread.spmp.api.lyrics.LyricsSource.SearchResult
 import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
+import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource.SearchResult
 import com.toasterofbread.utils.composable.Marquee
 import com.toasterofbread.utils.getContrasted
 import com.toasterofbread.utils.setAlpha

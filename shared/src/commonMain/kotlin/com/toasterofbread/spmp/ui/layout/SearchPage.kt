@@ -4,10 +4,8 @@ import LocalPlayerState
 import SpMp
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -27,26 +25,27 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
-import com.toasterofbread.Database
-import com.toasterofbread.spmp.api.*
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
-import com.toasterofbread.spmp.ui.component.MultiselectAndMusicTopBar
-import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.layout.mainpage.MainPage
+import com.toasterofbread.spmp.ui.layout.mainpage.MainPageState
+import com.toasterofbread.spmp.ui.layout.nowplaying.LocalNowPlayingExpansion
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.spmp.youtubeapi.*
+import com.toasterofbread.spmp.youtubeapi.endpoint.SearchFilter
+import com.toasterofbread.spmp.youtubeapi.endpoint.SearchResults
+import com.toasterofbread.spmp.youtubeapi.endpoint.SearchType
 import com.toasterofbread.utils.*
 import com.toasterofbread.utils.composable.ShapedIconButton
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.composable.rememberKeyboardOpen
-import com.toasterofbread.spmp.ui.layout.nowplaying.LocalNowPlayingExpansion
-import com.toasterofbread.spmp.ui.layout.mainpage.MainPage
-import com.toasterofbread.spmp.ui.layout.mainpage.MainPageState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
@@ -55,9 +54,10 @@ val SEARCH_FIELD_FONT_SIZE: TextUnit = 18.sp
 private val SEARCH_BAR_HEIGHT = 45.dp
 private val SEARCH_BAR_V_PADDING = 15.dp
 
-class SearchPage(state: MainPageState, val db: Database): MainPage(state) {
+class SearchPage(state: MainPageState, val context: PlatformContext): MainPage(state) {
     private val coroutine_scope = CoroutineScope(Job())
     private val search_lock = Object()
+    private val search_endpoint = context.ytapi.Search
 
     private var clearFocus: (() -> Unit)? = null
     private var multiselect_context: MediaItemMultiSelectContext? = null
@@ -137,6 +137,11 @@ class SearchPage(state: MainPageState, val db: Database): MainPage(state) {
         content_padding: PaddingValues,
         close: () -> Unit
     ) {
+        if (!search_endpoint.isImplemented()) {
+            search_endpoint.NotImplementedMessage(modifier.fillMaxSize())
+            return
+        }
+
         val player = LocalPlayerState.current
         val keyboard_controller = LocalSoftwareKeyboardController.current
         val focus_manager = LocalFocusManager.current
@@ -212,6 +217,8 @@ class SearchPage(state: MainPageState, val db: Database): MainPage(state) {
     }
 
     fun performSearch(filter: SearchFilter?) {
+        check(search_endpoint.isImplemented())
+
         clearFocus?.invoke()
 
         synchronized(search_lock) {
@@ -223,7 +230,7 @@ class SearchPage(state: MainPageState, val db: Database): MainPage(state) {
             multiselect_context?.setActive(false)
 
             coroutine_scope.launchSingle {
-                searchYoutubeMusic(query, filter?.params, db).fold(
+                search_endpoint.searchMusic(query, filter?.params).fold(
                     { results ->
                         for (result in results.categories) {
                             if (result.second != null) {

@@ -30,25 +30,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.api.YoutubeAccountCreationForm
-import com.toasterofbread.spmp.api.createYoutubeChannel
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.platform.composable.rememberImagePainter
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.youtubeapi.endpoint.YoutubeChannelCreationFormEndpoint.YoutubeAccountCreationForm.ChannelCreationForm
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import com.toasterofbread.utils.composable.LinkifyText
 import com.toasterofbread.utils.composable.ShapedIconButton
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.composable.WidthShrinkText
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import okhttp3.Headers
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun YoutubeChannelCreateDialog(
-    cookie: String,
-    headers: Map<String, String>,
-    form: YoutubeAccountCreationForm.ChannelCreationForm,
+    headers: Headers,
+    form: ChannelCreationForm,
+    api: YoutubeMusicApi,
     onFinished: (Result<Artist>?) -> Unit
 ) {
     val coroutine_scope = rememberCoroutineScope()
@@ -81,7 +82,7 @@ fun YoutubeChannelCreateDialog(
                         }
 
                         onFinished(runCatching {
-                            createYoutubeChannel(cookie, headers, form.getChannelCreationToken()!!, params).getOrThrow()
+                            api.CreateYoutubeChannel.createYoutubeChannel(headers, form.getChannelCreationToken()!!, params).getOrThrow()
                         })
                     }
                 },

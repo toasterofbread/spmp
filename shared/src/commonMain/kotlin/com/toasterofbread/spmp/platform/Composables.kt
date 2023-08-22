@@ -112,6 +112,6 @@ fun composeScope(block: @Composable () -> Unit) {
 }
 
 @Composable
-fun BackHandler(getEnabled: @Composable () -> Boolean, action: () -> Unit) {
+fun BackHandler(getEnabled: @Composable () -> Boolean = { true }, action: () -> Unit) {
     BackHandler(getEnabled(), action)
 }

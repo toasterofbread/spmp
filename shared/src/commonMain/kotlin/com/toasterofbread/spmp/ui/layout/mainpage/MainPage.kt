@@ -2,12 +2,12 @@ package com.toasterofbread.spmp.ui.layout.mainpage
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -15,17 +15,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.Database
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.SearchPage
 import com.toasterofbread.spmp.ui.layout.library.LibraryPage
 import com.toasterofbread.spmp.ui.layout.songfeedpage.SongFeedPage
 import com.toasterofbread.spmp.ui.theme.Theme
 
-class MainPageState(database: Database) {
+class MainPageState(val context: PlatformContext) {
     val SongFeed = SongFeedPage(this)
     val Library = LibraryPage(this)
-    val Search = SearchPage(this, database)
+    val Search = SearchPage(this, context)
 
     val Default: MainPage = SongFeed
 

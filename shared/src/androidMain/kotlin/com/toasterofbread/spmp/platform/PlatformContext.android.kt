@@ -41,6 +41,9 @@ import androidx.core.app.NotificationManagerCompat
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
+import com.toasterofbread.spmp.youtubeapi.YoutubeApi
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -85,10 +88,27 @@ fun getAppName(context: Context): String {
     return if (string_id == 0) info.nonLocalizedLabel.toString() else context.getString(string_id)
 }
 
-actual class PlatformContext(private val context: Context, val notification_permission_requester: NotificationPermissionRequester? = null) {
-    // TODO This should be a singleton
+actual class PlatformContext(
+    private val context: Context,
+    private val coroutine_scope: CoroutineScope,
+    val notification_permission_requester: NotificationPermissionRequester? = null,
+) {
     actual val database = createDatabase()
     actual val download_manager = PlayerDownloadManager(this)
+    actual val ytapi: YoutubeApi
+
+    init {
+        val prefs = getPrefs()
+        val youtubeapi_type: YoutubeApi.Type = Settings.KEY_YOUTUBEAPI_TYPE.getEnum(prefs)
+        ytapi = youtubeapi_type.instantiate(this, Settings.KEY_YOUTUBEAPI_URL.get(prefs))
+    }
+
+    fun init(): PlatformContext {
+        coroutine_scope.launch {
+            ytapi.init()
+        }
+        return this
+    }
 
     val ctx: Context get() = context
 

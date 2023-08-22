@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.youtubemusiclogin
 
-import com.toasterofbread.spmp.api.model.MusicThumbnailRenderer
-import com.toasterofbread.spmp.api.model.TextRuns
+import com.toasterofbread.spmp.youtubeapi.model.MusicThumbnailRenderer
+import com.toasterofbread.spmp.youtubeapi.model.TextRuns
 
 internal class AccountSwitcherEndpoint(val data: Data) {
     fun getAccounts(): List<AccountItem> =

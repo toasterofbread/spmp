@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout
 
+import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,7 +27,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.toasterofbread.spmp.api.getGenericFeedViewMorePage
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.ui.component.MusicTopBar
@@ -38,10 +38,13 @@ import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 
 @Composable
 fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, bottom_padding: Dp = 0.dp, title: String? = null) {
+    val context = LocalPlayerState.current.context
+    check(context.ytapi.GenericFeedViewMorePage.isImplemented())
+
     var items_result: Result<List<MediaItem>>? by remember { mutableStateOf(null) }
     LaunchedEffect(browse_id) {
         items_result = null
-        items_result = getGenericFeedViewMorePage(browse_id)
+        items_result = context.ytapi.GenericFeedViewMorePage.getGenericFeedViewMorePage(browse_id)
     }
 
     Column(modifier) {

@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.playlistpage
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -32,8 +31,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.api.Api
-import com.toasterofbread.spmp.api.getOrReport
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Playlist
@@ -43,17 +40,18 @@ import com.toasterofbread.spmp.model.mediaitem.toThumbnailProvider
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.getContrasted
 import kotlinx.coroutines.launch
 
 @Composable
 internal fun TopInfoEditButtons(playlist: Playlist, accent_colour: Color, modifier: Modifier = Modifier, onFinished: () -> Unit) {
-    val db = SpMp.context.database
     val player = LocalPlayerState.current
+    val db = player.context.database
 
     var playlist_image_provider: MediaItemThumbnailProvider? by playlist.CustomImageProvider.observe(db)
-    val playlist_editor = playlist.rememberEditorOrNull(db)
+    val playlist_editor = playlist.rememberEditorOrNull(player.context)
     
     Row(modifier) {
         IconButton(onFinished) {
@@ -119,9 +117,9 @@ internal fun TopInfoEditButtons(playlist: Playlist, accent_colour: Color, modifi
         }
 
         val conversion_coroutine_scope = rememberCoroutineScope()
-        val ytm_auth = Api.ytm_auth.initialisedOrNull()
+        val auth_state = player.context.ytapi.user_auth_state
 
-        if (playlist_editor is LocalPlaylistEditor && ytm_auth != null) {
+        if (playlist_editor is LocalPlaylistEditor && auth_state != null) {
             var converting by remember { mutableStateOf(false) }
 
             Spacer(Modifier.fillMaxWidth().weight(1f))
@@ -133,7 +131,7 @@ internal fun TopInfoEditButtons(playlist: Playlist, accent_colour: Color, modifi
                     }
                     conversion_coroutine_scope.launch {
                         converting = true
-                        playlist_editor.convertToAccountPlaylist(ytm_auth).getOrReport("ConvertPlaylistToAccountPlaylist")
+                        playlist_editor.convertToAccountPlaylist(auth_state).getOrReport("ConvertPlaylistToAccountPlaylist")
                         converting = false
                     }
                 },

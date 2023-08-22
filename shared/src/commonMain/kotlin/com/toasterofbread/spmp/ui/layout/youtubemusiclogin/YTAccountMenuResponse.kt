@@ -1,13 +1,13 @@
 package com.toasterofbread.spmp.ui.layout.youtubemusiclogin
 
-import com.toasterofbread.spmp.api.model.BrowseEndpoint
-import com.toasterofbread.spmp.api.model.MusicThumbnailRenderer
-import com.toasterofbread.spmp.api.model.NavigationEndpoint
-import com.toasterofbread.spmp.api.model.TextRuns
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
+import com.toasterofbread.spmp.youtubeapi.model.BrowseEndpoint
+import com.toasterofbread.spmp.youtubeapi.model.MusicThumbnailRenderer
+import com.toasterofbread.spmp.youtubeapi.model.NavigationEndpoint
+import com.toasterofbread.spmp.youtubeapi.model.TextRuns
 
 data class CreateChannelResponse(val navigationEndpoint: ChannelNavigationEndpoint) {
     data class ChannelNavigationEndpoint(val browseEndpoint: BrowseEndpoint)

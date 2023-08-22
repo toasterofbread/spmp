@@ -24,11 +24,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.beust.klaxon.Klaxon
 import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.ui.theme.ApplicationTheme
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.theme.ApplicationTheme
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.thenIf
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
@@ -39,6 +42,7 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
 class ErrorReportActivity : ComponentActivity() {
+    private val coroutine_scope = CoroutineScope(Job())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,7 +52,7 @@ class ErrorReportActivity : ComponentActivity() {
 
         val context: PlatformContext? =
             try {
-                PlatformContext(this)
+                PlatformContext(this, coroutine_scope).init()
             }
             catch (_: Throwable) {
                 null
@@ -64,6 +68,11 @@ class ErrorReportActivity : ComponentActivity() {
                 ErrorDisplay(message, stack_trace, null)
             }
         }
+    }
+
+    override fun onDestroy() {
+        coroutine_scope.cancel()
+        super.onDestroy()
     }
 
     @OptIn(ExperimentalResourceApi::class)
@@ -188,5 +197,4 @@ class ErrorReportActivity : ComponentActivity() {
             }
         }
     }
-
 }

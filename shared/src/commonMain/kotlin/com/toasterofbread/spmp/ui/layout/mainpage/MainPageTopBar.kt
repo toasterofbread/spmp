@@ -32,9 +32,9 @@ import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.ui.component.MusicTopBarWithVisualiser
 import com.toasterofbread.spmp.ui.component.WaveBorder
-import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.YoutubeMusicLoginConfirmation
 import com.toasterofbread.spmp.ui.layout.radiobuilder.RADIO_BUILDER_ICON_WIDTH_DP
 import com.toasterofbread.spmp.ui.layout.radiobuilder.RadioBuilderIcon
+import com.toasterofbread.spmp.youtubeapi.implementedOrNull
 
 @Composable
 fun MainPageTopBar(modifier: Modifier = Modifier) {
@@ -63,11 +63,12 @@ fun MainPageTopBar(modifier: Modifier = Modifier) {
             )
 
             var show_login_confirmation by remember { mutableStateOf(false) }
-            if (show_login_confirmation) {
-                YoutubeMusicLoginConfirmation { manual ->
+            val login_page = player.context.ytapi.LoginPage.implementedOrNull()
+
+            if (login_page != null && show_login_confirmation) {
+                login_page.LoginConfirmationDialog(false) { param ->
                     show_login_confirmation = false
-                    if (manual == true) player.setOverlayPage(PlayerOverlayPage.YtmLoginPage(true))
-                    else if (manual == false) player.setOverlayPage(PlayerOverlayPage.YtmLoginPage())
+                    player.setOverlayPage(PlayerOverlayPage.YtmLoginPage(login_page, param))
                 }
             }
 

@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.component.mediaitempreview
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -24,7 +23,6 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.spmp.api.getOrReport
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.rememberEditorOrNull
@@ -32,6 +30,7 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuActionProvider
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
 import com.toasterofbread.utils.composable.WidthShrinkText
 import kotlinx.coroutines.launch
 
@@ -82,7 +81,7 @@ fun LongPressMenuActionProvider.PlaylistLongPressMenuActions(playlist: MediaItem
         }
     )
 
-    val playlist_editor = playlist.rememberEditorOrNull(SpMp.context.database)
+    val playlist_editor = playlist.rememberEditorOrNull(player.context)
     if (playlist_editor != null) {
         ActionButton(
             Icons.Default.Delete,

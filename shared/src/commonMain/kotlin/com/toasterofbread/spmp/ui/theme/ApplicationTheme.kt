@@ -4,15 +4,12 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.utils.amplify
 import com.toasterofbread.utils.amplifyPercent
 import com.toasterofbread.utils.blendWith
 import com.toasterofbread.utils.contrastAgainst
 import com.toasterofbread.utils.getContrasted
-import com.toasterofbread.utils.setAlpha
 
 @Composable
 fun Theme.ApplicationTheme(

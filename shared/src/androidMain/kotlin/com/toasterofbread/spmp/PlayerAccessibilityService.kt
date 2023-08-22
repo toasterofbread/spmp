@@ -30,6 +30,7 @@ import com.toasterofbread.utils.Permissions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
@@ -41,8 +42,8 @@ import android.provider.Settings as AndroidSettings
 enum class SERVICE_INTENT_ACTIONS { BUTTON_VOLUME }
 
 actual class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner {
-
     private lateinit var context: PlatformContext
+    private val coroutine_scope = CoroutineScope(Job())
 
     private lateinit var volume_intercept_mode: PlayerAccessibilityServiceVolumeInterceptMode
     private var listen_while_screen_off: Boolean = false
@@ -83,7 +84,7 @@ actual class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner
     override fun onCreate() {
         super.onCreate()
         instance = WeakReference(this)
-        context = PlatformContext(this)
+        context = PlatformContext(this, coroutine_scope).init()
 
         lifecycle_registry = LifecycleRegistry(this)
         lifecycle_registry.currentState = Lifecycle.State.CREATED
@@ -100,12 +101,13 @@ actual class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner
     }
 
     override fun onDestroy() {
-        super.onDestroy()
-        instance = null
-
-        PlatformContext(this).getPrefs().removeListener(prefs_change_listener)
+        coroutine_scope.cancel()
+        context.getPrefs().removeListener(prefs_change_listener)
         unregisterReceiver(broadcast_receiver)
         long_press_timer.cancel()
+        instance = null
+
+        super.onDestroy()
     }
 
     override fun onKeyEvent(event: KeyEvent?): Boolean {

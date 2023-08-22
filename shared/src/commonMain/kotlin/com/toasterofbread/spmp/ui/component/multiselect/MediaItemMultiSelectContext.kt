@@ -51,19 +51,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.api.getOrReport
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.playlist.createLocalPlaylist
-import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.getEditor
+import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.getLocalPlaylistEditor
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.isPlaylistEditable
+import com.toasterofbread.spmp.model.mediaitem.playlist.createLocalPlaylist
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
 import com.toasterofbread.utils.composable.ShapedIconButton
 import com.toasterofbread.utils.getContrasted
 import com.toasterofbread.utils.lazyAssert
@@ -198,6 +198,8 @@ class MediaItemMultiSelectContext(
 
     @Composable
     private fun AddToPlaylistDialog(items: List<Song>, coroutine_scope: CoroutineScope, onFinished: () -> Unit) {
+        val player = LocalPlayerState.current
+
         val selected_playlists = remember { mutableStateListOf<Playlist>() }
         val button_colours = IconButtonDefaults.iconButtonColors(
             containerColor = Theme.accent,
@@ -236,7 +238,7 @@ class MediaItemMultiSelectContext(
 
                     Button(
                         { coroutine_scope.launch {
-                            val playlist = createLocalPlaylist(SpMp.context.database)
+                            val playlist = createLocalPlaylist(player.context)
                             selected_playlists.add(playlist)
                         }},
                         colors = ButtonDefaults.buttonColors(
@@ -261,7 +263,7 @@ class MediaItemMultiSelectContext(
             },
             text = {
 //                CompositionLocalProvider(LocalContentColor provides Theme.accent) {
-                    PlaylistSelectMenu(selected_playlists, Modifier.height(300.dp))
+                    PlaylistSelectMenu(selected_playlists, player.context.ytapi.user_auth_state, Modifier.height(300.dp))
 //                }
             }
         )
@@ -332,11 +334,24 @@ class MediaItemMultiSelectContext(
         // Delete playlist
         AnimatedVisibility(all_are_editable_playlists && selected_items.isNotEmpty()) {
             IconButton({ coroutine_scope.launch {
-                getUniqueSelectedItems().map { playlist ->
-                    launch {
-                        if (playlist is Playlist) {
-                            playlist.getEditor(db).deletePlaylist().getOrReport("deletePlaylist")
-                        }
+                getUniqueSelectedItems().mapNotNull { playlist ->
+                    if (playlist !is Playlist) null
+                    else launch {
+                        val editor =
+                            if (playlist.isLocalPlaylist()) {
+                                playlist.getLocalPlaylistEditor(player.context)
+                            }
+                            else {
+                                val editor_endpoint = player.context.ytapi.user_auth_state?.AccountPlaylistEditor
+                                if (editor_endpoint?.isImplemented() == true) {
+                                    editor_endpoint.getEditor(playlist)
+                                }
+                                else {
+                                    null
+                                }
+                            }
+
+                        editor?.deletePlaylist()?.getOrReport("deletePlaylist")
                     }
                 }.joinAll()
                 onActionPerformed()

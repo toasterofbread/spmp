@@ -18,12 +18,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.api.RadioModifier
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
 import com.toasterofbread.utils.getContrasted
 import com.toasterofbread.utils.modifier.background
 import com.toasterofbread.utils.setAlpha
@@ -38,7 +38,7 @@ fun CurrentRadioIndicator(
 
     Row(Modifier.animateContentSize()) {
 
-        val filters: List<List<RadioModifier>>? = player.player?.radio_filters
+        val filters: List<List<RadioBuilderModifier>>? = player.player?.radio_filters
         val filters_scroll_state = rememberScrollState()
         var show_radio_info: Boolean by remember { mutableStateOf(false) }
         val radio_item: MediaItem? = player.player?.radio_item.takeIf { item ->
@@ -101,7 +101,7 @@ fun CurrentRadioIndicator(
                         )
                     is List<*> -> 
                         FiltersRow(
-                            state as List<List<RadioModifier>>,
+                            state as List<List<RadioBuilderModifier>>,
                             accentColourProvider,
                             Modifier.horizontalScroll(filters_scroll_state).padding(bottom = 5.dp)
                         )
@@ -114,7 +114,7 @@ fun CurrentRadioIndicator(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun FiltersRow(
-    filters: List<List<RadioModifier>>,
+    filters: List<List<RadioBuilderModifier>>,
     accentColourProvider: () -> Color,
     modifier: Modifier = Modifier,
 ) {

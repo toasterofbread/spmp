@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.overlay.lyrics
 
+import LocalPlayerState
 import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -48,13 +49,13 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.api.lyrics.LyricsReference
-import com.toasterofbread.spmp.api.lyrics.LyricsSource
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.LargeDropdownMenu
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
+import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.setAlpha
 import kotlinx.coroutines.Dispatchers
@@ -70,7 +71,8 @@ fun LyricsSearchMenu(
     modifier: Modifier = Modifier,
     close: (changed: Boolean) -> Unit,
 ) {
-    val db = SpMp.context.database
+    val player = LocalPlayerState.current
+    val db = player.context.database
 
     val song_title: String? by song.Title.observe(db)
     val song_artist_title: String? = song.Artist.observeOn(db) {
@@ -151,7 +153,7 @@ fun LyricsSearchMenu(
                 )
             }
             else if (selected_source.supportsLyricsBySong()) {
-                selected_source.getReferenceBySong(song, db).fold(
+                selected_source.getReferenceBySong(song, player.context).fold(
                     { lyrics_reference ->
                         if (lyrics_reference != song.Lyrics.get(db)) {
                             song.Lyrics.set(lyrics_reference, db)

@@ -41,16 +41,22 @@ abstract class SettingsPage {
         internal set
     internal lateinit var settings_interface: SettingsInterface
 
-    open val disable_padding: Boolean = false
-    open val scrolling: Boolean = true
+    open val disable_padding: Boolean
+        @Composable
+        get() = false
+    open val scrolling: Boolean
+        @Composable
+        get() = true
 
-    open val title: String? = null
+    open val title: String?
+        @Composable
+        get() = null
     open val icon: ImageVector?
         @Composable
         get() = null
 
     @Composable
-    fun Page(content_padding: PaddingValues, openPage: (Int) -> Unit, openCustomPage: (SettingsPage) -> Unit, goBack: () -> Unit) {
+    fun Page(content_padding: PaddingValues, openPage: (Int, Any?) -> Unit, openCustomPage: (SettingsPage) -> Unit, goBack: () -> Unit) {
         CompositionLocalProvider(LocalContentColor provides settings_interface.theme.on_background) {
             PageView(content_padding, openPage, openCustomPage, goBack)
         }
@@ -103,7 +109,7 @@ abstract class SettingsPage {
     }
 
     @Composable
-    protected abstract fun PageView(content_padding: PaddingValues, openPage: (Int) -> Unit, openCustomPage: (SettingsPage) -> Unit, goBack: () -> Unit)
+    protected abstract fun PageView(content_padding: PaddingValues, openPage: (Int, Any?) -> Unit, openCustomPage: (SettingsPage) -> Unit, goBack: () -> Unit)
 
     abstract suspend fun resetKeys()
     open suspend fun onClosed() {}
@@ -119,6 +125,7 @@ class SettingsPageWithItems(
 ): SettingsPage() {
 
     override val title: String?
+        @Composable
         get() = getTitle()
     override val icon: ImageVector?
         @Composable
@@ -127,7 +134,7 @@ class SettingsPageWithItems(
     @Composable
     override fun PageView(
         content_padding: PaddingValues,
-        openPage: (Int) -> Unit,
+        openPage: (Int, Any?) -> Unit,
         openCustomPage: (SettingsPage) -> Unit,
         goBack: () -> Unit
     ) {

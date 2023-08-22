@@ -46,10 +46,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.addUnique
 import com.toasterofbread.utils.composable.NoRipple
 import com.toasterofbread.utils.getContrasted
-import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.thenIf
 
 class PillMenu(

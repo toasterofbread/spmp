@@ -56,7 +56,10 @@ class SettingsSliderItem(
     val max_label: String? = null,
     val steps: Int = 0,
     val range: ClosedFloatingPointRange<Float> = 0f .. 1f,
-    val getValueText: ((value: Float) -> String?)? = { it.roundTo(2).toString() }
+    val getValueText: ((value: Number) -> String?)? = {
+        if (it is Float) it.roundTo(2).toString()
+        else it.toString()
+    }
 ): SettingsItem() {
 
     private var is_int: Boolean = false
@@ -74,6 +77,10 @@ class SettingsSliderItem(
 
     fun getValue(): Float {
         return value_state
+    }
+    private fun getTypedValue(): Number {
+        if (is_int) return value_state.roundToInt()
+        else return value_state
     }
 
     override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {
@@ -99,7 +106,7 @@ class SettingsSliderItem(
     @Composable
     override fun GetItem(
         theme: Theme,
-        openPage: (Int) -> Unit,
+        openPage: (Int, Any?) -> Unit,
         openCustomPage: (SettingsPage) -> Unit
     ) {
         var show_edit_dialog by remember { mutableStateOf(false) }
@@ -200,7 +207,7 @@ class SettingsSliderItem(
                         val colour = theme.vibrant_accent
                         val scale_on_press = 1.15f
                         val animation_spec = SpringSpec<Float>(0.65f)
-                        val value_text = getValueText?.invoke(getValue())
+                        val value_text = getValueText?.invoke(getTypedValue())
 
                         if (value_text != null) {
                             MeasureUnconstrainedView({ ItemText(value_text, theme) }) { width, height ->

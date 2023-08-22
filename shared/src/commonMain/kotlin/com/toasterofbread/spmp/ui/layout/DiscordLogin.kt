@@ -35,18 +35,19 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
-import com.toasterofbread.spmp.api.Api
-import com.toasterofbread.spmp.api.cast
-import com.toasterofbread.spmp.api.getOrReport
 import com.toasterofbread.spmp.platform.WebViewLogin
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.platform.composable.rememberImagePainter
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.youtubeapi.executeResult
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
 import com.toasterofbread.utils.composable.LinkifyText
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
 import okhttp3.Request
 
 private const val DISCORD_LOGIN_URL = "https://discord.com/login"
@@ -140,7 +141,7 @@ suspend fun getDiscordAccountInfo(account_token: String): Result<DiscordMeRespon
         .addHeader("authorization", account_token)
         .build()
 
-    val result = Api.request(request, is_gzip = false)
+    val result = OkHttpClient().executeResult(request)
     val response = result.getOrNull() ?: return@withContext result.cast()
 
     val stream = response.body!!.charStream()

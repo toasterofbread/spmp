@@ -7,8 +7,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import app.cash.sqldelight.Query
-import com.toasterofbread.spmp.api.RadioModifier
-import com.toasterofbread.spmp.api.markSongAsWatched
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.Song
@@ -16,6 +14,7 @@ import com.toasterofbread.spmp.model.mediaitem.db.incrementPlayCount
 import com.toasterofbread.spmp.platform.MediaPlayerService
 import com.toasterofbread.spmp.platform.MediaPlayerState
 import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -37,7 +36,7 @@ class PlayerService: MediaPlayerService() {
     val radio_loading: Boolean get() = radio.instance.loading
     val radio_item: MediaItem? get() = radio.instance.state.item?.first
     val radio_item_index: Int? get() = radio.instance.state.item?.second
-    val radio_filters: List<List<RadioModifier>>? get() = radio.instance.state.filters
+    val radio_filters: List<List<RadioBuilderModifier>>? get() = radio.instance.state.filters
     var radio_current_filter: Int?
         get() = radio.instance.state.current_filter
         set(value) {
@@ -95,7 +94,7 @@ class PlayerService: MediaPlayerService() {
                 val final_index = if (item != null) item_index else index
 
                 if (final_item !is Song) {
-                    final_item.incrementPlayCount(context.database)
+                    final_item.incrementPlayCount(context)
                 }
 
                 return@customUndoableAction radio.getRadioChangeUndoRedo(
@@ -114,6 +113,7 @@ class PlayerService: MediaPlayerService() {
                 return
             }
             radio.instance.loadContinuation(
+                context,
                 can_retry = true
             ) { result, is_retry ->
                 result.onSuccess { songs ->
@@ -519,10 +519,11 @@ class PlayerService: MediaPlayerService() {
                             val song = getSong() ?: return@withContext
 
                             withContext(Dispatchers.IO) {
-                                song.incrementPlayCount(context.database)
+                                song.incrementPlayCount(context)
 
-                                if (Settings.KEY_ADD_SONGS_TO_HISTORY.get(context)) {
-                                    val result = markSongAsWatched(song.id)
+                                val mark_endpoint = context.ytapi.user_auth_state?.MarkSongAsWatched
+                                if (mark_endpoint?.isImplemented() == true && Settings.KEY_ADD_SONGS_TO_HISTORY.get(context)) {
+                                    val result = mark_endpoint.markSongAsWatched(song)
                                     if (result.isFailure) {
                                         SpMp.error_manager.onError("autoMarkSongAsWatched", result.exceptionOrNull()!!)
                                     }

@@ -33,7 +33,7 @@ class SettingsTextFieldItem(
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    override fun GetItem(theme: Theme, openPage: (Int) -> Unit, openCustomPage: (SettingsPage) -> Unit) {
+    override fun GetItem(theme: Theme, openPage: (Int, Any?) -> Unit, openCustomPage: (SettingsPage) -> Unit) {
         Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(5.dp)) {
             ItemTitleText(title, theme)
             ItemText(subtitle, theme)

@@ -6,9 +6,9 @@ import com.toasterofbread.composesettings.ui.item.SettingsItem
 import com.toasterofbread.composesettings.ui.item.SettingsSliderItem
 import com.toasterofbread.composesettings.ui.item.SettingsToggleItem
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
-import com.toasterofbread.spmp.api.lyrics.LyricsSource
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
 
 internal fun getLyricsCategory(): List<SettingsItem> {
     return listOf(

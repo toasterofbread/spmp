@@ -49,7 +49,7 @@ class SettingsAccessibilityServiceItem(
     @Composable
     override fun GetItem(
         theme: Theme,
-        openPage: (Int) -> Unit,
+        openPage: (Int, Any?) -> Unit,
         openCustomPage: (SettingsPage) -> Unit
     ) {
         var service_enabled: Boolean by remember { mutableStateOf(service_bridge.isEnabled(context)) }

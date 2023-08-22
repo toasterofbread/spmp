@@ -7,7 +7,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import app.cash.sqldelight.Query
-import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.AccountPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.ArtistRef
@@ -17,12 +16,15 @@ import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongRef
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.spmp.platform.PlatformContext
 import mediaitem.ArtistQueries
 import mediaitem.PlaylistQueries
 import mediaitem.SongQueries
 
 @Composable
-fun rememberHiddenItems(db: Database, hidden: Boolean = true): List<MediaItem> {
+fun rememberHiddenItems(context: PlatformContext, hidden: Boolean = true): List<MediaItem> {
+    val db = context.database
+
     var hidden_songs: List<Song> by remember { mutableStateOf(
         db.songQueries.getByHidden(hidden)
     ) }

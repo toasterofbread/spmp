@@ -23,15 +23,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.api.RadioModifier
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
 import com.toasterofbread.utils.composable.NoRipple
 import kotlinx.coroutines.launch
 import kotlin.math.ceil
 
 @Composable
-internal fun SelectionTypeRow(state: MutableState<RadioModifier.SelectionType>) {
+internal fun SelectionTypeRow(state: MutableState<RadioBuilderModifier.SelectionType>) {
     Row(
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -70,11 +70,11 @@ internal fun SelectionTypeRow(state: MutableState<RadioModifier.SelectionType>) 
             Text(getString("radio_builder_modifier_selection_type"))
 
             MultiSelectRow(
-                amount = RadioModifier.SelectionType.values().size,
+                amount = RadioBuilderModifier.SelectionType.values().size,
                 isSelected = { it == state.value.ordinal },
-                onSelected = { state.value =  RadioModifier.SelectionType.values()[it!!] },
+                onSelected = { state.value =  RadioBuilderModifier.SelectionType.values()[it!!] },
                 getText = {
-                    RadioModifier.SelectionType.values()[it].getReadable()
+                    RadioBuilderModifier.SelectionType.values()[it].getReadable()
                 },
                 button_padding = PaddingValues(0.dp)
             )
@@ -103,30 +103,30 @@ internal fun SelectionTypeRow(state: MutableState<RadioModifier.SelectionType>) 
 }
 
 @Composable
-internal fun ArtistVarietyRow(state: MutableState<RadioModifier.Variety>) {
+internal fun ArtistVarietyRow(state: MutableState<RadioBuilderModifier.Variety>) {
     Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
         Text(getString("radio_builder_modifier_variety"))
         MultiSelectRow(
-            RadioModifier.Variety.values().size,
+            RadioBuilderModifier.Variety.values().size,
             isSelected = { state.value.ordinal == it },
-            onSelected = { state.value = RadioModifier.Variety.values()[it!!] },
+            onSelected = { state.value = RadioBuilderModifier.Variety.values()[it!!] },
             getText = {
-                RadioModifier.Variety.values()[it].getReadable()
+                RadioBuilderModifier.Variety.values()[it].getReadable()
             }
         )
     }
 }
 
 @Composable
-internal fun FilterARow(state: MutableState<RadioModifier.FilterA?>) {
+internal fun FilterARow(state: MutableState<RadioBuilderModifier.FilterA?>) {
     Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
         Text(getString("radio_builder_modifier_filter_a"))
         MultiSelectRow(
-            RadioModifier.FilterA.values().size,
+            RadioBuilderModifier.FilterA.values().size,
             isSelected = { state.value?.ordinal == it },
-            onSelected = { state.value = it?.let { RadioModifier.FilterA.values()[it] } },
+            onSelected = { state.value = it?.let { RadioBuilderModifier.FilterA.values()[it] } },
             getText = {
-                RadioModifier.FilterA.values()[it].getReadable()
+                RadioBuilderModifier.FilterA.values()[it].getReadable()
             },
             nullable = true
         )
@@ -134,15 +134,15 @@ internal fun FilterARow(state: MutableState<RadioModifier.FilterA?>) {
 }
 
 @Composable
-internal fun FilterBRow(state: MutableState<RadioModifier.FilterB?>) {
+internal fun FilterBRow(state: MutableState<RadioBuilderModifier.FilterB?>) {
     Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
         Text(getString("radio_builder_modifier_filter_b"))
         MultiSelectRow(
-            RadioModifier.FilterB.values().size,
+            RadioBuilderModifier.FilterB.values().size,
             isSelected = { state.value?.ordinal == it },
-            onSelected = { state.value = it?.let { RadioModifier.FilterB.values()[it] } },
+            onSelected = { state.value = it?.let { RadioBuilderModifier.FilterB.values()[it] } },
             getText = {
-                RadioModifier.FilterB.values()[it].getReadable()
+                RadioBuilderModifier.FilterB.values()[it].getReadable()
             },
             nullable = true,
             button_padding = PaddingValues(0.dp),

@@ -16,8 +16,13 @@ import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.isDark
 import com.toasterofbread.utils.isDebugBuild
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 
 class MainActivity : ComponentActivity() {
+    private val coroutine_scope = CoroutineScope(Job())
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -50,8 +55,9 @@ class MainActivity : ComponentActivity() {
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        val context = PlatformContext(this, NotificationPermissionRequester(this))
+        val context = PlatformContext(this, coroutine_scope, NotificationPermissionRequester(this))
         SpMp.init(context)
+        context.init()
 
         if (!context.isDisplayingAboveNavigationBar()) {
             window.setFlags(
@@ -72,6 +78,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        coroutine_scope.cancel()
         SpMp.release()
         super.onDestroy()
     }

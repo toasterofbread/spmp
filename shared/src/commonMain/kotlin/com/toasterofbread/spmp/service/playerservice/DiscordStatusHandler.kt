@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.service.playerservice
 
 import com.toasterofbread.spmp.ProjectBuildConfig
-import com.toasterofbread.spmp.api.getOrThrowHere
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
@@ -12,6 +11,7 @@ import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrThrowHere
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

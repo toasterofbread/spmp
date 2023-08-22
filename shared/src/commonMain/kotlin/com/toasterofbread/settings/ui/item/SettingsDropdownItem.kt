@@ -48,7 +48,7 @@ class SettingsDropdownItem(
     @Composable
     override fun GetItem(
         theme: Theme,
-        openPage: (Int) -> Unit,
+        openPage: (Int, Any?) -> Unit,
         openCustomPage: (SettingsPage) -> Unit
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {

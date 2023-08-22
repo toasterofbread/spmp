@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.model.mediaitem
 
-import SpMp
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayoutData
@@ -12,7 +11,7 @@ import com.toasterofbread.spmp.model.mediaitem.db.fromSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.db.toNullableSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.db.toSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-//import com.toasterofbread.utils.lazyAssert
+import com.toasterofbread.spmp.platform.PlatformContext
 
 class ArtistRef(override val id: String): Artist {
     override fun toString(): String = "ArtistRef($id)"
@@ -45,8 +44,8 @@ sealed interface Artist: MediaItem {
         }
     }
 
-    override suspend fun loadData(db: Database, populate_data: Boolean): Result<ArtistData> {
-        return super.loadData(db, populate_data) as Result<ArtistData>
+    override suspend fun loadData(context: PlatformContext, populate_data: Boolean): Result<ArtistData> {
+        return super.loadData(context, populate_data) as Result<ArtistData>
     }
 
     val SubscribeChannelId: Property<String?>

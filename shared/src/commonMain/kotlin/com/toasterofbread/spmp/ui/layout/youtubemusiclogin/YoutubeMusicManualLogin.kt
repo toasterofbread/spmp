@@ -1,18 +1,23 @@
 package com.toasterofbread.spmp.ui.layout.youtubemusiclogin
 
+import LocalPlayerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringArray
 import com.toasterofbread.spmp.ui.layout.ManualLoginPage
+import com.toasterofbread.spmp.youtubeapi.YoutubeApi
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
 import com.toasterofbread.utils.indexOfOrNull
 import kotlinx.coroutines.launch
+import okhttp3.Headers
 
 @Composable
-fun YoutubeMusicManualLogin(modifier: Modifier = Modifier, onFinished: (Result<YoutubeMusicAuthInfo>?) -> Unit) {
+fun YoutubeMusicManualLogin(modifier: Modifier = Modifier, onFinished: (Result<YoutubeApi.UserAuthState>?) -> Unit) {
+    val player = LocalPlayerState.current
     val coroutine_scope = rememberCoroutineScope()
+
     ManualLoginPage(
         steps = getStringArray("youtube_manual_login_steps"),
         suffix = getString("youtube_manual_login_suffix"),
@@ -27,7 +32,9 @@ fun YoutubeMusicManualLogin(modifier: Modifier = Modifier, onFinished: (Result<Y
         getHeadersFromManualEntry(entry).fold(
             { headers ->
                 coroutine_scope.launch {
-                    onFinished(YoutubeMusicAuthInfo.fromHeaders(headers))
+                    onFinished(
+                        player.context.ytapi.UpdateUserAuthState.byHeaders(headers)
+                    )
                 }
                 null
             },
@@ -51,9 +58,9 @@ fun YoutubeMusicManualLogin(modifier: Modifier = Modifier, onFinished: (Result<Y
 
 private class MissingHeadersException(val keys: List<String>): RuntimeException()
 
-private fun getHeadersFromManualEntry(headers_text: String): Result<Map<String, String>> {
-    val ret: MutableMap<String, String> = mutableMapOf()
-    val required_keys = YoutubeMusicAuthInfo.REQUIRED_KEYS.toMutableList()
+private fun getHeadersFromManualEntry(headers_text: String): Result<Headers> {
+    val headers_builder = Headers.Builder()
+    val required_keys = YoutubeMusicAuthInfo.REQUIRED_HEADERS.toMutableList()
 
     for (line in headers_text.lines()) {
         val colon = line.indexOfOrNull(':') ?: continue
@@ -64,7 +71,7 @@ private fun getHeadersFromManualEntry(headers_text: String): Result<Map<String, 
         }
 
         val key = line.substring(0, colon).lowercase()
-        ret[key] = line.substring(colon + 1).trim()
+        headers_builder.add(key, line.substring(colon + 1).trim())
         required_keys.remove(key)
     }
 
@@ -72,5 +79,5 @@ private fun getHeadersFromManualEntry(headers_text: String): Result<Map<String, 
         return Result.failure(MissingHeadersException(required_keys))
     }
 
-    return Result.success(ret)
+    return Result.success(headers_builder.build())
 }

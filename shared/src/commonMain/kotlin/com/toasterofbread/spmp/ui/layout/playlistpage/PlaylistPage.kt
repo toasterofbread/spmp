@@ -22,7 +22,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -32,21 +31,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.toasterofbread.spmp.api.getOrReport
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortOption
+import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.isMediaItemHidden
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.loadDataOnChange
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.rememberEditorOrNull
+import com.toasterofbread.spmp.platform.composable.SwipeRefresh
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
-import com.toasterofbread.spmp.platform.composable.SwipeRefresh
 import com.toasterofbread.spmp.ui.component.MultiselectAndMusicTopBar
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
 import com.toasterofbread.utils.composable.stickyHeaderWithTopPadding
 import com.toasterofbread.utils.copy
 import com.toasterofbread.utils.getThemeColour
@@ -61,17 +60,17 @@ fun PlaylistPage(
     padding: PaddingValues = PaddingValues(),
     close: () -> Unit
 ) {
-    val db = SpMp.context.database
     val player = LocalPlayerState.current
+    val db = player.context.database
     val coroutine_scope = rememberCoroutineScope()
 
     var load_error: Throwable? by remember { mutableStateOf(null) }
-    val loading by playlist.loadDataOnChange(db) { load_error = it }
+    val loading by playlist.loadDataOnChange(player.context) { load_error = it }
     var refreshed by remember { mutableStateOf(false) }
 
     val playlist_items: List<MediaItem>? by playlist.Items.observe(db)
     var sorted_items: List<Pair<MediaItem, Int>>? by remember { mutableStateOf(null) }
-    val playlist_editor = playlist.rememberEditorOrNull(db)
+    val playlist_editor = playlist.rememberEditorOrNull(player.context)
 
     val apply_item_filter: Boolean by Settings.KEY_FILTER_APPLY_TO_PLAYLIST_ITEMS.rememberMutableState()
     var accent_colour: Color? by remember { mutableStateOf(null) }
@@ -191,7 +190,7 @@ fun PlaylistPage(
                 refreshed = true
                 load_error = null
                 coroutine_scope.launch {
-                    MediaItemLoader.loadPlaylist(playlist.getEmptyData(), db)
+                    MediaItemLoader.loadPlaylist(playlist.getEmptyData(), player.context)
                 }
             },
             swipe_enabled = !loading,
@@ -271,8 +270,7 @@ fun PlaylistPage(
                     multiselect_context,
                     reorderable,
                     current_sort_option,
-                    player,
-                    db
+                    player
                 )
 
                 item {

@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.artistpage
 
+import LocalPlayerState
 import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -59,6 +60,8 @@ import com.toasterofbread.utils.composable.WidthShrinkText
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
+    val player = LocalPlayerState.current
+
     val horizontal_padding = 20.dp
     var editing_title by remember { mutableStateOf(false) }
     Crossfade(editing_title) { editing ->
@@ -156,7 +159,9 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
                 if (item is Artist) {
-                    ArtistSubscribeButton(item)
+                    player.context.ytapi.user_auth_state?.also { auth_state ->
+                        ArtistSubscribeButton(item, auth_state)
+                    }
                 }
 
                 var item_pinned by item.PinnedToHome.observe(SpMp.context.database)

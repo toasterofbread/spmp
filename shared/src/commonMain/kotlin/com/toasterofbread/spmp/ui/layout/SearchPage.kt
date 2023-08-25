@@ -131,7 +131,7 @@ class SearchPage(state: MainPageState, val context: PlatformContext): MainPage(s
 
     @OptIn(ExperimentalComposeUiApi::class)
     @Composable
-    override fun Page(
+    override fun ColumnScope.Page(
         multiselect_context: MediaItemMultiSelectContext,
         modifier: Modifier,
         content_padding: PaddingValues,
@@ -167,49 +167,47 @@ class SearchPage(state: MainPageState, val context: PlatformContext): MainPage(s
             }
         }
 
-        Box(modifier) {
-            Column(Modifier.fillMaxSize()) {
-                val padding = content_padding.copy(
-                    bottom = content_padding.calculateBottomPadding() + SEARCH_BAR_HEIGHT + (SEARCH_BAR_V_PADDING * 2)
-                )
+        Column(modifier.fillMaxSize().weight(1f)) {
+            val padding = content_padding.copy(
+                bottom = content_padding.calculateBottomPadding() + SEARCH_BAR_HEIGHT + (SEARCH_BAR_V_PADDING * 2)
+            )
 
-                Crossfade(
-                    error ?: current_results
-                ) { results ->
-                    if (results is SearchResults) {
-                        Results(
-                            results,
-                            padding,
-                            multiselect_context
-                        )
+            Crossfade(
+                error ?: current_results
+            ) { results ->
+                if (results is SearchResults) {
+                    Results(
+                        results,
+                        padding,
+                        multiselect_context
+                    )
+                }
+                else if (results is Throwable) {
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .padding(padding),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        ErrorInfoDisplay(results, Modifier.fillMaxWidth())
                     }
-                    else if (results is Throwable) {
-                        Box(
-                            Modifier
-                                .fillMaxSize()
-                                .padding(padding),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            ErrorInfoDisplay(results, Modifier.fillMaxWidth())
-                        }
-                    }
-                    else if (search_in_progress) {
-                        Box(
-                            Modifier.fillMaxSize().padding(padding),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            SubtleLoadingIndicator(getColour = { Theme.on_background }, message = getString("search_results_loading"))
-                        }
+                }
+                else if (search_in_progress) {
+                    Box(
+                        Modifier.fillMaxSize().padding(padding),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        SubtleLoadingIndicator(getColour = { Theme.on_background }, message = getString("search_results_loading"))
                     }
                 }
             }
-
-            SearchBar(
-                focus_state,
-                player.nowPlayingTopOffset(Modifier.align(Alignment.BottomCenter)).zIndex(100f),
-                close
-            )
         }
+
+        SearchBar(
+            focus_state,
+            player.nowPlayingTopOffset(Modifier).zIndex(100f),
+            close
+        )
     }
 
     fun performSearch() {

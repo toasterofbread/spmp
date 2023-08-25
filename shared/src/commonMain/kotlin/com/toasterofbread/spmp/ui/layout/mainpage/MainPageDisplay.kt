@@ -23,13 +23,15 @@ fun MainPageDisplay() {
         val top_padding = WAVE_BORDER_DEFAULT_HEIGHT.dp
         MainPageTopBar(Modifier.padding(top = SpMp.context.getStatusBarHeight()).zIndex(1f))
 
-        player.main_page.Page(
-            player.main_multiselect_context,
-            Modifier,
-            PaddingValues(
-                top = top_padding,
-                bottom = player.bottom_padding_dp
-            )
-        ) { player.navigateBack() }
+        with(player.main_page) {
+            Page(
+                player.main_multiselect_context,
+                Modifier,
+                PaddingValues(
+                    top = top_padding,
+                    bottom = player.bottom_padding_dp
+                )
+            ) { player.navigateBack() }
+        }
     }
 }

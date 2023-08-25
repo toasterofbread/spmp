@@ -40,7 +40,8 @@ import org.jetbrains.compose.resources.*
 internal enum class PrefsPageScreen {
     ROOT,
     YOUTUBE_MUSIC_LOGIN,
-    DISCORD_LOGIN
+    DISCORD_LOGIN,
+    UI_DEBUG_INFO
 }
 enum class PrefsPageCategory {
     GENERAL,

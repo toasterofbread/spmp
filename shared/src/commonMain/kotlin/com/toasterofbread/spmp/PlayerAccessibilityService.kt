@@ -9,7 +9,7 @@ enum class PlayerAccessibilityServiceVolumeInterceptMode {
 }
 
 expect class PlayerAccessibilityService() {
-    actual companion object {
+    companion object {
         fun isSupported(): Boolean
 
         fun addEnabledListener(listener: (Boolean) -> Unit, context: PlatformContext)

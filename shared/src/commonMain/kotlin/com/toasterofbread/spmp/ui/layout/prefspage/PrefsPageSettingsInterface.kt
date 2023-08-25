@@ -89,6 +89,7 @@ internal fun getPrefsPageSettingsInterface(
                 )
                 PrefsPageScreen.YOUTUBE_MUSIC_LOGIN -> getYoutubeMusicLoginPage(ytm_auth, param)
                 PrefsPageScreen.DISCORD_LOGIN -> getDiscordLoginPage(discord_auth, manual = param == true)
+                PrefsPageScreen.UI_DEBUG_INFO -> getUiDebugInfoPage()
             }
         },
         { page: Int? ->

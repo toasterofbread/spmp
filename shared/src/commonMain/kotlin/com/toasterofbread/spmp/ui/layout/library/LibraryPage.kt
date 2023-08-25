@@ -6,6 +6,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -189,10 +190,10 @@ class LibraryPage(state: MainPageState): MainPage(state) {
     }
 
     @Composable
-    override fun Page(
+    override fun ColumnScope.Page(
         multiselect_context: MediaItemMultiSelectContext,
-        modifier: Modifier, 
-        content_padding: PaddingValues, 
+        modifier: Modifier,
+        content_padding: PaddingValues,
         close: () -> Unit
     ) {
         val player = LocalPlayerState.current

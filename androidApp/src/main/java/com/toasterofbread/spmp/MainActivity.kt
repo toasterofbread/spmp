@@ -4,6 +4,7 @@ import SpMp
 import android.content.ComponentCallbacks2
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.StrictMode
 import android.os.StrictMode.VmPolicy
@@ -53,12 +54,11 @@ class MainActivity : ComponentActivity() {
             )
         }
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-
         val context = PlatformContext(this, coroutine_scope, NotificationPermissionRequester(this))
         SpMp.init(context)
         context.init()
 
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         if (!context.isDisplayingAboveNavigationBar()) {
             window.setFlags(
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
@@ -66,6 +66,10 @@ class MainActivity : ComponentActivity() {
             )
         }
         context.setNavigationBarColour(null)
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+        }
 
         val open_uri: Uri? =
             if (intent.action == Intent.ACTION_VIEW) intent.data
@@ -102,13 +106,15 @@ class MainActivity : ComponentActivity() {
 
             ComponentCallbacks2.TRIM_MEMORY_RUNNING_MODERATE,
             ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW,
-            ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL -> {
+            ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL,
+            -> {
                 SpMp.onLowMemory()
             }
 
             ComponentCallbacks2.TRIM_MEMORY_BACKGROUND,
             ComponentCallbacks2.TRIM_MEMORY_MODERATE,
-            ComponentCallbacks2.TRIM_MEMORY_COMPLETE -> {
+            ComponentCallbacks2.TRIM_MEMORY_COMPLETE,
+            -> {
             }
 
             else -> {

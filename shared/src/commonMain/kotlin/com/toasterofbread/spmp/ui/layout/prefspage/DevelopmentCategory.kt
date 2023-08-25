@@ -16,9 +16,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.composesettings.ui.SettingsPage
 import com.toasterofbread.composesettings.ui.item.SettingsComposableItem
 import com.toasterofbread.composesettings.ui.item.SettingsGroupItem
 import com.toasterofbread.composesettings.ui.item.SettingsItem
+import com.toasterofbread.composesettings.ui.item.SettingsSubpageItem
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.UnlocalisedStringCollector.UnlocalisedString
 import com.toasterofbread.spmp.ui.theme.Theme
@@ -26,7 +28,14 @@ import com.toasterofbread.utils.blendWith
 import com.toasterofbread.utils.composable.WidthShrinkText
 
 internal fun getDevelopmentCategory(): List<SettingsItem> {
-    return mutableListOf<SettingsItem>(
+    return mutableListOf(
+        SettingsSubpageItem(
+            getString("s_subpage_ui_debug_info"),
+            null,
+            PrefsPageScreen.UI_DEBUG_INFO.ordinal,
+            null
+        ),
+
         SettingsGroupItem(
             getString("s_group_localisation")
         )

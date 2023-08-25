@@ -450,6 +450,8 @@
 
     <string name="s_cat_development">Development</string>
 
+    <string name="s_subpage_ui_debug_info">UI debug info</string>
+
     <string name="s_group_localisation">Localisation</string>
     <string name="s_key_unlocalised_strings">Unlocalised strings</string>
     <string name="s_sub_unlocalised_strings">Strings that have not been localised for the current language</string>

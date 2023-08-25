@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.ui.layout.mainpage
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.ElevatedFilterChip
@@ -46,7 +47,7 @@ class MainPageState(val context: PlatformContext) {
 
 abstract class MainPage(val state: MainPageState) {
     @Composable
-    abstract fun Page(
+    abstract fun ColumnScope.Page(
         multiselect_context: MediaItemMultiSelectContext,
         modifier: Modifier,
         content_padding: PaddingValues,

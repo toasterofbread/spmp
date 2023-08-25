@@ -42,6 +42,7 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
+import com.toasterofbread.utils.getContrasted
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.File
@@ -143,7 +144,7 @@ actual class PlatformContext(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 window.insetsController?.setSystemBarsAppearance(if (dark_icons) APPEARANCE_LIGHT_STATUS_BARS else 0, APPEARANCE_LIGHT_STATUS_BARS)
             }
-            window.statusBarColor = colour.toArgb()
+            window.statusBarColor = colour.getContrasted().toArgb()
         }
     }
 
@@ -165,7 +166,23 @@ actual class PlatformContext(
     }
 
     @Composable
-    actual fun getImeInsets(): WindowInsets? = WindowInsets.ime
+    actual fun getImeInsets(): WindowInsets? {
+        val insets = WindowInsets.ime
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            val bottom: Int = insets.getBottom(LocalDensity.current)
+            if (bottom > 0) {
+                val navbar_height: Int = getNavigationBarHeight()
+                return WindowInsets(
+                    bottom = bottom.coerceAtMost(
+                        (bottom - navbar_height).coerceAtLeast(0)
+                    )
+                )
+            }
+        }
+
+        return insets
+    }
     @Composable
     actual fun getSystemInsets(): WindowInsets? = WindowInsets.systemGestures
 

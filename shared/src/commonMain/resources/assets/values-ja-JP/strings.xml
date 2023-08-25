@@ -444,6 +444,8 @@
     <string name="s_sub_vol_intercept_notification">アクセシビリティサービスがボリュームボタンをインターセプトした時に画面にメッセージを表示しする</string>
 
     <string name="s_cat_development">開発</string>
+
+    <string name="s_subpage_ui_debug_info">UIデバッグ情報</string>
     
     <string name="s_group_localisation">ローカリゼーション</string>
     <string name="s_key_unlocalised_strings">ローカライズされてない文</string>

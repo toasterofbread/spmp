@@ -7,6 +7,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -123,7 +124,7 @@ class SongFeedPage(state: MainPageState): MainPage(state) {
     }
 
     @Composable
-    override fun Page(
+    override fun ColumnScope.Page(
         multiselect_context: MediaItemMultiSelectContext,
         modifier: Modifier,
         content_padding: PaddingValues,

@@ -23,6 +23,7 @@ import com.toasterofbread.spmp.model.mediaitem.db.asMediaItemProperty
 import com.toasterofbread.spmp.model.mediaitem.db.fromSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.db.toSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.toImageBitmap
@@ -200,8 +201,13 @@ sealed class MediaItemData: MediaItem {
         get() = thumbnail_provider.asMediaItemProperty(super.ThumbnailProvider) { thumbnail_provider = it }
 
     companion object {
-        fun fromBrowseEndpointType(page_type: String, id: String): MediaItemData =
-            MediaItemType.fromBrowseEndpointType(page_type).referenceFromId(id).getEmptyData()
+        fun fromBrowseEndpointType(page_type: String, id: String): MediaItemData {
+            val data = MediaItemType.fromBrowseEndpointType(page_type).referenceFromId(id).getEmptyData()
+            if (data is PlaylistData) {
+                data.playlist_type = PlaylistType.fromBrowseEndpointType(page_type)
+            }
+            return data
+        }
     }
 
     open fun saveToDatabase(db: Database, apply_to_item: MediaItem = this) {
@@ -236,7 +242,7 @@ sealed class MediaItemData: MediaItem {
                     if (this is SongData) {
                         val playlist = run.navigationEndpoint?.browseEndpoint?.getMediaItem()
                         if (playlist is PlaylistData) {
-                            assert(playlist.playlist_type == PlaylistTypeEnum.ALBUM)
+                            assert(playlist.playlist_type == PlaylistTypeEnum.ALBUM, { "$playlist (${playlist.playlist_type}) | ${run.navigationEndpoint}" })
                             playlist.title = run.text
                             album = playlist
                         }

@@ -61,7 +61,7 @@ actual open class PlatformContext {
     @Composable
     actual fun getStatusBarHeight(): Dp = 0.dp
 
-    actual fun setStatusBarColour(colour: Color, dark_icons: Boolean) {}
+    actual fun setStatusBarColour(colour: Color) {}
 
     actual fun getLightColorScheme(): ColorScheme = lightColorScheme()
 

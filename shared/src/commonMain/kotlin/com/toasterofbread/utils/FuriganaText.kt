@@ -100,7 +100,7 @@ fun BasicFuriganaText(
                 getLyricsInlineTextContent(
                     subterm.text, subterm.furi, show_readings, font_size, reading_font_size
                 ) { is_reading, text, alternate_text, font_size, modifier ->
-                    Text(text, modifier, fontSize = font_size, color = text_colour)
+                    Text(text, modifier, fontSize = font_size, color = text_colour, softWrap = false)
                 }
             }
         }
@@ -122,7 +122,14 @@ private fun annotateString(
     string: AnnotatedString.Builder,
     show_readings: Boolean,
     text_style: TextStyle,
-    textElement: @Composable (is_reading: Boolean, text: String, text_style: TextStyle, index: Int, modifier: Modifier, getLine: () -> Pair<Int, List<AnnotatedReadingTerm>>) -> Unit,
+    textElement: @Composable (
+        is_reading: Boolean,
+        text: String,
+        text_style: TextStyle,
+        index: Int,
+        modifier: Modifier,
+        getLine: () -> Pair<Int, List<AnnotatedReadingTerm>>,
+    ) -> Unit,
     getLine: (term_index: Int) -> Pair<Int, List<AnnotatedReadingTerm>>
 ) {
     val text = elem.text.filterNot { it == '\n' }

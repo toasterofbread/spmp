@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.modifier.background
 
@@ -14,8 +15,6 @@ const val MEDIAITEM_PREVIEW_SQUARE_SIZE_LARGE: Float = 200f
 
 @Composable
 fun RootView(player: PlayerStateImpl) {
-    player.LongPressMenu()
-
     Column(
         Modifier
             .fillMaxSize()
@@ -24,4 +23,6 @@ fun RootView(player: PlayerStateImpl) {
         player.HomePage()
         player.NowPlaying()
     }
+
+    player.LongPressMenu()
 }

@@ -54,6 +54,7 @@ import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
 import com.toasterofbread.utils.composable.ShapedIconButton
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.composable.WidthShrinkText
+import com.toasterofbread.utils.isDebugBuild
 import com.toasterofbread.utils.modifier.background
 import com.toasterofbread.utils.modifier.disableParentScroll
 import com.toasterofbread.utils.thenIf
@@ -280,7 +281,7 @@ private fun ExpandedContent(error: Throwable, shape: Shape, disable_parent_scrol
                     }
                 }
 
-                if (ProjectBuildConfig.IS_DEBUG) {
+                if (isDebugBuild()) {
                     Button(
                         { throw error },
                         colors = button_colours

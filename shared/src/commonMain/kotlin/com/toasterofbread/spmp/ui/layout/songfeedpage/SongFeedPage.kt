@@ -293,7 +293,8 @@ class SongFeedPage(state: MainPageState): MainPage(state) {
 
     private fun loadFeed(continuation: Boolean) {
         coroutine_scope.launchSingle {
-            loadFeed(-1, false, continuation, selected_filter_chip)
+            val result = loadFeed(-1, false, continuation, selected_filter_chip)
+            println("LOAD FEED RESULT: $result")
         }
     }
 

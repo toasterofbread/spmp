@@ -4,6 +4,7 @@ import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.youtubeapi.endpoint.SetSubscribedToArtistEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.unit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
@@ -22,6 +23,6 @@ class YTMSetSubscribedToArtistEndpoint(override val auth: YoutubeMusicAuthInfo):
             )
             .build()
 
-        return@withContext api.performRequest(request).cast()
+        return@withContext api.performRequest(request).unit()
     }
 }

@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import com.toasterofbread.composesettings.ui.SettingsInterface
@@ -33,6 +34,7 @@ import com.toasterofbread.spmp.ui.layout.library.SongsPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_VERTICAL_PAGE_COUNT
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
+import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.toasterofbread.spmp.ui.layout.playlistpage.PlaylistPage
 import com.toasterofbread.spmp.ui.layout.prefspage.PrefsPage
@@ -308,6 +310,16 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
         return context.getNavigationBarHeightDp()
     }
 
+    override fun onNavigationBarTargetColourChanged(colour: Color?, from_lpm: Boolean) {
+        if (!from_lpm && long_press_menu_showing) {
+            return
+        }
+
+        context.setNavigationBarColour(
+            colour ?: if (from_lpm) getNPBackground() else null
+        )
+    }
+
     override fun setMainPage(page: MainPage?) {
         val previous_page = main_page_state.current_page
         if (main_page_state.setPage(page)) {
@@ -421,6 +433,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
     override fun hideLongPressMenu() {
         long_press_menu_showing = false
         long_press_menu_direct = false
+        long_press_menu_data = null
     }
 
     @Composable
@@ -462,27 +475,12 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
 
     @Composable
     fun LongPressMenu() {
-        Crossfade(long_press_menu_data) { data ->
-            if (data != null) {
-                val current = data == long_press_menu_data
-                var height_found by remember { mutableStateOf(false) }
-
-                LaunchedEffect(current) {
-                    if (!current) {
-                        height_found = false
-                    }
-                }
-
-                LongPressMenu(
-                    long_press_menu_showing && current,
-                    {
-                        if (current) {
-                            hideLongPressMenu()
-                        }
-                    },
-                    data
-                )
-            }
+        long_press_menu_data?.also { data ->
+            LongPressMenu(
+                long_press_menu_showing,
+                { hideLongPressMenu() },
+                data
+            )
         }
     }
 

@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import com.toasterofbread.Database
@@ -182,6 +183,8 @@ open class PlayerState protected constructor(
     open fun nowPlayingTopOffset(base: Modifier = Modifier): Modifier = upstream!!.nowPlayingTopOffset(base)
     @Composable
     open fun nowPlayingBottomPadding(include_np: Boolean = false): Dp = upstream!!.nowPlayingBottomPadding(include_np)
+
+    open fun onNavigationBarTargetColourChanged(colour: Color?, from_lpm: Boolean): Unit = upstream!!.onNavigationBarTargetColourChanged(colour, from_lpm)
 
     open fun setMainPage(page: MainPage?) { upstream!!.setMainPage(page) }
     open fun setOverlayPage(page: PlayerOverlayPage?, from_current: Boolean = false) { upstream!!.setOverlayPage(page, from_current) }

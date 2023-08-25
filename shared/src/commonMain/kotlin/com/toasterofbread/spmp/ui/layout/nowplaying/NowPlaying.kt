@@ -167,18 +167,32 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
 
 @Composable
 private fun StatusBarColourHandler(page_height: Dp) {
+    val player = LocalPlayerState.current
     val expansion = LocalNowPlayingExpansion.current
-    val status_bar_height = SpMp.context.getStatusBarHeight()
-    val background_colour = LocalPlayerState.current.getNPBackground()
+
+    val background_colour = player.getNPBackground()
+    val status_bar_height = player.context.getStatusBarHeight()
 
     val status_bar_height_percent = (
-        status_bar_height.value * (if (SpMp.context.isDisplayingAboveNavigationBar()) 1f else 0.75f)
+        status_bar_height.value * (if (player.context.isDisplayingAboveNavigationBar()) 1f else 0.75f)
     ) / page_height.value
     val under_status_bar by remember { derivedStateOf { 1f - expansion.get() < status_bar_height_percent } }
 
-    LaunchedEffect(key1 = under_status_bar, key2 = background_colour) {
+    DisposableEffect(under_status_bar, background_colour) {
         val colour = if (under_status_bar) background_colour else Theme.background
-        SpMp.context.setStatusBarColour(colour, !colour.isDark())
+        player.context.setStatusBarColour(colour)
+
+        onDispose {
+            player.context.setStatusBarColour(Theme.background)
+        }
+    }
+
+    DisposableEffect(background_colour) {
+        player.onNavigationBarTargetColourChanged(background_colour, false)
+
+        onDispose {
+            player.onNavigationBarTargetColourChanged(null, false)
+        }
     }
 }
 

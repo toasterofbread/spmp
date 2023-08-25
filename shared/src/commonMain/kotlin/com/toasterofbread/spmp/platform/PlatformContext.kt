@@ -65,8 +65,9 @@ expect class PlatformContext {
 
     @Composable
     fun getStatusBarHeight(): Dp
-    fun setStatusBarColour(colour: Color, dark_icons: Boolean)
+    fun setStatusBarColour(colour: Color)
 
+    fun getNavigationBarHeight(): Int
     fun setNavigationBarColour(colour: Color?)
     fun isDisplayingAboveNavigationBar(): Boolean
 
@@ -74,7 +75,6 @@ expect class PlatformContext {
     fun getImeInsets(): WindowInsets?
     @Composable
     fun getSystemInsets(): WindowInsets?
-    fun getNavigationBarHeight(): Int
 
     fun getLightColorScheme(): ColorScheme
     fun getDarkColorScheme(): ColorScheme

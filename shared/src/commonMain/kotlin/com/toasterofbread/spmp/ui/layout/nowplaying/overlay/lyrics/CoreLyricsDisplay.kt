@@ -228,6 +228,7 @@ private fun LyricsTextElement(
         },
         style = text_style,
         color = colour,
-        overflow = TextOverflow.Visible
+        overflow = TextOverflow.Visible,
+        softWrap = false
     )
 }

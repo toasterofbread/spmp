@@ -7,7 +7,7 @@ import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMGetHomeF
 import com.toasterofbread.spmp.youtubeapi.radio.YoutubeiNextResponse
 
 data class YoutubeiBrowseResponse(
-    val contents: Contents? = null,
+    val contents: Contents?,
     val continuationContents: ContinuationContents? = null,
     val header: Header? = null
 ) {

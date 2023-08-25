@@ -16,6 +16,7 @@ import android.os.Build
 import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.view.View
 import android.view.Window
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
 import android.view.WindowManager
@@ -42,7 +43,8 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
-import com.toasterofbread.utils.getContrasted
+import com.toasterofbread.utils.isDark
+import com.toasterofbread.utils.isDebugBuild
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.File
@@ -139,18 +141,51 @@ actual class PlatformContext(
         throw RuntimeException()
     }
 
-    actual fun setStatusBarColour(colour: Color, dark_icons: Boolean) {
-        ctx.findWindow()?.also { window ->
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                window.insetsController?.setSystemBarsAppearance(if (dark_icons) APPEARANCE_LIGHT_STATUS_BARS else 0, APPEARANCE_LIGHT_STATUS_BARS)
-            }
-            window.statusBarColor = colour.getContrasted().toArgb()
+    actual fun setStatusBarColour(colour: Color) {
+        val window = ctx.findWindow() ?: return
+        val dark_icons: Boolean = !colour.isDark()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.insetsController?.setSystemBarsAppearance(
+                if (dark_icons) APPEARANCE_LIGHT_STATUS_BARS else 0,
+                APPEARANCE_LIGHT_STATUS_BARS
+            )
         }
+        else {
+            window.decorView.apply {
+                if (dark_icons) {
+                    systemUiVisibility = systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+                }
+                else {
+                    systemUiVisibility = systemUiVisibility and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+                }
+            }
+        }
+
+        window.statusBarColor = colour.toArgb()
+    }
+
+    @SuppressLint("InternalInsetResource", "DiscouragedApi")
+    actual fun getNavigationBarHeight(): Int {
+        val resources = ctx.resources
+        val resource_id = resources.getIdentifier("navigation_bar_height", "dimen", "android")
+        return if (resource_id > 0) resources.getDimensionPixelSize(resource_id) else 0
     }
 
     actual fun setNavigationBarColour(colour: Color?) {
-        val window = ctx.findWindow()!!
+        val window = ctx.findWindow() ?: return
         window.navigationBarColor = (colour ?: Color.Transparent).toArgb()
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            window.decorView.apply {
+                if (colour?.isDark() == false) {
+                    systemUiVisibility = systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+                }
+                else {
+                    systemUiVisibility = systemUiVisibility and View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv()
+                }
+            }
+        }
     }
 
     @SuppressLint("DiscouragedApi")
@@ -169,29 +204,20 @@ actual class PlatformContext(
     actual fun getImeInsets(): WindowInsets? {
         val insets = WindowInsets.ime
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
-            val bottom: Int = insets.getBottom(LocalDensity.current)
-            if (bottom > 0) {
-                val navbar_height: Int = getNavigationBarHeight()
-                return WindowInsets(
-                    bottom = bottom.coerceAtMost(
-                        (bottom - navbar_height).coerceAtLeast(0)
-                    )
+        val bottom: Int = insets.getBottom(LocalDensity.current)
+        if (bottom > 0) {
+            val navbar_height: Int = getNavigationBarHeight()
+            return WindowInsets(
+                bottom = bottom.coerceAtMost(
+                    (bottom - navbar_height).coerceAtLeast(0)
                 )
-            }
+            )
         }
 
         return insets
     }
     @Composable
     actual fun getSystemInsets(): WindowInsets? = WindowInsets.systemGestures
-
-    @SuppressLint("InternalInsetResource", "DiscouragedApi")
-    actual fun getNavigationBarHeight(): Int {
-        val resources = ctx.resources
-        val resource_id = resources.getIdentifier("navigation_bar_height", "dimen", "android")
-        return if (resource_id > 0) resources.getDimensionPixelSize(resource_id) else 0
-    }
 
     actual fun getLightColorScheme(): ColorScheme =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) dynamicLightColorScheme(ctx)
@@ -272,11 +298,16 @@ actual class PlatformContext(
 
     @Composable
     actual fun getScreenHeight(): Dp {
+        val screen_height: Dp
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val window_manager = ctx.getSystemService(Service.WINDOW_SERVICE) as WindowManager
-            return with(LocalDensity.current) { window_manager.currentWindowMetrics.bounds.height().toDp() } - getNavigationBarHeightDp()
+            screen_height = with(LocalDensity.current) { window_manager.currentWindowMetrics.bounds.height().toDp() }
         }
-        return LocalConfiguration.current.screenHeightDp.dp
+        else {
+            screen_height = LocalConfiguration.current.screenHeightDp.dp - getStatusBarHeight()
+        }
+
+        return screen_height + getNavigationBarHeightDp()
     }
 
     @Composable
@@ -403,11 +434,11 @@ fun Context.isConnectionMetered(): Boolean {
     val manager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     val capabilities = manager.getNetworkCapabilities(manager.activeNetwork)
 
-    if (capabilities != null) {
-        return !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
+    if (capabilities == null) {
+        return false
     }
 
-    return false
+    return !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
 }
 
 fun <T> Settings.get(context: Context): T {

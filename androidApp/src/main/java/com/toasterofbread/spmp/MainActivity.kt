@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.StrictMode
 import android.os.StrictMode.VmPolicy
+import android.view.View
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,7 +16,6 @@ import androidx.core.view.WindowCompat
 import com.toasterofbread.spmp.platform.NotificationPermissionRequester
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.isDark
 import com.toasterofbread.utils.isDebugBuild
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -65,10 +65,13 @@ class MainActivity : ComponentActivity() {
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
             )
         }
-        context.setNavigationBarColour(null)
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+        }
+        else {
+            window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)
         }
 
         val open_uri: Uri? =
@@ -76,7 +79,9 @@ class MainActivity : ComponentActivity() {
             else null
 
         setContent {
-            context.setStatusBarColour(Theme.background, !Theme.background.isDark())
+            context.setStatusBarColour(Theme.background)
+            context.setNavigationBarColour(Theme.background)
+
             SpMp.App(open_uri?.toString())
         }
     }

@@ -175,6 +175,9 @@ sealed interface MediaItem: MediaItemHolder {
                 if (artist_data is ArtistData) {
                     artist_data.saveToDatabase(db)
                 }
+                else if (artist_data != null) {
+                    artist_data.createDbEntry(db)
+                }
 
                 Artist.setNotNull(artist, db)
             }}

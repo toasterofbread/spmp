@@ -108,7 +108,7 @@ kotlin {
                 implementation("com.github.TeamNewPipe:NewPipeExtractor") // Submodule
 
                 implementation("com.squareup.okhttp3:okhttp:4.10.0")
-                implementation("com.beust:klaxon:5.5")
+                implementation("com.beust:klaxon:5.6")
                 implementation("com.godaddy.android.colorpicker:compose-color-picker:0.7.0")
                 implementation("org.apache.commons:commons-text:1.10.0")
                 implementation("com.atilika.kuromoji:kuromoji-ipadic:0.9.0")

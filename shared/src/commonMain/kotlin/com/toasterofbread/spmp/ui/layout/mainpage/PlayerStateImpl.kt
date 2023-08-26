@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.ui.layout.mainpage
 
-import LocalPlayerState
 import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
@@ -15,8 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
-import com.toasterofbread.composesettings.ui.SettingsInterface
-import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.platform.*
@@ -28,21 +25,12 @@ import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.mediaitempreview.*
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.*
-import com.toasterofbread.spmp.ui.layout.artistpage.ArtistPage
-import com.toasterofbread.spmp.ui.layout.library.PlaylistsPage
-import com.toasterofbread.spmp.ui.layout.library.SongsPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_VERTICAL_PAGE_COUNT
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
-import com.toasterofbread.spmp.ui.layout.playlistpage.PlaylistPage
-import com.toasterofbread.spmp.ui.layout.prefspage.PrefsPage
-import com.toasterofbread.spmp.ui.layout.prefspage.PrefsPageCategory
-import com.toasterofbread.spmp.ui.layout.prefspage.getPrefsPageSettingsInterface
-import com.toasterofbread.spmp.ui.layout.radiobuilder.RadioBuilderPage
 import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.spmp.youtubeapi.composable.LoginPage
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.init
 import com.toasterofbread.utils.toFloat
@@ -57,117 +45,6 @@ fun PlayerState.getMainPageItemSize(): DpSize {
         width,
         width + 30.dp
     )
-}
-
-interface PlayerOverlayPage {
-    @Composable
-    fun Page(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit)
-
-    open fun getItem(): MediaItem? = null
-
-    data class MediaItemPage(private val holder: MediaItemHolder, private val browse_params: String? = null): PlayerOverlayPage {
-        override fun getItem(): MediaItem? = holder.item
-
-        @Composable
-        override fun Page(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
-            val player = LocalPlayerState.current
-
-            when (val item = holder.item) {
-                null -> close()
-                is Playlist -> PlaylistPage(
-                    item,
-                    previous_item?.item,
-                    PaddingValues(top = player.context.getStatusBarHeight(), bottom = bottom_padding),
-                    close
-                )
-                is Artist -> ArtistPage(
-                    item,
-                    previous_item?.item,
-                    bottom_padding,
-                    browse_params?.let { params ->
-                        Pair(params, player.context.ytapi.ArtistsWithParams)
-                    },
-                    close
-                )
-                is Song -> SongRelatedPage(
-                    item,
-                    player.context.ytapi.SongRelatedContent,
-                    Modifier.fillMaxSize(),
-                    previous_item?.item,
-                    PaddingValues(
-                        top = player.context.getStatusBarHeight(),
-                        bottom = bottom_padding,
-                        start = player.getDefaultHorizontalPadding(),
-                        end = player.getDefaultHorizontalPadding()
-                    ),
-                    close = close
-                )
-                else -> throw NotImplementedError(item::class.toString())
-            }
-        }
-    }
-
-    data class YtmLoginPage(val page: LoginPage, private val confirm_param: Any? = null): PlayerOverlayPage {
-        @Composable
-        override fun Page(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
-            page.LoginPage(
-                Modifier.fillMaxSize(),
-                confirm_param = confirm_param
-            ) { result ->
-                result?.fold(
-                    { Settings.KEY_YTM_AUTH.set(it) },
-                    { TODO(it.toString()) }
-                )
-                close()
-            }
-        }
-    }
-
-    private data class GenericFeedViewMorePage(private val browse_id: String, private val title: String?): PlayerOverlayPage {
-        @Composable
-        override fun Page(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
-            GenericFeedViewMorePage(browse_id, Modifier.fillMaxSize(), bottom_padding = bottom_padding, title = title)
-        }
-    }
-
-    companion object {
-        fun getViewMorePage(browse_id: String, title: String?): PlayerOverlayPage = when (browse_id) {
-            "FEmusic_listen_again", "FEmusic_mixed_for_you", "FEmusic_new_releases_albums" -> GenericFeedViewMorePage(browse_id, title)
-            "FEmusic_moods_and_genres" -> TODO(browse_id)
-            "FEmusic_charts" -> TODO(browse_id)
-            else -> throw NotImplementedError(browse_id)
-        }
-
-        val RadioBuilderPage = object : PlayerOverlayPage {
-            @Composable
-            override fun Page(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
-                RadioBuilderPage(
-                    bottom_padding,
-                    Modifier.fillMaxSize(),
-                    close
-                )
-            }
-        }
-
-        val SettingsPage = object : PlayerOverlayPage {
-            val current_category: MutableState<PrefsPageCategory?> = mutableStateOf(null)
-            val pill_menu: PillMenu = PillMenu(follow_player = true)
-            val ytm_auth: SettingsValueState<Set<String>> =
-                SettingsValueState<Set<String>>(
-                    Settings.KEY_YTM_AUTH.name
-                ).init(Settings.prefs, Settings.Companion::provideDefault)
-            val settings_interface: SettingsInterface =
-                getPrefsPageSettingsInterface(pill_menu, ytm_auth, { current_category.value }, { current_category.value = null })
-
-            @Composable
-            override fun Page(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
-                PrefsPage(bottom_padding, current_category, pill_menu, settings_interface, ytm_auth, Modifier.fillMaxSize(), close)
-            }
-        }
-
-        val PlaylistsPage = PlaylistsPage()
-        val SongsPage = SongsPage()
-    }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -367,7 +244,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
         if (item is Artist && item.IsForItem.get(context.database)) {
             return
         }
-        openPage(PlayerOverlayPage.MediaItemPage(item.getHolder(), browse_params), from_current)
+        openPage(MediaItemPage(item.getHolder(), browse_params), from_current)
     }
 
     override fun openViewMorePage(browse_id: String, title: String?) {
@@ -487,7 +364,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
         CompositionLocalProvider(LocalContentColor provides Theme.on_background) {
             Crossfade(targetState = overlay_page) { page ->
                 Column(Modifier.fillMaxSize()) {
-                    if (page != null && page.first !is PlayerOverlayPage.MediaItemPage) {
+                    if (page != null && page.first !is MediaItemPage) {
                         Spacer(Modifier.requiredHeight(context.getStatusBarHeight()))
                     }
 

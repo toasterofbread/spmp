@@ -198,6 +198,7 @@ enum class Settings {
     KEY_ADD_SONGS_TO_HISTORY,
     KEY_TREAT_SINGLES_AS_SONG,
     KEY_FONT,
+    KEY_STOP_PLAYER_ON_APP_CLOSE,
 
     // Internal
     INTERNAL_TOPBAR_MODE_HOME,
@@ -377,6 +378,7 @@ enum class Settings {
                 KEY_ADD_SONGS_TO_HISTORY -> false
                 KEY_TREAT_SINGLES_AS_SONG -> false
                 KEY_FONT -> FontMode.DEFAULT.ordinal
+                KEY_STOP_PLAYER_ON_APP_CLOSE -> false
 
                 KEY_SPMS_PORT -> 3973
 

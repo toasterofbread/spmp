@@ -260,7 +260,7 @@
     <string name="s_sub_interface_lang">アプリのUIに使われる言語</string>
     <string name="s_key_data_lang">データ言語</string>
     <string name="s_sub_data_lang">曲の名前などに使われる言語</string>
-    <string name="language_change_restart_notice">言語の変更を有効にするには、アプリの再起動が必要です</string>
+    <string name="language_change_restart_notice">言語やフォントの変更を有効にするには、アプリの再起動が必要です</string>
     <string name="s_group_long_press_menu">長押しメニュー</string>
     <string name="s_key_lpm_close_on_action">アクションを行ったら閉じる</string>
     <string name="s_key_lpm_increment_play_after">「○曲後に再生」使用時に曲数を増加</string>
@@ -312,6 +312,9 @@
     <string name="s_sub_treat_singles_as_song">アーティストの「シングル」セクションに入ってるプレイリストは、曲が一つしか含まれていなければその曲として扱われます</string>
 
     <string name="s_key_font">フォント</string>
+
+    <string name="s_key_stop_player_on_app_close">アプリを閉じたら再生を中止する</string>
+    <string name="s_sub_stop_player_on_app_close">最近画面からアプリがクリアされると、音楽再生が終わります</string>
 
     <string name="s_cat_player">プレイヤー</string>
 

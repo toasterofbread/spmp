@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.queue
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -44,6 +43,7 @@ import com.toasterofbread.spmp.model.NowPlayingQueueWaveBorderMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.MediaPlayerService
+import com.toasterofbread.spmp.platform.getNavigationBarHeightDp
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
@@ -162,8 +162,14 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
             modifier
                 // Add extra height for overscroll
                 .requiredHeight(page_height + 200.dp)
-                .requiredWidth(SpMp.context.getScreenWidth())
-                .padding(top = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp + (SpMp.context.getStatusBarHeight() * 0.5f) + top_bar_height + MINIMISED_NOW_PLAYING_V_PADDING_DP.dp)
+                .requiredWidth(player.screen_size.width)
+                .padding(
+                    top =
+                        player.context.getStatusBarHeight()
+                        + top_bar_height
+                        + MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
+                        - MINIMISED_NOW_PLAYING_V_PADDING_DP.dp
+                )
                 .background(queue_background_colour, shape)
                 .clip(shape)
         ) {
@@ -235,8 +241,6 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
                                 NOW_PLAYING_TOP_BAR_HEIGHT.dp
                                 + list_position
                                 + top_padding
-//                                + SpMp.context.getNavigationBarHeightDp()
-                                + SpMp.context.getStatusBarHeight()
                             )
 
                             if (player.player?.radio_loading == true) {

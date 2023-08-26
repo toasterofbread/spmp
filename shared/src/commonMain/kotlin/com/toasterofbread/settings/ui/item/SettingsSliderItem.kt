@@ -38,7 +38,7 @@ import com.github.krottv.compose.sliders.DefaultTrack
 import com.github.krottv.compose.sliders.ListenOnPressed
 import com.github.krottv.compose.sliders.SliderValueHorizontal
 import com.toasterofbread.composesettings.ui.SettingsPage
-import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
@@ -83,7 +83,7 @@ class SettingsSliderItem(
         else return value_state
     }
 
-    override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {
+    override fun initialiseValueStates(prefs: PlatformPreferences, default_provider: (String) -> Any) {
         state.init(prefs, default_provider)
         value_state = state.get().toFloat()
         is_int = when (state.getDefault(default_provider)) {
@@ -93,7 +93,7 @@ class SettingsSliderItem(
         }
     }
 
-    override fun releaseValueStates(prefs: ProjectPreferences) {
+    override fun releaseValueStates(prefs: PlatformPreferences) {
         state.release(prefs)
     }
 

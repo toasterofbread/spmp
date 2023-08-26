@@ -1,5 +1,6 @@
 package com.toasterofbread.composesettings.ui
 
+import LocalPlayerState
 import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
@@ -67,6 +68,7 @@ abstract class SettingsPage {
 
     @Composable
     open fun TitleBar(is_root: Boolean, modifier: Modifier = Modifier, goBack: () -> Unit) {
+        val player = LocalPlayerState.current
         val coroutine_scope = rememberCoroutineScope()
 
         Crossfade(title, modifier) { title ->
@@ -102,7 +104,7 @@ abstract class SettingsPage {
                 }
 
                 WaveBorder(
-                    Modifier.requiredWidth(SpMp.context.getScreenWidth())
+                    Modifier.requiredWidth(player.screen_size.width)
                 )
             }
         }

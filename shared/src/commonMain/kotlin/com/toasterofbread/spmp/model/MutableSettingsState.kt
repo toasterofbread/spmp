@@ -8,10 +8,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.platform.PlatformPreferences
 
 @Composable
-fun <T> mutableSettingsState(settings_key: Settings, prefs: ProjectPreferences = Settings.prefs): MutableState<T> {
+fun <T> mutableSettingsState(settings_key: Settings, prefs: PlatformPreferences = Settings.prefs): MutableState<T> {
     val state: MutableState<T> = remember { mutableStateOf(settings_key.get(prefs)) }
     var set_to: T by remember { mutableStateOf(state.value) }
 
@@ -23,8 +23,8 @@ fun <T> mutableSettingsState(settings_key: Settings, prefs: ProjectPreferences =
     }
 
     DisposableEffect(settings_key) {
-        val listener = prefs.addListener(object : ProjectPreferences.Listener {
-            override fun onChanged(prefs: ProjectPreferences, key: String) {
+        val listener = prefs.addListener(object : PlatformPreferences.Listener {
+            override fun onChanged(prefs: PlatformPreferences, key: String) {
                 if (key == settings_key.name) {
                     set_to = settings_key.get(prefs)
                     state.value = set_to
@@ -41,7 +41,7 @@ fun <T> mutableSettingsState(settings_key: Settings, prefs: ProjectPreferences =
 }
 
 @Composable
-inline fun <reified T: Enum<T>> mutableSettingsEnumState(settings_key: Settings, prefs: ProjectPreferences = Settings.prefs): MutableState<T> {
+inline fun <reified T: Enum<T>> mutableSettingsEnumState(settings_key: Settings, prefs: PlatformPreferences = Settings.prefs): MutableState<T> {
     val state: MutableState<T> = remember { mutableStateOf(
         enumValues<T>()[settings_key.get(prefs)]
     ) }
@@ -55,8 +55,8 @@ inline fun <reified T: Enum<T>> mutableSettingsEnumState(settings_key: Settings,
     }
 
     DisposableEffect(settings_key) {
-        val listener = prefs.addListener(object : ProjectPreferences.Listener {
-            override fun onChanged(prefs: ProjectPreferences, key: String) {
+        val listener = prefs.addListener(object : PlatformPreferences.Listener {
+            override fun onChanged(prefs: PlatformPreferences, key: String) {
                 if (key == settings_key.name) {
                     set_to = enumValues<T>()[settings_key.get(prefs)]
                     state.value = set_to

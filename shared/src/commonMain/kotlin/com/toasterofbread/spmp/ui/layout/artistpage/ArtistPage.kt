@@ -3,7 +3,6 @@
 package com.toasterofbread.spmp.ui.layout.artistpage
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
@@ -111,14 +110,15 @@ fun ArtistPage(
                 artist,
                 provider,
                 MediaItemThumbnailProvider.Quality.HIGH,
-                SpMp.context
+                player.context
             )
         }
     }
 
+
     // TODO display previous_item
 
-    val screen_width = SpMp.context.getScreenWidth()
+    val screen_width = player.screen_size.width
     val coroutine_scope = rememberCoroutineScope()
 
     val main_column_state = rememberLazyListState()
@@ -157,7 +157,7 @@ fun ArtistPage(
         ) {
             val showing = music_top_bar_showing || multiselect_context.is_active
             AnimatedVisibility(showing) {
-                Spacer(Modifier.height(SpMp.context.getStatusBarHeight()))
+                Spacer(Modifier.height(player.context.getStatusBarHeight()))
             }
 
             MusicTopBar(
@@ -292,11 +292,11 @@ fun ArtistPage(
 
                                 chip(getString("artist_chip_shuffle"), Icons.Outlined.Shuffle) { player.playMediaItem(artist, true) }
 
-                                if (SpMp.context.canShare()) {
-                                    chip(getString("action_share"), Icons.Outlined.Share) { SpMp.context.shareText(artist.getURL(), artist.Title.get(db) ?: "") }
+                                if (player.context.canShare()) {
+                                    chip(getString("action_share"), Icons.Outlined.Share) { player.context.shareText(artist.getURL(), artist.Title.get(db) ?: "") }
                                 }
-                                if (SpMp.context.canOpenUrl()) {
-                                    chip(getString("artist_chip_open"), Icons.Outlined.OpenInNew) { SpMp.context.openUrl(artist.getURL()) }
+                                if (player.context.canOpenUrl()) {
+                                    chip(getString("artist_chip_open"), Icons.Outlined.OpenInNew) { player.context.openUrl(artist.getURL()) }
                                 }
 
                                 chip(getString("artist_chip_details"), Icons.Outlined.Info) { show_info = !show_info }
@@ -429,7 +429,7 @@ fun ArtistPage(
 @OptIn(DelicateCoroutinesApi::class)
 private fun onSinglePlaylistClicked(playlist: Playlist, player: PlayerState) {
     GlobalScope.launch {
-        playlist.loadData(SpMp.context).onSuccess { data ->
+        playlist.loadData(player.context).onSuccess { data ->
             data.items?.firstOrNull()?.also { first_item ->
                 withContext(Dispatchers.Main) {
                     player.onMediaItemClicked(first_item)

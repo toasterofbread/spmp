@@ -86,9 +86,7 @@ fun LongPressMenu(
             Modifier
                 .fillMaxWidth()
                 .requiredHeight(
-                    with(player.context) {
-                        getScreenHeight() + getNavigationBarHeightDp()
-                    }
+                    player.screen_size.height
                 ),
             enter = fadeIn(tween(MENU_OPEN_ANIM_MS)),
             exit = fadeOut(tween(MENU_OPEN_ANIM_MS))

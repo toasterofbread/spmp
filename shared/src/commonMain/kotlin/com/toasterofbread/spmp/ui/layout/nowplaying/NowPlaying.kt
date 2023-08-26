@@ -31,6 +31,7 @@ import com.toasterofbread.utils.*
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.composable.RecomposeOnInterval
 import com.toasterofbread.utils.modifier.brushBackground
+import kotlin.math.roundToInt
 
 enum class ThemeMode { BACKGROUND, ELEMENTS, NONE }
 
@@ -86,12 +87,13 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
             val player = LocalPlayerState.current
             val expansion = LocalNowPlayingExpansion.current
 
-            val keyboard_insets = SpMp.context.getImeInsets()
+            val keyboard_insets = player.context.getImeInsets()
             val bottom_padding = player.nowPlayingBottomPadding()
-            val screen_height = SpMp.context.getScreenHeight()
             val default_gradient_depth: Float by Settings.KEY_NOWPLAYING_DEFAULT_GRADIENT_DEPTH.rememberMutableState()
 
-            val half_screen_height = screen_height.value * 0.5f
+            val page_height = player.screen_size.height - bottom_padding - player.context.getStatusBarHeight()
+            val half_screen_height = player.screen_size.height * 0.5f
+
             val is_shut by remember { derivedStateOf { swipe_state.targetValue == 0 } }
 
             var switch_to_page: Int by remember { mutableStateOf(-1) }
@@ -103,18 +105,18 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
             }
 
             val song_gradient_depth: Float? =
-                player.status.m_song?.PlayerGradientDepth?.observe(SpMp.context.database)?.value
+                player.status.m_song?.PlayerGradientDepth?.observe(player.context.database)?.value
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .requiredHeight(screen_height * (NOW_PLAYING_VERTICAL_PAGE_COUNT + 1))
+                    .requiredHeight(player.screen_size.height * (NOW_PLAYING_VERTICAL_PAGE_COUNT + 1))
                     .offset {
                         IntOffset(
                             0,
                             with(density) {
                                 val keyboard_bottom_padding = if (keyboard_insets == null || swipe_state.targetValue != 0) 0 else keyboard_insets.getBottom(density)
-                                ((half_screen_height.dp * NOW_PLAYING_VERTICAL_PAGE_COUNT) - swipe_state.offset.value.dp).toPx().toInt() - keyboard_bottom_padding - bottom_padding.toPx().toInt()
+                                ((half_screen_height * NOW_PLAYING_VERTICAL_PAGE_COUNT) - swipe_state.offset.value.dp).toPx().toInt() - keyboard_bottom_padding - bottom_padding.toPx().toInt()
                             }
                         )
                     }
@@ -135,7 +137,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
                     }
                     .brushBackground {
                         with(density) {
-                            val screen_height_px = screen_height.toPx()
+                            val screen_height_px = page_height.toPx()
                             val v_offset = (expansion.get() - 1f).coerceAtLeast(0f) * screen_height_px
 
                             val gradient_depth = 1f - (song_gradient_depth ?: default_gradient_depth)
@@ -143,7 +145,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
 
                             Brush.verticalGradient(
                                 listOf(player.getNPBackground(), player.getNPAltBackground()),
-                                startY = v_offset + (screen_height.toPx() * GRADIENT_TOP_START_RATIO),
+                                startY = v_offset + (page_height.toPx() * GRADIENT_TOP_START_RATIO),
                                 endY = v_offset - GRADIENT_BOTTOM_PADDING_DP.dp.toPx() + (
                                     screen_height_px * (1.2f + (gradient_depth * 2f))
                                 )
@@ -157,7 +159,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
 
                 CompositionLocalProvider(LocalContentColor provides player.getNPOnBackground()) {
                     Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-                        NowPlayingCardContent(screen_height)
+                        NowPlayingCardContent(page_height)
                     }
                 }
             }
@@ -204,18 +206,16 @@ private fun NowPlayingCardContent(page_height: Dp) {
     StatusBarColourHandler(page_height)
     MinimisedProgressBar()
 
-    val screen_width_dp = SpMp.context.getScreenWidth()
-
     Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Top) {
         Column(
             verticalArrangement = Arrangement.Top,
-            modifier = Modifier
-                .requiredHeight(page_height)
-                .requiredWidth(screen_width_dp)
+            modifier = Modifier.requiredSize(player.screen_size)
         ) {
             composeScope {
-                Spacer(Modifier.height(
-                    SpMp.context.getStatusBarHeight() * expansion.get().coerceIn(0f, 1f))
+                Spacer(
+                    Modifier.height(
+                        player.context.getStatusBarHeight() * expansion.get().coerceIn(0f, 1f)
+                    )
                 )
             }
 
@@ -229,9 +229,20 @@ private fun NowPlayingCardContent(page_height: Dp) {
             }) {
                 NowPlayingMainTab()
             }
+
+            composeScope {
+                Spacer(
+                    Modifier.height(
+                        player.nowPlayingBottomPadding()
+                    )
+                )
+            }
         }
 
-        QueueTab(page_height)
+        QueueTab(
+            page_height,
+            Modifier.offset(0.dp, -player.nowPlayingBottomPadding())
+        )
     }
 }
 

@@ -3,13 +3,13 @@ package com.toasterofbread.spmp.platform
 import com.beust.klaxon.Klaxon
 import java.io.File
 
-actual class ProjectPreferences private constructor(private val context: PlatformContext) {
+actual class PlatformPreferences private constructor(private val context: PlatformContext) {
     companion object {
-        private var instance: ProjectPreferences? = null
+        private var instance: PlatformPreferences? = null
 
-        fun getInstance(context: PlatformContext): ProjectPreferences {
+        fun getInstance(context: PlatformContext): PlatformPreferences {
             if (instance == null) {
-                instance = ProjectPreferences(context)
+                instance = PlatformPreferences(context)
             }
             return instance!!
         }
@@ -146,6 +146,6 @@ actual class ProjectPreferences private constructor(private val context: Platfor
     }
 
     actual interface Listener {
-        actual fun onChanged(prefs: ProjectPreferences, key: String)
+        actual fun onChanged(prefs: PlatformPreferences, key: String)
     }
 }

@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.playlistpage
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
@@ -77,7 +76,7 @@ fun PlaylistPage(
     var reorderable: Boolean by remember { mutableStateOf(false) }
     var current_filter: String? by remember { mutableStateOf(null) }
     var current_sort_option: MediaItemSortOption by remember { mutableStateOf(MediaItemSortOption.NATIVE) }
-    val vertical_padding = SpMp.context.getDefaultVerticalPadding()
+    val vertical_padding = player.getDefaultVerticalPadding()
     val top_padding = padding.calculateTopPadding() + vertical_padding
 
     LaunchedEffect(playlist) {
@@ -170,7 +169,7 @@ fun PlaylistPage(
         )
 
         var editing_info by remember { mutableStateOf(false) }
-        val horizontal_padding = SpMp.context.getDefaultHorizontalPadding()
+        val horizontal_padding = player.getDefaultHorizontalPadding()
 
         val final_padding = MultiselectAndMusicTopBar(
             multiselect_context,

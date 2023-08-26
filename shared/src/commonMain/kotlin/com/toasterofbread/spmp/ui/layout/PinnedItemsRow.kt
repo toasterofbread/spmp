@@ -55,8 +55,8 @@ fun PinnedItemsRow(
                     }
                 }
             },
-            multiselect_context = LocalPlayerState.current.main_multiselect_context,
-            itemSizeProvider = { getMainPageItemSize() * 0.8f }
+            multiselect_context = player.main_multiselect_context,
+            itemSizeProvider = { player.getMainPageItemSize() * 0.8f }
         )
     }
 }

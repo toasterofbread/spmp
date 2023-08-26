@@ -19,7 +19,6 @@ import android.os.Vibrator
 import android.view.View
 import android.view.Window
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
-import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
@@ -44,13 +43,13 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.utils.isDark
-import com.toasterofbread.utils.isDebugBuild
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
+
 
 private const val DEFAULT_NOTIFICATION_CHANNEL_ID = "default_channel"
 private const val ERROR_NOTIFICATION_CHANNEL_ID = "download_error_channel"
@@ -115,7 +114,7 @@ actual class PlatformContext(
 
     val ctx: Context get() = context
 
-    actual fun getPrefs(): ProjectPreferences = ProjectPreferences.getInstance(ctx)
+    actual fun getPrefs(): PlatformPreferences = PlatformPreferences.getInstance(ctx)
 
     actual fun getFilesDir(): File = ctx.filesDir
     actual fun getCacheDir(): File = ctx.cacheDir
@@ -125,6 +124,12 @@ actual class PlatformContext(
     @SuppressLint("InternalInsetResource", "DiscouragedApi")
     @Composable
     actual fun getStatusBarHeight(): Dp {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            return with(LocalDensity.current) {
+                WindowInsets.statusBars.getTop(this).toDp()
+            }
+        }
+
         var height: Dp? by remember { mutableStateOf(null) }
         if (height != null) {
             return height!!
@@ -138,7 +143,7 @@ actual class PlatformContext(
             }
         }
 
-        throw RuntimeException()
+        throw RuntimeException("Could not get status bar height")
     }
 
     actual fun setStatusBarColour(colour: Color) {
@@ -228,15 +233,19 @@ actual class PlatformContext(
 
     actual fun canShare(): Boolean = true
     actual fun shareText(text: String, title: String?) {
-        val share_intent = Intent.createChooser(Intent().apply {
-            action = Intent.ACTION_SEND
-            type = "text/plain"
+        val share_intent = Intent.createChooser(
+            Intent().apply {
+                action = Intent.ACTION_SEND
+                type = "text/plain"
 
-            putExtra(Intent.EXTRA_TEXT, text)
-            if (title != null) {
-                putExtra(Intent.EXTRA_TITLE, title)
-            }
-        }, title)
+                putExtra(Intent.EXTRA_TEXT, text)
+
+                if (title != null) {
+                    putExtra(Intent.EXTRA_TITLE, title)
+                }
+            },
+            title
+        )
 
         ctx.startActivity(share_intent)
     }
@@ -297,25 +306,6 @@ actual class PlatformContext(
     actual fun isConnectionMetered(): Boolean = ctx.isConnectionMetered()
 
     @Composable
-    actual fun getScreenHeight(): Dp {
-        val screen_height: Dp
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val window_manager = ctx.getSystemService(Service.WINDOW_SERVICE) as WindowManager
-            screen_height = with(LocalDensity.current) { window_manager.currentWindowMetrics.bounds.height().toDp() }
-        }
-        else {
-            screen_height = LocalConfiguration.current.screenHeightDp.dp - getStatusBarHeight()
-        }
-
-        return screen_height + getNavigationBarHeightDp()
-    }
-
-    @Composable
-    actual fun getScreenWidth(): Dp {
-        return LocalConfiguration.current.screenWidthDp.dp
-    }
-
-    @Composable
     actual fun CopyShareButtons(name: String?, getText: () -> String) {
         val clipboard = LocalClipboardManager.current
         IconButton({
@@ -331,15 +321,12 @@ actual class PlatformContext(
             Icon(Icons.Filled.ContentCopy, null, Modifier.size(20.dp))
         }
 
-        IconButton({
-            val share_intent = Intent.createChooser(Intent().apply {
-                action = Intent.ACTION_SEND
-                putExtra(Intent.EXTRA_TEXT, getText())
-                type = "text/plain"
-            }, null)
-            ctx.startActivity(share_intent)
-        }) {
-            Icon(Icons.Filled.Share, null, Modifier.size(20.dp))
+        if (canShare()) {
+            IconButton({
+                shareText(getText())
+            }) {
+                Icon(Icons.Filled.Share, null, Modifier.size(20.dp))
+            }
         }
     }
 
@@ -379,7 +366,6 @@ private fun getErrorNotificationChannel(context: Context): String {
     return ERROR_NOTIFICATION_CHANNEL_ID
 }
 
-@Suppress("UsePropertyAccessSyntax")
 fun Throwable.createNotification(context: Context, notification_channel: String): Notification {
     return Notification.Builder(context, notification_channel)
         .setSmallIcon(android.R.drawable.stat_notify_error)
@@ -442,5 +428,5 @@ fun Context.isConnectionMetered(): Boolean {
 }
 
 fun <T> Settings.get(context: Context): T {
-    return Settings.get(this, ProjectPreferences.getInstance(context))
+    return Settings.get(this, PlatformPreferences.getInstance(context))
 }

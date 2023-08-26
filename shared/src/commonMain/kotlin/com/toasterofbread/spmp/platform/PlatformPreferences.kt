@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.platform
 
-expect class ProjectPreferences {
+expect class PlatformPreferences {
     fun addListener(listener: Listener): Listener
     fun removeListener(listener: Listener)
 
@@ -25,6 +25,6 @@ expect class ProjectPreferences {
     }
 
     interface Listener {
-        fun onChanged(prefs: ProjectPreferences, key: String)
+        fun onChanged(prefs: PlatformPreferences, key: String)
     }
 }

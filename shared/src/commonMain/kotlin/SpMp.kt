@@ -32,7 +32,7 @@ import com.toasterofbread.spmp.model.Cache
 import com.toasterofbread.spmp.model.FontMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
@@ -75,8 +75,8 @@ object SpMp {
     val yt_ui_localisation: YoutubeUILocalisation get() = _yt_ui_localisation!!
 
     private val prefs_change_listener =
-        object : ProjectPreferences.Listener {
-            override fun onChanged(prefs: ProjectPreferences, key: String) {
+        object : PlatformPreferences.Listener {
+            override fun onChanged(prefs: PlatformPreferences, key: String) {
             }
         }
 
@@ -123,8 +123,6 @@ object SpMp {
     fun App(open_uri: String? = null) {
         Theme.ApplicationTheme(context, getFontFamily(context) ?: FontFamily.Default) {
             Theme.Update(context)
-
-            player_state.initComposable(context)
 
             LaunchedEffect(open_uri) {
                 if (open_uri != null) {

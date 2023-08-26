@@ -2,7 +2,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.queue
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -60,7 +59,7 @@ class QueueTabItem(val song: Song, val key: Int) {
         val indices = if (index < playing_index) index + 1 .. playing_index else playing_index until index
         for (i in indices) {
             val duration =
-                service.getSong(i)?.Duration?.observe(SpMp.context.database)?.value
+                service.getSong(i)?.Duration?.observe(player.context.database)?.value
                 ?: return null
             delta += duration
         }
@@ -82,10 +81,10 @@ class QueueTabItem(val song: Song, val key: Int) {
         multiselect_context: MediaItemMultiSelectContext,
         requestRemove: () -> Unit
     ) {
-        val swipe_state = queueElementSwipeState(requestRemove)
-        val max_offset = with(LocalDensity.current) { SpMp.context.getScreenWidth().toPx() }
-        val anchors = mapOf(-max_offset to 0, 0f to 1, max_offset to 2)
         val player = LocalPlayerState.current
+        val swipe_state = queueElementSwipeState(requestRemove)
+        val max_offset = with(LocalDensity.current) { player.screen_size.width.toPx() }
+        val anchors = mapOf(-max_offset to 0, 0f to 1, max_offset to 2)
 
         Box(
             Modifier

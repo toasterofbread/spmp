@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composesettings.ui.SettingsPage
 import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.ui.theme.Theme
 
 class SettingsAccessibilityServiceItem(
@@ -41,8 +41,8 @@ class SettingsAccessibilityServiceItem(
         fun setEnabled(enabled: Boolean)
     }
 
-    override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {}
-    override fun releaseValueStates(prefs: ProjectPreferences) {}
+    override fun initialiseValueStates(prefs: PlatformPreferences, default_provider: (String) -> Any) {}
+    override fun releaseValueStates(prefs: PlatformPreferences) {}
 
     override fun resetValues() {}
 

@@ -54,7 +54,7 @@ fun ManualLoginPage(
 
     Column(
         modifier
-            .padding(SpMp.context.getDefaultPaddingValues())
+            .padding(player.getDefaultPaddingValues())
             .fillMaxHeight(),
         verticalArrangement = Arrangement.spacedBy(30.dp)
     ) {

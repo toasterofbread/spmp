@@ -16,7 +16,7 @@ import com.toasterofbread.composesettings.ui.item.SettingsLargeToggleItem
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Artist
-import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
@@ -44,8 +44,8 @@ fun rememberYtmAuthItem(ytm_auth: SettingsValueState<Set<String>>, initialise: B
                     }
                 }
 
-                override fun init(prefs: ProjectPreferences, defaultProvider: (String) -> Any): BasicSettingsValueState<Boolean> = this
-                override fun release(prefs: ProjectPreferences) {}
+                override fun init(prefs: PlatformPreferences, defaultProvider: (String) -> Any): BasicSettingsValueState<Boolean> = this
+                override fun release(prefs: PlatformPreferences) {}
                 override fun reset() = ytm_auth.reset()
                 override fun save() = ytm_auth.save()
                 override fun getDefault(defaultProvider: (String) -> Any): Boolean =

@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -205,7 +204,7 @@ class SearchPage(state: MainPageState, val context: PlatformContext): MainPage(s
 
         SearchBar(
             focus_state,
-            player.nowPlayingTopOffset(Modifier).zIndex(100f),
+            player.nowPlayingTopOffset(Modifier).zIndex(1f),
             close
         )
     }
@@ -260,6 +259,7 @@ class SearchPage(state: MainPageState, val context: PlatformContext): MainPage(s
         modifier: Modifier = Modifier,
         close: () -> Unit
     ) {
+        val player = LocalPlayerState.current
         val expansion = LocalNowPlayingExpansion.current
         val focus_requester = remember { FocusRequester() }
 
@@ -272,7 +272,7 @@ class SearchPage(state: MainPageState, val context: PlatformContext): MainPage(s
         Row(
             modifier
                 .fillMaxWidth()
-                .padding(vertical = SEARCH_BAR_V_PADDING, horizontal = SpMp.context.getDefaultHorizontalPadding())
+                .padding(vertical = SEARCH_BAR_V_PADDING, horizontal = player.getDefaultHorizontalPadding())
                 .height(IntrinsicSize.Max),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.Bottom

@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.composable
 
-import SpMp
+import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -62,6 +62,7 @@ private const val MUSIC_LOGIN_URL = "https://accounts.google.com/v3/signin/ident
 class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
     @Composable
     override fun LoginPage(modifier: Modifier, confirm_param: Any?, onFinished: (Result<YoutubeApi.UserAuthState>?) -> Unit) {
+        val player = LocalPlayerState.current
         val manual = confirm_param == true
 
         var channel_not_created_error: YoutubeChannelNotCreatedException? by remember { mutableStateOf(null) }
@@ -118,7 +119,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
                 val coroutine_scope = rememberCoroutineScope()
                 AccountSelectionPage(
                     state,
-                    Modifier.fillMaxWidth().padding(SpMp.context.getDefaultPaddingValues())
+                    Modifier.fillMaxWidth().padding(player.getDefaultPaddingValues())
                 ) { account ->
                     coroutine_scope.launch(Dispatchers.IO) {
                         account_selection_data = null
@@ -228,7 +229,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
             else {
                 // TODO
                 LaunchedEffect(Unit) {
-                    SpMp.context.openUrl(MUSIC_LOGIN_URL)
+                    player.context.openUrl(MUSIC_LOGIN_URL)
                 }
                 YoutubeMusicManualLogin(Modifier.fillMaxSize(), onFinished)
             }

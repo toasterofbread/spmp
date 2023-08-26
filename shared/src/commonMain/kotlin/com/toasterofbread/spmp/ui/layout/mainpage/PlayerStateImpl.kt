@@ -51,8 +51,8 @@ import kotlinx.coroutines.*
 enum class FeedLoadState { PREINIT, NONE, LOADING, CONTINUING }
 
 @Composable
-fun getMainPageItemSize(): DpSize {
-    val width = if (SpMp.context.isScreenLarge()) MEDIAITEM_PREVIEW_SQUARE_SIZE_LARGE.dp else MEDIAITEM_PREVIEW_SQUARE_SIZE_SMALL.dp
+fun PlayerState.getMainPageItemSize(): DpSize {
+    val width = if (isScreenLarge()) MEDIAITEM_PREVIEW_SQUARE_SIZE_LARGE.dp else MEDIAITEM_PREVIEW_SQUARE_SIZE_SMALL.dp
     return DpSize(
         width,
         width + 30.dp
@@ -77,7 +77,7 @@ interface PlayerOverlayPage {
                 is Playlist -> PlaylistPage(
                     item,
                     previous_item?.item,
-                    PaddingValues(top = SpMp.context.getStatusBarHeight(), bottom = bottom_padding),
+                    PaddingValues(top = player.context.getStatusBarHeight(), bottom = bottom_padding),
                     close
                 )
                 is Artist -> ArtistPage(
@@ -95,10 +95,10 @@ interface PlayerOverlayPage {
                     Modifier.fillMaxSize(),
                     previous_item?.item,
                     PaddingValues(
-                        top = SpMp.context.getStatusBarHeight(),
+                        top = player.context.getStatusBarHeight(),
                         bottom = bottom_padding,
-                        start = SpMp.context.getDefaultHorizontalPadding(),
-                        end = SpMp.context.getDefaultHorizontalPadding()
+                        start = player.getDefaultHorizontalPadding(),
+                        end = player.getDefaultHorizontalPadding()
                     ),
                     close = close
                 )
@@ -175,6 +175,8 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
     private var _player: PlayerService? by mutableStateOf(null)
     override val session_started: Boolean get() = _player?.session_started == true
 
+    override var screen_size: DpSize by mutableStateOf(DpSize.Zero)
+
     private var now_playing_switch_page: Int by mutableStateOf(-1)
     private val main_page_undo_stack: MutableList<MainPage?> = mutableStateListOf()
     private val overlay_page_undo_stack: MutableList<Pair<PlayerOverlayPage, MediaItem?>?> = mutableListOf()
@@ -188,7 +190,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
     private val bottom_padding_anim = Animatable(context.getNavigationBarHeight().toFloat())
 
     private val low_memory_listener: () -> Unit
-    private val prefs_listener: ProjectPreferences.Listener
+    private val prefs_listener: PlatformPreferences.Listener
 
     private fun switchNowPlayingPage(page: Int) {
         now_playing_switch_page = page
@@ -201,7 +203,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
     private val np_swipe_state: MutableState<SwipeableState<Int>> = mutableStateOf(SwipeableState(0))
     private var np_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
 
-    val expansion_state = NowPlayingExpansionState(np_swipe_state, context)
+    val expansion_state = NowPlayingExpansionState(np_swipe_state, this)
 
     override val main_page_state = MainPageState(context)
     override var overlay_page: Pair<PlayerOverlayPage, MediaItem?>? by mutableStateOf(null)
@@ -219,8 +221,8 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
         }
         SpMp.addLowMemoryListener(low_memory_listener)
 
-        prefs_listener = object : ProjectPreferences.Listener {
-            override fun onChanged(prefs: ProjectPreferences, key: String) {
+        prefs_listener = object : PlatformPreferences.Listener {
+            override fun onChanged(prefs: PlatformPreferences, key: String) {
                 when (key) {
                     Settings.KEY_NOWPLAYING_THEME_MODE.name -> {
                         np_theme_mode = Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE, prefs)
@@ -229,14 +231,6 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
             }
         }
         context.getPrefs().addListener(prefs_listener)
-    }
-
-    @Composable
-    fun initComposable(context: PlatformContext) {
-        val screen_height = context.getScreenHeight().value
-        LaunchedEffect(Unit) {
-            np_swipe_state.value.init(mapOf(screen_height * -0.5f to 0))
-        }
     }
 
     fun onStart() {
@@ -286,9 +280,9 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
     @Composable
     override fun nowPlayingTopOffset(base: Modifier): Modifier {
         val density = LocalDensity.current
-        val screen_height = context.getScreenHeight()
-        val bottom_padding = context.getNavigationBarHeightDp()
-        val keyboard_insets = context.getImeInsets()
+        val screen_height: Dp = screen_size.height
+        val bottom_padding: Dp = context.getNavigationBarHeightDp()
+        val keyboard_insets: WindowInsets? = context.getImeInsets()
 
         return base.offset {
             val keyboard_bottom_padding = if (keyboard_insets == null || np_swipe_state.value.targetValue != 0) 0 else keyboard_insets.getBottom(density)
@@ -443,15 +437,15 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
             bottom_padding_anim.animateTo(bottom_padding)
         }
 
-        val screen_height = context.getScreenHeight()
+        val navigation_bar_height = context.getNavigationBarHeightDp()
 
-        LaunchedEffect(screen_height) {
-            val half_screen_height = screen_height.value * 0.5f
+        LaunchedEffect(screen_size.height, navigation_bar_height) {
+            val half_screen_height = screen_size.height.value * 0.5f
 
             np_swipe_anchors = (0..NOW_PLAYING_VERTICAL_PAGE_COUNT)
                 .associateBy { anchor ->
                     if (anchor == 0) MINIMISED_NOW_PLAYING_HEIGHT_DP.toFloat() - half_screen_height
-                    else ((screen_height).value * anchor) - half_screen_height
+                    else ((screen_size.height - navigation_bar_height).value * anchor) - half_screen_height
                 }
 
             val current_swipe_value = np_swipe_state.value.targetValue
@@ -515,7 +509,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
                     else {
                         page.first.Page(
                             page.second,
-                            (if (session_started) MINIMISED_NOW_PLAYING_HEIGHT_DP.dp else 0.dp) + context.getNavigationBarHeightDp() + context.getDefaultVerticalPadding(),
+                            (if (session_started) MINIMISED_NOW_PLAYING_HEIGHT_DP.dp else 0.dp) + context.getNavigationBarHeightDp() + getDefaultVerticalPadding(),
                             close
                         )
                     }

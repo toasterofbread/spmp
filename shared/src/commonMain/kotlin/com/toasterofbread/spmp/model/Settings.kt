@@ -11,7 +11,7 @@ import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.mediaitem.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import okhttp3.Headers.Companion.toHeaders
@@ -205,7 +205,7 @@ enum class Settings {
 
     ;
 
-    fun <T> get(preferences: ProjectPreferences = prefs): T {
+    fun <T> get(preferences: PlatformPreferences = prefs): T {
         return Settings.get(this, preferences)
     }
 
@@ -213,24 +213,24 @@ enum class Settings {
         return Settings.get(this, context.getPrefs())
     }
 
-    inline fun <reified T: Enum<T>> getEnum(preferences: ProjectPreferences = prefs): T = Settings.getEnum(this, preferences)
+    inline fun <reified T: Enum<T>> getEnum(preferences: PlatformPreferences = prefs): T = Settings.getEnum(this, preferences)
 
-    fun <T> set(value: T?, preferences: ProjectPreferences = prefs) {
+    fun <T> set(value: T?, preferences: PlatformPreferences = prefs) {
         Settings.set(this, value, preferences)
     }
 
     @Composable
-    fun <T> rememberMutableState(preferences: ProjectPreferences = prefs): MutableState<T> =
+    fun <T> rememberMutableState(preferences: PlatformPreferences = prefs): MutableState<T> =
         mutableSettingsState(this, preferences)
 
     @Composable
-    inline fun <reified T: Enum<T>> rememberMutableEnumState(preferences: ProjectPreferences = prefs): MutableState<T> =
+    inline fun <reified T: Enum<T>> rememberMutableEnumState(preferences: PlatformPreferences = prefs): MutableState<T> =
         mutableSettingsEnumState(this, preferences)
 
     companion object {
-        val prefs: ProjectPreferences get() = SpMp.context.getPrefs()
+        val prefs: PlatformPreferences get() = SpMp.context.getPrefs()
 
-        fun <T> set(enum_key: Settings, value: T?, preferences: ProjectPreferences = prefs) {
+        fun <T> set(enum_key: Settings, value: T?, preferences: PlatformPreferences = prefs) {
             preferences.edit {
                 @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
                 when (value) {
@@ -247,7 +247,7 @@ enum class Settings {
         }
 
         @Suppress("IMPLICIT_CAST_TO_ANY", "UNCHECKED_CAST")
-        fun <T> get(enum_key: Settings, preferences: ProjectPreferences = prefs, default: T? = null): T {
+        fun <T> get(enum_key: Settings, preferences: PlatformPreferences = prefs, default: T? = null): T {
             val default_value: T = default ?: getDefault(enum_key)
             return when (default_value) {
                 is Boolean -> preferences.getBoolean(enum_key.name, default_value as Boolean)
@@ -260,11 +260,11 @@ enum class Settings {
             } as T
         }
 
-        inline fun <reified T> getJsonArray(enum_key: Settings, klaxon: Klaxon = Klaxon(), preferences: ProjectPreferences = prefs, default: String? = null): List<T> {
+        inline fun <reified T> getJsonArray(enum_key: Settings, klaxon: Klaxon = Klaxon(), preferences: PlatformPreferences = prefs, default: String? = null): List<T> {
             return klaxon.parseArray(get(enum_key, preferences, default))!!
         }
 
-        inline fun <reified T: Enum<T>> getEnum(enum_key: Settings, preferences: ProjectPreferences = prefs, default: T? = null): T {
+        inline fun <reified T: Enum<T>> getEnum(enum_key: Settings, preferences: PlatformPreferences = prefs, default: T? = null): T {
             val default_value: Int = default?.ordinal ?: getDefault(enum_key)
             return enumValues<T>()[preferences.getInt(enum_key.name, default_value)!!]
         }

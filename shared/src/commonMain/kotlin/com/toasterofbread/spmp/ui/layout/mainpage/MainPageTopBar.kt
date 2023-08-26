@@ -68,7 +68,7 @@ fun MainPageTopBar(modifier: Modifier = Modifier) {
             if (login_page != null && show_login_confirmation) {
                 login_page.LoginConfirmationDialog(false) { param ->
                     show_login_confirmation = false
-                    player.setOverlayPage(PlayerOverlayPage.YtmLoginPage(login_page, param))
+                    player.setOverlayPage(YtmLoginPage(login_page, param))
                 }
             }
 

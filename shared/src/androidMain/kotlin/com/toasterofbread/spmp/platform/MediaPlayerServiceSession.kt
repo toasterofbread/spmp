@@ -46,6 +46,7 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.toasterofbread.spmp.exovisualiser.FFTAudioProcessor
+import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongRef
@@ -214,15 +215,20 @@ class MediaPlayerServiceSession: MediaSessionService() {
         super.onDestroy()
     }
 
-    override fun onTaskRemoved(rootIntent: Intent?) {
-        super.onTaskRemoved(rootIntent)
+    override fun onTaskRemoved(intent: Intent?) {
+        super.onTaskRemoved(intent)
+
+        val intent_package_name: String = intent?.component?.packageName ?: return
+        if (intent_package_name == packageName && Settings.KEY_STOP_PLAYER_ON_APP_CLOSE.get(context)) {
+            stopSelf()
+        }
     }
 
     private fun updatePlayerCustomActions(liked: SongLikedStatus?) {
         val like_action: CommandButton? =
             if (liked != null)
                 CommandButton.Builder()
-                    .setDisplayName(getStringTODO("TODO"))
+                    .setDisplayName(getStringTODO("Display name"))
                     .setSessionCommand(SessionCommand(
                         if (liked == SongLikedStatus.NEUTRAL) COMMAND_SET_LIKE_TRUE else COMMAND_SET_LIKE_NEUTRAL,
                         Bundle.EMPTY

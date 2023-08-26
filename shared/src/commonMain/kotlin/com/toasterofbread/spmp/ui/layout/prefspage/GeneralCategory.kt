@@ -86,6 +86,15 @@ internal fun getGeneralCategory(language: String, available_languages: List<Lang
             getString("s_key_data_lang"), getString("s_sub_data_lang")
         ),
 
+        SettingsDropdownItem(
+            SettingsValueState(Settings.KEY_FONT.name),
+            getString("s_key_font"),
+            null,
+            FontMode.values().size,
+        ) { index ->
+            FontMode.values()[index].getReadable(language)
+        },
+
         SettingsSliderItem(
             SettingsValueState<Int>(Settings.KEY_VOLUME_STEPS.name),
             getString("s_key_vol_steps"),
@@ -125,14 +134,11 @@ internal fun getGeneralCategory(language: String, available_languages: List<Lang
             getString("s_sub_treat_singles_as_song")
         ),
 
-        SettingsDropdownItem(
-            SettingsValueState(Settings.KEY_FONT.name),
-            getString("s_key_font"),
-            null,
-            FontMode.values().size,
-        ) { index ->
-            FontMode.values()[index].getReadable(language)
-        },
+        SettingsToggleItem(
+            SettingsValueState(Settings.KEY_STOP_PLAYER_ON_APP_CLOSE.name),
+            getString("s_key_stop_player_on_app_close"),
+            getString("s_sub_stop_player_on_app_close")
+        ),
 
         SettingsGroupItem(getString("s_group_long_press_menu")),
 

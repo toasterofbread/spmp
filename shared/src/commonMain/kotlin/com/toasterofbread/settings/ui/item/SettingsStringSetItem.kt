@@ -44,7 +44,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composesettings.ui.SettingsPage
-import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
@@ -60,11 +60,11 @@ class SettingsStringSetItem(
     val single_line_content: Boolean = true,
     val max_height: Dp = 300.dp
 ): SettingsItem() {
-    override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {
+    override fun initialiseValueStates(prefs: PlatformPreferences, default_provider: (String) -> Any) {
         state.init(prefs, default_provider)
     }
 
-    override fun releaseValueStates(prefs: ProjectPreferences) {
+    override fun releaseValueStates(prefs: PlatformPreferences) {
         state.release(prefs)
     }
 

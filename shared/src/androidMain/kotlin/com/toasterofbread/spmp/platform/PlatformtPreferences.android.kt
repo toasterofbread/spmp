@@ -4,16 +4,16 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 
-actual class ProjectPreferences private constructor(private val prefs: SharedPreferences) {
+actual class PlatformPreferences private constructor(private val prefs: SharedPreferences) {
     companion object {
-        private var instance: ProjectPreferences? = null
+        private var instance: PlatformPreferences? = null
 
-        fun getInstance(context: Context): ProjectPreferences {
+        fun getInstance(context: Context): PlatformPreferences {
             return getInstance(context.getSharedPreferences("com.toasterofbread.spmp.PREFERENCES", Context.MODE_PRIVATE))
         }
-        private fun getInstance(prefs: SharedPreferences): ProjectPreferences {
+        private fun getInstance(prefs: SharedPreferences): PlatformPreferences {
             if (instance == null) {
-                instance = ProjectPreferences(prefs)
+                instance = PlatformPreferences(prefs)
             }
             return instance!!
         }
@@ -66,7 +66,7 @@ actual class ProjectPreferences private constructor(private val prefs: SharedPre
         override fun onSharedPreferenceChanged(prefs: SharedPreferences, key: String) {
             onChanged(getInstance(prefs), key)
         }
-        actual fun onChanged(prefs: ProjectPreferences, key: String)
+        actual fun onChanged(prefs: PlatformPreferences, key: String)
     }
 
     actual open class Editor(private val upstream: SharedPreferences.Editor) {

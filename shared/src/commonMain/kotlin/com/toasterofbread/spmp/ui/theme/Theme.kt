@@ -22,7 +22,7 @@ import com.beust.klaxon.Klaxon
 import com.toasterofbread.spmp.model.AccentColourSource
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.utils.compare
 import com.toasterofbread.utils.contrastAgainst
@@ -158,9 +158,9 @@ object Theme: ThemeData {
         saveThemes()
     }
 
-    private val prefs_listener: ProjectPreferences.Listener =
-        object : ProjectPreferences.Listener {
-            override fun onChanged(prefs: ProjectPreferences, key: String) {
+    private val prefs_listener: PlatformPreferences.Listener =
+        object : PlatformPreferences.Listener {
+            override fun onChanged(prefs: PlatformPreferences, key: String) {
                 when (key) {
                     Settings.KEY_ACCENT_COLOUR_SOURCE.name -> {
                         accent_colour_source = Settings.getEnum<AccentColourSource>(Settings.KEY_ACCENT_COLOUR_SOURCE, prefs)

@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.*
 import com.toasterofbread.composesettings.ui.SettingsPage
 import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.*
 import com.toasterofbread.utils.composable.*
@@ -23,7 +23,7 @@ abstract class SettingsItem {
     lateinit var context: PlatformContext
 
     private var initialised = false
-    fun initialise(context: PlatformContext, prefs: ProjectPreferences = context.getPrefs(), default_provider: (String) -> Any) {
+    fun initialise(context: PlatformContext, prefs: PlatformPreferences = context.getPrefs(), default_provider: (String) -> Any) {
         if (initialised) {
             return
         }
@@ -32,8 +32,8 @@ abstract class SettingsItem {
         initialised = true
     }
 
-    protected abstract fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any)
-    protected abstract fun releaseValueStates(prefs: ProjectPreferences)
+    protected abstract fun initialiseValueStates(prefs: PlatformPreferences, default_provider: (String) -> Any)
+    protected abstract fun releaseValueStates(prefs: PlatformPreferences)
 
     abstract fun resetValues()
 
@@ -74,8 +74,8 @@ interface BasicSettingsValueState<T: Any> {
     fun get(): T
     fun set(value: T)
 
-    fun init(prefs: ProjectPreferences, defaultProvider: (String) -> Any): BasicSettingsValueState<T>
-    fun release(prefs: ProjectPreferences)
+    fun init(prefs: PlatformPreferences, defaultProvider: (String) -> Any): BasicSettingsValueState<T>
+    fun release(prefs: PlatformPreferences)
 
     fun reset()
     fun save()
@@ -91,9 +91,9 @@ class SettingsValueState<T: Any>(
 ): BasicSettingsValueState<T>, State<T> {
     var autosave: Boolean = true
 
-    private lateinit var prefs: ProjectPreferences
+    private lateinit var prefs: PlatformPreferences
     private lateinit var defaultProvider: (String) -> Any
-    private var listener: ProjectPreferences.Listener? = null
+    private var listener: PlatformPreferences.Listener? = null
     private var _value: T? by mutableStateOf(null)
 
     override val value: T get() = _value!!
@@ -127,7 +127,7 @@ class SettingsValueState<T: Any>(
         })
     }
 
-    override fun init(prefs: ProjectPreferences, defaultProvider: (String) -> Any): SettingsValueState<T> {
+    override fun init(prefs: PlatformPreferences, defaultProvider: (String) -> Any): SettingsValueState<T> {
         if (_value != null) {
             return this
         }
@@ -137,8 +137,8 @@ class SettingsValueState<T: Any>(
 
         updateValue()
 
-        listener = object : ProjectPreferences.Listener {
-            override fun onChanged(prefs: ProjectPreferences, key: String) {
+        listener = object : PlatformPreferences.Listener {
+            override fun onChanged(prefs: PlatformPreferences, key: String) {
                 if (key == this@SettingsValueState.key) {
                     updateValue()
                 }
@@ -150,7 +150,7 @@ class SettingsValueState<T: Any>(
         return this
     }
 
-    override fun release(prefs: ProjectPreferences) {
+    override fun release(prefs: PlatformPreferences) {
         listener?.also {
             prefs.removeListener(it)
         }

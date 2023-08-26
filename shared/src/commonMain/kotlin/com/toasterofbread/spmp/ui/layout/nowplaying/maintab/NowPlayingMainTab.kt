@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.composeScope
+import com.toasterofbread.spmp.platform.getNavigationBarHeightDp
 import com.toasterofbread.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
 import com.toasterofbread.spmp.ui.layout.nowplaying.LocalNowPlayingExpansion
@@ -48,7 +49,7 @@ internal const val MIN_EXPANSION = 0.07930607f
 internal const val SEEK_BAR_GRADIENT_OVERFLOW_RATIO = 0.3f
 
 @Composable
-fun ColumnScope.NowPlayingMainTab() {
+fun ColumnScope.NowPlayingMainTab(modifier: Modifier = Modifier) {
     val db = SpMp.context.database
     val player = LocalPlayerState.current
 
@@ -93,7 +94,8 @@ fun ColumnScope.NowPlayingMainTab() {
         onThumbnailLoaded(current_song, null)
     }
 
-    val screen_height = SpMp.context.getScreenHeight()
+    val navigation_bar_height = player.context.getNavigationBarHeightDp()
+    val screen_height = player.screen_size.height - navigation_bar_height
 
     val offsetProvider: Density.() -> IntOffset = remember {
         {
@@ -110,14 +112,14 @@ fun ColumnScope.NowPlayingMainTab() {
     }
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .offset(offsetProvider),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         TopBar()
 
-        val screen_width = SpMp.context.getScreenWidth()
+        val screen_width = player.screen_size.width
 
         composeScope {
             ThumbnailRow(

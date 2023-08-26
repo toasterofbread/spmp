@@ -32,7 +32,7 @@ import kotlin.io.path.name
 private fun getHomeDir(): File = File(System.getProperty("user.home"))
 
 actual open class PlatformContext {
-    actual fun getPrefs(): ProjectPreferences = ProjectPreferences.getInstance(this)
+    actual fun getPrefs(): PlatformPreferences = PlatformPreferences.getInstance(this)
 
     actual fun getFilesDir(): File {
         val subdir = when (hostOs) {

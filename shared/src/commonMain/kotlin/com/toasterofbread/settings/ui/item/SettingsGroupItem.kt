@@ -5,12 +5,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.composesettings.ui.SettingsPage
-import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.ui.theme.Theme
 
 class SettingsGroupItem(var title: String?): SettingsItem() {
-    override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {}
-    override fun releaseValueStates(prefs: ProjectPreferences) {}
+    override fun initialiseValueStates(prefs: PlatformPreferences, default_provider: (String) -> Any) {}
+    override fun releaseValueStates(prefs: PlatformPreferences) {}
     override fun resetValues() {}
 
     @Composable

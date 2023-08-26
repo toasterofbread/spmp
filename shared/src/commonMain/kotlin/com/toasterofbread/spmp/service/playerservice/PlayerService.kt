@@ -13,7 +13,7 @@ import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.db.incrementPlayCount
 import com.toasterofbread.spmp.platform.MediaPlayerService
 import com.toasterofbread.spmp.platform.MediaPlayerState
-import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -356,8 +356,8 @@ class PlayerService: MediaPlayerService() {
 //    )
 //    private var vol_notif_instance: Int = 0
 
-    private val prefs_listener = object : ProjectPreferences.Listener {
-        override fun onChanged(prefs: ProjectPreferences, key: String) {
+    private val prefs_listener = object : PlatformPreferences.Listener {
+        override fun onChanged(prefs: PlatformPreferences, key: String) {
             when (key) {
                 Settings.KEY_DISCORD_ACCOUNT_TOKEN.name -> {
                     discord_status.onDiscordAccountTokenChanged()

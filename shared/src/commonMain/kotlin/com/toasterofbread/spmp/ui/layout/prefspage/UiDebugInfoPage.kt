@@ -23,9 +23,9 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.composesettings.ui.SettingsPage
 import com.toasterofbread.composesettings.ui.SettingsPageWithItems
 import com.toasterofbread.composesettings.ui.item.SettingsComposableItem
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.getNavigationBarHeightDp
+import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.utils.composable.RecomposeOnInterval
 import com.toasterofbread.utils.roundTo
 
@@ -34,7 +34,7 @@ private fun SizeIndicator(
     label: String,
     show_indicator: Boolean = true,
     show_percent_of_screen: Boolean = false,
-    getHeight: @Composable Density.(PlatformContext) -> Dp,
+    getHeight: @Composable Density.(PlatformContext) -> Any?,
 ) {
     val player = LocalPlayerState.current
     val density = LocalDensity.current
@@ -43,29 +43,30 @@ private fun SizeIndicator(
         it
 
         Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-            val indicator_height: Dp = getHeight(density, player.context)
+            val value: Any? = getHeight(density, player.context)
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                 Text(label)
 
                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                Text(indicator_height.toString())
+                if (value != null) {
+                    Text(value.toString())
+                }
 
-                if (show_percent_of_screen) {
-                    val screen_height: Dp = player.context.getScreenHeight()
-                    val height_percent: Float = indicator_height / screen_height
+                if (show_percent_of_screen && value is Dp) {
+                    val height_percent: Float = value / player.screen_size.height
                     Text("(${height_percent.roundTo(2).toString().padEnd(4, '0')}%)")
                 }
 
                 Text("\u2022", Modifier.alpha(if (it) 1f else 0f))
             }
 
-            if (show_indicator) {
+            if (show_indicator && value is Dp) {
                 Box(
                     Modifier
                         .fillMaxWidth()
-                        .height(indicator_height)
+                        .height(value)
                         .background(Color.Red)
                 )
             }
@@ -79,30 +80,30 @@ fun getUiDebugInfoPage(): SettingsPage =
         { getString("s_subpage_ui_debug_info") },
         {
             listOf(
+                SettingsComposableItem {
+                    SizeIndicator("Displaying above navigation bar") { context ->
+                        context.isDisplayingAboveNavigationBar()
+                    }
+                },
+
                 // Window height
                 SettingsComposableItem {
-                    Column(Modifier.fillMaxWidth()) {
-                        SizeIndicator("Screen height", show_indicator = false) { context ->
-                            context.getScreenHeight()
-                        }
+                    SizeIndicator("Screen height", show_indicator = false) { context ->
+                        LocalPlayerState.current.screen_size.height
                     }
                 },
 
                 // Status bar height
                 SettingsComposableItem {
-                    Column(Modifier.fillMaxWidth()) {
-                        SizeIndicator("Status bar height") { context ->
-                            context.getStatusBarHeight()
-                        }
+                    SizeIndicator("Status bar height") { context ->
+                        context.getStatusBarHeight()
                     }
                 },
 
                 // Navigation bar height
                 SettingsComposableItem {
-                    Column(Modifier.fillMaxWidth()) {
-                        SizeIndicator("Navigation bar height") { context ->
-                            context.getNavigationBarHeightDp()
-                        }
+                    SizeIndicator("Navigation bar height") { context ->
+                        context.getNavigationBarHeightDp()
                     }
                 },
 

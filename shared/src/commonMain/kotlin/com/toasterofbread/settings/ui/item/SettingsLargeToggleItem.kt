@@ -35,7 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composesettings.ui.SettingsPage
-import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.ShapedIconButton
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
@@ -54,11 +54,11 @@ class SettingsLargeToggleItem(
     val onClicked: (target: Boolean, setEnabled: (Boolean) -> Unit, setLoading: (Boolean) -> Unit, openPage: (Int, Any?) -> Unit) -> Unit =
         { target, setEnabled, _, _ -> setEnabled(target) }
 ): SettingsItem() {
-    override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {
+    override fun initialiseValueStates(prefs: PlatformPreferences, default_provider: (String) -> Any) {
         state.init(prefs, default_provider)
     }
 
-    override fun releaseValueStates(prefs: ProjectPreferences) {
+    override fun releaseValueStates(prefs: PlatformPreferences) {
         state.release(prefs)
     }
 

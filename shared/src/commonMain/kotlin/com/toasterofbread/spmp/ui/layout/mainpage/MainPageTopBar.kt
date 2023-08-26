@@ -109,6 +109,6 @@ fun MainPageTopBar(modifier: Modifier = Modifier) {
             }
         }
 
-        WaveBorder(Modifier.requiredWidth(SpMp.context.getScreenWidth()))
+        WaveBorder(Modifier.requiredWidth(player.screen_size.width))
     }
 }

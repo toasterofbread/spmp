@@ -10,6 +10,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.Database
+import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import java.io.File
 import java.io.FileInputStream
@@ -23,28 +24,25 @@ fun PlatformContext.vibrateShort() {
 }
 
 @Composable
-fun PlatformContext.isPortrait(): Boolean {
-    return (getScreenWidth() / getScreenHeight()) <= MIN_PORTRAIT_RATIO
+fun PlayerState.isPortrait(): Boolean {
+    return (screen_size.width / screen_size.height) <= MIN_PORTRAIT_RATIO
 }
 
 @Composable
-fun PlatformContext.isScreenLarge(): Boolean {
-    val width = getScreenWidth()
-    if (width < 900.dp) {
+fun PlayerState.isScreenLarge(): Boolean {
+    if (screen_size.width < 900.dp) {
         return false
     }
-
-    val height = getScreenHeight()
-    return height >= 600.dp && (width / height) > MIN_PORTRAIT_RATIO
+    return screen_size.height >= 600.dp && (screen_size.width / screen_size.height) > MIN_PORTRAIT_RATIO
 }
 
 @Composable
-fun PlatformContext.getDefaultHorizontalPadding(): Dp = if (isScreenLarge()) 30.dp else 10.dp
+fun PlayerState.getDefaultHorizontalPadding(): Dp = if (isScreenLarge()) 30.dp else 10.dp
 @Composable
-fun PlatformContext.getDefaultVerticalPadding(): Dp = if (isScreenLarge()) 30.dp else 10.dp // TODO
+fun PlayerState.getDefaultVerticalPadding(): Dp = if (isScreenLarge()) 30.dp else 10.dp // TODO
 
 @Composable
-fun PlatformContext.getDefaultPaddingValues(): PaddingValues = PaddingValues(horizontal = getDefaultHorizontalPadding(), vertical = getDefaultVerticalPadding())
+fun PlayerState.getDefaultPaddingValues(): PaddingValues = PaddingValues(horizontal = getDefaultHorizontalPadding(), vertical = getDefaultVerticalPadding())
 
 @Composable
 fun PlatformContext.getNavigationBarHeightDp(): Dp = with(LocalDensity.current) {
@@ -56,7 +54,7 @@ expect class PlatformContext {
     val download_manager: PlayerDownloadManager
     val ytapi: YoutubeApi
 
-    fun getPrefs(): ProjectPreferences
+    fun getPrefs(): PlatformPreferences
 
     fun getFilesDir(): File
     fun getCacheDir(): File
@@ -103,11 +101,6 @@ expect class PlatformContext {
     fun loadFontFromFile(path: String): Font
 
     fun isConnectionMetered(): Boolean
-
-    @Composable
-    fun getScreenHeight(): Dp
-    @Composable
-    fun getScreenWidth(): Dp
 
     @Composable
     fun CopyShareButtons(name: String? = null, getText: () -> String)

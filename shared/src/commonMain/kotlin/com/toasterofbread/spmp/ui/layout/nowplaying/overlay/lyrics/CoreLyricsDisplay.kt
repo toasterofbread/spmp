@@ -2,7 +2,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.overlay.lyrics
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -56,10 +55,9 @@ fun CoreLyricsDisplay(
     getOnLongClick: () -> ((line_data: Pair<Int, List<AnnotatedReadingTerm>>) -> Unit)?
 ) {
     val player = LocalPlayerState.current
+    val lyrics_sync_offset: Long? by song.LyricsSyncOffset.observe(player.context.database)
 
-    val lyrics_sync_offset: Long? by song.LyricsSyncOffset.observe(SpMp.context.database)
-
-    val screen_width = SpMp.context.getScreenWidth()
+    val screen_width = player.screen_size.width
     val size_px = with(LocalDensity.current) { ((screen_width - (NOW_PLAYING_MAIN_PADDING.dp * 2) - (15.dp * getExpansion() * 2)).value * 0.9.dp).toPx() }
     val line_height = with (LocalDensity.current) { 20.sp.toPx() }
     val line_spacing = with (LocalDensity.current) { 25.dp.toPx() }

@@ -12,7 +12,7 @@ import com.toasterofbread.composesettings.ui.item.SettingsToggleItem
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.DiscordStatus
-import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.DiscordAccountPreview
 import com.toasterofbread.spmp.ui.layout.DiscordLoginConfirmation
@@ -34,8 +34,8 @@ internal fun getDiscordStatusGroup(discord_auth: SettingsValueState<String>): Li
                     }
                 }
 
-                override fun init(prefs: ProjectPreferences, defaultProvider: (String) -> Any): BasicSettingsValueState<Boolean> = this
-                override fun release(prefs: ProjectPreferences) {}
+                override fun init(prefs: PlatformPreferences, defaultProvider: (String) -> Any): BasicSettingsValueState<Boolean> = this
+                override fun release(prefs: PlatformPreferences) {}
                 override fun reset() = discord_auth.reset()
                 override fun save() = discord_auth.save()
                 override fun getDefault(defaultProvider: (String) -> Any): Boolean =

@@ -8,7 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.toasterofbread.composesettings.ui.SettingsPage
-import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.ui.theme.Theme
 
 class SettingsSubpageItem(
@@ -17,8 +17,8 @@ class SettingsSubpageItem(
     val target_page: Int,
     val target_page_param: Any?
 ): SettingsItem() {
-    override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {}
-    override fun releaseValueStates(prefs: ProjectPreferences) {}
+    override fun initialiseValueStates(prefs: PlatformPreferences, default_provider: (String) -> Any) {}
+    override fun releaseValueStates(prefs: PlatformPreferences) {}
     override fun resetValues() {}
 
     @Composable

@@ -17,7 +17,7 @@ import com.toasterofbread.spmp.ui.component.WAVE_BORDER_DEFAULT_HEIGHT
 @Composable
 fun MainPageDisplay() {
     val player = LocalPlayerState.current
-    val padding by animateDpAsState(SpMp.context.getDefaultHorizontalPadding())
+    val padding by animateDpAsState(player.getDefaultHorizontalPadding())
 
     Column(Modifier.padding(horizontal = padding)) {
         val top_padding = WAVE_BORDER_DEFAULT_HEIGHT.dp

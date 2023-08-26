@@ -114,8 +114,7 @@ fun TopBar(modifier: Modifier = Modifier) {
                 MusicTopBarWithVisualiser(
                     Settings.INTERNAL_TOPBAR_MODE_NOWPLAYING,
                     Modifier.fillMaxSize(),
-                    song = song,
-                    d = true
+                    song = song
                 )
             }
 

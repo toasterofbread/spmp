@@ -15,7 +15,7 @@ import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.utils.launchSingle
 
 @Composable
-fun loadLyricsOnSongChange(song: Song?, context: PlatformContext, load_lyrics: Boolean = true, d: Boolean = false): SongLyrics? {
+fun loadLyricsOnSongChange(song: Song?, context: PlatformContext, load_lyrics: Boolean = true): SongLyrics? {
     val db = context.database
     val coroutine_scope = rememberCoroutineScope()
     var current_song: Song? by remember { mutableStateOf(null) }

@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -91,9 +90,9 @@ fun ThumbnailRow(
     setThemeColour: (Color?) -> Unit,
     getSeekState: () -> Float
 ) {
-    val db = SpMp.context.database
-    val expansion = LocalNowPlayingExpansion.current
     val player = LocalPlayerState.current
+    val db = player.context.database
+    val expansion = LocalNowPlayingExpansion.current
     val current_song = player.status.m_song
 
     val song_title: String? = current_song?.Title?.observe(db)?.value
@@ -121,7 +120,7 @@ fun ThumbnailRow(
                 setThemeColour(it)
                 overlay_menu = null
             },
-            { SpMp.context.getScreenWidth() }
+            { player.screen_size.width }
         )
     }
 

@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.songfeedpage
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
@@ -270,7 +269,7 @@ class SongFeedPage(state: MainPageState): MainPage(state) {
                                     ErrorInfoDisplay(
                                         state,
                                         modifier = Modifier.padding(bottom = 20.dp),
-                                        expanded_modifier = Modifier.padding(bottom = SpMp.context.getDefaultVerticalPadding()),
+                                        expanded_modifier = Modifier.padding(bottom = player.getDefaultVerticalPadding()),
                                         message = getString("error_yt_feed_parse_failed"),
                                         onDismiss = {
                                             error_dismissed = true

@@ -10,7 +10,7 @@ import com.toasterofbread.spmp.model.Cache
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringArray
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
@@ -73,8 +73,8 @@ class YoutubeMusicApi(
     private lateinit var youtubei_context_mobile: JsonObject
     private lateinit var youtube_context_ui_language: JsonObject
 
-    private val prefs_change_listener = object : ProjectPreferences.Listener {
-        override fun onChanged(prefs: ProjectPreferences, key: String) {
+    private val prefs_change_listener = object : PlatformPreferences.Listener {
+        override fun onChanged(prefs: PlatformPreferences, key: String) {
             when (key) {
                 Settings.KEY_YTM_AUTH.name -> onUserAuthStateChanged()
                 Settings.KEY_LANG_DATA.name -> {

@@ -23,7 +23,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playerservice.PlayerService
 import com.toasterofbread.utils.Permissions
@@ -48,8 +48,8 @@ actual class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner
     private lateinit var volume_intercept_mode: PlayerAccessibilityServiceVolumeInterceptMode
     private var listen_while_screen_off: Boolean = false
 
-    private val prefs_change_listener = object : ProjectPreferences.Listener {
-        override fun onChanged(prefs: ProjectPreferences, key: String) {
+    private val prefs_change_listener = object : PlatformPreferences.Listener {
+        override fun onChanged(prefs: PlatformPreferences, key: String) {
             when (key) {
 //                Settings.KEY_ACC_VOL_INTERCEPT_MODE.name -> {
 //                    volume_intercept_mode = VOLUME_INTERCEPT_MODE.values()[Settings.get(Settings.KEY_ACC_VOL_INTERCEPT_MODE, prefs)]

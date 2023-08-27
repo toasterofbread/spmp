@@ -13,7 +13,7 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.view.WindowCompat
-import com.toasterofbread.spmp.platform.NotificationPermissionRequester
+import com.toasterofbread.spmp.platform.ApplicationContext
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.isDebugBuild
@@ -54,7 +54,7 @@ class MainActivity : ComponentActivity() {
             )
         }
 
-        val context = PlatformContext(this, coroutine_scope, NotificationPermissionRequester(this))
+        val context = PlatformContext(this, coroutine_scope, ApplicationContext(this))
         SpMp.init(context)
         context.init()
 

@@ -40,10 +40,13 @@
     <string name="library_tab_artists">Artists</string>
     <string name="library_tab_history">History</string>
 
-    <string name="library_x_more_songs">and $x more songs</string>
-    <string name="library_row_downloads">Downloads</string>
-    <string name="library_no_songs_downloaded">No songs downloaded</string>
-    <string name="library_playlists_empty">No playlists</string>
+    <string name="library_no_local_songs">No local songs</string>
+    <string name="library_no_playlists">No playlists</string>
+    <string name="library_no_items_match_filter">No items match filter</string>
+
+    <string name="library_$x_songs">$x songs</string>
+    <string name="library_$x_playlists">$x playlists</string>
+
     <string name="library_recent_songs_all">All</string>
     <string name="library_recent_songs_year">Year</string>
     <string name="library_recent_songs_month">Month</string>
@@ -333,6 +336,8 @@
 
     <string name="s_cat_library">Library</string>
 
+    <string name="s_key_library_path">Library storage path</string>
+    <string name="s_sub_library_path">Location to use for storing local playlists and songs</string>
     <string name="s_key_show_likes_playlist">Show likes playlist</string>
 
     <string name="s_cat_theming">Theming</string>

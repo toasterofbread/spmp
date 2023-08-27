@@ -13,6 +13,8 @@ import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringArray
+import com.toasterofbread.spmp.resources.getStringArraySafe
+import com.toasterofbread.spmp.resources.getStringSafe
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi.PostBodyContext
 import com.toasterofbread.spmp.youtubeapi.executeResult
@@ -91,7 +93,7 @@ class YoutubeMusicApi(
                 launch {
                     val headers_builder = Headers.Builder()
 
-                    val headers = getStringArray("ytm_headers")
+                    val headers = getStringArraySafe("ytm_headers", context)
                     var i = 0
                     while (i < headers.size) {
                         val key = headers[i++]
@@ -107,7 +109,7 @@ class YoutubeMusicApi(
                     youtubei_headers = headers_builder.build()
                 }
                 launch {
-                    Settings.prefs.addListener(prefs_change_listener)
+                    context.getPrefs().addListener(prefs_change_listener)
 
                     NewPipe.init(object : Downloader() {
                         override fun execute(request: org.schabi.newpipe.extractor.downloader.Request): org.schabi.newpipe.extractor.downloader.Response {
@@ -160,35 +162,35 @@ class YoutubeMusicApi(
         val context_substitutor = StringSubstitutor(
             mapOf(
                 "user_agent" to getUserAgent(),
-                "hl" to SpMp.data_language
+                "hl" to SpMp.getDataLanguage(context)
             ),
             "\${", "}"
         )
 
         youtubei_context = klaxon.parseJsonObject(
-            context_substitutor.replace(getString("ytm_context")).reader()
+            context_substitutor.replace(getStringSafe("ytm_context", context)).reader()
         )
         youtubei_context_alt = klaxon.parseJsonObject(
-            context_substitutor.replace(getString("ytm_context_alt")).reader()
+            context_substitutor.replace(getStringSafe("ytm_context_alt", context)).reader()
         )
         youtubei_context_android = klaxon.parseJsonObject(
-            context_substitutor.replace(getString("ytm_context_android")).reader()
+            context_substitutor.replace(getStringSafe("ytm_context_android", context)).reader()
         )
         youtubei_context_mobile = klaxon.parseJsonObject(
-            context_substitutor.replace(getString("ytm_context_mobile")).reader()
+            context_substitutor.replace(getStringSafe("ytm_context_mobile", context)).reader()
         )
         youtube_context_ui_language = klaxon.parseJsonObject(
             StringSubstitutor(
                 mapOf(
                     "user_agent" to getUserAgent(),
-                    "hl" to SpMp.ui_language
+                    "hl" to SpMp.getUiLanguage(context)
                 ),
                 "\${", "}"
-            ).replace(getString("ytm_context")).reader()
+            ).replace(getStringSafe("ytm_context", context)).reader()
         )
     }
 
-    fun getUserAgent(): String = getString("ytm_user_agent")
+    fun getUserAgent(): String = getStringSafe("ytm_user_agent", context)
 
     override fun PostBodyContext.getContextPostBody(): JsonObject =
         when (this) {
@@ -233,7 +235,7 @@ class YoutubeMusicApi(
 
     private val client: OkHttpClient =
         OkHttpClient.Builder()
-            .callTimeout(Duration.ofMillis(com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DEFAULT_CONNECT_TIMEOUT.toLong()))
+            .callTimeout(Duration.ofMillis(DEFAULT_CONNECT_TIMEOUT.toLong()))
             .retryOnConnectionFailure(false)
             .protocols(listOf(Protocol.HTTP_1_1))
             .build()

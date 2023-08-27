@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.platform
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.*
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Context.MODE_APPEND
 import android.content.Context.MODE_PRIVATE
@@ -16,9 +17,11 @@ import android.os.Build
 import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.provider.DocumentsContract
 import android.view.View
 import android.view.Window
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+import android.webkit.MimeTypeMap
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
@@ -38,6 +41,19 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.net.toUri
+import androidx.documentfile.provider.DocumentFile
+import com.anggrayudi.storage.callback.FileCallback
+import com.anggrayudi.storage.callback.FolderCallback
+import com.anggrayudi.storage.file.DocumentFileCompat
+import com.anggrayudi.storage.file.child
+import com.anggrayudi.storage.file.copyFileTo
+import com.anggrayudi.storage.file.findParent
+import com.anggrayudi.storage.file.getAbsolutePath
+import com.anggrayudi.storage.file.getRelativePath
+import com.anggrayudi.storage.file.makeFolder
+import com.anggrayudi.storage.file.moveFolderTo
+import com.anggrayudi.storage.media.MediaFile
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
@@ -49,36 +65,62 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
-
+import java.io.OutputStream
+import java.net.URI
 
 private const val DEFAULT_NOTIFICATION_CHANNEL_ID = "default_channel"
 private const val ERROR_NOTIFICATION_CHANNEL_ID = "download_error_channel"
 
-class NotificationPermissionRequester(activity: ComponentActivity) {
-    private val callbacks: MutableList<(Boolean) -> Unit> = mutableListOf()
+class ApplicationContext(private val activity: ComponentActivity) {
+    private val permission_callbacks: MutableList<(Boolean) -> Unit> = mutableListOf()
+    private val document_callbacks: MutableList<(Uri?) -> Unit> = mutableListOf()
 
-    private val launcher = activity.registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        synchronized(callbacks) {
-            for (callback in callbacks) {
-                callback(granted)
+    private val permission_launcher =
+        activity.registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { granted ->
+            synchronized(permission_callbacks) {
+                for (callback in permission_callbacks) {
+                    callback(granted)
+                }
+                permission_callbacks.clear()
             }
-            callbacks.clear()
         }
-    }
+
+    private val document_launcher =
+        activity.registerForActivityResult(
+            ActivityResultContracts.OpenDocumentTree()
+        ) { uri ->
+            synchronized(document_callbacks) {
+                for (callback in document_callbacks) {
+                    callback(uri)
+                }
+                document_callbacks.clear()
+            }
+        }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     fun requestNotficationPermission(callback: (granted: Boolean) -> Unit) {
-        synchronized(callbacks) {
-//            if (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED) {
-//                callback(true)
-//                return
-//            }
+        synchronized(permission_callbacks) {
+            permission_callbacks.add(callback)
+            if (permission_callbacks.size == 1) {
+                permission_launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
 
-            callbacks.add(callback)
-            if (callbacks.size == 1) {
-                launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
+    fun requestDocumentTree(persist: Boolean = false, callback: (uri: Uri?) -> Unit) {
+        synchronized(document_callbacks) {
+            document_callbacks.add { uri ->
+                if (persist && uri != null) {
+                    val content_resolver: ContentResolver = activity.applicationContext.contentResolver
+                    val flags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    content_resolver.takePersistableUriPermission(uri, flags)
+                }
+                callback(uri)
+            }
+            if (document_callbacks.size == 1) {
+                document_launcher.launch(null)
             }
         }
     }
@@ -90,10 +132,215 @@ fun getAppName(context: Context): String {
     return if (string_id == 0) info.nonLocalizedLabel.toString() else context.getString(string_id)
 }
 
+private val Uri.clean_path: String
+    get() = path!!.split(':').last()
+
+private val Uri.split_path: List<String>
+    get() = clean_path.split('/').filter { it.isNotBlank() }
+
+actual class PlatformFile(
+    private var document_uri: Uri,
+    private var file: DocumentFile?,
+    private var parent_file: DocumentFile?,
+    private val context: Context
+) {
+    init {
+        if (file != null) {
+            require(parent_file == null) { "$file | $parent_file" }
+            require(file!!.exists()) { file.toString() }
+        }
+        if (parent_file != null) {
+            require(file == null) { "$file | $parent_file" }
+            require(parent_file!!.isDirectory) { parent_file!!.uri.clean_path }
+        }
+    }
+
+    actual val uri: String
+        get() = document_uri.toString()
+    actual val name: String
+        get() = file?.name ?: document_uri.path!!.split('/').last()
+    actual val path: String
+        get() = document_uri.clean_path
+    actual val absolute_path: String
+        get() = path
+
+    actual val exists: Boolean
+        get() = file?.exists() == true
+    actual val is_directory: Boolean
+        get() = file?.isDirectory == true
+    actual val is_file: Boolean
+        get() = file?.isFile == true
+
+    actual fun inputStream(): InputStream =
+        context.contentResolver.openInputStream(file!!.uri)!!
+
+    actual fun outputStream(append: Boolean): OutputStream {
+        if (!is_file) {
+            createFile()
+        }
+        return context.contentResolver.openOutputStream(file!!.uri, if (append) "wa" else "w")!!
+    }
+
+    actual fun listFiles(): List<PlatformFile>? =
+        file?.listFiles()?.map {
+            PlatformFile(it.uri, it, null, context)
+        }
+
+    actual fun resolve(relative_path: String): PlatformFile {
+        val uri = document_uri.buildUpon().appendPath(relative_path).build()
+
+        if (file != null) {
+            var existing_file: DocumentFile = file!!
+
+            for (part in relative_path.split('/')) {
+                val child = existing_file.findFile(part)
+                if (child == null) {
+                    return PlatformFile(uri, null, existing_file, context)
+                }
+                existing_file = child
+            }
+
+            return PlatformFile(uri, existing_file, null, context)
+        }
+        else {
+            return PlatformFile(uri, null, parent_file, context)
+        }
+    }
+
+    actual fun createFile(): Boolean {
+        if (is_file) {
+            return true
+        }
+        else if (file != null || parent_file == null) {
+            return false
+        }
+
+        val filename: String = name
+
+        val mime_type: String?
+        val display_name: String?
+
+        val last_dot: Int? = filename.lastIndexOf('.').takeIf { it != -1 }
+        if (last_dot != null) {
+            mime_type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(filename.substring(last_dot))
+            display_name = filename.substring(0, last_dot)
+        }
+        else {
+            mime_type = null
+            display_name = filename
+        }
+
+        try {
+            val new_file = parent_file!!.createFile(mime_type ?: "application/octet-stream", display_name) ?: return false
+
+            document_uri = new_file.uri
+            file = new_file
+            parent_file = null
+
+            return true
+        }
+        catch (e: Throwable) {
+            throw RuntimeException(toString(), e)
+        }
+    }
+
+    actual fun mkdirs(): Boolean {
+        if (file != null) {
+            return true
+        }
+
+        val parts = document_uri.split_path.drop(parent_file!!.uri.split_path.size)
+        for (part in parts) {
+            parent_file = parent_file!!.makeFolder(context, part) ?: return false
+        }
+
+        file = parent_file
+        parent_file = null
+
+        return true
+    }
+
+    actual fun renameTo(new_name: String): PlatformFile {
+        file!!.renameTo(new_name)
+
+        val new_file = file!!.parentFile!!.child(context, new_name)!!
+        return PlatformFile(
+            new_file.uri,
+            new_file,
+            null,
+            context
+        )
+    }
+
+//    actual fun copyTo(destination: PlatformFile) {
+//        check(is_file)
+//
+//        file!!.copyFileTo(
+//            context,
+//            MediaFile(context, destination.document_uri),
+//            object : FileCallback() {
+//
+//            }
+//        )
+//
+//        DocumentsContract.copyDocument(context.contentResolver, document_uri, destination.document_uri)
+//    }
+//
+//    actual fun delete() {
+//        DocumentsContract.deleteDocument(context.contentResolver, document_uri)
+//    }
+
+    actual fun moveDirContentTo(destination: PlatformFile, callback: (Throwable?) -> Unit) {
+        if (!is_directory) {
+            return
+        }
+
+        val files: Array<DocumentFile> = file!!.listFiles()
+
+        for (item in files) {
+            if (item.isFile) {
+                item.copyFileTo(
+                    context,
+                    MediaFile(context, destination.file!!.child(context, item.name!!)!!.uri),
+                    object : FileCallback() {
+                        // TODO
+                    }
+                )
+            }
+            else if (item.isDirectory) {
+                item.moveFolderTo(
+                    context,
+                    DocumentFileCompat.fromUri(context, destination.file!!.uri)!!,
+                    false,
+                    callback = object : FolderCallback() {
+                        // TODO
+                    }
+                )
+            }
+            else {
+                throw IllegalStateException(item.uri.clean_path)
+            }
+        }
+    }
+
+    override fun toString(): String =
+        "PlatformFile(uri=${document_uri.clean_path}, file=${file?.uri?.clean_path}, parent_file=${parent_file?.uri?.clean_path})"
+
+    actual companion object {
+        actual fun fromFile(file: File, context: PlatformContext): PlatformFile =
+            PlatformFile(
+                file.toUri(),
+                DocumentFile.fromFile(file),
+                null,
+                context.ctx
+            )
+    }
+}
+
 actual class PlatformContext(
     private val context: Context,
     private val coroutine_scope: CoroutineScope,
-    val notification_permission_requester: NotificationPermissionRequester? = null,
+    val application_context: ApplicationContext? = null,
 ) {
     actual val database = createDatabase()
     actual val download_manager = PlayerDownloadManager(this)
@@ -118,6 +365,20 @@ actual class PlatformContext(
 
     actual fun getFilesDir(): File = ctx.filesDir
     actual fun getCacheDir(): File = ctx.cacheDir
+
+    actual fun promptForUserDirectory(persist: Boolean, callback: (uri: String?) -> Unit) {
+        check(application_context != null)
+
+        application_context.requestDocumentTree(persist) { uri ->
+            callback(uri?.toString())
+        }
+    }
+
+    actual fun getUserDirectoryFile(uri: String): PlatformFile {
+        val document_uri = Uri.parse(uri)
+        val file = DocumentFileCompat.fromUri(ctx, document_uri)!!
+        return PlatformFile(document_uri, file, null, ctx)
+    }
 
     actual fun isAppInForeground(): Boolean = ctx.isAppInForeground()
 
@@ -295,6 +556,7 @@ actual class PlatformContext(
     }
     @SuppressLint("MissingPermission")
     actual fun sendNotification(throwable: Throwable) {
+        throwable.printStackTrace()
         if (canSendNotifications()) {
             NotificationManagerCompat.from(ctx).notify(
                 System.currentTimeMillis().toInt(),

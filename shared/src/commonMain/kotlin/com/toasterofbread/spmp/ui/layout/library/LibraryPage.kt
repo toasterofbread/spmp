@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.ui.layout.library
 
-import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.expandHorizontally
@@ -14,9 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSizeIn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.ElevatedFilterChip
@@ -35,48 +32,48 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortOption
-import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.platform.rememberSongDownloads
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.mainpage.MainPage
 import com.toasterofbread.spmp.ui.layout.mainpage.MainPageState
-import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.ResizableOutlinedTextField
 
-enum class LibrarySubPage { SONGS }
+interface LibrarySubPage {
+    fun getIcon(): ImageVector
+    fun getTitle(): String
 
-fun LibrarySubPage?.getReadable(): String =
-    getString(when (this) {
-        null -> "library_main_page_title"
-        LibrarySubPage.SONGS -> "library_songs_page_title"
-    })
+    @Composable
+    fun Page(
+        library_page: LibraryPage,
+        content_padding: PaddingValues,
+        multiselect_context: MediaItemMultiSelectContext,
+        modifier: Modifier
+    )
+}
 
 class LibraryPage(state: MainPageState): MainPage(state) {
-    enum class Tab {
-        PLAYLISTS, SONGS, ALBUMS, ARTISTS, HISTORY;
+    val tabs: List<LibrarySubPage> = listOf(
+        LibraryPlaylistsPage(), LibrarySongsPage()
+    )
+    var current_tab: LibrarySubPage by mutableStateOf(tabs.first())
 
-        fun getIcon(): ImageVector =
-            when (this) {
-                PLAYLISTS -> MediaItemType.PLAYLIST_ACC.getIcon()
-                SONGS -> MediaItemType.SONG.getIcon()
-                ALBUMS -> Icons.Default.Album
-                ARTISTS -> MediaItemType.ARTIST.getIcon()
-                HISTORY -> Icons.Default.History
-            }
-
-        fun getReadable(): String =
-            getString(when (this) {
-                PLAYLISTS -> "library_tab_playlists"
-                SONGS -> "library_tab_local_songs"
-                ALBUMS -> "library_tab_albums"
-                ARTISTS -> "library_tab_artists"
-                HISTORY -> "library_tab_history"
-            })
-    }
-    var current_tab: Tab by mutableStateOf(Tab.values().first())
+//    enum class Tab {
+//        PLAYLISTS, ALBUMS, ARTISTS, HISTORY;
+//
+//        fun getIcon(): ImageVector =
+//            when (this) {
+//                ALBUMS -> Icons.Default.Album
+//                ARTISTS -> MediaItemType.ARTIST.getIcon()
+//                HISTORY -> Icons.Default.History
+//            }
+//
+//        fun getReadable(): String =
+//            getString(when (this) {
+//                ALBUMS -> "library_tab_albums"
+//                ARTISTS -> "library_tab_artists"
+//                HISTORY -> "library_tab_history"
+//            })
+//    }
 
     private var show_search_field: Boolean by mutableStateOf(false)
     var search_filter: String? by mutableStateOf(null)
@@ -91,7 +88,7 @@ class LibraryPage(state: MainPageState): MainPage(state) {
         show_sort_option_menu = false
         sort_option = MediaItemSortOption.PLAY_COUNT
         reverse_sort = false
-        current_tab = Tab.values().first()
+        current_tab = tabs.first()
     }
 
     @Composable
@@ -144,12 +141,12 @@ class LibraryPage(state: MainPageState): MainPage(state) {
                 }
 
                 Row(Modifier.fillMaxWidth().weight(1f)) {
-                    for (tab in Tab.values().withIndex()) {
+                    for (tab in tabs.withIndex()) {
                         Crossfade(tab.value == current_tab) { selected ->
                             Box(
                                 Modifier
                                     .fillMaxWidth(
-                                        1f / (Tab.values().size - tab.index)
+                                        1f / (tabs.size - tab.index)
                                     )
                                     .padding(horizontal = 5.dp)
                             ) {
@@ -196,39 +193,13 @@ class LibraryPage(state: MainPageState): MainPage(state) {
         content_padding: PaddingValues,
         close: () -> Unit
     ) {
-        val player = LocalPlayerState.current
-        val downloads = rememberSongDownloads()
-
         Crossfade(current_tab, modifier) { tab ->
-            when (tab) {
-//                null -> LibraryMainPage(
-//                    content_padding,
-//                    multiselect_context,
-//                    downloads,
-//                    { subpage = it },
-//                ) { songs, song, index ->
-//                    onSongClicked(songs, player, song, index)
-//                }
-
-                Tab.PLAYLISTS -> LibraryPlaylistsPage(
-                    content_padding,
-                    multiselect_context,
-                    { current_tab = it }
-                )
-
-                Tab.SONGS -> LibrarySongsPage(
-                    content_padding,
-                    multiselect_context,
-                    downloads,
-                    { current_tab = it }
-                ) { songs, song, index ->
-                    onSongClicked(songs, player, song, index)
-                }
-
-                Tab.ALBUMS -> TODO()
-                Tab.ARTISTS -> TODO()
-                Tab.HISTORY -> TODO()
-            }
+            tab.Page(
+                this@LibraryPage,
+                content_padding,
+                multiselect_context,
+                Modifier
+            )
         }
     }
 
@@ -357,32 +328,4 @@ fun LibraryPage(
 //            }
 //        }
 //    }
-}
-
-private fun onSongClicked(songs: List<Song>, player: PlayerState, song: Song, index: Int) {
-    player.withPlayer {
-        // TODO Config
-        val ADD_BEFORE = 2
-        val ADD_AFTER = 7
-
-        val add_songs = songs
-            .mapIndexedNotNull { song_index, song ->
-                if (song_index < index && index - song_index > ADD_BEFORE) {
-                    return@mapIndexedNotNull null
-                }
-
-                if (song_index > index && song_index - index > ADD_AFTER) {
-                    return@mapIndexedNotNull null
-                }
-
-                song
-            }
-
-        val song_index = minOf(ADD_BEFORE, index)
-        assert(add_songs[song_index] == song)
-
-        clearQueue(save = false)
-        addMultipleToQueue(add_songs)
-        seekToSong(song_index)
-    }
 }

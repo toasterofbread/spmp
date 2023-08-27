@@ -4,6 +4,7 @@ import android.os.Build
 import com.toasterofbread.spmp.PlayerDownloadService
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongRef
+import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.model.mediaitem.song.getSongTargetDownloadQuality
 import java.io.File
@@ -33,7 +34,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
         actual val quality: SongAudioQuality,
         actual val progress: Float,
         actual val id: String,
-        val file: File?
+        val file: PlatformFile?
     ) {
         actual enum class Status { IDLE, PAUSED, DOWNLOADING, CANCELLED, ALREADY_FINISHED, FINISHED }
     }
@@ -63,7 +64,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
 
         when (result.action) {
             PlayerDownloadService.IntentAction.START_DOWNLOAD -> {
-                val result = data["result"] as Result<File?>
+                val result = data["result"] as Result<PlatformFile?>
                 result.fold(
                     {
                         download_status_listeners.forEach { it.onDownloadChanged(status) }
@@ -107,7 +108,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
             }
         }
 
-        for (file in getDownloadDir(context).listFiles() ?: emptyArray()) {
+        for (file in getDownloadDir(context).listFiles() ?: emptyList()) {
             val data = PlayerDownloadService.getFilenameData(file.name)
             if (data.id == song.id) {
                 callback(DownloadStatus(
@@ -130,7 +131,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
             getAllDownloadsStatus()
         } ?: emptyList()
 
-        val files = getDownloadDir(context).listFiles() ?: emptyArray()
+        val files = getDownloadDir(context).listFiles() ?: emptyList()
         callback(
             current_downloads + files.mapNotNull { file ->
                 if (current_downloads.any { it.file == file }) {
@@ -150,7 +151,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
         )
     }
 
-    fun getSongLocalFile(song: Song): File? {
+    fun getSongLocalFile(song: Song): PlatformFile? {
         val files = getDownloadDir(context).listFiles() ?: return null
         for (file in files) {
             if (PlayerDownloadService.fileMatchesDownload(file.name, song.id, getSongTargetDownloadQuality()) == true) {
@@ -164,7 +165,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
     actual fun startDownload(song_id: String, silent: Boolean, onCompleted: ((DownloadStatus) -> Unit)?) {
         // If needed, get notification permission on A13 and above
         if (!silent && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.notification_permission_requester?.requestNotficationPermission() { granted ->
+            context.application_context?.requestNotficationPermission() { granted ->
                 if (granted) {
                     performDownload(song_id, silent, onCompleted)
                 }
@@ -245,8 +246,8 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
     }
 
     companion object {
-        fun getDownloadDir(context: PlatformContext): File {
-            return File(context.getFilesDir(), "download")
+        fun getDownloadDir(context: PlatformContext): PlatformFile {
+            return MediaItemLibrary.getLocalSongsDir(context)
         }
     }
 }

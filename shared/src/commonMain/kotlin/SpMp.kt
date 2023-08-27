@@ -83,10 +83,13 @@ object SpMp {
     private val low_memory_listeners: MutableList<() -> Unit> = mutableListOf()
     private val coroutine_scope = CoroutineScope(Dispatchers.Main)
 
-    val ui_language: String get() =
+    fun getUiLanguage(context: PlatformContext = SpMp.context): String =
         Settings.KEY_LANG_UI.get<String>(context.getPrefs()).ifEmpty { Locale.getDefault().toLanguageTag() }
-    val data_language: String get() =
+    fun getDataLanguage(context: PlatformContext = SpMp.context): String =
         Settings.KEY_LANG_DATA.get<String>(context.getPrefs()).ifEmpty { Locale.getDefault().toLanguageTag() }
+
+    val ui_language: String get() = getUiLanguage()
+    val data_language: String get() = getDataLanguage()
 
     fun init(context: PlatformContext) {
         this.context = context

@@ -28,12 +28,9 @@
     <string name="library_main_page_title">Biblioteka</string>
     <string name="library_songs_page_title">Utwory</string>
 
-    <string name="library_row_playlists">Playlisty</string>
-    <string name="library_row_local_songs">Utwory zapisane w pamięci urządzenia</string>
-    <string name="library_x_more_songs">i $x więcej utworów</string>
-    <string name="library_row_downloads">Pobieranie</string>
-    <string name="library_no_songs_downloaded">Nie pobrano żadnych utworów</string>
-    <string name="library_playlists_empty">Brak playlist</string>
+    <string name="library_no_local_songs">Nie pobrano żadnych utworów</string>
+    <string name="library_no_playlists">Brak playlist</string>
+
     <string name="library_recent_songs_all">Wszystkie</string>
     <string name="library_recent_songs_year">Rok</string>
     <string name="library_recent_songs_month">Miesiąc</string>

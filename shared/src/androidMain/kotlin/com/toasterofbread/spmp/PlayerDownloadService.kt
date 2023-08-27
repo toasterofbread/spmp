@@ -10,6 +10,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.drawable.Icon
 import android.media.MediaMetadataRetriever
+import android.net.Uri
 import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
@@ -22,14 +23,15 @@ import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.model.mediaitem.song.getSongFormatByQuality
 import com.toasterofbread.spmp.platform.PlatformBinder
 import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.PlatformFile
 import com.toasterofbread.spmp.platform.PlatformServiceImpl
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.resources.getStringTODO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import java.io.File
-import java.io.FileOutputStream
 import java.net.ConnectException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -46,7 +48,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
         val quality: SongAudioQuality,
         var silent: Boolean,
         val instance: Int,
-        var file: File? = null
+        var file: PlatformFile? = null
     ) {
         var status: DownloadStatus.Status = DownloadStatus.Status.IDLE
             set(value) {
@@ -90,7 +92,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
             return getDownloadPath(id, quality, extension, in_progress)
         }
 
-        fun broadcastResult(result: Result<File?>?, instance: Int) {
+        fun broadcastResult(result: Result<PlatformFile?>?, instance: Int) {
             sendMessageOut(PlayerDownloadManager.PlayerDownloadMessage(
                 IntentAction.START_DOWNLOAD,
                 mapOf(
@@ -188,7 +190,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
     private var notification_builder: Notification.Builder? = null
     private lateinit var notification_manager: NotificationManagerCompat
 
-    private val download_dir: File get() = PlayerDownloadManager.getDownloadDir(context)
+    private val download_dir: PlatformFile get() = PlayerDownloadManager.getDownloadDir(context)
     private val downloads: MutableList<Download> = mutableListOf()
     private val executor = Executors.newFixedThreadPool(3)
     private var stopping = false
@@ -320,7 +322,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
 
         executor.submit {
             runBlocking {
-                var result: Result<File?>? = null
+                var result: Result<PlatformFile?>? = null
                 var retry_count: Int = 0
 
                 while (
@@ -384,7 +386,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
         }
     }
 
-    private fun performDownload(download: Download): Result<File?> {
+    private fun performDownload(download: Download): Result<PlatformFile?> {
         val format = getSongFormatByQuality(download.id, download.quality, context).fold(
             { it },
             { return Result.failure(it) }
@@ -407,8 +409,8 @@ class PlayerDownloadService: PlatformServiceImpl() {
             ))
         }
 
-        var file: File? = download.file
-        download_dir.mkdirs()
+        var file: PlatformFile? = download.file
+        check(download_dir.mkdirs()) { download_dir.toString() }
 
         if (file == null) {
             val extension = when (connection.contentType) {
@@ -422,7 +424,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
         check(file.name.endsWith(FILE_DOWNLOADING_SUFFIX))
 
         val data = ByteArray(4096)
-        val output = FileOutputStream(file, true)
+        val output = file.outputStream(true)
         val input = connection.inputStream
 
         fun close(status: DownloadStatus.Status) {
@@ -459,15 +461,15 @@ class PlayerDownloadService: PlatformServiceImpl() {
         }
 
         val metadata_retriever = MediaMetadataRetriever()
-        metadata_retriever.setDataSource(file.absolutePath)
+        metadata_retriever.setDataSource(context.ctx, Uri.parse(file.uri))
 
         val duration_ms = metadata_retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong()
         SongRef(download.id).Duration.setNotNull(duration_ms, context.database)
 
         close(DownloadStatus.Status.FINISHED)
 
-        val renamed = file.resolveSibling(file.name.dropLast(FILE_DOWNLOADING_SUFFIX.length))
-        file.renameTo(renamed)
+        val renamed = file.renameTo(file.name.dropLast(FILE_DOWNLOADING_SUFFIX.length))
+
         download.file = renamed
         download.status = DownloadStatus.Status.FINISHED
 
@@ -557,14 +559,14 @@ class PlayerDownloadService: PlatformServiceImpl() {
                     val title = if (downloads.size == 1) {
                         val song_title = context.database.mediaItemQueries.titleById(downloads.first().id).executeAsOne().title
                         if (song_title != null) {
-                            "Downloading $song_title"
+                            getStringTODO("Downloading $song_title")
                         }
                         else {
-                            "Downloading 1 song"
+                            getStringTODO("Downloading 1 song")
                         }
                     }
                     else {
-                        "Downloading ${downloads.size} songs"
+                        getStringTODO("Downloading ${downloads.size} songs")
                     }
 
                     builder.setContentTitle(if (paused) "$title (paused)" else title)
@@ -572,9 +574,9 @@ class PlayerDownloadService: PlatformServiceImpl() {
 
                     val elapsed_minutes = ((System.currentTimeMillis() - start_time) / 60000f).toInt()
                     builder.setSubText(when(elapsed_minutes) {
-                        0 -> "Just started"
-                        1 -> "Started 1 min ago"
-                        else -> "Started $elapsed_minutes mins ago"
+                        0 -> getStringTODO("Just started")
+                        1 -> getStringTODO("Started 1 min ago")
+                        else -> getStringTODO("Started $elapsed_minutes mins ago")
                     })
                 }
 

@@ -4,7 +4,7 @@ data class HMSData(val hours: String, val minutes: String, val seconds: String, 
 
 fun getHoursMinutesSecondsSuffixes(hl: String?): HMSData? =
     when (hl?.split('-', limit = 2)?.firstOrNull()) {
-        "en-GB", null -> HMSData("hours", "minutes", "seconds", " ")
-        "ja-JP" -> HMSData("時間", "分", "秒")
+        "en", null -> HMSData("hours", "minutes", "seconds", " ")
+        "ja" -> HMSData("時間", "分", "秒")
         else -> null
     }

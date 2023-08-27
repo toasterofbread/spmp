@@ -15,7 +15,7 @@ class Cache {
         private lateinit var cache_dir: File
 
         fun init(context: PlatformContext) {
-            cache_dir = File(context.getCacheDir(), "spmp")
+            cache_dir = context.getCacheDir().resolve("spmp")
 
             if (!cache_dir.exists()) {
                 cache_dir.mkdirs()

@@ -21,7 +21,7 @@ fun rememberLocalPlaylists(context: PlatformContext): List<LocalPlaylistRef> {
 }
 
 fun createLocalPlaylist(context: PlatformContext): LocalPlaylistRef {
-    val local_type = PlaylistType.LOCAL.ordinal.toLong()
+    val local_type: Long = PlaylistType.LOCAL.ordinal.toLong()
 
     val largest_local_id: Long = context.database.playlistQueries
         .getLargestIdByType(local_type)

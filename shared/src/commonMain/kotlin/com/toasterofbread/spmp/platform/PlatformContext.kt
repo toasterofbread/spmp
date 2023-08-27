@@ -16,38 +16,9 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
+import java.io.OutputStream
 
 private const val MIN_PORTRAIT_RATIO: Float = 1f / 1.2f
-
-fun PlatformContext.vibrateShort() {
-    vibrate(0.01)
-}
-
-@Composable
-fun PlayerState.isPortrait(): Boolean {
-    return (screen_size.width / screen_size.height) <= MIN_PORTRAIT_RATIO
-}
-
-@Composable
-fun PlayerState.isScreenLarge(): Boolean {
-    if (screen_size.width < 900.dp) {
-        return false
-    }
-    return screen_size.height >= 600.dp && (screen_size.width / screen_size.height) > MIN_PORTRAIT_RATIO
-}
-
-@Composable
-fun PlayerState.getDefaultHorizontalPadding(): Dp = if (isScreenLarge()) 30.dp else 10.dp
-@Composable
-fun PlayerState.getDefaultVerticalPadding(): Dp = if (isScreenLarge()) 30.dp else 10.dp // TODO
-
-@Composable
-fun PlayerState.getDefaultPaddingValues(): PaddingValues = PaddingValues(horizontal = getDefaultHorizontalPadding(), vertical = getDefaultVerticalPadding())
-
-@Composable
-fun PlatformContext.getNavigationBarHeightDp(): Dp = with(LocalDensity.current) {
-    getNavigationBarHeight().toDp()
-}
 
 expect class PlatformContext {
     val database: Database
@@ -58,6 +29,9 @@ expect class PlatformContext {
 
     fun getFilesDir(): File
     fun getCacheDir(): File
+
+    fun promptForUserDirectory(persist: Boolean = false, callback: (uri: String?) -> Unit)
+    fun getUserDirectoryFile(uri: String): PlatformFile
 
     fun isAppInForeground(): Boolean
 
@@ -104,4 +78,62 @@ expect class PlatformContext {
 
     @Composable
     fun CopyShareButtons(name: String? = null, getText: () -> String)
+}
+
+expect class PlatformFile {
+    val uri: String
+    val name: String
+    val path: String
+    val absolute_path: String
+
+    val exists: Boolean
+    val is_directory: Boolean
+    val is_file: Boolean
+
+    fun inputStream(): InputStream
+    fun outputStream(append: Boolean = false): OutputStream
+
+    fun listFiles(): List<PlatformFile>?
+    fun resolve(relative_path: String): PlatformFile
+
+    fun createFile(): Boolean
+    fun mkdirs(): Boolean
+    fun renameTo(new_name: String): PlatformFile
+//    fun copyTo(destination: PlatformFile)
+//    fun delete()
+    fun moveDirContentTo(destination: PlatformFile, callback: (Throwable?) -> Unit)
+
+    companion object {
+        fun fromFile(file: File, context: PlatformContext): PlatformFile
+    }
+}
+
+fun PlatformContext.vibrateShort() {
+    vibrate(0.01)
+}
+
+@Composable
+fun PlayerState.isPortrait(): Boolean {
+    return (screen_size.width / screen_size.height) <= MIN_PORTRAIT_RATIO
+}
+
+@Composable
+fun PlayerState.isScreenLarge(): Boolean {
+    if (screen_size.width < 900.dp) {
+        return false
+    }
+    return screen_size.height >= 600.dp && (screen_size.width / screen_size.height) > MIN_PORTRAIT_RATIO
+}
+
+@Composable
+fun PlayerState.getDefaultHorizontalPadding(): Dp = if (isScreenLarge()) 30.dp else 10.dp
+@Composable
+fun PlayerState.getDefaultVerticalPadding(): Dp = if (isScreenLarge()) 30.dp else 10.dp // TODO
+
+@Composable
+fun PlayerState.getDefaultPaddingValues(): PaddingValues = PaddingValues(horizontal = getDefaultHorizontalPadding(), vertical = getDefaultVerticalPadding())
+
+@Composable
+fun PlatformContext.getNavigationBarHeightDp(): Dp = with(LocalDensity.current) {
+    getNavigationBarHeight().toDp()
 }

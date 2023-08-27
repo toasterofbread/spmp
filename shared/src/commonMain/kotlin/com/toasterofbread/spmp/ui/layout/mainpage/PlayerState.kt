@@ -20,6 +20,7 @@ import com.toasterofbread.spmp.model.mediaitem.SongRef
 import com.toasterofbread.spmp.platform.MediaPlayerRepeatMode
 import com.toasterofbread.spmp.platform.MediaPlayerService
 import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
 import com.toasterofbread.spmp.service.playerservice.PlayerService
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -127,7 +128,7 @@ open class PlayerState protected constructor(
 
     val bottom_padding_dp: Dp
         @Composable get() = with(LocalDensity.current) {
-            bottom_padding.toDp()
+            bottom_padding.toDp() + getDefaultVerticalPadding()
         }
 
     fun copy(

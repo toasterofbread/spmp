@@ -18,10 +18,10 @@ internal fun processMediaDataSpec(data_spec: DataSpec, context: PlatformContext,
     val song = SongRef(data_spec.uri.toString())
 
     val download_manager = context.download_manager
-    var local_file: File? = download_manager.getSongLocalFile(song)
+    var local_file: PlatformFile? = download_manager.getSongLocalFile(song)
     if (local_file != null) {
         println("Playing song ${song.id} from local file $local_file")
-        return data_spec.withUri(Uri.fromFile(local_file))
+        return data_spec.withUri(Uri.parse(local_file.uri))
     }
 
     if (
@@ -55,8 +55,11 @@ internal fun processMediaDataSpec(data_spec: DataSpec, context: PlatformContext,
                                 done = true
                             }
                             PlayerDownloadManager.DownloadStatus.Status.FINISHED, PlayerDownloadManager.DownloadStatus.Status.ALREADY_FINISHED -> {
+                                println("AAA")
                                 local_file = download_manager.getSongLocalFile(song)
+                                println("BBB $local_file")
                                 done = true
+                                println("CCC")
                             }
                         }
 
@@ -75,7 +78,7 @@ internal fun processMediaDataSpec(data_spec: DataSpec, context: PlatformContext,
 
         if (local_file != null) {
             println("Playing song ${song.id} from local file $local_file")
-            return data_spec.withUri(Uri.fromFile(local_file))
+            return data_spec.withUri(Uri.parse(local_file!!.uri))
         }
     }
 
@@ -84,11 +87,12 @@ internal fun processMediaDataSpec(data_spec: DataSpec, context: PlatformContext,
         { throw IOException(it) }
     )
 
-    return if (local_file != null) {
+    if (local_file != null) {
         println("Playing song ${song.id} from local file $local_file")
-        data_spec.withUri(Uri.fromFile(local_file))
-    } else {
+        return data_spec.withUri(Uri.parse(local_file!!.uri))
+    }
+    else {
         println("Playing song ${song.id} from external format $format")
-        data_spec.withUri(Uri.parse(format.stream_url))
+        return data_spec.withUri(Uri.parse(format.stream_url))
     }
 }

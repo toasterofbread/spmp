@@ -144,6 +144,7 @@ kotlin {
                 implementation("com.github.toasterofbread:KizzyRPC:84e79614b4")
                 implementation("dev.kord:kord-core:0.9.0")
                 implementation("app.cash.sqldelight:android-driver:2.0.0-rc02")
+                implementation("com.anggrayudi:storage:1.5.5")
             }
         }
 

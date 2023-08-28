@@ -192,12 +192,13 @@ interface YoutubeApi {
             }
 
         inline fun <reified T> Result<Response>.parseJsonResponse(
+            used_api: YoutubeApi? = api,
             onFailure: (Throwable) -> T
         ): T {
             return try {
                 fold(
                     { response ->
-                        response.getStream(api).use { stream ->
+                        response.getStream(used_api).use { stream ->
                             api.klaxon.parse(stream)!!
                         }
                     },

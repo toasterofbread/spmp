@@ -26,7 +26,7 @@ class YTMYoutubeChannelCreationFormEndpoint(override val api: YoutubeMusicApi): 
             .build()
 
         val result = api.performRequest(request)
-        val data: YoutubeAccountCreationForm = result.parseJsonResponse {
+        val data: YoutubeAccountCreationForm = result.parseJsonResponse(null) {
             return@withContext Result.failure(it)
         }
 

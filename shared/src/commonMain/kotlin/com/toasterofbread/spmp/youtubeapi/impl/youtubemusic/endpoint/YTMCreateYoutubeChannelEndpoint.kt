@@ -34,7 +34,7 @@ class YTMCreateYoutubeChannelEndpoint(override val api: YoutubeMusicApi): Create
             .build()
 
         val result = api.performRequest(request)
-        val data: CreateChannelResponse = result.parseJsonResponse {
+        val data: CreateChannelResponse = result.parseJsonResponse(null) {
             return@withContext Result.failure(it)
         }
 

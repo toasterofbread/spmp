@@ -28,13 +28,13 @@ import com.toasterofbread.utils.modifier.background
 import kotlin.math.roundToInt
 
 @Composable
-fun RepeatButton(backgroundColourProvider: () -> Color, modifier: Modifier = Modifier) {
+fun RepeatButton(getBackgroundColour: () -> Color, modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
     Box(
         modifier = modifier
             .minimumTouchTargetSize()
             .aspectRatio(1f)
-            .background(CircleShape, backgroundColourProvider)
+            .background(CircleShape, getBackgroundColour)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
@@ -49,7 +49,7 @@ fun RepeatButton(backgroundColourProvider: () -> Color, modifier: Modifier = Mod
             )
             .crossOut(
                 crossed_out = player.status.m_repeat_mode == MediaPlayerRepeatMode.NONE,
-                colourProvider = { backgroundColourProvider().getContrasted() },
+                getColour = { getBackgroundColour().getContrasted() },
             ) {
                 return@crossOut IntSize(
                     (getInnerSquareSizeOfCircle(it.width * 0.5f, 50) * 1.25f).roundToInt(),
@@ -65,7 +65,7 @@ fun RepeatButton(backgroundColourProvider: () -> Color, modifier: Modifier = Mod
             },
             null,
             Modifier.size(20.dp),
-            tint = backgroundColourProvider().getContrasted()
+            tint = getBackgroundColour().getContrasted()
         )
     }
 }

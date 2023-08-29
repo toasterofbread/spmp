@@ -16,7 +16,7 @@ class YTMSetSubscribedToArtistEndpoint(override val auth: YoutubeMusicAuthInfo):
                 ?: artist.id
 
         val request: Request = Request.Builder()
-            .url("https://music.youtube.com/youtubei/v1/subscription/${if (subscribed) "subscribe" else "unsubscribe"}")
+            .endpointUrl("/youtubei/v1/subscription/${if (subscribed) "subscribe" else "unsubscribe"}")
             .addAuthApiHeaders()
             .postWithBody(
                 mapOf("channelIds" to listOf(subscribe_channel_id))

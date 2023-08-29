@@ -22,7 +22,7 @@ private data class PlayerLikeResponse(
 class YTMSongLikedEndpoint(override val auth: YoutubeMusicAuthInfo): SongLikedEndpoint() {
     override suspend fun getSongLiked(song: Song): Result<SongLikedStatus> = withContext(Dispatchers.IO) {
         val request: Request = Request.Builder()
-            .url("https://music.youtube.com/youtubei/v1/next")
+            .endpointUrl("/youtubei/v1/next")
             .addAuthApiHeaders()
             .postWithBody(mapOf("videoId" to song.id))
             .build()

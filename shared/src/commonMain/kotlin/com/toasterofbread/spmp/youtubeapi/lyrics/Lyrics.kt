@@ -9,6 +9,7 @@ import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.getStringTODO
 import mediaitem.LyricsById
 import kotlin.reflect.KClass
+import kotlin.reflect.KFunction1
 
 data class LyricsReference(val source_index: Int, val id: String)
 
@@ -39,17 +40,16 @@ sealed class LyricsSource(val source_index: Int) {
         LyricsReference(source_index, id)
 
     companion object {
-        private val lyrics_sources: List<KClass<out LyricsSource>> = listOf(
-            PetitLyricsSource::class,
-            KugouLyricsSource::class,
-            YoutubeMusicLyricsSource::class
+        private val lyrics_sources: List<(Int) -> LyricsSource> = listOf(
+            { KugouLyricsSource(it) },
+            { PetitLyricsSource(it) },
+            { YoutubeMusicLyricsSource(it) }
         )
         val SOURCE_AMOUNT: Int get() = lyrics_sources.size
 
-        @Suppress("NO_REFLECTION_IN_CLASS_PATH")
         fun fromIdx(source_idx: Int): LyricsSource {
-            val cls = lyrics_sources[source_idx]
-            return cls.constructors.first().call(source_idx)
+            val creator = lyrics_sources[source_idx]
+            return creator.invoke(source_idx)
         }
 
         inline fun iterateByPriority(

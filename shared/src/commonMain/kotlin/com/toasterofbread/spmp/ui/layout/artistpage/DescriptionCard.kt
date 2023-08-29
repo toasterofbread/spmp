@@ -25,7 +25,7 @@ import com.toasterofbread.utils.setAlpha
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DescriptionCard(description_text: String, backgroundColourProvider: () -> Color, accentColourProvider: () -> Color?, toggleInfo: () -> Unit) {
+fun DescriptionCard(description_text: String, getBackgroundColour: () -> Color, getAccentColour: () -> Color?, toggleInfo: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     var can_expand by remember { mutableStateOf(false) }
     val small_text_height = 200.dp
@@ -50,9 +50,9 @@ fun DescriptionCard(description_text: String, backgroundColourProvider: () -> Co
                         Icon(Icons.Outlined.Info, null)
                     },
                     colors = AssistChipDefaults.assistChipColors(
-                        containerColor = backgroundColourProvider(),
+                        containerColor = getBackgroundColour(),
                         labelColor = Theme.on_background,
-                        leadingIconContentColor = accentColourProvider() ?: Color.Unspecified
+                        leadingIconContentColor = getAccentColour() ?: Color.Unspecified
                     )
                 )
 

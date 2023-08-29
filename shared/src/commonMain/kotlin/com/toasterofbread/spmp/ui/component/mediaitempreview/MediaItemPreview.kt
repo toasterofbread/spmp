@@ -84,7 +84,7 @@ fun MediaItemPreviewSquare(
             item.Thumbnail(
                 MediaItemThumbnailProvider.Quality.LOW,
                 Modifier.longPressMenuIcon(long_press_menu_data, enable_long_press_menu).aspectRatio(1f),
-                contentColourProvider = contentColour
+                getContentColour = contentColour
             )
 
             multiselect_context?.also { ctx ->
@@ -140,7 +140,7 @@ fun MediaItemPreviewLong(
                 Modifier
                     .longPressMenuIcon(long_press_menu_data, enable_long_press_menu)
                     .size(MEDIA_ITEM_PREVIEW_LONG_HEIGHT.dp),
-                contentColourProvider = contentColour
+                getContentColour = contentColour
             )
 
             multiselect_context?.also { ctx ->

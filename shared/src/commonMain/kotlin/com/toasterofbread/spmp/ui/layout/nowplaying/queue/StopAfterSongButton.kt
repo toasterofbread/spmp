@@ -27,7 +27,7 @@ import com.toasterofbread.utils.modifier.background
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun StopAfterSongButton(backgroundColourProvider: () -> Color, modifier: Modifier = Modifier) {
+fun StopAfterSongButton(getBackgroundColour: () -> Color, modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
     val rotation by animateFloatAsState(
         if (player.player?.stop_after_current_song == true) 180f else 0f
@@ -38,7 +38,7 @@ fun StopAfterSongButton(backgroundColourProvider: () -> Color, modifier: Modifie
             modifier = modifier
                 .minimumTouchTargetSize()
                 .aspectRatio(1f)
-                .background(CircleShape, backgroundColourProvider)
+                .background(CircleShape, getBackgroundColour)
                 .rotate(rotation)
                 .combinedClickable(
                     interactionSource = remember { MutableInteractionSource() },
@@ -51,7 +51,7 @@ fun StopAfterSongButton(backgroundColourProvider: () -> Color, modifier: Modifie
             Icon(
                 if (stopping) Icons.Filled.HourglassBottom else Icons.Filled.HourglassEmpty,
                 null,
-                tint = backgroundColourProvider().getContrasted()
+                tint = getBackgroundColour().getContrasted()
             )
         }
     }

@@ -72,7 +72,7 @@ fun ErrorInfoDisplay(
     error: Throwable,
     modifier: Modifier = Modifier,
     message: String? = null,
-    expanded_modifier: Modifier = Modifier,
+    expanded_modifier: Modifier = Modifier.height(500.dp),
     disable_parent_scroll: Boolean = true,
     extraButtonContent: (@Composable () -> Unit)? = null,
     onExtraButtonPressed: (() -> Unit)? = null,

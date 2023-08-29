@@ -19,7 +19,7 @@ import com.toasterofbread.utils.toFloat
 
 fun Modifier.crossOut(
     crossed_out: Boolean,
-    colourProvider: () -> Color,
+    getColour: () -> Color,
     width: Dp = 2.dp,
     getSize: ((IntSize) -> IntSize)? = null,
 ): Modifier = composed {
@@ -45,7 +45,7 @@ fun Modifier.crossOut(
             )
 
 			drawLine(
-				colourProvider(),
+				getColour(),
 				offset,
                 Offset(
                     size.width * line_visibility.value + offset.x,

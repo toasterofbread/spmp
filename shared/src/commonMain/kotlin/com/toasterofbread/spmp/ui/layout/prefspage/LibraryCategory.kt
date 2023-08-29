@@ -36,22 +36,47 @@ internal fun getLibraryCategory(): List<SettingsItem> {
             },
             { setValue, showDialog ->
                 SpMp.context.promptForUserDirectory(true) { path ->
-                    val old_location = MediaItemLibrary.getStorageLocation(SpMp.context)
-                    setValue(path ?: "")
-                    val new_location = MediaItemLibrary.getStorageLocation(SpMp.context)
+                    val old_location = MediaItemLibrary.getStorageLocation(SpMp.context, Settings.KEY_LIBRARY_PATH.get())
+                    val new_location = MediaItemLibrary.getStorageLocation(SpMp.context, path ?: "")
 
                     if (old_location.uri == new_location.uri) {
                         return@promptForUserDirectory
                     }
 
-                    showDialog(
-                        getStringTODO("Transfer existing library"),
-                        getStringTODO("Move the library at ${old_location.path} to ${new_location.path}?")
-                    ) {
-                        old_location.moveDirContentTo(new_location) { error ->
-                            // TODO
+                    fun processDialogSelection(accepted: Boolean, is_retry: Boolean = false) {
+                        if (accepted) {
+                            val result = old_location.moveDirContentTo(new_location)
+                            result.onFailure { error ->
+                                showDialog(
+                                    SettingsFileItem.Dialog(
+                                        getStringTODO("Transfer failed"),
+                                        error.toString(),
+                                        getString("action_confirm"),
+                                        getString("action_cancel")
+                                    ) { accepted ->
+                                        processDialogSelection(accepted, true)
+                                    }
+                                )
+                                return@onFailure
+                            }
                         }
+                        else if (is_retry) {
+                            return
+                        }
+
+                        setValue(path ?: "")
                     }
+
+                    showDialog(
+                        SettingsFileItem.Dialog(
+                            getStringTODO("Transfer existing library"),
+                            getStringTODO("Move the library at ${old_location.path} to ${new_location.path}?"),
+                            getString("action_confirm_action"),
+                            getString("action_deny_action")
+                        ) { accepted ->
+                            processDialogSelection(accepted)
+                        }
+                    )
                 }
             }
         ),

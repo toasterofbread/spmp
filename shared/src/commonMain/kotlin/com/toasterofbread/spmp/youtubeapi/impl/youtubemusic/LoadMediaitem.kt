@@ -23,6 +23,7 @@ import com.toasterofbread.spmp.youtubeapi.radio.YoutubeiNextResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Response
+import java.io.Closeable
 import java.io.InputStream
 
 class InvalidRadioException: Throwable()

@@ -55,9 +55,17 @@ class SettingsFileItem(
     val getPathLabel: (String) -> String,
     val onSelectRequested: (
         setValue: (String) -> Unit,
-        showDialog: (title: String, body: String?, onAccept: suspend () -> Unit) -> Unit,
+        showDialog: (Dialog) -> Unit,
     ) -> Unit,
 ): SettingsItem() {
+    data class Dialog(
+        val title: String,
+        val body: String,
+        val accept_button: String,
+        val deny_button: String,
+        val onSelected: suspend (accepted: Boolean) -> Unit
+    )
+
     override fun initialiseValueStates(prefs: PlatformPreferences, default_provider: (String) -> Any) {
         state.init(prefs, default_provider)
     }
@@ -70,7 +78,7 @@ class SettingsFileItem(
         state.reset()
     }
 
-    private var current_dialog: Triple<String, String?, suspend () -> Unit>? by mutableStateOf(null)
+    private var current_dialog: Dialog? by mutableStateOf(null)
     private val coroutine_scope = CoroutineScope(Job())
 
     @Composable
@@ -85,17 +93,17 @@ class SettingsFileItem(
             PlatformAlertDialog(
                 { current_dialog = null },
                 title = {
-                    WidthShrinkText(dialog.first)
+                    WidthShrinkText(dialog.title)
                 },
-                text = dialog.second?.let { body ->
-                    { Text(body) }
+                text = {
+                    Text(dialog.body)
                 },
                 confirmButton = {
                     Button(
                         {
                             coroutine_scope.launch(Dispatchers.Default) {
                                 action_in_progress = true
-                                dialog.third.invoke()
+                                dialog.onSelected(true)
                                 action_in_progress = false
 
                                 if (current_dialog == dialog) {
@@ -109,7 +117,7 @@ class SettingsFileItem(
                             val alpha: Float by animateFloatAsState(action_in_progress.toFloat())
                             SubtleLoadingIndicator(Modifier.alpha(alpha))
                             Text(
-                                getString("action_confirm_action"),
+                                dialog.accept_button,
                                 Modifier.alpha(1f - alpha)
                             )
                         }
@@ -119,13 +127,23 @@ class SettingsFileItem(
                     Crossfade(!action_in_progress) { enabled ->
                         Button(
                             {
-                                if (enabled) {
-                                    current_dialog = null
+                                if (!enabled) {
+                                    return@Button
+                                }
+
+                                coroutine_scope.launch(Dispatchers.Default) {
+                                    action_in_progress = true
+                                    dialog.onSelected(false)
+                                    action_in_progress = false
+
+                                    if (current_dialog == dialog) {
+                                        current_dialog = null
+                                    }
                                 }
                             },
                             enabled = enabled
                         ) {
-                            Text(getString("action_deny_action"))
+                            Text(dialog.deny_button)
                         }
                     }
                 }
@@ -156,8 +174,8 @@ class SettingsFileItem(
                         { path ->
                             state.set(path)
                         },
-                        { title, body, onAccept ->
-                            current_dialog = Triple(title, body, onAccept)
+                        { dialog ->
+                            current_dialog = dialog
                         }
                     )
                 }) {

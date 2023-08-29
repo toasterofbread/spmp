@@ -98,7 +98,7 @@ sealed interface Artist: MediaItem {
         "Subscribed",
         { artistQueries.subscribedById(id) },
         { subscribed.fromNullableSQLBoolean() },
-        { artistQueries.updateSubscriberCountById(it.toNullableSQLBoolean(), id) }
+        { artistQueries.updateSubscribedById(it.toNullableSQLBoolean(), id) }
     )
 }
 

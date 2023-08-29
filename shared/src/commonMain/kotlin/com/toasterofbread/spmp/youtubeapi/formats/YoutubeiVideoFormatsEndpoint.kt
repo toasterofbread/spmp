@@ -13,7 +13,7 @@ private const val MAX_RETRIES = 5
 
 class YoutubeiVideoFormatsEndpoint(override val api: YoutubeMusicApi): VideoFormatsEndpoint() {
     override fun getVideoFormats(id: String, filter: ((YoutubeVideoFormat) -> Boolean)?): Result<List<YoutubeVideoFormat>> {
-        var result = api.performRequest(buildVideoFormatsRequest(id, false))
+        var result = api.performRequest(buildVideoFormatsRequest(id, false, api))
         var formats: YoutubeFormatsResponse? = null
 
         if (result.isSuccess) {
@@ -23,7 +23,7 @@ class YoutubeiVideoFormatsEndpoint(override val api: YoutubeMusicApi): VideoForm
         }
 
         if (formats?.streamingData == null) {
-            result = api.performRequest(buildVideoFormatsRequest(id, true))
+            result = api.performRequest(buildVideoFormatsRequest(id, true, api))
             if (result.isFailure) {
                 return result.cast()
             }
@@ -49,7 +49,7 @@ class YoutubeiVideoFormatsEndpoint(override val api: YoutubeMusicApi): VideoForm
 
             if (format.url == null) {
                 if (decrypter == null) {
-                    decrypter = SignatureCipherDecrypter.fromNothing("https://music.youtube.com/watch?v=$id").getOrThrowHere()
+                    decrypter = SignatureCipherDecrypter.fromNothing("${api.api_url}/watch?v=$id").getOrThrowHere()
                 }
             }
 
@@ -76,7 +76,7 @@ class YoutubeiVideoFormatsEndpoint(override val api: YoutubeMusicApi): VideoForm
         }
 
         for (i in 0 until MAX_RETRIES) {
-            val decrypter = SignatureCipherDecrypter.fromNothing("https://music.youtube.com/watch?v=$video_id", i == 0).getOrThrowHere()
+            val decrypter = SignatureCipherDecrypter.fromNothing("${api.api_url}/watch?v=$video_id", i == 0).getOrThrowHere()
             stream_url = decrypter.decryptSignatureCipher(signatureCipher!!)
             if (api.checkYoutubeVideoStreamUrl(stream_url!!)) {
                 break

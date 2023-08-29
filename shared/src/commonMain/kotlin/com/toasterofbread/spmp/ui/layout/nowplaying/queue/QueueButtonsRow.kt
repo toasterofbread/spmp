@@ -28,7 +28,7 @@ import com.toasterofbread.utils.setAlpha
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun QueueButtonsRow(
-    backgroundColourProvider: () -> Color,
+    getBackgroundColour: () -> Color,
     multiselect_context: MediaItemMultiSelectContext
 ) {
     val padding = 10.dp
@@ -43,8 +43,8 @@ fun QueueButtonsRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        RepeatButton(backgroundColourProvider, Modifier.fillMaxHeight())
-        StopAfterSongButton(backgroundColourProvider, Modifier.fillMaxHeight())
+        RepeatButton(getBackgroundColour, Modifier.fillMaxHeight())
+        StopAfterSongButton(getBackgroundColour, Modifier.fillMaxHeight())
 
         Button(
             onClick = {

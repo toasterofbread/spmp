@@ -8,18 +8,18 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.DrawScope
 
-fun Modifier.background(colourProvider: () -> Color) = drawBehind {
-    drawRect(colourProvider())
+fun Modifier.background(getColour: () -> Color) = drawBehind {
+    drawRect(getColour())
 }
 
-fun Modifier.drawScopeBackground(colourProvider: DrawScope.() -> Color) = drawBehind {
-    drawRect(colourProvider())
+fun Modifier.drawScopeBackground(getColour: DrawScope.() -> Color) = drawBehind {
+    drawRect(getColour())
 }
 
 fun Modifier.brushBackground(brushProvider: () -> Brush) = drawBehind {
     drawRect(brushProvider())
 }
 
-fun Modifier.background(shape: Shape, colourProvider: () -> Color) = drawBehind {
-    drawOutline(shape.createOutline(size, layoutDirection, this), colourProvider())
+fun Modifier.background(shape: Shape, getColour: () -> Color) = drawBehind {
+    drawOutline(shape.createOutline(size, layoutDirection, this), getColour())
 }

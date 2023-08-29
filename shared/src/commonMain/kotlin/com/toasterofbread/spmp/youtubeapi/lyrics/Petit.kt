@@ -79,19 +79,27 @@ internal class PetitLyricsSource(source_idx: Int): LyricsSource(source_idx) {
             )
             .build()
     
-        val result = OkHttpClient().executeResult(request)
-        if (result.isFailure) {
-            return@withContext result.cast()
+        val response =
+            OkHttpClient().executeResult(request)
+                .fold(
+                    { it },
+                    { return@withContext Result.failure(it) }
+                )
+
+        val xml: String
+        try {
+            xml = response.body!!.string()
         }
-    
-        val xml: String = result.getOrThrowHere().body!!.string()
+        catch (e: Throwable) {
+            return@withContext Result.failure(e)
+        }
 
-        val lyrics_data: ByteArray = Base64.getDecoder().decode(xml.substringBetween(DATA_START, DATA_END))
-        val lyrics_data_encoding: String = xml.substringBetween(ENCODING_START, ENCODING_END)!! // TODO use UTF-8 as default
-
-        val string_decoder = Charset.forName(lyrics_data_encoding)
+        val lyrics_data_encoding: String = xml.substringBetween(ENCODING_START, ENCODING_END) ?: "UTF-8"
 
         try {
+            val string_decoder = Charset.forName(lyrics_data_encoding)
+            val lyrics_data: ByteArray = Base64.getDecoder().decode(xml.substringBetween(DATA_START, DATA_END))
+
             val string = string_decoder.decode(ByteBuffer.wrap(lyrics_data)).toString()
             if (string.contains('�')) {
                 throw UnknownFormatConversionException(lyrics_data_encoding)

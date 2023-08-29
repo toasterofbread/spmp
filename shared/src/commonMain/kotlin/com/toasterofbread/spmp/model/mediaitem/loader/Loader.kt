@@ -6,8 +6,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import java.util.concurrent.locks.ReentrantLock
@@ -90,10 +93,75 @@ internal abstract class ItemStateLoader<K, V>: ListenerLoader<K, V>() {
     }
 }
 
-internal abstract class BasicLoader<K, V> {
+internal abstract class Loader<V> {
     protected val lock = ReentrantLock()
 
-    protected val loading_items: MutableMap<K, Deferred<Result<V>>> = mutableMapOf()
+    abstract class LoadJob<V> {
+        private var awaiting_count: Int = 0
+        private val coroutine_scope: CoroutineScope = CoroutineScope(Job())
+        private var job: Deferred<V>? = null
+
+        abstract suspend fun performLoad(): V
+        abstract fun onCancelled(cause: CancellationException)
+
+        fun start() {
+            check(job == null)
+
+            // Prevent job being cancelled by parent cancellation
+            job = coroutine_scope.async(NonCancellable) {
+                performLoad()
+            }
+        }
+
+        suspend fun await(): V {
+            val current_job = job
+            check(current_job != null)
+
+            synchronized(coroutine_scope) {
+                awaiting_count++
+            }
+
+            val result: V
+            try {
+                result = current_job.await()
+            }
+            catch (e: CancellationException) {
+                val cancelled: Boolean
+                synchronized(coroutine_scope) {
+                    cancelled = --awaiting_count == 0
+                    if (cancelled) {
+                        current_job.cancel(e)
+                        job = null
+                    }
+                }
+
+                if (cancelled) {
+                    onCancelled(e)
+                }
+
+                throw e
+            }
+
+            synchronized(coroutine_scope) {
+                awaiting_count--
+            }
+
+            return result
+        }
+    }
+
+    internal suspend inline fun <K> performSafeLoad(
+        instance_key: K,
+        running: MutableMap<K, LoadJob<Result<V>>>,
+        listeners: List<ListenerLoader.Listener<K, in V>>? = null,
+        crossinline performLoad: suspend () -> Result<V>
+    ): Result<V> {
+        return performSafeLoad(instance_key, lock, running, listeners, performLoad)
+    }
+}
+
+internal abstract class BasicLoader<K, V>: Loader<V>() {
+    protected val loading_items: MutableMap<K, LoadJob<Result<V>>> = mutableMapOf()
 
     protected open suspend fun performLoad(key: K, performLoad: suspend () -> Result<V>): Result<V> =
         performSafeLoad(key, lock, loading_items, performLoad = performLoad)
@@ -102,11 +170,11 @@ internal abstract class BasicLoader<K, V> {
 internal suspend inline fun <K, V> performSafeLoad(
     instance_key: K,
     lock: ReentrantLock,
-    running: MutableMap<K, Deferred<Result<V>>>,
+    running: MutableMap<K, Loader.LoadJob<Result<V>>>,
     listeners: List<ListenerLoader.Listener<K, in V>>? = null,
     crossinline performLoad: suspend () -> Result<V>
 ): Result<V> {
-    val loading = lock.withLock {
+    val loading: Loader.LoadJob<Result<V>>? = lock.withLock {
         running[instance_key]
     }
 
@@ -121,8 +189,22 @@ internal suspend inline fun <K, V> performSafeLoad(
     }
 
     val result = coroutineScope {
-        val load_job: Deferred<Result<V>> = async(start = CoroutineStart.LAZY) {
-            performLoad()
+        val load_job = object : Loader.LoadJob<Result<V>>() {
+            override suspend fun performLoad(): Result<V> {
+                return performLoad()
+            }
+
+            override fun onCancelled(cause: CancellationException) {
+                lock.withLock {
+                    running.remove(instance_key)
+                }
+
+                if (listeners != null) {
+                    for (listener in listeners) {
+                        listener.onLoadFailed(instance_key, cause)
+                    }
+                }
+            }
         }
 
         lock.withLock {
@@ -148,7 +230,6 @@ internal suspend inline fun <K, V> performSafeLoad(
         )
     }
 
-    @Suppress("DeferredResultUnused")
     lock.withLock {
         running.remove(instance_key)
     }

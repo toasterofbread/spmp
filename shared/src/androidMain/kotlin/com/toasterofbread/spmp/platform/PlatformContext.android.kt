@@ -17,7 +17,6 @@ import android.os.Build
 import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
-import android.provider.DocumentsContract
 import android.view.View
 import android.view.Window
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
@@ -48,9 +47,6 @@ import com.anggrayudi.storage.callback.FolderCallback
 import com.anggrayudi.storage.file.DocumentFileCompat
 import com.anggrayudi.storage.file.child
 import com.anggrayudi.storage.file.copyFileTo
-import com.anggrayudi.storage.file.findParent
-import com.anggrayudi.storage.file.getAbsolutePath
-import com.anggrayudi.storage.file.getRelativePath
 import com.anggrayudi.storage.file.makeFolder
 import com.anggrayudi.storage.file.moveFolderTo
 import com.anggrayudi.storage.media.MediaFile
@@ -66,7 +62,6 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
-import java.net.URI
 
 private const val DEFAULT_NOTIFICATION_CHANNEL_ID = "default_channel"
 private const val ERROR_NOTIFICATION_CHANNEL_ID = "download_error_channel"
@@ -215,23 +210,14 @@ actual class PlatformFile(
             return false
         }
 
-        val filename: String = name
-
-        val mime_type: String?
-        val display_name: String?
-
-        val last_dot: Int? = filename.lastIndexOf('.').takeIf { it != -1 }
-        if (last_dot != null) {
-            mime_type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(filename.substring(last_dot))
-            display_name = filename.substring(0, last_dot)
-        }
-        else {
-            mime_type = null
-            display_name = filename
-        }
-
         try {
-            val new_file = parent_file!!.createFile(mime_type ?: "application/octet-stream", display_name) ?: return false
+            val filename: String = name
+            val new_file: DocumentFile =
+                parent_file!!.createFile("application/octet-stream", filename) ?: return false
+
+            if (new_file.name != name) {
+                new_file.renameTo(filename)
+            }
 
             document_uri = new_file.uri
             file = new_file
@@ -290,12 +276,13 @@ actual class PlatformFile(
 //        DocumentsContract.deleteDocument(context.contentResolver, document_uri)
 //    }
 
-    actual fun moveDirContentTo(destination: PlatformFile, callback: (Throwable?) -> Unit) {
+    actual fun moveDirContentTo(destination: PlatformFile): Result<PlatformFile> {
         if (!is_directory) {
-            return
+            return Result.failure(IllegalStateException("Not a directory"))
         }
 
         val files: Array<DocumentFile> = file!!.listFiles()
+        var error: Throwable? = null
 
         for (item in files) {
             if (item.isFile) {
@@ -303,7 +290,11 @@ actual class PlatformFile(
                     context,
                     MediaFile(context, destination.file!!.child(context, item.name!!)!!.uri),
                     object : FileCallback() {
-                        // TODO
+                        override fun onFailed(errorCode: ErrorCode) {
+                            if (error == null) {
+                                error = RuntimeException(errorCode.toString())
+                            }
+                        }
                     }
                 )
             }
@@ -313,14 +304,24 @@ actual class PlatformFile(
                     DocumentFileCompat.fromUri(context, destination.file!!.uri)!!,
                     false,
                     callback = object : FolderCallback() {
-                        // TODO
+                        override fun onFailed(errorCode: ErrorCode) {
+                            if (error == null) {
+                                error = RuntimeException(errorCode.toString())
+                            }
+                        }
                     }
                 )
             }
             else {
                 throw IllegalStateException(item.uri.clean_path)
             }
+
+            if (error != null) {
+                return Result.failure(error!!)
+            }
         }
+
+        return Result.success(destination)
     }
 
     override fun toString(): String =

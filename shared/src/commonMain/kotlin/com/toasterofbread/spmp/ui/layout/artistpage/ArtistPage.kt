@@ -115,7 +115,6 @@ fun ArtistPage(
         }
     }
 
-
     // TODO display previous_item
 
     val screen_width = player.screen_size.width
@@ -320,7 +319,7 @@ fun ArtistPage(
                     if (load_error != null) {
                         item {
                             load_error?.also { error ->
-                                ErrorInfoDisplay(error, background_modifier.fillMaxSize())
+                                ErrorInfoDisplay(error, background_modifier)
                             }
                         }
                     }
@@ -413,7 +412,7 @@ fun ArtistPage(
 
                                 val artist_description: String? by artist.Description.observe(db)
                                 artist_description?.also { description ->
-                                    if (description?.isNotBlank() == true) {
+                                    if (description.isNotBlank()) {
                                         DescriptionCard(description, { Theme.background }, { accent_colour }) { show_info = !show_info }
                                     }
                                 }

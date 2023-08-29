@@ -16,7 +16,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -99,6 +101,7 @@ fun TopBar(modifier: Modifier = Modifier) {
                 Box(Modifier.width(40.dp * buttons_alpha)) {
                     val auth_state = player.context.ytapi.user_auth_state
                     if (auth_state != null) {
+
                         LikeDislikeButton(
                             song,
                             auth_state,

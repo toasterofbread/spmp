@@ -30,7 +30,7 @@ import com.toasterofbread.utils.setAlpha
 
 @Composable
 fun CurrentRadioIndicator(
-    accentColourProvider: () -> Color,
+    getAccentColour: () -> Color,
     multiselect_context: MediaItemMultiSelectContext
 ) {
     val player = LocalPlayerState.current
@@ -69,7 +69,7 @@ fun CurrentRadioIndicator(
                             .drawBehind {
                                 drawCircle(content_colour, size.width / 4)
                             },
-                        tint = accentColourProvider()
+                        tint = getAccentColour()
                     )
                 }
             }
@@ -88,7 +88,7 @@ fun CurrentRadioIndicator(
                             Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = horizontal_padding)
-                                .background(RoundedCornerShape(45), accentColourProvider)
+                                .background(RoundedCornerShape(45), getAccentColour)
                                 .padding(5.dp)
                         ) {
                             MediaItemPreviewLong(state)
@@ -102,7 +102,7 @@ fun CurrentRadioIndicator(
                     is List<*> -> 
                         FiltersRow(
                             state as List<List<RadioBuilderModifier>>,
-                            accentColourProvider,
+                            getAccentColour,
                             Modifier.horizontalScroll(filters_scroll_state).padding(bottom = 5.dp)
                         )
                 }
@@ -115,7 +115,7 @@ fun CurrentRadioIndicator(
 @Composable
 private fun FiltersRow(
     filters: List<List<RadioBuilderModifier>>,
-    accentColourProvider: () -> Color,
+    getAccentColour: () -> Color,
     modifier: Modifier = Modifier,
 ) {
     val player = LocalPlayerState.current
@@ -143,8 +143,8 @@ private fun FiltersRow(
                 },
                 colors = FilterChipDefaults.filterChipColors(
                     labelColor = LocalContentColor.current,
-                    selectedContainerColor = accentColourProvider(),
-                    selectedLabelColor = accentColourProvider().getContrasted()
+                    selectedContainerColor = getAccentColour(),
+                    selectedLabelColor = getAccentColour().getContrasted()
                 ),
                 border = FilterChipDefaults.filterChipBorder(
                     borderColor = LocalContentColor.current.setAlpha(0.25f),

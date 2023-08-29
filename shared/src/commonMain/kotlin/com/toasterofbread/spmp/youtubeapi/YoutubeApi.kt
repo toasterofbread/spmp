@@ -44,8 +44,8 @@ import okhttp3.Request
 import okhttp3.Response
 import java.io.InputStream
 
-class EndpointNotImplementedException(endpoint: YoutubeApi.Endpoint):
-    RuntimeException("YoutubeApi endpoint is not implemented: ${endpoint.getIdentifier()}")
+class EndpointNotImplementedException(endpoint: YoutubeApi.Endpoint?):
+    RuntimeException("YoutubeApi endpoint is not implemented: ${endpoint?.getIdentifier()}")
 
 fun Response.getStream(api: YoutubeApi?): InputStream {
     if (api != null) {
@@ -112,7 +112,7 @@ interface YoutubeApi {
 
         fun getDefaultUrl(): String =
             when(this) {
-                YOUTUBE_MUSIC -> "https://music.youtube.com/"
+                YOUTUBE_MUSIC -> "https://music.youtube.com"
                 UNIMPLEMENTED_FOR_TESTING -> ""
             }
 

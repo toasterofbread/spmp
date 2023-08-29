@@ -101,7 +101,7 @@ expect class PlatformFile {
     fun renameTo(new_name: String): PlatformFile
 //    fun copyTo(destination: PlatformFile)
 //    fun delete()
-    fun moveDirContentTo(destination: PlatformFile, callback: (Throwable?) -> Unit)
+    fun moveDirContentTo(destination: PlatformFile): Result<PlatformFile>
 
     companion object {
         fun fromFile(file: File, context: PlatformContext): PlatformFile

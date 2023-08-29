@@ -124,7 +124,7 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
         }
     }
 
-    val backgroundColourProvider = { player.getNPBackground() }
+    val getBackgroundColour = { player.getNPBackground() }
     val queue_background_colour = player.getNPAltOnBackground()
 
     val shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp)
@@ -177,12 +177,12 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
 
             Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
                 QueueButtonsRow(
-                    backgroundColourProvider,
+                    getBackgroundColour,
                     multiselect_context
                 )
 
                 if (radio_info_position == NowPlayingQueueRadioInfoPosition.TOP_BAR) {
-                    CurrentRadioIndicator(backgroundColourProvider, multiselect_context)
+                    CurrentRadioIndicator(getBackgroundColour, multiselect_context)
                 }
 
                 val wave_border_mode: NowPlayingQueueWaveBorderMode by Settings.KEY_NP_QUEUE_WAVE_BORDER_MODE.rememberMutableEnumState()
@@ -213,7 +213,7 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
                     ) {
                         if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) {
                             item {
-                                CurrentRadioIndicator(backgroundColourProvider, multiselect_context)
+                                CurrentRadioIndicator(getBackgroundColour, multiselect_context)
                             }
                         }
 

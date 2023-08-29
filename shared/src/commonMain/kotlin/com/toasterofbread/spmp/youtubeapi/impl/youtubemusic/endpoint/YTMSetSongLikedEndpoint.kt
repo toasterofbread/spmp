@@ -12,7 +12,7 @@ import okhttp3.Request
 class YTMSetSongLikedEndpoint(override val auth: YoutubeMusicAuthInfo): SetSongLikedEndpoint() {
     override suspend fun setSongLiked(song: Song, liked: SongLikedStatus): Result<Unit> = withContext(Dispatchers.IO) {
         val request: Request = Request.Builder()
-            .url("https://music.youtube.com/youtubei/v1/" + when (liked) {
+            .endpointUrl("/youtubei/v1/" + when (liked) {
                 SongLikedStatus.NEUTRAL -> "like/removelike"
                 SongLikedStatus.LIKED -> "like/like"
                 SongLikedStatus.DISLIKED -> "like/dislike"

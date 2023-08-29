@@ -60,8 +60,12 @@ class RelatedGroup(val title: String, val items: List<MediaItem>?, val descripti
 
 class YoutubeMusicApi(
     override val context: PlatformContext,
-    api_url: String = YoutubeApi.Type.YOUTUBE_MUSIC.getDefaultUrl(),
+    val api_url: String = YoutubeApi.Type.YOUTUBE_MUSIC.getDefaultUrl(),
 ): YoutubeApi {
+    init {
+        check(!api_url.endsWith('/'))
+    }
+
     override val db: Database get() = context.database
 
     private var init_job: Job? = null
@@ -103,7 +107,7 @@ class YoutubeMusicApi(
 
                     headers_builder["accept-encoding"] = "gzip, deflate"
                     headers_builder["content-encoding"] = "gzip"
-                    headers_builder["origin"] = "https://music.youtube.com"
+                    headers_builder["origin"] = api_url
                     headers_builder["user-agent"] = getUserAgent()
 
                     youtubei_headers = headers_builder.build()
@@ -220,7 +224,7 @@ class YoutubeMusicApi(
 
     override fun Request.Builder.endpointUrl(endpoint: String): Request.Builder {
         val joiner = if (endpoint.contains('?')) '&' else '?'
-        return url("https://music.youtube.com$endpoint${joiner}prettyPrint=false")
+        return url("$api_url$endpoint${joiner}prettyPrint=false")
     }
 
     override fun Request.Builder.postWithBody(body: Map<String, Any?>?, context: PostBodyContext): Request.Builder {

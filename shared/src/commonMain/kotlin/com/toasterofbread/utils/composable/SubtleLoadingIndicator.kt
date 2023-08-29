@@ -29,7 +29,12 @@ import com.toasterofbread.utils.setAlpha
 import kotlin.random.Random
 
 @Composable
-fun SubtleLoadingIndicator(modifier: Modifier = Modifier, message: String? = null, size: Dp = 20.dp, getColour: (() -> Color)? = null) {
+fun SubtleLoadingIndicator(
+    modifier: Modifier = Modifier,
+    message: String? = null,
+    size: Dp = 20.dp,
+    getColour: (() -> Color)? = null,
+) {
 	val random_offset = remember { Random.nextFloat() }
 	val inf_transition = rememberInfiniteTransition()
 	val anim by inf_transition.animateFloat(

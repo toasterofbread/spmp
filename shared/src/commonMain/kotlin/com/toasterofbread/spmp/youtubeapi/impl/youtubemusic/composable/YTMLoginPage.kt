@@ -56,7 +56,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.net.URI
 
-private const val MUSIC_URL = "https://music.youtube.com/"
 private const val MUSIC_LOGIN_URL = "https://accounts.google.com/v3/signin/identifier?dsh=S1527412391%3A1678373417598386&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den-GB%26next%3Dhttps%253A%252F%252Fmusic.youtube.com%252F%253Fcbrd%253D1%26feature%3D__FEATURE__&hl=en-GB&ifkv=AWnogHfK4OXI8X1zVlVjzzjybvICXS4ojnbvzpE4Gn_Pfddw7fs3ERdfk-q3tRimJuoXjfofz6wuzg&ltmpl=music&passive=true&service=youtube&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin"
 
 class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
@@ -146,10 +145,10 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
                 val lock = remember { Object() }
 
                 WebViewLogin(
-                    MUSIC_URL,
+                    api.api_url,
                     Modifier.fillMaxSize(),
                     loading_message = getString("youtube_login_load_message"),
-                    shouldShowPage = { !it.startsWith(MUSIC_URL) },
+                    shouldShowPage = { !it.startsWith(api.api_url) },
                     onClosed = { onFinished(null) }
                 ) { request, openUrl, getCookie ->
                     synchronized(lock) {
@@ -166,7 +165,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
 
                             finished = true
 
-                            val cookie = getCookie(MUSIC_URL)
+                            val cookie = getCookie(api.api_url)
                             val headers = Headers.Builder()
                                 .add("cookie", cookie)
                                 .apply {
@@ -176,11 +175,13 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
                                 }
                                 .build()
 
-                            val account_switcher_request = Request.Builder()
-                                .url("https://music.youtube.com/getAccountSwitcherEndpoint")
-                                .headers(headers)
-                                .get()
-                                .build()
+                            val account_switcher_request = with(api) {
+                                Request.Builder()
+                                    .endpointUrl("/getAccountSwitcherEndpoint")
+                                    .headers(headers)
+                                    .get()
+                                    .build()
+                            }
 
                             val switcher_result = OkHttpClient().executeResult(account_switcher_request)
                             val response = switcher_result.fold(
@@ -283,11 +284,13 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
             val sign_in_url: String =
                 account.serviceEndpoint.selectActiveIdentityEndpoint.supportedTokens.first { it.accountSigninToken != null }.accountSigninToken!!.signinUrl
 
-            val sign_in_request = Request.Builder()
-                .url("https://music.youtube.com$sign_in_url")
-                .headers(headers)
-                .get()
-                .build()
+            val sign_in_request = with(api) {
+                Request.Builder()
+                    .endpointUrl(sign_in_url)
+                    .headers(headers)
+                    .get()
+                    .build()
+            }
 
             val result = OkHttpClient().executeResult(sign_in_request)
 
@@ -351,7 +354,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
     private fun completeLogin(headers: Headers): Result<YoutubeMusicAuthInfo> {
         with(api) {
             val account_request = Request.Builder()
-                .url("https://music.youtube.com/youtubei/v1/account/account_menu")
+                .endpointUrl("/youtubei/v1/account/account_menu")
                 .headers(headers)
                 .postWithBody()
                 .build()

@@ -39,9 +39,9 @@ internal data class YoutubeFormatsResponse(
     data class PlayabilityStatus(val status: String)
 }
 
-internal fun YoutubeApi.Endpoint.buildVideoFormatsRequest(id: String, alt: Boolean): Request {
+internal fun YoutubeApi.Endpoint.buildVideoFormatsRequest(id: String, alt: Boolean, api: YoutubeMusicApi): Request {
     return Request.Builder()
-        .url("https://music.youtube.com/youtubei/v1/player?key=${getString("yt_i_api_key")}")
+        .url("${api.api_url}/youtubei/v1/player?key=${getString("yt_i_api_key")}")
         .postWithBody(
             mapOf(
                 "videoId" to id,

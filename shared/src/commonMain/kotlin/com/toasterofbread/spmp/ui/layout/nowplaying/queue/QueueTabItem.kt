@@ -77,7 +77,7 @@ class QueueTabItem(val song: Song, val key: Int) {
     fun QueueElement(
         list_state: ReorderableLazyListState,
         index: Int,
-        backgroundColourProvider: () -> Color,
+        getBackgroundColour: () -> Color,
         multiselect_context: MediaItemMultiSelectContext,
         requestRemove: () -> Unit
     ) {
@@ -89,7 +89,7 @@ class QueueTabItem(val song: Song, val key: Int) {
         Box(
             Modifier
                 .offset { IntOffset(swipe_state.offset.value.roundToInt(), 0) }
-                .background(RoundedCornerShape(45), backgroundColourProvider)
+                .background(RoundedCornerShape(45), getBackgroundColour)
         ) {
             val padding = 7.dp
             Row(
@@ -108,7 +108,7 @@ class QueueTabItem(val song: Song, val key: Int) {
                             Orientation.Horizontal,
                             thresholds = { _, _ -> FractionalThreshold(0.2f) }
                         ),
-                    contentColour = { backgroundColourProvider().getContrasted() },
+                    contentColour = { getBackgroundColour().getContrasted() },
                     show_type = false,
                     multiselect_context = multiselect_context,
                     multiselect_key = index,
@@ -127,7 +127,7 @@ class QueueTabItem(val song: Song, val key: Int) {
                     Modifier
                         .detectReorder(list_state)
                         .requiredSize(25.dp),
-                    tint = backgroundColourProvider().getContrasted()
+                    tint = getBackgroundColour().getContrasted()
                 )
             }
         }

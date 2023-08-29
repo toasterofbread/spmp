@@ -6,25 +6,28 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
+import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.PlaylistData
+import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
-import kotlinx.coroutines.Deferred
 import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
     private val song_lock = ReentrantLock()
     private val artist_lock = ReentrantLock()
     private val playlist_lock = ReentrantLock()
 
-    private val loading_songs: MutableMap<String, Deferred<Result<SongData>>> = mutableMapOf()
-    private val loading_artists: MutableMap<String, Deferred<Result<ArtistData>>> = mutableMapOf()
-    private val loading_playlists: MutableMap<String, Deferred<Result<PlaylistData>>> = mutableMapOf()
+    private val loading_songs: MutableMap<String, LoadJob<Result<SongData>>> = mutableMapOf()
+    private val loading_artists: MutableMap<String, LoadJob<Result<ArtistData>>> = mutableMapOf()
+    private val loading_playlists: MutableMap<String, LoadJob<Result<PlaylistData>>> = mutableMapOf()
 
     suspend fun <ItemType: MediaItemData> loadUnknown(item: ItemType, context: PlatformContext): Result<ItemType> =
         when (item) {
@@ -44,16 +47,34 @@ internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
         return loadItem(playlist, loading_playlists, playlist_lock, context, continuation)
     }
 
+    fun isUnknownLoading(item: MediaItem): Boolean =
+        when (item) {
+            is Song -> isSongLoading(item)
+            is Artist -> isArtistLoading(item)
+            is Playlist -> isPlaylstLoading(item)
+            else -> throw NotImplementedError(item::class.toString())
+        }
+
+    fun isSongLoading(song: Song): Boolean = song_lock.withLock {
+        loading_songs.contains(song.id)
+    }
+    fun isArtistLoading(artist: Artist): Boolean = artist_lock.withLock {
+        loading_artists.contains(artist.id)
+    }
+    fun isPlaylstLoading(playlist: Playlist): Boolean = playlist_lock.withLock {
+        loading_playlists.contains(playlist.id)
+    }
+
     override val listeners: MutableList<Listener<String, MediaItemData>> = mutableListOf()
 
     private suspend fun <ItemType: MediaItemData> loadItem(
         item: ItemType,
-        loading_items: MutableMap<String, Deferred<Result<ItemType>>>,
+        loading_items: MutableMap<String, LoadJob<Result<ItemType>>>,
         lock: ReentrantLock,
         context: PlatformContext,
         continuation: MediaItemLayout.Continuation? = null
     ): Result<ItemType> {
-        return performSafeLoad(
+        val result = performSafeLoad(
             item.id,
             lock,
             loading_items,
@@ -92,13 +113,16 @@ internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
                 { Result.failure(it) }
             )
         }
+        return result
     }
 
 }
 
 @Composable
 fun MediaItem.loadDataOnChange(context: PlatformContext, load: Boolean = true, onLoadFailed: ((Throwable?) -> Unit)? = null): State<Boolean> {
-    val loading_state = remember(this) { mutableStateOf(false) }
+    val loading_state = remember(this) {
+        mutableStateOf(MediaItemLoader.isUnknownLoading(this))
+    }
 
     DisposableEffect(this) {
         val listener = object : ListenerLoader.Listener<String, MediaItemData> {

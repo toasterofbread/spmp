@@ -30,7 +30,7 @@ fun MediaItem.Thumbnail(
     target_quality: MediaItemThumbnailProvider.Quality,
     modifier: Modifier = Modifier,
     load_failed_icon: ImageVector? = Icons.Default.CloudOff,
-    contentColourProvider: (() -> Color)? = null,
+    getContentColour: (() -> Color)? = null,
     onLoaded: ((ImageBitmap) -> Unit)? = null
 ) {
     var loading by remember { mutableStateOf(true) }
@@ -90,7 +90,7 @@ fun MediaItem.Thumbnail(
             )
         }
         else if (state == true) {
-            SubtleLoadingIndicator(modifier.fillMaxSize(), getColour = contentColourProvider)
+            SubtleLoadingIndicator(modifier.fillMaxSize(), getColour = getContentColour)
         }
         else if (load_failed_icon != null) {
             Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

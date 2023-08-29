@@ -38,7 +38,7 @@ class YoutubePlayerVideoFormatsEndpoint(override val api: YoutubeMusicApi): Vide
 
             var streaming_data: YoutubeFormatsResponse = api.klaxon.parse(html.substring(start, end).reader())!!
             if (!streaming_data.is_ok) {
-                result = api.performRequest(buildVideoFormatsRequest(id, true))
+                result = api.performRequest(buildVideoFormatsRequest(id, true, api))
 
                 if (!result.isSuccess) {
                     return result.cast()

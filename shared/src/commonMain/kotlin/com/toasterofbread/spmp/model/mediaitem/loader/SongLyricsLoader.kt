@@ -14,13 +14,11 @@ import kotlinx.coroutines.Deferred
 import java.lang.ref.WeakReference
 import java.util.concurrent.locks.ReentrantLock
 
-internal object SongLyricsLoader {
-    private val lock = ReentrantLock()
-
+internal object SongLyricsLoader: Loader<SongLyrics>() {
     private val loaded_by_reference: MutableMap<LyricsReference, WeakReference<SongLyrics>> = mutableStateMapOf()
 
-    private val loading_by_id: MutableMap<String, Deferred<Result<SongLyrics>>> = mutableStateMapOf()
-    private val loading_by_reference: MutableMap<LyricsReference, Deferred<Result<SongLyrics>>> = mutableStateMapOf()
+    private val loading_by_id: MutableMap<String, LoadJob<Result<SongLyrics>>> = mutableStateMapOf()
+    private val loading_by_reference: MutableMap<LyricsReference, LoadJob<Result<SongLyrics>>> = mutableStateMapOf()
 
     fun getLoadedByLyrics(reference: LyricsReference?): SongLyrics? {
         return loaded_by_reference[reference]?.get()
@@ -37,7 +35,6 @@ internal object SongLyricsLoader {
 
         return performSafeLoad(
             song.id,
-            lock,
             loading_by_id
         ) {
             val result = LyricsSource.searchSongLyricsByPriority(song, context)

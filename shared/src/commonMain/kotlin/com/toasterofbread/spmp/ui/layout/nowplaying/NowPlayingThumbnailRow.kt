@@ -156,7 +156,7 @@ fun ThumbnailRow(
             Crossfade(current_song, animationSpec = tween(250)) { song ->
                 song?.Thumbnail(
                     MediaItemThumbnailProvider.Quality.HIGH,
-                    contentColourProvider = { player.getNPOnBackground() },
+                    getContentColour = { player.getNPOnBackground() },
                     onLoaded = {
                         current_thumb_image = it
                         onThumbnailLoaded(song, it)

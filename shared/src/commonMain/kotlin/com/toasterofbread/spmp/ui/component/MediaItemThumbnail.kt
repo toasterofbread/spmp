@@ -22,7 +22,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
+import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistDefaultThumbnail
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 
 @Composable
@@ -91,6 +93,9 @@ fun MediaItem.Thumbnail(
         }
         else if (state == true) {
             SubtleLoadingIndicator(modifier.fillMaxSize(), getColour = getContentColour)
+        }
+        else if (this is Playlist && isLocalPlaylist()) {
+            LocalPlaylistDefaultThumbnail(modifier)
         }
         else if (load_failed_icon != null) {
             Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

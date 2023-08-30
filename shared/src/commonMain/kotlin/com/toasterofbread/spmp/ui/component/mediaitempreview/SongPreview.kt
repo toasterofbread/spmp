@@ -59,6 +59,7 @@ import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
 import com.toasterofbread.utils.composable.ShapedIconButton
 import com.toasterofbread.utils.composable.WidthShrinkText
 import kotlinx.coroutines.launch
@@ -139,10 +140,13 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
                     Spacer(Modifier.fillMaxWidth().weight(1f))
 
                     Button(
-                        { coroutine_scope.launch {
-                            val playlist = createLocalPlaylist(player.context)
-                            selected_playlists.add(playlist)
-                        }},
+                        {
+                            coroutine_scope.launch {
+                                val playlist = createLocalPlaylist(player.context).getOrReport("SongLongPressMenuActionsCreateLocalPlaylist")
+                                    ?: return@launch
+                                selected_playlists.add(playlist)
+                            }
+                        },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Theme.accent,
                             contentColor = Theme.on_accent

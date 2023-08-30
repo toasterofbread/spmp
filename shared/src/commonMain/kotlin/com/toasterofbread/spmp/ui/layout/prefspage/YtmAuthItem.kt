@@ -25,8 +25,9 @@ import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
 
 @Composable
 fun rememberYtmAuthItem(ytm_auth: SettingsValueState<Set<String>>, initialise: Boolean = false): SettingsItem {
+    val player = LocalPlayerState.current
     var own_channel: Artist? by remember { mutableStateOf(null) }
-    val login_page = LocalPlayerState.current.context.ytapi.LoginPage
+    val login_page = player.context.ytapi.LoginPage
 
     return remember(login_page) {
         if (!login_page.isImplemented()) {
@@ -52,7 +53,7 @@ fun rememberYtmAuthItem(ytm_auth: SettingsValueState<Set<String>>, initialise: B
                     defaultProvider(Settings.KEY_YTM_AUTH.name) is YoutubeMusicAuthInfo
             },
             enabled_content = { modifier ->
-                val data = YoutubeApi.UserAuthState.unpackSetData(ytm_auth.get())
+                val data = YoutubeApi.UserAuthState.unpackSetData(ytm_auth.get(), player.context)
                 if (data.first != null) {
                     own_channel = data.first
                 }
@@ -84,7 +85,7 @@ fun rememberYtmAuthItem(ytm_auth: SettingsValueState<Set<String>>, initialise: B
             }
         }.apply {
             if (initialise) {
-                initialise(SpMp.context, Settings.prefs, Settings.Companion::provideDefault)
+                initialise(player.context, Settings.prefs, Settings.Companion::provideDefault)
             }
         }
     }

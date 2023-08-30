@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.library
 
 import LocalPlayerState
-import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues

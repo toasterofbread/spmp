@@ -31,7 +31,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
     actual data class DownloadStatus(
         actual val song: Song,
         actual val status: Status,
-        actual val quality: SongAudioQuality,
+        actual val quality: SongAudioQuality?,
         actual val progress: Float,
         actual val id: String,
         val file: PlatformFile?
@@ -114,7 +114,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
                 callback(DownloadStatus(
                     SongRef(data.id),
                     if (data.downloading) DownloadStatus.Status.IDLE else DownloadStatus.Status.FINISHED,
-                    data.quality,
+                    null,
                     if (data.downloading) -1f else 1f,
                     file.name,
                     file
@@ -142,23 +142,13 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
                 DownloadStatus(
                     SongRef(data.id),
                     if (data.downloading) DownloadStatus.Status.IDLE else DownloadStatus.Status.FINISHED,
-                    data.quality,
+                    null,
                     if (data.downloading) -1f else 1f,
                     file.name,
                     file
                 )
             }
         )
-    }
-
-    fun getSongLocalFile(song: Song): PlatformFile? {
-        val files = getDownloadDir(context).listFiles() ?: return null
-        for (file in files) {
-            if (PlayerDownloadService.fileMatchesDownload(file.name, song.id, getSongTargetDownloadQuality()) == true) {
-                return file
-            }
-        }
-        return null
     }
 
     @Synchronized
@@ -250,4 +240,14 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
             return MediaItemLibrary.getLocalSongsDir(context)
         }
     }
+}
+
+actual fun Song.getLocalAudioFile(context: PlatformContext): PlatformFile? {
+    val files = PlayerDownloadManager.getDownloadDir(context).listFiles() ?: return null
+    for (file in files) {
+        if (PlayerDownloadService.fileMatchesDownload(file.name, id) == true) {
+            return file
+        }
+    }
+    return null
 }

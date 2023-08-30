@@ -23,7 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.Playlist
-import com.toasterofbread.spmp.model.mediaitem.playlist.rememberArtistPlaylists
+import com.toasterofbread.spmp.model.mediaitem.playlist.rememberOwnedPlaylists
 import com.toasterofbread.spmp.model.mediaitem.playlist.rememberLocalPlaylists
 import com.toasterofbread.spmp.platform.composable.SwipeRefresh
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
@@ -43,9 +43,9 @@ fun PlaylistSelectMenu(
 
     var loading by remember { mutableStateOf(false) }
 
-    val local_playlists: List<Playlist> = rememberLocalPlaylists(player.context)
+    val local_playlists: List<Playlist> = rememberLocalPlaylists(player.context) ?: emptyList()
     val account_playlists: List<Playlist>? = auth_state?.own_channel?.let { channel ->
-        rememberArtistPlaylists(channel, player.context)
+        rememberOwnedPlaylists(channel, player.context)
     }
 
     fun refreshAccountPlaylists() {

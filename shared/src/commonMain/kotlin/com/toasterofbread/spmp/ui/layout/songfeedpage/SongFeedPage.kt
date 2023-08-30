@@ -154,9 +154,9 @@ class SongFeedPage(state: MainPageState): MainPage(state) {
         }
 
         LaunchedEffect(Unit) {
-            if (layouts == null) {
+            if (layouts.isNullOrEmpty()) {
                 coroutine_scope.launchSingle {
-                    loadFeed(Settings.get(Settings.KEY_FEED_INITIAL_ROWS), allow_cached = true, continue_feed = false)
+                    val r = loadFeed(Settings.get(Settings.KEY_FEED_INITIAL_ROWS), allow_cached = true, continue_feed = false)
                 }
             }
         }
@@ -292,8 +292,7 @@ class SongFeedPage(state: MainPageState): MainPage(state) {
 
     private fun loadFeed(continuation: Boolean) {
         coroutine_scope.launchSingle {
-            val result = loadFeed(-1, false, continuation, selected_filter_chip)
-            println("LOAD FEED RESULT: $result")
+            loadFeed(-1, false, continuation, selected_filter_chip)
         }
     }
 

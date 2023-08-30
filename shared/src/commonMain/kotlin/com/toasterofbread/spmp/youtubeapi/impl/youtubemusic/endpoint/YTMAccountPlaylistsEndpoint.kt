@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 
 import SpMp
 import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.endpoint.AccountPlaylistsEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.CreateAccountPlaylistEndpoint
@@ -14,43 +15,66 @@ import kotlinx.coroutines.withContext
 import okhttp3.Request
 
 class YTMAccountPlaylistsEndpoint(override val auth: YoutubeMusicAuthInfo): AccountPlaylistsEndpoint() {
-    override suspend fun getAccountPlaylists(): Result<List<Playlist>> = withContext(Dispatchers.IO) {
-        val hl = SpMp.data_language
-        val request = Request.Builder()
-            .endpointUrl("/youtubei/v1/browse")
-            .addAuthApiHeaders()
-            .postWithBody(mapOf("browseId" to "FEmusic_liked_playlists"))
-            .build()
+    override suspend fun getAccountPlaylists(): Result<List<PlaylistData>> {
+        val result: Result<List<PlaylistData>> = withContext(Dispatchers.IO) {
+            val hl = SpMp.data_language
+            val request = Request.Builder()
+                .endpointUrl("/youtubei/v1/browse")
+                .addAuthApiHeaders()
+                .postWithBody(mapOf("browseId" to "FEmusic_liked_playlists"))
+                .build()
 
-        val result = api.performRequest(request)
-        val data: YoutubeiBrowseResponse = result.parseJsonResponse {
-            return@withContext Result.failure(it)
-        }
-
-        val playlist_data = data
-            .contents!!
-            .singleColumnBrowseResultsRenderer!!
-            .tabs
-            .first()
-            .tabRenderer
-            .content!!
-            .sectionListRenderer
-            .contents!!
-            .first()
-            .gridRenderer!!
-            .items
-
-        val playlists: List<Playlist> = playlist_data.mapNotNull {
-            // Skip 'New playlist' item
-            if (it.musicTwoRowItemRenderer?.navigationEndpoint?.browseEndpoint == null) {
-                return@mapNotNull null
+            val result = api.performRequest(request)
+            val data: YoutubeiBrowseResponse = result.parseJsonResponse {
+                return@withContext Result.failure(it)
             }
 
-            val item = it.toMediaItemData(hl)?.first
-            return@mapNotNull if (item is Playlist) item else null
+            val playlist_data = data
+                .contents!!
+                .singleColumnBrowseResultsRenderer!!
+                .tabs
+                .first()
+                .tabRenderer
+                .content!!
+                .sectionListRenderer
+                .contents!!
+                .first()
+                .gridRenderer!!
+                .items
+
+            val playlists: List<PlaylistData> = playlist_data.mapNotNull {
+                // Skip 'New playlist' item
+                if (it.musicTwoRowItemRenderer?.navigationEndpoint?.browseEndpoint == null) {
+                    return@mapNotNull null
+                }
+
+                val item = it.toMediaItemData(hl)?.first
+                if (item !is PlaylistData) {
+                    return@mapNotNull null
+                }
+
+                item.owner = auth.own_channel
+
+                return@mapNotNull item
+            }
+
+            return@withContext Result.success(playlists)
         }
 
-        return@withContext Result.success(playlists)
+        result.onSuccess { playlists ->
+            withContext(Dispatchers.IO) {
+                with(api.context.database) {
+                    transaction {
+                        playlistQueries.clearOwners()
+                        for (playlist in playlists) {
+                            playlist.saveToDatabase(this@with)
+                        }
+                    }
+                }
+            }
+        }
+
+        return result
     }
 }
 

@@ -7,6 +7,7 @@ import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedLoadResult
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import com.toasterofbread.spmp.youtubeapi.model.MusicDescriptionShelfRenderer
 import com.toasterofbread.spmp.youtubeapi.model.NavigationEndpoint
@@ -65,12 +66,12 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
                 )
                 .build()
 
+            last_request = request
+
             val result = api.performRequest(request)
             val parsed: YoutubeiBrowseResponse = result.parseJsonResponse {
                 return Result.failure(it)
             }
-
-            last_request = request
 
             return Result.success(parsed)
         }
@@ -105,7 +106,7 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
         catch (error: Throwable) {
             val request = last_request ?: return@withContext Result.failure(error)
             return@withContext Result.failure(
-                com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException.ofYoutubeJsonRequest(
+                DataParseException.ofYoutubeJsonRequest(
                     request,
                     api,
                     cause = error

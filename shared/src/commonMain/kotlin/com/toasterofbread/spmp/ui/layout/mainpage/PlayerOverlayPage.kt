@@ -12,8 +12,6 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.ui.component.PillMenu
-import com.toasterofbread.spmp.ui.layout.library.PlaylistsPage
-import com.toasterofbread.spmp.ui.layout.library.SongsPage
 import com.toasterofbread.spmp.ui.layout.prefspage.PrefsPage
 import com.toasterofbread.spmp.ui.layout.prefspage.PrefsPageCategory
 import com.toasterofbread.spmp.ui.layout.prefspage.getPrefsPageSettingsInterface
@@ -59,8 +57,5 @@ interface PlayerOverlayPage {
                 PrefsPage(bottom_padding, current_category, pill_menu, settings_interface, ytm_auth, Modifier.fillMaxSize(), close)
             }
         }
-
-        val PlaylistsPage = PlaylistsPage()
-        val SongsPage = SongsPage()
     }
 }

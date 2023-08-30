@@ -17,7 +17,11 @@ abstract class PlaylistEditor(val playlist: Playlist, val context: PlatformConte
     private val db: Database get() = context.database
 
     init {
-        lazyAssert { playlist.Loaded.get(db) }
+        lazyAssert(
+            { playlist.toString() }
+        ) {
+            playlist.isLocalPlaylist() || playlist.Loaded.get(db)
+        }
     }
 
     open fun addItem(item: Song, index: Int? = null) {

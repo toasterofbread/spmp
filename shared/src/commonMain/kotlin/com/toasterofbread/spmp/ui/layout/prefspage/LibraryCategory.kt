@@ -19,7 +19,7 @@ internal fun getLibraryCategory(): List<SettingsItem> {
             getString("s_key_library_path"),
             getString("s_sub_library_path"),
             { path ->
-                if (path.isBlank()) MediaItemLibrary.getDefaultStorageLocation(SpMp.context).let { location ->
+                if (path.isBlank()) MediaItemLibrary.getDefaultLibraryDir(SpMp.context).let { location ->
                     location.absolute_path ?: location.path
                 }
                 else {
@@ -36,8 +36,8 @@ internal fun getLibraryCategory(): List<SettingsItem> {
             },
             { setValue, showDialog ->
                 SpMp.context.promptForUserDirectory(true) { path ->
-                    val old_location = MediaItemLibrary.getStorageLocation(SpMp.context, Settings.KEY_LIBRARY_PATH.get())
-                    val new_location = MediaItemLibrary.getStorageLocation(SpMp.context, path ?: "")
+                    val old_location = MediaItemLibrary.getLibraryDir(SpMp.context, Settings.KEY_LIBRARY_PATH.get())
+                    val new_location = MediaItemLibrary.getLibraryDir(SpMp.context, path ?: "")
 
                     if (old_location.uri == new_location.uri) {
                         return@promptForUserDirectory

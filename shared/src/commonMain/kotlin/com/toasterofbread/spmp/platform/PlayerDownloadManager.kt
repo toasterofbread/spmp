@@ -9,12 +9,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
+import com.toasterofbread.spmp.model.mediaitem.song.getSongTargetDownloadQuality
 
 expect class PlayerDownloadManager(context: PlatformContext) {
     class DownloadStatus {
         val song: Song
         val status: Status
-        val quality: SongAudioQuality
+        val quality: SongAudioQuality?
         val progress: Float
         val id: String
         enum class Status { IDLE, PAUSED, DOWNLOADING, CANCELLED, ALREADY_FINISHED, FINISHED }
@@ -76,3 +77,5 @@ fun rememberSongDownloads(): List<PlayerDownloadManager.DownloadStatus> {
 
     return downloads
 }
+
+expect fun Song.getLocalAudioFile(context: PlatformContext): PlatformFile?

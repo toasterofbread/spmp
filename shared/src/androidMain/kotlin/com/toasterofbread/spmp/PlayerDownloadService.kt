@@ -21,6 +21,7 @@ import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongRef
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.model.mediaitem.song.getSongFormatByQuality
+import com.toasterofbread.spmp.model.mediaitem.song.getSongTargetDownloadQuality
 import com.toasterofbread.spmp.platform.PlatformBinder
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformFile
@@ -41,6 +42,8 @@ private const val FILE_DOWNLOADING_SUFFIX = ".part"
 private const val NOTIFICATION_ID = 1
 private const val NOTIFICATION_CHANNEL_ID = "download_channel"
 private const val DOWNLOAD_MAX_RETRY_COUNT = 3
+
+// TODO | Split
 
 class PlayerDownloadService: PlatformServiceImpl() {
     private inner class Download(
@@ -85,7 +88,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
         }
 
         fun matchesFile(file: File): Boolean? {
-            return fileMatchesDownload(file.name, id, quality)
+            return fileMatchesDownload(file.name, id)
         }
 
         fun generatePath(extension: String, in_progress: Boolean): String {
@@ -150,7 +153,6 @@ class PlayerDownloadService: PlatformServiceImpl() {
     
     data class FilenameData(
         val id: String,
-        val quality: SongAudioQuality,
         val extension: String,
         val downloading: Boolean
     )
@@ -158,13 +160,12 @@ class PlayerDownloadService: PlatformServiceImpl() {
     companion object {
         fun getFilenameData(filename: String): FilenameData {
             val downloading = filename.endsWith(FILE_DOWNLOADING_SUFFIX)
-            val split = (if (downloading) filename.dropLast(FILE_DOWNLOADING_SUFFIX.length) else filename).split('.', limit = 3)
-            require(split.size == 3)
+            val split = (if (downloading) filename.dropLast(FILE_DOWNLOADING_SUFFIX.length) else filename).split('.', limit = 2)
+            require(split.size == 2)
 
             return FilenameData(
                 split[0],
-                SongAudioQuality.values()[split[1].toInt()],
-                split[2],
+                split[1],
                 downloading
             )
         }
@@ -175,15 +176,15 @@ class PlayerDownloadService: PlatformServiceImpl() {
 
         // Filename format: id.quality.mediatype(.part)
         // Return values: true = match, false = match (partial file), null = no match
-        fun fileMatchesDownload(filename: String, id: String, quality: SongAudioQuality): Boolean? {
-            if (!filename.startsWith("$id.${quality.ordinal}.")) {
+        fun fileMatchesDownload(filename: String, id: String): Boolean? {
+            if (!filename.startsWith("$id.")) {
                 return null
             }
             return !filename.endsWith(FILE_DOWNLOADING_SUFFIX)
         }
 
         fun getDownloadPath(id: String, quality: SongAudioQuality, extension: String, in_progress: Boolean): String {
-            return "$id.${quality.ordinal}.$extension${ if (in_progress) FILE_DOWNLOADING_SUFFIX else ""}"
+            return "$id.$extension${ if (in_progress) FILE_DOWNLOADING_SUFFIX else ""}"
         }
     }
 

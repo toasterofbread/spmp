@@ -237,10 +237,13 @@ class MediaItemMultiSelectContext(
                     }
 
                     Button(
-                        { coroutine_scope.launch {
-                            val playlist = createLocalPlaylist(player.context)
-                            selected_playlists.add(playlist)
-                        }},
+                        {
+                            coroutine_scope.launch {
+                                val playlist = createLocalPlaylist(player.context).getOrReport("MultiSelectContextCreateLocalPlaylist")
+                                    ?: return@launch
+                                selected_playlists.add(playlist)
+                            }
+                        },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Theme.accent,
                             contentColor = Theme.on_accent

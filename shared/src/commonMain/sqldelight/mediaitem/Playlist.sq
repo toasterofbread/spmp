@@ -6,6 +6,7 @@ CREATE TABLE Playlist (
     total_duration INTEGER,
     year INTEGER,
     artist TEXT,
+    owner TEXT,
     continuation_token TEXT,
     continuation_type INTEGER,
 
@@ -14,12 +15,13 @@ CREATE TABLE Playlist (
     image_width REAL,
 
     FOREIGN KEY (artist) REFERENCES Artist(id),
+    FOREIGN KEY (owner) REFERENCES Artist(id),
 
     FOREIGN KEY (id) REFERENCES MediaItem(id)
 );
 
 byType: SELECT id FROM Playlist WHERE playlist_type = :playlist_type;
-byArtist: SELECT id FROM Playlist WHERE artist = :artist_id;
+byOwner: SELECT id FROM Playlist WHERE owner = :owner_id;
 byPinned: SELECT Playlist.id, playlist_type FROM Playlist, MediaItem WHERE MediaItem.id == Playlist.id AND MediaItem.pinned_to_home == :pinned;
 byHidden: SELECT Playlist.id, playlist_type FROM Playlist, MediaItem WHERE MediaItem.id == Playlist.id AND MediaItem.hidden == :hidden;
 
@@ -28,6 +30,8 @@ insertById {
     INSERT OR IGNORE INTO Playlist(id, playlist_type) VALUES(:id, :type);
 }
 removeById: DELETE FROM Playlist WHERE id == :id;
+
+clearOwners: UPDATE Playlist SET owner = NULL;
 
 getLargestIdByType:
 SELECT MAX(id)
@@ -48,6 +52,9 @@ updateYearById: UPDATE Playlist SET year = :year WHERE id == :id;
 
 artistById: SELECT artist FROM Playlist WHERE id == :id;
 updateArtistById: UPDATE Playlist SET artist = :artist WHERE id == :id;
+
+ownerById: SELECT owner FROM Playlist WHERE id == :id;
+updateOwnerById: UPDATE Playlist SET owner = :owner WHERE id == :id;
 
 continuationById: SELECT continuation_token, continuation_type FROM Playlist WHERE id == :id;
 updateContinuationById: UPDATE Playlist SET continuation_token = :continuation_token, continuation_type = :continuation_type WHERE id == :id;

@@ -27,6 +27,10 @@ interface MediaItemThumbnailProvider {
     }
 
     companion object {
+        fun fromImageUrl(url: String): MediaItemThumbnailProvider {
+            return MediaItemThumbnailProviderImpl(url, null)
+        }
+
         fun fromThumbnails(thumbnails: List<Thumbnail>): MediaItemThumbnailProvider? {
             if (thumbnails.isEmpty()) {
                 return null

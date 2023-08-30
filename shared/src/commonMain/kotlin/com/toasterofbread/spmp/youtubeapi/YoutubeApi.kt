@@ -280,7 +280,7 @@ interface YoutubeApi {
                 return set
             }
 
-            fun unpackSetData(set: Set<String>): Pair<Artist?, Headers> {
+            fun unpackSetData(set: Set<String>, context: PlatformContext): Pair<Artist?, Headers> {
                 var artist: Artist? = null
                 val headers_builder = Headers.Builder()
 
@@ -289,7 +289,9 @@ interface YoutubeApi {
                     when (ValueType.values()[item.take(1).toInt()]) {
                         ValueType.CHANNEL -> {
                             if (artist == null) {
-                                artist = ArtistRef(value)
+                                artist = ArtistRef(value).apply {
+                                    createDbEntry(context.database)
+                                }
                             }
                         }
                         ValueType.HEADER -> {

@@ -37,7 +37,7 @@ class LocalPlaylistRef(override val id: String): PlaylistRef {
 
     override fun getEmptyData(): PlaylistData = PlaylistData(id, playlist_type = PlaylistType.LOCAL)
     override fun createDbEntry(db: Database) {
-        db.playlistQueries.insertById(id, PlaylistType.LOCAL.ordinal.toLong())
+        throw IllegalStateException(id)
     }
 
     override val property_rememberer: PropertyRememberer = PropertyRememberer()
@@ -67,6 +67,7 @@ sealed interface Playlist: MediaItem.WithArtist {
             playlist_type = TypeOfPlaylist.get(db)
             total_duration = TotalDuration.get(db)
             year = Year.get(db)
+            owner = Owner.get(db)
             continuation = Continuation.get(db)
         }
     }
@@ -118,6 +119,10 @@ sealed interface Playlist: MediaItem.WithArtist {
         get() = property_rememberer.rememberSingleProperty(
         "Artist", { playlistQueries.artistById(id) }, { artist?.let { ArtistRef(it) } }, { playlistQueries.updateArtistById(it?.id, id) }
     )
+    val Owner: Property<Artist?>
+        get() = property_rememberer.rememberSingleProperty(
+            "Owner", { playlistQueries.ownerById(id) }, { owner?.let { ArtistRef(it) } }, { playlistQueries.updateOwnerById(it?.id, id) }
+        )
     val Continuation: Property<MediaItemLayout.Continuation?>
         get() = property_rememberer.rememberSingleProperty(
         "Continuation",
@@ -161,6 +166,7 @@ open class PlaylistData(
     var browse_params: String? = null,
     var total_duration: Long? = null,
     var year: Int? = null,
+    var owner: Artist? = null,
     var continuation: MediaItemLayout.Continuation? = null,
 
     var item_set_ids: List<String>? = null
@@ -171,6 +177,9 @@ open class PlaylistData(
     override fun getType(): MediaItemType = if (isLocalPlaylist()) MediaItemType.PLAYLIST_LOC else MediaItemType.PLAYLIST_ACC
 
     override fun createDbEntry(db: Database) {
+        if (playlist_type == PlaylistType.LOCAL) {
+            throw IllegalStateException(id)
+        }
         db.playlistQueries.insertById(id, playlist_type?.ordinal?.toLong())
     }
     override fun getEmptyData(): PlaylistData =
@@ -191,6 +200,7 @@ open class PlaylistData(
             TypeOfPlaylist.setNotNull(playlist_type, db)
             TotalDuration.setNotNull(total_duration, db)
             Year.setNotNull(year, db)
+            Owner.setNotNull(owner, db)
             Continuation.setNotNull(continuation, db)
         }}
     }

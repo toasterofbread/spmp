@@ -18,7 +18,7 @@ internal fun processMediaDataSpec(data_spec: DataSpec, context: PlatformContext,
     val song = SongRef(data_spec.uri.toString())
 
     val download_manager = context.download_manager
-    var local_file: PlatformFile? = download_manager.getSongLocalFile(song)
+    var local_file: PlatformFile? = song.getLocalAudioFile(context)
     if (local_file != null) {
         println("Playing song ${song.id} from local file $local_file")
         return data_spec.withUri(Uri.parse(local_file.uri))
@@ -55,11 +55,8 @@ internal fun processMediaDataSpec(data_spec: DataSpec, context: PlatformContext,
                                 done = true
                             }
                             PlayerDownloadManager.DownloadStatus.Status.FINISHED, PlayerDownloadManager.DownloadStatus.Status.ALREADY_FINISHED -> {
-                                println("AAA")
-                                local_file = download_manager.getSongLocalFile(song)
-                                println("BBB $local_file")
+                                local_file = song.getLocalAudioFile(context)
                                 done = true
-                                println("CCC")
                             }
                         }
 

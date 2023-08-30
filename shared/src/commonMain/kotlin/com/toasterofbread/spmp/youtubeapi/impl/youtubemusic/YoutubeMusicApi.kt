@@ -256,14 +256,14 @@ class YoutubeMusicApi(
     }
 
     private fun onUserAuthStateChanged() {
-        user_auth_state = YoutubeApi.UserAuthState.unpackSetData(Settings.KEY_YTM_AUTH.get(context)).let { data ->
+        user_auth_state = YoutubeApi.UserAuthState.unpackSetData(Settings.KEY_YTM_AUTH.get(context), context).let { data ->
             if (data.first != null) YoutubeMusicAuthInfo(this, data.first!!, data.second)
             else null
         }
     }
 
     override var user_auth_state: YoutubeMusicAuthInfo? by mutableStateOf(
-        YoutubeApi.UserAuthState.unpackSetData(Settings.KEY_YTM_AUTH.get(context)).let { data ->
+        YoutubeApi.UserAuthState.unpackSetData(Settings.KEY_YTM_AUTH.get(context), context).let { data ->
             if (data.first != null) YoutubeMusicAuthInfo(this, data.first!!, data.second)
             else null
         }

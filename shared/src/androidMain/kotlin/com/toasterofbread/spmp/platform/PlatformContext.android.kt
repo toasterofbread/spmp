@@ -17,6 +17,7 @@ import android.os.Build
 import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.provider.DocumentsContract
 import android.view.View
 import android.view.Window
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
@@ -47,6 +48,8 @@ import com.anggrayudi.storage.callback.FolderCallback
 import com.anggrayudi.storage.file.DocumentFileCompat
 import com.anggrayudi.storage.file.child
 import com.anggrayudi.storage.file.copyFileTo
+import com.anggrayudi.storage.file.getAbsolutePath
+import com.anggrayudi.storage.file.getRelativePath
 import com.anggrayudi.storage.file.makeFolder
 import com.anggrayudi.storage.file.moveFolderTo
 import com.anggrayudi.storage.media.MediaFile
@@ -166,12 +169,17 @@ actual class PlatformFile(
     actual val is_file: Boolean
         get() = file?.isFile == true
 
+    actual fun getRelativePath(relative_to: PlatformFile): String {
+        require(relative_to.is_directory)
+        return absolute_path.removePrefix(relative_to.absolute_path)
+    }
+
     actual fun inputStream(): InputStream =
         context.contentResolver.openInputStream(file!!.uri)!!
 
     actual fun outputStream(append: Boolean): OutputStream {
         if (!is_file) {
-            createFile()
+            check(createFile())
         }
         return context.contentResolver.openOutputStream(file!!.uri, if (append) "wa" else "w")!!
     }
@@ -208,6 +216,11 @@ actual class PlatformFile(
         }
         else if (file != null || parent_file == null) {
             return false
+        }
+
+        val parts = document_uri.split_path.drop(parent_file!!.uri.split_path.size).dropLast(1)
+        for (part in parts) {
+            parent_file = parent_file!!.makeFolder(context, part) ?: return false
         }
 
         try {

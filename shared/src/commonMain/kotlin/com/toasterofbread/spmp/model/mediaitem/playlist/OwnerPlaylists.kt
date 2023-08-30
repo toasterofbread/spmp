@@ -7,8 +7,8 @@ import com.toasterofbread.spmp.model.mediaitem.observeAsState
 import com.toasterofbread.spmp.platform.PlatformContext
 
 @Composable
-fun rememberArtistPlaylists(artist: Artist, context: PlatformContext): List<AccountPlaylistRef> {
-    return context.database.playlistQueries.byArtist(artist.id)
+fun rememberOwnedPlaylists(owner: Artist, context: PlatformContext): List<AccountPlaylistRef> {
+    return context.database.playlistQueries.byOwner(owner.id)
         .observeAsState(
             {
                 it.executeAsList().map { playlist_id ->

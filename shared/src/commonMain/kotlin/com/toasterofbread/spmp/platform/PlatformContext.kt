@@ -90,6 +90,7 @@ expect class PlatformFile {
     val is_directory: Boolean
     val is_file: Boolean
 
+    fun getRelativePath(relative_to: PlatformFile): String
     fun inputStream(): InputStream
     fun outputStream(append: Boolean = false): OutputStream
 

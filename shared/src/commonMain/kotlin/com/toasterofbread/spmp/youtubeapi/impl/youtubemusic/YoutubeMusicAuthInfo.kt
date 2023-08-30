@@ -16,6 +16,7 @@ import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMSetSubsc
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMSongLikedEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMSubscribedToArtistEndpoint
 import com.toasterofbread.spmp.youtubeapi.model.YoutubeiBrowseResponse
+import com.toasterofbread.utils.lazyAssert
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Headers
@@ -31,6 +32,16 @@ class YoutubeMusicAuthInfo(
     override val own_channel: Artist,
     override val headers: Headers
 ): YoutubeApi.UserAuthState {
+    init {
+        lazyAssert(
+            {
+                "Own channel (${own_channel.id}) is not in database"
+            }
+        ) {
+            api.context.database.artistQueries.byId(own_channel.id).executeAsOneOrNull() != null
+        }
+    }
+
     companion object {
         val REQUIRED_HEADERS = listOf("authorization", "cookie")
     }

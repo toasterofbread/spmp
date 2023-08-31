@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.db.rememberPinnedItems
+import com.toasterofbread.spmp.model.mediaitem.db.setPinned
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
 import com.toasterofbread.spmp.ui.layout.mainpage.getMainPageItemSize
 
@@ -43,13 +44,16 @@ fun PinnedItemsRow(
                         Box(Modifier.size(30.dp), contentAlignment = Alignment.Center) {
                             Icon(Icons.Filled.PushPin, null, Modifier.alpha(0.5f))
                         }
-                        IconButton({
-                            player.context.database.transaction {
-                                for (item in pinned_items.toList()) {
-                                    item.PinnedToHome.set(false, player.context.database)
+                        IconButton(
+                            {
+                                player.database.transaction {
+                                    for (item in pinned_items.toList()) {
+                                        item.setPinned(false, player.context)
+                                    }
                                 }
-                            }
-                        }, Modifier.size(30.dp)) {
+                            },
+                            Modifier.size(30.dp)
+                        ) {
                             Icon(Icons.Filled.Close, null)
                         }
                     }

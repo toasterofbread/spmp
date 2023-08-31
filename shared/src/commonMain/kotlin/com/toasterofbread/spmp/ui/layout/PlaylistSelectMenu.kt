@@ -22,7 +22,8 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.rememberOwnedPlaylists
 import com.toasterofbread.spmp.model.mediaitem.playlist.rememberLocalPlaylists
 import com.toasterofbread.spmp.platform.composable.SwipeRefresh

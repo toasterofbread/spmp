@@ -20,7 +20,7 @@ private data class PlayerData(
 }
 
 class YTMLoadSongEndpoint(override val api: YoutubeMusicApi): LoadSongEndpoint() {
-    override suspend fun loadSong(song_data: SongData): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun loadSong(song_data: SongData): Result<SongData> = withContext(Dispatchers.IO) {
         val hl = SpMp.data_language
         var request: Request = Request.Builder()
             .endpointUrl("/youtubei/v1/next")
@@ -57,7 +57,7 @@ class YTMLoadSongEndpoint(override val api: YoutubeMusicApi): LoadSongEndpoint()
             }
 
             if (video_data.videoDetails == null) {
-                return@withContext Result.success(Unit)
+                return@withContext Result.success(song_data)
             }
 
             song_data.title = video_data.videoDetails.title
@@ -67,6 +67,6 @@ class YTMLoadSongEndpoint(override val api: YoutubeMusicApi): LoadSongEndpoint()
         song_data.loaded = true
         song_data.saveToDatabase(api.db)
 
-        return@withContext Result.success(Unit)
+        return@withContext Result.success(song_data)
     }
 }

@@ -10,19 +10,43 @@ import androidx.compose.runtime.setValue
 import app.cash.sqldelight.Query
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
+import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
+import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
+import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter
+import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter.saveToFile
 import com.toasterofbread.spmp.platform.PlatformContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.Duration
 import java.time.LocalDate
 
-fun MediaItem.incrementPlayCount(context: PlatformContext, by: Int = 1) {
+suspend fun MediaItem.incrementPlayCount(context: PlatformContext, by: Int = 1): Result<Unit> = withContext(Dispatchers.IO) {
     require(by >= 1)
-    val db = context.database
-    db.mediaItemPlayCountQueries.transaction {
-        val day = LocalDate.now().toEpochDay()
-        db.mediaItemPlayCountQueries.insertOrIgnore(day, id)
-        db.mediaItemPlayCountQueries.increment(by.toLong(), id, day)
+
+    try {
+        if (this@incrementPlayCount is LocalPlaylist) {
+            val data: LocalPlaylistData = loadData(context).fold(
+                { it },
+                { return@withContext Result.failure(it) }
+            )
+            data.play_count += by
+
+            val file = MediaItemLibrary.getLocalPlaylistFile(this@incrementPlayCount, context)
+            return@withContext data.saveToFile(file, context)
+        }
+
+        val db = context.database
+        db.mediaItemPlayCountQueries.transaction {
+            val day = LocalDate.now().toEpochDay()
+            db.mediaItemPlayCountQueries.insertOrIgnore(day, id)
+            db.mediaItemPlayCountQueries.increment(by.toLong(), id, day)
+        }
+
+        return@withContext Result.success(Unit)
+    }
+    catch (e: Throwable) {
+        throw RuntimeException("Incrementing play count of ${this@incrementPlayCount} by $by failed", e)
     }
 }
 

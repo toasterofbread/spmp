@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
@@ -74,6 +75,8 @@ internal fun LongPressMenuContent(
     modifier: Modifier,
     onAction: () -> Unit
 ) {
+    val player = LocalPlayerState.current
+    
     @Composable
     fun Thumb(modifier: Modifier) {
         data.item.Thumbnail(MediaItemThumbnailProvider.Quality.LOW, modifier.clip(data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING)))
@@ -86,8 +89,8 @@ internal fun LongPressMenuContent(
         }
     }
 
-    var item_pinned_to_home: Boolean by data.item.PinnedToHome.observe(SpMp.context.database)
-    val item_title: String? by data.item.Title.observe(SpMp.context.database)
+    var item_pinned_to_home: Boolean by data.item.observePinnedToHome(player.context)
+    val item_title: String? by data.item.Title.observe(player.context.database)
 
     Column(modifier) {
         val density = LocalDensity.current
@@ -162,7 +165,7 @@ internal fun LongPressMenuContent(
                                 Modifier.platformClickable(
                                     onAltClick = {
                                         show_title_edit_dialog = !show_title_edit_dialog
-                                        SpMp.context.vibrateShort()
+                                        player.context.vibrateShort()
                                     }
                                 )
                             ) {
@@ -176,7 +179,7 @@ internal fun LongPressMenuContent(
 
                             // Artist
                             if (data.item is MediaItem.WithArtist) {
-                                val item_artist: Artist? by data.item.Artist.observe(SpMp.context.database)
+                                val item_artist: Artist? by data.item.Artist.observe(player.context.database)
                                 item_artist?.also { artist ->
                                     Marquee {
                                         val player = LocalPlayerState.current

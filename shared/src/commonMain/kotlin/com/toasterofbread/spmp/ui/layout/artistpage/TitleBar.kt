@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.toReadableSubscriberCount
+import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
@@ -164,7 +165,7 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                     }
                 }
 
-                var item_pinned by item.PinnedToHome.observe(SpMp.context.database)
+                var item_pinned by item.observePinnedToHome(player.context)
                 Crossfade(item_pinned) { pinned ->
                     IconButton({ item_pinned = !pinned }) {
                         Icon(if (pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null)

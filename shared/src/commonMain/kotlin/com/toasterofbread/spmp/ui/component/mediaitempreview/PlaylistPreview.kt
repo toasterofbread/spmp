@@ -24,7 +24,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.rememberEditorOrNull
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuActionProvider
@@ -50,7 +51,7 @@ fun getPlaylistLongPressMenuData(
 
 @Composable
 fun LongPressMenuActionProvider.PlaylistLongPressMenuActions(playlist: MediaItem) {
-    require(playlist is Playlist)
+    require(playlist is RemotePlaylist)
 
     val player = LocalPlayerState.current
     val coroutine_context = rememberCoroutineScope()

@@ -57,7 +57,8 @@ import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
@@ -95,7 +96,7 @@ internal fun PlaylistTopInfo(
     }
 
     Row(
-        Modifier
+        modifier
             .height(IntrinsicSize.Max)
             .onSizeChanged {
                 val width_dp = with(density) { it.width.toDp() }

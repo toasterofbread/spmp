@@ -4,8 +4,8 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
-import com.toasterofbread.spmp.model.mediaitem.Playlist
-import com.toasterofbread.spmp.model.mediaitem.PlaylistData
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
@@ -62,7 +62,7 @@ class MusicTwoRowItemRenderer(
                 return null
             }
 
-            item = PlaylistData(navigationEndpoint.watchPlaylistEndpoint.playlistId).also { data ->
+            item = RemotePlaylistData(navigationEndpoint.watchPlaylistEndpoint.playlistId).also { data ->
                 data.playlist_type = PlaylistType.RADIO
                 data.title = title.first_text
                 data.thumbnail_provider = thumbnailRenderer.toThumbnailProvider()
@@ -74,12 +74,12 @@ class MusicTwoRowItemRenderer(
             val page_type = navigationEndpoint.browseEndpoint.getPageType()!!
 
             item = when (MediaItemType.fromBrowseEndpointType(page_type)) {
-                MediaItemType.PLAYLIST_ACC -> {
-                    if (Playlist.formatYoutubeId(browse_id).startsWith("RDAT") && !Settings.get<Boolean>(Settings.KEY_FEED_SHOW_RADIOS)) {
+                MediaItemType.PLAYLIST_REM -> {
+                    if (RemotePlaylist.formatYoutubeId(browse_id).startsWith("RDAT") && !Settings.get<Boolean>(Settings.KEY_FEED_SHOW_RADIOS)) {
                         return null
                     }
 
-                    PlaylistData(browse_id).also { data ->
+                    RemotePlaylistData(browse_id).also { data ->
                         data.playlist_type = PlaylistType.fromBrowseEndpointType(page_type)
                         data.artist = getArtist(data)
 //                        is_editable = menu?.menuRenderer?.items

@@ -12,7 +12,6 @@ CREATE TABLE Artist (
     FOREIGN KEY (id) REFERENCES MediaItem(id)
 );
 
-byPinned: SELECT Artist.id FROM Artist, MediaItem WHERE MediaItem.id == Artist.id AND MediaItem.pinned_to_home == :pinned;
 byHidden: SELECT Artist.id FROM Artist, MediaItem WHERE MediaItem.id == Artist.id AND MediaItem.hidden == :hidden;
 byId: SELECT id FROM Artist WHERE id == :id;
 

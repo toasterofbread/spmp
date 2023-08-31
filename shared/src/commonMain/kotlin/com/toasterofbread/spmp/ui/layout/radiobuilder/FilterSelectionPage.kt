@@ -35,7 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.model.mediaitem.PlaylistData
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -62,7 +62,7 @@ fun FilterSelectionPage(
 
     var is_loading by remember { mutableStateOf(false) }
     var preview_loading by remember { mutableStateOf(false) }
-    var preview_playlist: PlaylistData? by remember { mutableStateOf(null) }
+    var preview_playlist: RemotePlaylistData? by remember { mutableStateOf(null) }
     var invalid_modifiers: Boolean by remember { mutableStateOf(false) }
     val coroutine_scope = rememberCoroutineScope()
 
@@ -223,7 +223,7 @@ fun FilterSelectionPage(
     }
 }
 
-private fun setRadioMetadata(radio_playlist: PlaylistData, artists: List<RadioBuilderArtist>, selected_artists: Collection<Int>) {
+private fun setRadioMetadata(radio_playlist: RemotePlaylistData, artists: List<RadioBuilderArtist>, selected_artists: Collection<Int>) {
     assert(selected_artists.isNotEmpty())
 
     val artists_string = StringBuilder()

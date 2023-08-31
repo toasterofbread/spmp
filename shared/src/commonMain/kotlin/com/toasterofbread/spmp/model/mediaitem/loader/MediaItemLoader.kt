@@ -10,15 +10,18 @@ import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
-import com.toasterofbread.spmp.model.mediaitem.Playlist
-import com.toasterofbread.spmp.model.mediaitem.PlaylistData
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongData
+import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
+import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
+import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
+import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 
 internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
     private val song_lock = ReentrantLock()
@@ -27,13 +30,15 @@ internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
 
     private val loading_songs: MutableMap<String, LoadJob<Result<SongData>>> = mutableMapOf()
     private val loading_artists: MutableMap<String, LoadJob<Result<ArtistData>>> = mutableMapOf()
-    private val loading_playlists: MutableMap<String, LoadJob<Result<PlaylistData>>> = mutableMapOf()
+    private val loading_remote_playlists: MutableMap<String, LoadJob<Result<RemotePlaylistData>>> = mutableMapOf()
+    private val loading_local_playlists: MutableMap<String, LoadJob<Result<LocalPlaylistData>>> = mutableMapOf()
 
     suspend fun <ItemType: MediaItemData> loadUnknown(item: ItemType, context: PlatformContext): Result<ItemType> =
         when (item) {
             is SongData -> loadSong(item, context) as Result<ItemType>
             is ArtistData -> loadArtist(item, context) as Result<ItemType>
-            is PlaylistData -> loadPlaylist(item, context) as Result<ItemType>
+            is RemotePlaylistData -> loadRemotePlaylist(item, context) as Result<ItemType>
+            is LocalPlaylistData -> loadLocalPlaylist(item, context) as Result<ItemType>
             else -> throw NotImplementedError(item::class.toString())
         }
 
@@ -43,26 +48,23 @@ internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
     suspend fun loadArtist(artist: ArtistData, context: PlatformContext): Result<ArtistData> {
         return loadItem(artist, loading_artists, artist_lock, context)
     }
-    suspend fun loadPlaylist(playlist: PlaylistData, context: PlatformContext, continuation: MediaItemLayout.Continuation? = null): Result<PlaylistData> {
-        return loadItem(playlist, loading_playlists, playlist_lock, context, continuation)
+    suspend fun loadRemotePlaylist(playlist: RemotePlaylistData, context: PlatformContext, continuation: MediaItemLayout.Continuation? = null): Result<RemotePlaylistData> {
+        return loadItem(playlist, loading_remote_playlists, playlist_lock, context, continuation)
+    }
+    suspend fun loadLocalPlaylist(playlist: LocalPlaylistData, context: PlatformContext): Result<LocalPlaylistData> {
+        return loadItem(playlist, loading_local_playlists, playlist_lock, context)
     }
 
-    fun isUnknownLoading(item: MediaItem): Boolean =
-        when (item) {
-            is Song -> isSongLoading(item)
-            is Artist -> isArtistLoading(item)
-            is Playlist -> isPlaylstLoading(item)
+    fun isUnknownLoading(item: MediaItem): Boolean {
+        val loading: Map<String, *> = when (item) {
+            is Song -> loading_songs
+            is Artist -> loading_artists
+            is RemotePlaylist -> loading_remote_playlists
+            is LocalPlaylist -> loading_local_playlists
             else -> throw NotImplementedError(item::class.toString())
         }
 
-    fun isSongLoading(song: Song): Boolean = song_lock.withLock {
-        loading_songs.contains(song.id)
-    }
-    fun isArtistLoading(artist: Artist): Boolean = artist_lock.withLock {
-        loading_artists.contains(artist.id)
-    }
-    fun isPlaylstLoading(playlist: Playlist): Boolean = playlist_lock.withLock {
-        loading_playlists.contains(playlist.id)
+        return loading.contains(item.id)
     }
 
     override val listeners: MutableList<Listener<String, MediaItemData>> = mutableListOf()
@@ -80,13 +82,13 @@ internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
             loading_items,
             listeners = listeners
         ) {
-            val result = when (item) {
+            val result: Result<ItemType> = when (item) {
                 is SongData -> {
                     with(context.ytapi.LoadSong) {
                         if (!isImplemented()) {
                             return@performSafeLoad Result.failure(EndpointNotImplementedException(this))
                         }
-                        loadSong(item)
+                        loadSong(item) as Result<ItemType>
                     }
                 }
                 is ArtistData -> {
@@ -94,16 +96,22 @@ internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
                         if (!isImplemented()) {
                             return@performSafeLoad Result.failure(EndpointNotImplementedException(this))
                         }
-                        loadArtist(item)
+                        loadArtist(item) as Result<ItemType>
                     }
                 }
-                is PlaylistData -> {
+                is RemotePlaylistData -> {
                     with(context.ytapi.LoadPlaylist) {
                         if (!isImplemented()) {
                             return@performSafeLoad Result.failure(EndpointNotImplementedException(this))
                         }
-                        loadPlaylist(item, continuation)
+                        loadPlaylist(item, continuation) as Result<ItemType>
                     }
+                }
+                is LocalPlaylistData -> {
+                    kotlin.runCatching {
+                        val file = MediaItemLibrary.getLocalPlaylistFile(item, context)
+                        PlaylistFileConverter.loadFromFile(file, context)
+                    } as Result<ItemType>
                 }
                 else -> throw NotImplementedError(item::class.toString())
             }
@@ -119,7 +127,11 @@ internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
 }
 
 @Composable
-fun MediaItem.loadDataOnChange(context: PlatformContext, load: Boolean = true, onLoadFailed: ((Throwable?) -> Unit)? = null): State<Boolean> {
+fun MediaItem.loadDataOnChange(
+    context: PlatformContext,
+    load: Boolean = true,
+    onLoadFailed: ((Throwable?) -> Unit)? = null,
+): State<Boolean> {
     val loading_state = remember(this) {
         mutableStateOf(MediaItemLoader.isUnknownLoading(this))
     }

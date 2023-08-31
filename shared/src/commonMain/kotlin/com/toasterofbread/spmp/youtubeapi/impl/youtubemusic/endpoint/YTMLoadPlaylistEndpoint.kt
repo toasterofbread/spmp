@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 
 import SpMp
-import com.toasterofbread.spmp.model.mediaitem.PlaylistData
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
@@ -14,12 +14,10 @@ import okhttp3.Request
 
 class YTMLoadPlaylistEndpoint(override val api: YoutubeMusicApi): LoadPlaylistEndpoint() {
     override suspend fun loadPlaylist(
-        playlist_data: PlaylistData,
+        playlist_data: RemotePlaylistData,
         continuation: MediaItemLayout.Continuation?,
-    ): Result<Unit> = withContext(Dispatchers.IO) {
+    ): Result<RemotePlaylistData> = withContext(Dispatchers.IO) {
         if (continuation != null) {
-            check(!playlist_data.isLocalPlaylist())
-
             continuation.loadContinuation(api.context).fold(
                 {
                     val (items, ctoken) = it
@@ -40,7 +38,7 @@ class YTMLoadPlaylistEndpoint(override val api: YoutubeMusicApi): LoadPlaylistEn
                         }
                     }
 
-                    return@withContext Result.success(Unit)
+                    return@withContext Result.success(playlist_data)
                 },
                 { return@withContext Result.failure(it) }
             )
@@ -71,9 +69,15 @@ class YTMLoadPlaylistEndpoint(override val api: YoutubeMusicApi): LoadPlaylistEn
             }
         )
 
-        return@withContext result.onSuccess {
-            playlist_data.loaded = true
-            playlist_data.saveToDatabase(api.db)
-        }
+        return@withContext result.fold(
+            {
+                playlist_data.loaded = true
+                playlist_data.saveToDatabase(api.db)
+                Result.success(playlist_data)
+            },
+            {
+                Result.failure(it)
+            }
+        )
     }
 }

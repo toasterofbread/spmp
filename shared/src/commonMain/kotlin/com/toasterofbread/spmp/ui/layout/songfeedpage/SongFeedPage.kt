@@ -254,7 +254,7 @@ class SongFeedPage(state: MainPageState): MainPage(state) {
                         }
                     }
 
-                    // Offline
+                    // Load failed
                     else -> {
                         var error_dismissed by remember { mutableStateOf(false) }
 
@@ -273,7 +273,8 @@ class SongFeedPage(state: MainPageState): MainPage(state) {
                                         message = getString("error_yt_feed_parse_failed"),
                                         onDismiss = {
                                             error_dismissed = true
-                                        }
+                                        },
+                                        disable_parent_scroll = false
                                     )
                                 }
                             }

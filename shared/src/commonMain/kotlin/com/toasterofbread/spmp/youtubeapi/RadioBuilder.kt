@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.youtubeapi
 
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.PlaylistData
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.getString
 
@@ -12,7 +12,7 @@ abstract class RadioBuilderEndpoint: YoutubeApi.Endpoint() {
 
     abstract fun buildRadioToken(artists: Set<RadioBuilderArtist>, modifiers: Set<RadioBuilderModifier?>): String
 
-    abstract suspend fun getBuiltRadio(radio_token: String, context: PlatformContext): Result<PlaylistData?>
+    abstract suspend fun getBuiltRadio(radio_token: String, context: PlatformContext): Result<RemotePlaylistData?>
 }
 
 data class RadioBuilderArtist(

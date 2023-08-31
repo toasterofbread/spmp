@@ -34,6 +34,7 @@ import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.loadDataOnChange
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.platform.composable.SwipeRefresh
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
@@ -292,13 +293,33 @@ fun ArtistPage(
                                 chip(getString("artist_chip_shuffle"), Icons.Outlined.Shuffle) { player.playMediaItem(artist, true) }
 
                                 if (player.context.canShare()) {
-                                    chip(getString("action_share"), Icons.Outlined.Share) { player.context.shareText(artist.getURL(), artist.Title.get(db) ?: "") }
+                                    chip(
+                                        getString("action_share"),
+                                        Icons.Outlined.Share
+                                    ) {
+                                        player.context.shareText(
+                                            artist.getURL(player.context),
+                                            artist.Title.get(db) ?: ""
+                                        )
+                                    }
                                 }
                                 if (player.context.canOpenUrl()) {
-                                    chip(getString("artist_chip_open"), Icons.Outlined.OpenInNew) { player.context.openUrl(artist.getURL()) }
+                                    chip(
+                                        getString("artist_chip_open"),
+                                        Icons.Outlined.OpenInNew
+                                    ) {
+                                        player.context.openUrl(
+                                            artist.getURL(player.context)
+                                        )
+                                    }
                                 }
 
-                                chip(getString("artist_chip_details"), Icons.Outlined.Info) { show_info = !show_info }
+                                chip(
+                                    getString("artist_chip_details"),
+                                    Icons.Outlined.Info
+                                ) {
+                                    show_info = !show_info
+                                }
                             }
 
                             Box(Modifier.requiredHeight(filter_bar_height)) {
@@ -380,7 +401,7 @@ fun ArtistPage(
                                         if (!is_singles) player
                                         else player.copy(
                                             onClickedOverride = { item, multiselect_key ->
-                                                if (item is Playlist) {
+                                                if (item is RemotePlaylist) {
                                                     onSinglePlaylistClicked(item, player)
                                                 } else {
                                                     player.onMediaItemClicked(item, multiselect_key)
@@ -389,7 +410,7 @@ fun ArtistPage(
                                             onLongClickedOverride = { item, long_press_data ->
                                                 player.onMediaItemLongClicked(
                                                     item,
-                                                    if (item is Playlist)
+                                                    if (item is RemotePlaylist)
                                                         long_press_data?.copy(playlist_as_song = true)
                                                             ?: LongPressMenuData(item, playlist_as_song = true)
                                                     else long_press_data
@@ -426,7 +447,7 @@ fun ArtistPage(
 }
 
 @OptIn(DelicateCoroutinesApi::class)
-private fun onSinglePlaylistClicked(playlist: Playlist, player: PlayerState) {
+private fun onSinglePlaylistClicked(playlist: RemotePlaylist, player: PlayerState) {
     GlobalScope.launch {
         playlist.loadData(player.context).onSuccess { data ->
             data.items?.firstOrNull()?.also { first_item ->

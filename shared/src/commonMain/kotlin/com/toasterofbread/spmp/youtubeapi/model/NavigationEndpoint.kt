@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.youtubeapi.model
 
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
-import com.toasterofbread.spmp.model.mediaitem.PlaylistData
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 
@@ -19,14 +19,14 @@ data class NavigationEndpoint(
                 return SongData(watchEndpoint.videoId)
             }
             else if (watchEndpoint.playlistId != null) {
-                return PlaylistData(watchEndpoint.playlistId)
+                return RemotePlaylistData(watchEndpoint.playlistId)
             }
         }
         if (browseEndpoint != null) {
             browseEndpoint.getMediaItem()?.also { return it }
         }
         if (watchPlaylistEndpoint != null) {
-            return PlaylistData(watchPlaylistEndpoint.playlistId)
+            return RemotePlaylistData(watchPlaylistEndpoint.playlistId)
         }
         return null
     }

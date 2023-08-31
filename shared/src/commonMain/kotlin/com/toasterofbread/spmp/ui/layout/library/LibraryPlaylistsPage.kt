@@ -38,10 +38,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.model.mediaitem.AccountPlaylistRef
-import com.toasterofbread.spmp.model.mediaitem.LocalPlaylistRef
-import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
+import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
+import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.playlist.createLocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.rememberLocalPlaylists
 import com.toasterofbread.spmp.model.mediaitem.playlist.rememberOwnedPlaylists
@@ -57,7 +57,7 @@ import kotlin.coroutines.coroutineContext
 
 class LibraryPlaylistsPage: LibrarySubPage {
     override fun getIcon(): ImageVector =
-        MediaItemType.PLAYLIST_ACC.getIcon()
+        MediaItemType.PLAYLIST_REM.getIcon()
 
     override fun getTitle(): String =
         getString("library_tab_playlists")
@@ -78,8 +78,8 @@ class LibraryPlaylistsPage: LibrarySubPage {
         var loading: Boolean by remember { mutableStateOf(false) }
         var load_error: Throwable? by remember { mutableStateOf(null) }
 
-        val local_playlists: List<Playlist> = rememberLocalPlaylists(player.context) ?: emptyList()
-        val account_playlists: List<AccountPlaylistRef> = api.user_auth_state?.own_channel?.let { own_channel ->
+        val local_playlists: List<LocalPlaylistData> = rememberLocalPlaylists(player.context) ?: emptyList()
+        val account_playlists: List<RemotePlaylistRef> = api.user_auth_state?.own_channel?.let { own_channel ->
             rememberOwnedPlaylists(own_channel, player.context)
         } ?: emptyList()
 

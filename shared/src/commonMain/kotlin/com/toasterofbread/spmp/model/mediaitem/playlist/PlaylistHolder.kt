@@ -4,7 +4,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
-import com.toasterofbread.spmp.model.mediaitem.Playlist
 import java.lang.ref.WeakReference
 
 class PlaylistHolder(initial_playlist: Playlist): MediaItemHolder {

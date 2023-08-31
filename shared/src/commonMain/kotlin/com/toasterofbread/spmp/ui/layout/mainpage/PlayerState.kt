@@ -11,12 +11,12 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import com.toasterofbread.Database
-import com.toasterofbread.spmp.model.mediaitem.AccountPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongRef
+import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.platform.MediaPlayerRepeatMode
 import com.toasterofbread.spmp.platform.MediaPlayerService
 import com.toasterofbread.spmp.platform.PlatformContext
@@ -172,7 +172,7 @@ open class PlayerState protected constructor(
                 val list_end = uri.query.indexOfOrNull("&", list_start) ?: uri.query.length
 
                 interactService {
-                    val playlist = AccountPlaylistRef(uri.query.substring(list_start, list_end))
+                    val playlist = RemotePlaylistRef(uri.query.substring(list_start, list_end))
                     playlist.createDbEntry(context.database)
                     openMediaItem(playlist)
                 }

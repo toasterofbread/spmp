@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.ui.component.longpressmenu
 
-import SpMp
+import LocalPlayerState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ColumnScope
@@ -27,20 +27,36 @@ const val MENU_ITEM_SPACING: Int = 20
 
 @Composable
 internal fun ColumnScope.LongPressMenuInfoActions(data: LongPressMenuData, getAccentColour: () -> Color, onAction: () -> Unit) {
+    val player = LocalPlayerState.current
     data.infoContent?.invoke(this, getAccentColour)
 
     // Share
-    if (SpMp.context.canShare()) {
-        LongPressMenuActionProvider.ActionButton(Icons.Filled.Share, getString("lpm_action_share"), getAccentColour, onClick = {
-            SpMp.context.shareText(data.item.getURL(), if (data.item is Song) data.item.Title.get(SpMp.context.database) else null)
-        }, onAction = onAction)
+    if (player.context.canShare()) {
+        LongPressMenuActionProvider.ActionButton(
+            Icons.Filled.Share,
+            getString("lpm_action_share"),
+            getAccentColour,
+            onClick = {
+                player.context.shareText(
+                    data.item.getURL(player.context),
+                    if (data.item is Song) data.item.Title.get(player.context.database) else null
+                )
+            },
+            onAction = onAction
+        )
     }
 
     // Open
-    if (SpMp.context.canOpenUrl()) {
-        LongPressMenuActionProvider.ActionButton(Icons.Filled.OpenWith, getString("lpm_action_open_external"), getAccentColour, onClick = {
-            SpMp.context.openUrl(data.item.getURL())
-        }, onAction = onAction)
+    if (player.context.canOpenUrl()) {
+        LongPressMenuActionProvider.ActionButton(
+            Icons.Filled.OpenWith,
+            getString("lpm_action_open_external"),
+            getAccentColour,
+            onClick = {
+                player.context.openUrl(data.item.getURL(player.context))
+            },
+            onAction = onAction
+        )
     }
 
     if (isDebugBuild()) {
@@ -59,6 +75,8 @@ internal fun ColumnScope.LongPressMenuInfoActions(data: LongPressMenuData, getAc
 
 @Composable
 internal fun ColumnScope.LongPressMenuActions(data: LongPressMenuData, getAccentColour: () -> Color, onAction: () -> Unit) {
+    val player = LocalPlayerState.current
+
     // Data-provided actions
     data.Actions(
         LongPressMenuActionProvider(
@@ -72,6 +90,6 @@ internal fun ColumnScope.LongPressMenuActions(data: LongPressMenuData, getAccent
 
     // Hide
     LongPressMenuActionProvider.ActionButton(Icons.Filled.VisibilityOff, getString("lpm_action_hide"), getAccentColour, onClick = {
-        data.item.Hidden.set(true, SpMp.context.database)
+        data.item.Hidden.set(true, player.context.database)
     }, onAction = onAction)
 }

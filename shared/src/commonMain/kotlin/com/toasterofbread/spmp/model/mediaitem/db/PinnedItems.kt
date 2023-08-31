@@ -2,40 +2,42 @@ package com.toasterofbread.spmp.model.mediaitem.db
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import app.cash.sqldelight.Query
-import com.toasterofbread.spmp.model.mediaitem.AccountPlaylistRef
-import com.toasterofbread.spmp.model.mediaitem.Artist
-import com.toasterofbread.spmp.model.mediaitem.ArtistRef
-import com.toasterofbread.spmp.model.mediaitem.LocalPlaylistRef
+import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.Playlist
-import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.SongRef
-import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
+import com.toasterofbread.spmp.model.mediaitem.observeAsState
 import com.toasterofbread.spmp.platform.PlatformContext
-import mediaitem.ArtistQueries
-import mediaitem.MediaItemQueries
-import mediaitem.PlaylistQueries
-import mediaitem.SongQueries
+
+private fun Database.getPinnedItems(): List<MediaItem> {
+    return pinnedItemQueries.getAll().executeAsList().map { item ->
+        MediaItemType.values()[item.type.toInt()].referenceFromId(item.id)
+    }
+}
+private fun Database.isItemPinned(item: MediaItem): Boolean {
+    return pinnedItemQueries.countByItem(item.id, item.getType().ordinal.toLong()).executeAsOne() > 0
+}
 
 @Composable
-fun rememberAnyItemsArePinned(context: PlatformContext, pinned: Boolean = true): Boolean {
+fun rememberAnyItemsArePinned(context: PlatformContext): Boolean {
     val db = context.database
 
     val any_are_pinned = remember { mutableStateOf(
-        db.mediaItemQueries.anyArePinned(pinned)
+        db.pinnedItemQueries.count().executeAsOne() > 0
     ) }
 
     DisposableEffect(Unit) {
         val listener = Query.Listener {
-            any_are_pinned.value = db.mediaItemQueries.anyArePinned(pinned)
+            any_are_pinned.value = db.pinnedItemQueries.count().executeAsOne() > 0
         }
 
-        val query = db.mediaItemQueries.anyArePinned(pinned.toSQLBoolean())
+        val query = db.pinnedItemQueries.count()
         query.addListener(listener)
 
         onDispose {
@@ -47,60 +49,55 @@ fun rememberAnyItemsArePinned(context: PlatformContext, pinned: Boolean = true):
 }
 
 @Composable
-fun rememberPinnedItems(context: PlatformContext, pinned: Boolean = true): List<MediaItem> {
+fun rememberPinnedItems(context: PlatformContext): List<MediaItem> {
     val db = context.database
 
-    var pinned_songs: List<Song> by remember { mutableStateOf(
-        db.songQueries.getByPinned(pinned)
-    ) }
-    var pinned_artists: List<Artist> by remember { mutableStateOf(
-        db.artistQueries.getByPinned(pinned)
-    ) }
-    var pinned_playlists: List<Playlist> by remember { mutableStateOf(
-        db.playlistQueries.getByPinned(pinned)
-    ) }
+    var pinned_items: List<MediaItem> by remember {
+        mutableStateOf(db.getPinnedItems())
+    }
 
     DisposableEffect(Unit) {
-        val songs_listener = Query.Listener {
-            pinned_songs = db.songQueries.getByPinned(pinned)
-        }
-        val artists_listener = Query.Listener {
-            pinned_artists = db.artistQueries.getByPinned(pinned)
-        }
-        val playlists_listener = Query.Listener {
-            pinned_playlists = db.playlistQueries.getByPinned(pinned)
+        val listener = Query.Listener {
+            pinned_items = db.getPinnedItems()
         }
 
-        db.songQueries.byPinned(pinned.toSQLBoolean()).addListener(songs_listener)
-        db.artistQueries.byPinned(pinned.toSQLBoolean()).addListener(artists_listener)
-        db.playlistQueries.byPinned(pinned.toSQLBoolean()).addListener(playlists_listener)
+        db.pinnedItemQueries.getAll().addListener(listener)
 
         onDispose {
-            db.songQueries.byPinned(pinned.toSQLBoolean()).removeListener(songs_listener)
-            db.artistQueries.byPinned(pinned.toSQLBoolean()).removeListener(artists_listener)
-            db.playlistQueries.byPinned(pinned.toSQLBoolean()).removeListener(playlists_listener)
+            db.pinnedItemQueries.getAll().removeListener(listener)
         }
     }
 
-    return pinned_songs + pinned_artists + pinned_playlists
+    return pinned_items
 }
 
-fun MediaItemQueries.anyArePinned(pinned: Boolean): Boolean =
-    anyArePinned(pinned.toSQLBoolean()).executeAsList().isNotEmpty()
-
-fun SongQueries.getByPinned(pinned: Boolean): List<Song> =
-    byPinned(pinned.toSQLBoolean()).executeAsList().map { artist ->
-        SongRef(artist)
+@Composable
+fun MediaItem.observePinnedToHome(context: PlatformContext): MutableState<Boolean> {
+    val queries = context.database.pinnedItemQueries
+    val query = remember(this) {
+        queries.countByItem(id, getType().ordinal.toLong())
     }
 
-fun ArtistQueries.getByPinned(pinned: Boolean): List<Artist> =
-    byPinned(pinned.toSQLBoolean()).executeAsList().map { artist ->
-        ArtistRef(artist)
+    return query.observeAsState(
+        {
+            it.executeAsOne() > 0
+        }
+    ) { pin ->
+        if (pin) {
+            queries.insert(id, getType().ordinal.toLong())
+        }
+        else {
+            queries.remove(id, getType().ordinal.toLong())
+        }
     }
+}
 
-fun PlaylistQueries.getByPinned(pinned: Boolean): List<Playlist> =
-    byPinned(pinned.toSQLBoolean()).executeAsList().map { playlist ->
-        val type = playlist.playlist_type?.let { PlaylistType.values()[it.toInt()] }
-        if (type == PlaylistType.LOCAL) LocalPlaylistRef(playlist.id)
-        else AccountPlaylistRef(playlist.id)
+fun MediaItem.setPinned(pinned: Boolean, context: PlatformContext) {
+    val queries = context.database.pinnedItemQueries
+    if (pinned) {
+        queries.insert(id, getType().ordinal.toLong())
     }
+    else {
+        queries.remove(id, getType().ordinal.toLong())
+    }
+}

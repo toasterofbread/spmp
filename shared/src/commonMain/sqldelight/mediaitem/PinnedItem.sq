@@ -1,0 +1,15 @@
+CREATE TABLE PinnedItem (
+    id TEXT NOT NULL,
+    type INTEGER NOT NULL,
+
+    FOREIGN KEY (id) REFERENCES MediaItem(id),
+
+    PRIMARY KEY (id, type)
+);
+
+insert: INSERT OR IGNORE INTO PinnedItem(id, type) VALUES (:id, :type);
+remove: DELETE FROM PinnedItem WHERE id == :id AND type == :type;
+
+getAll: SELECT * FROM PinnedItem;
+count: SELECT count(*) FROM PinnedItem;
+countByItem: SELECT count(*) FROM PinnedItem WHERE id == :id AND type == :type;

@@ -94,7 +94,9 @@ class PlayerService: MediaPlayerService() {
                 val final_index = if (item != null) item_index else index
 
                 if (final_item !is Song) {
-                    final_item.incrementPlayCount(context)
+                    coroutine_scope.launch {
+                        final_item.incrementPlayCount(context)
+                    }
                 }
 
                 return@customUndoableAction radio.getRadioChangeUndoRedo(

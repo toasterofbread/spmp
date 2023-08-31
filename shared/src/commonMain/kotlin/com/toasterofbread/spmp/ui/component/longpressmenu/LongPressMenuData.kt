@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.Dp
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewInteractionPressStage
-import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
 import com.toasterofbread.spmp.ui.component.mediaitempreview.ArtistLongPressMenuActions
@@ -51,13 +51,13 @@ data class LongPressMenuData(
     @Composable
     fun Actions(provider: LongPressMenuActionProvider, spacing: Dp) {
         with(provider) {
-            if (item is Song || (item is Playlist && playlist_as_song)) {
+            if (item is Song || (item is RemotePlaylist && playlist_as_song)) {
                 SongLongPressMenuActions(item, spacing, multiselect_key) { callback ->
                     coroutine_scope.launch {
                         if (item is Song) {
                             callback(item)
                         }
-                        else if (item is Playlist) {
+                        else if (item is RemotePlaylist) {
                             item.loadData(SpMp.context).onSuccess {
                                 item.Items.get(SpMp.context.database)?.firstOrNull()?.also { item ->
                                     callback(item as Song)
@@ -70,7 +70,7 @@ data class LongPressMenuData(
                     }
                 }
             }
-            else if (item is Playlist) {
+            else if (item is RemotePlaylist) {
                 PlaylistLongPressMenuActions(item)
             }
             else if (item is Artist) {

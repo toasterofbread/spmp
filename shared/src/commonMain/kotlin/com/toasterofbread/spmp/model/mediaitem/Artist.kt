@@ -4,7 +4,7 @@ import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayoutData
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayoutRef
-import com.toasterofbread.spmp.model.mediaitem.db.ListProperty
+import com.toasterofbread.spmp.model.mediaitem.db.ListPropertyImpl
 import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.db.fromNullableSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.db.fromSQLBoolean
@@ -24,7 +24,7 @@ class ArtistRef(override val id: String): Artist {
 
 sealed interface Artist: MediaItem {
     override fun getType(): MediaItemType = MediaItemType.ARTIST
-    override fun getURL(): String = "https://music.youtube.com/channel/$id"
+    override fun getURL(context: PlatformContext): String = "https://music.youtube.com/channel/$id"
 
     override fun createDbEntry(db: Database) {
         db.artistQueries.insertById(id)
@@ -49,11 +49,11 @@ sealed interface Artist: MediaItem {
     }
 
     val SubscribeChannelId: Property<String?>
-        get() = property_rememberer.rememberSingleProperty(
+        get() = property_rememberer.rememberSingleQueryProperty(
         "SubscribeChannelId", { artistQueries.subscribeChannelIdById(id) }, { subscribe_channel_id }, { artistQueries.updateSubscribeChannelIdById(it, id) }
     )
-    val Layouts: ListProperty<ArtistLayout, Long>
-        get() = property_rememberer.rememberListProperty(
+    val Layouts: ListPropertyImpl<ArtistLayout, Long>
+        get() = property_rememberer.rememberListQueryProperty(
         "Layouts",
         getValue = {
             this.map { layout_index ->
@@ -79,11 +79,11 @@ sealed interface Artist: MediaItem {
     )
 
     val SubscriberCount: Property<Int?>
-        get() = property_rememberer.rememberSingleProperty(
+        get() = property_rememberer.rememberSingleQueryProperty(
         "SubscriberCount", { artistQueries.subscriberCountById(id) }, { subscriber_count?.toInt() }, { artistQueries.updateSubscriberCountById(it?.toLong(), id) }
     )
     val IsForItem: Property<Boolean>
-        get() = property_rememberer.rememberSingleProperty(
+        get() = property_rememberer.rememberSingleQueryProperty(
         "IsForItem",
         { artistQueries.isForItemById(id) },
         { is_for_item.fromSQLBoolean() },
@@ -94,7 +94,7 @@ sealed interface Artist: MediaItem {
     // User properties
 
     val Subscribed: Property<Boolean?>
-        get() = property_rememberer.rememberSingleProperty(
+        get() = property_rememberer.rememberSingleQueryProperty(
         "Subscribed",
         { artistQueries.subscribedById(id) },
         { subscribed.fromNullableSQLBoolean() },

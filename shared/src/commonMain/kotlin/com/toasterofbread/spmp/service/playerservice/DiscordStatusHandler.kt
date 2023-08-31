@@ -78,10 +78,10 @@ internal class DiscordStatusHandler(val player: PlayerService, val context: Plat
                         .replace("\$song", song_title)
                 }
 
-                val name = formatText(com.toasterofbread.spmp.model.Settings.KEY_DISCORD_STATUS_NAME.get())
-                val text_a = formatText(com.toasterofbread.spmp.model.Settings.KEY_DISCORD_STATUS_TEXT_A.get())
-                val text_b = formatText(com.toasterofbread.spmp.model.Settings.KEY_DISCORD_STATUS_TEXT_B.get())
-                val text_c = formatText(com.toasterofbread.spmp.model.Settings.KEY_DISCORD_STATUS_TEXT_C.get())
+                val name = formatText(Settings.KEY_DISCORD_STATUS_NAME.get())
+                val text_a = formatText(Settings.KEY_DISCORD_STATUS_TEXT_A.get())
+                val text_b = formatText(Settings.KEY_DISCORD_STATUS_TEXT_B.get())
+                val text_c = formatText(Settings.KEY_DISCORD_STATUS_TEXT_C.get())
 
                 val large_image: String?
                 val small_image: String?
@@ -110,11 +110,11 @@ internal class DiscordStatusHandler(val player: PlayerService, val context: Plat
                 }
 
                 val buttons = mutableListOf<Pair<String, String>>().apply {
-                    if (com.toasterofbread.spmp.model.Settings.KEY_DISCORD_SHOW_BUTTON_SONG.get()) {
-                        add(com.toasterofbread.spmp.model.Settings.KEY_DISCORD_BUTTON_SONG_TEXT.get<String>() to status_song.getURL())
+                    if (Settings.KEY_DISCORD_SHOW_BUTTON_SONG.get()) {
+                        add(Settings.KEY_DISCORD_BUTTON_SONG_TEXT.get<String>() to status_song.getURL(context))
                     }
-                    if (com.toasterofbread.spmp.model.Settings.KEY_DISCORD_SHOW_BUTTON_PROJECT.get()) {
-                        add(com.toasterofbread.spmp.model.Settings.KEY_DISCORD_BUTTON_PROJECT_TEXT.get<String>() to getString("project_url"))
+                    if (Settings.KEY_DISCORD_SHOW_BUTTON_PROJECT.get()) {
+                        add(Settings.KEY_DISCORD_BUTTON_PROJECT_TEXT.get<String>() to getString("project_url"))
                     }
                 }
 

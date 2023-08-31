@@ -1,12 +1,12 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic
 
-import com.toasterofbread.spmp.model.mediaitem.AccountPlaylistRef
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.PlaylistData
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
@@ -23,7 +23,6 @@ import com.toasterofbread.spmp.youtubeapi.radio.YoutubeiNextResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Response
-import java.io.Closeable
 import java.io.InputStream
 
 class InvalidRadioException: Throwable()
@@ -82,7 +81,7 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
             )
 
             // Skip unneeded information for radios
-            if (item is PlaylistData && item.playlist_type == PlaylistType.RADIO) {
+            if (item is RemotePlaylistData && item.playlist_type == PlaylistType.RADIO) {
                 val playlist_shelf = parsed
                     .contents!!
                     .singleColumnBrowseResultsRenderer!!
@@ -130,14 +129,14 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                             }
                         }
 
-                        if (item is PlaylistData) {
+                        if (item is RemotePlaylistData) {
                             item.year = subtitle.lastOrNull { last_run ->
                                 last_run.text.all { it.isDigit() }
                             }?.text?.toInt()
                         }
                     }
 
-                    if (item is PlaylistData) {
+                    if (item is RemotePlaylistData) {
                         header_renderer.secondSubtitle?.runs?.also { second_subtitle ->
                             for (run in second_subtitle.reversed().withIndex()) {
                                 when (run.index) {
@@ -184,7 +183,7 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                     val continuation_token =
                         row.value.musicPlaylistShelfRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation
 
-                    if (item is PlaylistData) {
+                    if (item is RemotePlaylistData) {
                         item.items = items_mapped.filterIsInstance<SongData>()
                         item.continuation = continuation_token?.let {
                             MediaItemLayout.Continuation(
@@ -218,7 +217,7 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                         layout.type = if (row.index == 0) MediaItemLayout.Type.NUMBERED_LIST else MediaItemLayout.Type.GRID
                         layout.view_more = view_more
                         layout.playlist = continuation_token?.let {
-                            AccountPlaylistRef(it)
+                            RemotePlaylistRef(it)
                         }
                     }
 

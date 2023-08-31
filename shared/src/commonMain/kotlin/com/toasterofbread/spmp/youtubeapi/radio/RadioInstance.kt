@@ -13,10 +13,12 @@ import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
-import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.spmp.model.mediaitem.isMediaItemHidden
+import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
+import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
@@ -297,7 +299,7 @@ class RadioInstance(
                 )
             }
             is Artist -> TODO()
-            is Playlist -> {
+            is RemotePlaylist -> {
                 val (items, continuation) = context.database.transactionWithResult {
                     Pair(item.Items.get(context.database), item.Continuation.get(context.database))
                 }
@@ -310,6 +312,13 @@ class RadioInstance(
                 state.continuation = continuation
 
                 return Result.success(items)
+            }
+            is LocalPlaylist -> {
+                val data: LocalPlaylistData = item.loadData(context).fold(
+                    { it },
+                    { return Result.failure(it) }
+                )
+                return Result.success(data.items ?: emptyList())
             }
 //            is MediaItemWithLayouts -> {
 //                val feed_layouts = item.getFeedLayouts().fold(

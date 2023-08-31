@@ -11,12 +11,7 @@ CREATE TABLE MediaItem (
     thumb_url_b TEXT,
 
     theme_colour INTEGER,
-    pinned_to_home INTEGER,
     hidden INTEGER
-);
-
-anyArePinned: SELECT 1 FROM MediaItem WHERE EXISTS(
-   SELECT 1 FROM MediaItem WHERE pinned_to_home == :pinned
 );
 
 loadedById: SELECT loaded FROM MediaItem WHERE id == :id;
@@ -36,9 +31,6 @@ updateThumbnailProviderById: UPDATE MediaItem SET thumb_url_a = :url_a, thumb_ur
 
 themeColourById: SELECT theme_colour FROM MediaItem WHERE id == :id;
 updateThemeColourById: UPDATE MediaItem SET theme_colour = :theme_colour WHERE id == :id;
-
-pinnedToHomeById: SELECT pinned_to_home FROM MediaItem WHERE id == :id;
-updatePinnedToHomeById: UPDATE MediaItem SET pinned_to_home = :pinned_to_home WHERE id == :id;
 
 isHiddenById: SELECT hidden FROM MediaItem WHERE id == :id;
 updateIsHiddenById: UPDATE MediaItem SET hidden = :hidden WHERE id == :id;

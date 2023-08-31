@@ -25,6 +25,8 @@ import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
@@ -165,11 +167,11 @@ data class MediaItemLayout(
         override fun execute(player: PlayerState, title: LocalisedYoutubeString?) {
             if (browse_params != null) {
                 player.openMediaItem(
-                    PlaylistData(
-                        list_page_browse_id,
-                        browse_params = browse_params
+                    RemotePlaylistData(
+                        list_page_browse_id
                     ).also { playlist ->
                         playlist.title = title?.getString() ?: ""
+                        playlist.browse_params = browse_params
                     },
                 )
             }
@@ -267,7 +269,7 @@ fun MediaItemCard(
         when (item) {
             is Song -> getSongLongPressMenuData(item, shape, multiselect_context = multiselect_context)
             is Artist -> getArtistLongPressMenuData(item, multiselect_context = multiselect_context)
-            is Playlist -> getPlaylistLongPressMenuData(item, shape, multiselect_context = multiselect_context)
+            is RemotePlaylist -> getPlaylistLongPressMenuData(item, shape, multiselect_context = multiselect_context)
             else -> throw NotImplementedError(item.javaClass.name)
         }
     }
@@ -294,11 +296,11 @@ fun MediaItemCard(
             layout.TitleBar(Modifier.fillMaxWidth().weight(1f), multiselect_context = multiselect_context)
 
             val item_playlist_type: State<PlaylistType?>? =
-                if (item is Playlist) item.TypeOfPlaylist.observe(SpMp.context.database)
+                if (item is RemotePlaylist) item.TypeOfPlaylist.observe(SpMp.context.database)
                 else null
 
             Text(
-                if (item is Playlist) item_playlist_type?.value.getReadable(false)
+                if (item is RemotePlaylist) item_playlist_type?.value.getReadable(false)
                 else item.getType().getReadable(false),
                 fontSize = 15.sp
             )
@@ -307,7 +309,7 @@ fun MediaItemCard(
                 when (item) {
                     is Song -> Icons.Filled.MusicNote
                     is Artist -> Icons.Filled.Person
-                    is Playlist -> {
+                    is RemotePlaylist -> {
                         when (item_playlist_type?.value) {
                             PlaylistType.PLAYLIST, PlaylistType.LOCAL, null -> Icons.Filled.PlaylistPlay
                             PlaylistType.ALBUM -> Icons.Filled.Album
@@ -381,7 +383,7 @@ fun MediaItemCard(
                 Text(getString(when (item.getType()) {
                     MediaItemType.SONG -> "media_play"
                     MediaItemType.ARTIST -> "artist_chip_play"
-                    MediaItemType.PLAYLIST_ACC, MediaItemType.PLAYLIST_LOC -> "playlist_chip_play"
+                    MediaItemType.PLAYLIST_REM, MediaItemType.PLAYLIST_LOC -> "playlist_chip_play"
                 }))
             }
         }

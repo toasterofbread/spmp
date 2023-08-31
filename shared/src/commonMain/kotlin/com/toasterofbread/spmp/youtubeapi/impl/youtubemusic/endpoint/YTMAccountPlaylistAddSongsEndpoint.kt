@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 
-import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.youtubeapi.endpoint.AccountPlaylistAddSongsEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.unit
@@ -9,7 +9,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.Request
 
 class YTMAccountPlaylistAddSongsEndpoint(override val auth: YoutubeMusicAuthInfo): AccountPlaylistAddSongsEndpoint() {
-    override suspend fun addSongs(playlist: Playlist, song_ids: Collection<String>): Result<Unit> {
+    override suspend fun addSongs(playlist: RemotePlaylist, song_ids: Collection<String>): Result<Unit> {
         if (song_ids.isEmpty()) {
             return Result.success(Unit)
         }
@@ -27,7 +27,7 @@ class YTMAccountPlaylistAddSongsEndpoint(override val auth: YoutubeMusicAuthInfo
             .addAuthApiHeaders()
             .postWithBody(
                 mapOf(
-                    "playlistId" to Playlist.formatYoutubeId(playlist.id),
+                    "playlistId" to RemotePlaylist.formatYoutubeId(playlist.id),
                     "actions" to actions
                 )
             )

@@ -3,7 +3,7 @@
 package com.toasterofbread.spmp.youtubeapi.radio
 
 import com.toasterofbread.spmp.model.mediaitem.ArtistData
-import com.toasterofbread.spmp.model.mediaitem.PlaylistData
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.db.loadMediaItemValue
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
@@ -102,7 +102,7 @@ data class YoutubeiNextResponse(
 
                 if (artist == null) {
                     val artist_load_result = context.loadMediaItemValue(
-                        PlaylistData(playlist_id),
+                        RemotePlaylistData(playlist_id),
                         { artist }
                     )
 

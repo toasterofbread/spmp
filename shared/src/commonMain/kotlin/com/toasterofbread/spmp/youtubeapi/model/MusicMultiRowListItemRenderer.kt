@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.youtubeapi.model
 
 import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
-import com.toasterofbread.spmp.model.mediaitem.PlaylistData
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
@@ -45,11 +45,11 @@ class MusicMultiRowListItemRenderer(
                 song.song_type = SongType.PODCAST
             }
 
-            var podcast_data: PlaylistData? = null
+            var podcast_data: RemotePlaylistData? = null
 
             val podcast_text = secondTitle?.runs?.firstOrNull()
             if (podcast_text != null) {
-                podcast_data = PlaylistData(
+                podcast_data = RemotePlaylistData(
                     podcast_text.navigationEndpoint!!.browseEndpoint!!.browseId
                 ).also { data ->
                     data.title = podcast_text.text
@@ -59,7 +59,7 @@ class MusicMultiRowListItemRenderer(
                 for (item in menu.menuRenderer.items) {
                     val browse_endpoint = item.menuNavigationItemRenderer?.navigationEndpoint?.browseEndpoint ?: continue
                     if (browse_endpoint.getPageType() == "MUSIC_PAGE_TYPE_PODCAST_SHOW_DETAIL_PAGE") {
-                        podcast_data = PlaylistData(
+                        podcast_data = RemotePlaylistData(
                             browse_endpoint.browseId
                         )
                         break

@@ -3,11 +3,11 @@ package com.toasterofbread.spmp.model.mediaitem.artist
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import com.toasterofbread.Database
-import com.toasterofbread.spmp.model.mediaitem.AccountPlaylistRef
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
-import com.toasterofbread.spmp.model.mediaitem.Playlist
-import com.toasterofbread.spmp.model.mediaitem.db.ListProperty
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
+import com.toasterofbread.spmp.model.mediaitem.db.ListPropertyImpl
 import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.db.SingleProperty
 import com.toasterofbread.spmp.model.mediaitem.db.toLocalisedYoutubeString
@@ -26,7 +26,7 @@ data class ArtistLayoutData(
     var subtitle: LocalisedYoutubeString? = null,
     var type: MediaItemLayout.Type? = null,
     var view_more: MediaItemLayout.ViewMore? = null,
-    var playlist: Playlist? = null
+    var playlist: RemotePlaylist? = null
 ): ArtistLayout {
     fun saveToDatabase(db: Database) {
         db.transaction {
@@ -60,7 +60,7 @@ sealed interface ArtistLayout {
         val subtitle: LocalisedYoutubeString? by Subtitle.observe(db)
         val type: MediaItemLayout.Type? by Type.observe(db)
         val view_more: MediaItemLayout.ViewMore? by ViewMore.observe(db)
-        val playlist: Playlist? by Playlist.observe(db)
+        val playlist: RemotePlaylist? by Playlist.observe(db)
 
         return MediaItemLayout(
             items ?: emptyList(),
@@ -74,7 +74,7 @@ sealed interface ArtistLayout {
         )
     }
 
-    val Items get() = ListProperty(
+    val Items get() = ListPropertyImpl(
         getValue = {
             this.map { item ->
                 MediaItemType.values()[item.item_type.toInt()].referenceFromId(item.item_id)
@@ -123,10 +123,10 @@ sealed interface ArtistLayout {
             artistLayoutQueries.updateViewMoreByIndex(serialised?.first, serialised?.second, artist_id, layout_index!!)
         }
     )
-    val Playlist: Property<Playlist?>
+    val Playlist: Property<RemotePlaylist?>
         get() = SingleProperty(
         { artistLayoutQueries.playlistIdByIndex(artist_id, layout_index!!) },
-        { playlist_id?.let { AccountPlaylistRef(it) } },
+        { playlist_id?.let { RemotePlaylistRef(it) } },
         { artistLayoutQueries.updatePlaylistIdByIndex(it?.id, artist_id, layout_index!!) }
     )
 

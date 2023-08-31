@@ -7,15 +7,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import app.cash.sqldelight.Query
-import com.toasterofbread.spmp.model.mediaitem.AccountPlaylistRef
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.ArtistRef
-import com.toasterofbread.spmp.model.mediaitem.LocalPlaylistRef
+import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongRef
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.platform.PlatformContext
 import mediaitem.ArtistQueries
 import mediaitem.PlaylistQueries
@@ -74,5 +74,5 @@ fun PlaylistQueries.getByHidden(hidden: Boolean): List<Playlist> =
     byHidden(hidden.toSQLBoolean()).executeAsList().map { playlist ->
         val type = playlist.playlist_type?.let { PlaylistType.values()[it.toInt()] }
         if (type == PlaylistType.LOCAL) LocalPlaylistRef(playlist.id)
-        else AccountPlaylistRef(playlist.id)
+        else RemotePlaylistRef(playlist.id)
     }

@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.PlaylistData
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.platform.PlatformContext
@@ -80,12 +80,14 @@ class YTMRadioBuilderEndpoint(override val api: YoutubeMusicApi): RadioBuilderEn
         return radio_token
     }
 
-    override suspend fun getBuiltRadio(radio_token: String, context: PlatformContext): Result<PlaylistData?> {
+    override suspend fun getBuiltRadio(radio_token: String, context: PlatformContext): Result<RemotePlaylistData?> {
         require(radio_token.startsWith("VLRDAT"))
         require(radio_token.contains('E'))
 
-        val playlist_result = MediaItemLoader.loadPlaylist(
-            PlaylistData(radio_token, playlist_type = PlaylistType.RADIO),
+        val playlist_result = MediaItemLoader.loadRemotePlaylist(
+            RemotePlaylistData(radio_token).apply {
+                playlist_type = PlaylistType.RADIO
+            },
             api.context
         )
         val playlist = playlist_result.getOrNull() ?: return playlist_result

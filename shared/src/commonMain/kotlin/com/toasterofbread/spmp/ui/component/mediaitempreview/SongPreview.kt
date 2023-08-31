@@ -48,8 +48,9 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MEDIA_ITEM_RELATED_CONTENT_ICON
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.createLocalPlaylist
 import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.toasterofbread.spmp.platform.composable.BackHandler

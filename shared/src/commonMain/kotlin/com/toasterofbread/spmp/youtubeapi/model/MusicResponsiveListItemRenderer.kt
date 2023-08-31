@@ -3,7 +3,7 @@ package com.toasterofbread.spmp.youtubeapi.model
 import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
-import com.toasterofbread.spmp.model.mediaitem.PlaylistData
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
@@ -25,7 +25,7 @@ data class MusicResponsiveListItemRenderer(
 
         var title: String? = null
         var artist: ArtistData? = null
-        var playlist: PlaylistData? = null
+        var playlist: RemotePlaylistData? = null
         var duration: Long? = null
 
         if (video_id == null) {
@@ -35,9 +35,9 @@ data class MusicResponsiveListItemRenderer(
                     MediaItemType.fromBrowseEndpointType(type)
                 }
             ) {
-                MediaItemType.PLAYLIST_ACC -> {
+                MediaItemType.PLAYLIST_REM -> {
                     video_is_main = false
-                    playlist = PlaylistData(navigationEndpoint!!.browseEndpoint!!.browseId).apply {
+                    playlist = RemotePlaylistData(navigationEndpoint!!.browseEndpoint!!.browseId).apply {
                         playlist_type = PlaylistType.fromBrowseEndpointType(page_type)
                     }
                 }

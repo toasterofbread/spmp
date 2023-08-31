@@ -16,15 +16,14 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import app.cash.sqldelight.Query
 import com.toasterofbread.Database
-import com.toasterofbread.spmp.model.mediaitem.db.ListProperty
 import com.toasterofbread.spmp.model.mediaitem.db.Property
-import com.toasterofbread.spmp.model.mediaitem.db.SingleProperty
 import com.toasterofbread.spmp.model.mediaitem.db.asMediaItemProperty
 import com.toasterofbread.spmp.model.mediaitem.db.fromSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.db.toSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.toImageBitmap
 import com.toasterofbread.spmp.youtubeapi.model.TextRun
@@ -35,39 +34,6 @@ import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType as PlaylistTyp
 
 val MEDIA_ITEM_RELATED_CONTENT_ICON: ImageVector get() = Icons.Default.GridView
 
-class PropertyRememberer {
-    private val properties: MutableMap<String, Property<*>> = mutableMapOf()
-    private val list_properties: MutableMap<String, ListProperty<*, *>> = mutableMapOf()
-
-    fun <T, Q: Any> rememberSingleProperty(
-        key: String,
-        getQuery: Database.() -> Query<Q>,
-        getValue: Q.() -> T,
-        setValue: Database.(T) -> Unit,
-        getDefault: () -> T = { null as T }
-    ): Property<T> {
-        return properties.getOrPut(key) {
-            SingleProperty(getQuery, getValue, setValue, getDefault)
-        } as Property<T>
-    }
-
-    fun <T, Q: Any> rememberListProperty(
-        key: String,
-        getQuery: Database.() -> Query<Q>,
-        getValue: List<Q>.() -> List<T>,
-        getSize: Database.() -> Long,
-        addItem: Database.(item: T, index: Long) -> Unit,
-        removeItem: Database.(index: Long) -> Unit,
-        setItemIndex: Database.(from: Long, to: Long) -> Unit,
-        clearItems: Database.(from_index: Long) -> Unit,
-        prerequisite: Property<Boolean>? = null
-    ): ListProperty<T, Q> {
-        return list_properties.getOrPut(key) {
-            ListProperty(getQuery, getValue, getSize, addItem, removeItem, setItemIndex, clearItems, prerequisite)
-        } as ListProperty<T, Q>
-    }
-}
-
 sealed interface MediaItem: MediaItemHolder {
     val id: String
     override val item: MediaItem get() = this
@@ -75,7 +41,7 @@ sealed interface MediaItem: MediaItemHolder {
     override fun toString(): String
     fun getHolder(): MediaItemHolder = this
     fun getType(): MediaItemType
-    fun getURL(): String
+    fun getURL(context: PlatformContext): String
 
     fun createDbEntry(db: Database)
     fun getEmptyData(): MediaItemData
@@ -95,7 +61,7 @@ sealed interface MediaItem: MediaItemHolder {
             populateData(data, context.database)
             return Result.success(data)
         }
-        return MediaItemLoader.loadUnknown(getEmptyData(), context)
+        return MediaItemLoader.loadUnknown(data, context)
     }
 
     suspend fun downloadThumbnailData(url: String): Result<ImageBitmap> = withContext(Dispatchers.IO) {
@@ -114,23 +80,23 @@ sealed interface MediaItem: MediaItemHolder {
     val property_rememberer: PropertyRememberer
 
     val Loaded: Property<Boolean>
-        get() = property_rememberer.rememberSingleProperty(
+        get() = property_rememberer.rememberSingleQueryProperty(
         "Loaded", { mediaItemQueries.loadedById(id) }, { loaded.fromSQLBoolean() }, { mediaItemQueries.updateLoadedById(it.toSQLBoolean(), id) }, { false }
     )
     val Title: Property<String?>
-        get() = property_rememberer.rememberSingleProperty(
+        get() = property_rememberer.rememberSingleQueryProperty(
         "Title", { mediaItemQueries.titleById(id) }, { title }, { mediaItemQueries.updateTitleById(it, id) }
     )
     val OriginalTitle: Property<String?>
-        get() = property_rememberer.rememberSingleProperty(
+        get() = property_rememberer.rememberSingleQueryProperty(
         "OriginalTitle", { mediaItemQueries.originalTitleById(id) }, { original_title }, { mediaItemQueries.updateOriginalTitleById(it, id) }
     )
     val Description: Property<String?>
-        get() = property_rememberer.rememberSingleProperty(
+        get() = property_rememberer.rememberSingleQueryProperty(
         "Description", { mediaItemQueries.descriptionById(id) }, { description }, { mediaItemQueries.updateDescriptionById(it, id) }
     )
     val ThumbnailProvider: Property<MediaItemThumbnailProvider?>
-        get() = property_rememberer.rememberSingleProperty(
+        get() = property_rememberer.rememberSingleQueryProperty(
         "ThumbnailProvider",
         { mediaItemQueries.thumbnailProviderById(id) },
         { this.toThumbnailProvider() },
@@ -141,15 +107,11 @@ sealed interface MediaItem: MediaItemHolder {
     )
 
     val ThemeColour: Property<Color?>
-        get() = property_rememberer.rememberSingleProperty(
+        get() = property_rememberer.rememberSingleQueryProperty(
         "ThemeColour", { mediaItemQueries.themeColourById(id) }, { theme_colour?.let { Color(it) } }, { mediaItemQueries.updateThemeColourById(it?.toArgb()?.toLong(), id) }
     )
-    val PinnedToHome: Property<Boolean>
-        get() = property_rememberer.rememberSingleProperty(
-        "PinnedToHome", { mediaItemQueries.pinnedToHomeById(id) }, { pinned_to_home.fromSQLBoolean() }, { mediaItemQueries.updatePinnedToHomeById(it.toSQLBoolean(), id) }, { false }
-    )
     val Hidden: Property<Boolean>
-        get() = property_rememberer.rememberSingleProperty(
+        get() = property_rememberer.rememberSingleQueryProperty(
         "Hidden", { mediaItemQueries.isHiddenById(id) }, { hidden.fromSQLBoolean() }, { mediaItemQueries.updateIsHiddenById(it.toSQLBoolean(), id) }, { false }
     )
 
@@ -196,17 +158,13 @@ sealed class MediaItemData: MediaItem {
     var description: String? = null
     var thumbnail_provider: MediaItemThumbnailProvider? = null
 
-    override val Loaded: Property<Boolean>
-        get() = loaded.asMediaItemProperty(super.Loaded) { loaded = it }
-    override val Title: Property<String?>
-        get() = title.asMediaItemProperty(super.Title) { title = it }
-    override val ThumbnailProvider: Property<MediaItemThumbnailProvider?>
-        get() = thumbnail_provider.asMediaItemProperty(super.ThumbnailProvider) { thumbnail_provider = it }
+    var theme_colour: Color? = null
+    var hidden: Boolean = false
 
     companion object {
         fun fromBrowseEndpointType(page_type: String, id: String): MediaItemData {
             val data = MediaItemType.fromBrowseEndpointType(page_type).referenceFromId(id).getEmptyData()
-            if (data is PlaylistData) {
+            if (data is RemotePlaylistData) {
                 data.playlist_type = PlaylistType.fromBrowseEndpointType(page_type)
             }
             return data
@@ -241,10 +199,10 @@ sealed class MediaItemData: MediaItem {
                     }
                     artist_found = true
                 }
-                MediaItemType.PLAYLIST_ACC -> {
+                MediaItemType.PLAYLIST_REM -> {
                     if (this is SongData) {
                         val playlist = run.navigationEndpoint?.browseEndpoint?.getMediaItem()
-                        if (playlist is PlaylistData) {
+                        if (playlist is RemotePlaylistData) {
                             assert(playlist.playlist_type == PlaylistTypeEnum.ALBUM, { "$playlist (${playlist.playlist_type}) | ${run.navigationEndpoint}" })
                             playlist.title = run.text
                             album = playlist

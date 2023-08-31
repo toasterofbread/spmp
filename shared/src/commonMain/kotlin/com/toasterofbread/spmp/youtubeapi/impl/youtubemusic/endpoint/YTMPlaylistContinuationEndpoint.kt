@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 
 import SpMp
-import com.toasterofbread.spmp.model.mediaitem.AccountPlaylistRef
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.youtubeapi.endpoint.PlaylistContinuationEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
@@ -17,7 +17,7 @@ class YTMPlaylistContinuationEndpoint(override val api: YoutubeMusicApi): Playli
         skip_initial: Int,
     ): Result<Pair<List<MediaItemData>, String?>> = withContext(Dispatchers.IO) {
         if (initial) {
-            val playlist = AccountPlaylistRef(token)
+            val playlist = RemotePlaylistRef(token)
             playlist.loadData(api.context, false).onFailure {
                 return@withContext Result.failure(it)
             }

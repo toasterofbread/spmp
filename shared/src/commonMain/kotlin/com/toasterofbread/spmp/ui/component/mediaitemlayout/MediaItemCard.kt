@@ -44,7 +44,7 @@ import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.db.rememberThemeColour
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
@@ -84,7 +84,7 @@ fun MediaItemCard(
         when (item) {
             is Song -> getSongLongPressMenuData(item, shape, multiselect_context = multiselect_context)
             is Artist -> getArtistLongPressMenuData(item, multiselect_context = multiselect_context)
-            is Playlist -> getPlaylistLongPressMenuData(item, shape, multiselect_context = multiselect_context)
+            is RemotePlaylist -> getPlaylistLongPressMenuData(item, shape, multiselect_context = multiselect_context)
             else -> throw NotImplementedError(item.javaClass.name)
         }
     }
@@ -111,11 +111,11 @@ fun MediaItemCard(
             layout.TitleBar(Modifier.fillMaxWidth().weight(1f), multiselect_context = multiselect_context)
 
             val playlist_type: State<PlaylistType?>? =
-                if (item is Playlist) item.TypeOfPlaylist.observe(SpMp.context.database)
+                if (item is RemotePlaylist) item.TypeOfPlaylist.observe(SpMp.context.database)
                 else null
 
             Text(
-                if (item is Playlist) playlist_type?.value.getReadable(false)
+                if (item is RemotePlaylist) playlist_type?.value.getReadable(false)
                 else item.getType().getReadable(false),
                 fontSize = 15.sp
             )
@@ -124,7 +124,7 @@ fun MediaItemCard(
                 when (item) {
                     is Song -> Icons.Filled.MusicNote
                     is Artist -> Icons.Filled.Person
-                    is Playlist -> {
+                    is RemotePlaylist -> {
                         when (playlist_type?.value) {
                             PlaylistType.PLAYLIST, PlaylistType.LOCAL, null -> Icons.Filled.PlaylistPlay
                             PlaylistType.ALBUM -> Icons.Filled.Album
@@ -201,7 +201,7 @@ fun MediaItemCard(
                         when (item.getType()) {
                             MediaItemType.SONG -> "media_play"
                             MediaItemType.ARTIST -> "artist_chip_play"
-                            MediaItemType.PLAYLIST_ACC, MediaItemType.PLAYLIST_LOC -> "playlist_chip_play"
+                            MediaItemType.PLAYLIST_REM, MediaItemType.PLAYLIST_LOC -> "playlist_chip_play"
                         }
                     )
                 )

@@ -3,7 +3,7 @@ package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic
 import SpMp
 import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
-import com.toasterofbread.spmp.model.mediaitem.PlaylistData
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
@@ -88,7 +88,7 @@ class SearchEndpointImpl(override val api: YoutubeMusicApi): SearchEndpoint() {
                     SearchFilter(when (item) {
                         is SongData -> if (item.song_type == SongType.VIDEO) SearchType.VIDEO else SearchType.SONG
                         is ArtistData -> SearchType.ARTIST
-                        is PlaylistData -> when (item.playlist_type) {
+                        is RemotePlaylistData -> when (item.playlist_type) {
                             PlaylistType.ALBUM -> SearchType.ALBUM
                             else -> SearchType.PLAYLIST
                         }

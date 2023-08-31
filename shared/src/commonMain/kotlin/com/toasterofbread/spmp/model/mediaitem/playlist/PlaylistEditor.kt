@@ -4,42 +4,41 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import com.toasterofbread.Database
-import com.toasterofbread.spmp.model.mediaitem.Playlist
-import com.toasterofbread.spmp.model.mediaitem.PlaylistData
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.SongData
+import com.toasterofbread.spmp.model.mediaitem.SongRef
+import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
+import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter.saveToFile
 import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.PlatformFile
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.utils.addUnique
 import com.toasterofbread.utils.lazyAssert
 
-abstract class PlaylistEditor(val playlist: Playlist, val context: PlatformContext) {
+abstract class PlaylistEditor(open val playlist: Playlist, val context: PlatformContext) {
+    protected sealed class Action
+    protected data class AddAction(val song_id: String, val index: Int?): Action()
+    protected data class RemoveAction(val index: Int): Action()
+    protected data class MoveAction(val from: Int, val to: Int): Action()
+
     private var deleted: Boolean = false
-    private val db: Database get() = context.database
+    private val pending_actions: MutableList<Action> = mutableListOf()
 
-    init {
-        lazyAssert(
-            { playlist.toString() }
-        ) {
-            playlist.isLocalPlaylist() || playlist.Loaded.get(db)
-        }
+    fun addItem(item: Song, index: Int? = null) {
+        pending_actions.add(AddAction(item.id, index))
     }
-
-    open fun addItem(item: Song, index: Int? = null) {
-        check(!deleted)
-        playlist.Items.addItem(item, index, db)
+    fun removeItem(index: Int) {
+        pending_actions.add(RemoveAction(index))
     }
-    open fun removeItem(index: Int) {
-        check(!deleted)
-        playlist.Items.removeItem(index, db)
-    }
-    open fun moveItem(from: Int, to: Int) {
-        check(!deleted)
-        playlist.Items.moveItem(from, to, db)
+    fun moveItem(from: Int, to: Int) {
+        pending_actions.add(MoveAction(from, to))
     }
 
-    open suspend fun applyItemChanges(): Result<Unit> {
-        check(!deleted)
-        return Result.success(Unit)
+    protected abstract suspend fun performAndCommitActions(actions: List<Action>): Result<Unit>
+
+    suspend fun applyItemChanges(): Result<Unit> {
+        return performAndCommitActions(pending_actions)
     }
 
     open suspend fun deletePlaylist(): Result<Unit> {
@@ -47,17 +46,14 @@ abstract class PlaylistEditor(val playlist: Playlist, val context: PlatformConte
 
         deleted = true
         PlaylistHolder.onPlaylistDeleted(playlist)
-        db.playlistQueries.removeById(playlist.id)
+        pending_actions.clear()
         return Result.success(Unit)
     }
 
     companion object {
         private val editable_playlists: MutableList<String> = mutableStateListOf()
 
-        fun setPlaylistEditable(playlist: Playlist, editable: Boolean) {
-            lazyAssert {
-                !playlist.isLocalPlaylist()
-            }
+        fun setPlaylistEditable(playlist: RemotePlaylist, editable: Boolean) {
             if (editable) {
                 editable_playlists.addUnique(playlist.id)
             }
@@ -66,18 +62,29 @@ abstract class PlaylistEditor(val playlist: Playlist, val context: PlatformConte
             }
         }
 
-        fun Playlist.getLocalPlaylistEditor(context: PlatformContext): PlaylistEditor {
-            lazyAssert { isPlaylistEditable() }
-            lazyAssert { isLocalPlaylist() }
+        fun LocalPlaylist.getLocalPlaylistEditor(context: PlatformContext): PlaylistEditor {
             return LocalPlaylistEditor(this, context)
+        }
+
+        fun Playlist.getEditorOrNull(context: PlatformContext): PlaylistEditor? {
+            if (this is LocalPlaylist) {
+                return LocalPlaylistEditor(this, context)
+            }
+            else if (editable_playlists.contains(id)) {
+                check(this is RemotePlaylist)
+                val auth = context.ytapi.user_auth_state
+                auth?.AccountPlaylistEditor?.getEditor(this)
+            }
+            return null
         }
 
         @Composable
         fun Playlist.rememberEditorOrNull(context: PlatformContext): PlaylistEditor? {
-            if (isLocalPlaylist()) {
+            if (this is LocalPlaylist) {
                 return remember { LocalPlaylistEditor(this, context) }
             }
             else if (editable_playlists.contains(id)) {
+                check(this is RemotePlaylist)
                 val auth = context.ytapi.user_auth_state
                 return remember(auth) {
                     if (auth != null) auth.AccountPlaylistEditor.getEditor(this)
@@ -88,12 +95,12 @@ abstract class PlaylistEditor(val playlist: Playlist, val context: PlatformConte
         }
 
         fun Playlist.isPlaylistEditable(): Boolean =
-            isLocalPlaylist() || editable_playlists.contains(id)
+            (this is LocalPlaylist) || editable_playlists.contains(id)
     }
 }
 
-class LocalPlaylistEditor(playlist: Playlist, context: PlatformContext): PlaylistEditor(playlist, context) {
-    suspend fun convertToAccountPlaylist(ytm_auth: YoutubeApi.UserAuthState): Result<PlaylistData> {
+class LocalPlaylistEditor(override val playlist: LocalPlaylist, context: PlatformContext): PlaylistEditor(playlist, context) {
+    suspend fun convertToAccountPlaylist(ytm_auth: YoutubeApi.UserAuthState): Result<RemotePlaylistData> {
         val create_endpoint = ytm_auth.CreateAccountPlaylist
         val add_endpoint = ytm_auth.AccountPlaylistAddSongs
 
@@ -112,7 +119,7 @@ class LocalPlaylistEditor(playlist: Playlist, context: PlatformContext): Playlis
             playlist_data.description.orEmpty()
         )
 
-        val account_playlist = PlaylistData(
+        val account_playlist = RemotePlaylistData(
             id = create_result.fold(
                 { if (!it.startsWith("VL")) "VL$it" else it },
                 { return Result.failure(it) }
@@ -152,5 +159,34 @@ class LocalPlaylistEditor(playlist: Playlist, context: PlatformContext): Playlis
         }
 
         return Result.success(account_playlist)
+    }
+
+    override suspend fun performAndCommitActions(actions: List<Action>): Result<Unit> {
+        val data: LocalPlaylistData = playlist.loadData(context).fold(
+            { it },
+            {
+                return Result.failure(it)
+            }
+        )
+        val items: MutableList<SongData> = (data.items ?: emptyList()).toMutableList()
+
+        for (action in actions) {
+            when (action) {
+                is AddAction -> {
+                    items.add(SongData(action.song_id))
+                }
+                is MoveAction -> {
+                    items.add(action.to, items.removeAt(action.from))
+                }
+                is RemoveAction -> {
+                    items.removeAt(action.index)
+                }
+            }
+        }
+
+        data.items = items
+
+        val file: PlatformFile = MediaItemLibrary.getLocalPlaylistFile(playlist, context)
+        return data.saveToFile(file, context)
     }
 }

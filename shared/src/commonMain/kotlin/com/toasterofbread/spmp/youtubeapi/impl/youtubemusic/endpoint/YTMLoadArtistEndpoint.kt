@@ -11,7 +11,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.Request
 
 class YTMLoadArtistEndpoint(override val api: YoutubeMusicApi): LoadArtistEndpoint() {
-    override suspend fun loadArtist(artist_data: ArtistData): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun loadArtist(artist_data: ArtistData): Result<ArtistData> = withContext(Dispatchers.IO) {
         val hl = SpMp.data_language
         val request: Request = Request.Builder()
             .endpointUrl("/youtubei/v1/browse")
@@ -33,9 +33,15 @@ class YTMLoadArtistEndpoint(override val api: YoutubeMusicApi): LoadArtistEndpoi
             }
         )
 
-        return@withContext result.onSuccess {
-            artist_data.loaded = true
-            artist_data.saveToDatabase(api.db)
-        }
+        return@withContext result.fold(
+            {
+                artist_data.loaded = true
+                artist_data.saveToDatabase(api.db)
+                Result.success(artist_data)
+            },
+            {
+                Result.failure(it)
+            }
+        )
     }
 }

@@ -1,8 +1,8 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 
 import SpMp
-import com.toasterofbread.spmp.model.mediaitem.Playlist
-import com.toasterofbread.spmp.model.mediaitem.PlaylistData
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.endpoint.AccountPlaylistsEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.CreateAccountPlaylistEndpoint
@@ -15,8 +15,8 @@ import kotlinx.coroutines.withContext
 import okhttp3.Request
 
 class YTMAccountPlaylistsEndpoint(override val auth: YoutubeMusicAuthInfo): AccountPlaylistsEndpoint() {
-    override suspend fun getAccountPlaylists(): Result<List<PlaylistData>> {
-        val result: Result<List<PlaylistData>> = withContext(Dispatchers.IO) {
+    override suspend fun getAccountPlaylists(): Result<List<RemotePlaylistData>> {
+        val result: Result<List<RemotePlaylistData>> = withContext(Dispatchers.IO) {
             val hl = SpMp.data_language
             val request = Request.Builder()
                 .endpointUrl("/youtubei/v1/browse")
@@ -42,14 +42,14 @@ class YTMAccountPlaylistsEndpoint(override val auth: YoutubeMusicAuthInfo): Acco
                 .gridRenderer!!
                 .items
 
-            val playlists: List<PlaylistData> = playlist_data.mapNotNull {
+            val playlists: List<RemotePlaylistData> = playlist_data.mapNotNull {
                 // Skip 'New playlist' item
                 if (it.musicTwoRowItemRenderer?.navigationEndpoint?.browseEndpoint == null) {
                     return@mapNotNull null
                 }
 
                 val item = it.toMediaItemData(hl)?.first
-                if (item !is PlaylistData) {
+                if (item !is RemotePlaylistData) {
                     return@mapNotNull null
                 }
 
@@ -107,7 +107,7 @@ class YTMDeleteAccountPlaylistEndpoint(override val auth: YoutubeMusicAuthInfo):
             .addAuthApiHeaders()
             .postWithBody(
                 mapOf(
-                    "playlistId" to Playlist.formatYoutubeId(playlist_id)
+                    "playlistId" to RemotePlaylist.formatYoutubeId(playlist_id)
                 )
             )
             .build()

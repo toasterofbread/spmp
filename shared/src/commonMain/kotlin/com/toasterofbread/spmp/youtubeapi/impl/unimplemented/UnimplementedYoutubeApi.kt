@@ -9,7 +9,7 @@ import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.PlaylistData
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.spmp.platform.PlatformContext
@@ -120,21 +120,21 @@ class UnimplementedYoutubeApi(
     }
     override val LoadSong = object : LoadSongEndpoint() {
         override fun isImplemented(): Boolean = false
-        override suspend fun loadSong(song_data: SongData): Result<Unit> {
+        override suspend fun loadSong(song_data: SongData): Result<SongData> {
             TODO("Not yet implemented")
         }
         override val api = this@UnimplementedYoutubeApi
     }
     override val LoadArtist = object : LoadArtistEndpoint() {
         override fun isImplemented(): Boolean = false
-        override suspend fun loadArtist(artist_data: ArtistData): Result<Unit> {
+        override suspend fun loadArtist(artist_data: ArtistData): Result<ArtistData> {
             TODO("Not yet implemented")
         }
         override val api = this@UnimplementedYoutubeApi
     }
     override val LoadPlaylist = object : LoadPlaylistEndpoint() {
     override fun isImplemented(): Boolean = false
-        override suspend fun loadPlaylist(playlist_data: PlaylistData, continuation: MediaItemLayout.Continuation?): Result<Unit> {
+        override suspend fun loadPlaylist(playlist_data: RemotePlaylistData, continuation: MediaItemLayout.Continuation?): Result<RemotePlaylistData> {
             TODO("Not yet implemented")
         }
         override val api = this@UnimplementedYoutubeApi
@@ -196,7 +196,7 @@ class UnimplementedYoutubeApi(
         override fun buildRadioToken(artists: Set<RadioBuilderArtist>, modifiers: Set<RadioBuilderModifier?>): String {
             TODO("Not yet implemented")
         }
-        override suspend fun getBuiltRadio(radio_token: String, context: PlatformContext): Result<PlaylistData?> {
+        override suspend fun getBuiltRadio(radio_token: String, context: PlatformContext): Result<RemotePlaylistData?> {
             TODO("Not yet implemented")
         }
         override val api = this@UnimplementedYoutubeApi

@@ -1,6 +1,9 @@
 package com.toasterofbread.spmp.model.mediaitem.library
 
 import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
+import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
+import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformFile
 
@@ -23,4 +26,7 @@ object MediaItemLibrary {
 
     fun getLocalPlaylistsDir(context: PlatformContext): PlatformFile =
         getLibraryDir(context).resolve("playlists")
+
+    fun getLocalPlaylistFile(playlist: LocalPlaylist, context: PlatformContext): PlatformFile =
+        getLocalPlaylistsDir(context).resolve(PlaylistFileConverter.getPlaylistFileName(playlist))
 }

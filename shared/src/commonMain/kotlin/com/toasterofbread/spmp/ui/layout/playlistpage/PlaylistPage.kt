@@ -33,11 +33,12 @@ import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortOption
-import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.isMediaItemHidden
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.loadDataOnChange
+import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.rememberEditorOrNull
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.platform.composable.SwipeRefresh
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
@@ -83,23 +84,25 @@ fun PlaylistPage(
         accent_colour = null
     }
 
-    val multiselect_context = remember { MediaItemMultiSelectContext() { context ->
-        if (playlist_editor == null) {
-            return@MediaItemMultiSelectContext
-        }
-
-        // Remove selected items from playlist
-        IconButton({ coroutine_scope.launch {
-            val selected_items = context.getSelectedItems().sortedByDescending { it.second!! }
-            for (item in selected_items) {
-                playlist_editor.removeItem(item.second!!)
-                context.setItemSelected(item.first, false, item.second)
+    val multiselect_context = remember {
+        MediaItemMultiSelectContext() { context ->
+            if (playlist_editor == null) {
+                return@MediaItemMultiSelectContext
             }
-            playlist_editor.applyItemChanges()
-        } }) {
-            Icon(Icons.Default.PlaylistRemove, null)
+
+            // Remove selected items from playlist
+            IconButton({ coroutine_scope.launch {
+                val selected_items = context.getSelectedItems().sortedByDescending { it.second!! }
+                for (item in selected_items) {
+                    playlist_editor.removeItem(item.second!!)
+                    context.setItemSelected(item.first, false, item.second)
+                }
+                playlist_editor.applyItemChanges()
+            } }) {
+                Icon(Icons.Default.PlaylistRemove, null)
+            }
         }
-    } }
+    }
 
     Column(Modifier.fillMaxSize()) {
         if (previous_item != null) {
@@ -148,7 +151,7 @@ fun PlaylistPage(
             }
         }
 
-        val items_above = 2
+        val items_above = 3
         val list_state = rememberReorderableLazyListState(
             onMove = { from, to ->
                 check(reorderable)
@@ -183,13 +186,17 @@ fun PlaylistPage(
             )
         )
 
+        val remote_playlist = if (playlist is RemotePlaylist) playlist else null
+
         SwipeRefresh(
-            state = refreshed && loading,
+            state = refreshed && loading && remote_playlist != null,
             onRefresh = {
-                refreshed = true
-                load_error = null
-                coroutine_scope.launch {
-                    MediaItemLoader.loadPlaylist(playlist.getEmptyData(), player.context)
+                remote_playlist?.also { remote ->
+                    refreshed = true
+                    load_error = null
+                    coroutine_scope.launch {
+                        MediaItemLoader.loadRemotePlaylist(remote.getEmptyData(), player.context)
+                    }
                 }
             },
             swipe_enabled = !loading,

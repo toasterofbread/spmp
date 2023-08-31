@@ -22,9 +22,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
+import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistDefaultThumbnail
+import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 
 @Composable
@@ -61,7 +62,14 @@ fun MediaItem.Thumbnail(
 
         loading = true
 
-        var thumbnail_provider = ThumbnailProvider.get(SpMp.context.database)
+        var thumbnail_provider: MediaItemThumbnailProvider?
+        if (this is Playlist) {
+            thumbnail_provider = CustomImageProvider.get(SpMp.context.database) ?: ThumbnailProvider.get(SpMp.context.database)
+        }
+        else {
+            thumbnail_provider = ThumbnailProvider.get(SpMp.context.database)
+        }
+
         if (thumbnail_provider == null) {
             loadData(SpMp.context)
             thumbnail_provider = ThumbnailProvider.get(SpMp.context.database)
@@ -94,7 +102,7 @@ fun MediaItem.Thumbnail(
         else if (state == true) {
             SubtleLoadingIndicator(modifier.fillMaxSize(), getColour = getContentColour)
         }
-        else if (this is Playlist && isLocalPlaylist()) {
+        else if (this is LocalPlaylist) {
             LocalPlaylistDefaultThumbnail(modifier)
         }
         else if (load_failed_icon != null) {

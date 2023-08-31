@@ -61,7 +61,20 @@ internal open class SingleProperty<T, Q: Any>(
     setValue
 )
 
-open class ListProperty<T, Q: Any>(
+interface ListProperty<T> {
+    fun get(db: Database): List<T>?
+
+    @Composable
+    fun observe(db: Database): State<List<T>?>
+
+    fun overwriteItems(items: List<T>, db: Database)
+
+    fun addItem(item: T, index: Int?, db: Database)
+    fun removeItem(index: Int, db: Database)
+    fun moveItem(from: Int, to: Int, db: Database)
+}
+
+open class ListPropertyImpl<T, Q: Any>(
     private val getQuery: Database.() -> Query<Q>,
     private val getValue: List<Q>.() -> List<T>,
     val getSize: Database.() -> Long,
@@ -70,8 +83,8 @@ open class ListProperty<T, Q: Any>(
     private val setItemIndex: Database.(from: Long, to: Long) -> Unit,
     val clearItems: Database.(from_index: Long) -> Unit,
     private val prerequisite: Property<Boolean>? = null
-) {
-    open fun get(db: Database): List<T>? {
+): ListProperty<T> {
+    override fun get(db: Database): List<T>? {
         if (prerequisite?.get(db) == false) {
             return null
         }
@@ -79,7 +92,7 @@ open class ListProperty<T, Q: Any>(
     }
 
     @Composable
-    open fun observe(db: Database): State<List<T>?> {
+    override fun observe(db: Database): State<List<T>?> {
         val value_state = getQuery(db).observeAsState(
             { getValue(it.executeAsList()) },
             null
@@ -96,7 +109,7 @@ open class ListProperty<T, Q: Any>(
         return value_state
     }
 
-    open fun overwriteItems(items: List<T>, db: Database) {
+    override fun overwriteItems(items: List<T>, db: Database) {
         with(db) { transaction {
             clearItems(0)
             for (item in items.withIndex()) {
@@ -105,7 +118,7 @@ open class ListProperty<T, Q: Any>(
         }}
     }
 
-    open fun addItem(item: T, index: Int?, db: Database) {
+    override fun addItem(item: T, index: Int?, db: Database) {
         if (index != null) {
             require(index >= 0)
         }
@@ -124,7 +137,7 @@ open class ListProperty<T, Q: Any>(
         }}
     }
 
-    open fun removeItem(index: Int, db: Database) {
+    override fun removeItem(index: Int, db: Database) {
         require(index >= 0)
 
         with(db) { db.transaction {
@@ -136,7 +149,7 @@ open class ListProperty<T, Q: Any>(
         }}
     }
 
-    open fun moveItem(from: Int, to: Int, db: Database) {
+    override fun moveItem(from: Int, to: Int, db: Database) {
         if (from == to) {
             return
         }

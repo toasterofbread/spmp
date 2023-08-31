@@ -19,7 +19,7 @@ enum class SearchType {
         return when (this) {
             SONG -> MediaItemType.SONG.getIcon()
             PLAYLIST -> MediaItemType.ARTIST.getIcon()
-            ARTIST -> MediaItemType.PLAYLIST_ACC.getIcon()
+            ARTIST -> MediaItemType.PLAYLIST_REM.getIcon()
             VIDEO -> Icons.Filled.PlayArrow
             ALBUM -> Icons.Filled.Album
         }

@@ -33,8 +33,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistEditor
+import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.rememberEditorOrNull
 import com.toasterofbread.spmp.model.mediaitem.toThumbnailProvider
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog

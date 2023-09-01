@@ -2,10 +2,15 @@
 
 ###
 <img align="left" width="140" src="../androidApp/src/main/ic_launcher-playstore.png">
-<a href="https://github.com/toasterofbread/spmp/releases"><img src="https://img.shields.io/github/v/release/toasterofbread/spmp?logo=github&style=for-the-badge" align="right"></a>
+
+<a href="https://github.com/toasterofbread/spmp/blob/main/LICENSE"><img src="https://img.shields.io/github/license/toasterofbread/spmp?style=for-the-badge&color=624c9a&label=ライセンス" align="right"></a>
+<a href="https://github.com/toasterofbread/spmp/commits/main"><img src="https://img.shields.io/github/commits-since/toasterofbread/spmp/latest?style=for-the-badge&color=624c9a&label=最新のリリースからのコミット" align="right"></a>
+<a href="https://github.com/toasterofbread/spmp/releases"><img src="https://img.shields.io/github/v/release/toasterofbread/spmp?logo=github&style=for-the-badge&color=624c9a&label=リリース" align="right"></a>
 
 # SpMp
 言語とメタデータのカスタマイズに特化した YouTube Music のアプリ。Jetpack ComposeとKotlinを使って主にAndroid向けに開発されています。
+
+<a href="https://discord.gg/B4uY4FkkJ3"><img src="https://img.shields.io/discord/1133321339495788625?style=for-the-badge&logo=discord&label=Discord&color=4f58d6"></a>
 
 <br>
 

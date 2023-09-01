@@ -3,9 +3,9 @@
 ###
 <img align="left" width="140" src="../androidApp/src/main/ic_launcher-playstore.png">
 
-<a href="https://github.com/toasterofbread/spmp/blob/main/LICENSE"><img src="https://img.shields.io/github/license/toasterofbread/spmp?style=for-the-badge&color=624c9a&label=ライセンス" align="right"></a>
-<a href="https://github.com/toasterofbread/spmp/commits/main"><img src="https://img.shields.io/github/commits-since/toasterofbread/spmp/latest?style=for-the-badge&color=624c9a&label=最新のリリースからのコミット" align="right"></a>
-<a href="https://github.com/toasterofbread/spmp/releases"><img src="https://img.shields.io/github/v/release/toasterofbread/spmp?logo=github&style=for-the-badge&color=624c9a&label=リリース" align="right"></a>
+<a href="https://github.com/toasterofbread/spmp/blob/main/LICENSE"><img src="https://img.shields.io/github/license/toasterofbread/spmp?style=for-the-badge&color=624c9a&label=%E3%83%A9%E3%82%A4%E3%82%BB%E3%83%B3%E3%82%B9" align="right"></a>
+<a href="https://github.com/toasterofbread/spmp/commits/main"><img src="https://img.shields.io/github/commits-since/toasterofbread/spmp/latest?style=for-the-badge&color=624c9a&label=%E6%9C%80%E6%96%B0%E3%81%AE%E3%83%AA%E3%83%AA%E3%83%BC%E3%82%B9%E3%81%8B%E3%82%89%E3%81%AE%E3%82%B3%E3%83%9F%E3%83%83%E3%83%88" align="right"></a>
+<a href="https://github.com/toasterofbread/spmp/releases"><img src="https://img.shields.io/github/v/release/toasterofbread/spmp?logo=github&style=for-the-badge&color=624c9a&label=%E3%83%AA%E3%83%AA%E3%83%BC%E3%82%B9" align="right"></a>
 
 # SpMp
 言語とメタデータのカスタマイズに特化した YouTube Music のアプリ。Jetpack ComposeとKotlinを使って主にAndroid向けに開発されています。

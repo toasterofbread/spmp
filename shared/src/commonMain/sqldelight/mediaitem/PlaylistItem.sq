@@ -22,6 +22,10 @@ removeItemAtIndex:
 DELETE FROM PlaylistItem
 WHERE playlist_id == :playlist_id AND item_index == :item_index;
 
+removeByPlaylistId:
+DELETE FROM PlaylistItem
+WHERE playlist_id == :playlist_id;
+
 updateItemIndex:
 UPDATE PlaylistItem SET item_index = :to WHERE item_index == :from AND playlist_id == :playlist_id;
 

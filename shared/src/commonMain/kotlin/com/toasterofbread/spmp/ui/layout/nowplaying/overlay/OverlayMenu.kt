@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.ui.layout.nowplaying.overlay
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
-import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.lyrics.LyricsOverlayMenu
 
 abstract class OverlayMenu {

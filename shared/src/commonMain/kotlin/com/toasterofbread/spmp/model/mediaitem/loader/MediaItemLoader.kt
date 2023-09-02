@@ -6,14 +6,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import com.toasterofbread.spmp.model.mediaitem.Artist
-import com.toasterofbread.spmp.model.mediaitem.ArtistData
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
-import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.SongData
+import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
@@ -130,6 +130,8 @@ internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
 fun MediaItem.loadDataOnChange(
     context: PlatformContext,
     load: Boolean = true,
+    force: Boolean = false,
+    onLoadSucceeded: ((MediaItemData) -> Unit)? = null,
     onLoadFailed: ((Throwable?) -> Unit)? = null,
 ): State<Boolean> {
     val loading_state = remember(this) {
@@ -146,12 +148,13 @@ fun MediaItem.loadDataOnChange(
             override fun onLoadFinished(key: String, value: MediaItemData) {
                 if (key == id) {
                     loading_state.value = false
+                    onLoadSucceeded?.invoke(value)
                 }
             }
             override fun onLoadFailed(key: String, error: Throwable) {
                 if (key == id) {
-                    onLoadFailed?.invoke(error)
                     loading_state.value = false
+                    onLoadFailed?.invoke(error)
                 }
             }
         }
@@ -166,7 +169,7 @@ fun MediaItem.loadDataOnChange(
     LaunchedEffect(this, load) {
         if (load) {
             onLoadFailed?.invoke(null)
-            loadData(context)
+            loadData(context, force = force)
         }
     }
 

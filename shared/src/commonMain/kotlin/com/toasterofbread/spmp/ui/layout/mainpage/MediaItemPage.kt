@@ -6,11 +6,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
-import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
-import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
-import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.ui.layout.SongRelatedPage
@@ -24,12 +23,20 @@ data class MediaItemPage(private val holder: MediaItemHolder, private val browse
     override fun Page(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
         val player = LocalPlayerState.current
 
+        val horizontal_padding = player.getDefaultHorizontalPadding()
+        val content_padding = PaddingValues(
+            top = player.context.getStatusBarHeight(),
+            bottom = bottom_padding,
+            start = horizontal_padding,
+            end = horizontal_padding
+        )
+
         when (val item = holder.item) {
             null -> close()
             is Playlist -> PlaylistPage(
                 item,
                 previous_item?.item,
-                PaddingValues(top = player.context.getStatusBarHeight(), bottom = bottom_padding),
+                content_padding,
                 close
             )
             is Artist -> ArtistPage(
@@ -46,12 +53,7 @@ data class MediaItemPage(private val holder: MediaItemHolder, private val browse
                 player.context.ytapi.SongRelatedContent,
                 Modifier.fillMaxSize(),
                 previous_item?.item,
-                PaddingValues(
-                    top = player.context.getStatusBarHeight(),
-                    bottom = bottom_padding,
-                    start = player.getDefaultHorizontalPadding(),
-                    end = player.getDefaultHorizontalPadding()
-                ),
+                content_padding,
                 close = close
             )
             else -> throw NotImplementedError(item::class.toString())

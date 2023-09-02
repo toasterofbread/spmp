@@ -1,13 +1,13 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic
 
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
-import com.toasterofbread.spmp.model.mediaitem.Artist
-import com.toasterofbread.spmp.model.mediaitem.ArtistData
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
-import com.toasterofbread.spmp.model.mediaitem.SongData
+import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
@@ -18,6 +18,8 @@ import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeSubscribersS
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.getStream
+import com.toasterofbread.spmp.youtubeapi.model.Header
+import com.toasterofbread.spmp.youtubeapi.model.HeaderRenderer
 import com.toasterofbread.spmp.youtubeapi.model.YoutubeiBrowseResponse
 import com.toasterofbread.spmp.youtubeapi.radio.YoutubeiNextResponse
 import kotlinx.coroutines.Dispatchers
@@ -111,7 +113,7 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                 }
             }
             else {
-                val header_renderer = parsed.header?.getRenderer()
+                val header_renderer: HeaderRenderer? = parsed.header?.getRenderer()
                 if (header_renderer != null) {
                     item.title = header_renderer.title!!.first_text
                     item.description = header_renderer.description?.first_text
@@ -155,6 +157,16 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                     }
                 }
 
+                val own_channel: Artist? = api.user_auth_state?.own_channel
+                if (item is RemotePlaylistData && own_channel != null) {
+                    val menu_buttons: List<Header.TopLevelButton>? =
+                        parsed.header?.musicDetailHeaderRenderer?.menu?.menuRenderer?.topLevelButtons
+
+                    if (menu_buttons?.any { it.buttonRenderer?.icon?.iconType == "EDIT" } == true) {
+                        item.owner = own_channel
+                    }
+                }
+
                 val section_list_renderer = with (parsed.contents!!) {
                     if (singleColumnBrowseResultsRenderer != null) {
                         singleColumnBrowseResultsRenderer.tabs.firstOrNull()?.tabRenderer?.content?.sectionListRenderer
@@ -192,6 +204,12 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                             )
                         }
                         item.item_set_ids = if (items.all { it.second != null }) items.map { it.second!! } else null
+
+                        // Playlists's don't display indices
+                        if (row.value.musicShelfRenderer?.contents?.firstOrNull()?.musicResponsiveListItemRenderer?.index != null) {
+                            item.playlist_type = PlaylistType.ALBUM
+                        }
+
                         break
                     }
 

@@ -16,8 +16,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
-import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.service.playerservice.PlayerService
@@ -223,7 +224,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
             playMediaItem(item)
         }
         else {
-            openMediaItem(item,)
+            openMediaItem(item)
         }
     }
     override fun onMediaItemLongClicked(item: MediaItem, long_press_data: LongPressMenuData?) {

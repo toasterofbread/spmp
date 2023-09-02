@@ -6,8 +6,9 @@ import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
+    kotlin("multiplatform")
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.compose")
 }
 
 val strings_file = rootProject.file("shared/src/commonMain/resources/assets/values/strings.xml")
@@ -44,7 +45,19 @@ fun getString(key: String): String {
     throw NoSuchElementException(key)
 }
 
+kotlin {
+    androidTarget()
+    sourceSets {
+        val androidMain by getting {
+            dependencies {
+                implementation(project(":shared"))
+            }
+        }
+    }
+}
+
 android {
+    compileSdk = (findProperty("android.compileSdk") as String).toInt()
     namespace = "com.toasterofbread.spmp"
 
     signingConfigs {
@@ -55,8 +68,6 @@ android {
             keyPassword = keystore_props["keyPassword"] as String
         }
     }
-
-    compileSdk = (findProperty("android.compileSdk") as String).toInt()
 
     defaultConfig {
         versionCode = 5
@@ -98,12 +109,14 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+    kotlin {
+        jvmToolchain {
+            version = "17"
+        }
     }
 
     buildFeatures {
@@ -111,7 +124,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.3.0"
+        kotlinCompilerExtensionVersion = "1.5.2"
     }
 
     packagingOptions {
@@ -135,6 +148,9 @@ android {
             assets.srcDirs("src/main/assets")
             dependencies {
                 implementation(project(":shared"))
+            }
+            manifest {
+                srcFile("src/main/AndroidManifest.xml")
             }
         }
     }

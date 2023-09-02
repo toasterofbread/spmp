@@ -7,28 +7,32 @@ fun getYoutubeArtistPageLocalisations(languages: UILanguages): YoutubeUILocalisa
         YoutubeUILocalisation.LocalisationSet().apply {
             add(
                 en to "Songs",
-                ja to "曲"
+                ja to "曲",
+                id = YoutubeUILocalisation.StringID.ARTIST_ROW_OTHER
             )
             add(
                 en to "Albums",
-                ja to "アルバム"
+                ja to "アルバム",
+                id = YoutubeUILocalisation.StringID.ARTIST_ROW_OTHER
             )
             add(
                 en to "Videos",
-                ja to "動画"
+                id = YoutubeUILocalisation.StringID.ARTIST_ROW_OTHER
             )
             add(
                 en to "Singles",
                 ja to "シングル",
-                id = YoutubeUILocalisation.StringID.ARTIST_PAGE_SINGLES
+                id = YoutubeUILocalisation.StringID.ARTIST_ROW_SINGLES
             )
             add(
                 en to "Playlists",
-                ja to "プレイリスト"
+                ja to "プレイリスト",
+                id = YoutubeUILocalisation.StringID.ARTIST_ROW_OTHER
             )
             add(
                 en to "From your library",
-                ja to "ライブラリから"
+                ja to "ライブラリから",
+                id = YoutubeUILocalisation.StringID.ARTIST_ROW_OTHER
             )
             add(
                 en to "Fans might also like",

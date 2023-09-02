@@ -30,11 +30,14 @@ import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.loadDataOnChange
-import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
+import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
+import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistData
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.composable.SwipeRefresh
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
@@ -393,24 +396,32 @@ fun ArtistPage(
                             ) {
                                 for (artist_layout in item_layouts ?: emptyList()) {
                                     val layout = artist_layout.rememberMediaItemLayout(db)
+                                    val layout_id = layout.title?.getID()
+
                                     val is_singles =
                                         Settings.KEY_TREAT_SINGLES_AS_SONG.get()
-                                        && layout.title?.getID() == YoutubeUILocalisation.StringID.ARTIST_PAGE_SINGLES
+                                        && layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_SINGLES
+
+                                    val is_artist_row: Boolean =
+                                        layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_SINGLES || layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_OTHER
 
                                     CompositionLocalProvider(LocalPlayerState provides remember {
-                                        if (!is_singles) player
-                                        else player.copy(
+                                        player.copy(
                                             onClickedOverride = { item, multiselect_key ->
-                                                if (item is RemotePlaylist) {
+                                                if (is_singles && item is Playlist) {
                                                     onSinglePlaylistClicked(item, player)
-                                                } else {
-                                                    player.onMediaItemClicked(item, multiselect_key)
+                                                }
+                                                else if (item !is Song) {
+                                                    player.openMediaItem(item, is_artist_row)
+                                                }
+                                                else {
+                                                    player.playMediaItem(item)
                                                 }
                                             },
                                             onLongClickedOverride = { item, long_press_data ->
                                                 player.onMediaItemLongClicked(
                                                     item,
-                                                    if (item is RemotePlaylist)
+                                                    if (is_singles && item is Playlist)
                                                         long_press_data?.copy(playlist_as_song = true)
                                                             ?: LongPressMenuData(item, playlist_as_song = true)
                                                     else long_press_data
@@ -447,10 +458,10 @@ fun ArtistPage(
 }
 
 @OptIn(DelicateCoroutinesApi::class)
-private fun onSinglePlaylistClicked(playlist: RemotePlaylist, player: PlayerState) {
+private fun onSinglePlaylistClicked(playlist: Playlist, player: PlayerState) {
     GlobalScope.launch {
         playlist.loadData(player.context).onSuccess { data ->
-            data.items?.firstOrNull()?.also { first_item ->
+            (data as PlaylistData).items?.firstOrNull()?.also { first_item ->
                 withContext(Dispatchers.Main) {
                     player.onMediaItemClicked(first_item)
                 }

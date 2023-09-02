@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.model.mediaitem.song
 
-import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 import com.toasterofbread.spmp.youtubeapi.endpoint.SetSongLikedEndpoint

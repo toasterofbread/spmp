@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic
 
-import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.YTAccountMenuResponse
 import com.toasterofbread.spmp.youtubeapi.endpoint.UserAuthStateEndpoint
 import kotlinx.coroutines.Dispatchers

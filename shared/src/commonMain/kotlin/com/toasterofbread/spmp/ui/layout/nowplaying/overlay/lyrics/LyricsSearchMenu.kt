@@ -50,7 +50,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.LargeDropdownMenu
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
@@ -85,9 +85,11 @@ fun LyricsSearchMenu(
     val load_lock = remember { Object() }
     var loading by remember { mutableStateOf(false) }
 
-    val text_field_colours = TextFieldDefaults.textFieldColors(
-        containerColor = accent.setAlpha(0.75f),
-        textColor = on_accent,
+    val text_field_colours = TextFieldDefaults.colors(
+        focusedContainerColor = accent.setAlpha(0.75f),
+        unfocusedContainerColor = accent.setAlpha(0.75f),
+        focusedTextColor = on_accent,
+        unfocusedTextColor = on_accent,
         focusedLabelColor = on_accent,
         unfocusedLabelColor = on_accent,
         focusedTrailingIconColor = on_accent,

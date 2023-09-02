@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.youtubeapi.model
 
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
-import com.toasterofbread.spmp.model.mediaitem.SongData
+import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.youtubeapi.radio.YoutubeiNextResponse
 
 data class MusicCarouselShelfRenderer(

@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.SongLyrics
-import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NOW_PLAYING_MAIN_PADDING
 import com.toasterofbread.utils.AnnotatedReadingTerm

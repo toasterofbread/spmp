@@ -40,7 +40,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.getMediaNotificationImageMaxOffset
 import com.toasterofbread.spmp.platform.getMediaNotificationImageSize
 import com.toasterofbread.spmp.resources.getString

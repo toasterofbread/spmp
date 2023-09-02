@@ -1,10 +1,10 @@
 package com.toasterofbread.spmp.youtubeapi.model
 
-import com.toasterofbread.spmp.model.mediaitem.ArtistData
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
-import com.toasterofbread.spmp.model.mediaitem.SongData
+import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
@@ -17,7 +17,8 @@ data class MusicResponsiveListItemRenderer(
     val fixedColumns: List<FixedColumn>? = null,
     val thumbnail: ThumbnailRenderer? = null,
     val navigationEndpoint: NavigationEndpoint? = null,
-    val menu: YoutubeiNextResponse.Menu? = null
+    val menu: YoutubeiNextResponse.Menu? = null,
+    val index: TextRuns? = null
 ) { 
     fun toMediaItemAndPlaylistSetVideoId(hl: String): Pair<MediaItemData, String?>? {
         var video_id: String? = playlistItemData?.videoId ?: navigationEndpoint?.watchEndpoint?.videoId

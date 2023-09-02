@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic
 
 import SpMp
 import com.beust.klaxon.JsonObject
-import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.getStream
 import kotlinx.coroutines.Dispatchers

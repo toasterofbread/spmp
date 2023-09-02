@@ -1,4 +1,3 @@
-@file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 package com.toasterofbread.spmp.ui.layout.nowplaying.queue
 
 import LocalPlayerState
@@ -12,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.RepeatOne
 import androidx.compose.material3.Icon
-import androidx.compose.material3.minimumTouchTargetSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -32,7 +30,6 @@ fun RepeatButton(getBackgroundColour: () -> Color, modifier: Modifier = Modifier
     val player = LocalPlayerState.current
     Box(
         modifier = modifier
-            .minimumTouchTargetSize()
             .aspectRatio(1f)
             .background(CircleShape, getBackgroundColour)
             .clickable(

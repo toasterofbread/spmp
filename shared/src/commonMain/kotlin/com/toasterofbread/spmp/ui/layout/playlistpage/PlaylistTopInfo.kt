@@ -58,7 +58,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
-import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
@@ -80,8 +79,8 @@ internal fun PlaylistTopInfo(
     val shape = RoundedCornerShape(10.dp)
     val min_height = 120.dp
 
-    var playlist_image_width: Float? by playlist.ImageWidth.observe(db)
     var playlist_title: String? by playlist.Title.observe(db)
+    var playlist_image_width: Float? by playlist.ImageWidth.observe(db)
 
     var edited_title: String by remember { mutableStateOf("") }
 

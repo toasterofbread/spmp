@@ -81,8 +81,8 @@ val buildConfigRelease = tasks.register("buildConfigRelease", GenerateBuildConfi
 
 tasks.all {
     when (name) {
-        "generateDebugBuildConfig" -> dependsOn(buildConfigDebug)
-        "generateReleaseBuildConfig" -> dependsOn(buildConfigRelease)
+        "preDebugBuild" -> dependsOn(buildConfigDebug)
+        "preReleaseBuild" -> dependsOn(buildConfigRelease)
     }
 }
 
@@ -173,12 +173,15 @@ android {
         targetSdk = (findProperty("android.targetSdk") as String).toInt()
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.2"
     }
     kotlin {
         jvmToolchain {
-            version = "11"
+            version = "17"
         }
     }
     buildFeatures {

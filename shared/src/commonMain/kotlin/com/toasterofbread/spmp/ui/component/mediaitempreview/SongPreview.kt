@@ -45,13 +45,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.MEDIA_ITEM_RELATED_CONTENT_ICON
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
-import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
+import com.toasterofbread.spmp.model.mediaitem.library.createLocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
-import com.toasterofbread.spmp.model.mediaitem.playlist.createLocalPlaylist
 import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.resources.getString
@@ -143,7 +143,7 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
                     Button(
                         {
                             coroutine_scope.launch {
-                                val playlist = createLocalPlaylist(player.context).getOrReport("SongLongPressMenuActionsCreateLocalPlaylist")
+                                val playlist = MediaItemLibrary.createLocalPlaylist(player.context).getOrReport("SongLongPressMenuActionsCreateLocalPlaylist")
                                     ?: return@launch
                                 selected_playlists.add(playlist)
                             }
@@ -280,24 +280,14 @@ private fun ColumnScope.SongLongPressMenuInfo(song: Song, queue_index: Int?, get
             WidthShrinkText(text, fontSize = 15.sp)
         }
     }
-    @Composable
-    fun Item() {
-        Spacer(Modifier.height(25.dp))
-    }
 
     if (queue_index != null) {
         Item(Icons.Default.Radio, getString("lpm_action_radio_at_song_pos"))
-    }
-    else {
-        Item()
     }
 
     val player = LocalPlayerState.current
     if ((player.player?.active_queue_index ?: Int.MAX_VALUE) < player.status.m_song_count) {
         Item(Icons.Default.SubdirectoryArrowRight, getString("lpm_action_radio_after_x_songs"))
-    }
-    else {
-        Item()
     }
 
     Spacer(Modifier.fillMaxHeight().weight(1f))

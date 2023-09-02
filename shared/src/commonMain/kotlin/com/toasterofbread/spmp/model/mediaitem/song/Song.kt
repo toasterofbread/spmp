@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.model.mediaitem
+package com.toasterofbread.spmp.model.mediaitem.song
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -6,35 +6,24 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.IntOffset
 import com.toasterofbread.Database
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
+import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
-import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
-import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
-import com.toasterofbread.spmp.model.mediaitem.song.toLong
-import com.toasterofbread.spmp.model.mediaitem.song.toSongLikedStatus
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.crop
 import com.toasterofbread.spmp.platform.toImageBitmap
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.toLyricsReference
-import com.toasterofbread.utils.lazyAssert
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.URL
-
-class SongRef(override val id: String): Song {
-    override val creation: Throwable = Exception()
-    override fun toString(): String = "SongRef($id)"
-
-    override val property_rememberer: PropertyRememberer = PropertyRememberer()
-
-    init {
-        lazyAssert { id.isNotBlank() }
-    }
-}
 
 interface Song: MediaItem.WithArtist {
     override fun getType(): MediaItemType = MediaItemType.SONG
@@ -45,18 +34,19 @@ interface Song: MediaItem.WithArtist {
     }
     override fun getEmptyData(): SongData = SongData(id)
     override fun populateData(data: MediaItemData, db: Database) {
+        require(data is SongData)
+
         super.populateData(data, db)
-        (data as SongData).apply {
-            song_type = TypeOfSong.get(db)
-            duration = Duration.get(db)
-            album = Album.get(db)
-            related_browse_id = RelatedBrowseId.get(db)
-            lyrics_browse_id = LyricsBrowseId.get(db)
-        }
+
+        data.song_type = TypeOfSong.get(db)
+        data.duration = Duration.get(db)
+        data.album = Album.get(db)
+        data.related_browse_id = RelatedBrowseId.get(db)
+        data.lyrics_browse_id = LyricsBrowseId.get(db)
     }
 
-    override suspend fun loadData(context: PlatformContext, populate_data: Boolean): Result<SongData> {
-        return super.loadData(context, populate_data) as Result<SongData>
+    override suspend fun loadData(context: PlatformContext, populate_data: Boolean, force: Boolean): Result<SongData> {
+        return super.loadData(context, populate_data, force) as Result<SongData>
     }
 
     override suspend fun downloadThumbnailData(url: String): Result<ImageBitmap> = withContext(Dispatchers.IO) {
@@ -152,8 +142,6 @@ interface Song: MediaItem.WithArtist {
             override fun observe(db: Database): MutableState<MediaItemThumbnailProvider?> =
                 mutableStateOf(get(db))
         }
-
-    val creation: Throwable
 }
 
 private data class SongThumbnailProvider(val id: String): MediaItemThumbnailProvider {
@@ -162,48 +150,4 @@ private data class SongThumbnailProvider(val id: String): MediaItemThumbnailProv
             MediaItemThumbnailProvider.Quality.LOW -> "https://img.youtube.com/vi/$id/0.jpg"
             MediaItemThumbnailProvider.Quality.HIGH -> "https://img.youtube.com/vi/$id/maxresdefault.jpg"
         }
-}
-
-class SongData(
-    override var id: String,
-    override var artist: Artist? = null,
-
-    var song_type: SongType? = null,
-    var duration: Long? = null,
-    var album: RemotePlaylist? = null,
-    var related_browse_id: String? = null,
-    var lyrics_browse_id: String? = null
-): MediaItem.DataWithArtist(), Song {
-    override val creation: Throwable = Exception()
-    override fun toString(): String = "SongData($id)"
-
-    override fun saveToDatabase(db: Database, apply_to_item: MediaItem) {
-        db.transaction { with(apply_to_item as Song) {
-            super.saveToDatabase(db, apply_to_item)
-
-            album?.also { album ->
-                if (album is RemotePlaylistData) {
-                    album.saveToDatabase(db)
-                }
-                else {
-                    album.createDbEntry(db)
-                }
-            }
-
-            TypeOfSong.setNotNull(song_type, db)
-            Duration.setNotNull(duration, db)
-            Album.setNotNull(album, db)
-            RelatedBrowseId.setNotNull(related_browse_id, db)
-            LyricsBrowseId.setNotNull(lyrics_browse_id, db)
-        }}
-    }
-
-    override val ThumbnailProvider: Property<MediaItemThumbnailProvider?>
-        get() = super<MediaItem.DataWithArtist>.ThumbnailProvider
-
-    override val property_rememberer: PropertyRememberer = PropertyRememberer()
-
-    init {
-        lazyAssert { id.isNotBlank() }
-    }
 }

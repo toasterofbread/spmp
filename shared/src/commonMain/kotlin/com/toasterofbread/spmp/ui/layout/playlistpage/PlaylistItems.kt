@@ -23,10 +23,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemSortOption
+import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
-import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
@@ -46,7 +45,7 @@ internal fun LazyListScope.PlaylistItems(
     sorted_items: List<Pair<MediaItem, Int>>?,
     multiselect_context: MediaItemMultiSelectContext,
     reorderable: Boolean,
-    sort_option: MediaItemSortOption,
+    sort_option: MediaItemSortType,
     player: PlayerState
 ) {
     items(sorted_items ?: emptyList(), key = { it.second }) {

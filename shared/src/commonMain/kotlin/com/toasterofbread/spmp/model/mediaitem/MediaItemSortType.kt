@@ -3,10 +3,11 @@ package com.toasterofbread.spmp.model.mediaitem
 import androidx.compose.runtime.Composable
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.db.getPlayCount
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.LargeDropdownMenu
 import com.toasterofbread.spmp.resources.getString
 
-enum class MediaItemSortOption {
+enum class MediaItemSortType {
     NATIVE, ALPHABET, DURATION, PLAY_COUNT;
 
     fun getReadable(native_string_key: String? = null): String =
@@ -41,9 +42,9 @@ enum class MediaItemSortOption {
         @Composable
         fun SelectionMenu(
             expanded: Boolean,
-            selected_option: MediaItemSortOption,
+            selected_option: MediaItemSortType,
             onDismissed: () -> Unit,
-            onSelected: (MediaItemSortOption) -> Unit,
+            onSelected: (MediaItemSortType) -> Unit,
             native_string_key: String? = null
         ) {
             val index_offset = if (native_string_key == null) 1 else 0

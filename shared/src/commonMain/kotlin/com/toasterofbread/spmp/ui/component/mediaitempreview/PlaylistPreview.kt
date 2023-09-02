@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.component.mediaitempreview
 
 import LocalPlayerState
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -15,6 +16,7 @@ import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SubdirectoryArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
-import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.rememberEditorOrNull
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuActionProvider
@@ -51,7 +52,7 @@ fun getPlaylistLongPressMenuData(
 
 @Composable
 fun LongPressMenuActionProvider.PlaylistLongPressMenuActions(playlist: MediaItem) {
-    require(playlist is RemotePlaylist)
+    require(playlist is Playlist)
 
     val player = LocalPlayerState.current
     val coroutine_context = rememberCoroutineScope()
@@ -82,14 +83,16 @@ fun LongPressMenuActionProvider.PlaylistLongPressMenuActions(playlist: MediaItem
         }
     )
 
-    val playlist_editor = playlist.rememberEditorOrNull(player.context)
+    val playlist_editor by playlist.rememberEditorOrNull(player.context)
     if (playlist_editor != null) {
         ActionButton(
             Icons.Default.Delete,
             getString("playlist_delete"),
             onClick = {
-                coroutine_context.launch {
-                    playlist_editor.deletePlaylist().getOrReport("deletePlaylist")
+                playlist_editor?.also { editor ->
+                    coroutine_context.launch {
+                        editor.deletePlaylist().getOrReport("deletePlaylist")
+                    }
                 }
             }
         )
@@ -109,13 +112,6 @@ private fun ColumnScope.PlaylistLongPressMenuInfo(playlist: Playlist, getAccentC
             WidthShrinkText(text, fontSize = 15.sp)
         }
     }
-    @Composable
-    fun Item() {
-        Spacer(Modifier.height(25.dp))
-    }
-
-    Item() // Play
-    Item() // Shuffle
 
     Item(Icons.Default.SubdirectoryArrowRight, getString("lpm_action_play_shuffled_after_x_songs"))
 

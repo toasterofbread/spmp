@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -152,6 +154,40 @@ fun ErrorInfoDisplay(
 }
 
 @Composable
+private fun LongTextDisplay(text: String, wrap_text: Boolean, modifier: Modifier = Modifier) {
+    val split_text = remember(text) {
+        text.chunked(10000)
+    }
+
+    LazyColumn(modifier) {
+        items(split_text) { segment ->
+            SelectionContainer {
+                Text(
+                    segment,
+                    color = Theme.on_background,
+                    softWrap = wrap_text
+                )
+            }
+        }
+
+
+        if (text.none { it == '\n' }) {
+            item {
+                Row {
+                    SpMp.context.CopyShareButtons() {
+                        text
+                    }
+                }
+            }
+        }
+
+        item {
+            Spacer(Modifier.height(50.dp))
+        }
+    }
+}
+
+@Composable
 private fun ExpandedContent(error: Throwable, shape: Shape, disable_parent_scroll: Boolean) {
     val coroutine_scope = rememberCoroutineScope()
     val player = LocalPlayerState.current
@@ -202,30 +238,13 @@ private fun ExpandedContent(error: Throwable, shape: Shape, disable_parent_scrol
                 }
 
                 Crossfade(text_to_show ?: error.stackTraceToString()) { text ->
-                    Column(
+                    LongTextDisplay(
+                        text,
+                        wrap_text,
                         Modifier
-                            .verticalScroll(rememberScrollState())
                             .thenIf(!wrap_text) { horizontalScroll(rememberScrollState()) }
                             .thenIf(disable_parent_scroll) { disableParentScroll(disable_x = false) }
-                    ) {
-                        SelectionContainer {
-                            Text(
-                                text,
-                                color = Theme.on_background,
-                                softWrap = wrap_text
-                            )
-                        }
-
-                        if (text.none { it == '\n' }) {
-                            Row {
-                                SpMp.context.CopyShareButtons() {
-                                    text
-                                }
-                            }
-                        }
-
-                        Spacer(Modifier.height(50.dp))
-                    }
+                    )
                 }
             }
 

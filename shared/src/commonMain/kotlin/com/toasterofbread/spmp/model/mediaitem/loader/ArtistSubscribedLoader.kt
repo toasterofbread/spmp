@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem.loader
 
-import com.toasterofbread.spmp.model.mediaitem.Artist
-import com.toasterofbread.spmp.model.mediaitem.db.toSQLBoolean
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 

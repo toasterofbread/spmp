@@ -119,7 +119,6 @@ fun QueueButtonsRow(
 
         Box(
             modifier = Modifier
-                .minimumTouchTargetSize()
                 .background(
                     undo_background,
                     CircleShape

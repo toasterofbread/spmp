@@ -53,7 +53,12 @@ class YTMAccountPlaylistsEndpoint(override val auth: YoutubeMusicAuthInfo): Acco
                     return@mapNotNull null
                 }
 
-                item.owner = auth.own_channel
+                for (menu_item in it.musicTwoRowItemRenderer.menu?.menuRenderer?.items?.asReversed() ?: emptyList()) {
+                    if (menu_item.menuNavigationItemRenderer?.icon?.iconType == "DELETE") {
+                        item.owner = auth.own_channel
+                        break
+                    }
+                }
 
                 return@mapNotNull item
             }
@@ -66,7 +71,7 @@ class YTMAccountPlaylistsEndpoint(override val auth: YoutubeMusicAuthInfo): Acco
                 with(api.context.database) {
                     transaction {
                         playlistQueries.clearOwners()
-                        for (playlist in playlists) {
+                        for (playlist in playlists.asReversed()) {
                             playlist.saveToDatabase(this@with)
                         }
                     }

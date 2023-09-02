@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.youtubeapi.model
 
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 
-data class HeaderRenderer(
+open class HeaderRenderer(
     val title: TextRuns? = null,
     val strapline: TextRuns? = null,
     val subscriptionButton: SubscriptionButton? = null,

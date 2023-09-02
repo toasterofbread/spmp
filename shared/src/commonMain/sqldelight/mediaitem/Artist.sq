@@ -19,6 +19,10 @@ insertById {
     INSERT OR IGNORE INTO MediaItem(id) VALUES(:id);
     INSERT OR IGNORE INTO Artist(id) VALUES(:id);
 }
+removeById {
+    DELETE FROM Artist WHERE id == :id;
+    DELETE FROM MediaItem WHERE id == :id;
+}
 
 subscribeChannelIdById: SELECT subscribe_channel_id FROM Artist WHERE id == :id;
 updateSubscribeChannelIdById: UPDATE Artist SET subscribe_channel_id = :subscribe_channel_id WHERE id == :id;

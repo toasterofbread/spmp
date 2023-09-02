@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem.artist
 
 import SpMp
-import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 import com.toasterofbread.spmp.youtubeapi.endpoint.SetSubscribedToArtistEndpoint

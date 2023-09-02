@@ -1,9 +1,8 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 
-import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.youtubeapi.endpoint.SetSubscribedToArtistEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.unit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

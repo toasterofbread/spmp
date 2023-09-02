@@ -21,7 +21,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuActionProvider
@@ -118,10 +118,6 @@ private fun ColumnScope.ArtistLongPressMenuInfo(artist: Artist, getAccentColour:
             Icon(icon, null, tint = getAccentColour())
             WidthShrinkText(text, fontSize = 15.sp)
         }
-    }
-    @Composable
-    fun Item() {
-        Spacer(Modifier.height(25.dp)) // TODO
     }
 
     Item(Icons.Default.PlayArrow, getString("lpm_action_radio"))

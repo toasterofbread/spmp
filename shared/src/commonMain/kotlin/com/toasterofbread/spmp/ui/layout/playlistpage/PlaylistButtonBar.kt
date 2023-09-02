@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.ui.layout.playlistpage
 import LocalPlayerState
 import SpMp
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
@@ -10,7 +11,9 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material.icons.outlined.Cloud
 import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -20,8 +23,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
@@ -35,18 +40,20 @@ internal fun PlaylistButtonBar(
     playlist: Playlist,
     accent_colour: Color,
     editing_info: Boolean,
+    modifier: Modifier = Modifier,
     setEditingInfo: (Boolean) -> Unit
 ) {
     val player = LocalPlayerState.current
 
     var playlist_pinned: Boolean by playlist.observePinnedToHome(player.context)
 
-    Crossfade(editing_info) { editing ->
+    Crossfade(editing_info, modifier) { editing ->
         if (editing) {
             TopInfoEditButtons(playlist, accent_colour, Modifier.fillMaxWidth()) {
                 setEditingInfo(false)
             }
-        } else {
+        }
+        else {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 IconButton({ player.playMediaItem(playlist, true) }) {
                     Icon(Icons.Default.Shuffle, null)
@@ -74,41 +81,51 @@ internal fun PlaylistButtonBar(
                 }
 
                 val playlist_items: List<MediaItem>? by playlist.Items.observe(player.database)
-                playlist_items?.also { items ->
-                    PlaylistInfoText(playlist, items, Modifier.fillMaxWidth().weight(1f))
-                }
+                PlaylistInfoText(playlist, playlist_items, Modifier.fillMaxWidth().weight(1f))
             }
         }
     }
 }
 
 @Composable
-private fun PlaylistInfoText(playlist: Playlist, items: List<MediaItem>, modifier: Modifier = Modifier) {
+private fun PlaylistInfoText(playlist: Playlist, items: List<MediaItem>?, modifier: Modifier = Modifier) {
     val db = LocalPlayerState.current.context.database
 
-    val item_count: Int = playlist.ItemCount.observe(db).value ?: items.size
-    val total_duration: Long? by playlist.TotalDuration.observe(db)
+    Row(
+        modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.End)
+    ) {
+        if (items != null) {
+            val item_count: Int = playlist.ItemCount.observe(db).value ?: items.size
+            val total_duration: Long? by playlist.TotalDuration.observe(db)
 
-    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-        if (item_count > 0) {
-            val text = remember(total_duration, item_count) {
-                val duration_text = total_duration.let { duration ->
-                    if (duration == null) ""
-                    else durationToString(
-                        duration,
-                        short = true,
-                        hl = SpMp.ui_language
-                    ) + " • "
+            if (item_count > 0) {
+                val text = remember(total_duration, item_count) {
+                    val duration_text = total_duration.let { duration ->
+                        if (duration == null) ""
+                        else durationToString(
+                            duration,
+                            short = true,
+                            hl = SpMp.ui_language
+                        ) + " • "
+                    }
+
+                    duration_text + getString("playlist_x_songs").replace("\$x", item_count.toString())
                 }
 
-                duration_text + getString("playlist_x_songs").replace("\$x", item_count.toString())
+                WidthShrinkText(
+                    text,
+                    Modifier.fillMaxWidth().weight(1f),
+                    alignment = TextAlign.Right,
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
 
-            WidthShrinkText(
-                text,
-                Modifier.fillMaxWidth(),
-                alignment = TextAlign.Right,
-                style = MaterialTheme.typography.titleMedium
+            Icon(
+                if (playlist is RemotePlaylist) Icons.Outlined.Cloud else Icons.Outlined.Storage,
+                null,
+                Modifier.scale(0.75f)
             )
         }
     }

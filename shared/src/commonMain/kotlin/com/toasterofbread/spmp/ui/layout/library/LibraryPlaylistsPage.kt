@@ -4,6 +4,7 @@ import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridItemScope
@@ -34,16 +36,18 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
+import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
+import com.toasterofbread.spmp.model.mediaitem.library.createLocalPlaylist
+import com.toasterofbread.spmp.model.mediaitem.library.rememberLocalPlaylists
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
-import com.toasterofbread.spmp.model.mediaitem.playlist.createLocalPlaylist
-import com.toasterofbread.spmp.model.mediaitem.playlist.rememberLocalPlaylists
 import com.toasterofbread.spmp.model.mediaitem.playlist.rememberOwnedPlaylists
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
@@ -78,7 +82,7 @@ class LibraryPlaylistsPage: LibrarySubPage {
         var loading: Boolean by remember { mutableStateOf(false) }
         var load_error: Throwable? by remember { mutableStateOf(null) }
 
-        val local_playlists: List<LocalPlaylistData> = rememberLocalPlaylists(player.context) ?: emptyList()
+        val local_playlists: List<LocalPlaylistData> = MediaItemLibrary.rememberLocalPlaylists(player.context) ?: emptyList()
         val account_playlists: List<RemotePlaylistRef> = api.user_auth_state?.own_channel?.let { own_channel ->
             rememberOwnedPlaylists(own_channel, player.context)
         } ?: emptyList()
@@ -122,7 +126,7 @@ class LibraryPlaylistsPage: LibrarySubPage {
                 cornerContent = {
                     IconButton({
                         coroutine_scope.launch {
-                            createLocalPlaylist(player.context)
+                            MediaItemLibrary.createLocalPlaylist(player.context)
                         }
                     }) {
                         Icon(Icons.Default.Add, null)
@@ -167,7 +171,7 @@ class LibraryPlaylistsPage: LibrarySubPage {
 fun LazyGridScope.spanItem(key: Any? = null, contentType: Any? = null, content: @Composable LazyGridItemScope.() -> Unit) {
     item(
         key,
-        { GridItemSpan(Int.MAX_VALUE) },
+        { GridItemSpan(maxLineSpan) },
         contentType,
         content
     )
@@ -190,7 +194,6 @@ private fun LazyGridScope.PlaylistItems(
             )
 
             Box(contentAlignment = Alignment.Center) {
-
                 val loading = getLoading?.invoke() == true
                 this@Row.AnimatedVisibility(
                     loading,

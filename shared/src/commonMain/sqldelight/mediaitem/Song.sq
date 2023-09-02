@@ -34,6 +34,12 @@ insertById {
     INSERT OR IGNORE INTO MediaItem(id) VALUES(:id);
     INSERT OR IGNORE INTO Song(id) VALUES(:id);
 }
+removeById {
+    DELETE FROM Song WHERE id == :id;
+    DELETE FROM MediaItem WHERE id == :id;
+}
+
+dereferenceAlbumById: UPDATE Song SET album = NULL WHERE album == :album_id;
 
 songTypeById: SELECT song_type FROM Song WHERE id == :id;
 updateSongTypeById: UPDATE Song SET song_type = :value WHERE id == :id;

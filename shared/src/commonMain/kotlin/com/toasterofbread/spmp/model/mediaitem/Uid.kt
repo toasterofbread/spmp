@@ -1,8 +1,10 @@
 package com.toasterofbread.spmp.model.mediaitem
 
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
+import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 
 fun getMediaItemFromUid(uid: String): MediaItem {
     val id = uid.substring(1)

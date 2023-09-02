@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.prefspage
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -15,7 +14,7 @@ import com.toasterofbread.composesettings.ui.item.SettingsItem
 import com.toasterofbread.composesettings.ui.item.SettingsLargeToggleItem
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong

@@ -5,14 +5,12 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.toasterofbread.spmp.model.SongLyrics
-import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
 import com.toasterofbread.spmp.youtubeapi.lyrics.loadLyrics
-import kotlinx.coroutines.Deferred
 import java.lang.ref.WeakReference
-import java.util.concurrent.locks.ReentrantLock
 
 internal object SongLyricsLoader: Loader<SongLyrics>() {
     private val loaded_by_reference: MutableMap<LyricsReference, WeakReference<SongLyrics>> = mutableStateMapOf()

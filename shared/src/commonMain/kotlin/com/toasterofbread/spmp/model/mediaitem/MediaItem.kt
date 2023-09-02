@@ -2,39 +2,27 @@ package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GridView
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
-import app.cash.sqldelight.Query
 import com.toasterofbread.Database
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.db.Property
-import com.toasterofbread.spmp.model.mediaitem.db.asMediaItemProperty
 import com.toasterofbread.spmp.model.mediaitem.db.fromSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.db.toSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
-import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.toImageBitmap
-import com.toasterofbread.spmp.youtubeapi.model.TextRun
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.URL
-import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType as PlaylistTypeEnum
 
 val MEDIA_ITEM_RELATED_CONTENT_ICON: ImageVector get() = Icons.Default.GridView
 
-sealed interface MediaItem: MediaItemHolder {
+interface MediaItem: MediaItemHolder {
     val id: String
     override val item: MediaItem get() = this
 
@@ -46,18 +34,16 @@ sealed interface MediaItem: MediaItemHolder {
     fun createDbEntry(db: Database)
     fun getEmptyData(): MediaItemData
     fun populateData(data: MediaItemData, db: Database) {
-        data.apply {
-            loaded = Loaded.get(db)
-            title = Title.get(db)
-            original_title = OriginalTitle.get(db)
-            description = Description.get(db)
-            thumbnail_provider = ThumbnailProvider.get(db)
-        }
+        data.loaded = Loaded.get(db)
+        data.title = Title.get(db)
+        data.original_title = OriginalTitle.get(db)
+        data.description = Description.get(db)
+        data.thumbnail_provider = ThumbnailProvider.get(db)
     }
 
-    suspend fun loadData(context: PlatformContext, populate_data: Boolean = true): Result<MediaItemData> {
+    suspend fun loadData(context: PlatformContext, populate_data: Boolean = true, force: Boolean = false): Result<MediaItemData> {
         val data = getEmptyData()
-        if (Loaded.get(context.database)) {
+        if (!force && Loaded.get(context.database)) {
             populateData(data, context.database)
             return Result.success(data)
         }
@@ -119,140 +105,36 @@ sealed interface MediaItem: MediaItemHolder {
         val Artist: Property<Artist?>
 
         override fun populateData(data: MediaItemData, db: Database) {
+            require(data is DataWithArtist)
+
             super.populateData(data, db)
-            (data as DataWithArtist).apply {
-                artist = Artist.get(db)
-            }
+
+            data.artist = Artist.get(db)
         }
     }
 
     abstract class DataWithArtist: MediaItemData(), WithArtist {
         abstract var artist: Artist?
 
-        override fun saveToDatabase(db: Database, apply_to_item: MediaItem) {
+        override fun getDataValues(): Map<String, Any?> =
+            super.getDataValues() + mapOf(
+                "artist" to artist
+            )
+
+        override fun saveToDatabase(db: Database, apply_to_item: MediaItem, uncertain: Boolean) {
             db.transaction { with(apply_to_item as WithArtist) {
-                super.saveToDatabase(db, apply_to_item)
+                super.saveToDatabase(db, apply_to_item, uncertain)
 
                 val artist_data = artist
                 if (artist_data is ArtistData) {
-                    artist_data.saveToDatabase(db)
+                    artist_data.saveToDatabase(db, uncertain = uncertain)
                 }
                 else if (artist_data != null) {
                     artist_data.createDbEntry(db)
                 }
 
-                Artist.setNotNull(artist, db)
+                Artist.setNotNull(artist, db, uncertain)
             }}
         }
     }
-}
-
-sealed class MediaItemData: MediaItem {
-    var loaded: Boolean = false
-    var title: String? = null
-        set(value) {
-            field = value
-            original_title = value
-        }
-    var original_title: String? = null
-    var description: String? = null
-    var thumbnail_provider: MediaItemThumbnailProvider? = null
-
-    var theme_colour: Color? = null
-    var hidden: Boolean = false
-
-    companion object {
-        fun fromBrowseEndpointType(page_type: String, id: String): MediaItemData {
-            val data = MediaItemType.fromBrowseEndpointType(page_type).referenceFromId(id).getEmptyData()
-            if (data is RemotePlaylistData) {
-                data.playlist_type = PlaylistType.fromBrowseEndpointType(page_type)
-            }
-            return data
-        }
-    }
-
-    open fun saveToDatabase(db: Database, apply_to_item: MediaItem = this) {
-        db.transaction { with(apply_to_item) {
-            createDbEntry(db)
-
-            if (loaded) {
-                Loaded.set(true, db)
-            }
-            Title.setNotNull(title, db)
-            OriginalTitle.setNotNull(original_title, db)
-            Description.setNotNull(description, db)
-            ThumbnailProvider.setNotNull(thumbnail_provider, db)
-        }}
-    }
-
-    open fun supplyDataFromSubtitle(runs: List<TextRun>) {
-        var artist_found = false
-        for (run in runs) {
-            val type = run.browse_endpoint_type ?: continue
-            when (MediaItemType.fromBrowseEndpointType(type)) {
-                MediaItemType.ARTIST -> {
-                    if (this is MediaItem.DataWithArtist) {
-                        val item = run.navigationEndpoint?.browseEndpoint?.getMediaItem()
-                        if (item is Artist) {
-                            artist = item
-                        }
-                    }
-                    artist_found = true
-                }
-                MediaItemType.PLAYLIST_REM -> {
-                    if (this is SongData) {
-                        val playlist = run.navigationEndpoint?.browseEndpoint?.getMediaItem()
-                        if (playlist is RemotePlaylistData) {
-                            assert(playlist.playlist_type == PlaylistTypeEnum.ALBUM, { "$playlist (${playlist.playlist_type}) | ${run.navigationEndpoint}" })
-                            playlist.title = run.text
-                            album = playlist
-                        }
-                    }
-                }
-                else -> {}
-            }
-        }
-
-        if (!artist_found && this is MediaItem.DataWithArtist) {
-            artist = ArtistData.createForItem(this).also {
-                it.title = runs.getOrNull(1)?.text
-            }
-        }
-    }
-}
-
-@Composable
-fun <T, Q: Query<*>> Q.observeAsState(
-    mapValue: (Q) -> T = { it as T },
-    onExternalChange: (suspend (T) -> Unit)?
-): MutableState<T> {
-    val state = remember(this) { mutableStateOf(mapValue(this)) }
-    var current_value by remember(state) { mutableStateOf(state.value) }
-
-    DisposableEffect(state) {
-        val listener = Query.Listener {
-            current_value = mapValue(this@observeAsState)
-            state.value = current_value
-        }
-
-        addListener(listener)
-        onDispose {
-            removeListener(listener)
-        }
-    }
-
-    LaunchedEffect(state.value) {
-        if (state.value != current_value) {
-            current_value = state.value
-
-            if (onExternalChange != null) {
-                onExternalChange(current_value)
-            }
-            else {
-                throw IllegalStateException("onExternalChange has not been defined ($this, ${state.value}, $current_value)")
-            }
-        }
-    }
-
-    return state
 }

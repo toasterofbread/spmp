@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 
+import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor
@@ -17,23 +18,30 @@ class YTMAccountPlaylistEditorEndpoint(override val auth: YoutubeMusicAuthInfo):
 }
 
 private class AccountPlaylistEditor(playlist: RemotePlaylist, val auth: YoutubeMusicAuthInfo, val endpoint: AccountPlaylistEditorEndpoint): PlaylistEditor(playlist, auth.api.context) {
-    private val initial_playlist_data = playlist.getEmptyData().also { playlist.populateData(it, context.database) }
+    override fun canRemoveItems(): Boolean {
+        return playlist is RemotePlaylistData && playlist.item_set_ids != null
+    }
+    override fun canMoveItems(): Boolean {
+        return playlist is RemotePlaylistData && playlist.item_set_ids != null
+    }
 
-    override suspend fun deletePlaylist(): Result<Unit> {
-        super.deletePlaylist().onFailure {
-            return Result.failure(it)
-        }
+    override suspend fun performDeletion(): Result<Unit> {
         return auth.DeleteAccountPlaylist.deleteAccountPlaylist(playlist.id)
     }
 
     override suspend fun performAndCommitActions(actions: List<Action>): Result<Unit> {
-        lazyAssert { playlist.isPlaylistEditable() }
+        lazyAssert { playlist.isPlaylistEditable(context) }
 
         if (actions.isEmpty()) {
             return Result.success(Unit)
         }
 
         return withContext(Dispatchers.IO) {
+            val actions_request_data: List<Map<String, String>> = actions.mapNotNull { performActionOrGetRequestData(it) }
+            if (actions_request_data.isEmpty()) {
+                return@withContext Result.success(Unit)
+            }
+
             with(endpoint) {
                 val request = Request.Builder()
                     .endpointUrl("/youtubei/v1/browse/edit_playlist")
@@ -41,7 +49,7 @@ private class AccountPlaylistEditor(playlist: RemotePlaylist, val auth: YoutubeM
                     .postWithBody(
                         mapOf(
                             "playlistId" to RemotePlaylist.formatYoutubeId(playlist.id),
-                            "actions" to actions.map { it.getRequestData(initial_playlist_data) }
+                            "actions" to actions_request_data
                         )
                     )
                     .build()
@@ -58,39 +66,58 @@ private class AccountPlaylistEditor(playlist: RemotePlaylist, val auth: YoutubeM
         }
     }
 
-    private fun Action.getRequestData(playlist: RemotePlaylistData): Map<String, String> =
-        when(this) {
-            is AddAction ->
-                mapOf(
+    private fun performActionOrGetRequestData(action: Action): Map<String, String>? {
+        when(action) {
+            is Action.SetTitle -> {
+                return mapOf(
+                    "action" to "ACTION_SET_PLAYLIST_NAME",
+                    "playlistName" to action.title
+                )
+            }
+            is Action.SetImage -> {
+                playlist.CustomImageProvider.set(MediaItemThumbnailProvider.fromImageUrl(action.image_url), context.database)
+                return null
+            }
+            is Action.SetImageWidth -> {
+                playlist.ImageWidth.set(action.image_width, context.database)
+                return null
+            }
+            is Action.Add ->
+                return mapOf(
                     "action" to "ACTION_ADD_VIDEO",
-                    "addedVideoId" to song_id,
+                    "addedVideoId" to action.song_id,
                     "dedupeOption" to "DEDUPE_OPTION_SKIP"
                 )
-            is MoveAction -> {
+            is Action.Move -> {
+                check(playlist is RemotePlaylistData && playlist.item_set_ids != null)
+
                 val set_ids = playlist.item_set_ids!!.toMutableList()
                 check(set_ids.size == playlist.items!!.size)
-                check(from != to)
+                check(action.from != action.to)
 
                 val data = mutableMapOf(
                     "action" to "ACTION_MOVE_VIDEO_BEFORE",
-                    "setVideoId" to set_ids[from]
+                    "setVideoId" to set_ids[action.from]
                 )
 
-                val to_index = if (to > from) to + 1 else to
+                val to_index = if (action.to > action.from) action.to + 1 else action.to
                 if (to_index in set_ids.indices) {
                     data["movedSetVideoIdSuccessor"] = set_ids[to_index]
                 }
 
-                set_ids.add(to, set_ids.removeAt(from))
+                set_ids.add(action.to, set_ids.removeAt(action.from))
                 playlist.item_set_ids = set_ids
 
-                data
+                return data
             }
-            is RemoveAction ->
-                mapOf(
+            is Action.Remove -> {
+                check(playlist is RemotePlaylistData && playlist.item_set_ids != null)
+                return mapOf(
                     "action" to "ACTION_REMOVE_VIDEO",
-                    "removedVideoId" to playlist.items!![index].id,
-                    "setVideoId" to playlist.item_set_ids!![index]
+                    "removedVideoId" to playlist.items!![action.index].id,
+                    "setVideoId" to playlist.item_set_ids!![action.index]
                 )
+            }
         }
+    }
 }

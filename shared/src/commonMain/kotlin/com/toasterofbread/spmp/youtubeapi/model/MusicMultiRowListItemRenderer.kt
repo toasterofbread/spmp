@@ -1,9 +1,9 @@
 package com.toasterofbread.spmp.youtubeapi.model
 
-import com.toasterofbread.spmp.model.mediaitem.ArtistData
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
-import com.toasterofbread.spmp.model.mediaitem.SongData
+import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType

@@ -20,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLikedLoader
 import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked

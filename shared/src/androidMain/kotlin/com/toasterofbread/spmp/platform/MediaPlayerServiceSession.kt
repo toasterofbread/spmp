@@ -48,8 +48,8 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.toasterofbread.spmp.exovisualiser.FFTAudioProcessor
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.SongRef
+import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
 import com.toasterofbread.spmp.model.mediaitem.song.toSongLikedStatus

@@ -1,8 +1,8 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 
 import SpMp
-import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.SongData
+import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.SongRelatedContentEndpoint

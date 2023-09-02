@@ -97,6 +97,7 @@ expect class PlatformFile {
     fun listFiles(): List<PlatformFile>?
     fun resolve(relative_path: String): PlatformFile
 
+    fun delete(): Boolean
     fun createFile(): Boolean
     fun mkdirs(): Boolean
     fun renameTo(new_name: String): PlatformFile

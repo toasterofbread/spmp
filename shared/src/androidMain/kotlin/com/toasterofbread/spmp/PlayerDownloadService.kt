@@ -17,11 +17,10 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.SongRef
+import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.model.mediaitem.song.getSongFormatByQuality
-import com.toasterofbread.spmp.model.mediaitem.song.getSongTargetDownloadQuality
 import com.toasterofbread.spmp.platform.PlatformBinder
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformFile

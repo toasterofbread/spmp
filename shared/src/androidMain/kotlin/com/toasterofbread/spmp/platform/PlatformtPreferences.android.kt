@@ -63,8 +63,10 @@ actual class PlatformPreferences private constructor(private val prefs: SharedPr
     }
 
     actual interface Listener: SharedPreferences.OnSharedPreferenceChangeListener {
-        override fun onSharedPreferenceChanged(prefs: SharedPreferences, key: String) {
-            onChanged(getInstance(prefs), key)
+        override fun onSharedPreferenceChanged(prefs: SharedPreferences, key: String?) {
+            if (key != null) {
+                onChanged(getInstance(prefs), key)
+            }
         }
         actual fun onChanged(prefs: PlatformPreferences, key: String)
     }

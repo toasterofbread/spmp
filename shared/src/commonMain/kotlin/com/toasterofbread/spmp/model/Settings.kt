@@ -8,7 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.beust.klaxon.Klaxon
 import com.toasterofbread.spmp.ProjectBuildConfig
-import com.toasterofbread.spmp.model.mediaitem.ArtistRef
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformPreferences

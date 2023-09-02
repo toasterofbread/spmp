@@ -6,8 +6,8 @@ import com.beust.klaxon.JsonObject
 import com.beust.klaxon.JsonValue
 import com.beust.klaxon.Klaxon
 import com.toasterofbread.Database
-import com.toasterofbread.spmp.model.mediaitem.Artist
-import com.toasterofbread.spmp.model.mediaitem.ArtistRef
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.youtubeapi.composable.LoginPage
 import com.toasterofbread.spmp.youtubeapi.endpoint.AccountPlaylistAddSongsEndpoint
@@ -37,7 +37,6 @@ import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.unimplemented.UnimplementedYoutubeApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.failure
-import com.toasterofbread.utils.printJson
 import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Request

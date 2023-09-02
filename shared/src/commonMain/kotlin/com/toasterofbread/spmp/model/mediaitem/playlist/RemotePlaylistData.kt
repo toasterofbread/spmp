@@ -14,6 +14,13 @@ class RemotePlaylistData(id: String): PlaylistData(id), RemotePlaylist {
     override fun toString(): String = "RemotePlaylistData($id, type=$playlist_type)"
     override fun getType(): MediaItemType = MediaItemType.PLAYLIST_REM
 
+    override fun getDataValues(): Map<String, Any?> =
+        super.getDataValues() + mapOf(
+            "continuation" to continuation
+        )
+
+    override val property_rememberer: PropertyRememberer = PropertyRememberer()
+
     override fun createDbEntry(db: Database) {
         if (playlist_type == PlaylistType.LOCAL) {
             throw IllegalStateException(id)
@@ -22,28 +29,27 @@ class RemotePlaylistData(id: String): PlaylistData(id), RemotePlaylist {
     }
     override fun getEmptyData(): RemotePlaylistData = RemotePlaylistData(id)
 
-    override fun saveToDatabase(db: Database, apply_to_item: MediaItem) {
+    override fun saveToDatabase(db: Database, apply_to_item: MediaItem, uncertain: Boolean) {
         db.transaction { with(apply_to_item as RemotePlaylist) {
-            super.saveToDatabase(db, apply_to_item)
+            super.saveToDatabase(db, apply_to_item, uncertain)
 
             items?.also { items ->
+                if (uncertain && !Items.get(db).isNullOrEmpty() && Loaded.get(db)) {
+                    return@also
+                }
+
                 for (item in items) {
                     item.saveToDatabase(db)
                 }
                 Items.overwriteItems(items, db)
             }
 
-            ItemCount.setNotNull(item_count, db)
-            TypeOfPlaylist.setNotNull(playlist_type, db)
-            TotalDuration.setNotNull(total_duration, db)
-            Year.setNotNull(year, db)
-            Owner.setNotNull(owner, db)
-            Continuation.setNotNull(continuation, db)
+            ItemCount.setNotNull(item_count, db, uncertain)
+            TypeOfPlaylist.setNotNull(playlist_type, db, uncertain)
+            TotalDuration.setNotNull(total_duration, db, uncertain)
+            Year.setNotNull(year, db, uncertain)
+            Owner.setNotNull(owner, db, uncertain)
+            Continuation.setNotNull(continuation, db, uncertain)
         }}
-    }
-
-    override val property_rememberer: PropertyRememberer = PropertyRememberer()
-    init {
-        lazyAssert { id.isNotBlank() }
     }
 }

@@ -78,7 +78,7 @@ fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, bo
                         horizontalArrangement = item_arrangement
                     ) {
                         if (title != null) {
-                            item(span = { GridItemSpan(Int.MAX_VALUE) }) {
+                            item(span = { GridItemSpan(maxLineSpan) }) {
                                 Text(title, Modifier.fillMaxWidth(), style = MaterialTheme.typography.headlineMedium)
                             }
                         }

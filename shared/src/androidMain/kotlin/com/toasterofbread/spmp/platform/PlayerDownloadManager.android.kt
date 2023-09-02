@@ -2,12 +2,10 @@ package com.toasterofbread.spmp.platform
 
 import android.os.Build
 import com.toasterofbread.spmp.PlayerDownloadService
-import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.SongRef
+import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
-import com.toasterofbread.spmp.model.mediaitem.song.getSongTargetDownloadQuality
-import java.io.File
 
 actual class PlayerDownloadManager actual constructor(val context: PlatformContext) {
     private var service: PlayerDownloadService? = null

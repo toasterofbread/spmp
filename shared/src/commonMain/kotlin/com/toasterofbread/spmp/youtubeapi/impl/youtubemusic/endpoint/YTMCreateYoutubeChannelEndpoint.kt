@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 
-import com.toasterofbread.spmp.model.mediaitem.Artist
-import com.toasterofbread.spmp.model.mediaitem.ArtistRef
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.CreateChannelResponse
 import com.toasterofbread.spmp.youtubeapi.endpoint.CreateYoutubeChannelEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi

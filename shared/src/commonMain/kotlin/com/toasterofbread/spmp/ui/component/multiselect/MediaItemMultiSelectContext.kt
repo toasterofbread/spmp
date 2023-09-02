@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.component.multiselect
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
@@ -54,17 +53,14 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
-import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
-import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.model.mediaitem.db.setPinned
-import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
+import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
+import com.toasterofbread.spmp.model.mediaitem.library.createLocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.getEditorOrNull
-import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.getLocalPlaylistEditor
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.isPlaylistEditable
-import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.rememberEditorOrNull
-import com.toasterofbread.spmp.model.mediaitem.playlist.createLocalPlaylist
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
@@ -220,7 +216,7 @@ class MediaItemMultiSelectContext(
             if (selected_playlists.isNotEmpty()) {
                 coroutine_scope.launch {
                     for (playlist in selected_playlists) {
-                        val editor = playlist.getEditorOrNull(player.context) ?: continue
+                        val editor = playlist.getEditorOrNull(player.context).getOrNull() ?: continue
                         for (item in items) {
                             editor.addItem(item, null)
                         }
@@ -245,7 +241,7 @@ class MediaItemMultiSelectContext(
                     Button(
                         {
                             coroutine_scope.launch {
-                                val playlist = createLocalPlaylist(player.context).getOrReport("MultiSelectContextCreateLocalPlaylist")
+                                val playlist = MediaItemLibrary.createLocalPlaylist(player.context).getOrReport("MultiSelectContextCreateLocalPlaylist")
                                     ?: return@launch
                                 selected_playlists.add(playlist)
                             }
@@ -294,7 +290,10 @@ class MediaItemMultiSelectContext(
         } }
 
         val all_are_editable_playlists by remember { derivedStateOf {
-            selected_items.isNotEmpty() && selected_items.all { it.first is RemotePlaylist && (it.first as RemotePlaylist).isPlaylistEditable() }
+            selected_items.isNotEmpty()
+            && selected_items.all {
+                it.first is Playlist && (it.first as Playlist).isPlaylistEditable(player.context)
+            }
         } }
 
         var adding_to_playlist: List<Song>? by remember { mutableStateOf(null) }
@@ -343,29 +342,18 @@ class MediaItemMultiSelectContext(
 
         // Delete playlist
         AnimatedVisibility(all_are_editable_playlists && selected_items.isNotEmpty()) {
-            IconButton({ coroutine_scope.launch {
-                getUniqueSelectedItems().mapNotNull { playlist ->
-                    if (playlist !is RemotePlaylist) null
-                    else launch {
-                        val editor =
-                            if (playlist is LocalPlaylist) {
-                                playlist.getLocalPlaylistEditor(player.context)
-                            }
-                            else {
-                                val editor_endpoint = player.context.ytapi.user_auth_state?.AccountPlaylistEditor
-                                if (editor_endpoint?.isImplemented() == true) {
-                                    editor_endpoint.getEditor(playlist)
-                                }
-                                else {
-                                    null
-                                }
-                            }
-
-                        editor?.deletePlaylist()?.getOrReport("deletePlaylist")
-                    }
-                }.joinAll()
-                onActionPerformed()
-            } }) {
+            IconButton({
+                coroutine_scope.launch {
+                   getUniqueSelectedItems().mapNotNull { playlist ->
+                        if (playlist !is Playlist) null
+                        else launch {
+                            val editor = playlist.getEditorOrNull(player.context).getOrNull()
+                            editor?.deletePlaylist()?.getOrReport("deletePlaylist")
+                        }
+                    }.joinAll()
+                    onActionPerformed()
+                }
+            }) {
                 Icon(Icons.Default.Delete, null)
             }
         }

@@ -1,0 +1,19 @@
+package com.toasterofbread.spmp.model.mediaitem.playlist
+
+import com.toasterofbread.Database
+import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer
+import com.toasterofbread.utils.lazyAssert
+
+class RemotePlaylistRef(override val id: String): RemotePlaylist {
+    override fun toString(): String = "RemotePlaylistRef($id)"
+
+    override fun getEmptyData(): RemotePlaylistData = RemotePlaylistData(id)
+    override fun createDbEntry(db: Database) {
+        db.playlistQueries.insertById(id, null)
+    }
+
+    override val property_rememberer: PropertyRememberer = PropertyRememberer()
+    init {
+        lazyAssert { id.isNotBlank() }
+    }
+}

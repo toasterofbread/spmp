@@ -1,22 +1,16 @@
 package com.toasterofbread.spmp.model.mediaitem.playlist
 
 import com.toasterofbread.Database
-import com.toasterofbread.spmp.model.mediaitem.Artist
-import com.toasterofbread.spmp.model.mediaitem.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProviderImpl
-import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.SongData
-import com.toasterofbread.spmp.model.mediaitem.SongRef
-import com.toasterofbread.spmp.model.mediaitem.db.ListPropertyImpl
+import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
+import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
-import com.toasterofbread.spmp.model.mediaitem.toThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.toInfoString
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
-import mediaitem.PlaylistItem
+import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
+import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 
 sealed interface RemotePlaylist: Playlist {
 //    val is_editable: Boolean?
@@ -43,25 +37,86 @@ sealed interface RemotePlaylist: Playlist {
     override fun getEmptyData(): RemotePlaylistData
 
     override fun populateData(data: MediaItemData, db: Database) {
+        require(data is PlaylistData)
+
         super.populateData(data, db)
-        (data as RemotePlaylistData).apply {
-            items = Items.get(db)?.map {
-                SongData(it.id)
-            }
-            item_count = ItemCount.get(db)
-            playlist_type = TypeOfPlaylist.get(db)
-            total_duration = TotalDuration.get(db)
-            year = Year.get(db)
-            owner = Owner.get(db)
-            continuation = Continuation.get(db)
+
+        data.items = Items.get(db)?.map {
+            SongData(it.id)
+        }
+        data.item_count = ItemCount.get(db)
+        data.playlist_type = TypeOfPlaylist.get(db)
+        data.total_duration = TotalDuration.get(db)
+        data.year = Year.get(db)
+        data.owner = Owner.get(db)
+
+        if (data is RemotePlaylistData) {
+            data.continuation = Continuation.get(db)
         }
     }
 
-    override suspend fun loadData(context: PlatformContext, populate_data: Boolean): Result<RemotePlaylistData> {
-        return super.loadData(context, populate_data) as Result<RemotePlaylistData>
+    override suspend fun loadData(context: PlatformContext, populate_data: Boolean, force: Boolean): Result<RemotePlaylistData> {
+        return super.loadData(context, populate_data, force) as Result<RemotePlaylistData>
+    }
+
+    override suspend fun setSortType(sort_type: MediaItemSortType?, context: PlatformContext): Result<Unit> {
+        SortType.set(sort_type, context.database)
+        return Result.success(Unit)
     }
 
     companion object {
         fun formatYoutubeId(id: String): String = id.removePrefix("VL")
     }
+}
+
+suspend fun Playlist.uploadAsAccountPlaylist(auth_state: YoutubeApi.UserAuthState, replace: Boolean = false): Result<RemotePlaylistData> {
+    val create_endpoint = auth_state.CreateAccountPlaylist
+    if (!create_endpoint.isImplemented()) {
+        return Result.failure(EndpointNotImplementedException(create_endpoint))
+    }
+
+    val add_endpoint = auth_state.AccountPlaylistAddSongs
+    if (!add_endpoint.isImplemented()) {
+        return Result.failure(EndpointNotImplementedException(add_endpoint))
+    }
+
+    val db = auth_state.api.context.database
+
+    val create_result = create_endpoint.createAccountPlaylist(
+        Title.get(db).orEmpty(),
+        Description.get(db).orEmpty()
+    )
+
+    val created_playlist_id = create_result.fold(
+        {
+            if (!it.startsWith("VL")) "VL$it"
+            else it
+        },
+        {
+            return Result.failure(it)
+        }
+    )
+
+    val account_playlist = RemotePlaylistData(created_playlist_id)
+
+    val items = Items.get(db)
+    if (!items.isNullOrEmpty()) {
+        add_endpoint.addSongs(
+            account_playlist,
+            items.map { it.id }
+        ).onFailure {
+            return Result.failure(it)
+        }
+    }
+
+    populateData(account_playlist, db)
+    account_playlist.owner = auth_state.own_channel
+
+    account_playlist.saveToDatabase(db, account_playlist)
+
+    if (replace) {
+        PlaylistHolder.onPlaylistReplaced(this, account_playlist)
+    }
+
+    return Result.success(account_playlist)
 }

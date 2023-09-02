@@ -14,7 +14,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.HourglassBottom
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material3.Icon
-import androidx.compose.material3.minimumTouchTargetSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -36,7 +35,6 @@ fun StopAfterSongButton(getBackgroundColour: () -> Color, modifier: Modifier = M
     Crossfade(player.player?.stop_after_current_song == true) { stopping ->
         Box(
             modifier = modifier
-                .minimumTouchTargetSize()
                 .aspectRatio(1f)
                 .background(CircleShape, getBackgroundColour)
                 .rotate(rotation)

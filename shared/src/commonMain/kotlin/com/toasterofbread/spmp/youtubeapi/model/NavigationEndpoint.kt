@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.youtubeapi.model
 
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
-import com.toasterofbread.spmp.model.mediaitem.SongData
+import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 
 data class NavigationEndpoint(

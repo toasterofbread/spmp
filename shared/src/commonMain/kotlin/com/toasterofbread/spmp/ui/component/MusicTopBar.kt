@@ -43,7 +43,7 @@ import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.model.MusicTopBarMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.SongLyrics
-import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.composeScope
 import com.toasterofbread.spmp.resources.getString

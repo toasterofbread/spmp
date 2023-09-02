@@ -2,8 +2,9 @@ package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 
 import SpMp
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
-import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.SongData
+import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.song.SongData
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.spmp.youtubeapi.endpoint.LoadPlaylistEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
@@ -72,7 +73,10 @@ class YTMLoadPlaylistEndpoint(override val api: YoutubeMusicApi): LoadPlaylistEn
         return@withContext result.fold(
             {
                 playlist_data.loaded = true
-                playlist_data.saveToDatabase(api.db)
+                playlist_data.saveToDatabase(
+                    api.db,
+                    uncertain = playlist_data.playlist_type != PlaylistType.PLAYLIST
+                )
                 Result.success(playlist_data)
             },
             {

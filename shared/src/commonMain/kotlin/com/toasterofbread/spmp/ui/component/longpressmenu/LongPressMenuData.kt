@@ -11,11 +11,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
-import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewInteractionPressStage
-import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
-import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
 import com.toasterofbread.spmp.ui.component.mediaitempreview.ArtistLongPressMenuActions
 import com.toasterofbread.spmp.ui.component.mediaitempreview.PlaylistLongPressMenuActions
@@ -51,16 +51,16 @@ data class LongPressMenuData(
     @Composable
     fun Actions(provider: LongPressMenuActionProvider, spacing: Dp) {
         with(provider) {
-            if (item is Song || (item is RemotePlaylist && playlist_as_song)) {
+            if (item is Song || (item is Playlist && playlist_as_song)) {
                 SongLongPressMenuActions(item, spacing, multiselect_key) { callback ->
                     coroutine_scope.launch {
                         if (item is Song) {
                             callback(item)
                         }
-                        else if (item is RemotePlaylist) {
+                        else if (item is Playlist) {
                             item.loadData(SpMp.context).onSuccess {
                                 item.Items.get(SpMp.context.database)?.firstOrNull()?.also { item ->
-                                    callback(item as Song)
+                                    callback(item)
                                 }
                             }
                         }
@@ -70,14 +70,14 @@ data class LongPressMenuData(
                     }
                 }
             }
-            else if (item is RemotePlaylist) {
+            else if (item is Playlist) {
                 PlaylistLongPressMenuActions(item)
             }
             else if (item is Artist) {
                 ArtistLongPressMenuActions(item)
             }
             else {
-                throw NotImplementedError(item.getType().toString())
+                throw NotImplementedError("$item (${item::class})")
             }
         }
     }

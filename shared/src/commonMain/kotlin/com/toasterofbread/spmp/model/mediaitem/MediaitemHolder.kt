@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.rememberHiddenItems
 import com.toasterofbread.spmp.platform.PlatformContext
 

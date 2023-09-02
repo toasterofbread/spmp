@@ -1,167 +1,178 @@
 package com.toasterofbread.spmp.model.mediaitem.playlist
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import com.toasterofbread.Database
-import com.toasterofbread.spmp.model.mediaitem.MediaItemData
-import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.SongData
-import com.toasterofbread.spmp.model.mediaitem.SongRef
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.song.SongData
+import com.toasterofbread.spmp.model.mediaitem.db.removeFromDatabase
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
+import com.toasterofbread.spmp.model.mediaitem.library.onLocalPlaylistDeleted
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter.saveToFile
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformFile
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
-import com.toasterofbread.utils.addUnique
-import com.toasterofbread.utils.lazyAssert
+import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.IOException
 
 abstract class PlaylistEditor(open val playlist: Playlist, val context: PlatformContext) {
-    protected sealed class Action
-    protected data class AddAction(val song_id: String, val index: Int?): Action()
-    protected data class RemoveAction(val index: Int): Action()
-    protected data class MoveAction(val from: Int, val to: Int): Action()
+    protected sealed class Action {
+        data class SetTitle(val title: String): Action()
+        data class SetImage(val image_url: String): Action()
+        data class SetImageWidth(val image_width: Float): Action()
+
+        data class Add(val song_id: String, val index: Int?): Action()
+        data class Remove(val index: Int): Action()
+        data class Move(val from: Int, val to: Int): Action() {
+            init {
+                require(from != to) { from.toString() }
+                require(from >= 0) { from.toString() }
+                require(to >= 0) { to.toString() }
+            }
+        }
+    }
 
     private var deleted: Boolean = false
-    private val pending_actions: MutableList<Action> = mutableListOf()
+    private var pending_actions: MutableList<Action> = mutableListOf()
+
+    fun transferStateTo(other: PlaylistEditor) {
+        require(other.playlist.id == playlist.id)
+        other.pending_actions = pending_actions
+        other.deleted = deleted
+    }
+
+    fun setTitle(title: String) {
+        pending_actions.add(Action.SetTitle(title))
+    }
+    fun setImage(image_url: String) {
+        pending_actions.add(Action.SetImage(image_url))
+    }
+    fun setImageWidth(image_width: Float) {
+        pending_actions.add(Action.SetImageWidth(image_width))
+    }
 
     fun addItem(item: Song, index: Int? = null) {
-        pending_actions.add(AddAction(item.id, index))
+        pending_actions.add(Action.Add(item.id, index))
     }
     fun removeItem(index: Int) {
-        pending_actions.add(RemoveAction(index))
+        pending_actions.add(Action.Remove(index))
     }
     fun moveItem(from: Int, to: Int) {
-        pending_actions.add(MoveAction(from, to))
+        assert(canMoveItems())
+
+        if (from != to) {
+            pending_actions.add(Action.Move(from, to))
+        }
     }
 
-    protected abstract suspend fun performAndCommitActions(actions: List<Action>): Result<Unit>
+    open fun canAddItems(): Boolean = true
+    open fun canRemoveItems(): Boolean = true
+    open fun canMoveItems(): Boolean = true
 
     suspend fun applyItemChanges(): Result<Unit> {
+        if (pending_actions.isEmpty()) {
+            return Result.success(Unit)
+        }
+
         return performAndCommitActions(pending_actions)
     }
 
-    open suspend fun deletePlaylist(): Result<Unit> {
+    suspend fun deletePlaylist(): Result<Unit> {
         check(!deleted)
 
+        performDeletion().onFailure {
+            return Result.failure(it)
+        }
+
         deleted = true
-        PlaylistHolder.onPlaylistDeleted(playlist)
         pending_actions.clear()
+
+        withContext(Dispatchers.IO) {
+            if (playlist !is LocalPlaylist) {
+                playlist.removeFromDatabase(context.database)
+            }
+            context.database.playlistQueries.removeById(playlist.id)
+        }
+
         return Result.success(Unit)
     }
 
+    protected abstract suspend fun performAndCommitActions(actions: List<Action>): Result<Unit>
+    protected abstract suspend fun performDeletion(): Result<Unit>
+
     companion object {
-        private val editable_playlists: MutableList<String> = mutableStateListOf()
+        suspend fun Playlist.getEditorOrNull(context: PlatformContext): Result<PlaylistEditor?> = withContext(Dispatchers.IO) {
+            val playlist = this@getEditorOrNull
 
-        fun setPlaylistEditable(playlist: RemotePlaylist, editable: Boolean) {
-            if (editable) {
-                editable_playlists.addUnique(playlist.id)
+            if (!isPlaylistEditable(context)) {
+                return@withContext Result.success(null)
             }
-            else {
-                editable_playlists.remove(playlist.id)
-            }
-        }
 
-        fun LocalPlaylist.getLocalPlaylistEditor(context: PlatformContext): PlaylistEditor {
-            return LocalPlaylistEditor(this, context)
-        }
+            when (playlist) {
+                is LocalPlaylist -> {
+                    return@withContext Result.success(LocalPlaylistEditor(playlist, context))
+                }
+                is RemotePlaylist -> {
+                    val editor_endpoint = context.ytapi.user_auth_state?.AccountPlaylistEditor
+                    if (editor_endpoint == null) {
+                        return@withContext Result.success(null)
+                    }
+                    else if (!editor_endpoint.isImplemented()) {
+                        return@withContext Result.failure(EndpointNotImplementedException(editor_endpoint))
+                    }
 
-        fun Playlist.getEditorOrNull(context: PlatformContext): PlaylistEditor? {
-            if (this is LocalPlaylist) {
-                return LocalPlaylistEditor(this, context)
+                    return@withContext Result.success(editor_endpoint.getEditor(playlist))
+                }
+                else -> {
+                    return@withContext Result.failure(NotImplementedError(this::class.toString()))
+                }
             }
-            else if (editable_playlists.contains(id)) {
-                check(this is RemotePlaylist)
-                val auth = context.ytapi.user_auth_state
-                auth?.AccountPlaylistEditor?.getEditor(this)
-            }
-            return null
         }
 
         @Composable
-        fun Playlist.rememberEditorOrNull(context: PlatformContext): PlaylistEditor? {
-            if (this is LocalPlaylist) {
-                return remember { LocalPlaylistEditor(this, context) }
+        fun Playlist.rememberEditorOrNull(context: PlatformContext, onFailure: ((Throwable) -> Unit)? = null): State<PlaylistEditor?> {
+            val editor_state: MutableState<PlaylistEditor?> = remember(this) { mutableStateOf(null) }
+            LaunchedEffect(this) {
+                editor_state.value = getEditorOrNull(context).fold(
+                    { it },
+                    {
+                        onFailure?.invoke(it)
+                        null
+                    }
+                )
             }
-            else if (editable_playlists.contains(id)) {
-                check(this is RemotePlaylist)
-                val auth = context.ytapi.user_auth_state
-                return remember(auth) {
-                    if (auth != null) auth.AccountPlaylistEditor.getEditor(this)
-                    else null
-                }
-            }
-            return null
+            return editor_state
         }
 
-        fun Playlist.isPlaylistEditable(): Boolean =
-            (this is LocalPlaylist) || editable_playlists.contains(id)
+        fun Playlist.isPlaylistEditable(context: PlatformContext): Boolean {
+            when (this) {
+                is LocalPlaylist -> {
+                    return true
+                }
+                is RemotePlaylist -> {
+                    val owner: Artist? = Owner.get(context.database)
+                    return owner != null && owner.id == context.ytapi.user_auth_state?.own_channel?.id
+                }
+                else -> {
+                    throw NotImplementedError(this::class.toString())
+                }
+            }
+        }
     }
 }
 
 class LocalPlaylistEditor(override val playlist: LocalPlaylist, context: PlatformContext): PlaylistEditor(playlist, context) {
-    suspend fun convertToAccountPlaylist(ytm_auth: YoutubeApi.UserAuthState): Result<RemotePlaylistData> {
-        val create_endpoint = ytm_auth.CreateAccountPlaylist
-        val add_endpoint = ytm_auth.AccountPlaylistAddSongs
-
-        if (!create_endpoint.isImplemented() || !add_endpoint.isImplemented()) {
-            return Result.failure(NotImplementedError())
-        }
-
-        val db = context.database
-
-        val playlist_data = playlist.getEmptyData().also {
-            playlist.populateData(it, db)
-        }
-
-        val create_result = create_endpoint.createAccountPlaylist(
-            playlist_data.title.orEmpty(),
-            playlist_data.description.orEmpty()
-        )
-
-        val account_playlist = RemotePlaylistData(
-            id = create_result.fold(
-                { if (!it.startsWith("VL")) "VL$it" else it },
-                { return Result.failure(it) }
-            )
-        )
-
-        val items = playlist_data.items
-        if (!items.isNullOrEmpty()) {
-            add_endpoint.addSongs(
-                account_playlist,
-                items.mapNotNull {
-                    if (it is Song) it.id else null
-                }
-            ).onFailure {
-                return Result.failure(it)
-            }
-        }
-
-        PlaylistHolder.onPlaylistReplaced(playlist, account_playlist)
-
-        db.transaction {
-            db.playlistQueries.insertById(account_playlist.id, null)
-
-            playlist_data.saveToDatabase(db, account_playlist)
-
-            account_playlist.apply {
-                CustomImageProvider.set(playlist.CustomImageProvider.get(db), db)
-                ImageWidth.set(playlist.ImageWidth.get(db), db)
-            }
-
-            db.mediaItemPlayCountQueries.updateItemId(
-                from_id = playlist.id,
-                to_id = account_playlist.id
-            )
-
-            db.playlistQueries.removeById(playlist.id)
-        }
-
-        return Result.success(account_playlist)
-    }
-
     override suspend fun performAndCommitActions(actions: List<Action>): Result<Unit> {
+        if (actions.isEmpty()) {
+            return Result.success(Unit)
+        }
+
         val data: LocalPlaylistData = playlist.loadData(context).fold(
             { it },
             {
@@ -172,14 +183,24 @@ class LocalPlaylistEditor(override val playlist: LocalPlaylist, context: Platfor
 
         for (action in actions) {
             when (action) {
-                is AddAction -> {
+                is Action.Add -> {
                     items.add(SongData(action.song_id))
                 }
-                is MoveAction -> {
+                is Action.Move -> {
                     items.add(action.to, items.removeAt(action.from))
                 }
-                is RemoveAction -> {
+                is Action.Remove -> {
                     items.removeAt(action.index)
+                }
+
+                is Action.SetTitle -> {
+                    data.title = action.title
+                }
+                is Action.SetImage -> {
+                    data.thumbnail_provider = MediaItemThumbnailProvider.fromImageUrl(action.image_url)
+                }
+                is Action.SetImageWidth -> {
+                    data.image_width = action.image_width
                 }
             }
         }
@@ -188,5 +209,16 @@ class LocalPlaylistEditor(override val playlist: LocalPlaylist, context: Platfor
 
         val file: PlatformFile = MediaItemLibrary.getLocalPlaylistFile(playlist, context)
         return data.saveToFile(file, context)
+    }
+
+    override suspend fun performDeletion(): Result<Unit> {
+        val file: PlatformFile = MediaItemLibrary.getLocalPlaylistFile(playlist, context)
+        if (file.delete()) {
+            MediaItemLibrary.onLocalPlaylistDeleted(playlist)
+            return Result.success(Unit)
+        }
+        else {
+            return Result.failure(IOException("Failed to delete file at ${file.absolute_path}"))
+        }
     }
 }

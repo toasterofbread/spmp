@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic
 
 import SpMp
-import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.endpoint.GenericFeedViewMorePageEndpoint

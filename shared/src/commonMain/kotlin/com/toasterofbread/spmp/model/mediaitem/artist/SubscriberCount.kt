@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem.artist
 
 import SpMp
-import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.amountToString

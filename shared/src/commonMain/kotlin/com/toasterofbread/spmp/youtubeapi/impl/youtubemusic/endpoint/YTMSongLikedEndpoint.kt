@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 
-import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
 import com.toasterofbread.spmp.youtubeapi.endpoint.SongLikedEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo

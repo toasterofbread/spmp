@@ -29,7 +29,13 @@ import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.launch
 
 @Composable
-fun PlaylistFooter(playlist: Playlist, items: List<Pair<MediaItem, Int>>?, loading: Boolean, load_error: Throwable?, modifier: Modifier = Modifier) {
+fun PlaylistFooter(
+    playlist: Playlist,
+    items: List<Pair<MediaItem, Int>>?,
+    loading: Boolean,
+    load_error: Throwable?,
+    modifier: Modifier = Modifier,
+) {
     val player = LocalPlayerState.current
     val coroutine_scope = rememberCoroutineScope()
 

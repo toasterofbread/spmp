@@ -13,6 +13,7 @@ CREATE TABLE Playlist (
     custom_image_url_a TEXT,
     custom_image_url_b TEXT,
     image_width REAL,
+    sort_type INTEGER,
 
     FOREIGN KEY (artist) REFERENCES Artist(id),
     FOREIGN KEY (owner) REFERENCES Artist(id),
@@ -28,7 +29,10 @@ insertById {
     INSERT OR IGNORE INTO MediaItem(id) VALUES(:id);
     INSERT OR IGNORE INTO Playlist(id, playlist_type) VALUES(:id, :type);
 }
-removeById: DELETE FROM Playlist WHERE id == :id;
+removeById {
+    DELETE FROM Playlist WHERE id == :id;
+    DELETE FROM MediaItem WHERE id == :id;
+}
 
 clearOwners: UPDATE Playlist SET owner = NULL;
 
@@ -65,3 +69,6 @@ updateCustomImageProviderById: UPDATE Playlist SET custom_image_url_a = :image_u
 
 imageWidthById: SELECT image_width FROM Playlist WHERE id == :id;
 updateImageWidthById: UPDATE Playlist SET image_width = :image_width WHERE id == :id;
+
+sortTypeById: SELECT sort_type FROM Playlist WHERE id == :id;
+updateSortTypeById: UPDATE Playlist SET sort_type = :sort_type WHERE id == :id;

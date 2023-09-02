@@ -169,9 +169,26 @@ actual class PlatformFile(
     actual val is_file: Boolean
         get() = file?.isFile == true
 
+
     actual fun getRelativePath(relative_to: PlatformFile): String {
         require(relative_to.is_directory)
-        return absolute_path.removePrefix(relative_to.absolute_path)
+
+        val relative_split: List<String> = relative_to.absolute_path.split('/')
+        val path_split: MutableList<String> = absolute_path.split('/').toMutableList()
+
+        for (part in relative_split.withIndex()) {
+            if (part.value == path_split.firstOrNull()) {
+                path_split.removeAt(0)
+            }
+            else {
+                path_split.add(
+                    0,
+                    "../".repeat(relative_split.size - part.index).dropLast(1)
+                )
+            }
+        }
+
+        return path_split.joinToString("/")
     }
 
     actual fun inputStream(): InputStream =
@@ -208,6 +225,13 @@ actual class PlatformFile(
         else {
             return PlatformFile(uri, null, parent_file, context)
         }
+    }
+
+    actual fun delete(): Boolean {
+        if (file == null) {
+            return true
+        }
+        return file!!.delete()
     }
 
     actual fun createFile(): Boolean {

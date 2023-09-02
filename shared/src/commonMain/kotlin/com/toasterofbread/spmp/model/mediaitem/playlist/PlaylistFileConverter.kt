@@ -1,16 +1,16 @@
 package com.toasterofbread.spmp.model.mediaitem.playlist
 
+import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.SongData
+import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.model.mediaitem.db.getPlayCount
-import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.platform.getLocalAudioFile
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformFile
+import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.OutputStream
 import java.io.OutputStreamWriter
 
 // Reads and writes M3U files based on https://en.wikipedia.org/wiki/M3U
@@ -23,7 +23,11 @@ object PlaylistFileConverter {
         write(
             buildString {
                 appendLine("#EXTM3U")
-                appendLine("#PLAYLIST:${playlist.title}")
+
+                val title: String? = playlist.title
+                if (title != null) {
+                    appendLine("#PLAYLIST:$title")
+                }
 
                 val play_count: Int
                 if (playlist is LocalPlaylistData) {
@@ -34,9 +38,19 @@ object PlaylistFileConverter {
                 }
                 appendLine("#PLAYCOUNT:$play_count")
 
+                val sort_type: MediaItemSortType? = playlist.sort_type
+                if (sort_type != null) {
+                    appendLine("#SORTTYPE:${sort_type.ordinal}")
+                }
+
                 val image_url: String? = playlist.thumbnail_provider?.getThumbnailUrl(MediaItemThumbnailProvider.Quality.HIGH)
                 if (image_url != null) {
                     appendLine("#IMAGE:$image_url")
+                }
+
+                val image_width: Float? = playlist.image_width
+                if (image_width != null) {
+                    appendLine("#IMAGEWIDTH:$image_width")
                 }
             }
         )
@@ -48,7 +62,7 @@ object PlaylistFileConverter {
                 with(stream.writer()) {
                     writeFileHeaders(this@saveToFile, context)
 
-                    val library_dir: PlatformFile = MediaItemLibrary.getLibraryDir(context)
+                    val playlists_dir: PlatformFile = MediaItemLibrary.getLocalPlaylistsDir(context)
 
                     for (song in items ?: emptyList()) {
                         val song_path: String
@@ -57,7 +71,7 @@ object PlaylistFileConverter {
 
                         if (local_file != null) {
                             local_file.path
-                            song_path = local_file.getRelativePath(library_dir)
+                            song_path = local_file.getRelativePath(playlists_dir)
                         }
                         else {
                             song_path = "spmp://${song.id}"
@@ -100,17 +114,19 @@ object PlaylistFileConverter {
 
                 try {
                     if (line.first() == '#') {
-                        if (!enable_ext) {
-                            return@forEachLine
-                        }
-
                         val line_split = line.split(':', limit = 2)
 
-                        when (line_split[0].uppercase()) {
+                        when (line_split[0]) {
                             "#PLAYLIST" -> playlist.title = line_split[1]
                             "#PLAYCOUNT" -> playlist.play_count = line_split[1].toInt()
+                            "#SORTTYPE" -> playlist.sort_type = MediaItemSortType.values()[line_split[1].toInt()]
                             "#IMAGE" -> playlist.thumbnail_provider = MediaItemThumbnailProvider.fromImageUrl(line_split[1])
+                            "#IMAGEWIDTH" -> playlist.image_width = line_split[1].toFloat()
                             "#EXTINF" -> {
+                                if (!enable_ext) {
+                                    return@forEachLine
+                                }
+
                                 val split = line_split[1].split(',', limit = 2)
 
                                 val duration_seconds: Int? = split.getOrNull(0)?.toIntOrNull()
@@ -134,9 +150,13 @@ object PlaylistFileConverter {
                     }
                 }
                 catch (e: Throwable) {
-                    SpMp.Log.warning("Failed to parse line ${i + 1} of playlist file at ${file.absolute_path}: \n$e")
+                    SpMp.Log.warning("Failed to parse line ${i + 1} of playlist file at ${file.absolute_path}\nLine: $line\nError: $e")
                 }
             }
+        }
+
+        if (playlist.title == null) {
+            playlist.title = getString("new_playlist_title")
         }
 
         context.database.transaction {

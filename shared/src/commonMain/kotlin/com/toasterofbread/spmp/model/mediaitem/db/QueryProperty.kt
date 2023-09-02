@@ -9,11 +9,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import app.cash.sqldelight.Query
 import com.toasterofbread.Database
-import com.toasterofbread.spmp.model.mediaitem.observeAsState
 
 interface Property<T> {
     fun get(db: Database): T
     fun set(value: T, db: Database)
+    
     @Composable
     fun observe(db: Database): MutableState<T>
 
@@ -24,8 +24,23 @@ interface Property<T> {
         return property?.observe(db)?.value
     }
 
-    fun setNotNull(value: T, db: Database) {
-        if (value != null) {
+    fun setUncertain(value: T, db: Database) {
+        if (value == null) {
+            return
+        }
+
+        db.transaction {
+            if (get(db) == null) {
+                set(value, db)
+            }
+        }
+    }
+
+    fun setNotNull(value: T, db: Database, uncertain: Boolean = false) {
+        if (uncertain) {
+            setUncertain(value, db)
+        }
+        else if (value != null) {
             set(value, db)
         }
     }

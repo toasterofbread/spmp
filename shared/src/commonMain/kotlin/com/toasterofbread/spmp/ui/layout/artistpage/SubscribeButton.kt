@@ -15,7 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.updateSubscribed
 import com.toasterofbread.spmp.model.mediaitem.loader.ArtistSubscribedLoader
 import com.toasterofbread.spmp.resources.getStringTODO

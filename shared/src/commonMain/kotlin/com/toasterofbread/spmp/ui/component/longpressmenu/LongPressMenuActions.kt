@@ -3,8 +3,10 @@ package com.toasterofbread.spmp.ui.component.longpressmenu
 import LocalPlayerState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.OpenWith
 import androidx.compose.material.icons.filled.Print
@@ -15,9 +17,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.toInfoString
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.WidthShrinkText
@@ -26,9 +30,17 @@ import com.toasterofbread.utils.isDebugBuild
 const val MENU_ITEM_SPACING: Int = 20
 
 @Composable
-internal fun ColumnScope.LongPressMenuInfoActions(data: LongPressMenuData, getAccentColour: () -> Color, onAction: () -> Unit) {
+internal fun ColumnScope.LongPressMenuInfoActions(
+    data: LongPressMenuData,
+    spacing: Dp,
+    getAccentColour: () -> Color,
+    onAction: () -> Unit,
+) {
     val player = LocalPlayerState.current
-    data.infoContent?.invoke(this, getAccentColour)
+
+    Column(Modifier.fillMaxHeight().weight(1f), verticalArrangement = Arrangement.spacedBy(spacing)) {
+        data.infoContent?.invoke(this, getAccentColour)
+    }
 
     // Share
     if (player.context.canShare()) {
@@ -62,7 +74,9 @@ internal fun ColumnScope.LongPressMenuInfoActions(data: LongPressMenuData, getAc
     if (isDebugBuild()) {
         Row(
             Modifier.clickable {
-                println(data.item)
+                val item_data = data.item.getEmptyData()
+                item_data.populateData(item_data, player.database)
+                println(item_data.toInfoString())
             },
             horizontalArrangement = Arrangement.spacedBy(20.dp),
             verticalAlignment = Alignment.CenterVertically

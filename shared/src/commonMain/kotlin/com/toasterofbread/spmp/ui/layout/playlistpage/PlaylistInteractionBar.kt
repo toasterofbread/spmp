@@ -1,8 +1,10 @@
 package com.toasterofbread.spmp.ui.layout.playlistpage
 
+import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,106 +33,139 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.toasterofbread.spmp.model.mediaitem.MediaItemSortOption
+import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
-import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor
+import com.toasterofbread.spmp.ui.component.WaveBorder
+import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.launch
 
 @Composable
 internal fun InteractionBar(
     list_state: LazyListState,
+    loading: Boolean,
+    multiselect_context: MediaItemMultiSelectContext,
     playlist: Playlist,
     playlist_editor: PlaylistEditor?,
     reorderable: Boolean,
     setReorderable: (Boolean) -> Unit,
     filter: String?,
     setFilter: (String?) -> Unit,
-    sort_option: MediaItemSortOption,
-    setSortOption: (MediaItemSortOption) -> Unit,
+    sort_option: MediaItemSortType,
+    setSortOption: (MediaItemSortType) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // 0 -> search, 1 -> sort
-    var opened_menu: Int? by remember { mutableStateOf(null) }
+    val player = LocalPlayerState.current
     val coroutine_scope = rememberCoroutineScope()
 
-    Row(modifier) {
-        // Filter button
-        IconButton(
-            {
-                if (opened_menu == 0) opened_menu = null
-                else opened_menu = 0
-            },
-            enabled = !reorderable
-        ) {
-            Crossfade(opened_menu == 0) { searching ->
-                Icon(if (searching) Icons.Default.Done else Icons.Default.Search, null)
-            }
-        }
+    // 0 -> search, 1 -> sort
+    var opened_menu: Int? by remember { mutableStateOf(null) }
 
-        // Animate between filter bar and remaining buttons
-        Box(Modifier.fillMaxWidth().weight(1f)) {
-            this@Row.AnimatedVisibility(opened_menu != 0) {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    // Sort
+    Column(modifier) {
+        Crossfade(multiselect_context.is_active) { selecting ->
+            if (selecting) {
+                multiselect_context.InfoDisplay()
+            }
+            else {
+                Row {
+                    // Filter button
                     IconButton(
                         {
-                            if (opened_menu == 1) opened_menu = null
-                            else opened_menu = 1
+                            if (opened_menu == 0) opened_menu = null
+                            else opened_menu = 0
                         },
                         enabled = !reorderable
                     ) {
-                        Icon(Icons.Default.Sort, null)
+                        Crossfade(opened_menu == 0) { searching ->
+                            Icon(if (searching) Icons.Default.Done else Icons.Default.Search, null)
+                        }
                     }
 
-                    Spacer(Modifier.fillMaxWidth().weight(1f))
+                    // Animate between filter bar and remaining buttons
+                    Box(Modifier.fillMaxWidth().weight(1f)) {
+                        this@Row.AnimatedVisibility(opened_menu != 0) {
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                // Sort
+                                IconButton(
+                                    {
+                                        if (opened_menu == 1) opened_menu = null
+                                        else opened_menu = 1
+                                    },
+                                    enabled = !reorderable
+                                ) {
+                                    Icon(Icons.Default.Sort, null)
+                                }
 
-                    if (playlist_editor != null) {
-                        // Reorder
-                        IconButton({ setReorderable(!reorderable) }) {
-                            Crossfade(reorderable) { reordering ->
-                                Icon(if (reordering) Icons.Default.Done else Icons.Default.Reorder, null)
+                                Spacer(Modifier.fillMaxWidth().weight(1f))
+
+                                AnimatedVisibility(loading) {
+                                    SubtleLoadingIndicator()
+                                }
+
+                                if (playlist_editor != null) {
+                                    // Reorder
+                                    AnimatedVisibility(playlist_editor.canMoveItems()) {
+                                        IconButton({
+                                            if (playlist_editor.canMoveItems()) {
+                                                setReorderable(!reorderable)
+                                            }
+                                        }) {
+                                            Crossfade(reorderable) { reordering ->
+                                                Icon(if (reordering) Icons.Default.Done else Icons.Default.Reorder, null)
+                                            }
+                                        }
+                                    }
+
+                                    AnimatedVisibility(playlist_editor.canAddItems()) {
+                                        IconButton({
+                                            if (playlist_editor.canAddItems()) {
+                                                TODO()
+                                            }
+                                        }) {
+                                            Icon(Icons.Default.Add, null)
+                                        }
+                                    }
+                                }
                             }
                         }
-                        // Add
-                        IconButton({ TODO() }) {
-                            Icon(Icons.Default.Add, null)
+                        this@Row.AnimatedVisibility(opened_menu == 0) {
+                            InteractionBarFilterBox(filter, setFilter, Modifier.fillMaxWidth())
+                        }
+                    }
+
+                    AnimatedVisibility(opened_menu != 0) {
+                        Row {
+                            Crossfade(list_state.canScrollBackward) { enabled ->
+                                IconButton(
+                                    { coroutine_scope.launch {
+                                        list_state.scrollToItem(0)
+                                    } },
+                                    enabled = enabled
+                                ) {
+                                    Icon(Icons.Default.ArrowUpward, null)
+                                }
+                            }
+                            Crossfade(list_state.canScrollForward) { enabled ->
+                                IconButton(
+                                    { coroutine_scope.launch {
+                                        list_state.scrollToItem(Int.MAX_VALUE)
+                                    } },
+                                    enabled = enabled
+                                ) {
+                                    Icon(Icons.Default.ArrowDownward, null)
+                                }
+                            }
                         }
                     }
                 }
             }
-            this@Row.AnimatedVisibility(opened_menu == 0) {
-                InteractionBarFilterBox(filter, setFilter, Modifier.fillMaxWidth())
-            }
         }
 
-        AnimatedVisibility(opened_menu != 0) {
-            Row {
-                Crossfade(list_state.canScrollBackward) { enabled ->
-                    IconButton(
-                        { coroutine_scope.launch {
-                            list_state.scrollToItem(0)
-                        } },
-                        enabled = enabled
-                    ) {
-                        Icon(Icons.Default.ArrowUpward, null)
-                    }
-                }
-                Crossfade(list_state.canScrollForward) { enabled ->
-                    IconButton(
-                        { coroutine_scope.launch {
-                            list_state.scrollToItem(Int.MAX_VALUE)
-                        } },
-                        enabled = enabled
-                    ) {
-                        Icon(Icons.Default.ArrowDownward, null)
-                    }
-                }
-            }
-        }
+        WaveBorder(Modifier.fillMaxWidth())
     }
 
-    MediaItemSortOption.SelectionMenu(
+    MediaItemSortType.SelectionMenu(
         opened_menu == 1,
         sort_option,
         { opened_menu = null },

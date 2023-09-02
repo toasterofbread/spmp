@@ -9,7 +9,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import app.cash.sqldelight.Query
 import com.toasterofbread.spmp.model.SongLyrics
-import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.utils.launchSingle

@@ -25,3 +25,61 @@
 }
 -keep,allowobfuscation,allowshrinking class com.google.gson.reflect.TypeToken
 -keep,allowobfuscation,allowshrinking class * extends com.google.gson.reflect.TypeToken
+
+# OkHttp platform used only on JVM and when Conscrypt and other security providers are available.
+-dontwarn okhttp3.internal.platform.**
+-dontwarn org.conscrypt.**
+-dontwarn org.bouncycastle.**
+-dontwarn org.openjsse.**
+
+# ???
+-dontwarn java.awt.AWTEvent
+-dontwarn java.awt.Component
+-dontwarn java.awt.Container
+-dontwarn java.awt.EventQueue
+-dontwarn java.awt.MenuComponent
+-dontwarn java.awt.event.ActionListener
+-dontwarn java.awt.event.ComponentListener
+-dontwarn java.awt.event.ContainerListener
+-dontwarn java.awt.event.KeyAdapter
+-dontwarn java.awt.event.KeyListener
+-dontwarn java.awt.event.MouseAdapter
+-dontwarn java.awt.event.MouseListener
+-dontwarn java.awt.event.WindowAdapter
+-dontwarn javax.swing.CellEditor
+-dontwarn javax.swing.DesktopManager
+-dontwarn javax.swing.JComboBox
+-dontwarn javax.swing.JComponent
+-dontwarn javax.swing.JDesktopPane
+-dontwarn javax.swing.JDialog
+-dontwarn javax.swing.JFrame
+-dontwarn javax.swing.JInternalFrame
+-dontwarn javax.swing.JLabel
+-dontwarn javax.swing.JMenu
+-dontwarn javax.swing.JMenuBar
+-dontwarn javax.swing.JMenuItem
+-dontwarn javax.swing.JOptionPane
+-dontwarn javax.swing.JPanel
+-dontwarn javax.swing.JPopupMenu
+-dontwarn javax.swing.JScrollPane
+-dontwarn javax.swing.JTable
+-dontwarn javax.swing.JTextArea
+-dontwarn javax.swing.JToolBar
+-dontwarn javax.swing.JTree
+-dontwarn javax.swing.JViewport
+-dontwarn javax.swing.SwingUtilities
+-dontwarn javax.swing.UIManager
+-dontwarn javax.swing.event.DocumentListener
+-dontwarn javax.swing.event.EventListenerList
+-dontwarn javax.swing.event.InternalFrameAdapter
+-dontwarn javax.swing.event.ListSelectionListener
+-dontwarn javax.swing.event.PopupMenuListener
+-dontwarn javax.swing.event.TreeExpansionListener
+-dontwarn javax.swing.event.TreeModelListener
+-dontwarn javax.swing.filechooser.FileFilter
+-dontwarn javax.swing.table.AbstractTableModel
+-dontwarn javax.swing.table.TableCellEditor
+-dontwarn javax.swing.table.TableCellRenderer
+-dontwarn javax.swing.text.BadLocationException
+-dontwarn javax.swing.tree.DefaultTreeSelectionModel
+-dontwarn javax.swing.tree.TreeModel

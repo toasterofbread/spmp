@@ -153,7 +153,7 @@ class MainOverlayMenu(
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.End)) {
                 Box(
                     button_modifier.clickable {
-                        edited_song_title = song.OriginalTitle.get(db) ?: ""
+                        edited_song_title = song.CustomTitle.get(db) ?: ""
                     },
                     contentAlignment = Alignment.Center
                 ) {
@@ -170,9 +170,7 @@ class MainOverlayMenu(
                 }
             }
 
-            Spacer(Modifier
-                .fillMaxHeight()
-                .weight(1f))
+            Spacer(Modifier.fillMaxHeight().weight(1f))
 
             Row(
                 Modifier.fillMaxWidth(),

@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.model.mediaitem.song
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.IntOffset
 import com.toasterofbread.Database
@@ -140,7 +141,7 @@ interface Song: MediaItem.WithArtist {
 
             @Composable
             override fun observe(db: Database): MutableState<MediaItemThumbnailProvider?> =
-                mutableStateOf(get(db))
+                remember(this) { mutableStateOf(get(db)) }
         }
 }
 

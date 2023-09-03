@@ -46,18 +46,24 @@ import androidx.documentfile.provider.DocumentFile
 import com.anggrayudi.storage.callback.FileCallback
 import com.anggrayudi.storage.callback.FolderCallback
 import com.anggrayudi.storage.file.DocumentFileCompat
+import com.anggrayudi.storage.file.changeName
 import com.anggrayudi.storage.file.child
 import com.anggrayudi.storage.file.copyFileTo
+import com.anggrayudi.storage.file.findParent
 import com.anggrayudi.storage.file.getAbsolutePath
 import com.anggrayudi.storage.file.getRelativePath
+import com.anggrayudi.storage.file.isRawFile
+import com.anggrayudi.storage.file.isTreeDocumentFile
 import com.anggrayudi.storage.file.makeFolder
 import com.anggrayudi.storage.file.moveFolderTo
+import com.anggrayudi.storage.file.toTreeDocumentFile
 import com.anggrayudi.storage.media.MediaFile
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.utils.isDark
+import com.toasterofbread.utils.isDebugBuild
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.File
@@ -143,13 +149,21 @@ actual class PlatformFile(
     private val context: Context
 ) {
     init {
-        if (file != null) {
-            require(parent_file == null) { "$file | $parent_file" }
-            require(file!!.exists()) { file.toString() }
-        }
-        if (parent_file != null) {
-            require(file == null) { "$file | $parent_file" }
-            require(parent_file!!.isDirectory) { parent_file!!.uri.clean_path }
+        if (isDebugBuild()) {
+            require(file != null || parent_file != null) {
+                "PlatformFile must be created with file or parent_file ($document_uri)"
+            }
+
+            if (file != null) {
+                require(file!!.exists()) {
+                    "File does not exist ($document_uri)"
+                }
+            }
+            if (parent_file != null) {
+                require(parent_file!!.isDirectory) {
+                    "Parent file is not a directory (${parent_file!!.getAbsolutePath(context)} | $document_uri)"
+                }
+            }
         }
     }
 
@@ -196,7 +210,7 @@ actual class PlatformFile(
 
     actual fun outputStream(append: Boolean): OutputStream {
         if (!is_file) {
-            check(createFile())
+            check(createFile()) { "Could not create file for writing $this" }
         }
         return context.contentResolver.openOutputStream(file!!.uri, if (append) "wa" else "w")!!
     }
@@ -224,6 +238,21 @@ actual class PlatformFile(
         }
         else {
             return PlatformFile(uri, null, parent_file, context)
+        }
+    }
+
+    actual fun getSibling(sibling_name: String): PlatformFile {
+        val uri = document_uri.toString()
+        val last_slash = uri.lastIndexOf('/')
+        check(last_slash != -1)
+
+        val sibling_uri = Uri.parse(uri.substring(0, last_slash + 1) + sibling_name)
+
+        if (file != null) {
+            return PlatformFile(sibling_uri, null, file!!.findParent(context, true)!!, context)
+        }
+        else {
+            return PlatformFile(sibling_uri, null, parent_file!!, context)
         }
     }
 

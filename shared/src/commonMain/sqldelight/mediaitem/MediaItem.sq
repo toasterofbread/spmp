@@ -4,7 +4,7 @@ CREATE TABLE MediaItem (
     loaded INTEGER,
 
     title TEXT,
-    original_title TEXT,
+    custom_title TEXT,
     description TEXT,
 
     thumb_url_a TEXT,
@@ -20,8 +20,8 @@ updateLoadedById: UPDATE MediaItem SET loaded = :loaded WHERE id == :id;
 titleById: SELECT title FROM MediaItem WHERE id == :id;
 updateTitleById: UPDATE MediaItem SET title = :title WHERE id == :id;
 
-originalTitleById: SELECT original_title FROM MediaItem WHERE id == :id;
-updateOriginalTitleById: UPDATE MediaItem SET original_title = :original_title WHERE id == :id;
+customTitleById: SELECT custom_title FROM MediaItem WHERE id == :id;
+updateCustomTitleById: UPDATE MediaItem SET custom_title = :custom_title WHERE id == :id;
 
 descriptionById: SELECT description FROM MediaItem WHERE id == :id;
 updateDescriptionById: UPDATE MediaItem SET description = :description WHERE id == :id;
@@ -34,3 +34,7 @@ updateThemeColourById: UPDATE MediaItem SET theme_colour = :theme_colour WHERE i
 
 isHiddenById: SELECT hidden FROM MediaItem WHERE id == :id;
 updateIsHiddenById: UPDATE MediaItem SET hidden = :hidden WHERE id == :id;
+
+--
+
+activeTitleById: SELECT IFNULL(custom_title, title) FROM MediaItem WHERE id == :id;

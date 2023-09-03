@@ -58,7 +58,7 @@ fun ArtistSubscribeButton(
                     coroutine_scope.launch {
                         val result = artist.updateSubscribed(!subscribed, auth_state.SetSubscribedToArtist, player.context)
                         if (result.isFailure) {
-                            val artist_title: String? = artist.Title.get(SpMp.context.database)
+                            val artist_title: String? = artist.getActiveTitle(SpMp.context.database)
                             SpMp.context.sendToast(getStringTODO(
                                 if (!subscribed) "Subscribing to $artist_title failed"
                                 else "Unsubscribing from $artist_title failed"

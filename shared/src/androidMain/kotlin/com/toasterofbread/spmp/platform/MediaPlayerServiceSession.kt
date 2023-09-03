@@ -254,8 +254,8 @@ class MediaPlayerServiceSession: MediaSessionService() {
             }
 
             val db = context.database
-            setContentTitle(song?.Title?.get(db) ?: "---")
-            setContentText(song?.Artist?.get(db)?.Title?.get(db) ?: "---")
+            setContentTitle(song?.getActiveTitle(db) ?: "---")
+            setContentText(song?.Artist?.get(db)?.getActiveTitle(db) ?: "---")
         }
 
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager

@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.ui.component
 
-import SpMp
+import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -10,9 +10,11 @@ import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,26 +24,68 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider.*
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistDefaultThumbnail
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
+import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
+import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.utils.launchSingle
+
+private suspend inline fun MediaItem.loadThumb(
+    player: PlayerState,
+    target_quality: Quality,
+    base_provider: MediaItemThumbnailProvider?,
+    onLoaded: (ImageBitmap, Quality) -> Unit
+) {
+    var provider: MediaItemThumbnailProvider? = base_provider
+    if (provider == null) {
+        loadData(player.context)
+        provider = ThumbnailProvider.get(player.database)
+    }
+
+    if (provider != null) {
+        for (quality in Quality.byQuality(target_quality)) {
+            val load_result = MediaItemThumbnailLoader.loadItemThumbnail(
+                this@loadThumb,
+                provider,
+                quality,
+                player.context
+            )
+            load_result.onSuccess { loaded_image ->
+                onLoaded(loaded_image, quality)
+                return
+            }
+        }
+    }
+}
 
 @Composable
 fun MediaItem.Thumbnail(
-    target_quality: MediaItemThumbnailProvider.Quality,
+    target_quality: Quality,
     modifier: Modifier = Modifier,
     load_failed_icon: ImageVector? = Icons.Default.CloudOff,
+    provider_override: MediaItemThumbnailProvider? = null,
     getContentColour: (() -> Color)? = null,
     onLoaded: ((ImageBitmap) -> Unit)? = null
 ) {
+    val player = LocalPlayerState.current
     var loading by remember { mutableStateOf(true) }
-    var image: Pair<ImageBitmap, MediaItemThumbnailProvider.Quality>? by remember(id) {
-        val provider = ThumbnailProvider.get(SpMp.context.database)
+    val coroutine_scope = rememberCoroutineScope()
+
+    val custom_image_url: State<String?>? = (this as? Playlist)?.CustomImageUrl?.observe(player.database)
+    val thumbnail_provider: MediaItemThumbnailProvider? by ThumbnailProvider.observe(player.database)
+
+    fun getThumbnailProvider(): MediaItemThumbnailProvider? =
+        provider_override ?: custom_image_url?.value?.let { MediaItemThumbnailProvider.fromImageUrl(it) } ?: thumbnail_provider
+
+    var image: Pair<ImageBitmap, Quality>? by remember(id) {
+        val provider = getThumbnailProvider()
         if (provider != null) {
-            for (quality in MediaItemThumbnailProvider.Quality.byQuality(target_quality)) {
-                val loaded_image = MediaItemThumbnailLoader.getLoadedItemThumbnail(this, quality, provider)
+            for (quality in Quality.byQuality(target_quality)) {
+                val loaded_image = MediaItemThumbnailLoader.getLoadedItemThumbnail(this@Thumbnail, quality, provider)
                 if (loaded_image != null) {
                     onLoaded?.invoke(loaded_image)
                     return@remember mutableStateOf(Pair(loaded_image, quality))
@@ -52,42 +96,33 @@ fun MediaItem.Thumbnail(
         return@remember mutableStateOf(null)
     }
 
-    LaunchedEffect(id, target_quality) {
+    OnChangedEffect(id, provider_override ?: custom_image_url ?: thumbnail_provider) {
+        coroutine_scope.launchSingle {
+            loading = true
+            image = null
+            loadThumb(player, target_quality, getThumbnailProvider()) { loaded_image, quality ->
+                image = Pair(loaded_image, quality)
+                onLoaded?.invoke(loaded_image)
+            }
+            loading = false
+        }
+    }
+
+    LaunchedEffect(target_quality) {
         image?.also { im ->
             if (im.second.ordinal >= target_quality.ordinal) {
-                onLoaded?.invoke(im.first)
                 return@LaunchedEffect
             }
         }
 
-        loading = true
-
-        var thumbnail_provider: MediaItemThumbnailProvider?
-        if (this is Playlist) {
-            thumbnail_provider = CustomImageProvider.get(SpMp.context.database) ?: ThumbnailProvider.get(SpMp.context.database)
-        }
-        else {
-            thumbnail_provider = ThumbnailProvider.get(SpMp.context.database)
-        }
-
-        if (thumbnail_provider == null) {
-            loadData(SpMp.context)
-            thumbnail_provider = ThumbnailProvider.get(SpMp.context.database)
-        }
-
-        if (thumbnail_provider != null) {
-            for (quality in MediaItemThumbnailProvider.Quality.byQuality(target_quality)) {
-                val load_result = MediaItemThumbnailLoader.loadItemThumbnail(this@Thumbnail, thumbnail_provider, quality, SpMp.context)
-                if (load_result.isSuccess) {
-                    val loaded_image = load_result.getOrThrow()
-                    image = Pair(loaded_image, quality)
-                    onLoaded?.invoke(loaded_image)
-                    break
-                }
+        coroutine_scope.launchSingle {
+            loading = true
+            loadThumb(player, target_quality, getThumbnailProvider()) { loaded_image, quality ->
+                image = Pair(loaded_image, quality)
+                onLoaded?.invoke(loaded_image)
             }
+            loading = false
         }
-
-        loading = false
     }
 
     Crossfade(image?.first ?: loading) { state ->

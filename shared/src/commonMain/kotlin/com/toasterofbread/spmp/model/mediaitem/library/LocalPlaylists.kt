@@ -7,8 +7,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
+import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter.saveToFile
@@ -18,20 +18,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
 
-private interface LocalPlaylistsListener {
-    fun onPlaylistAdded(playlist: LocalPlaylistData) {}
-    fun onPlaylistRemoved(playlist: LocalPlaylist) {}
-}
-private val local_playlists_listeners: MutableList<LocalPlaylistsListener> = mutableListOf()
-
-fun MediaItemLibrary.onLocalPlaylistDeleted(playlist: LocalPlaylist) {
-    synchronized(local_playlists_listeners) {
-        for (listener in local_playlists_listeners) {
-            listener.onPlaylistRemoved(playlist)
-        }
-    }
-}
-
 @Composable
 fun MediaItemLibrary.rememberLocalPlaylists(context: PlatformContext): List<LocalPlaylistData>? {
     var playlists: List<LocalPlaylistData>? by remember { mutableStateOf(null) }
@@ -40,12 +26,14 @@ fun MediaItemLibrary.rememberLocalPlaylists(context: PlatformContext): List<Loca
     }
 
     DisposableEffect(Unit) {
-        val listener = object : LocalPlaylistsListener {
-            override fun onPlaylistAdded(playlist: LocalPlaylistData) {
-                playlists = (playlists ?: emptyList()).plus(playlist)
+        val listener = object : MediaItemLibrary.PlaylistsListener {
+            override fun onPlaylistAdded(playlist: PlaylistData) {
+                if (playlist is LocalPlaylistData) {
+                    playlists = (playlists ?: emptyList()).plus(playlist)
+                }
             }
 
-            override fun onPlaylistRemoved(playlist: LocalPlaylist) {
+            override fun onPlaylistRemoved(playlist: Playlist) {
                 playlists = playlists?.let { list ->
                     val mutable = list.toMutableList()
                     mutable.removeIf { it.id == playlist.id }
@@ -54,14 +42,10 @@ fun MediaItemLibrary.rememberLocalPlaylists(context: PlatformContext): List<Loca
             }
         }
 
-        synchronized(local_playlists_listeners) {
-            local_playlists_listeners.add(listener)
-        }
+        addPlaylistsListener(listener)
 
         onDispose {
-            synchronized(local_playlists_listeners) {
-                local_playlists_listeners.remove(listener)
-            }
+            removePlaylistsListener(listener)
         }
     }
 
@@ -74,7 +58,7 @@ suspend fun MediaItemLibrary.loadLocalPlaylists(context: PlatformContext): List<
         return@withContext null
     }
 
-    val playlists = (playlists_dir.listFiles() ?: emptyList()).map { file ->
+    val playlists = (playlists_dir.listFiles() ?: emptyList()).mapNotNull { file ->
         PlaylistFileConverter.loadFromFile(file, context)
     }
     return@withContext playlists
@@ -121,11 +105,7 @@ suspend fun MediaItemLibrary.createLocalPlaylist(context: PlatformContext, base_
         return@withContext Result.failure(it)
     }
 
-    synchronized(local_playlists_listeners) {
-        for (listener in local_playlists_listeners) {
-            listener.onPlaylistAdded(playlist)
-        }
-    }
+    onPlaylistCreated(playlist)
 
     return@withContext Result.success(playlist)
 }

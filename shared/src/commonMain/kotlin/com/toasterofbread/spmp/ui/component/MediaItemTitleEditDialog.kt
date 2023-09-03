@@ -1,32 +1,40 @@
 package com.toasterofbread.spmp.ui.component
 
-import SpMp
+import LocalPlayerState
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.utils.launchSingle
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MediaItemTitleEditDialog(item: MediaItem, modifier: Modifier = Modifier, close: () -> Unit) {
-    var edited_title: String by remember { mutableStateOf(item.Title.get(SpMp.context.database) ?: "") }
+    val player = LocalPlayerState.current
+    val coroutine_scope = rememberCoroutineScope()
+
+    var edited_title: String by remember { mutableStateOf(item.getActiveTitle(player.database) ?: "") }
+
     PlatformAlertDialog(
         close,
-        { Button({
-            SpMp.context.database.mediaItemQueries.updateTitleById(edited_title, item.id)
-            close()
-        }) {
-            Text(getString("action_confirm_action"))
-        } },
+        {
+            Button({
+                coroutine_scope.launchSingle {
+                    item.setActiveTitle(edited_title, player.context)
+                    close()
+                }
+            }) {
+                Text(getString("action_confirm_action"))
+            }
+        },
         modifier,
         dismissButton = {
             Button(close) {

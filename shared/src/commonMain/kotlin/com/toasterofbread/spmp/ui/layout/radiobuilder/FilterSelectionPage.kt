@@ -53,7 +53,7 @@ import kotlinx.coroutines.withContext
 fun FilterSelectionPage(
     selected_artists: Collection<Int>,
     artists: List<RadioBuilderArtist>,
-    bottom_padding: Dp = 0.dp,
+    content_padding: PaddingValues,
 ) {
     val player = LocalPlayerState.current
 
@@ -145,7 +145,7 @@ fun FilterSelectionPage(
                     Column(
                         Modifier
                             .fillMaxHeight()
-                            .padding(bottom = bottom_padding),
+                            .padding(content_padding),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
@@ -162,7 +162,7 @@ fun FilterSelectionPage(
                     }
                 }
                 else if (loading) {
-                    SubtleLoadingIndicator(Modifier.offset(y = -bottom_padding)) { Theme.on_background }
+                    SubtleLoadingIndicator(Modifier.offset(y = -content_padding.calculateBottomPadding())) { Theme.on_background }
                 }
                 else {
                     val items = playlist?.items
@@ -182,7 +182,7 @@ fun FilterSelectionPage(
                             }
                             LazyColumn(
                                 Modifier.fillMaxSize(),
-                                contentPadding = PaddingValues(bottom = bottom_padding),
+                                contentPadding = content_padding,
                                 verticalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 items(items) { item ->

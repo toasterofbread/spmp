@@ -96,6 +96,7 @@ expect class PlatformFile {
 
     fun listFiles(): List<PlatformFile>?
     fun resolve(relative_path: String): PlatformFile
+    fun getSibling(sibling_name: String): PlatformFile
 
     fun delete(): Boolean
     fun createFile(): Boolean

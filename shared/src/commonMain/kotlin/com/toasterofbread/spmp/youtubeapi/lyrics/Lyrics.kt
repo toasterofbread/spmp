@@ -68,8 +68,8 @@ sealed class LyricsSource(val source_index: Int) {
             val db = context.database
             val (song_title, artist_title) = db.transactionWithResult {
                 Pair(
-                    song.Title.get(db),
-                    song.Artist.get(db)?.Title?.get(db)
+                    song.getActiveTitle(db),
+                    song.Artist.get(db)?.getActiveTitle(db)
                 )
             }
 

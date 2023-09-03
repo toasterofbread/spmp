@@ -51,7 +51,7 @@ internal fun ColumnScope.LongPressMenuInfoActions(
             onClick = {
                 player.context.shareText(
                     data.item.getURL(player.context),
-                    if (data.item is Song) data.item.Title.get(player.context.database) else null
+                    if (data.item is Song) data.item.getActiveTitle(player.database) else null
                 )
             },
             onAction = onAction

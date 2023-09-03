@@ -60,7 +60,7 @@ internal class DiscordStatusHandler(val player: PlayerService, val context: Plat
                 return
             }
 
-            val song_title = status_song.Title.get(context.database)
+            val song_title = status_song.getActiveTitle(context.database)
             if (song_title == null) {
                 close()
                 return
@@ -128,7 +128,7 @@ internal class DiscordStatusHandler(val player: PlayerService, val context: Plat
                     large_text = text_c.ifEmpty { null },
                     small_image = small_image,
                     small_text =
-                    if (small_image != null) status_song.Artist.get(context.database)?.Title?.get(context.database)
+                    if (small_image != null) status_song.Artist.get(context.database)?.getActiveTitle(context.database)
                     else null,
                     application_id = DISCORD_APPLICATION_ID
                 )

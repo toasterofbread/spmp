@@ -1,8 +1,8 @@
 package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.ui.unit.IntSize
-import mediaitem.CustomImageProviderById
 import mediaitem.ThumbnailProviderById
+import java.net.URI
 
 interface MediaItemThumbnailProvider {
     fun getThumbnailUrl(quality: Quality): String?
@@ -97,8 +97,3 @@ data class MediaItemThumbnailProviderImpl(
 fun ThumbnailProviderById.toThumbnailProvider(): MediaItemThumbnailProvider? =
     if (thumb_url_a == null) null
     else MediaItemThumbnailProviderImpl(thumb_url_a, thumb_url_b)
-
-fun CustomImageProviderById.toThumbnailProvider(): MediaItemThumbnailProvider? =
-    if (custom_image_url_a == null) null
-    else MediaItemThumbnailProviderImpl(custom_image_url_a, custom_image_url_b)
-

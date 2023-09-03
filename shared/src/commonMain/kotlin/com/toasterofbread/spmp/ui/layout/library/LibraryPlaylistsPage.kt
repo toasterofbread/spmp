@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.ui.layout.library
 
 import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -36,6 +37,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
@@ -153,14 +155,16 @@ class LibraryPlaylistsPage: LibrarySubPage {
                     loading
                 },
                 cornerContent = {
-                    AnimatedVisibility(!loading) {
-                        IconButton({
+                    IconButton(
+                        {
                             load_coroutine_scope.launchSingle {
                                 loadAccountPlaylists()
                             }
-                        }) {
-                            Icon(Icons.Default.Refresh, null)
-                        }
+                        },
+                        Modifier.alpha(animateFloatAsState(if (loading) 0f else 1f).value),
+                        enabled = !loading,
+                    ) {
+                        Icon(Icons.Default.Refresh, null)
                     }
                 }
             )

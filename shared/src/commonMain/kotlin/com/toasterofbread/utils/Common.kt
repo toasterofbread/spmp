@@ -114,27 +114,6 @@ fun <T> SwipeableState<T>.init(anchors: Map<Float, T>) {
 operator fun IntSize.times(other: Float): IntSize =
 	IntSize(width = (width * other).toInt(), height = (height * other).toInt())
 
-class ValueListeners<T>(private val list: MutableList<(T) -> Unit> = mutableListOf()) {
-	fun call(value: T) {
-		list.forEach { it(value) }
-	}
-
-	fun add(value: (T) -> Unit) {
-		list.add(value)
-	}
-
-	fun remove(value: (T) -> Unit) {
-		val iterator = list.iterator()
-		while (iterator.hasNext()) {
-			val item = iterator.next()
-			if (item == value) {
-				iterator.remove()
-				break
-			}
-		}
-	}
-}
-
 fun formatElapsedTime(seconds: Long): String {
 	val hours = TimeUnit.SECONDS.toHours(seconds)
 	val minutes = TimeUnit.SECONDS.toMinutes(seconds) % 60
@@ -155,21 +134,6 @@ fun <K, V : Any> MutableMap<K, V>.putIfAbsent(key: K, getValue: () -> V): V {
 	return v
 }
 
-fun catchInterrupts(action: () -> Unit): Boolean {
-	try {
-		action()
-	}
-	catch (error: Exception) {
-		for (e in listOf(error, error.cause)) {
-			if (e is InterruptedException || e is InterruptedIOException) {
-				return true
-			}
-		}
-		throw RuntimeException(error)
-	}
-	return false
-}
-
 fun String.indexOfOrNull(string: String, start_index: Int = 0, ignore_case: Boolean = false): Int? =
 	indexOf(string, start_index, ignore_case).takeIf { it != -1 }
 
@@ -183,12 +147,6 @@ fun String.indexOfFirstOrNull(start: Int = 0, predicate: (Char) -> Boolean): Int
 		}
 	}
 	return null
-}
-
-fun <T> MutableList<T>.swap(index_a: Int, index_b: Int){
-	val a = this[index_a]
-	this[index_a] = this[index_b]
-	this[index_b] = a
 }
 
 fun CoroutineScope.launchSingle(

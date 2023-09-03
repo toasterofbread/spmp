@@ -59,6 +59,7 @@ import com.toasterofbread.utils.composable.*
 import com.toasterofbread.utils.modifier.background
 import com.toasterofbread.utils.modifier.brushBackground
 import com.toasterofbread.utils.modifier.drawScopeBackground
+import com.toasterofbread.utils.modifier.horizontal
 import kotlinx.coroutines.*
 
 private const val ARTIST_IMAGE_SCROLL_MODIFIER = 0.25f
@@ -67,8 +68,8 @@ private const val ARTIST_IMAGE_SCROLL_MODIFIER = 0.25f
 @Composable
 fun ArtistPage(
     artist: Artist,
-    previous_item: MediaItem? = null,
-    bottom_padding: Dp = 0.dp,
+    previous_item: MediaItem?,
+    content_padding: PaddingValues,
     browse_params: Pair<String, ArtistWithParamsEndpoint>?,
     close: () -> Unit
 ) {
@@ -130,7 +131,6 @@ fun ArtistPage(
 
     val apply_filter: Boolean by Settings.KEY_FILTER_APPLY_TO_ARTIST_ITEMS.rememberMutableState()
     val background_modifier = Modifier.background(Theme.background_provider)
-    val content_padding = PaddingValues(horizontal = 10.dp)
     val gradient_size = 0.35f
     var accent_colour: Color? by remember { mutableStateOf(null) }
 
@@ -166,7 +166,7 @@ fun ArtistPage(
             MusicTopBar(
                 Settings.KEY_LYRICS_SHOW_IN_ARTIST,
                 Modifier.fillMaxWidth().zIndex(1f),
-                padding = content_padding
+                padding = content_padding.horizontal
             ) { music_top_bar_showing = it }
 
             AnimatedVisibility(multiselect_context.is_active) {
@@ -234,7 +234,7 @@ fun ArtistPage(
                 swipe_enabled = !loading,
                 modifier = Modifier.fillMaxSize()
             ) {
-                LazyColumn(Modifier.fillMaxSize(), main_column_state, contentPadding = PaddingValues(bottom = bottom_padding)) {
+                LazyColumn(Modifier.fillMaxSize(), main_column_state, contentPadding = content_padding) {
 
                     val play_button_size = 55.dp
                     val filter_bar_height = 32.dp
@@ -302,7 +302,7 @@ fun ArtistPage(
                                     ) {
                                         player.context.shareText(
                                             artist.getURL(player.context),
-                                            artist.Title.get(db) ?: ""
+                                            artist.getActiveTitle(db) ?: ""
                                         )
                                     }
                                 }

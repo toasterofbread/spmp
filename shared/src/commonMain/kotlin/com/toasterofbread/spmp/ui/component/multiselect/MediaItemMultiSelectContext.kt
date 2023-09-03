@@ -220,7 +220,7 @@ class MediaItemMultiSelectContext(
                         for (item in items) {
                             editor.addItem(item, null)
                         }
-                        editor.applyItemChanges()
+                        editor.applyChanges()
                     }
 
                     player.context.sendToast(getString("toast_playlist_added"))

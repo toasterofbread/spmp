@@ -32,7 +32,7 @@ class SongData(
         )
 
     override val ThumbnailProvider: Property<MediaItemThumbnailProvider?>
-        get() = super<MediaItem.DataWithArtist>.ThumbnailProvider
+        get() = super<Song>.ThumbnailProvider
 
     override val property_rememberer: PropertyRememberer = PropertyRememberer()
 

@@ -94,7 +94,7 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
 
                         Action(Icons.Filled.Close) { editing_title = false }
                         Action(Icons.Filled.Refresh) {
-                            edited_title = SpMp.context.database.mediaItemQueries.originalTitleById(item.id).executeAsOne().original_title ?: ""
+                            edited_title = SpMp.context.database.mediaItemQueries.customTitleById(item.id).executeAsOne().custom_title ?: ""
                         }
                         Action(Icons.Filled.Done) {
                             SpMp.context.database.mediaItemQueries.updateTitleById(edited_title, item.id)
@@ -127,7 +127,8 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                     )
                 }
 
-            } else {
+            }
+            else {
                 val item_title: String? by item.Title.observe(SpMp.context.database)
 
                 WidthShrinkText(

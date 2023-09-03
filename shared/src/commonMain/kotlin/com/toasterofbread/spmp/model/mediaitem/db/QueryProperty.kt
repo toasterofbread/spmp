@@ -190,19 +190,3 @@ open class ListPropertyImpl<T, Q: Any>(
         }
     }
 }
-
-internal fun <T> T?.asMediaItemProperty(base_property: Property<T>, setValue: (T) -> Unit): Property<T> {
-    if (this == null) {
-        return base_property
-    }
-
-    return object : Property<T> {
-        override fun get(db: Database): T = this@asMediaItemProperty
-        @Composable
-        override fun observe(db: Database): MutableState<T> = mutableStateOf(this@asMediaItemProperty)
-        override fun set(value: T, db: Database) {
-            base_property.set(value, db)
-            setValue(value)
-        }
-    }
-}

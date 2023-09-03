@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.model.mediaitem.playlist
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
+import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
@@ -13,10 +14,6 @@ import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 
 sealed interface RemotePlaylist: Playlist {
-//    val is_editable: Boolean?
-//    val item_set_ids: List<String>?
-//    val continuation: MediaItemLayout.Continuation?
-
     val Continuation: Property<MediaItemLayout.Continuation?>
         get() = property_rememberer.rememberSingleQueryProperty(
             "Continuation",
@@ -37,18 +34,7 @@ sealed interface RemotePlaylist: Playlist {
     override fun getEmptyData(): RemotePlaylistData
 
     override fun populateData(data: MediaItemData, db: Database) {
-        require(data is PlaylistData)
-
         super.populateData(data, db)
-
-        data.items = Items.get(db)?.map {
-            SongData(it.id)
-        }
-        data.item_count = ItemCount.get(db)
-        data.playlist_type = TypeOfPlaylist.get(db)
-        data.total_duration = TotalDuration.get(db)
-        data.year = Year.get(db)
-        data.owner = Owner.get(db)
 
         if (data is RemotePlaylistData) {
             data.continuation = Continuation.get(db)
@@ -83,7 +69,7 @@ suspend fun Playlist.uploadAsAccountPlaylist(auth_state: YoutubeApi.UserAuthStat
     val db = auth_state.api.context.database
 
     val create_result = create_endpoint.createAccountPlaylist(
-        Title.get(db).orEmpty(),
+        getActiveTitle(db).orEmpty(),
         Description.get(db).orEmpty()
     )
 
@@ -110,7 +96,12 @@ suspend fun Playlist.uploadAsAccountPlaylist(auth_state: YoutubeApi.UserAuthStat
     }
 
     populateData(account_playlist, db)
+
     account_playlist.owner = auth_state.own_channel
+
+    if (account_playlist.custom_image_url == null) {
+        account_playlist.custom_image_url = ThumbnailProvider.get(db)?.getThumbnailUrl(MediaItemThumbnailProvider.Quality.HIGH)
+    }
 
     account_playlist.saveToDatabase(db, account_playlist)
 

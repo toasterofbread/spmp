@@ -12,6 +12,7 @@ import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.library.createLocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter.saveToFile
+import com.toasterofbread.spmp.model.mediaitem.toInfoString
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.modifier.background
@@ -26,13 +27,21 @@ sealed interface LocalPlaylist: Playlist {
 
     override suspend fun loadData(context: PlatformContext, populate_data: Boolean, force: Boolean): Result<LocalPlaylistData>
 
+    override suspend fun setActiveTitle(value: String?, context: PlatformContext) {
+        val data: LocalPlaylistData = loadData(context).getOrNull() ?: return
+        data.title = value
+
+        val file = MediaItemLibrary.getLocalPlaylistFile(this, context)
+        data.saveToFile(file, context)
+    }
+
     override suspend fun setSortType(sort_type: MediaItemSortType?, context: PlatformContext): Result<Unit> {
         val data: LocalPlaylistData = loadData(context).fold(
             { it },
             { return Result.failure(it) }
         )
-
         data.sort_type = sort_type
+
         val file = MediaItemLibrary.getLocalPlaylistFile(this, context)
         return data.saveToFile(file, context)
     }

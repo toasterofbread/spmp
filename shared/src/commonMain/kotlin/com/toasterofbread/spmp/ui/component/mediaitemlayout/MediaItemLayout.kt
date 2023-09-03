@@ -158,7 +158,7 @@ data class MediaItemLayout(
         val browse_params: String? = null
     ): ViewMore {
         override fun execute(player: PlayerState, title: LocalisedYoutubeString?) {
-            player.openMediaItem(media_item, true, browse_params)
+            player.openMediaItem(media_item, true, browse_params = browse_params)
         }
     }
 

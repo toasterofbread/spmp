@@ -13,11 +13,7 @@ import com.toasterofbread.spmp.youtubeapi.model.TextRun
 abstract class MediaItemData: MediaItem {
     var loaded: Boolean = false
     var title: String? = null
-        set(value) {
-            field = value
-            original_title = value
-        }
-    var original_title: String? = null
+    var custom_title: String? = null
     var description: String? = null
     var thumbnail_provider: MediaItemThumbnailProvider? = null
 
@@ -29,12 +25,16 @@ abstract class MediaItemData: MediaItem {
             "id" to id,
             "loaded" to loaded,
             "title" to title,
-            "original_title" to original_title,
+            "custom_title" to custom_title,
             "description" to description,
             "thumbnail_provider" to thumbnail_provider,
             "theme_colour" to theme_colour,
             "hidden" to hidden
         )
+
+    open fun setDataActiveTitle(value: String) {
+        custom_title = value
+    }
 
     open fun saveToDatabase(db: Database, apply_to_item: MediaItem = this, uncertain: Boolean = false) {
         db.transaction { with(apply_to_item) {
@@ -44,7 +44,7 @@ abstract class MediaItemData: MediaItem {
                 Loaded.set(true, db)
             }
             Title.setNotNull(title, db, uncertain)
-            OriginalTitle.setNotNull(original_title, db, uncertain)
+            CustomTitle.setNotNull(custom_title, db, uncertain)
             Description.setNotNull(description, db, uncertain)
             ThumbnailProvider.setNotNull(thumbnail_provider, db, uncertain)
         }}

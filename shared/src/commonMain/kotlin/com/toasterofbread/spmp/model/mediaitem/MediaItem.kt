@@ -2,6 +2,8 @@ package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toArgb
@@ -11,6 +13,7 @@ import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.db.fromSQLBoolean
+import com.toasterofbread.spmp.model.mediaitem.db.observeAsState
 import com.toasterofbread.spmp.model.mediaitem.db.toSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
@@ -31,12 +34,27 @@ interface MediaItem: MediaItemHolder {
     fun getType(): MediaItemType
     fun getURL(context: PlatformContext): String
 
+    fun getActiveTitle(db: Database): String? {
+        return db.mediaItemQueries.activeTitleById(id).executeAsOneOrNull()?.IFNULL
+    }
+    @Composable
+    fun observeActiveTitle(context: PlatformContext): MutableState<String?> {
+        return context.database.mediaItemQueries.activeTitleById(id)
+            .observeAsState({ it.executeAsOneOrNull()?.IFNULL }) { title ->
+                setActiveTitle(title, context)
+            }
+    }
+
+    suspend fun setActiveTitle(value: String?, context: PlatformContext) = withContext(Dispatchers.IO) {
+        CustomTitle.set(value, context.database)
+    }
+
     fun createDbEntry(db: Database)
     fun getEmptyData(): MediaItemData
     fun populateData(data: MediaItemData, db: Database) {
         data.loaded = Loaded.get(db)
         data.title = Title.get(db)
-        data.original_title = OriginalTitle.get(db)
+        data.custom_title = CustomTitle.get(db)
         data.description = Description.get(db)
         data.thumbnail_provider = ThumbnailProvider.get(db)
     }
@@ -73,9 +91,9 @@ interface MediaItem: MediaItemHolder {
         get() = property_rememberer.rememberSingleQueryProperty(
         "Title", { mediaItemQueries.titleById(id) }, { title }, { mediaItemQueries.updateTitleById(it, id) }
     )
-    val OriginalTitle: Property<String?>
+    val CustomTitle: Property<String?>
         get() = property_rememberer.rememberSingleQueryProperty(
-        "OriginalTitle", { mediaItemQueries.originalTitleById(id) }, { original_title }, { mediaItemQueries.updateOriginalTitleById(it, id) }
+        "CustomTitle", { mediaItemQueries.customTitleById(id) }, { custom_title }, { mediaItemQueries.updateCustomTitleById(it, id) }
     )
     val Description: Property<String?>
         get() = property_rememberer.rememberSingleQueryProperty(

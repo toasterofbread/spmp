@@ -23,32 +23,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction
-import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getSongLongPressMenuData
-import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.detectReorder
 
-internal fun LazyListScope.PlaylistItems(
-    playlist: Playlist,
-    loading: Boolean,
+internal fun PlaylistPage.PlaylistItems(
+    list_scope: LazyListScope,
     list_state: ReorderableLazyListState,
-    sorted_items: List<Pair<MediaItem, Int>>?,
-    multiselect_context: MediaItemMultiSelectContext,
-    reorderable: Boolean,
-    sort_option: MediaItemSortType,
-    player: PlayerState
+    sorted_items: List<Pair<MediaItem, Int>>?
 ) {
-    items(sorted_items ?: emptyList(), key = { it.second }) {
+    list_scope.items(sorted_items ?: emptyList(), key = { it.second }) {
         val (item, index) = it
         check(item is Song)
 
@@ -104,7 +95,7 @@ internal fun LazyListScope.PlaylistItems(
                     }
                 }
 
-                AnimatedVisibility(reorderable) {
+                AnimatedVisibility(reordering) {
                     Icon(Icons.Default.Reorder, null, Modifier.padding(end = 20.dp).detectReorder(list_state))
                 }
             }

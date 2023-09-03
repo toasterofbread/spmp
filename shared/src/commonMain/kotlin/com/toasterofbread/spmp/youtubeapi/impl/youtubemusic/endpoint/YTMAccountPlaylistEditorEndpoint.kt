@@ -4,6 +4,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor
+import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.youtubeapi.endpoint.AccountPlaylistEditorEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
 import com.toasterofbread.utils.lazyAssert
@@ -69,31 +70,36 @@ private class AccountPlaylistEditor(playlist: RemotePlaylist, val auth: YoutubeM
     private fun performActionOrGetRequestData(action: Action): Map<String, String>? {
         when(action) {
             is Action.SetTitle -> {
+                playlist.Title.set(action.title, context.database)
                 return mapOf(
                     "action" to "ACTION_SET_PLAYLIST_NAME",
                     "playlistName" to action.title
                 )
             }
             is Action.SetImage -> {
-                playlist.CustomImageProvider.set(MediaItemThumbnailProvider.fromImageUrl(action.image_url), context.database)
+                playlist.CustomImageUrl.set(action.image_url, context.database)
                 return null
             }
             is Action.SetImageWidth -> {
                 playlist.ImageWidth.set(action.image_width, context.database)
                 return null
             }
-            is Action.Add ->
+            is Action.Add -> {
+                playlist.Items.addItem(SongRef(action.song_id), action.index, context.database)
                 return mapOf(
                     "action" to "ACTION_ADD_VIDEO",
                     "addedVideoId" to action.song_id,
                     "dedupeOption" to "DEDUPE_OPTION_SKIP"
                 )
+            }
             is Action.Move -> {
                 check(playlist is RemotePlaylistData && playlist.item_set_ids != null)
 
                 val set_ids = playlist.item_set_ids!!.toMutableList()
                 check(set_ids.size == playlist.items!!.size)
                 check(action.from != action.to)
+
+                playlist.Items.moveItem(action.from, action.to, context.database)
 
                 val data = mutableMapOf(
                     "action" to "ACTION_MOVE_VIDEO_BEFORE",
@@ -112,6 +118,9 @@ private class AccountPlaylistEditor(playlist: RemotePlaylist, val auth: YoutubeM
             }
             is Action.Remove -> {
                 check(playlist is RemotePlaylistData && playlist.item_set_ids != null)
+
+                playlist.Items.removeItem(action.index, context.database)
+
                 return mapOf(
                     "action" to "ACTION_REMOVE_VIDEO",
                     "removedVideoId" to playlist.items!![action.index].id,

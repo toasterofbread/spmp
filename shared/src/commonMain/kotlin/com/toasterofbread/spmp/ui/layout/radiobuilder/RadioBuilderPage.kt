@@ -6,6 +6,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,7 +40,7 @@ const val RADIO_BUILDER_ICON_WIDTH_DP = 37f
 
 @Composable
 fun RadioBuilderPage(
-    bottom_padding: Dp,
+    content_padding: PaddingValues,
     modifier: Modifier = Modifier,
     close: () -> Unit
 ) {
@@ -122,7 +123,7 @@ fun RadioBuilderPage(
                         FilterSelectionPage(
                             selected,
                             artists_result!!.getOrThrow(),
-                            bottom_padding
+                            content_padding
                         )
                     }
                 }

@@ -57,7 +57,7 @@ class LibrarySongsPage: LibrarySubPage {
                 val filtered = downloads.mapNotNull {  download ->
                     if (download.progress != 1f) return@mapNotNull null
 
-                    if (filter != null && download.song.Title.get(player.database)?.contains(filter, true) != true) {
+                    if (filter != null && download.song.getActiveTitle(player.database)?.contains(filter, true) != true) {
                         return@mapNotNull null
                     }
 

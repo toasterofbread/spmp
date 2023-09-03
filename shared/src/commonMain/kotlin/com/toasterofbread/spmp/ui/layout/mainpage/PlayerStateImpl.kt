@@ -201,11 +201,18 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
         }
     }
 
-    override fun setOverlayPage(page: PlayerOverlayPage?, from_current: Boolean) {
-        val current = if (from_current) overlay_page?.first?.getItem() else null
-        val new_page = page?.let { Pair(page, current) }
+    override fun setOverlayPage(page: PlayerOverlayPage?, from_current: Boolean, replace_current: Boolean) {
+        val new_page = page?.let {
+            Pair(
+                page,
+                if (from_current) overlay_page?.first?.getItem() else null
+            )
+        }
+
         if (new_page != overlay_page) {
-            overlay_page_undo_stack.add(overlay_page)
+            if (!replace_current) {
+                overlay_page_undo_stack.add(overlay_page)
+            }
             overlay_page = new_page
         }
     }
@@ -235,19 +242,19 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
         })
     }
 
-    override fun openPage(page: PlayerOverlayPage, from_current: Boolean) {
-        setOverlayPage(page, from_current)
+    override fun openPage(page: PlayerOverlayPage, from_current: Boolean, replace_current: Boolean) {
+        setOverlayPage(page, from_current, replace_current)
         if (np_swipe_state.value.targetValue != 0) {
             switchNowPlayingPage(0)
         }
         hideLongPressMenu()
     }
 
-    override fun openMediaItem(item: MediaItem, from_current: Boolean, browse_params: String?) {
+    override fun openMediaItem(item: MediaItem, from_current: Boolean, replace_current: Boolean, browse_params: String?) {
         if (item is Artist && item.IsForItem.get(context.database)) {
             return
         }
-        openPage(MediaItemPage(item.getHolder(), browse_params), from_current)
+        openPage(MediaItemPage(item.getHolder(), browse_params), from_current, replace_current)
     }
 
     override fun openViewMorePage(browse_id: String, title: String?) {
@@ -389,7 +396,6 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
                     else {
                         page.first.Page(
                             page.second,
-                            (if (session_started) MINIMISED_NOW_PLAYING_HEIGHT_DP.dp else 0.dp) + context.getNavigationBarHeightDp() + getDefaultVerticalPadding(),
                             close
                         )
                     }

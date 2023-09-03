@@ -12,6 +12,7 @@ import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeDurationString
 import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeSubscribersString
@@ -117,7 +118,10 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                 if (header_renderer != null) {
                     item.title = header_renderer.title!!.first_text
                     item.description = header_renderer.description?.first_text
-                    item.thumbnail_provider = MediaItemThumbnailProvider.fromThumbnails(header_renderer.getThumbnails())
+
+                    if (item !is Song) {
+                        item.thumbnail_provider = MediaItemThumbnailProvider.fromThumbnails(header_renderer.getThumbnails())
+                    }
 
                     header_renderer.subtitle?.runs?.also { subtitle ->
                         if (item is MediaItem.DataWithArtist) {
@@ -157,13 +161,13 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                     }
                 }
 
-                val own_channel: Artist? = api.user_auth_state?.own_channel
-                if (item is RemotePlaylistData && own_channel != null) {
+                if (item is RemotePlaylistData) {
                     val menu_buttons: List<Header.TopLevelButton>? =
                         parsed.header?.musicDetailHeaderRenderer?.menu?.menuRenderer?.topLevelButtons
 
                     if (menu_buttons?.any { it.buttonRenderer?.icon?.iconType == "EDIT" } == true) {
-                        item.owner = own_channel
+                        item.owner = api.user_auth_state?.own_channel
+                        item.playlist_type = PlaylistType.PLAYLIST
                     }
                 }
 

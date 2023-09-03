@@ -50,6 +50,10 @@ suspend fun MediaItem.incrementPlayCount(context: PlatformContext, by: Int = 1):
 }
 
 fun MediaItem.getPlayCount(db: Database, range: Duration? = null): Int {
+    if (this is LocalPlaylistData) {
+        return play_count
+    }
+
     val entries = if (range != null) {
         val since_day = LocalDate.now().minusDays(range.toDays()).toEpochDay()
         db.mediaItemPlayCountQueries.byItemIdSince(

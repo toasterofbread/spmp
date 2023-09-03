@@ -25,7 +25,7 @@ enum class MediaItemSortType {
                 return if (reversed) items.asReversed()
                 else items
             ALPHABET -> {
-                { it.Title.get(db) ?: "" }
+                { it.getActiveTitle(db) ?: "" }
             }
             DURATION -> {
                 { if (it is Song) it.Duration.get(db) ?: 0 else 0 }

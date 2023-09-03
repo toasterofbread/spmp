@@ -7,29 +7,31 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.model.mediaitem.db.removeFromDatabase
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
-import com.toasterofbread.spmp.model.mediaitem.library.onLocalPlaylistDeleted
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter.saveToFile
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformFile
 import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
+import com.toasterofbread.utils.lazyAssert
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
 
 abstract class PlaylistEditor(open val playlist: Playlist, val context: PlatformContext) {
-    protected sealed class Action {
+    protected sealed class Action(val changes_items: Boolean = false) {
         data class SetTitle(val title: String): Action()
-        data class SetImage(val image_url: String): Action()
-        data class SetImageWidth(val image_width: Float): Action()
+        data class SetImage(val image_url: String?): Action()
+        data class SetImageWidth(val image_width: Float?): Action()
 
-        data class Add(val song_id: String, val index: Int?): Action()
-        data class Remove(val index: Int): Action()
-        data class Move(val from: Int, val to: Int): Action() {
+        data class Add(val song_id: String, val index: Int?): Action(true)
+        data class Remove(val index: Int): Action(true)
+        data class Move(val from: Int, val to: Int): Action(true) {
             init {
                 require(from != to) { from.toString() }
                 require(from >= 0) { from.toString() }
@@ -50,10 +52,10 @@ abstract class PlaylistEditor(open val playlist: Playlist, val context: Platform
     fun setTitle(title: String) {
         pending_actions.add(Action.SetTitle(title))
     }
-    fun setImage(image_url: String) {
+    fun setImage(image_url: String?) {
         pending_actions.add(Action.SetImage(image_url))
     }
-    fun setImageWidth(image_width: Float) {
+    fun setImageWidth(image_width: Float?) {
         pending_actions.add(Action.SetImageWidth(image_width))
     }
 
@@ -75,32 +77,41 @@ abstract class PlaylistEditor(open val playlist: Playlist, val context: Platform
     open fun canRemoveItems(): Boolean = true
     open fun canMoveItems(): Boolean = true
 
-    suspend fun applyItemChanges(): Result<Unit> {
+    suspend fun applyChanges(exclude_item_changes: Boolean = false): Result<Unit> {
         if (pending_actions.isEmpty()) {
             return Result.success(Unit)
         }
 
-        return performAndCommitActions(pending_actions)
+        if (exclude_item_changes) {
+            val result = performAndCommitActions(pending_actions.filter { !it.changes_items })
+            pending_actions.removeAll { !it.changes_items }
+            return result
+        }
+
+        val result = performAndCommitActions(pending_actions)
+        pending_actions.clear()
+        return result
     }
 
-    suspend fun deletePlaylist(): Result<Unit> {
-        check(!deleted)
+    suspend fun deletePlaylist(): Result<Unit> = withContext(NonCancellable) {
+        if (deleted) {
+            return@withContext Result.failure(IllegalStateException("Already deleted"))
+        }
 
         performDeletion().onFailure {
-            return Result.failure(it)
+            return@withContext Result.failure(it)
         }
+
+        MediaItemLibrary.onPlaylistDeleted(playlist)
 
         deleted = true
         pending_actions.clear()
 
-        withContext(Dispatchers.IO) {
-            if (playlist !is LocalPlaylist) {
-                playlist.removeFromDatabase(context.database)
-            }
-            context.database.playlistQueries.removeById(playlist.id)
+        if (playlist !is LocalPlaylist) {
+            playlist.removeFromDatabase(context.database)
         }
 
-        return Result.success(Unit)
+        return@withContext Result.success(Unit)
     }
 
     protected abstract suspend fun performAndCommitActions(actions: List<Action>): Result<Unit>
@@ -173,6 +184,8 @@ class LocalPlaylistEditor(override val playlist: LocalPlaylist, context: Platfor
             return Result.success(Unit)
         }
 
+        val param_data: LocalPlaylistData? = if (playlist is LocalPlaylistData) playlist else null
+
         val data: LocalPlaylistData = playlist.loadData(context).fold(
             { it },
             {
@@ -195,17 +208,21 @@ class LocalPlaylistEditor(override val playlist: LocalPlaylist, context: Platfor
 
                 is Action.SetTitle -> {
                     data.title = action.title
+                    param_data?.title = action.title
                 }
                 is Action.SetImage -> {
-                    data.thumbnail_provider = MediaItemThumbnailProvider.fromImageUrl(action.image_url)
+                    data.custom_image_url = action.image_url
+                    param_data?.custom_image_url = action.image_url
                 }
                 is Action.SetImageWidth -> {
                     data.image_width = action.image_width
+                    param_data?.image_width = action.image_width
                 }
             }
         }
 
         data.items = items
+        param_data?.items = items
 
         val file: PlatformFile = MediaItemLibrary.getLocalPlaylistFile(playlist, context)
         return data.saveToFile(file, context)
@@ -214,7 +231,6 @@ class LocalPlaylistEditor(override val playlist: LocalPlaylist, context: Platfor
     override suspend fun performDeletion(): Result<Unit> {
         val file: PlatformFile = MediaItemLibrary.getLocalPlaylistFile(playlist, context)
         if (file.delete()) {
-            MediaItemLibrary.onLocalPlaylistDeleted(playlist)
             return Result.success(Unit)
         }
         else {

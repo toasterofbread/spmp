@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.ui.layout.playlistpage
 
-import LocalPlayerState
 import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
@@ -24,34 +23,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
-import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
 import com.toasterofbread.utils.composable.WidthShrinkText
 
 @Composable
-internal fun PlaylistButtonBar(
-    playlist: Playlist,
-    accent_colour: Color,
-    editing_info: Boolean,
-    modifier: Modifier = Modifier,
-    setEditingInfo: (Boolean) -> Unit
-) {
-    val player = LocalPlayerState.current
-
+internal fun PlaylistPage.PlaylistButtonBar(modifier: Modifier = Modifier) {
     var playlist_pinned: Boolean by playlist.observePinnedToHome(player.context)
 
-    Crossfade(editing_info, modifier) { editing ->
+    Crossfade(edit_in_progress, modifier) { editing ->
         if (editing) {
-            TopInfoEditButtons(playlist, accent_colour, Modifier.fillMaxWidth()) {
-                setEditingInfo(false)
-            }
+            PlaylistTopInfoEditButtons(Modifier.fillMaxWidth())
         }
         else {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -69,27 +56,27 @@ internal fun PlaylistButtonBar(
                     IconButton({ 
                         player.context.shareText(
                             playlist.getURL(player.context), 
-                            playlist.Title.get(player.database) ?: ""
+                            playlist.getActiveTitle(player.database) ?: ""
                         ) 
                     }) {
                         Icon(Icons.Default.Share, null)
                     }
                 }
 
-                IconButton({ setEditingInfo(true) }) {
+                IconButton({ beginEdit() }) {
                     Icon(Icons.Default.Edit, null)
                 }
 
                 val playlist_items: List<MediaItem>? by playlist.Items.observe(player.database)
-                PlaylistInfoText(playlist, playlist_items, Modifier.fillMaxWidth().weight(1f))
+                PlaylistInfoText(playlist_items, Modifier.fillMaxWidth().weight(1f))
             }
         }
     }
 }
 
 @Composable
-private fun PlaylistInfoText(playlist: Playlist, items: List<MediaItem>?, modifier: Modifier = Modifier) {
-    val db = LocalPlayerState.current.context.database
+private fun PlaylistPage.PlaylistInfoText(items: List<MediaItem>?, modifier: Modifier = Modifier) {
+    val db = player.context.database
 
     Row(
         modifier,

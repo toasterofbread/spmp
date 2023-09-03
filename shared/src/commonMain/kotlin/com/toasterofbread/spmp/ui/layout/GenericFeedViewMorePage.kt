@@ -35,9 +35,10 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSqu
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.utils.copy
 
 @Composable
-fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, bottom_padding: Dp = 0.dp, title: String? = null) {
+fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, content_padding: PaddingValues = PaddingValues(), title: String? = null) {
     val context = LocalPlayerState.current.context
     check(context.ytapi.GenericFeedViewMorePage.isImplemented())
 
@@ -70,10 +71,7 @@ fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, bo
                     LazyVerticalGrid(
                         GridCells.Adaptive(item_size.width),
                         Modifier.fillMaxWidth(),
-                        contentPadding = PaddingValues(
-                            top = item_spacing,
-                            bottom = bottom_padding
-                        ),
+                        contentPadding = content_padding.copy(top = item_spacing),
                         verticalArrangement = item_arrangement,
                         horizontalArrangement = item_arrangement
                     ) {

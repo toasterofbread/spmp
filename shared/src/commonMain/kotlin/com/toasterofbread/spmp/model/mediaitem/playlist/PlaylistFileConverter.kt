@@ -1,13 +1,14 @@
 package com.toasterofbread.spmp.model.mediaitem.playlist
 
+import SpMp
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.model.mediaitem.db.getPlayCount
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
-import com.toasterofbread.spmp.platform.getLocalAudioFile
+import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformFile
+import com.toasterofbread.spmp.platform.getLocalAudioFile
 import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -29,21 +30,17 @@ object PlaylistFileConverter {
                     appendLine("#PLAYLIST:$title")
                 }
 
-                val play_count: Int
-                if (playlist is LocalPlaylistData) {
-                    play_count = playlist.play_count
+                val play_count: Int = playlist.getPlayCount(context.database)
+                if (play_count > 0) {
+                    appendLine("#PLAYCOUNT:$play_count")
                 }
-                else {
-                    play_count = playlist.getPlayCount(context.database)
-                }
-                appendLine("#PLAYCOUNT:$play_count")
 
                 val sort_type: MediaItemSortType? = playlist.sort_type
                 if (sort_type != null) {
                     appendLine("#SORTTYPE:${sort_type.ordinal}")
                 }
 
-                val image_url: String? = playlist.thumbnail_provider?.getThumbnailUrl(MediaItemThumbnailProvider.Quality.HIGH)
+                val image_url: String? = playlist.custom_image_url ?: playlist.thumbnail_provider?.getThumbnailUrl(MediaItemThumbnailProvider.Quality.HIGH)
                 if (image_url != null) {
                     appendLine("#IMAGE:$image_url")
                 }
@@ -57,8 +54,10 @@ object PlaylistFileConverter {
     }
 
     suspend fun PlaylistData.saveToFile(file: PlatformFile, context: PlatformContext): Result<Unit> = withContext(Dispatchers.IO) {
-        return@withContext runCatching {
-            file.outputStream().use { stream ->
+        val temp_file = file.getSibling("${file.name}.tmp")
+
+        val result =  runCatching {
+            temp_file.outputStream().use { stream ->
                 with(stream.writer()) {
                     writeFileHeaders(this@saveToFile, context)
 
@@ -77,7 +76,7 @@ object PlaylistFileConverter {
                             song_path = "spmp://${song.id}"
                         }
 
-                        val song_title: String? = song.Title.get(context.database)
+                        val song_title: String? = song.getActiveTitle(context.database)
                         if (song_title != null) {
                             write("\n#EXTINF:-1,$song_title")
                         }
@@ -88,11 +87,21 @@ object PlaylistFileConverter {
                     flush()
                 }
             }
+
+            check(file.delete()) { "Deleting existing file failed ($file)" }
+            check(temp_file.renameTo(file.name).is_file) { "Renaming temporary file failed ($temp_file -> $file)" }
         }
+
+        return@withContext result
     }
 
-    suspend fun loadFromFile(file: PlatformFile, context: PlatformContext): LocalPlaylistData = withContext(Dispatchers.IO) {
-        val playlist_id: String = file.name.removeSuffix(".${getFileExtension()}")
+    suspend fun loadFromFile(file: PlatformFile, context: PlatformContext): LocalPlaylistData? = withContext(Dispatchers.IO) {
+        val required_suffix: String = ".${getFileExtension()}"
+        if (!file.name.endsWith(required_suffix)) {
+            return@withContext null
+        }
+
+        val playlist_id: String = file.name.dropLast(required_suffix.length)
         val playlist = LocalPlaylistData(playlist_id)
 
         var current_song: SongData = SongData("TEMP")
@@ -120,7 +129,7 @@ object PlaylistFileConverter {
                             "#PLAYLIST" -> playlist.title = line_split[1]
                             "#PLAYCOUNT" -> playlist.play_count = line_split[1].toInt()
                             "#SORTTYPE" -> playlist.sort_type = MediaItemSortType.values()[line_split[1].toInt()]
-                            "#IMAGE" -> playlist.thumbnail_provider = MediaItemThumbnailProvider.fromImageUrl(line_split[1])
+                            "#IMAGE" -> playlist.custom_image_url = line_split[1]
                             "#IMAGEWIDTH" -> playlist.image_width = line_split[1].toFloat()
                             "#EXTINF" -> {
                                 if (!enable_ext) {

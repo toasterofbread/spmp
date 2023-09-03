@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.playlistpage
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.border
@@ -44,8 +43,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -56,44 +53,36 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
+import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.utils.getContrasted
 
+private const val PLAYLIST_IMAGE_MIN_HEIGHT_DP: Float = 120f
+
 @Composable
-internal fun PlaylistTopInfo(
-    playlist: Playlist,
-    accent_colour: Color,
-    editing_info: Boolean,
-    setEditingInfo: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
-    onThumbLoaded: (ImageBitmap) -> Unit,
-) {
+internal fun PlaylistPage.PlaylistTopInfo(items: List<Pair<MediaItem, Int>>?, modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
     val density = LocalDensity.current
-    val db = SpMp.context.database
+    val db = player.database
+
     val shape = RoundedCornerShape(10.dp)
-    val min_height = 120.dp
 
-    var playlist_title: String? by playlist.Title.observe(db)
-    var playlist_image_width: Float? by playlist.ImageWidth.observe(db)
-
-    var edited_title: String by remember { mutableStateOf("") }
+    val playlist_title: String? by playlist.observeActiveTitle(player.context)
+    val playlist_image_width: Float? by playlist.ImageWidth.observe(db)
 
     var split_position by remember(playlist) { mutableStateOf(playlist_image_width ?: 0f) }
     var width: Dp by remember(playlist) { mutableStateOf(0.dp) }
+
     var show_image by remember(playlist) { mutableStateOf(true) }
-
-     LaunchedEffect(editing_info) {
-        if (editing_info) {
-            edited_title = playlist_title ?: ""
-        }
+    LaunchedEffect(split_position, width) {
+        show_image = split_position * width >= PLAYLIST_IMAGE_MIN_HEIGHT_DP.dp
     }
-
+    
     Row(
         modifier
             .height(IntrinsicSize.Max)
@@ -105,7 +94,7 @@ internal fun PlaylistTopInfo(
                 width = width_dp
 
                 if (split_position == 0f) {
-                    split_position = min_height / width
+                    split_position = PLAYLIST_IMAGE_MIN_HEIGHT_DP.dp / width
                 }
             },
         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -116,9 +105,16 @@ internal fun PlaylistTopInfo(
         AnimatedVisibility(show_image) {
             Box(
                 Modifier
-                    .heightIn(min = min_height)
+                    .heightIn(min = PLAYLIST_IMAGE_MIN_HEIGHT_DP.dp)
                     .fillMaxWidth(split_position)
             ) {
+                val provider_override =
+                    if (edit_in_progress)
+                        edited_image_url?.let { image_url ->
+                            MediaItemThumbnailProvider.fromImageUrl(image_url)
+                        } ?: playlist.ThumbnailProvider.get(player.database)
+                    else null
+
                 playlist.Thumbnail(
                     MediaItemThumbnailProvider.Quality.HIGH,
                     Modifier
@@ -131,20 +127,21 @@ internal fun PlaylistTopInfo(
                         .platformClickable(
                             onClick = {},
                             onAltClick = {
-                                if (!editing_info) {
-                                    setEditingInfo(true)
-                                    SpMp.context.vibrateShort()
+                                if (!edit_in_progress) {
+                                    beginEdit()
+                                    player.context.vibrateShort()
                                 }
                             }
                         ),
-                    onLoaded = onThumbLoaded
+                    onLoaded = ::onThumbnailLoaded,
+                    provider_override = provider_override
                 )
             }
         }
 
         // System insets spacing
-        AnimatedVisibility(editing_info && !show_image) {
-            SpMp.context.getSystemInsets()?.also { system_insets ->
+        AnimatedVisibility(edit_in_progress && !show_image) {
+            player.context.getSystemInsets()?.also { system_insets ->
                 with(LocalDensity.current) {
                     Spacer(Modifier.width(system_insets.getLeft(this, LocalLayoutDirection.current).toDp()))
                 }
@@ -152,7 +149,7 @@ internal fun PlaylistTopInfo(
         }
 
         // Split position drag handle
-        AnimatedVisibility(editing_info) {
+        AnimatedVisibility(edit_in_progress) {
             Box(
                 Modifier
                     .fillMaxHeight()
@@ -165,16 +162,19 @@ internal fun PlaylistTopInfo(
                             if (!show_image) {
                                 if (delta_dp > 0.dp) {
                                     show_image = true
-                                    split_position = min_height / width
-                                }
-                            } else {
-                                split_position = (split_position + (delta_dp / width)).coerceIn(0.1f, 0.9f)
-                                if (split_position * width < min_height) {
-                                    show_image = false
+                                    split_position = PLAYLIST_IMAGE_MIN_HEIGHT_DP.dp / width
                                 }
                             }
+                            else {
+                                split_position = (split_position + (delta_dp / width)).coerceIn(0.1f, 0.9f)
+                            }
 
-                            playlist_image_width = split_position
+                            if (split_position * width < PLAYLIST_IMAGE_MIN_HEIGHT_DP.dp) {
+                                edited_image_width = -1f
+                            }
+                            else {
+                                edited_image_width = split_position
+                            }
                         }
                     ),
                 contentAlignment = Alignment.Center
@@ -184,11 +184,11 @@ internal fun PlaylistTopInfo(
         }
 
         // Main info column
-        Column(Modifier.height(with(LocalDensity.current) { image_size.height.toDp().coerceAtLeast(min_height) })) {
+        Column(Modifier.height(with(LocalDensity.current) { image_size.height.toDp().coerceAtLeast(PLAYLIST_IMAGE_MIN_HEIGHT_DP.dp) })) {
 
             // Title text
             Box(Modifier.fillMaxHeight().weight(1f), contentAlignment = Alignment.CenterStart) {
-                Crossfade(editing_info) { editing ->
+                Crossfade(edit_in_progress) { editing ->
                     if (!editing) {
                         Text(
                             playlist_title ?: "",
@@ -197,7 +197,7 @@ internal fun PlaylistTopInfo(
                             modifier = Modifier.platformClickable(
                                 onClick = {},
                                 onAltClick = {
-                                    setEditingInfo(true)
+                                    beginEdit()
                                 }
                             )
                         )
@@ -210,7 +210,6 @@ internal fun PlaylistTopInfo(
                             edited_title,
                             {
                                 edited_title = it.replace("\n", "")
-                                playlist_title = edited_title.trim()
                             },
                             Modifier
                                 .fillMaxWidth()
@@ -231,11 +230,15 @@ internal fun PlaylistTopInfo(
 
             // Play button
             Button(
-                { player.playMediaItem(playlist) },
+                {
+                    if (!items.isNullOrEmpty()) {
+                        player.playMediaItem(playlist)
+                    }
+                },
                 Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = accent_colour,
-                    contentColor = accent_colour.getContrasted()
+                    containerColor = getAccentColour(),
+                    contentColor = getAccentColour().getContrasted()
                 ),
                 shape = shape
             ) {

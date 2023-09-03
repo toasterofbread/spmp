@@ -1,5 +1,12 @@
 package com.toasterofbread.spmp.model.mediaitem.playlist
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
@@ -12,7 +19,10 @@ import com.toasterofbread.spmp.model.mediaitem.UnsupportedPropertyRememberer
 import com.toasterofbread.spmp.model.mediaitem.db.ListProperty
 import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
+import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter.saveToFile
 import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.utils.composable.OnChangedEffect
 
 class LocalPlaylistData(id: String): PlaylistData(id), LocalPlaylist {
     var play_count: Int = 0
@@ -24,9 +34,39 @@ class LocalPlaylistData(id: String): PlaylistData(id), LocalPlaylist {
             "Use a PlaylistEditor instead."
         }
 
+    override fun getActiveTitle(db: Database): String? {
+        return title
+    }
+    @Composable
+    override fun observeActiveTitle(context: PlatformContext): MutableState<String?> {
+        val state: MutableState<String?> = remember(this) { mutableStateOf(getActiveTitle(context.database)) }
+        var launched: Boolean by remember(this) { mutableStateOf(false) }
+
+        LaunchedEffect(this, state.value) {
+            if (!launched) {
+                launched = true
+                return@LaunchedEffect
+            }
+
+            setDataActiveTitle(state.value ?: "")
+            setActiveTitle(state.value, context)
+        }
+        return state
+    }
+
+    override fun setDataActiveTitle(value: String) {
+        title = value
+    }
+
     override fun createDbEntry(db: Database) {
         throw UnsupportedOperationException()
     }
+
+    override suspend fun savePlaylist(context: PlatformContext) {
+        val file = MediaItemLibrary.getLocalPlaylistFile(this, context)
+        saveToFile(file, context)
+    }
+
     override fun saveToDatabase(db: Database, apply_to_item: MediaItem, uncertain: Boolean) {
         throw UnsupportedOperationException()
     }
@@ -42,9 +82,9 @@ class LocalPlaylistData(id: String): PlaylistData(id), LocalPlaylist {
         get() = property_rememberer.rememberLocalSingleProperty(
             "Title", { title }, { title = it }
         )
-    override val OriginalTitle: Property<String?>
+    override val CustomTitle: Property<String?>
         get() = property_rememberer.rememberLocalSingleProperty(
-            "OriginalTitle", { original_title }, { original_title = it }
+            "CustomTitle", { custom_title }, { custom_title = it }
         )
     override val Description: Property<String?>
         get() = property_rememberer.rememberLocalSingleProperty(
@@ -93,9 +133,9 @@ class LocalPlaylistData(id: String): PlaylistData(id), LocalPlaylist {
             "Owner", { owner }, { owner = it }
         )
 
-    override val CustomImageProvider: Property<MediaItemThumbnailProvider?>
+    override val CustomImageUrl: Property<String?>
         get() = property_rememberer.rememberLocalSingleProperty(
-            "CustomImageProvider", { custom_image_provider }, { custom_image_provider = it }
+            "CustomImageUrl", { custom_image_url }, { custom_image_url = it }
         )
     override val ImageWidth: Property<Float?>
         get() = property_rememberer.rememberLocalSingleProperty(

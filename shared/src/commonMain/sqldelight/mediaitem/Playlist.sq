@@ -10,8 +10,7 @@ CREATE TABLE Playlist (
     continuation_token TEXT,
     continuation_type INTEGER,
 
-    custom_image_url_a TEXT,
-    custom_image_url_b TEXT,
+    custom_image_url TEXT,
     image_width REAL,
     sort_type INTEGER,
 
@@ -35,6 +34,8 @@ removeById {
 }
 
 clearOwners: UPDATE Playlist SET owner = NULL;
+
+countByid: SELECT COUNT(*) FROM Playlist WHERE id == :id;
 
 getLargestIdByType:
 SELECT MAX(id)
@@ -64,8 +65,8 @@ updateContinuationById: UPDATE Playlist SET continuation_token = :continuation_t
 
 --
 
-customImageProviderById: SELECT custom_image_url_a, custom_image_url_b FROM Playlist WHERE id == :id;
-updateCustomImageProviderById: UPDATE Playlist SET custom_image_url_a = :image_url_a, custom_image_url_b = :image_url_b WHERE id == :id;
+customImageUrlById: SELECT custom_image_url FROM Playlist WHERE id == :id;
+updateCustomImageUrlById: UPDATE Playlist SET custom_image_url = :image_url WHERE id == :id;
 
 imageWidthById: SELECT image_width FROM Playlist WHERE id == :id;
 updateImageWidthById: UPDATE Playlist SET image_width = :image_width WHERE id == :id;

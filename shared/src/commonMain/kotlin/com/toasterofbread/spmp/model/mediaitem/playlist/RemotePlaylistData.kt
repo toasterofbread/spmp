@@ -5,6 +5,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.utils.lazyAssert
 
@@ -29,15 +30,15 @@ class RemotePlaylistData(id: String): PlaylistData(id), RemotePlaylist {
     }
     override fun getEmptyData(): RemotePlaylistData = RemotePlaylistData(id)
 
+    override suspend fun savePlaylist(context: PlatformContext) {
+        saveToDatabase(context.database)
+    }
+
     override fun saveToDatabase(db: Database, apply_to_item: MediaItem, uncertain: Boolean) {
         db.transaction { with(apply_to_item as RemotePlaylist) {
             super.saveToDatabase(db, apply_to_item, uncertain)
 
             items?.also { items ->
-                if (uncertain && !Items.get(db).isNullOrEmpty() && Loaded.get(db)) {
-                    return@also
-                }
-
                 for (item in items) {
                     item.saveToDatabase(db)
                 }
@@ -50,6 +51,9 @@ class RemotePlaylistData(id: String): PlaylistData(id), RemotePlaylist {
             Year.setNotNull(year, db, uncertain)
             Owner.setNotNull(owner, db, uncertain)
             Continuation.setNotNull(continuation, db, uncertain)
+            CustomImageUrl.setNotNull(custom_image_url, db, uncertain)
+            ImageWidth.setNotNull(image_width, db, uncertain)
+            SortType.setNotNull(sort_type, db, uncertain)
         }}
     }
 }

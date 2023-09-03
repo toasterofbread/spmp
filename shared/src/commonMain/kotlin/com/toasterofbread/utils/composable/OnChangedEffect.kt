@@ -13,7 +13,8 @@ fun OnChangedEffect(key: Any?, block: suspend () -> Unit) {
     LaunchedEffect(key) {
         if (!launched) {
             launched = true
-        } else {
+        }
+        else {
             block()
         }
     }
@@ -25,7 +26,8 @@ fun OnChangedEffect(key1: Any?, key2: Any?, block: suspend () -> Unit) {
     LaunchedEffect(key1, key2) {
         if (!launched) {
             launched = true
-        } else {
+        }
+        else {
             block()
         }
     }

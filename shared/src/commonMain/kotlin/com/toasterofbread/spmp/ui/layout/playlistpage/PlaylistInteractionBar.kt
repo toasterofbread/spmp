@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.ui.layout.playlistpage
 
-import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Box
@@ -34,29 +33,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
-import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
-import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor
 import com.toasterofbread.spmp.ui.component.WaveBorder
-import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.launch
 
 @Composable
-internal fun InteractionBar(
+internal fun PlaylistPage.PlaylistInteractionBar(
     list_state: LazyListState,
     loading: Boolean,
-    multiselect_context: MediaItemMultiSelectContext,
-    playlist: Playlist,
-    playlist_editor: PlaylistEditor?,
-    reorderable: Boolean,
-    setReorderable: (Boolean) -> Unit,
-    filter: String?,
-    setFilter: (String?) -> Unit,
-    sort_option: MediaItemSortType,
-    setSortOption: (MediaItemSortType) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val player = LocalPlayerState.current
     val coroutine_scope = rememberCoroutineScope()
 
     // 0 -> search, 1 -> sort
@@ -75,7 +61,7 @@ internal fun InteractionBar(
                             if (opened_menu == 0) opened_menu = null
                             else opened_menu = 0
                         },
-                        enabled = !reorderable
+                        enabled = !reordering
                     ) {
                         Crossfade(opened_menu == 0) { searching ->
                             Icon(if (searching) Icons.Default.Done else Icons.Default.Search, null)
@@ -92,7 +78,7 @@ internal fun InteractionBar(
                                         if (opened_menu == 1) opened_menu = null
                                         else opened_menu = 1
                                     },
-                                    enabled = !reorderable
+                                    enabled = !reordering
                                 ) {
                                     Icon(Icons.Default.Sort, null)
                                 }
@@ -103,23 +89,23 @@ internal fun InteractionBar(
                                     SubtleLoadingIndicator()
                                 }
 
-                                if (playlist_editor != null) {
+                                playlist_editor?.also { editor ->
                                     // Reorder
-                                    AnimatedVisibility(playlist_editor.canMoveItems()) {
+                                    AnimatedVisibility(editor.canMoveItems()) {
                                         IconButton({
-                                            if (playlist_editor.canMoveItems()) {
-                                                setReorderable(!reorderable)
+                                            if (editor.canMoveItems()) {
+                                                setReorderable(!reordering)
                                             }
                                         }) {
-                                            Crossfade(reorderable) { reordering ->
+                                            Crossfade(reordering) { reordering ->
                                                 Icon(if (reordering) Icons.Default.Done else Icons.Default.Reorder, null)
                                             }
                                         }
                                     }
 
-                                    AnimatedVisibility(playlist_editor.canAddItems()) {
+                                    AnimatedVisibility(editor.canAddItems()) {
                                         IconButton({
-                                            if (playlist_editor.canAddItems()) {
+                                            if (editor.canAddItems()) {
                                                 TODO()
                                             }
                                         }) {
@@ -130,7 +116,7 @@ internal fun InteractionBar(
                             }
                         }
                         this@Row.AnimatedVisibility(opened_menu == 0) {
-                            InteractionBarFilterBox(filter, setFilter, Modifier.fillMaxWidth())
+                            InteractionBarFilterBox(current_filter, ::setCurrentFilter, Modifier.fillMaxWidth())
                         }
                     }
 
@@ -167,9 +153,9 @@ internal fun InteractionBar(
 
     MediaItemSortType.SelectionMenu(
         opened_menu == 1,
-        sort_option,
+        sort_type,
         { opened_menu = null },
-        { setSortOption(it) },
+        { setSortType(it) },
         "sort_option_playlist"
     )
 }

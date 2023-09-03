@@ -23,7 +23,7 @@ fun isMediaItemHidden(item: MediaItem, db: Database, hidden_items: List<MediaIte
         return false
     }
 
-    val title = item.Title.get(db) ?: return false
+    val title = item.getActiveTitle(db) ?: return false
 
     if (item is Artist && !Settings.KEY_FILTER_APPLY_TO_ARTISTS.get<Boolean>()) {
         return false

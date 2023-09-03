@@ -1,17 +1,19 @@
 package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import app.cash.sqldelight.Query
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.db.ListProperty
 import com.toasterofbread.spmp.model.mediaitem.db.ListPropertyImpl
 import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.db.SingleProperty
-import com.toasterofbread.utils.composable.OnChangedEffect
 
 open class PropertyRememberer {
     private val properties: MutableMap<String, Any> = mutableMapOf()
@@ -33,14 +35,22 @@ open class PropertyRememberer {
 
                 @Composable
                 override fun observe(db: Database): MutableState<T> {
-                    val state: MutableState<T> = remember {
+                    val state: MutableState<T> = remember(this) {
                         onRead(key)
                         mutableStateOf(getValue())
                     }
-                    OnChangedEffect(state.value) {
+                    var launched: Boolean by remember(this) { mutableStateOf(false) }
+
+                    LaunchedEffect(this, state.value) {
+                        if (!launched) {
+                            launched = true
+                            return@LaunchedEffect
+                        }
+
                         onWrite(key)
                         setValue(state.value)
                     }
+
                     return state
                 }
 

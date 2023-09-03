@@ -33,6 +33,7 @@ import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuActionPro
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrThrowHere
 import com.toasterofbread.utils.composable.WidthShrinkText
 import kotlinx.coroutines.launch
 
@@ -91,7 +92,7 @@ fun LongPressMenuActionProvider.PlaylistLongPressMenuActions(playlist: MediaItem
             onClick = {
                 playlist_editor?.also { editor ->
                     coroutine_context.launch {
-                        editor.deletePlaylist().getOrReport("deletePlaylist")
+                        editor.deletePlaylist().getOrThrowHere()//.getOrReport("deletePlaylist")
                     }
                 }
             }

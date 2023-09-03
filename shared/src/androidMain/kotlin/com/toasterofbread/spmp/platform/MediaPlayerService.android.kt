@@ -450,12 +450,12 @@ private fun Song.buildExoMediaItem(context: PlatformContext): ExoMediaItem =
                     val db = context.database
 
                     setArtworkUri(id.toUri())
-                    setTitle(Title.get(db))
-                    setArtist(Artist.get(db)?.Title?.get(db))
+                    setTitle(getActiveTitle(db))
+                    setArtist(Artist.get(db)?.getActiveTitle(db))
 
                     val album = Album.get(db)
-                    setAlbumTitle(album?.Title?.get(db))
-                    setAlbumArtist(album?.Artist?.get(db)?.Title?.get(db))
+                    setAlbumTitle(album?.getActiveTitle(db))
+                    setAlbumArtist(album?.Artist?.get(db)?.getActiveTitle(db))
                 }
                 .build()
         )

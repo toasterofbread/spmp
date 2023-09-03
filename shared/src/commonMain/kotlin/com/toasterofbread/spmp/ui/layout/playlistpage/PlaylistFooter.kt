@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.ui.layout.playlistpage
 
-import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,14 +13,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
-import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
@@ -29,17 +26,13 @@ import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.launch
 
 @Composable
-fun PlaylistFooter(
-    playlist: Playlist,
+fun PlaylistPage.PlaylistFooter(
     items: List<Pair<MediaItem, Int>>?,
     loading: Boolean,
     load_error: Throwable?,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
-    val player = LocalPlayerState.current
-    val coroutine_scope = rememberCoroutineScope()
-
-    val remote_playlist: RemotePlaylist? = if (playlist is RemotePlaylist) playlist else null
+    val remote_playlist: RemotePlaylist? = playlist as? RemotePlaylist
     val continuation: MediaItemLayout.Continuation? = remote_playlist?.Continuation?.observe(player.context.database)?.value
 
     Crossfade(
@@ -61,7 +54,7 @@ fun PlaylistFooter(
             }
             false -> {
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    Text(getString("playlist_empty"), Modifier.padding(top = 15.dp))
+                    Text(getString("playlist_empty"))
                 }
             }
             is MediaItemLayout.Continuation, true -> {

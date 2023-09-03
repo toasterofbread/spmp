@@ -27,7 +27,7 @@ internal data class MediaItemThumbnailLoaderKey(
 )
 
 internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoaderKey, ImageBitmap>() {
-    private val loaded_images: MutableMap<MediaItemThumbnailLoaderKey, WeakReference<ImageBitmap>> = mutableMapOf()
+    private var loaded_images: MutableMap<MediaItemThumbnailLoaderKey, WeakReference<ImageBitmap>> = mutableMapOf()
 
     fun getLoadedItemThumbnail(item: MediaItem, quality: MediaItemThumbnailProvider.Quality, thumbnail_provider: MediaItemThumbnailProvider): ImageBitmap? {
         val key = MediaItemThumbnailLoaderKey(thumbnail_provider, quality, item.id)
@@ -52,7 +52,9 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
         item: MediaItem,
         thumbnail_provider: MediaItemThumbnailProvider,
         quality: MediaItemThumbnailProvider.Quality,
-        context: PlatformContext
+        context: PlatformContext,
+        disable_cache_read: Boolean = false,
+        disable_cache_write: Boolean = false
     ): Result<ImageBitmap> {
         val key = MediaItemThumbnailLoaderKey(thumbnail_provider, quality, item.id)
 
@@ -69,14 +71,33 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
                 item,
                 quality,
                 thumbnail_url,
-                context
+                context,
+                disable_cache_read,
+                disable_cache_write
             )
 
-            result.onSuccess { image ->
-                synchronized(loaded_images) {
-                    loaded_images[key] = WeakReference(image)
+            if (!disable_cache_write) {
+                result.onSuccess { image ->
+                    synchronized(loaded_images) {
+                        loaded_images[key] = WeakReference(image)
+                    }
                 }
             }
+
+            return@performLoad result
+        }
+    }
+
+    suspend fun invalidateCache(item: MediaItem, context: PlatformContext) = withContext(Dispatchers.IO) {
+        for (quality in MediaItemThumbnailProvider.Quality.values()) {
+            val file = getCacheFile(item, quality, context)
+            file.delete()
+        }
+
+        synchronized(loaded_images) {
+            loaded_images = loaded_images.filterKeys { key ->
+                key.item_id != item.id
+            } as MutableMap<MediaItemThumbnailLoaderKey, WeakReference<ImageBitmap>>
         }
     }
 
@@ -87,10 +108,12 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
         item: MediaItem,
         quality: MediaItemThumbnailProvider.Quality,
         thumbnail_url: String,
-        context: PlatformContext
+        context: PlatformContext,
+        disable_cache_read: Boolean = false,
+        disable_cache_write: Boolean = false
     ): Result<ImageBitmap> = withContext(Dispatchers.IO) {
         val cache_file = getCacheFile(item, quality, context)
-        if (cache_file.exists()) {
+        if (!disable_cache_read && cache_file.exists()) {
             return@withContext runCatching {
                 cache_file.readBytes().toImageBitmap()
             }
@@ -98,7 +121,7 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
 
         val result: Result<ImageBitmap> = item.downloadThumbnailData(thumbnail_url)
         result.onSuccess { image ->
-            if (Settings.KEY_THUMB_CACHE_ENABLED.get()) {
+            if (!disable_cache_write && Settings.KEY_THUMB_CACHE_ENABLED.get()) {
                 try {
                     cache_file.parentFile.mkdirs()
                     cache_file.writeBytes(image.toByteArray())

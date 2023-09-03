@@ -19,7 +19,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.toasterofbread.composesettings.ui.SettingsInterface
@@ -104,7 +103,7 @@ enum class PrefsPageCategory {
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
 fun PrefsPage(
-    bottom_padding: Dp,
+    content_padding: PaddingValues,
     category_state: MutableState<PrefsPageCategory?>,
     pill_menu: PillMenu,
     settings_interface: SettingsInterface,
@@ -157,6 +156,7 @@ fun PrefsPage(
 
     Box(modifier) {
         pill_menu.PillMenu()
+
         Column(Modifier.fillMaxSize()) {
             MusicTopBar(
                 Settings.KEY_LYRICS_SHOW_IN_SETTINGS,
@@ -167,13 +167,9 @@ fun PrefsPage(
             Crossfade(category_open || settings_interface.current_page.id!! != PrefsPageScreen.ROOT.ordinal) { open ->
                 if (!open) {
                     LazyColumn(
-                        contentPadding = PaddingValues(
-                            bottom = bottom_padding,
-                            top = 20.dp,
-                            start = 20.dp,
-                            end = 20.dp
-                        ),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                        contentPadding = content_padding,
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.padding(horizontal = 10.dp)
                     ) {
                         item {
                             Row(
@@ -257,7 +253,7 @@ fun PrefsPage(
                         CompositionLocalProvider(LocalContentColor provides Theme.on_background) {
                             settings_interface.Interface(
                                 Modifier.fillMaxSize(),
-                                content_padding = PaddingValues(bottom = bottom_padding)
+                                content_padding = PaddingValues(bottom = content_padding.calculateBottomPadding())
                             )
                         }
                     }

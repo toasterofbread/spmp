@@ -17,7 +17,7 @@ class LocalPlaylistRef(override val id: String): LocalPlaylist {
     override suspend fun loadData(context: PlatformContext, populate_data: Boolean, force: Boolean): Result<LocalPlaylistData> {
         return runCatching {
             val file = MediaItemLibrary.getLocalPlaylistFile(this, context)
-            PlaylistFileConverter.loadFromFile(file, context)
+            PlaylistFileConverter.loadFromFile(file, context)!!
         }
     }
 
@@ -26,8 +26,4 @@ class LocalPlaylistRef(override val id: String): LocalPlaylist {
             if (is_read) "Local playlist must be loaded from file into a LocalPlaylistData."
             else "Use a PlaylistEditor instead."
         }
-
-    init {
-        lazyAssert { id.isNotBlank() }
-    }
 }

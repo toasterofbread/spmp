@@ -1,18 +1,18 @@
 package com.toasterofbread.spmp.model.mediaitem.playlist
 
+import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProviderImpl
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.db.ListProperty
 import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
-import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
+import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.model.mediaitem.toThumbnailProvider
 import com.toasterofbread.spmp.platform.PlatformContext
 
@@ -67,15 +67,12 @@ sealed interface Playlist: MediaItem.WithArtist {
             "Owner", { playlistQueries.ownerById(id) }, { owner?.let { ArtistRef(it) } }, { playlistQueries.updateOwnerById(it?.id, id) }
         )
 
-    val CustomImageProvider: Property<MediaItemThumbnailProvider?>
+    val CustomImageUrl: Property<String?>
         get() = property_rememberer.rememberSingleQueryProperty(
-            "CustomImageProvider",
-            { playlistQueries.customImageProviderById(id) },
-            { this.toThumbnailProvider() },
-            {
-                require(it is MediaItemThumbnailProviderImpl?)
-                playlistQueries.updateCustomImageProviderById(it?.url_a, it?.url_b, id)
-            }
+            "CustomImageUrl",
+            { playlistQueries.customImageUrlById(id) },
+            { custom_image_url },
+            { playlistQueries.updateCustomImageUrlById(it, id) }
         )
     val ImageWidth: Property<Float?>
         get() = property_rememberer.rememberSingleQueryProperty(
@@ -85,6 +82,25 @@ sealed interface Playlist: MediaItem.WithArtist {
         get() = property_rememberer.rememberSingleQueryProperty(
             "SortType", { playlistQueries.sortTypeById(id) }, { sort_type?.let { MediaItemSortType.values()[it.toInt()] } }, { playlistQueries.updateSortTypeById(it?.ordinal?.toLong(), id) }
         )
+
+    override fun populateData(data: MediaItemData, db: Database) {
+        require(data is PlaylistData)
+
+        super.populateData(data, db)
+
+        data.items = Items.get(db)?.map {
+            SongData(it.id)
+        }
+        data.item_count = ItemCount.get(db)
+        data.playlist_type = TypeOfPlaylist.get(db)
+        data.total_duration = TotalDuration.get(db)
+        data.year = Year.get(db)
+        data.owner = Owner.get(db)
+
+        data.custom_image_url = CustomImageUrl.get(db)
+        data.image_width = ImageWidth.get(db)
+        data.sort_type = SortType.get(db)
+    }
 
     suspend fun setSortType(sort_type: MediaItemSortType?, context: PlatformContext): Result<Unit>
 

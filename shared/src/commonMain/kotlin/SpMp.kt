@@ -26,9 +26,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.beust.klaxon.Klaxon
-import com.beust.klaxon.KlaxonException
-import com.toasterofbread.spmp.model.Cache
+import com.google.gson.Gson
+import com.google.gson.JsonParseException
 import com.toasterofbread.spmp.model.FontMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.PlatformContext
@@ -48,7 +47,10 @@ import com.toasterofbread.spmp.ui.layout.mainpage.RootView
 import com.toasterofbread.spmp.ui.layout.mainpage.ServiceNotConnectedView
 import com.toasterofbread.spmp.ui.theme.ApplicationTheme
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.spmp.youtubeapi.fromJson
 import com.toasterofbread.utils.*
+import com.toasterofbread.utils.common.getContrasted
+import com.toasterofbread.utils.common.toInt
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.composable.ShapedIconButton
 import com.toasterofbread.utils.composable.WidthShrinkText
@@ -99,8 +101,6 @@ object SpMp {
         }
 
         player_state = PlayerStateImpl(context)
-
-        Cache.init(context)
 
         context.getPrefs().addListener(prefs_change_listener)
         error_manager = ErrorManager(context)
@@ -216,13 +216,13 @@ class ErrorManager(private val context: PlatformContext) {
         println("Error reported with key '$key': $error")
         if (error is RuntimeException && error.message != null) {
             try {
-                val error_response: YoutubeiErrorResponse? = Klaxon().parse(error.message!!)
+                val error_response: YoutubeiErrorResponse? = Gson().fromJson(error.message!!)
                 error_response?.apply {
                     context.sendToast(getMessage(), long = true)
                     return
                 }
             }
-            catch (_: KlaxonException) {}
+            catch (_: JsonParseException) {}
         }
 
         errors[key] = Exception(error)

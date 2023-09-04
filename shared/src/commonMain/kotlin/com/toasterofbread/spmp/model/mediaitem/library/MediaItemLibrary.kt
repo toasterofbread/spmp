@@ -7,7 +7,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformFile
-import com.toasterofbread.utils.addUnique
+import com.toasterofbread.utils.common.addUnique
 
 object MediaItemLibrary {
     fun getLibraryDir(

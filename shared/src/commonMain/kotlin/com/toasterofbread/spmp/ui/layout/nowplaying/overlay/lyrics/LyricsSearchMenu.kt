@@ -57,7 +57,7 @@ import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
 import com.toasterofbread.utils.composable.OnChangedEffect
-import com.toasterofbread.utils.setAlpha
+import com.toasterofbread.utils.common.setAlpha
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException

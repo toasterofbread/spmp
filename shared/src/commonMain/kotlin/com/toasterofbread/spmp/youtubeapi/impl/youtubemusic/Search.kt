@@ -13,13 +13,15 @@ import com.toasterofbread.spmp.youtubeapi.endpoint.SearchEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchFilter
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchResults
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchType
-import com.toasterofbread.spmp.youtubeapi.getStream
+import com.toasterofbread.spmp.youtubeapi.fromJson
+import com.toasterofbread.spmp.youtubeapi.getReader
 import com.toasterofbread.spmp.youtubeapi.model.NavigationEndpoint
 import com.toasterofbread.spmp.youtubeapi.model.TextRuns
 import com.toasterofbread.spmp.youtubeapi.model.YoutubeiShelf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
+import java.io.Reader
 
 class SearchEndpointImpl(override val api: YoutubeMusicApi): SearchEndpoint() {
     override suspend fun searchMusic(query: String, params: String?): Result<SearchResults> = withContext(Dispatchers.IO) {
@@ -33,15 +35,15 @@ class SearchEndpointImpl(override val api: YoutubeMusicApi): SearchEndpoint() {
         val result = api.performRequest(request)
         val response = result.getOrNull() ?: return@withContext result.cast()
 
-        val stream = response.getStream(api)
+        val reader: Reader = response.getReader(api)
         val parsed: YoutubeiSearchResponse = try {
-            api.klaxon.parse(stream)!!
+            api.gson.fromJson(reader)
         }
         catch (e: Throwable) {
             return@withContext Result.failure(e)
         }
         finally {
-            stream.close()
+            reader.close()
         }
 
         val tab = parsed.contents.tabbedSearchResultsRenderer.tabs.first().tabRenderer
@@ -98,10 +100,10 @@ class SearchEndpointImpl(override val api: YoutubeMusicApi): SearchEndpoint() {
             ))
         }
 
-        api.db.transaction {
+        api.database.transaction {
             for (category in category_layouts) {
                 for (item in category.first.items) {
-                    (item as MediaItemData).saveToDatabase(api.db)
+                    (item as MediaItemData).saveToDatabase(api.database)
                 }
             }
         }

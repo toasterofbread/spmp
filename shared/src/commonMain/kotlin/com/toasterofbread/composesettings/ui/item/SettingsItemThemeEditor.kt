@@ -35,6 +35,12 @@ import com.toasterofbread.spmp.ui.theme.StaticThemeData
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.ui.theme.ThemeData
 import com.toasterofbread.utils.*
+import com.toasterofbread.utils.common.contrastAgainst
+import com.toasterofbread.utils.common.generatePalette
+import com.toasterofbread.utils.common.getContrasted
+import com.toasterofbread.utils.common.random
+import com.toasterofbread.utils.common.setAlpha
+import com.toasterofbread.utils.common.sorted
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.composable.ShapedIconButton
 import com.toasterofbread.utils.composable.WidthShrinkText

@@ -43,9 +43,9 @@ import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.MeasureUnconstrainedView
-import com.toasterofbread.utils.getContrasted
-import com.toasterofbread.utils.roundTo
-import com.toasterofbread.utils.setAlpha
+import com.toasterofbread.utils.common.getContrasted
+import com.toasterofbread.utils.common.roundTo
+import com.toasterofbread.utils.common.setAlpha
 import kotlin.math.roundToInt
 
 class SettingsSliderItem(

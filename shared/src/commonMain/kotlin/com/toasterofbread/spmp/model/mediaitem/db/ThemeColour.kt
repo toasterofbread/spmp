@@ -10,7 +10,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.utils.getThemeColour
+import com.toasterofbread.utils.common.getThemeColour
 
 @Composable
 fun MediaItem.rememberThemeColour(context: PlatformContext = SpMp.context): Color? {

@@ -32,8 +32,8 @@ import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource.SearchResult
 import com.toasterofbread.utils.composable.Marquee
-import com.toasterofbread.utils.getContrasted
-import com.toasterofbread.utils.setAlpha
+import com.toasterofbread.utils.common.getContrasted
+import com.toasterofbread.utils.common.setAlpha
 
 @Composable
 internal fun ColumnScope.LyricsSearchResults(results_and_source: Pair<List<SearchResult>, Int>, modifier: Modifier = Modifier, onFinished: (Int?) -> Unit) {

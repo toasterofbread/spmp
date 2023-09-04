@@ -37,7 +37,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_VERTICAL_PAGE_CO
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThumbnailRow
 import com.toasterofbread.spmp.ui.layout.nowplaying.TopBar
 import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.getThemeColour
+import com.toasterofbread.utils.common.getThemeColour
 import kotlin.math.absoluteValue
 
 const val NOW_PLAYING_MAIN_PADDING = 10f

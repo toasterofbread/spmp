@@ -9,8 +9,8 @@ import com.my.kizzyrpc.model.Activity
 import com.my.kizzyrpc.model.Assets
 import com.my.kizzyrpc.model.Metadata
 import com.my.kizzyrpc.model.Timestamps
-import com.toasterofbread.utils.indexOfFirstOrNull
-import com.toasterofbread.utils.indexOfOrNull
+import com.toasterofbread.utils.common.indexOfFirstOrNull
+import com.toasterofbread.utils.common.indexOfOrNull
 import dev.kord.common.entity.DiscordMessage
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord

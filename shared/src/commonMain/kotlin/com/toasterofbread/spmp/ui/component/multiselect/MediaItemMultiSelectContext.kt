@@ -67,9 +67,9 @@ import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
 import com.toasterofbread.utils.composable.ShapedIconButton
-import com.toasterofbread.utils.getContrasted
-import com.toasterofbread.utils.lazyAssert
-import com.toasterofbread.utils.setAlpha
+import com.toasterofbread.utils.common.getContrasted
+import com.toasterofbread.utils.common.lazyAssert
+import com.toasterofbread.utils.common.setAlpha
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch

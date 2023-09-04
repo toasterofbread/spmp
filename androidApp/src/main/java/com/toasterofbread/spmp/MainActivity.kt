@@ -16,7 +16,7 @@ import androidx.core.view.WindowCompat
 import com.toasterofbread.spmp.platform.ApplicationContext
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.isDebugBuild
+import com.toasterofbread.utils.common.isDebugBuild
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel

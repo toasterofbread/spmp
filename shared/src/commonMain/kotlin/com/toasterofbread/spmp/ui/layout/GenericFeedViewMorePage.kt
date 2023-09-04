@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.MaterialTheme
@@ -24,7 +23,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.model.Settings
@@ -34,8 +32,9 @@ import com.toasterofbread.spmp.ui.component.mediaitemlayout.getDefaultMediaItemP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.common.copy
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.utils.copy
+import com.toasterofbread.utils.composable.spanItem
 
 @Composable
 fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, content_padding: PaddingValues = PaddingValues(), title: String? = null) {
@@ -76,7 +75,7 @@ fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, co
                         horizontalArrangement = item_arrangement
                     ) {
                         if (title != null) {
-                            item(span = { GridItemSpan(maxLineSpan) }) {
+                            spanItem {
                                 Text(title, Modifier.fillMaxWidth(), style = MaterialTheme.typography.headlineMedium)
                             }
                         }

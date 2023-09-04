@@ -60,7 +60,7 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.getPlaylistLongPres
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getSongLongPressMenuData
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.getContrasted
+import com.toasterofbread.utils.common.getContrasted
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

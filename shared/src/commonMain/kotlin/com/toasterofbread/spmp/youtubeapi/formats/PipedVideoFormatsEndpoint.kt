@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.youtubeapi.formats
 
 import com.toasterofbread.spmp.youtubeapi.YoutubeVideoFormat
+import com.toasterofbread.spmp.youtubeapi.fromJson
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
 import okhttp3.Request
@@ -15,7 +16,7 @@ class PipedVideoFormatsEndpoint(override val api: YoutubeMusicApi): VideoFormats
         }
 
         val stream = result.getOrThrow().body!!.charStream()
-        val response: PipedStreamsResponse = api.klaxon.parse(stream)!!
+        val response: PipedStreamsResponse = api.gson.fromJson(stream)!!
         stream.close()
 
         return Result.success(response.audioStreams.let { if (filter != null) it.filter(filter) else it })

@@ -14,7 +14,19 @@ val KEY_NAMES = mapOf(
     "DISCORD_CUSTOM_IMAGES_CHANNEL_NAME_PREFIX" to "String",
     "PASTE_EE_TOKEN" to "String"
 )
-val DEBUG_KEY_NAMES = listOf("YTM_CHANNEL_ID", "YTM_COOKIE", "YTM_HEADERS", "DISCORD_ACCOUNT_TOKEN", "DISCORD_ERROR_REPORT_WEBHOOK")
+val DEBUG_KEY_NAMES = listOf(
+    "YTM_CHANNEL_ID",
+    "YTM_COOKIE",
+    "YTM_HEADERS",
+    "DISCORD_ACCOUNT_TOKEN",
+    "DISCORD_ERROR_REPORT_WEBHOOK",
+    "DISCORD_STATUS_TEXT_NAME_OVERRIDE",
+    "DISCORD_STATUS_TEXT_TEXT_A_OVERRIDE",
+    "DISCORD_STATUS_TEXT_TEXT_B_OVERRIDE",
+    "DISCORD_STATUS_TEXT_TEXT_C_OVERRIDE",
+    "DISCORD_STATUS_TEXT_BUTTON_SONG_OVERRIDE",
+    "DISCORD_STATUS_TEXT_BUTTON_PROJECT_OVERRIDE"
+)
 
 val buildConfigDir get() = project.layout.buildDirectory.dir("generated/buildconfig")
 
@@ -108,7 +120,7 @@ kotlin {
                 implementation("com.github.TeamNewPipe:NewPipeExtractor") // Submodule
 
                 implementation("com.squareup.okhttp3:okhttp:4.10.0")
-                implementation("com.beust:klaxon:5.6")
+                implementation("com.google.code.gson:gson:2.10.1")
                 implementation("com.godaddy.android.colorpicker:compose-color-picker:0.7.0")
                 implementation("org.apache.commons:commons-text:1.10.0")
                 implementation("com.atilika.kuromoji:kuromoji-ipadic:0.9.0")

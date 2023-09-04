@@ -65,7 +65,7 @@ class YTMLoadSongEndpoint(override val api: YoutubeMusicApi): LoadSongEndpoint()
         }
 
         song_data.loaded = true
-        song_data.saveToDatabase(api.db)
+        song_data.saveToDatabase(api.database)
 
         return@withContext Result.success(song_data)
     }

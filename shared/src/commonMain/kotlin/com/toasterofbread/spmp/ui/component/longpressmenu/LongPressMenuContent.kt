@@ -60,9 +60,9 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_RO
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.Marquee
 import com.toasterofbread.utils.composable.NoRipple
-import com.toasterofbread.utils.copy
-import com.toasterofbread.utils.setAlpha
-import com.toasterofbread.utils.thenIf
+import com.toasterofbread.utils.common.copy
+import com.toasterofbread.utils.common.setAlpha
+import com.toasterofbread.utils.common.thenIf
 
 @Composable
 internal fun LongPressMenuContent(

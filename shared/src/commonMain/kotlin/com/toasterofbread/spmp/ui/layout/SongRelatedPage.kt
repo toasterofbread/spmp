@@ -37,7 +37,7 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 import com.toasterofbread.spmp.youtubeapi.SongRelatedContentEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.RelatedGroup
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.utils.getContrasted
+import com.toasterofbread.utils.common.getContrasted
 import com.toasterofbread.utils.modifier.horizontal
 import com.toasterofbread.utils.modifier.vertical
 

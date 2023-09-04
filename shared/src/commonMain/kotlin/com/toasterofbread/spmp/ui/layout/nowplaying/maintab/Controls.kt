@@ -62,7 +62,7 @@ import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.utils.composable.Marquee
-import com.toasterofbread.utils.setAlpha
+import com.toasterofbread.utils.common.setAlpha
 
 @Composable
 internal fun Controls(

@@ -35,7 +35,7 @@ import com.toasterofbread.spmp.model.mediaitem.db.rememberThemeColour
 import com.toasterofbread.spmp.platform.getNavigationBarHeightDp
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.contrastAgainst
+import com.toasterofbread.utils.common.contrastAgainst
 import kotlinx.coroutines.delay
 
 private const val MENU_OPEN_ANIM_MS: Int = 150

@@ -18,7 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.SongLyrics
-import com.toasterofbread.utils.BasicFuriganaText
+import com.toasterofbread.utils.common.BasicFuriganaText
 import kotlinx.coroutines.delay
 
 private const val UPDATE_INTERVAL_MS = 100L

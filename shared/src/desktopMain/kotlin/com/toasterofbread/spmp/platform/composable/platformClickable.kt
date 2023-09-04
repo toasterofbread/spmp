@@ -7,7 +7,7 @@ import androidx.compose.foundation.onClick
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerButton
-import com.toasterofbread.utils.thenIf
+import com.toasterofbread.utils.common.thenIf
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

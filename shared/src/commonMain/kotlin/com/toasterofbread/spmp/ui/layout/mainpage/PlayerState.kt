@@ -23,10 +23,11 @@ import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
 import com.toasterofbread.spmp.service.playerservice.PlayerService
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
+import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
-import com.toasterofbread.utils.indexOfOrNull
+import com.toasterofbread.utils.common.indexOfOrNull
 import java.net.URI
 import java.net.URISyntaxException
 
@@ -220,17 +221,28 @@ open class PlayerState protected constructor(
         onMediaItemLongClicked(item, LongPressMenuData(item, multiselect_key = queue_index))
     }
 
-    open fun openPage(page: PlayerOverlayPage, from_current: Boolean = false, replace_current: Boolean = false) { upstream!!.openPage(
+    open fun openPage(
+        page: PlayerOverlayPage,
+        from_current: Boolean = false,
+        replace_current: Boolean = false,
+    ) { upstream!!.openPage(
         page,
         from_current,
         replace_current
     ) }
-    open fun openMediaItem(item: MediaItem, from_current: Boolean = false, replace_current: Boolean = false, browse_params: String? = null) { upstream!!.openMediaItem(
+
+    open fun openMediaItem(
+        item: MediaItem,
+        from_current: Boolean = false,
+        replace_current: Boolean = false,
+        browse_params: MediaItemLayout.BrowseParamsData? = null,
+    ) { upstream!!.openMediaItem(
         item,
         from_current,
         replace_current,
         browse_params
     ) }
+
     open fun playMediaItem(item: MediaItem, shuffle: Boolean = false) { upstream!!.playMediaItem(item, shuffle) }
     open fun playPlaylist(playlist: Playlist, from_index: Int = 0) { upstream!!.playPlaylist(playlist, from_index) }
     open fun openViewMorePage(browse_id: String, title: String?) { upstream!!.openViewMorePage(browse_id, title) }

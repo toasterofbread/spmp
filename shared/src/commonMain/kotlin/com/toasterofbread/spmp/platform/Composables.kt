@@ -21,7 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.composable.PlatformDialog
-import com.toasterofbread.utils.thenIf
+import com.toasterofbread.utils.common.thenIf
 
 @Composable
 fun LargeDropdownMenu(

@@ -1,4 +1,4 @@
-package com.toasterofbread.utils
+package com.toasterofbread.utils.common
 
 import android.Manifest
 import android.app.AlertDialog

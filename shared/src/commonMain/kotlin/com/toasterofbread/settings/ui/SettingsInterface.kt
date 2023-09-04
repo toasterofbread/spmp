@@ -21,7 +21,7 @@ import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.thenIf
+import com.toasterofbread.utils.common.thenIf
 
 class SettingsInterface(
     val themeProvider: () -> Theme,

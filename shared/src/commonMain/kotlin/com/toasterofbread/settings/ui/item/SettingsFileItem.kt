@@ -23,7 +23,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,16 +33,13 @@ import com.toasterofbread.composesettings.ui.item.BasicSettingsValueState
 import com.toasterofbread.composesettings.ui.item.SettingsItem
 import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.composable.WidthShrinkText
-import com.toasterofbread.utils.toFloat
+import com.toasterofbread.utils.common.toFloat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch

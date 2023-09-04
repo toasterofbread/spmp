@@ -8,7 +8,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.SharedPreferences
 import android.database.ContentObserver
 import android.os.Handler
 import android.view.KeyEvent
@@ -27,7 +26,7 @@ import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playerservice.PlayerService
-import com.toasterofbread.utils.Permissions
+import com.toasterofbread.utils.common.Permissions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

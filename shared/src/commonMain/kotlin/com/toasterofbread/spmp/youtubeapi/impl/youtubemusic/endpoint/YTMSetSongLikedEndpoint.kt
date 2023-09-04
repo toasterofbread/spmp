@@ -26,7 +26,7 @@ class YTMSetSongLikedEndpoint(override val auth: YoutubeMusicAuthInfo): SetSongL
         return@withContext api.performRequest(request).fold(
             {
                 runCatching {
-                    api.db.songQueries.updatelikedById(liked.toLong(), song.id)
+                    api.database.songQueries.updatelikedById(liked.toLong(), song.id)
                     it.close()
                 }
             },

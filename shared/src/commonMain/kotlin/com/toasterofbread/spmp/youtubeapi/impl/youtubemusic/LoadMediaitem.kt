@@ -18,7 +18,8 @@ import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeDurationStri
 import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeSubscribersString
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
-import com.toasterofbread.spmp.youtubeapi.getStream
+import com.toasterofbread.spmp.youtubeapi.fromJson
+import com.toasterofbread.spmp.youtubeapi.getReader
 import com.toasterofbread.spmp.youtubeapi.model.Header
 import com.toasterofbread.spmp.youtubeapi.model.HeaderRenderer
 import com.toasterofbread.spmp.youtubeapi.model.YoutubeiBrowseResponse
@@ -27,12 +28,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Response
 import java.io.InputStream
+import java.io.Reader
 
 class InvalidRadioException: Throwable()
 
-suspend fun processSong(song: SongData, response_body: InputStream, api: YoutubeApi): Result<Unit> {
+suspend fun processSong(song: SongData, response_body: Reader, api: YoutubeApi): Result<Unit> {
     val tabs: List<YoutubeiNextResponse.Tab> = try {
-        api.klaxon.parse<YoutubeiNextResponse>(response_body)!!
+        api.gson.fromJson<YoutubeiNextResponse>(response_body)
             .contents
             .singleColumnMusicWatchNextResultsRenderer
             .tabbedRenderer
@@ -66,15 +68,15 @@ suspend fun processSong(song: SongData, response_body: InputStream, api: Youtube
 
 suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: String, api: YoutubeApi): Result<Unit> {
     return withContext(Dispatchers.IO) {
-        val response_body = response.getStream(api)
-        return@withContext response_body.use {
+        val response_reader: Reader = response.getReader(api)
+        return@withContext response_reader.use {
             if (item is SongData) {
-                return@use processSong(item, response_body, api)
+                return@use processSong(item, response_reader, api)
             }
 
             val parse_result: Result<YoutubeiBrowseResponse> = runCatching {
-                response_body.use {
-                    api.klaxon.parse(it)!!
+                response_reader.use {
+                    api.gson.fromJson(it)
                 }
             }
 
@@ -224,7 +226,7 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                         else LocalisedYoutubeString.mediaItemPage(it, item.getType())
                     }
 
-                    val view_more = row.value.getNavigationEndpoint()?.getViewMore()
+                    val view_more = row.value.getNavigationEndpoint()?.getViewMore(item)
                     if (view_more is MediaItemLayout.MediaItemViewMore) {
                         val view_more_item = view_more.media_item as MediaItemData
                         view_more_item.title = layout_title?.getString()

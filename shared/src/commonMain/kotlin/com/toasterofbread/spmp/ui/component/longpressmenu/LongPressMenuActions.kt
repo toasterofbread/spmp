@@ -25,7 +25,7 @@ import com.toasterofbread.spmp.model.mediaitem.toInfoString
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.WidthShrinkText
-import com.toasterofbread.utils.isDebugBuild
+import com.toasterofbread.utils.common.isDebugBuild
 
 const val MENU_ITEM_SPACING: Int = 20
 

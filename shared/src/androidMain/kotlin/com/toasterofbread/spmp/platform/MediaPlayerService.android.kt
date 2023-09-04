@@ -19,7 +19,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.toasterofbread.spmp.exovisualiser.ExoVisualizer
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
-import com.toasterofbread.utils.synchronizedBlock
+import com.toasterofbread.utils.common.synchronizedBlock
 import kotlin.properties.Delegates
 import androidx.media3.common.MediaItem as ExoMediaItem
 

@@ -2,8 +2,8 @@ package com.toasterofbread.spmp.model
 
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
-import com.toasterofbread.utils.lazyAssert
-import com.toasterofbread.utils.toHiragana
+import com.toasterofbread.utils.common.lazyAssert
+import com.toasterofbread.utils.common.toHiragana
 
 data class SongLyrics(
     val reference: LyricsReference,

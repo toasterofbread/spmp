@@ -5,7 +5,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,10 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyGridItemScope
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -38,7 +34,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -50,13 +45,19 @@ import com.toasterofbread.spmp.model.mediaitem.library.rememberLocalPlaylists
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
+import com.toasterofbread.spmp.model.mediaitem.playlist.createOwnedPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.rememberOwnedPlaylists
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.youtubeapi.YoutubeApi
+import com.toasterofbread.spmp.youtubeapi.endpoint.CreateAccountPlaylistEndpoint
+import com.toasterofbread.utils.common.launchSingle
+import com.toasterofbread.utils.composable.LoadActionIconButton
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.utils.launchSingle
+import com.toasterofbread.utils.composable.spanItem
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlin.coroutines.coroutineContext
@@ -78,10 +79,6 @@ class LibraryPlaylistsPage: LibrarySubPage {
         val player = LocalPlayerState.current
         val api = player.context.ytapi
 
-        val load_coroutine_scope = rememberCoroutineScope()
-        val coroutine_scope = rememberCoroutineScope()
-
-        var loading: Boolean by remember { mutableStateOf(false) }
         var load_error: Throwable? by remember { mutableStateOf(null) }
 
         val local_playlists: List<LocalPlaylistData> = MediaItemLibrary.rememberLocalPlaylists(player.context) ?: emptyList()
@@ -89,31 +86,9 @@ class LibraryPlaylistsPage: LibrarySubPage {
             rememberOwnedPlaylists(own_channel, player.context)
         } ?: emptyList()
 
-        suspend fun loadAccountPlaylists() {
-            coroutineContext.job.invokeOnCompletion {
-                loading = false
-            }
-            loading = true
-            load_error = null
-
-            val endpoint = api.user_auth_state?.AccountPlaylists
-            if (endpoint != null) {
-                val result = endpoint.getAccountPlaylists()
-                load_error = result.exceptionOrNull()
-            }
-        }
-
-        LaunchedEffect(api.user_auth_state?.AccountPlaylists) {
-            if (account_playlists.isNotEmpty()) {
-                return@LaunchedEffect
-            }
-
-            load_coroutine_scope.launchSingle {
-                loadAccountPlaylists()
-            }
-        }
-
         val item_spacing: Dp = 15.dp
+        val auth_state: YoutubeApi.UserAuthState? = player.context.ytapi.user_auth_state
+
         LazyVerticalGrid(
             GridCells.Adaptive(100.dp),
             modifier,
@@ -121,15 +96,25 @@ class LibraryPlaylistsPage: LibrarySubPage {
             verticalArrangement = Arrangement.spacedBy(item_spacing),
             horizontalArrangement = Arrangement.spacedBy(item_spacing)
         ) {
+
+            load_error?.also { error ->
+                spanItem {
+                    ErrorInfoDisplay(error, Modifier.fillMaxWidth()) {
+                        load_error = null
+                    }
+                }
+            }
+
             PlaylistItems(
                 "Local playlists",
                 local_playlists,
                 multiselect_context,
                 cornerContent = {
-                    IconButton({
-                        coroutine_scope.launch {
-                            MediaItemLibrary.createLocalPlaylist(player.context)
-                        }
+                    LoadActionIconButton({
+                        MediaItemLibrary.createLocalPlaylist(player.context)
+                            .onFailure {
+                                load_error = it
+                            }
                     }) {
                         Icon(Icons.Default.Add, null)
                     }
@@ -140,31 +125,33 @@ class LibraryPlaylistsPage: LibrarySubPage {
                 "Account playlists",
                 account_playlists,
                 multiselect_context,
-                belowHeaderContent =
-                    load_error?.let { error ->
-                        {
-                            ErrorInfoDisplay(
-                                error,
-                                onDismiss = {
-                                    load_error = null
-                                }
-                            )
-                        }
-                    },
-                getLoading = {
-                    loading
-                },
                 cornerContent = {
-                    IconButton(
-                        {
-                            load_coroutine_scope.launchSingle {
-                                loadAccountPlaylists()
+                    Row {
+                        val load_endpoint = auth_state?.AccountPlaylists
+                        if (load_endpoint?.isImplemented() == true) {
+                            LoadActionIconButton(
+                                {
+                                    val result = load_endpoint.getAccountPlaylists()
+                                    load_error = result.exceptionOrNull()
+                                },
+                                load_on_launch = account_playlists.isEmpty()
+                            ) {
+                                Icon(Icons.Default.Refresh, null)
                             }
-                        },
-                        Modifier.alpha(animateFloatAsState(if (loading) 0f else 1f).value),
-                        enabled = !loading,
-                    ) {
-                        Icon(Icons.Default.Refresh, null)
+                        }
+
+                        val create_endpoint: CreateAccountPlaylistEndpoint? = auth_state?.CreateAccountPlaylist
+
+                        if (create_endpoint?.isImplemented() == true) {
+                            LoadActionIconButton({
+                                MediaItemLibrary.createOwnedPlaylist(auth_state, create_endpoint)
+                                    .onFailure {
+                                        load_error = it
+                                    }
+                            }) {
+                                Icon(Icons.Default.Add, null)
+                            }
+                        }
                     }
                 }
             )
@@ -172,22 +159,11 @@ class LibraryPlaylistsPage: LibrarySubPage {
     }
 }
 
-fun LazyGridScope.spanItem(key: Any? = null, contentType: Any? = null, content: @Composable LazyGridItemScope.() -> Unit) {
-    item(
-        key,
-        { GridItemSpan(maxLineSpan) },
-        contentType,
-        content
-    )
-}
-
 private fun LazyGridScope.PlaylistItems(
     title: String,
     items: List<Playlist>,
     multiselect_context: MediaItemMultiSelectContext? = null,
-    belowHeaderContent: (@Composable () -> Unit)? = null,
-    cornerContent: (@Composable () -> Unit)? = null,
-    getLoading: (() -> Boolean)? = null
+    cornerContent: (@Composable () -> Unit)? = null
 ) {
     spanItem {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -197,24 +173,7 @@ private fun LazyGridScope.PlaylistItems(
                 style = MaterialTheme.typography.headlineMedium
             )
 
-            Box(contentAlignment = Alignment.Center) {
-                val loading = getLoading?.invoke() == true
-                this@Row.AnimatedVisibility(
-                    loading,
-                    enter = fadeIn(),
-                    exit = fadeOut()
-                ) {
-                    SubtleLoadingIndicator()
-                }
-
-                cornerContent?.invoke()
-            }
-        }
-    }
-
-    if (belowHeaderContent != null) {
-        spanItem {
-            belowHeaderContent()
+            cornerContent?.invoke()
         }
     }
 

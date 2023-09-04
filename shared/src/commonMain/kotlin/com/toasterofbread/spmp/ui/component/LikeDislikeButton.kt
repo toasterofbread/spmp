@@ -27,7 +27,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.utils.launchSingle
+import com.toasterofbread.utils.common.launchSingle
 
 @Composable
 fun LikeDislikeButton(

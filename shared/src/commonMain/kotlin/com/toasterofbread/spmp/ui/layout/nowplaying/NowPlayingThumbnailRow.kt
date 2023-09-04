@@ -62,10 +62,10 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.OVERLAY_MENU_ANIMATI
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.MainOverlayMenu
 import com.toasterofbread.utils.composable.OnChangedEffect
-import com.toasterofbread.utils.getInnerSquareSizeOfCircle
+import com.toasterofbread.utils.common.getInnerSquareSizeOfCircle
 import com.toasterofbread.utils.modifier.background
 import com.toasterofbread.utils.modifier.disableParentScroll
-import com.toasterofbread.utils.setAlpha
+import com.toasterofbread.utils.common.setAlpha
 import kotlin.math.absoluteValue
 import kotlin.math.min
 

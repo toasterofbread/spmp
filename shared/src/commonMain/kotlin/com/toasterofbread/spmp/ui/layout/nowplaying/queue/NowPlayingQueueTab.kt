@@ -52,7 +52,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NOW_PLAYING_TOP_BAR_HEIGHT
 import com.toasterofbread.spmp.ui.layout.nowplaying.rememberTopBarShouldShowInQueue
-import com.toasterofbread.utils.getContrasted
+import com.toasterofbread.utils.common.getContrasted
 import kotlinx.coroutines.delay
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState

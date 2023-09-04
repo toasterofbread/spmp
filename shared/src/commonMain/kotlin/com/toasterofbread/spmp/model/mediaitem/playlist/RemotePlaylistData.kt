@@ -7,7 +7,6 @@ import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
-import com.toasterofbread.utils.lazyAssert
 
 class RemotePlaylistData(id: String): PlaylistData(id), RemotePlaylist {
     var continuation: MediaItemLayout.Continuation? = null
@@ -28,7 +27,9 @@ class RemotePlaylistData(id: String): PlaylistData(id), RemotePlaylist {
         }
         db.playlistQueries.insertById(id, playlist_type?.ordinal?.toLong())
     }
-    override fun getEmptyData(): RemotePlaylistData = RemotePlaylistData(id)
+    override fun getEmptyData(): RemotePlaylistData = RemotePlaylistData(id).also { data ->
+        data.browse_params = browse_params
+    }
 
     override suspend fun savePlaylist(context: PlatformContext) {
         saveToDatabase(context.database)

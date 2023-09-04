@@ -16,17 +16,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
-import com.beust.klaxon.Converter
-import com.beust.klaxon.JsonValue
-import com.beust.klaxon.Klaxon
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.TypeAdapter
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonWriter
 import com.toasterofbread.spmp.model.AccentColourSource
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.utils.compare
-import com.toasterofbread.utils.contrastAgainst
-import com.toasterofbread.utils.getContrasted
+import com.toasterofbread.utils.common.compare
+import com.toasterofbread.utils.common.contrastAgainst
+import com.toasterofbread.utils.common.getContrasted
 import com.catppuccin.Palette as Catppuccin
 
 const val VIBRANT_ACCENT_CONTRAST: Float = 0.2f
@@ -203,34 +205,38 @@ object Theme: ThemeData {
         }
     }
 
-    private val klaxon: Klaxon get() = Klaxon().converter(colour_converter)
+    private val gson: Gson get() = GsonBuilder().let { builder ->
+        builder.registerTypeAdapter(
+            Color::class.java,
+            object : TypeAdapter<StaticThemeData>() {
+                override fun write(writer: JsonWriter, value: StaticThemeData?) {
+                    if (value == null) {
+                        writer.nullValue()
+                    }
+                    else {
+                        writer.value(value.serialise())
+                    }
+                }
+
+                override fun read(reader: JsonReader): StaticThemeData {
+                    return StaticThemeData.deserialise(reader.nextString())
+                }
+            }
+        )
+
+        builder.create()
+    }
 
     private fun saveThemes() {
-        Settings.set(Settings.KEY_THEMES, klaxon.toJsonString(loaded_themes))
+        Settings.set(Settings.KEY_THEMES, gson.toJson(loaded_themes))
     }
 
     private fun loadThemes(): List<ThemeData> {
-        val themes = Settings.getJsonArray<StaticThemeData>(Settings.KEY_THEMES, klaxon)
+        val themes = Settings.getJsonArray<StaticThemeData>(Settings.KEY_THEMES, gson)
         if (themes.isEmpty()) {
             return default_themes
         }
         return themes
-    }
-
-    private val colour_converter: Converter get() = object : Converter {
-        override fun canConvert(cls: Class<*>): Boolean {
-            return cls == StaticThemeData::class.java
-        }
-
-        override fun fromJson(jv: JsonValue): Any {
-            checkNotNull(jv.string) { jv }
-            return StaticThemeData.deserialise(jv.string!!)
-        }
-
-        override fun toJson(value: Any): String {
-            require(value is StaticThemeData)
-            return "\"${value.serialise()}\""
-        }
     }
 }
 
@@ -258,7 +264,7 @@ data class StaticThemeData(
     override fun toStaticThemeData(name: String): StaticThemeData = copy(name = name)
 
     companion object {
-        fun deserialise(data: String): ThemeData {
+        fun deserialise(data: String): StaticThemeData {
             val split = data.split(',', limit = 4)
             return StaticThemeData(
                 split[3],

@@ -4,6 +4,7 @@ import SpMp
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.endpoint.LoadArtistEndpoint
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.processDefaultResponse
 import kotlinx.coroutines.Dispatchers
@@ -24,24 +25,17 @@ class YTMLoadArtistEndpoint(override val api: YoutubeMusicApi): LoadArtistEndpoi
             )
             .build()
 
-        val result = api.performRequest(request).fold(
-            { response ->
-                processDefaultResponse(artist_data, response, hl, api)
-            },
-            { error ->
-                Result.failure(error)
-            }
-        )
+        val response = api.performRequest(request).getOrElse {
+            return@withContext Result.failure(DataParseException.ofYoutubeJsonRequest(request, api, cause = it))
+        }
 
-        return@withContext result.fold(
-            {
-                artist_data.loaded = true
-                artist_data.saveToDatabase(api.db)
-                Result.success(artist_data)
-            },
-            {
-                Result.failure(it)
-            }
-        )
+        processDefaultResponse(artist_data, response, hl, api).onFailure {
+            return@withContext Result.failure(DataParseException.ofYoutubeJsonRequest(request, api, cause = it))
+        }
+
+        artist_data.loaded = true
+        artist_data.saveToDatabase(api.database)
+
+        return@withContext Result.success(artist_data)
     }
 }

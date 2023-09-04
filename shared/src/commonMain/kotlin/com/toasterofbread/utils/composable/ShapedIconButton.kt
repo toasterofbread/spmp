@@ -22,7 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.semantics.Role
 import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.setAlpha
+import com.toasterofbread.utils.common.setAlpha
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

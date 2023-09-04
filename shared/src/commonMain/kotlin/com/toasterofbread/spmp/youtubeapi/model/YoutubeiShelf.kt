@@ -4,16 +4,16 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMGetHomeFeedEndpoint
 
 data class YoutubeiShelf(
-    val musicShelfRenderer: YTMGetHomeFeedEndpoint.MusicShelfRenderer? = null,
-    val musicCarouselShelfRenderer: MusicCarouselShelfRenderer? = null,
-    val musicDescriptionShelfRenderer: MusicDescriptionShelfRenderer? = null,
-    val musicPlaylistShelfRenderer: YTMGetHomeFeedEndpoint.MusicShelfRenderer? = null,
-    val musicCardShelfRenderer: MusicCardShelfRenderer? = null,
-    val gridRenderer: GridRenderer? = null,
-    val itemSectionRenderer: ItemSectionRenderer? = null,
-    val musicTastebuilderShelfRenderer: Any? = null,
-    val musicMultiRowListItemRenderer: MusicMultiRowListItemRenderer? = null,
-    val musicResponsiveHeaderRenderer: MusicResponsiveHeaderRenderer? = null
+    val musicShelfRenderer: YTMGetHomeFeedEndpoint.MusicShelfRenderer?,
+    val musicCarouselShelfRenderer: MusicCarouselShelfRenderer?,
+    val musicDescriptionShelfRenderer: MusicDescriptionShelfRenderer?,
+    val musicPlaylistShelfRenderer: YTMGetHomeFeedEndpoint.MusicShelfRenderer?,
+    val musicCardShelfRenderer: MusicCardShelfRenderer?,
+    val gridRenderer: GridRenderer?,
+    val itemSectionRenderer: ItemSectionRenderer?,
+    val musicTastebuilderShelfRenderer: Any?,
+    val musicMultiRowListItemRenderer: MusicMultiRowListItemRenderer?,
+    val musicResponsiveHeaderRenderer: MusicResponsiveHeaderRenderer?
 ) {
     init {
         assert(

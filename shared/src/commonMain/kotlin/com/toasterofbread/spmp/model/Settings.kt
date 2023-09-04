@@ -6,7 +6,7 @@ import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Lyrics
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.beust.klaxon.Klaxon
+import com.google.gson.Gson
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
@@ -14,6 +14,7 @@ import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
+import com.toasterofbread.spmp.youtubeapi.fromJson
 import okhttp3.Headers.Companion.toHeaders
 import java.util.*
 
@@ -262,8 +263,8 @@ enum class Settings {
             } as T
         }
 
-        inline fun <reified T> getJsonArray(enum_key: Settings, klaxon: Klaxon = Klaxon(), preferences: PlatformPreferences = prefs, default: String? = null): List<T> {
-            return klaxon.parseArray(get(enum_key, preferences, default))!!
+        inline fun <reified T> getJsonArray(enum_key: Settings, gson: Gson = Gson(), preferences: PlatformPreferences = prefs, default: String? = null): List<T> {
+            return gson.fromJson(get(enum_key, preferences, default))!!
         }
 
         inline fun <reified T: Enum<T>> getEnum(enum_key: Settings, preferences: PlatformPreferences = prefs, default: T? = null): T {
@@ -341,21 +342,21 @@ enum class Settings {
                         if (YTM_CHANNEL_ID != null && YTM_HEADERS != null)
                             YoutubeApi.UserAuthState.packSetData(
                                 ArtistRef(YTM_CHANNEL_ID),
-                                Klaxon().parse<Map<String, String>>(YTM_HEADERS.reader())!!.toHeaders()
+                                Gson().fromJson<Map<String, String>>(YTM_HEADERS.reader()).toHeaders()
                             )
                         else emptySet()
                     }
                 }
                 KEY_DISCORD_ACCOUNT_TOKEN -> ProjectBuildConfig.DISCORD_ACCOUNT_TOKEN ?: ""
 
-                KEY_DISCORD_STATUS_NAME -> getString("discord_status_default_name")
-                KEY_DISCORD_STATUS_TEXT_A -> getString("discord_status_default_text_a")
-                KEY_DISCORD_STATUS_TEXT_B -> getString("discord_status_default_text_b")
-                KEY_DISCORD_STATUS_TEXT_C -> getString("discord_status_default_text_c")
+                KEY_DISCORD_STATUS_NAME -> ProjectBuildConfig.DISCORD_STATUS_TEXT_NAME_OVERRIDE ?: getString("discord_status_default_name")
+                KEY_DISCORD_STATUS_TEXT_A -> ProjectBuildConfig.DISCORD_STATUS_TEXT_TEXT_A_OVERRIDE ?: getString("discord_status_default_text_a")
+                KEY_DISCORD_STATUS_TEXT_B -> ProjectBuildConfig.DISCORD_STATUS_TEXT_TEXT_B_OVERRIDE ?: getString("discord_status_default_text_b")
+                KEY_DISCORD_STATUS_TEXT_C -> ProjectBuildConfig.DISCORD_STATUS_TEXT_TEXT_C_OVERRIDE ?: getString("discord_status_default_text_c")
                 KEY_DISCORD_SHOW_BUTTON_SONG -> true
-                KEY_DISCORD_BUTTON_SONG_TEXT -> getString("discord_status_default_button_song")
+                KEY_DISCORD_BUTTON_SONG_TEXT -> ProjectBuildConfig.DISCORD_STATUS_TEXT_BUTTON_SONG_OVERRIDE ?: getString("discord_status_default_button_song")
                 KEY_DISCORD_SHOW_BUTTON_PROJECT -> true
-                KEY_DISCORD_BUTTON_PROJECT_TEXT -> getString("discord_status_default_button_project")
+                KEY_DISCORD_BUTTON_PROJECT_TEXT -> ProjectBuildConfig.DISCORD_STATUS_TEXT_BUTTON_PROJECT_OVERRIDE ?: getString("discord_status_default_button_project")
 
                 // Caching
                 KEY_THUMB_CACHE_ENABLED -> true

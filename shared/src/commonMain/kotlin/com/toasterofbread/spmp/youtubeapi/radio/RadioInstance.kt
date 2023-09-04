@@ -26,8 +26,8 @@ import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.utils.launchSingle
-import com.toasterofbread.utils.synchronizedBlock
+import com.toasterofbread.utils.common.launchSingle
+import com.toasterofbread.utils.common.synchronizedBlock
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

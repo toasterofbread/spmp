@@ -11,7 +11,7 @@ import okhttp3.Request
 class YTMSetSubscribedToArtistEndpoint(override val auth: YoutubeMusicAuthInfo): SetSubscribedToArtistEndpoint() {
     override suspend fun setSubscribedToArtist(artist: Artist, subscribed: Boolean): Result<Unit> = withContext(Dispatchers.IO) {
         val subscribe_channel_id =
-            api.db.artistQueries.subscribeChannelIdById(artist.id).executeAsOneOrNull()?.subscribe_channel_id
+            api.database.artistQueries.subscribeChannelIdById(artist.id).executeAsOneOrNull()?.subscribe_channel_id
                 ?: artist.id
 
         val request: Request = Request.Builder()

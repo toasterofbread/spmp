@@ -4,15 +4,13 @@ import SpMp
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.beust.klaxon.JsonObject
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import com.toasterofbread.Database
-import com.toasterofbread.spmp.model.Cache
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformPreferences
-import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.resources.getStringArray
 import com.toasterofbread.spmp.resources.getStringArraySafe
 import com.toasterofbread.spmp.resources.getStringSafe
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
@@ -48,11 +46,10 @@ import org.apache.commons.text.StringSubstitutor
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.downloader.Downloader
 import org.schabi.newpipe.extractor.exceptions.ReCaptchaException
-import java.io.InputStream
+import java.io.Reader
 import java.time.Duration
 import java.util.logging.Level
 import java.util.logging.Logger
-import java.util.zip.GZIPInputStream
 
 private val PLAIN_HEADERS = listOf("accept-language", "user-agent", "accept-encoding", "content-encoding", "origin")
 
@@ -66,7 +63,7 @@ class YoutubeMusicApi(
         check(!api_url.endsWith('/'))
     }
 
-    override val db: Database get() = context.database
+    override val database: Database get() = context.database
 
     private var init_job: Job? = null
     private var initialised: Boolean = false
@@ -85,7 +82,6 @@ class YoutubeMusicApi(
                 Settings.KEY_YTM_AUTH.name -> onUserAuthStateChanged()
                 Settings.KEY_LANG_DATA.name -> {
                     updateYtmContext()
-                    Cache.reset()
                 }
             }
         }
@@ -105,8 +101,6 @@ class YoutubeMusicApi(
                         headers_builder.add(key, value)
                     }
 
-                    headers_builder["accept-encoding"] = "gzip, deflate"
-                    headers_builder["content-encoding"] = "gzip"
                     headers_builder["origin"] = api_url
                     headers_builder["user-agent"] = getUserAgent()
 
@@ -171,26 +165,27 @@ class YoutubeMusicApi(
             "\${", "}"
         )
 
-        youtubei_context = klaxon.parseJsonObject(
-            context_substitutor.replace(getStringSafe("ytm_context", context)).reader()
-        )
-        youtubei_context_alt = klaxon.parseJsonObject(
-            context_substitutor.replace(getStringSafe("ytm_context_alt", context)).reader()
-        )
-        youtubei_context_android = klaxon.parseJsonObject(
-            context_substitutor.replace(getStringSafe("ytm_context_android", context)).reader()
-        )
-        youtubei_context_mobile = klaxon.parseJsonObject(
-            context_substitutor.replace(getStringSafe("ytm_context_mobile", context)).reader()
-        )
-        youtube_context_ui_language = klaxon.parseJsonObject(
+        youtubei_context = JsonParser.parseString(
+            context_substitutor.replace(getStringSafe("ytm_context", context))
+        ).asJsonObject
+        youtubei_context_alt = JsonParser.parseString(
+            context_substitutor.replace(getStringSafe("ytm_context_alt", context))
+        ).asJsonObject
+        youtubei_context_android = JsonParser.parseString(
+            context_substitutor.replace(getStringSafe("ytm_context_android", context))
+        ).asJsonObject
+        youtubei_context_mobile = JsonParser.parseString(
+            context_substitutor.replace(getStringSafe("ytm_context_mobile", context))
+        ).asJsonObject
+        youtube_context_ui_language = gson.fromJson(
             StringSubstitutor(
                 mapOf(
                     "user_agent" to getUserAgent(),
                     "hl" to SpMp.getUiLanguage(context)
                 ),
                 "\${", "}"
-            ).replace(getStringSafe("ytm_context", context)).reader()
+            ).replace(getStringSafe("ytm_context", context)).reader(),
+            youtubei_context::class.java
         )
     }
 
@@ -228,12 +223,14 @@ class YoutubeMusicApi(
     }
 
     override fun Request.Builder.postWithBody(body: Map<String, Any?>?, context: PostBodyContext): Request.Builder {
-        val final_body = context.getContextPostBody().toMutableMap()
+        val final_body: JsonObject = context.getContextPostBody().deepCopy()
+
         for (entry in body ?: emptyMap()) {
-            final_body[entry.key] = entry.value
+            final_body.remove(entry.key)
+            final_body.add(entry.key, gson.toJsonTree(entry.value))
         }
         return post(
-            klaxon.toJsonString(final_body).toRequestBody("application/json".toMediaType())
+            gson.toJson(final_body).toRequestBody("application/json".toMediaType())
         )
     }
 
@@ -251,8 +248,8 @@ class YoutubeMusicApi(
         return client.executeResult(request, allow_fail_response, if (from_api) this else null)
     }
 
-    override fun getResponseStream(response: Response): InputStream {
-        return GZIPInputStream(response.body!!.byteStream())
+    override fun getResponseReader(response: Response): Reader {
+        return response.body!!.charStream()
     }
 
     private fun onUserAuthStateChanged() {

@@ -30,8 +30,8 @@ import com.toasterofbread.spmp.platform.composable.SwipeRefresh
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
-import com.toasterofbread.utils.addUnique
-import com.toasterofbread.utils.launchSingle
+import com.toasterofbread.utils.common.addUnique
+import com.toasterofbread.utils.common.launchSingle
 
 @Composable
 fun PlaylistSelectMenu(

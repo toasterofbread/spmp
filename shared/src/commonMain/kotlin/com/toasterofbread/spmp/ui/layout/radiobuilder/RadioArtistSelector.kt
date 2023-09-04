@@ -50,7 +50,7 @@ import com.toasterofbread.spmp.youtubeapi.RadioBuilderArtist
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.composable.crossOut
-import com.toasterofbread.utils.times
+import com.toasterofbread.utils.common.times
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

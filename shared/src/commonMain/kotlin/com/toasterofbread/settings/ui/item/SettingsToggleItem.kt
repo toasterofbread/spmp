@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.composesettings.ui.SettingsPage
 import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.setAlpha
+import com.toasterofbread.utils.common.setAlpha
 
 class SettingsToggleItem(
     val state: BasicSettingsValueState<Boolean>,

@@ -23,7 +23,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -48,18 +47,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.google.gson.Gson
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.spmp.youtubeapi.fromJson
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
 import com.toasterofbread.utils.composable.ShapedIconButton
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.composable.WidthShrinkText
-import com.toasterofbread.utils.isDebugBuild
+import com.toasterofbread.utils.common.isDebugBuild
 import com.toasterofbread.utils.modifier.background
 import com.toasterofbread.utils.modifier.disableParentScroll
-import com.toasterofbread.utils.thenIf
+import com.toasterofbread.utils.common.thenIf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
@@ -335,19 +336,21 @@ private suspend fun uploadErrorToPasteEe(error: Throwable, token: String, contex
         .url("https://api.paste.ee/v1/pastes")
         .header("X-Auth-Token", token)
         .post(
-            context.ytapi.klaxon.toJsonString(mapOf("sections" to sections))
+            context.ytapi.gson.toJson(mapOf("sections" to sections))
                 .toRequestBody("application/json".toMediaType())
         )
         .build()
 
     try {
         val result = OkHttpClient().newCall(request).execute()
-        val response = result.use {
-            context.ytapi.klaxon.parseJsonObject(it.body!!.charStream())
+
+        val gson = Gson()
+        val response: Map<String, Any?> = result.use {
+            gson.fromJson(it.body!!.charStream())
         }
 
         if (response["success"] != true || response["link"] == null) {
-            return@withContext Result.failure(RuntimeException(response.toJsonString(true)))
+            return@withContext Result.failure(RuntimeException(gson.toJson(response)))
         }
 
         return@withContext Result.success(response["link"] as String)

@@ -50,8 +50,8 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.toasterofbread.utils.composable.loadLyricsOnSongChange
 import com.toasterofbread.utils.composable.pauseableInfiniteRepeatableAnimation
-import com.toasterofbread.utils.getContrasted
-import com.toasterofbread.utils.setAlpha
+import com.toasterofbread.utils.common.getContrasted
+import com.toasterofbread.utils.common.setAlpha
 import kotlinx.coroutines.delay
 
 @Composable

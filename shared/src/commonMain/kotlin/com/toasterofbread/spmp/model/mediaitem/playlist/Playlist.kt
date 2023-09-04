@@ -1,5 +1,12 @@
 package com.toasterofbread.spmp.model.mediaitem.playlist
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlaylistPlay
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
@@ -15,6 +22,8 @@ import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.model.mediaitem.toThumbnailProvider
 import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.modifier.background
 
 sealed interface Playlist: MediaItem.WithArtist {
     override fun getEmptyData(): PlaylistData
@@ -106,5 +115,12 @@ sealed interface Playlist: MediaItem.WithArtist {
 
     override suspend fun loadData(context: PlatformContext, populate_data: Boolean, force: Boolean): Result<PlaylistData> {
         return super.loadData(context, populate_data, force) as Result<PlaylistData>
+    }
+}
+
+@Composable
+fun Playlist.PlaylistDefaultThumbnail(modifier: Modifier = Modifier) {
+    Box(modifier.background(Theme.accent_provider), contentAlignment = Alignment.Center) {
+        Icon(Icons.Default.PlaylistPlay, null, tint = Theme.on_accent)
     }
 }

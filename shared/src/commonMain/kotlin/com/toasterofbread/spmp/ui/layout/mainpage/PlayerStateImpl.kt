@@ -25,6 +25,7 @@ import com.toasterofbread.spmp.service.playerservice.PlayerService
 import com.toasterofbread.spmp.ui.component.*
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenu
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
+import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.spmp.ui.component.mediaitempreview.*
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.*
@@ -35,8 +36,8 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.OnChangedEffect
-import com.toasterofbread.utils.init
-import com.toasterofbread.utils.toFloat
+import com.toasterofbread.utils.common.init
+import com.toasterofbread.utils.common.toFloat
 import kotlinx.coroutines.*
 
 enum class FeedLoadState { PREINIT, NONE, LOADING, CONTINUING }
@@ -250,7 +251,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
         hideLongPressMenu()
     }
 
-    override fun openMediaItem(item: MediaItem, from_current: Boolean, replace_current: Boolean, browse_params: String?) {
+    override fun openMediaItem(item: MediaItem, from_current: Boolean, replace_current: Boolean, browse_params: MediaItemLayout.BrowseParamsData?) {
         if (item is Artist && item.IsForItem.get(context.database)) {
             return
         }

@@ -57,13 +57,18 @@ import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
 import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedLoadResult
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.unit
-import com.toasterofbread.utils.launchSingle
+import com.toasterofbread.utils.common.launchSingle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 class SongFeedPage(state: MainPageState): MainPage(state) {
     private val scroll_state = LazyListState()
@@ -72,7 +77,7 @@ class SongFeedPage(state: MainPageState): MainPage(state) {
 
     private var load_state by mutableStateOf(FeedLoadState.PREINIT)
     private var load_error: Throwable? by mutableStateOf(null)
-    private val load_lock = ReentrantLock()
+    private val load_lock = Mutex()
     private val coroutine_scope = CoroutineScope(Job())
 
     private var continuation: String? by mutableStateOf(null)
@@ -179,9 +184,15 @@ class SongFeedPage(state: MainPageState): MainPage(state) {
                     return@LaunchedEffect
                 }
 
-                state_alpha.animateTo(0f, tween(300))
-                current_state = target_state
-                state_alpha.animateTo(1f, tween(300))
+                if (current_state is List<*> && target_state is List<*>) {
+                    state_alpha.snapTo(1f)
+                    current_state = target_state
+                }
+                else {
+                    state_alpha.animateTo(0f, tween(300))
+                    current_state = target_state
+                    state_alpha.animateTo(1f, tween(300))
+                }
             }
 
             @Composable
@@ -304,42 +315,42 @@ class SongFeedPage(state: MainPageState): MainPage(state) {
         filter_chip: Int? = null
     ): Result<Unit> = withContext(Dispatchers.IO) {
         selected_filter_chip = filter_chip
-
         load_lock.lock()
 
-        check(load_state == FeedLoadState.PREINIT || load_state == FeedLoadState.NONE)
+        try {
+            if (load_state != FeedLoadState.PREINIT && load_state != FeedLoadState.NONE) {
+                return@withContext Result.failure(IllegalStateException("Illegal load state $load_state"))
+            }
 
-        val filter_params = filter_chip?.let { filter_chips!![it].params }
-        load_state = if (continue_feed) FeedLoadState.CONTINUING else FeedLoadState.LOADING
+            val filter_params = filter_chip?.let { filter_chips!![it].params }
+            load_state = if (continue_feed) FeedLoadState.CONTINUING else FeedLoadState.LOADING
 
-        coroutineContext.job.invokeOnCompletion {
+            val result = loadFeedLayouts(min_rows, allow_cached, filter_params, if (continue_feed) continuation else null)
+
+            result.fold(
+                { data ->
+                    if (continue_feed) {
+                        layouts = (layouts ?: emptyList()) + data.layouts
+                    } else {
+                        layouts = data.layouts
+                        filter_chips = data.filter_chips
+                    }
+
+                    continuation = data.ctoken
+                },
+                { error ->
+                    load_error = error
+                    layouts = emptyList()
+                    filter_chips = null
+                }
+            )
+
+            return@withContext result.unit()
+        }
+        finally {
             load_state = FeedLoadState.NONE
             load_lock.unlock()
         }
-
-        val result = loadFeedLayouts(min_rows, allow_cached, filter_params, if (continue_feed) continuation else null)
-
-        result.fold(
-            { data ->
-                if (continue_feed) {
-                    layouts = (layouts ?: emptyList()) + data.layouts
-                } else {
-                    layouts = data.layouts
-                    filter_chips = data.filter_chips
-                }
-
-                continuation = data.ctoken
-            },
-            { error ->
-                load_error = error
-                layouts = emptyList()
-                filter_chips = null
-            }
-        )
-
-        load_state = FeedLoadState.NONE
-
-        return@withContext result.unit()
     }
 
     private suspend fun loadFeedLayouts(

@@ -23,7 +23,7 @@ import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.isOwnChannel
 import com.toasterofbread.utils.composable.ShapedIconButton
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.utils.getContrasted
+import com.toasterofbread.utils.common.getContrasted
 import kotlinx.coroutines.launch
 
 @Composable

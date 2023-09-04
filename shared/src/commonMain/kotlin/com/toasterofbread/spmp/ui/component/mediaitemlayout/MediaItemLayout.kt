@@ -23,11 +23,11 @@ import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
-import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.getString
@@ -40,6 +40,7 @@ import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.*
 import com.toasterofbread.utils.*
+import com.toasterofbread.utils.common.getContrasted
 import com.toasterofbread.utils.composable.WidthShrinkText
 
 fun getDefaultMediaItemPreviewSize(): DpSize = DpSize(100.dp, 120.dp)
@@ -153,33 +154,45 @@ data class MediaItemLayout(
         override fun execute(player: PlayerState, title: LocalisedYoutubeString?) = action(player, title)
     }
 
+    data class BrowseParamsData(
+        val browse_id: String,
+        val browse_params: String,
+        val title: String
+    )
+
     data class MediaItemViewMore(
         val media_item: MediaItem,
         val browse_params: String? = null
     ): ViewMore {
         override fun execute(player: PlayerState, title: LocalisedYoutubeString?) {
-            player.openMediaItem(media_item, true, browse_params = browse_params)
+            player.openMediaItem(
+                media_item,
+                true,
+                browse_params = browse_params?.let { params ->
+                    BrowseParamsData(media_item.id, params, title?.getString() ?: "")
+                }
+            )
         }
     }
 
     data class ListPageBrowseIdViewMore(
+        val item_id: String,
         val list_page_browse_id: String,
-        val browse_params: String? = null
+        val browse_params: String
     ): ViewMore {
         override fun execute(player: PlayerState, title: LocalisedYoutubeString?) {
-            if (browse_params != null) {
-                player.openMediaItem(
-                    RemotePlaylistData(
-                        list_page_browse_id
-                    ).also { playlist ->
-                        playlist.title = title?.getString() ?: ""
-                        playlist.browse_params = browse_params
-                    },
-                )
-            }
-            else {
-                player.openViewMorePage(list_page_browse_id, title?.getString())
-            }
+            player.openMediaItem(
+                ArtistRef(item_id),
+                browse_params = BrowseParamsData(list_page_browse_id, browse_params, title?.getString() ?: "")
+            )
+        }
+    }
+
+    data class PlainViewMore(
+        val browse_id: String
+    ): ViewMore {
+        override fun execute(player: PlayerState, title: LocalisedYoutubeString?) {
+            player.openViewMorePage(browse_id, title?.getString())
         }
     }
 

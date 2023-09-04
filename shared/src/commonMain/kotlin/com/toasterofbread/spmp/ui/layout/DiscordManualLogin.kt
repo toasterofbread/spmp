@@ -1,17 +1,19 @@
 package com.toasterofbread.spmp.ui.layout
 
-import LocalPlayerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import com.google.gson.Gson
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringArray
-import com.toasterofbread.utils.launchSingle
+import com.toasterofbread.spmp.youtubeapi.fromJson
+import com.toasterofbread.utils.common.launchSingle
+
+private data class DiscordErrorMessage(val message: String? = null)
 
 @Composable
 fun DiscordManualLogin(modifier: Modifier = Modifier, onFinished: (Result<String?>?) -> Unit) {
     val coroutine_scope = rememberCoroutineScope()
-    val player = LocalPlayerState.current
 
     ManualLoginPage(
         steps = getStringArray("discord_manual_login_steps"),
@@ -32,10 +34,9 @@ fun DiscordManualLogin(modifier: Modifier = Modifier, onFinished: (Result<String
                         val content = error.message
                         if (content != null) {
                             try {
-                                val parsed = player.context.ytapi.klaxon.parseJsonObject(content.reader())
-                                val message = parsed["message"] as String?
-                                if (message != null) {
-                                    return@fold Result.failure(RuntimeException(message))
+                                val parsed: DiscordErrorMessage = Gson().fromJson(content)
+                                if (parsed.message != null) {
+                                    return@fold Result.failure(RuntimeException(parsed.message))
                                 }
                             }
                             catch (_: Throwable) {}

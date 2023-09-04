@@ -24,15 +24,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider.*
+import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider.Quality
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
-import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
-import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistDefaultThumbnail
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
+import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistDefaultThumbnail
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
+import com.toasterofbread.utils.common.launchSingle
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.utils.launchSingle
 
 private suspend inline fun MediaItem.loadThumb(
     player: PlayerState,
@@ -137,8 +136,8 @@ fun MediaItem.Thumbnail(
         else if (state == true) {
             SubtleLoadingIndicator(modifier.fillMaxSize(), getColour = getContentColour)
         }
-        else if (this is LocalPlaylist) {
-            LocalPlaylistDefaultThumbnail(modifier)
+        else if (this is Playlist) {
+            PlaylistDefaultThumbnail(modifier)
         }
         else if (load_failed_icon != null) {
             Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

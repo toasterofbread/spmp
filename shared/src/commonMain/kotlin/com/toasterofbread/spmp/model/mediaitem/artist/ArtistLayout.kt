@@ -131,7 +131,7 @@ sealed interface ArtistLayout {
     )
 
     enum class ViewMoreType {
-        MediaItem, ListPage;
+        MediaItem, ListPage, Plain;
 
         fun getViewMore(data: String): MediaItemLayout.ViewMore =
             when (this) {
@@ -140,8 +140,11 @@ sealed interface ArtistLayout {
                     MediaItemLayout.MediaItemViewMore(getMediaItemFromUid(split[0]), split.getOrNull(1))
                 }
                 ListPage -> {
-                    val split = data.split(VIEW_MORE_SPLIT_CHAR, limit = 2)
-                    MediaItemLayout.ListPageBrowseIdViewMore(split[0], split.getOrNull(1))
+                    val split = data.split(VIEW_MORE_SPLIT_CHAR, limit = 3)
+                    MediaItemLayout.ListPageBrowseIdViewMore(split[0], split[1], split[2])
+                }
+                Plain -> {
+                    MediaItemLayout.PlainViewMore(data)
                 }
             }
 
@@ -149,8 +152,21 @@ sealed interface ArtistLayout {
             private const val VIEW_MORE_SPLIT_CHAR = '|'
             fun fromViewMore(view_more: MediaItemLayout.ViewMore): Pair<Long, String> =
                 when (view_more) {
-                    is MediaItemLayout.MediaItemViewMore -> Pair(MediaItem.ordinal.toLong(), view_more.media_item.getUid() + VIEW_MORE_SPLIT_CHAR + (view_more.browse_params ?: ""))
-                    is MediaItemLayout.ListPageBrowseIdViewMore -> Pair(ListPage.ordinal.toLong(), view_more.list_page_browse_id + VIEW_MORE_SPLIT_CHAR + (view_more.browse_params ?: ""))
+                    is MediaItemLayout.MediaItemViewMore ->
+                        Pair(
+                            MediaItem.ordinal.toLong(),
+                            view_more.media_item.getUid() + VIEW_MORE_SPLIT_CHAR + (view_more.browse_params ?: "")
+                        )
+                    is MediaItemLayout.ListPageBrowseIdViewMore ->
+                        Pair(
+                            ListPage.ordinal.toLong(),
+                            view_more.item_id + VIEW_MORE_SPLIT_CHAR + view_more.list_page_browse_id + VIEW_MORE_SPLIT_CHAR + (view_more.browse_params ?: "")
+                        )
+                    is MediaItemLayout.PlainViewMore ->
+                        Pair(
+                            Plain.ordinal.toLong(),
+                            view_more.browse_id
+                        )
                     is MediaItemLayout.LambdaViewMore -> throw NotImplementedError(view_more.toString())
                 }
         }

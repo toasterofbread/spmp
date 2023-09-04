@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -39,7 +38,7 @@ import com.toasterofbread.spmp.platform.getDefaultPaddingValues
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.utils.composable.Marquee
 import com.toasterofbread.utils.composable.WidthShrinkText
-import com.toasterofbread.utils.setAlpha
+import com.toasterofbread.utils.common.setAlpha
 
 @Composable
 fun ManualLoginPage(

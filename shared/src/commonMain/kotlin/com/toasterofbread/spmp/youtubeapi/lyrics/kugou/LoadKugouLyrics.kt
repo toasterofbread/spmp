@@ -1,8 +1,9 @@
 package com.toasterofbread.spmp.youtubeapi.lyrics.kugou
 
-import com.beust.klaxon.Klaxon
+import com.google.gson.Gson
 import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.spmp.youtubeapi.executeResult
+import com.toasterofbread.spmp.youtubeapi.fromJson
 import com.toasterofbread.spmp.youtubeapi.lyrics.createTokeniser
 import com.toasterofbread.spmp.youtubeapi.lyrics.mergeAndFuriganiseTerms
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +33,7 @@ suspend fun loadKugouLyrics(hash: String): Result<List<List<SongLyrics.Term>>> =
 
         val response = OkHttpClient().executeResult(request).getOrThrow()
         val search_response: KugouHashSearchResponse = response.body!!.charStream().use { stream ->
-            Klaxon().parse(stream)!!
+            Gson().fromJson(stream)
         }
 
         if (search_response.status != 200) {
@@ -122,7 +123,7 @@ private suspend fun downloadSearchCandidate(candidate: KugouHashSearchResponse.C
 
         val download_response: KugouSearchCandidateDownloadResponse =
             response.body!!.charStream().use { stream ->
-                Klaxon().parse(stream)!!
+                Gson().fromJson(stream)
             }
 
         if (download_response.status != 200) {

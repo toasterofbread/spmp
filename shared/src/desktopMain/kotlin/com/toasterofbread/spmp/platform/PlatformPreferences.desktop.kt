@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.platform
 
-import com.beust.klaxon.Klaxon
+import com.google.gson.Gson
 import java.io.File
 
 actual class PlatformPreferences private constructor(private val context: PlatformContext) {
@@ -37,7 +37,7 @@ actual class PlatformPreferences private constructor(private val context: Platfo
         }
         
         val stream = file.inputStream()
-        data = Klaxon().parse(stream)!!
+        data = Gson().parse(stream)!!
         stream.close()
     }
     private fun saveData() {
@@ -45,7 +45,7 @@ actual class PlatformPreferences private constructor(private val context: Platfo
         file.createNewFile()
         
         val stream = file.outputStream().writer()
-        stream.write(Klaxon().toJsonString(data))
+        stream.write(Gson().toJsonString(data))
         stream.flush()
         stream.close()
     }

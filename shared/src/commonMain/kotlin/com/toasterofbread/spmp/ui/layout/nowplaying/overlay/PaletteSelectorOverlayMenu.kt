@@ -46,7 +46,7 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.utils.composable.OnChangedEffect
-import com.toasterofbread.utils.setAlpha
+import com.toasterofbread.utils.common.setAlpha
 import kotlin.math.roundToInt
 
 //const val PALETTE_SIMILAR_COLOUR_THRESHOLD = 0.1f

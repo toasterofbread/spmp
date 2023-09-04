@@ -58,7 +58,7 @@
             \"clientName\": \"TVHTML5_SIMPLY_EMBEDDED_PLAYER\",
             \"clientVersion\": \"2.0\",
             \"userAgent\": \"${user_agent}\",
-            \"acceptHeader\": \"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8\",
+            \"acceptHeader\": \"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8\"
         },
         \"user\": {}
     }}

@@ -28,10 +28,11 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NowPlayingMainTab
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.QueueTab
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.*
+import com.toasterofbread.utils.common.amplifyPercent
+import com.toasterofbread.utils.common.setAlpha
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.composable.RecomposeOnInterval
 import com.toasterofbread.utils.modifier.brushBackground
-import kotlin.math.roundToInt
 
 enum class ThemeMode { BACKGROUND, ELEMENTS, NONE }
 

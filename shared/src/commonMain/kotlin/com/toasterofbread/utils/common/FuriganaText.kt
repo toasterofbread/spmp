@@ -1,4 +1,4 @@
-package com.toasterofbread.utils
+package com.toasterofbread.utils.common
 
 // Originally based on https://github.com/mainrs/android-compose-furigana
 

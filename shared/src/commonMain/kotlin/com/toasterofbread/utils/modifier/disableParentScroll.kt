@@ -9,7 +9,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import com.toasterofbread.utils.thenIf
+import com.toasterofbread.utils.common.thenIf
 
 @Composable
 fun Modifier.disableParentScroll(disable_x: Boolean = true, disable_y: Boolean = true, child_does_not_scroll: Boolean = false) =

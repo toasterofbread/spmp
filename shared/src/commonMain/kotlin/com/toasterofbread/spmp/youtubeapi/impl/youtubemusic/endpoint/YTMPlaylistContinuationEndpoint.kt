@@ -22,11 +22,11 @@ class YTMPlaylistContinuationEndpoint(override val api: YoutubeMusicApi): Playli
                 return@withContext Result.failure(it)
             }
 
-            val items = playlist.Items.get(api.db) ?: return@withContext Result.failure(IllegalStateException("Items for loaded $playlist is null"))
+            val items = playlist.Items.get(api.database) ?: return@withContext Result.failure(IllegalStateException("Items for loaded $playlist is null"))
 
             return@withContext Result.success(Pair(
                 items.drop(skip_initial).map { it.getEmptyData() },
-                playlist.Continuation.get(api.db)?.token
+                playlist.Continuation.get(api.database)?.token
             ))
         }
 

@@ -6,10 +6,9 @@ import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.executeResult
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrThrowHere
 import com.toasterofbread.spmp.youtubeapi.lyrics.petit.parseTimedLyrics
 import com.toasterofbread.spmp.youtubeapi.lyrics.petit.searchPetitLyrics
-import com.toasterofbread.utils.substringBetween
+import com.toasterofbread.utils.common.substringBetween
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType

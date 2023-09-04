@@ -1,14 +1,17 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic
 
 import SpMp
-import com.beust.klaxon.JsonObject
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
-import com.toasterofbread.spmp.youtubeapi.getStream
+import com.toasterofbread.spmp.youtubeapi.fromJson
+import com.toasterofbread.spmp.youtubeapi.getReader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 import okhttp3.Response
+import okio.Buffer
 import java.io.Reader
 import java.util.zip.ZipException
 
@@ -34,45 +37,46 @@ class DataParseException(private val causeDataProvider: suspend () -> Result<Str
             api: YoutubeApi,
             message: String? = null,
             cause: Throwable? = null,
-            getResponseStream: (Response) -> Reader = { it.getStream(api).reader() },
+            getResponseStream: (Response) -> Reader = { it.getReader(api) },
             keys_to_remove: List<String> = YOUTUBE_JSON_DATA_KEYS_TO_REMOVE
         ) = DataParseException(
             {
                 runCatching {
-                    val json_object = withContext(Dispatchers.IO) {
+                    val json_object: JsonObject = withContext(Dispatchers.IO) {
                         val stream = getResponseStream(api.performRequest(request).getOrThrow())
-                        stream.use {
-                            api.klaxon.parseJsonObject(it)
+                        stream.use { reader ->
+                            api.gson.toJsonTree(api.gson.fromJson<Map<String, Any?>>(reader)).asJsonObject
                         }
                     }
 
                     // Remove unneeded keys from JSON object
-                    val items: MutableList<Any> = mutableListOf(json_object)
+                    val items: MutableList<JsonObject> = mutableListOf(json_object)
 
                     while (items.isNotEmpty()) {
                         val obj = items.removeLast()
-
-                        if (obj is Collection<*>) {
-                            items.addAll(obj as Collection<Any>)
-                            continue
-                        }
-
-                        check(obj is JsonObject)
 
                         for (key in keys_to_remove) {
                             obj.remove(key)
                         }
 
-                        for (value in obj.values) {
-                            if (value is JsonObject) {
-                                items.add(value)
-                            } else if (value is Collection<*>) {
-                                items.addAll(value.filterIsInstance<JsonObject>())
+                        for (key in obj.keySet()) {
+                            val value: JsonElement = obj.get(key)
+
+                            if (value.isJsonObject) {
+                                items.add(value.asJsonObject)
+                            }
+                            else if (value.isJsonArray) {
+                                items.addAll(
+                                    value.asJsonArray.mapNotNull { item ->
+                                        if (item.isJsonObject) item.asJsonObject
+                                        else null
+                                    }
+                                )
                             }
                         }
                     }
 
-                    json_object.toJsonString(true)
+                    api.gson.toJson(json_object)
                 }
             },
             message,
@@ -81,13 +85,13 @@ class DataParseException(private val causeDataProvider: suspend () -> Result<Str
     }
 }
 
-fun <T> Result.Companion.failure(response: Response, api: YoutubeApi?): Result<T> {
+fun <T> Result.Companion.failure(request: Request, response: Response, api: YoutubeApi?): Result<T> {
     var body: String
     if (api != null) {
         try {
-            val stream = response.getStream(api)
-            body = stream.reader().readText()
-            stream.close()
+            val reader = response.getReader(api)
+            body = reader.readText()
+            reader.close()
         }
         catch (e: ZipException) {
             body = response.body!!.string()
@@ -98,7 +102,14 @@ fun <T> Result.Companion.failure(response: Response, api: YoutubeApi?): Result<T
     }
 
     response.close()
-    return failure(RuntimeException(body))
+
+    val request_body = request.body?.let {
+        val buffer = Buffer()
+        it.writeTo(buffer)
+        buffer.readUtf8()
+    }
+
+    return failure(RuntimeException("Request failed\nRequest=$request\nRequest body=$request_body\nResponse=$body"))
 }
 
 inline fun <I, O> Result<I>.cast(transform: (I) -> O = { it as O }): Result<O> {

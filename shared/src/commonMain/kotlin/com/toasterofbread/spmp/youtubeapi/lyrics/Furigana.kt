@@ -2,9 +2,9 @@ package com.toasterofbread.spmp.youtubeapi.lyrics
 
 import com.atilika.kuromoji.ipadic.Tokenizer
 import com.toasterofbread.spmp.model.SongLyrics
-import com.toasterofbread.utils.hasKanjiAndHiragana
-import com.toasterofbread.utils.isJP
-import com.toasterofbread.utils.isKanji
+import com.toasterofbread.utils.common.hasKanjiAndHiragana
+import com.toasterofbread.utils.common.isJP
+import com.toasterofbread.utils.common.isKanji
 import java.nio.channels.ClosedByInterruptException
 
 fun createTokeniser(): Tokenizer {

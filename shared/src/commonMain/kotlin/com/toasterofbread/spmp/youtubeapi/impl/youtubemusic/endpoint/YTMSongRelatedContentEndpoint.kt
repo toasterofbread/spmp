@@ -16,13 +16,13 @@ import okhttp3.Request
 class YTMSongRelatedContentEndpoint(override val api: YoutubeMusicApi): SongRelatedContentEndpoint() {
     override suspend fun getSongRelated(song: Song): Result<List<RelatedGroup>> {
         var already_loaded = false
-        var related_browse_id = api.db.transactionWithResult {
-            val related_browse_id = api.db.songQueries.relatedBrowseIdById(song.id).executeAsOne().related_browse_id
+        var related_browse_id = api.database.transactionWithResult {
+            val related_browse_id = api.database.songQueries.relatedBrowseIdById(song.id).executeAsOne().related_browse_id
             if (related_browse_id != null) {
                 return@transactionWithResult related_browse_id
             }
 
-            val loaded = api.db.mediaItemQueries.loadedById(song.id).executeAsOne().loaded != null
+            val loaded = api.database.mediaItemQueries.loadedById(song.id).executeAsOne().loaded != null
             if (loaded) {
                 already_loaded = true
             }

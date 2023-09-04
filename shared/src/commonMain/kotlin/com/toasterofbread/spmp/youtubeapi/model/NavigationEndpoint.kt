@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.youtubeapi.model
 
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
@@ -31,9 +32,9 @@ data class NavigationEndpoint(
         return null
     }
 
-    fun getViewMore(): MediaItemLayout.ViewMore? {
+    fun getViewMore(item: MediaItem): MediaItemLayout.ViewMore? {
         if (browseEndpoint != null) {
-            browseEndpoint.getViewMore().also { return it }
+            browseEndpoint.getViewMore(item).also { return it }
         }
         return getMediaItem()?.let { MediaItemLayout.MediaItemViewMore(it, null) }
     }

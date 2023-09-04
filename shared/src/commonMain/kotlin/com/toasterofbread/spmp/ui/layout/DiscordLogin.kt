@@ -33,14 +33,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.beust.klaxon.JsonObject
-import com.beust.klaxon.Klaxon
+import com.google.gson.Gson
 import com.toasterofbread.spmp.platform.WebViewLogin
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.platform.composable.rememberImagePainter
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.executeResult
+import com.toasterofbread.spmp.youtubeapi.fromJson
+import com.toasterofbread.spmp.youtubeapi.fromMap
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
 import com.toasterofbread.utils.composable.LinkifyText
@@ -146,7 +147,7 @@ suspend fun getDiscordAccountInfo(account_token: String): Result<DiscordMeRespon
 
     val stream = response.body!!.charStream()
     val me: DiscordMeResponse = try {
-        Klaxon().parse(stream)!!
+        Gson().fromJson(stream)
     }
     catch (e: Throwable) {
         return@withContext Result.failure(e)
@@ -161,7 +162,7 @@ suspend fun getDiscordAccountInfo(account_token: String): Result<DiscordMeRespon
 
 private val DiscordMeResponseSaver = run {
     mapSaver(
-        save = {
+        save = { it: DiscordMeResponse ->
             if (it.isEmpty()) emptyMap()
             else with (it) { mapOf(
                 "id" to id,
@@ -173,13 +174,15 @@ private val DiscordMeResponseSaver = run {
                 "token" to token
             )}
         },
-        restore = { Klaxon().parseFromJsonObject<DiscordMeResponse>(JsonObject(it))?.apply { token = it["token"] as String? } }
+        restore = { map: Map<String, Any?> ->
+            Gson().fromMap(map)
+        }
     )
 }
 
 @Composable
 fun DiscordAccountPreview(account_token: String, modifier: Modifier = Modifier) {
-    var account_info by rememberSaveable(stateSaver = DiscordMeResponseSaver) { mutableStateOf(DiscordMeResponse.EMPTY) }
+    var account_info: DiscordMeResponse by rememberSaveable(stateSaver = DiscordMeResponseSaver) { mutableStateOf(DiscordMeResponse.EMPTY) }
     var started by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
 

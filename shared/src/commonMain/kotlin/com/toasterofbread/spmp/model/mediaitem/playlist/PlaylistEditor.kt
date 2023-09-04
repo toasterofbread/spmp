@@ -15,11 +15,8 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter.sa
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformFile
 import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
-import com.toasterofbread.utils.lazyAssert
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
 

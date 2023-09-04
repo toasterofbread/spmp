@@ -3,7 +3,7 @@ package com.toasterofbread.spmp.youtubeapi.impl.unimplemented
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.beust.klaxon.JsonObject
+import com.google.gson.JsonObject
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
@@ -42,7 +42,7 @@ import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.RelatedGroup
 import okhttp3.Headers
 import okhttp3.Request
 import okhttp3.Response
-import java.io.InputStream
+import java.io.Reader
 
 class UnimplementedYoutubeApi(
     override val context: PlatformContext
@@ -70,7 +70,7 @@ class UnimplementedYoutubeApi(
         throw NotImplementedError()
     }
 
-    override fun getResponseStream(response: Response): InputStream {
+    override fun getResponseReader(response: Response): Reader {
         throw NotImplementedError()
     }
 
@@ -169,7 +169,7 @@ class UnimplementedYoutubeApi(
     }
     override val ArtistsWithParams = object : ArtistWithParamsEndpoint() {
     override fun isImplemented(): Boolean = false
-        override suspend fun loadArtistWithParams(artist_id: String, browse_params: String): Result<List<ArtistWithParamsRow>> {
+        override suspend fun loadArtistWithParams(browse_params: MediaItemLayout.BrowseParamsData): Result<List<ArtistWithParamsRow>> {
             TODO("Not yet implemented")
         }
         override val api = this@UnimplementedYoutubeApi

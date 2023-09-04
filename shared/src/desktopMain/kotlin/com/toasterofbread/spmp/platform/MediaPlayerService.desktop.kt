@@ -3,7 +3,7 @@ package com.toasterofbread.spmp.platform
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.beust.klaxon.Klaxon
+import com.google.gson.Gson
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
@@ -66,7 +66,7 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
 
             val reply = ZMsg.recvMsg(this)
 
-            val state: ServerPlayerState = Klaxon().parse(reply.first.getString(Charset.defaultCharset()))
+            val state: ServerPlayerState = Gson().parse(reply.first.getString(Charset.defaultCharset()))
                 ?: throw RuntimeException("Invalid state handshake from server $reply")
 
             println("Initial state: $state")
@@ -142,7 +142,7 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
 
             println("EVENT STR $event_str")
 
-            val event: Map<String, Any> = Klaxon().parse(event_str) ?: continue
+            val event: Map<String, Any> = Gson().parse(event_str) ?: continue
             println("Processing event: $event")
 
             val type = (event["type"] as String?) ?: continue
@@ -223,7 +223,7 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
         else {
             for (message in queued_messages) {
                 reply.add(message.first)
-                reply.add(Klaxon().toJsonString(message.second))
+                reply.add(Gson().toJsonString(message.second))
             }
         }
         reply.send(socket!!)

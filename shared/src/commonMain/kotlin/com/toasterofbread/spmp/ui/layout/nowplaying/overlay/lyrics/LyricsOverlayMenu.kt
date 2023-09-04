@@ -63,10 +63,10 @@ import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
-import com.toasterofbread.utils.AnnotatedReadingTerm
+import com.toasterofbread.utils.common.AnnotatedReadingTerm
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.utils.launchSingle
-import com.toasterofbread.utils.setAlpha
+import com.toasterofbread.utils.common.launchSingle
+import com.toasterofbread.utils.common.setAlpha
 
 private enum class Submenu {
     SEARCH, SYNC

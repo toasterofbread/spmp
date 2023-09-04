@@ -47,13 +47,6 @@ sealed interface LocalPlaylist: Playlist {
     }
 }
 
-@Composable
-fun LocalPlaylist.LocalPlaylistDefaultThumbnail(modifier: Modifier = Modifier) {
-    Box(modifier.background(Theme.accent_provider), contentAlignment = Alignment.Center) {
-        Icon(Icons.Default.PlaylistPlay, null, tint = Theme.on_accent)
-    }
-}
-
 suspend fun Playlist.downloadAsLocalPlaylist(context: PlatformContext, replace: Boolean = false): Result<LocalPlaylistData> = withContext(Dispatchers.IO) {
     val playlist_data: PlaylistData = loadData(context).fold(
         { it },

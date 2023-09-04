@@ -32,7 +32,7 @@ import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.layout.*
 import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.blendWith
+import com.toasterofbread.utils.common.blendWith
 import com.toasterofbread.utils.modifier.background
 import org.jetbrains.compose.resources.*
 

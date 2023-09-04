@@ -1,10 +1,7 @@
 package com.toasterofbread.spmp.youtubeapi
 
-import com.beust.klaxon.Converter
-import com.beust.klaxon.Json
-import com.beust.klaxon.JsonObject
-import com.beust.klaxon.JsonValue
-import com.beust.klaxon.Klaxon
+import com.google.gson.Gson
+import com.google.gson.JsonObject
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
@@ -41,17 +38,17 @@ import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import java.io.InputStream
+import java.io.Reader
 
 class EndpointNotImplementedException(endpoint: YoutubeApi.Endpoint?):
     RuntimeException("YoutubeApi endpoint is not implemented: ${endpoint?.getIdentifier()}")
 
-fun Response.getStream(api: YoutubeApi?): InputStream {
+fun Response.getReader(api: YoutubeApi?): Reader {
     if (api != null) {
-        return api.getResponseStream(this)
+        return api.getResponseReader(this)
     }
     else {
-        return body!!.byteStream()
+        return body!!.charStream()
     }
 }
 
@@ -61,35 +58,21 @@ fun OkHttpClient.executeResult(request: Request, allow_fail_response: Boolean = 
         if (response.isSuccessful || allow_fail_response) {
             return Result.success(response)
         }
-        return Result.failure(response, api)
+        return Result.failure(request, response, api)
     }
     catch (e: Throwable) {
         return Result.failure(e)
     }
 }
 
-private val enum_converter = object : Converter {
-    override fun canConvert(cls: Class<*>): Boolean {
-        return cls.isEnum
-    }
-
-    override fun fromJson(jv: JsonValue): Enum<*>? {
-        val cls = jv.propertyClass
-        if (cls !is Class<*> || !cls.isEnum) {
-            throw IllegalArgumentException("Could not convert $jv to enum")
-        }
-
-        val name = jv.inside as String? ?: return null
-        val field = cls.declaredFields
-            .firstOrNull { it.name == name || it.getAnnotation(Json::class.java)?.name == name }
-            ?: throw IllegalArgumentException("Could not find enum value for $name")
-
-        return field.get(null) as Enum<*>
-    }
-
-    override fun toJson(value: Any): String {
-        return "\"${(value as Enum<*>).name}\""
-    }
+inline fun <reified T> Gson.fromJson(reader: Reader): T {
+    return fromJson(reader, T::class.java)
+}
+inline fun <reified T> Gson.fromJson(string: String): T {
+    return fromJson(string, T::class.java)
+}
+inline fun <reified T> Gson.fromMap(map: Map<*, *>): T {
+    return fromJson(toJsonTree(map), T::class.java)
 }
 
 fun <T: YoutubeApi.Implementable> T.implementedOrNull(): T? =
@@ -99,9 +82,8 @@ fun <T: YoutubeApi.Implementable> T.implementedOrNull(): T? =
 interface YoutubeApi {
     val context: PlatformContext
 
-    val db: Database get() = context.database
-    val klaxon: Klaxon get() = Klaxon()
-        .converter(enum_converter)
+    val database: Database get() = context.database
+    val gson: Gson get() = Gson()
 
     enum class Type {
         YOUTUBE_MUSIC,
@@ -197,8 +179,8 @@ interface YoutubeApi {
             return try {
                 fold(
                     { response ->
-                        response.getStream(used_api).use { stream ->
-                            api.klaxon.parse(stream)!!
+                        response.getReader(used_api).use { stream ->
+                            api.gson.fromJson(stream, T::class.java)
                         }
                     },
                     { error ->
@@ -212,7 +194,7 @@ interface YoutubeApi {
         }
     }
 
-    fun getResponseStream(response: Response): InputStream
+    fun getResponseReader(response: Response): Reader
 
     // -- User auth ---
     val user_auth_state: UserAuthState?

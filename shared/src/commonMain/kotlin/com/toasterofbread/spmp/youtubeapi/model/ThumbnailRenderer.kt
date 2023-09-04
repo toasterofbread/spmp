@@ -1,13 +1,11 @@
 package com.toasterofbread.spmp.youtubeapi.model
 
-import com.beust.klaxon.Json
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 
-data class Thumbnails(val musicThumbnailRenderer: MusicThumbnailRenderer? = null, val croppedSquareThumbnailRenderer: MusicThumbnailRenderer? = null) {
+data class Thumbnails(val musicThumbnailRenderer: MusicThumbnailRenderer?, val croppedSquareThumbnailRenderer: MusicThumbnailRenderer?) {
     init {
         assert(musicThumbnailRenderer != null || croppedSquareThumbnailRenderer != null)
     }
-    @Json(ignored = true)
     val thumbnails: List<MediaItemThumbnailProvider.Thumbnail> get() = (musicThumbnailRenderer ?: croppedSquareThumbnailRenderer!!).thumbnail.thumbnails
 }
 data class MusicThumbnailRenderer(val thumbnail: Thumbnail) {

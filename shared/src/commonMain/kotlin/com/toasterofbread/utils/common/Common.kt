@@ -1,6 +1,6 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 
-package com.toasterofbread.utils
+package com.toasterofbread.utils.common
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -16,11 +16,11 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.*
 import androidx.compose.ui.unit.*
-import com.beust.klaxon.Klaxon
+import com.google.gson.Gson
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.resources.*
+import com.toasterofbread.spmp.youtubeapi.fromJson
 import kotlinx.coroutines.*
-import java.io.InterruptedIOException
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
@@ -49,13 +49,23 @@ inline fun lazyAssert(noinline getMessage: (() -> String)? = null, condition: ()
 
 expect fun log(message: Any?)
 
-fun printJson(data: String, klaxon: Klaxon? = null) {
+fun printJson(data: String, base_gson: Gson? = null) {
+	val gson = base_gson ?: Gson()
+
 	try {
-		log((klaxon ?: Klaxon()).parseJsonObject(data.reader()).toJsonString(true))
+		log(
+			gson.toJson(
+				gson.fromJson<Map<String, Any?>>(data.reader())
+			)
+		)
 	}
 	catch (_: Exception) {
 		try {
-			log((klaxon ?: Klaxon()).parseJsonArray(data.reader()).toJsonString(true))
+			log(
+				gson.toJson(
+					gson.fromJson<Array<Any?>>(data.reader())
+				)
+			)
 		}
 		catch (e: Exception) {
 			log(data)

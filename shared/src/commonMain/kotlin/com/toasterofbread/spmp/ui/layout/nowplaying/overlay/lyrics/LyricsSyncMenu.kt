@@ -31,8 +31,8 @@ import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playerservice.PlayerService
-import com.toasterofbread.utils.AnnotatedReadingTerm
-import com.toasterofbread.utils.setAlpha
+import com.toasterofbread.utils.common.AnnotatedReadingTerm
+import com.toasterofbread.utils.common.setAlpha
 
 private const val SONG_SEEK_MS = 5000L
 private val SYNC_MENU_LYRICS_SHOW_RANGE = -3 .. 0

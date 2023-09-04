@@ -1,8 +1,9 @@
 package com.toasterofbread.spmp.youtubeapi.lyrics.kugou
 
-import com.beust.klaxon.Klaxon
+import com.google.gson.Gson
 import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.spmp.youtubeapi.executeResult
+import com.toasterofbread.spmp.youtubeapi.fromJson
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +33,7 @@ internal suspend fun searchKugouLyrics(title: String, artist: String?): Result<L
     val stream = response.body?.charStream()
 
     val parsed: KugouSearchResponse = try {
-        Klaxon().parse(stream!!)!!
+        Gson().fromJson(stream!!)
     }
     catch (e: Throwable) {
         return@withContext Result.failure(e)

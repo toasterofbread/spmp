@@ -24,9 +24,9 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
-import com.toasterofbread.utils.getContrasted
+import com.toasterofbread.utils.common.getContrasted
 import com.toasterofbread.utils.modifier.background
-import com.toasterofbread.utils.setAlpha
+import com.toasterofbread.utils.common.setAlpha
 
 @Composable
 fun CurrentRadioIndicator(

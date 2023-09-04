@@ -1,4 +1,4 @@
-package com.toasterofbread.utils
+package com.toasterofbread.utils.common
 
 import java.lang.Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS
 import java.lang.Character.UnicodeBlock.HIRAGANA

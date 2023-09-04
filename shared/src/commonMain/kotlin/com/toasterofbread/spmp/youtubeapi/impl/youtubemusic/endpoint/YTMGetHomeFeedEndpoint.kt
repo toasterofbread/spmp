@@ -1,12 +1,15 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 
 import SpMp
+import com.toasterofbread.spmp.model.FilterChip
 import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedLoadResult
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.ChipCloudRendererHeader
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import com.toasterofbread.spmp.youtubeapi.model.MusicDescriptionShelfRenderer
@@ -27,32 +30,11 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
         allow_cached: Boolean,
         params: String?,
         continuation: String?
-    ): Result<HomeFeedLoadResult> = withContext(Dispatchers.IO) {
+    ): Result<HomeFeedLoadResult> {
         val hl = SpMp.data_language
-        val suffix = params ?: ""
-//    val rows_cache_key = "feed_rows$suffix"
-//    val ctoken_cache_key = "feed_ctoken$suffix"
-//    val chips_cache_key = "feed_chips$suffix"
-//
-//    if (allow_cached && continuation == null) {
-//        Cache.get(rows_cache_key)?.use { cached_rows ->
-//            val rows = Api.klaxon.parseArray<MediaItemLayout>(cached_rows)!!
-//
-//            val ctoken = Cache.get(ctoken_cache_key)?.use {
-//                it.readText()
-//            }
-//
-//            val chips: List<FilterChip>? = Cache.get(chips_cache_key)?.use {
-//                Api.klaxon.parseArray(it)!!
-//            }
-//
-//            return@withContext Result.success(HomeFeedLoadResult(rows, ctoken, chips))
-//        }
-//    }
-
         var last_request: Request? = null
 
-        suspend fun performRequest(ctoken: String?): Result<YoutubeiBrowseResponse> {
+        suspend fun performRequest(ctoken: String?): Result<YoutubeiBrowseResponse> = withContext(Dispatchers.IO) {
             last_request = null
 
             val endpoint = "/youtubei/v1/browse"
@@ -70,10 +52,10 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
 
             val result = api.performRequest(request)
             val parsed: YoutubeiBrowseResponse = result.parseJsonResponse {
-                return Result.failure(it)
+                return@withContext Result.failure(it)
             }
 
-            return Result.success(parsed)
+            return@withContext Result.success(parsed)
         }
 
         try {
@@ -95,17 +77,11 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
                 rows.addAll(processRows(shelves, hl))
             }
 
-//        if (continuation == null) {
-//            Cache.set(rows_cache_key, Api.klaxon.toJsonString(rows).reader(), CACHE_LIFETIME)
-//            Cache.set(ctoken_cache_key, ctoken?.reader(), CACHE_LIFETIME)
-//            Cache.set(chips_cache_key, Api.klaxon.toJsonString(chips).reader(), CACHE_LIFETIME)
-//        }
-
-            return@withContext Result.success(HomeFeedLoadResult(rows, ctoken, header_chips))
+            return Result.success(HomeFeedLoadResult(rows, ctoken, header_chips))
         }
         catch (error: Throwable) {
-            val request = last_request ?: return@withContext Result.failure(error)
-            return@withContext Result.failure(
+            val request = last_request ?: return Result.failure(error)
+            return Result.failure(
                 DataParseException.ofYoutubeJsonRequest(
                     request,
                     api,
@@ -115,13 +91,9 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
         }
     }
 
-    private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLayout> {
+    private suspend fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLayout> = withContext(Dispatchers.Default) {
         val ret = mutableListOf<MediaItemLayout>()
         for (row in rows) {
-            if (!row.implemented) {
-                continue
-            }
-
             when (val renderer = row.getRenderer()) {
                 is MusicDescriptionShelfRenderer -> continue
                 is YoutubeiHeaderContainer -> {
@@ -134,9 +106,9 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
                         type: MediaItemLayout.Type? = null
                     ) {
                         val items = row.getMediaItems(hl).toMutableList()
-                        api.db.transaction {
+                        api.database.transaction {
                             for (item in items) {
-                                item.saveToDatabase(api.db)
+                                item.saveToDatabase(api.database)
                             }
                         }
 
@@ -172,7 +144,7 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
                         add(
                             LocalisedYoutubeString.Type.APP.create(view_more_page_title_key),
                             null,
-                            view_more = MediaItemLayout.ListPageBrowseIdViewMore(browse_endpoint.browseId, browse_endpoint.params),
+                            view_more = MediaItemLayout.PlainViewMore(browse_endpoint.browseId),
                             type = when(browse_endpoint.browseId) {
                                 "FEmusic_listen_again" -> MediaItemLayout.Type.GRID_ALT
                                 else -> null
@@ -184,7 +156,7 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
                     val page_type = browse_endpoint.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType!!
 
                     val media_item = MediaItemType.fromBrowseEndpointType(page_type).referenceFromId(browse_endpoint.browseId).apply {
-                        Title.set(header.title.runs?.getOrNull(0)?.text, api.db)
+                        Title.set(header.title.runs?.getOrNull(0)?.text, api.database)
                     }
 
                     add(
@@ -197,7 +169,7 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
             }
         }
 
-        return ret
+        return@withContext ret
     }
 
     data class MusicShelfRenderer(

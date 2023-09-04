@@ -15,6 +15,7 @@ import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.*
+import com.toasterofbread.utils.common.setAlpha
 import com.toasterofbread.utils.composable.*
 
 val SETTINGS_ITEM_ROUNDED_SHAPE = RoundedCornerShape(20.dp)

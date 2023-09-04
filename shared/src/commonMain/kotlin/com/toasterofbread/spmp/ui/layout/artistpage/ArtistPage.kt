@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.toasterofbread.spmp.ui.layout.artistpage
 
 import LocalPlayerState
@@ -55,6 +53,10 @@ import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsRow
 import com.toasterofbread.utils.*
+import com.toasterofbread.utils.common.getContrasted
+import com.toasterofbread.utils.common.getThemeColour
+import com.toasterofbread.utils.common.lazyAssert
+import com.toasterofbread.utils.common.setAlpha
 import com.toasterofbread.utils.composable.*
 import com.toasterofbread.utils.modifier.background
 import com.toasterofbread.utils.modifier.brushBackground
@@ -64,13 +66,12 @@ import kotlinx.coroutines.*
 
 private const val ARTIST_IMAGE_SCROLL_MODIFIER = 0.25f
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArtistPage(
     artist: Artist,
     previous_item: MediaItem?,
     content_padding: PaddingValues,
-    browse_params: Pair<String, ArtistWithParamsEndpoint>?,
+    browse_params: Pair<MediaItemLayout.BrowseParamsData, ArtistWithParamsEndpoint>?,
     close: () -> Unit
 ) {
     val player = LocalPlayerState.current
@@ -103,7 +104,7 @@ fun ArtistPage(
         val (params, params_endpoint) = browse_params
         require(params_endpoint.isImplemented())
 
-        params_endpoint.loadArtistWithParams(artist.id, params).fold(
+        params_endpoint.loadArtistWithParams(params).fold(
             { browse_params_rows = it },
             { load_error = it }
         )
@@ -170,7 +171,7 @@ fun ArtistPage(
             ) { music_top_bar_showing = it }
 
             AnimatedVisibility(multiselect_context.is_active) {
-                multiselect_context.InfoDisplay(Modifier.padding(top = 10.dp).padding(content_padding))
+                multiselect_context.InfoDisplay(Modifier.padding(top = 10.dp).padding(content_padding.horizontal))
             }
 
             AnimatedVisibility(showing) {
@@ -234,7 +235,7 @@ fun ArtistPage(
                 swipe_enabled = !loading,
                 modifier = Modifier.fillMaxSize()
             ) {
-                LazyColumn(Modifier.fillMaxSize(), main_column_state, contentPadding = content_padding) {
+                LazyColumn(Modifier.fillMaxSize(), main_column_state, contentPadding = PaddingValues(bottom = content_padding.calculateBottomPadding())) {
 
                     val play_button_size = 55.dp
                     val filter_bar_height = 32.dp
@@ -273,7 +274,10 @@ fun ArtistPage(
                             LazyRow(
                                 Modifier.fillMaxWidth().padding(end = play_button_size / 2),
                                 horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                contentPadding = content_padding.copy(end = content_padding.calculateEndPadding(LocalLayoutDirection.current) + (play_button_size / 2)),
+                                contentPadding = PaddingValues(
+                                    start = content_padding.calculateStartPadding(LocalLayoutDirection.current),
+                                    end = content_padding.calculateEndPadding(LocalLayoutDirection.current) + (play_button_size / 2)
+                                ),
                             ) {
                                 fun chip(text: String, icon: ImageVector, onClick: () -> Unit) {
                                     item {
@@ -391,7 +395,7 @@ fun ArtistPage(
                             Column(
                                 background_modifier
                                     .fillMaxSize()
-                                    .padding(content_padding),
+                                    .padding(content_padding.horizontal),
                                 verticalArrangement = Arrangement.spacedBy(30.dp)
                             ) {
                                 for (artist_layout in item_layouts ?: emptyList()) {

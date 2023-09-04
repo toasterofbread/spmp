@@ -16,7 +16,7 @@ import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.utils.isDark
+import com.toasterofbread.utils.common.isDark
 
 actual fun isWebViewLoginSupported(): Boolean = true
 

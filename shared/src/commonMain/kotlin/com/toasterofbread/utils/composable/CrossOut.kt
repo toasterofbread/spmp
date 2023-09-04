@@ -15,7 +15,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.utils.toFloat
+import com.toasterofbread.utils.common.toFloat
 
 fun Modifier.crossOut(
     crossed_out: Boolean,

@@ -25,7 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import com.beust.klaxon.Klaxon
+import com.google.gson.Gson
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.platform.WebViewLogin
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
@@ -44,6 +44,7 @@ import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.composable.LoginPage
 import com.toasterofbread.spmp.youtubeapi.endpoint.YoutubeChannelCreationFormEndpoint.YoutubeAccountCreationForm.ChannelCreationForm
 import com.toasterofbread.spmp.youtubeapi.executeResult
+import com.toasterofbread.spmp.youtubeapi.fromJson
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeChannelNotCreatedException
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
@@ -194,11 +195,11 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
 
                             try {
                                 val response_body = response.body!!.string()
-                                val parsed: AccountSwitcherEndpoint = Klaxon().parse(
+                                val parsed: AccountSwitcherEndpoint = Gson().fromJson(
                                     response_body.substring(
                                         response_body.indexOf('\n') + 1
                                     )
-                                )!!
+                                )
 
                                 val accounts = parsed.getAccounts().filter { it.serviceEndpoint.selectActiveIdentityEndpoint.supportedTokens.any { it.accountSigninToken != null } }
                                 if (accounts.size > 1) {
@@ -362,7 +363,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
             val result = api.performRequest(account_request)
             result.fold(
                 { response ->
-                    val parsed: YTAccountMenuResponse = api.klaxon.parse(response.body!!.charStream())!!
+                    val parsed: YTAccountMenuResponse = api.gson.fromJson(response.body!!.charStream())!!
                     response.close()
 
                     val channel = parsed.getAritst()

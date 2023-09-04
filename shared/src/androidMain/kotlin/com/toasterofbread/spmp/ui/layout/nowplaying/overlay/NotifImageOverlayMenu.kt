@@ -45,7 +45,7 @@ import com.toasterofbread.spmp.platform.getMediaNotificationImageMaxOffset
 import com.toasterofbread.spmp.platform.getMediaNotificationImageSize
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.utils.launchSingle
+import com.toasterofbread.utils.common.launchSingle
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 

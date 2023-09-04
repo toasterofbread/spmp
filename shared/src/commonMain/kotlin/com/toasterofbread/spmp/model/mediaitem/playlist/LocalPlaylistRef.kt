@@ -5,7 +5,6 @@ import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer
 import com.toasterofbread.spmp.model.mediaitem.UnsupportedPropertyRememberer
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.utils.lazyAssert
 
 class LocalPlaylistRef(override val id: String): LocalPlaylist {
     override fun toString(): String = "LocalPlaylistRef($id)"

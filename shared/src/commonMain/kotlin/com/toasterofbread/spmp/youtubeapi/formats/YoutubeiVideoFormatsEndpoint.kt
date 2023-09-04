@@ -4,6 +4,7 @@ import com.toasterofbread.spmp.youtubeapi.YoutubeFormatsResponse
 import com.toasterofbread.spmp.youtubeapi.YoutubeVideoFormat
 import com.toasterofbread.spmp.youtubeapi.buildVideoFormatsRequest
 import com.toasterofbread.spmp.youtubeapi.checkYoutubeVideoStreamUrl
+import com.toasterofbread.spmp.youtubeapi.fromJson
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrThrowHere
@@ -18,7 +19,7 @@ class YoutubeiVideoFormatsEndpoint(override val api: YoutubeMusicApi): VideoForm
 
         if (result.isSuccess) {
             val stream = result.getOrThrow().body!!.charStream()
-            formats = api.klaxon.parse(stream)!!
+            formats = api.gson.fromJson(stream)!!
             stream.close()
         }
 
@@ -29,7 +30,7 @@ class YoutubeiVideoFormatsEndpoint(override val api: YoutubeMusicApi): VideoForm
             }
 
             val stream = result.getOrThrow().body!!.charStream()
-            formats = api.klaxon.parse(stream)!!
+            formats = api.gson.fromJson(stream)!!
             stream.close()
         }
 

@@ -1,4 +1,4 @@
-package com.toasterofbread.utils
+package com.toasterofbread.utils.common
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap

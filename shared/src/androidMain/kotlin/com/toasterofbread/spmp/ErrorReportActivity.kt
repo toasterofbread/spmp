@@ -22,12 +22,12 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.beust.klaxon.Klaxon
+import com.google.gson.Gson
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.ApplicationTheme
 import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.thenIf
+import com.toasterofbread.utils.common.thenIf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -129,10 +129,10 @@ class ErrorReportActivity : ComponentActivity() {
                                 IconButton({
                                     coroutine_scope.launch(Dispatchers.IO) {
                                         val client = OkHttpClient()
-                                        val klaxon = Klaxon()
+                                        val gson = Gson()
 
                                         for (chunk in listOf("---\nMESSAGE: $message\n\nSTACKTRACE:") + stack_trace.chunked(2000)) {
-                                            val body = klaxon.toJsonString(mapOf(
+                                            val body = gson.toJson(mapOf(
                                                 "content" to chunk,
                                                 "username" to message.take(78) + if (message.length > 78) ".." else "",
                                                 "avatar_url" to "https://raw.githubusercontent.com/toasterofbread/spmp/main/androidApp/src/main/ic_launcher-playstore.png"

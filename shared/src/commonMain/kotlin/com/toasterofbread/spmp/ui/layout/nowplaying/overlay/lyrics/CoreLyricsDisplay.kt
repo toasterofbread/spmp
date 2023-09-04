@@ -36,11 +36,11 @@ import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NOW_PLAYING_MAIN_PADDING
-import com.toasterofbread.utils.AnnotatedReadingTerm
-import com.toasterofbread.utils.calculateReadingsAnnotatedString
+import com.toasterofbread.utils.common.AnnotatedReadingTerm
+import com.toasterofbread.utils.common.calculateReadingsAnnotatedString
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.utils.setAlpha
-import com.toasterofbread.utils.thenIf
+import com.toasterofbread.utils.common.setAlpha
+import com.toasterofbread.utils.common.thenIf
 import kotlinx.coroutines.delay
 
 @Composable

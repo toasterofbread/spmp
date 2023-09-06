@@ -62,12 +62,9 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlin.coroutines.coroutineContext
 
-class LibraryPlaylistsPage: LibrarySubPage {
+class LibraryPlaylistsPage(val context: PlatformContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =
         MediaItemType.PLAYLIST_REM.getIcon()
-
-    override fun getTitle(): String =
-        getString("library_tab_playlists")
 
     @Composable
     override fun Page(
@@ -82,9 +79,9 @@ class LibraryPlaylistsPage: LibrarySubPage {
         var load_error: Throwable? by remember { mutableStateOf(null) }
 
         val local_playlists: List<LocalPlaylistData> = MediaItemLibrary.rememberLocalPlaylists(player.context) ?: emptyList()
-        val account_playlists: List<RemotePlaylistRef> = api.user_auth_state?.own_channel?.let { own_channel ->
+        val account_playlists: List<RemotePlaylistRef>? = api.user_auth_state?.own_channel?.let { own_channel ->
             rememberOwnedPlaylists(own_channel, player.context)
-        } ?: emptyList()
+        }
 
         val item_spacing: Dp = 15.dp
         val auth_state: YoutubeApi.UserAuthState? = player.context.ytapi.user_auth_state
@@ -121,40 +118,42 @@ class LibraryPlaylistsPage: LibrarySubPage {
                 }
             )
 
-            PlaylistItems(
-                "Account playlists",
-                account_playlists,
-                multiselect_context,
-                cornerContent = {
-                    Row {
-                        val load_endpoint = auth_state?.AccountPlaylists
-                        if (load_endpoint?.isImplemented() == true) {
-                            LoadActionIconButton(
-                                {
-                                    val result = load_endpoint.getAccountPlaylists()
-                                    load_error = result.exceptionOrNull()
-                                },
-                                load_on_launch = account_playlists.isEmpty()
-                            ) {
-                                Icon(Icons.Default.Refresh, null)
+            if (account_playlists != null) {
+                PlaylistItems(
+                    "Account playlists",
+                    account_playlists,
+                    multiselect_context,
+                    cornerContent = {
+                        Row {
+                            val load_endpoint = auth_state?.AccountPlaylists
+                            if (load_endpoint?.isImplemented() == true) {
+                                LoadActionIconButton(
+                                    {
+                                        val result = load_endpoint.getAccountPlaylists()
+                                        load_error = result.exceptionOrNull()
+                                    },
+                                    load_on_launch = account_playlists.isEmpty()
+                                ) {
+                                    Icon(Icons.Default.Refresh, null)
+                                }
                             }
-                        }
 
-                        val create_endpoint: CreateAccountPlaylistEndpoint? = auth_state?.CreateAccountPlaylist
+                            val create_endpoint: CreateAccountPlaylistEndpoint? = auth_state?.CreateAccountPlaylist
 
-                        if (create_endpoint?.isImplemented() == true) {
-                            LoadActionIconButton({
-                                MediaItemLibrary.createOwnedPlaylist(auth_state, create_endpoint)
-                                    .onFailure {
-                                        load_error = it
-                                    }
-                            }) {
-                                Icon(Icons.Default.Add, null)
+                            if (create_endpoint?.isImplemented() == true) {
+                                LoadActionIconButton({
+                                    MediaItemLibrary.createOwnedPlaylist(auth_state, create_endpoint)
+                                        .onFailure {
+                                            load_error = it
+                                        }
+                                }) {
+                                    Icon(Icons.Default.Add, null)
+                                }
                             }
                         }
                     }
-                }
-            )
+                )
+            }
         }
     }
 }

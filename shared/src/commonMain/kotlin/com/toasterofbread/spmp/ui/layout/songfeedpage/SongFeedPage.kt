@@ -70,6 +70,9 @@ import kotlinx.coroutines.withContext
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
+private const var ARTISTS_ROW_DEFAULT_MIN_OCCURRENCES: Int = 2
+private const var ARTISTS_ROW_MIN_ARTISTS: Int = 4
+
 class SongFeedPage(state: MainPageState): MainPage(state) {
     private val scroll_state = LazyListState()
 
@@ -410,8 +413,20 @@ private fun populateArtistsLayout(
         }
     }
 
-    val artists = artists_map.mapNotNull { artist ->
-        if (artist.value == null || artist.value!! < 2) null
+    var min_occurrences: Int = ARTISTS_ROW_DEFAULT_MIN_OCCURRENCES
+    while (true) {
+        val count: Int = artists_map.entries.count { artist ->
+            (artist.value ?: 0) >= min_occurrences
+        }
+        if (count >= ARTISTS_ROW_MIN_ARTISTS || count == artists_map.size) {
+            break
+        }
+
+        min_occurrences++
+    }
+
+    var artists = artists_map.mapNotNull { artist ->
+        if ((artist.value ?: 0) < min_occurrences) null
         else Pair(artist.key, artist.value)
     }.sortedByDescending { it.second }
 

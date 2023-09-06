@@ -44,13 +44,13 @@ fun MainPageTopBar(modifier: Modifier = Modifier) {
         Row(Modifier.height(IntrinsicSize.Min)) {
             Crossfade(player.main_page == player.main_page_state.Default) { default_open ->
                 if (default_open) {
-                    IconButton({ player.setOverlayPage(PlayerOverlayPage.RadioBuilderPage) }) {
-                        RadioBuilderIcon()
+                    IconButton({ player.setOverlayPage(PlayerOverlayPage.SettingsPage) }) {
+                        Icon(Icons.Default.Settings, null, Modifier.width(RADIO_BUILDER_ICON_WIDTH_DP.dp))
                     }
                 }
                 else {
-                    IconButton({ player.setOverlayPage(PlayerOverlayPage.SettingsPage) }) {
-                        Icon(Icons.Default.Settings, null, Modifier.width(RADIO_BUILDER_ICON_WIDTH_DP.dp))
+                    IconButton({ player.setOverlayPage(PlayerOverlayPage.RadioBuilderPage) }) {
+                        RadioBuilderIcon()
                     }
                 }
             }
@@ -86,7 +86,7 @@ fun MainPageTopBar(modifier: Modifier = Modifier) {
                             Modifier.platformClickable(
                                 onClick = { player.setMainPage(player.main_page_state.Library) },
                                 onAltClick = {
-                                    player.setOverlayPage(PlayerOverlayPage.SettingsPage)
+                                    player.setOverlayPage(PlayerOverlayPage.RadioBuilderPage)
                                     SpMp.context.vibrateShort()
                                 },
                                 indication = rememberRipple(false)

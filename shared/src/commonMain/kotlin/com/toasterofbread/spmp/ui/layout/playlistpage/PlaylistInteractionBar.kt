@@ -22,7 +22,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.utils.composable.ResizableOutlinedTextField
 import kotlinx.coroutines.launch
 
 @Composable
@@ -164,10 +164,10 @@ internal fun PlaylistPage.PlaylistInteractionBar(
 @Composable
 private fun InteractionBarFilterBox(filter: String?, setFilter: (String?) -> Unit, modifier: Modifier = Modifier) {
     Row(modifier) {
-        TextField(
+        ResizableOutlinedTextField(
             filter ?: "",
             { setFilter(it.ifEmpty { null }) },
-            Modifier.fillMaxWidth().weight(1f),
+            Modifier.height(45.dp).fillMaxWidth().weight(1f),
             singleLine = true
         )
 

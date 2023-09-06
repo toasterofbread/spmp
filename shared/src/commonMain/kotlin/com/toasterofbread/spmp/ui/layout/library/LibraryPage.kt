@@ -41,12 +41,12 @@ import com.toasterofbread.spmp.ui.layout.mainpage.MainPageState
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.ResizableOutlinedTextField
 
-interface LibrarySubPage {
-    fun getIcon(): ImageVector
-    fun getTitle(): String
+abstract class LibrarySubPage(val context: PlatformContext) {
+    abstract fun getIcon(): ImageVector
+    open fun isHidden(): Boolean = false
 
     @Composable
-    fun Page(
+    abstract fun Page(
         library_page: LibraryPage,
         content_padding: PaddingValues,
         multiselect_context: MediaItemMultiSelectContext,
@@ -56,7 +56,7 @@ interface LibrarySubPage {
 
 class LibraryPage(state: MainPageState): MainPage(state) {
     val tabs: List<LibrarySubPage> = listOf(
-        LibraryPlaylistsPage(), LibrarySongsPage()
+        LibraryPlaylistsPage(context), LibrarySongsPage(context), LibraryProfilePage(context)
     )
     var current_tab: LibrarySubPage by mutableStateOf(tabs.first())
 
@@ -73,7 +73,7 @@ class LibraryPage(state: MainPageState): MainPage(state) {
         show_sort_option_menu = false
         sort_option = MediaItemSortType.PLAY_COUNT
         reverse_sort = false
-        current_tab = tabs.first()
+        current_tab = tabs.first { !it.isHidden() }
     }
 
     @Composable
@@ -126,12 +126,14 @@ class LibraryPage(state: MainPageState): MainPage(state) {
                 }
 
                 Row(Modifier.fillMaxWidth().weight(1f)) {
-                    for (tab in tabs.withIndex()) {
+                    val shown_tabs = tabs.filter { !it.isHidden() }
+
+                    for (tab in shown_tabs.withIndex()) {
                         Crossfade(tab.value == current_tab) { selected ->
                             Box(
                                 Modifier
                                     .fillMaxWidth(
-                                        1f / (tabs.size - tab.index)
+                                        1f / (shown_tabs.size - tab.index)
                                     )
                                     .padding(horizontal = 5.dp)
                             ) {

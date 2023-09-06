@@ -32,12 +32,9 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
 import com.toasterofbread.utils.composable.EmptyListCrossfade
 
-class LibrarySongsPage: LibrarySubPage {
+class LibrarySongsPage(val context: PlatformContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =
         MediaItemType.SONG.getIcon()
-
-    override fun getTitle(): String =
-        getString("library_tab_local_songs")
 
     @Composable
     override fun Page(

@@ -39,6 +39,7 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 import com.toasterofbread.spmp.ui.layout.mainpage.MainPage
 import com.toasterofbread.spmp.ui.layout.mainpage.MainPageState
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.utils.composable.ResizableOutlinedTextField
 
 abstract class LibrarySubPage(val context: PlatformContext) {
@@ -56,7 +57,7 @@ abstract class LibrarySubPage(val context: PlatformContext) {
 
 class LibraryPage(state: MainPageState): MainPage(state) {
     val tabs: List<LibrarySubPage> = listOf(
-        LibraryPlaylistsPage(context), LibrarySongsPage(context), LibraryProfilePage(context)
+        LibraryPlaylistsPage(state.context), LibrarySongsPage(state.context), LibraryProfilePage(state.context)
     )
     var current_tab: LibrarySubPage by mutableStateOf(tabs.first())
 

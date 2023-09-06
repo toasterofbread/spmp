@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.platform.rememberSongDownloads
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
@@ -32,7 +33,7 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
 import com.toasterofbread.utils.composable.EmptyListCrossfade
 
-class LibrarySongsPage(val context: PlatformContext): LibrarySubPage(context) {
+class LibrarySongsPage(context: PlatformContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =
         MediaItemType.SONG.getIcon()
 

@@ -32,6 +32,7 @@ import com.toasterofbread.spmp.ui.layout.*
 import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_VERTICAL_PAGE_COUNT
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
+import com.toasterofbread.spmp.ui.layout.nowplaying.getAdjustedKeyboardHeight
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.toasterofbread.spmp.ui.theme.Theme
@@ -84,7 +85,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
     private val np_swipe_state: MutableState<SwipeableState<Int>> = mutableStateOf(SwipeableState(0))
     private var np_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
 
-    val expansion_state = NowPlayingExpansionState(np_swipe_state, this)
+    val expansion_state = NowPlayingExpansionState(np_swipe_state)
 
     override val main_page_state = MainPageState(context)
     override var overlay_page: Pair<PlayerOverlayPage, MediaItem?>? by mutableStateOf(null)
@@ -162,27 +163,35 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
     override fun nowPlayingTopOffset(base: Modifier): Modifier {
         val density = LocalDensity.current
         val screen_height: Dp = screen_size.height
-        val bottom_padding: Dp = context.getNavigationBarHeightDp()
-        val keyboard_insets: WindowInsets? = context.getImeInsets()
+        val keyboard_insets: WindowInsets = WindowInsets.ime
 
         return base.offset {
-            val keyboard_bottom_padding = if (keyboard_insets == null || np_swipe_state.value.targetValue != 0) 0 else keyboard_insets.getBottom(density)
-            IntOffset(
-                0,
-                with (density) {
-                    (-np_swipe_state.value.offset.value.dp - (screen_height * 0.5f) - bottom_padding).toPx().toInt() - keyboard_bottom_padding
-                }
-            )
+            with (density) {
+                val bottom_padding: Int = context.getNavigationBarHeight() + keyboard_insets.getAdjustedKeyboardHeight(density, context)
+
+                val swipe_offset: Dp =
+                    if (session_started) -np_swipe_state.value.offset.value.dp - (screen_height * 0.5f)
+                    else 0.dp
+
+                IntOffset(
+                    0,
+                    swipe_offset.toPx().toInt() - bottom_padding
+                )
+            }
         }
     }
 
     @Composable
     override fun nowPlayingBottomPadding(include_np: Boolean): Dp {
+        val keyboard_height = with(LocalDensity.current) {
+            WindowInsets.ime.getAdjustedKeyboardHeight(LocalDensity.current, context).toDp()
+        }
+
         if (include_np) {
             val np by animateDpAsState(if (session_started) MINIMISED_NOW_PLAYING_HEIGHT_DP.dp else 0.dp)
-            return context.getNavigationBarHeightDp() + np
+            return context.getNavigationBarHeightDp() + np + keyboard_height
         }
-        return context.getNavigationBarHeightDp()
+        return context.getNavigationBarHeightDp() + keyboard_height
     }
 
     override fun onNavigationBarTargetColourChanged(colour: Color?, from_lpm: Boolean) {
@@ -325,15 +334,21 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
             bottom_padding_anim.animateTo(bottom_padding)
         }
 
-        val navigation_bar_height = context.getNavigationBarHeightDp()
+        val density = LocalDensity.current
+        val keyboard_height: Int = WindowInsets.ime.getBottom(density)
+        val navigation_bar_height: Dp = context.getNavigationBarHeightDp()
 
-        LaunchedEffect(screen_size.height, navigation_bar_height) {
-            val half_screen_height = screen_size.height.value * 0.5f
+        LaunchedEffect(screen_size.height, navigation_bar_height, keyboard_height) {
+            val half_screen_height: Float = screen_size.height.value * 0.5f
+            val adjusted_keyboard_height: Dp = with(density) {
+                if (keyboard_height > 0) (keyboard_height.toDp() - navigation_bar_height).coerceAtLeast(0.dp)
+                else keyboard_height.toDp()
+            }
 
             np_swipe_anchors = (0..NOW_PLAYING_VERTICAL_PAGE_COUNT)
                 .associateBy { anchor ->
                     if (anchor == 0) MINIMISED_NOW_PLAYING_HEIGHT_DP.toFloat() - half_screen_height
-                    else ((screen_size.height - navigation_bar_height).value * anchor) - half_screen_height
+                    else ((screen_size.height - navigation_bar_height - adjusted_keyboard_height).value * anchor) - half_screen_height
                 }
 
             val current_swipe_value = np_swipe_state.value.targetValue
@@ -376,7 +391,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
             Crossfade(targetState = overlay_page) { page ->
                 Column(Modifier.fillMaxSize()) {
                     if (page != null && page.first !is MediaItemPage) {
-                        Spacer(Modifier.requiredHeight(context.getStatusBarHeight()))
+                        Spacer(Modifier.requiredHeight(context.getStatusBarHeightDp()))
                     }
 
                     val close = remember { { navigateBack() } }

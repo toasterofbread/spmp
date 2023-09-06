@@ -106,10 +106,10 @@ class SearchPage(state: MainPageState, val context: PlatformContext): MainPage(s
                 },
                 { index ->
                     if (index == 0) {
-                        current_filter = null
+                        setFilter(null)
                     }
                     else {
-                        current_filter = SearchType.values()[index - 1]
+                        setFilter(SearchType.values()[index - 1])
                     }
                 },
                 Modifier
@@ -139,13 +139,13 @@ class SearchPage(state: MainPageState, val context: PlatformContext): MainPage(s
         close: () -> Unit
     ) {
         if (!search_endpoint.isImplemented()) {
-            search_endpoint.NotImplementedMessage(modifier.fillMaxSize())
+            search_endpoint.NotImplementedMessage(modifier.fillMaxSize().padding(content_padding))
             return
         }
 
         val player = LocalPlayerState.current
-        val keyboard_controller = LocalSoftwareKeyboardController.current
         val focus_manager = LocalFocusManager.current
+        val keyboard_controller = LocalSoftwareKeyboardController.current
         val focus_state = remember { mutableStateOf(false) }
 
         DisposableEffect(focus_manager, keyboard_controller) {

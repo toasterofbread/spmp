@@ -21,7 +21,7 @@ fun MainPageDisplay() {
 
     Column(Modifier.padding(horizontal = padding)) {
         val top_padding = WAVE_BORDER_DEFAULT_HEIGHT.dp
-        MainPageTopBar(Modifier.padding(top = SpMp.context.getStatusBarHeight()).zIndex(1f))
+        MainPageTopBar(Modifier.padding(top = SpMp.context.getStatusBarHeightDp()).zIndex(1f))
 
         with(player.main_page) {
             Page(

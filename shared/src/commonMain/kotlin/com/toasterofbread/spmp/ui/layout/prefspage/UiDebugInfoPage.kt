@@ -96,7 +96,7 @@ fun getUiDebugInfoPage(): SettingsPage =
                 // Status bar height
                 SettingsComposableItem {
                     SizeIndicator("Status bar height") { context ->
-                        context.getStatusBarHeight()
+                        context.getStatusBarHeightDp()
                     }
                 },
 

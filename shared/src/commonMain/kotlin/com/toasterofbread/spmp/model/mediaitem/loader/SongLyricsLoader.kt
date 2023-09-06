@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem.loader
 
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -69,18 +70,18 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
 
     fun getItemState(song: Song, context: PlatformContext): ItemState =
         object : ItemState {
-            private var song_lyrics_reference: LyricsReference? by mutableStateOf(song.Lyrics.get(context.database))
+            private val song_lyrics_reference: MutableState<LyricsReference?> = mutableStateOf(song.Lyrics.get(context.database))
             init {
                 context.database.songQueries.lyricsById(song.id).addListener {
-                    song_lyrics_reference = song.Lyrics.get(context.database)
+                    song_lyrics_reference.value = song.Lyrics.get(context.database)
                 }
             }
 
             override val song_id: String = song.id
             override val lyrics: SongLyrics?
-                get() = loaded_by_reference[song_lyrics_reference]?.get()
+                get() = loaded_by_reference[song_lyrics_reference.value]?.get()
             override val loading: Boolean
-                get() = loading_by_id.containsKey(song_id) || loading_by_reference.containsKey(song_lyrics_reference)
+                get() = loading_by_id.containsKey(song_id) || loading_by_reference.containsKey(song_lyrics_reference.value)
 
             override fun toString(): String =
                 "LyricsItemState(id=$song_id, loading=$loading, lyrics=${lyrics?.reference})"

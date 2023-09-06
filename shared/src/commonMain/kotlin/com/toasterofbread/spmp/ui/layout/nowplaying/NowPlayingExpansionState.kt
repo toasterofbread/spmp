@@ -1,16 +1,17 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 package com.toasterofbread.spmp.ui.layout.nowplaying
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
 import androidx.compose.runtime.*
+import androidx.compose.ui.unit.Density
 import com.toasterofbread.spmp.model.MusicTopBarMode
-import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
-import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.MIN_EXPANSION
+import com.toasterofbread.spmp.platform.PlatformContext
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterialApi::class)
-class NowPlayingExpansionState(swipe_state: State<SwipeableState<Int>>, private val player: PlayerState) {
+class NowPlayingExpansionState(swipe_state: State<SwipeableState<Int>>) {
     private val swipe_state by swipe_state
     private var switch_to_page: Int by mutableStateOf(-1)
 
@@ -45,25 +46,45 @@ class NowPlayingExpansionState(swipe_state: State<SwipeableState<Int>>, private 
     }
 
     fun get(): Float {
-        val expansion: Float
-
         val anchors: Map<Float, Int> = swipe_state.anchors
         if (anchors.isEmpty()) {
-            expansion = 0f
+            return 0f
+        }
+        assert(anchors.size == NOW_PLAYING_VERTICAL_PAGE_COUNT + 1)
+
+        val offset: Float = swipe_state.offset.value
+
+        var low_index: Int? = null
+        var low: Float? = null
+        var high: Float? = null
+
+        for (anchor in anchors) {
+            if (offset < anchor.key) {
+                low_index = (anchor.value - 1).coerceAtLeast(page_range.first)
+                low = anchors.entries.firstOrNull { it.value == low_index }?.key ?: return low_index.toFloat()
+                high = anchor.key
+                break
+            }
+        }
+
+        if (low_index == null) {
+            low_index = page_range.last
+            low = anchors.entries.firstOrNull { it.value == low_index }?.key ?: return low_index.toFloat()
+            high = low
+        }
+
+        val progress: Float
+        if (offset == low) {
+            progress = 0f
+        }
+        else if (offset == high) {
+            progress = 1f
         }
         else {
-            val half_screen_height: Float = player.screen_size.height.value * 0.5f
-            val anchor: Float = anchors.entries.first { it.value == 1 }.key + half_screen_height
-
-            expansion = (swipe_state.offset.value + half_screen_height) / anchor
+            progress = (offset - low!!) / (high!! - low)
         }
 
-        if (expansion < 1f) {
-            return (1f / (1f - MIN_EXPANSION)) * (expansion - MIN_EXPANSION)
-        }
-        else {
-            return expansion
-        }
+        return low_index + progress
     }
 
     fun getBounded(): Float = get().coerceIn(page_range.first.toFloat(), page_range.last.toFloat())
@@ -93,4 +114,15 @@ class NowPlayingExpansionState(swipe_state: State<SwipeableState<Int>>, private 
             else (1f - ((absolute - 0.5f) * 2f))
         )
     }
+}
+
+fun WindowInsets.getAdjustedKeyboardHeight(density: Density, context: PlatformContext): Int {
+    val bottom: Int = getBottom(density)
+    if (bottom > 0) {
+        val navbar_height: Int = context.getNavigationBarHeight()
+        return bottom.coerceAtMost(
+            (bottom - navbar_height).coerceAtLeast(0)
+        )
+    }
+    return bottom
 }

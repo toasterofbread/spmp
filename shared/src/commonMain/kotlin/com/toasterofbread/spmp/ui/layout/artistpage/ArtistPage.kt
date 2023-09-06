@@ -161,7 +161,7 @@ fun ArtistPage(
         ) {
             val showing = music_top_bar_showing || multiselect_context.is_active
             AnimatedVisibility(showing) {
-                Spacer(Modifier.height(player.context.getStatusBarHeight()))
+                Spacer(Modifier.height(player.context.getStatusBarHeightDp()))
             }
 
             MusicTopBar(

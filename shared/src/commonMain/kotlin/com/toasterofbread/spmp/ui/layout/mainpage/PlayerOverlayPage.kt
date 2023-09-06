@@ -38,7 +38,7 @@ interface PlayerOverlayPage {
         val horizontal_padding = player.getDefaultHorizontalPadding()
 
         return PaddingValues(
-            top = player.context.getStatusBarHeight(),
+            top = player.context.getStatusBarHeightDp(),
             bottom = bottom_padding,
             start = horizontal_padding,
             end = horizontal_padding

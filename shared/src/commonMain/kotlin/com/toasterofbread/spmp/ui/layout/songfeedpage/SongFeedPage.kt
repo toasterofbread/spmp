@@ -416,7 +416,7 @@ private fun populateArtistsLayout(
     artists_map.entries.removeAll { it.value == null }
 
     var min_occurrences: Int = ARTISTS_ROW_DEFAULT_MIN_OCCURRENCES
-    while (true) {
+    while (min_occurrences >= 0) {
         val count: Int = artists_map.entries.count { artist ->
             (artist.value ?: 0) >= min_occurrences
         }
@@ -424,7 +424,7 @@ private fun populateArtistsLayout(
             break
         }
 
-        min_occurrences++
+        min_occurrences--
     }
 
     val artists = artists_map.mapNotNull { artist ->

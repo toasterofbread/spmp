@@ -4,9 +4,7 @@ import LocalPlayerState
 import SpMp
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
@@ -22,18 +20,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.composeScope
-import com.toasterofbread.spmp.platform.getNavigationBarHeightDp
 import com.toasterofbread.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
 import com.toasterofbread.spmp.ui.layout.nowplaying.LocalNowPlayingExpansion
-import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_VERTICAL_PAGE_COUNT
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThumbnailRow
 import com.toasterofbread.spmp.ui.layout.nowplaying.TopBar
 import com.toasterofbread.spmp.ui.theme.Theme
@@ -45,7 +39,6 @@ const val NOW_PLAYING_MAIN_PADDING = 10f
 internal const val MINIMISED_NOW_PLAYING_HORIZ_PADDING = 10f
 internal const val OVERLAY_MENU_ANIMATION_DURATION: Int = 200
 internal const val NOW_PLAYING_TOP_BAR_HEIGHT: Int = 40
-internal const val MIN_EXPANSION = 0.07930607f
 internal const val SEEK_BAR_GRADIENT_OVERFLOW_RATIO = 0.3f
 
 @Composable
@@ -94,27 +87,8 @@ fun ColumnScope.NowPlayingMainTab(modifier: Modifier = Modifier) {
         onThumbnailLoaded(current_song, null)
     }
 
-    val navigation_bar_height = player.context.getNavigationBarHeightDp()
-    val screen_height = player.screen_size.height - navigation_bar_height
-
-    val offsetProvider: Density.() -> IntOffset = remember {
-        {
-            val absolute = expansion.getBounded()
-            IntOffset(
-                0,
-                if (absolute > 1f)
-                    (
-                        -screen_height * ((NOW_PLAYING_VERTICAL_PAGE_COUNT * 0.5f) - absolute)
-                    ).toPx().toInt()
-                else 0
-            )
-        }
-    }
-
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .offset(offsetProvider),
+        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         TopBar()
@@ -138,31 +112,31 @@ fun ColumnScope.NowPlayingMainTab(modifier: Modifier = Modifier) {
                     .width(
                         screen_width -
                             (2 * (MINIMISED_NOW_PLAYING_HORIZ_PADDING.dp + ((MINIMISED_NOW_PLAYING_HORIZ_PADDING.dp - NOW_PLAYING_MAIN_PADDING.dp) * expansion.getAbsolute())))
-                    ),
+                    )
+                    .weight(1f, false),
                 onThumbnailLoaded = { song, image -> onThumbnailLoaded(song, image) },
                 setThemeColour = { setThemeColour(it) },
                 getSeekState = { seek_state }
             )
         }
-    }
 
-    val controls_visible by remember { derivedStateOf { expansion.getAbsolute() > 0.0f } }
-    if (controls_visible) {
-        Controls(
-            current_song,
-            {
-                player.withPlayer {
-                    seekTo((duration_ms * it).toLong())
-                }
-                seek_state = it
-            },
-            Modifier
-                .weight(1f)
-                .offset(offsetProvider)
-                .graphicsLayer {
-                    alpha = 1f - (1f - expansion.getBounded()).absoluteValue
-                }
-                .padding(horizontal = NOW_PLAYING_MAIN_PADDING.dp)
-        )
+        val controls_visible by remember { derivedStateOf { expansion.getAbsolute() > 0.0f } }
+        if (controls_visible) {
+            Controls(
+                current_song,
+                {
+                    player.withPlayer {
+                        seekTo((duration_ms * it).toLong())
+                    }
+                    seek_state = it
+                },
+                Modifier
+                    .weight(1f)
+                    .graphicsLayer {
+                        alpha = 1f - (1f - expansion.getBounded()).absoluteValue
+                    }
+                    .padding(horizontal = NOW_PLAYING_MAIN_PADDING.dp)
+            )
+        }
     }
 }

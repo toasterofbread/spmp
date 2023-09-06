@@ -13,6 +13,7 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.toasterofbread.spmp.platform.ApplicationContext
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.ui.theme.Theme
@@ -59,6 +60,7 @@ class MainActivity : ComponentActivity() {
         context.init()
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
+
         if (!context.isDisplayingAboveNavigationBar()) {
             window.setFlags(
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,

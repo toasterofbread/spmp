@@ -99,7 +99,6 @@ fun TopBar(modifier: Modifier = Modifier) {
                 Box(Modifier.width(40.dp * buttons_alpha)) {
                     val auth_state = player.context.ytapi.user_auth_state
                     if (auth_state != null) {
-
                         LikeDislikeButton(
                             song,
                             auth_state,

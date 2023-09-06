@@ -444,7 +444,7 @@ actual class PlatformContext(
 
     @SuppressLint("InternalInsetResource", "DiscouragedApi")
     @Composable
-    actual fun getStatusBarHeight(): Dp {
+    actual fun getStatusBarHeightDp(): Dp {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             return with(LocalDensity.current) {
                 WindowInsets.statusBars.getTop(this).toDp()
@@ -516,6 +516,10 @@ actual class PlatformContext(
 
     @SuppressLint("DiscouragedApi")
     actual fun isDisplayingAboveNavigationBar(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            return true
+        }
+
         val resources = context.resources
 
         val resource_id: Int = resources.getIdentifier("config_navBarInteractionMode", "integer", "android")
@@ -614,9 +618,10 @@ actual class PlatformContext(
             )
         }
     }
+
     @SuppressLint("MissingPermission")
     actual fun sendNotification(throwable: Throwable) {
-        throwable.printStackTrace()
+        RuntimeException(throwable).printStackTrace()
         if (canSendNotifications()) {
             NotificationManagerCompat.from(ctx).notify(
                 System.currentTimeMillis().toInt(),

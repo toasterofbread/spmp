@@ -77,23 +77,27 @@ val LocalNowPlayingExpansion: ProvidableCompositionLocal<NowPlayingExpansionStat
 fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>) {
     LocalNowPlayingExpansion.current.init()
 
+    val player = LocalPlayerState.current
+    val expansion = LocalNowPlayingExpansion.current
+    val density = LocalDensity.current
+
     CompositionLocalProvider(LocalNowPlayingExpansion provides SpMp.player_state.expansion_state) {
         LocalNowPlayingExpansion.current.init()
+
         AnimatedVisibility(
             LocalPlayerState.current.session_started,
             exit = slideOutVertically(),
-            enter = slideInVertically(),
+            enter = slideInVertically()
         ) {
-            val density = LocalDensity.current
-            val player = LocalPlayerState.current
-            val expansion = LocalNowPlayingExpansion.current
-
-            val keyboard_insets = player.context.getImeInsets()
             val bottom_padding = player.nowPlayingBottomPadding()
             val default_gradient_depth: Float by Settings.KEY_NOWPLAYING_DEFAULT_GRADIENT_DEPTH.rememberMutableState()
 
-            val page_height = player.screen_size.height - bottom_padding - player.context.getStatusBarHeight()
             val half_screen_height = player.screen_size.height * 0.5f
+            val page_height: Dp = (
+                player.screen_size.height
+                - bottom_padding
+                - player.context.getStatusBarHeightDp()
+            )
 
             val is_shut by remember { derivedStateOf { swipe_state.targetValue == 0 } }
 
@@ -111,13 +115,12 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .requiredHeight(player.screen_size.height * (NOW_PLAYING_VERTICAL_PAGE_COUNT + 1))
+                    .requiredHeight((player.screen_size.height * (NOW_PLAYING_VERTICAL_PAGE_COUNT + 1)))
                     .offset {
                         IntOffset(
                             0,
                             with(density) {
-                                val keyboard_bottom_padding = if (keyboard_insets == null || swipe_state.targetValue != 0) 0 else keyboard_insets.getBottom(density)
-                                ((half_screen_height * NOW_PLAYING_VERTICAL_PAGE_COUNT) - swipe_state.offset.value.dp).toPx().toInt() - keyboard_bottom_padding - bottom_padding.toPx().toInt()
+                                ((half_screen_height * NOW_PLAYING_VERTICAL_PAGE_COUNT) - swipe_state.offset.value.dp - bottom_padding).roundToPx()
                             }
                         )
                     }
@@ -174,7 +177,7 @@ private fun StatusBarColourHandler(page_height: Dp) {
     val expansion = LocalNowPlayingExpansion.current
 
     val background_colour = player.getNPBackground()
-    val status_bar_height = player.context.getStatusBarHeight()
+    val status_bar_height = player.context.getStatusBarHeightDp()
 
     val status_bar_height_percent = (
         status_bar_height.value * (if (player.context.isDisplayingAboveNavigationBar()) 1f else 0.75f)
@@ -200,14 +203,14 @@ private fun StatusBarColourHandler(page_height: Dp) {
 }
 
 @Composable
-private fun NowPlayingCardContent(page_height: Dp) {
+private fun NowPlayingCardContent(page_height: Dp, modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
     val expansion = LocalNowPlayingExpansion.current
 
     StatusBarColourHandler(page_height)
     MinimisedProgressBar()
 
-    Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Top) {
+    Column(modifier.fillMaxHeight(), verticalArrangement = Arrangement.Top) {
         Column(
             verticalArrangement = Arrangement.Top,
             modifier = Modifier.requiredSize(player.screen_size)
@@ -215,9 +218,25 @@ private fun NowPlayingCardContent(page_height: Dp) {
             composeScope {
                 Spacer(
                     Modifier.height(
-                        player.context.getStatusBarHeight() * expansion.get().coerceIn(0f, 1f)
+                        player.context.getStatusBarHeightDp() * expansion.get().coerceIn(0f, 1f)
                     )
                 )
+            }
+
+            val screen_height = player.screen_size.height - player.nowPlayingBottomPadding()
+            val offsetProvider: Density.() -> IntOffset = remember(screen_height) {
+                {
+                    val bounded = expansion.getBounded()
+                    IntOffset(
+                        0,
+                        if (bounded > 1f)
+                            (
+                                -(screen_height)
+                                * ((NOW_PLAYING_VERTICAL_PAGE_COUNT * 0.5f) - bounded)
+                            ).roundToPx()
+                        else 0
+                    )
+                }
             }
 
             CompositionLocalProvider(LocalPlayerState provides remember {
@@ -228,7 +247,7 @@ private fun NowPlayingCardContent(page_height: Dp) {
                     }
                 )
             }) {
-                NowPlayingMainTab()
+                NowPlayingMainTab(Modifier.fillMaxWidth().requiredHeight(page_height).offset(offsetProvider))
             }
 
             composeScope {

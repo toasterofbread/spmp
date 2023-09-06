@@ -36,7 +36,7 @@ expect class PlatformContext {
     fun isAppInForeground(): Boolean
 
     @Composable
-    fun getStatusBarHeight(): Dp
+    fun getStatusBarHeightDp(): Dp
     fun setStatusBarColour(colour: Color)
 
     fun getNavigationBarHeight(): Int

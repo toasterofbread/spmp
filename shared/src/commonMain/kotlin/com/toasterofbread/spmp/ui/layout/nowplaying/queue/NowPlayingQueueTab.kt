@@ -164,7 +164,7 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
                 .requiredWidth(player.screen_size.width)
                 .padding(
                     top =
-                        player.context.getStatusBarHeight()
+                        player.context.getStatusBarHeightDp()
                         + top_bar_height
                         + MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
                         - MINIMISED_NOW_PLAYING_V_PADDING_DP.dp

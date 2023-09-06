@@ -45,10 +45,14 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
     private val download_status_listeners: MutableList<DownloadStatusListener> = mutableListOf()
 
     actual fun addDownloadStatusListener(listener: DownloadStatusListener) {
-        download_status_listeners.add(listener)
+        synchronized(download_status_listeners) {
+            download_status_listeners.add(listener)
+        }
     }
     actual fun removeDownloadStatusListener(listener: DownloadStatusListener) {
-        download_status_listeners.remove(listener)
+        synchronized(download_status_listeners) {
+            download_status_listeners.remove(listener)
+        }
     }
 
     private fun onResultIntentReceived(result: PlayerDownloadMessage) {
@@ -57,28 +61,37 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
 
         val instance: Int? = data["instance"] as Int?
         if (instance != null) {
-            result_callbacks[result.action]?.get(status.song.id)?.remove(instance)?.invoke(data)
+            synchronized(result_callbacks) {
+                result_callbacks[result.action]?.get(status.song.id)?.remove(instance)?.invoke(data)
+            }
         }
 
         when (result.action) {
             PlayerDownloadService.IntentAction.START_DOWNLOAD -> {
-                val result = data["result"] as Result<PlatformFile?>
-                result.fold(
+                (data["result"] as Result<PlatformFile?>).fold(
                     {
-                        download_status_listeners.forEach { it.onDownloadChanged(status) }
+                        synchronized(download_status_listeners) {
+                            download_status_listeners.forEach { it.onDownloadChanged(status) }
+                        }
                     },
                     { error ->
                         context.sendNotification(error)
-                        download_status_listeners.forEach { it.onDownloadRemoved(status.id) }
+                        synchronized(download_status_listeners) {
+                            download_status_listeners.forEach { it.onDownloadRemoved(status.id) }
+                        }
                     }
                 )
             }
             PlayerDownloadService.IntentAction.STATUS_CHANGED -> {
                 if (data["started"] as Boolean) {
-                    download_status_listeners.forEach { it.onDownloadAdded(status) }
+                    synchronized(download_status_listeners) {
+                        download_status_listeners.forEach { it.onDownloadAdded(status) }
+                    }
                 }
                 else {
-                    download_status_listeners.forEach { it.onDownloadChanged(status) }
+                    synchronized(download_status_listeners) {
+                        download_status_listeners.forEach { it.onDownloadChanged(status) }
+                    }
                 }
             }
             else -> {}
@@ -86,8 +99,10 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
     }
 
     private fun addResultCallback(action: PlayerDownloadService.IntentAction, song_id: String, instance: Int, callback: (data: Map<String, Any?>) -> Unit) {
-        val callbacks = result_callbacks.getOrPut(action) { mutableMapOf() }.getOrPut(song_id) { mutableMapOf() }
-        callbacks[instance] = callback
+        synchronized(result_callbacks) {
+            val callbacks = result_callbacks.getOrPut(action) { mutableMapOf() }.getOrPut(song_id) { mutableMapOf() }
+            callbacks[instance] = callback
+        }
     }
 
     private fun onService(action: PlayerDownloadService.() -> Unit) {

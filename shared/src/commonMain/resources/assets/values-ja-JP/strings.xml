@@ -29,12 +29,6 @@
     <string name="home_feed_filter_commute">通勤・通学</string>
     <string name="home_feed_filter_focus">フォーカス</string>
 
-    <string name="library_tab_playlists">プレイリスト</string>
-    <string name="library_tab_local_songs">保存済みの曲</string>
-    <string name="library_tab_albums">アルバム</string>
-    <string name="library_tab_artists">アーティスト</string>
-    <string name="library_tab_history">履歴</string>
-
     <string name="library_no_local_songs">保存済みの曲がありません</string>
     <string name="library_no_playlists">プレイリストはありません</string>
     <string name="library_no_items_match_filter">フィルターに一致するアイテムがありません</string>

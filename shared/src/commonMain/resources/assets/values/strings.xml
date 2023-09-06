@@ -34,12 +34,6 @@
     <string name="home_feed_filter_commute">Commute</string>
     <string name="home_feed_filter_focus">Focus</string>
 
-    <string name="library_tab_playlists">Playlists</string>
-    <string name="library_tab_local_songs">Local songs</string>
-    <string name="library_tab_albums">Albums</string>
-    <string name="library_tab_artists">Artists</string>
-    <string name="library_tab_history">History</string>
-
     <string name="library_no_local_songs">No local songs</string>
     <string name="library_no_playlists">No playlists</string>
     <string name="library_no_items_match_filter">No items match filter</string>

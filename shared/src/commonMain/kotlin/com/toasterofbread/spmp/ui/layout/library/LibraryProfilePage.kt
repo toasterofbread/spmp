@@ -1,8 +1,18 @@
 package com.toasterofbread.spmp.ui.layout.library
 
-class LibraryPlaylistsPage(val context: PlatformContext): LibrarySubPage(context) {
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+
+class LibraryProfilePage(context: PlatformContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =
-        MediaItemType.PLAYLIST_REM.getIcon()
+        Icons.Default.Person
 
     override fun isHidden(): Boolean = own_channel == null
     
@@ -15,6 +25,6 @@ class LibraryPlaylistsPage(val context: PlatformContext): LibrarySubPage(context
         multiselect_context: MediaItemMultiSelectContext,
         modifier: Modifier
     ) {
-        TODO)()
+
     }
 }

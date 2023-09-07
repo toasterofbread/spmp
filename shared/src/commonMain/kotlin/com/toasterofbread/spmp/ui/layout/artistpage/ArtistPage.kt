@@ -69,10 +69,11 @@ private const val ARTIST_IMAGE_SCROLL_MODIFIER = 0.25f
 @Composable
 fun ArtistPage(
     artist: Artist,
-    previous_item: MediaItem?,
-    content_padding: PaddingValues,
-    browse_params: Pair<MediaItemLayout.BrowseParamsData, ArtistWithParamsEndpoint>?,
-    close: () -> Unit
+    modifier: Modifier = Modifier,
+    previous_item: MediaItem? = null,
+    content_padding: PaddingValues = PaddingValues(),
+    browse_params: Pair<MediaItemLayout.BrowseParamsData, ArtistWithParamsEndpoint>? = null,
+    multiselect_context: MediaItemMultiSelectContext? = null
 ) {
     val player = LocalPlayerState.current
     val db = player.context.database
@@ -128,7 +129,7 @@ fun ArtistPage(
 
     val main_column_state = rememberLazyListState()
     var show_info by remember { mutableStateOf(false) }
-    val multiselect_context = remember { MediaItemMultiSelectContext() {} }
+    val own_multiselect_context = remember(multiselect_context) { if (multiselect_context != null) null else MediaItemMultiSelectContext() {} }
 
     val apply_filter: Boolean by Settings.KEY_FILTER_APPLY_TO_ARTIST_ITEMS.rememberMutableState()
     val background_modifier = Modifier.background(Theme.background_provider)
@@ -141,7 +142,7 @@ fun ArtistPage(
 
     val top_bar_over_image: Boolean by Settings.KEY_TOPBAR_DISPLAY_OVER_ARTIST_IMAGE.rememberMutableState()
     var music_top_bar_showing by remember { mutableStateOf(false) }
-    val top_bar_alpha by animateFloatAsState(if (!top_bar_over_image || music_top_bar_showing || multiselect_context.is_active) 1f else 0f)
+    val top_bar_alpha by animateFloatAsState(if (!top_bar_over_image || music_top_bar_showing || own_multiselect_context?.is_active == true) 1f else 0f)
 
     fun Density.getBackgroundColour(): Color =
         Theme.background.setAlpha(
@@ -159,7 +160,7 @@ fun ArtistPage(
                 .pointerInput(Unit) {}
                 .zIndex(1f)
         ) {
-            val showing = music_top_bar_showing || multiselect_context.is_active
+            val showing = music_top_bar_showing || own_multiselect_context?.is_active == true
             AnimatedVisibility(showing) {
                 Spacer(Modifier.height(player.context.getStatusBarHeightDp()))
             }
@@ -170,8 +171,8 @@ fun ArtistPage(
                 padding = content_padding.horizontal
             ) { music_top_bar_showing = it }
 
-            AnimatedVisibility(multiselect_context.is_active) {
-                multiselect_context.InfoDisplay(Modifier.padding(top = 10.dp).padding(content_padding.horizontal))
+            AnimatedVisibility(own_multiselect_context?.is_active == true) {
+                own_multiselect_context?.InfoDisplay(Modifier.padding(top = 10.dp).padding(content_padding.horizontal))
             }
 
             AnimatedVisibility(showing) {
@@ -180,7 +181,7 @@ fun ArtistPage(
         }
     }
 
-    Column {
+    Column(modifier) {
         if (!top_bar_over_image) {
             TopBar()
         }
@@ -385,7 +386,7 @@ fun ArtistPage(
                             Row(background_modifier.padding(content_padding), verticalAlignment = Alignment.CenterVertically) {
                                 MediaItemPreviewLong(
                                     item,
-                                    multiselect_context = multiselect_context
+                                    multiselect_context = multiselect_context ?: own_multiselect_context
                                 )
                             }
                         }
@@ -440,7 +441,7 @@ fun ArtistPage(
 
                                         type.Layout(
                                             if (previous_item == null) layout else layout.copy(title = null, subtitle = null),
-                                            multiselect_context = multiselect_context,
+                                            multiselect_context = multiselect_context ?: own_multiselect_context,
                                             apply_filter = apply_filter
                                         )
                                     }

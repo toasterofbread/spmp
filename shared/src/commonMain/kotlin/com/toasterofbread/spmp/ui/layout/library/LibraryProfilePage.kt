@@ -5,10 +5,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.layout.artistpage.ArtistPage
 
 class LibraryProfilePage(context: PlatformContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =
@@ -25,6 +28,12 @@ class LibraryProfilePage(context: PlatformContext): LibrarySubPage(context) {
         multiselect_context: MediaItemMultiSelectContext,
         modifier: Modifier
     ) {
-
+        val channel = own_channel ?: return
+        ArtistPage(
+            channel,
+            modifier.clipToBounds(),
+            content_padding = content_padding,
+            multiselect_context = multiselect_context
+        )
     }
 }

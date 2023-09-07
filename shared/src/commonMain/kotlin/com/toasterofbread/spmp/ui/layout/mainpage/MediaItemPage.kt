@@ -35,12 +35,11 @@ data class MediaItemPage(private val holder: MediaItemHolder, private val browse
             }
             is Artist -> ArtistPage(
                 item,
-                previous_item?.item,
-                getContentPadding(),
-                browse_params?.let { params ->
+                previous_item = previous_item?.item,
+                content_padding = getContentPadding(),
+                browse_params = browse_params?.let { params ->
                     Pair(params, player.context.ytapi.ArtistsWithParams)
-                },
-                close
+                }
             )
             is Song -> SongRelatedPage(
                 item,

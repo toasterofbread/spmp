@@ -259,7 +259,7 @@ class PlayerService: MediaPlayerService() {
             } else {
                 songs.toMutableList().apply {
                     iterateSongs { _, song ->
-                        removeAll { it == song }
+                        removeAll { it.id == song.id }
                     }
                 }
             }

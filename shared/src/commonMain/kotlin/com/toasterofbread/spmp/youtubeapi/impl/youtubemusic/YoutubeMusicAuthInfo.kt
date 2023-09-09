@@ -86,6 +86,12 @@ class YTMGenericFeedViewMorePageEndpoint(override val api: YoutubeApi): GenericF
             .first()
             .getMediaItems(hl)
 
+        api.database.transaction {
+            for (item in items) {
+                item.saveToDatabase(api.database)
+            }
+        }
+
         return@withContext Result.success(items)
     }
 }

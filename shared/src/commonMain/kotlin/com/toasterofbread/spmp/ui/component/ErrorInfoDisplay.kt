@@ -2,8 +2,11 @@ package com.toasterofbread.spmp.ui.component
 
 import LocalPlayerState
 import SpMp
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -16,7 +19,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -54,13 +56,13 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.fromJson
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
+import com.toasterofbread.utils.common.isDebugBuild
+import com.toasterofbread.utils.common.thenIf
 import com.toasterofbread.utils.composable.ShapedIconButton
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.composable.WidthShrinkText
-import com.toasterofbread.utils.common.isDebugBuild
 import com.toasterofbread.utils.modifier.background
 import com.toasterofbread.utils.modifier.disableParentScroll
-import com.toasterofbread.utils.common.thenIf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
@@ -75,7 +77,7 @@ fun ErrorInfoDisplay(
     error: Throwable,
     modifier: Modifier = Modifier,
     message: String? = null,
-    expanded_modifier: Modifier = Modifier.height(500.dp),
+    expanded_content_modifier: Modifier = Modifier.height(500.dp),
     disable_parent_scroll: Boolean = true,
     extraButtonContent: (@Composable () -> Unit)? = null,
     onExtraButtonPressed: (() -> Unit)? = null,
@@ -85,70 +87,71 @@ fun ErrorInfoDisplay(
     val shape = RoundedCornerShape(20.dp)
 
     CompositionLocalProvider(LocalContentColor provides Theme.background) {
-        Box(modifier.thenIf(expanded, expanded_modifier), contentAlignment = Alignment.TopCenter) {
-            Column(
+        Column(
+            modifier
+                .animateContentSize()
+                .background(shape, Theme.accent_provider)
+                .padding(horizontal = 10.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Row(
                 Modifier
-                    .heightIn(min = 50.dp)
-                    .animateContentSize()
-                    .background(shape, Theme.accent_provider)
-                    .padding(
-                        vertical = 3.dp,
-                        horizontal = 10.dp
-                    ),
-                verticalArrangement = Arrangement.Center
-            ) {
-                Row(
-                    Modifier.clickable(
+                    .clickable(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() }
                     ) {
                         expanded = !expanded
-                    },
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(5.dp)
-                ) {
-                    Crossfade(expanded) { expanded ->
-                        Icon(
-                            if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                            null
-                        )
                     }
-
-                    WidthShrinkText(
-                        message ?: error::class.java.simpleName,
-                        modifier = Modifier.fillMaxWidth().weight(1f)
+                    .height(50.dp)
+                    .padding(vertical = 5.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                Crossfade(expanded) { expanded ->
+                    Icon(
+                        if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                        null
                     )
+                }
 
-                    if (onExtraButtonPressed != null) {
-                        Button(
-                            onExtraButtonPressed,
-                            shape = shape,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Theme.background,
-                                contentColor = Theme.on_background
-                            )
-                        ) {
-                            extraButtonContent!!.invoke()
-                        }
-                    }
+                WidthShrinkText(
+                    message ?: error::class.java.simpleName,
+                    modifier = Modifier.fillMaxWidth().weight(1f)
+                )
 
-                    if (onDismiss != null) {
-                        ShapedIconButton(
-                            onDismiss,
-                            shape = shape,
-                            colours = IconButtonDefaults.iconButtonColors(
-                                containerColor = Theme.background,
-                                contentColor = Theme.on_background
-                            )
-                        ) {
-                            Icon(Icons.Default.Close, null)
-                        }
+                if (onExtraButtonPressed != null) {
+                    Button(
+                        onExtraButtonPressed,
+                        shape = shape,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Theme.background,
+                            contentColor = Theme.on_background
+                        )
+                    ) {
+                        extraButtonContent!!.invoke()
                     }
                 }
 
-                if (expanded) {
-                    ExpandedContent(error, shape, disable_parent_scroll)
+                if (onDismiss != null) {
+                    ShapedIconButton(
+                        onDismiss,
+                        shape = shape,
+                        colours = IconButtonDefaults.iconButtonColors(
+                            containerColor = Theme.background,
+                            contentColor = Theme.on_background
+                        )
+                    ) {
+                        Icon(Icons.Default.Close, null)
+                    }
                 }
+            }
+
+            AnimatedVisibility(
+                expanded,
+                enter = expandVertically(),
+                exit = shrinkVertically()
+            ) {
+                ExpandedContent(error, shape, disable_parent_scroll, expanded_content_modifier)
             }
         }
     }
@@ -189,7 +192,7 @@ private fun LongTextDisplay(text: String, wrap_text: Boolean, modifier: Modifier
 }
 
 @Composable
-private fun ExpandedContent(error: Throwable, shape: Shape, disable_parent_scroll: Boolean) {
+private fun ExpandedContent(error: Throwable, shape: Shape, disable_parent_scroll: Boolean, modifier: Modifier = Modifier) {
     val coroutine_scope = rememberCoroutineScope()
     val player = LocalPlayerState.current
 
@@ -201,7 +204,7 @@ private fun ExpandedContent(error: Throwable, shape: Shape, disable_parent_scrol
     )
 
     Box(
-        Modifier
+        modifier
             .fillMaxWidth()
             .clip(shape)
             .padding(bottom = 10.dp)

@@ -36,10 +36,11 @@ interface PlayerOverlayPage {
             ) + player.context.getNavigationBarHeightDp() + player.getDefaultVerticalPadding()
 
         val horizontal_padding = player.getDefaultHorizontalPadding()
+        val vertical_padding = player.getDefaultVerticalPadding()
 
         return PaddingValues(
-            top = player.context.getStatusBarHeightDp(),
-            bottom = bottom_padding,
+            top = vertical_padding + player.context.getStatusBarHeightDp(),
+            bottom = vertical_padding + bottom_padding,
             start = horizontal_padding,
             end = horizontal_padding
         )

@@ -14,8 +14,14 @@ import com.toasterofbread.spmp.model.mediaitem.db.toLocalisedYoutubeString
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.getMediaItemFromUid
 import com.toasterofbread.spmp.model.mediaitem.getUid
+import com.toasterofbread.spmp.model.mediaitem.layout.LambdaViewMore
+import com.toasterofbread.spmp.model.mediaitem.layout.ListPageBrowseIdViewMore
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
-import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemViewMore
+import com.toasterofbread.spmp.model.mediaitem.layout.PlainViewMore
+import com.toasterofbread.spmp.model.mediaitem.layout.ViewMore
+import com.toasterofbread.spmp.model.mediaitem.layout.ViewMoreType
 
 data class ArtistLayoutData(
     override var layout_index: Long?,
@@ -25,7 +31,7 @@ data class ArtistLayoutData(
     var title: LocalisedYoutubeString? = null,
     var subtitle: LocalisedYoutubeString? = null,
     var type: MediaItemLayout.Type? = null,
-    var view_more: MediaItemLayout.ViewMore? = null,
+    var view_more: ViewMore? = null,
     var playlist: RemotePlaylist? = null
 ): ArtistLayout {
     fun saveToDatabase(db: Database) {
@@ -59,7 +65,7 @@ sealed interface ArtistLayout {
         val title: LocalisedYoutubeString? by Title.observe(db)
         val subtitle: LocalisedYoutubeString? by Subtitle.observe(db)
         val type: MediaItemLayout.Type? by Type.observe(db)
-        val view_more: MediaItemLayout.ViewMore? by ViewMore.observe(db)
+        val view_more: ViewMore? by ViewMore.observe(db)
         val playlist: RemotePlaylist? by Playlist.observe(db)
 
         return MediaItemLayout(
@@ -114,7 +120,7 @@ sealed interface ArtistLayout {
         { type?.let { MediaItemLayout.Type.values()[it.toInt()] } },
         { artistLayoutQueries.updateTypeByIndex(it?.ordinal?.toLong(), artist_id, layout_index!!) }
     )
-    val ViewMore: Property<MediaItemLayout.ViewMore?>
+    val ViewMore: Property<ViewMore?>
         get() = SingleProperty(
         { artistLayoutQueries.viewMoreByIndex(artist_id, layout_index!!) },
         { view_more_type?.let { ViewMoreType.values()[it.toInt()].getViewMore(view_more_data!!) } },
@@ -129,48 +135,6 @@ sealed interface ArtistLayout {
         { playlist_id?.let { RemotePlaylistRef(it) } },
         { artistLayoutQueries.updatePlaylistIdByIndex(it?.id, artist_id, layout_index!!) }
     )
-
-    enum class ViewMoreType {
-        MediaItem, ListPage, Plain;
-
-        fun getViewMore(data: String): MediaItemLayout.ViewMore =
-            when (this) {
-                MediaItem -> {
-                    val split = data.split(VIEW_MORE_SPLIT_CHAR, limit = 2)
-                    MediaItemLayout.MediaItemViewMore(getMediaItemFromUid(split[0]), split.getOrNull(1))
-                }
-                ListPage -> {
-                    val split = data.split(VIEW_MORE_SPLIT_CHAR, limit = 3)
-                    MediaItemLayout.ListPageBrowseIdViewMore(split[0], split[1], split[2])
-                }
-                Plain -> {
-                    MediaItemLayout.PlainViewMore(data)
-                }
-            }
-
-        companion object {
-            private const val VIEW_MORE_SPLIT_CHAR = '|'
-            fun fromViewMore(view_more: MediaItemLayout.ViewMore): Pair<Long, String> =
-                when (view_more) {
-                    is MediaItemLayout.MediaItemViewMore ->
-                        Pair(
-                            MediaItem.ordinal.toLong(),
-                            view_more.media_item.getUid() + VIEW_MORE_SPLIT_CHAR + (view_more.browse_params ?: "")
-                        )
-                    is MediaItemLayout.ListPageBrowseIdViewMore ->
-                        Pair(
-                            ListPage.ordinal.toLong(),
-                            view_more.item_id + VIEW_MORE_SPLIT_CHAR + view_more.list_page_browse_id + VIEW_MORE_SPLIT_CHAR + (view_more.browse_params ?: "")
-                        )
-                    is MediaItemLayout.PlainViewMore ->
-                        Pair(
-                            Plain.ordinal.toLong(),
-                            view_more.browse_id
-                        )
-                    is MediaItemLayout.LambdaViewMore -> throw NotImplementedError(view_more.toString())
-                }
-        }
-    }
 
     companion object {
         fun create(artist_id: String): ArtistLayoutData {

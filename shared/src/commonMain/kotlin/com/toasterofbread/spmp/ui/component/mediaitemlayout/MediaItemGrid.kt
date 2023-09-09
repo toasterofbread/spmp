@@ -20,6 +20,10 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.getUid
+import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.ViewMore
+import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
+import com.toasterofbread.spmp.model.mediaitem.layout.shouldShowTitleBar
 import com.toasterofbread.spmp.model.mediaitem.rememberFilteredItems
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_LONG_HEIGHT
@@ -65,7 +69,7 @@ fun MediaItemGrid(
     rows: Int? = null,
     title: LocalisedYoutubeString? = null,
     subtitle: LocalisedYoutubeString? = null,
-    view_more: MediaItemLayout.ViewMore? = null,
+    view_more: ViewMore? = null,
     alt_style: Boolean = false,
     square_item_max_text_rows: Int? = null,
     apply_filter: Boolean = false,

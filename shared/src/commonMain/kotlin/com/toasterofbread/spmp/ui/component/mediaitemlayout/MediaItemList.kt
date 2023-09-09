@@ -11,6 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
+import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.ViewMore
 import com.toasterofbread.spmp.model.mediaitem.rememberFilteredItems
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
@@ -34,7 +36,7 @@ fun MediaItemList(
     numbered: Boolean = false,
     title: LocalisedYoutubeString? = null,
     subtitle: LocalisedYoutubeString? = null,
-    view_more: MediaItemLayout.ViewMore? = null,
+    view_more: ViewMore? = null,
     multiselect_context: MediaItemMultiSelectContext? = null,
     apply_filter: Boolean = false
 ) {

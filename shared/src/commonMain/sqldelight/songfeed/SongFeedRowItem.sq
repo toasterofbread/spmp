@@ -1,0 +1,16 @@
+CREATE TABLE SongFeedRowItem (
+    row_index INTEGER NOT NULL,
+    item_index INTEGER NOT NULL,
+
+    item_id TEXT NOT NULL,
+    item_type INTEGER NOT NULL,
+
+    FOREIGN KEY (row_index) REFERENCES SongFeedRow(row_index),
+    FOREIGN KEY (item_id) REFERENCES MediaItem(id),
+
+    PRIMARY KEY (row_index, item_index)
+);
+
+byRowIndex: SELECT * FROM SongFeedRowItem WHERE row_index == :row_index ORDER BY item_index;
+
+insert: INSERT INTO SongFeedRowItem(row_index, item_index, item_id, item_type) VALUES(:row_index, :item_index, :item_id, :item_type);

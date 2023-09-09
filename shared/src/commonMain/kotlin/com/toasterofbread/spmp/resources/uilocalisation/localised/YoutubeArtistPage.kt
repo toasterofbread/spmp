@@ -17,6 +17,7 @@ fun getYoutubeArtistPageLocalisations(languages: UILanguages): YoutubeUILocalisa
             )
             add(
                 en to "Videos",
+                ja to "動画",
                 id = YoutubeUILocalisation.StringID.ARTIST_ROW_OTHER
             )
             add(

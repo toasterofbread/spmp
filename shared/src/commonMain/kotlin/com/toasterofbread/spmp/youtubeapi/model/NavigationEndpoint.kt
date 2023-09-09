@@ -2,9 +2,10 @@ package com.toasterofbread.spmp.youtubeapi.model
 
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
+import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemViewMore
+import com.toasterofbread.spmp.model.mediaitem.layout.ViewMore
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
-import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 
 data class NavigationEndpoint(
     val watchEndpoint: WatchEndpoint? = null,
@@ -32,11 +33,11 @@ data class NavigationEndpoint(
         return null
     }
 
-    fun getViewMore(item: MediaItem): MediaItemLayout.ViewMore? {
+    fun getViewMore(item: MediaItem): ViewMore? {
         if (browseEndpoint != null) {
             browseEndpoint.getViewMore(item).also { return it }
         }
-        return getMediaItem()?.let { MediaItemLayout.MediaItemViewMore(it, null) }
+        return getMediaItem()?.let { MediaItemViewMore(it, null) }
     }
 }
 

@@ -9,11 +9,12 @@ import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.layout.BrowseParamsData
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderArtist
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderEndpoint
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
@@ -169,7 +170,7 @@ class UnimplementedYoutubeApi(
     }
     override val ArtistsWithParams = object : ArtistWithParamsEndpoint() {
     override fun isImplemented(): Boolean = false
-        override suspend fun loadArtistWithParams(browse_params: MediaItemLayout.BrowseParamsData): Result<List<ArtistWithParamsRow>> {
+        override suspend fun loadArtistWithParams(browse_params: BrowseParamsData): Result<List<ArtistWithParamsRow>> {
             TODO("Not yet implemented")
         }
         override val api = this@UnimplementedYoutubeApi

@@ -30,6 +30,7 @@ import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.BrowseParamsData
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.loadDataOnChange
@@ -44,7 +45,7 @@ import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
-import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemList
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -72,7 +73,7 @@ fun ArtistPage(
     modifier: Modifier = Modifier,
     previous_item: MediaItem? = null,
     content_padding: PaddingValues = PaddingValues(),
-    browse_params: Pair<MediaItemLayout.BrowseParamsData, ArtistWithParamsEndpoint>? = null,
+    browse_params: Pair<BrowseParamsData, ArtistWithParamsEndpoint>? = null,
     multiselect_context: MediaItemMultiSelectContext? = null
 ) {
     val player = LocalPlayerState.current

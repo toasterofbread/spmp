@@ -8,14 +8,15 @@ import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
+import com.toasterofbread.spmp.model.mediaitem.layout.BrowseParamsData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
-import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.ui.layout.SongRelatedPage
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistPage
 import com.toasterofbread.spmp.ui.layout.playlistpage.PlaylistPage
 
-data class MediaItemPage(private val holder: MediaItemHolder, private val browse_params: MediaItemLayout.BrowseParamsData? = null): PlayerOverlayPage {
+data class MediaItemPage(private val holder: MediaItemHolder, private val browse_params: BrowseParamsData? = null): PlayerOverlayPage {
     override fun getItem(): MediaItem? = holder.item
 
     @Composable

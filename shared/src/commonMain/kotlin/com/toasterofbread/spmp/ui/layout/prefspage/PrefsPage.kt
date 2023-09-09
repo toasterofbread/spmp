@@ -253,7 +253,7 @@ fun PrefsPage(
                         CompositionLocalProvider(LocalContentColor provides Theme.on_background) {
                             settings_interface.Interface(
                                 Modifier.fillMaxSize(),
-                                content_padding = PaddingValues(bottom = content_padding.calculateBottomPadding())
+                                content_padding = content_padding
                             )
                         }
                     }

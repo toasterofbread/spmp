@@ -12,8 +12,7 @@ data class NavigationEndpoint(
     val browseEndpoint: BrowseEndpoint? = null,
     val searchEndpoint: SearchEndpoint? = null,
     val watchPlaylistEndpoint: WatchPlaylistEndpoint? = null,
-    val channelCreationFormEndpoint: ChannelCreationFormEndpoint? = null,
-    val urlEndpoint: String? = null
+    val channelCreationFormEndpoint: ChannelCreationFormEndpoint? = null
 ) {
     fun getMediaItem(): MediaItemData? {
         if (watchEndpoint != null) {

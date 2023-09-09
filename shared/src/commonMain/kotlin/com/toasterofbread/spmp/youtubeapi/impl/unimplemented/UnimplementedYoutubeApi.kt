@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.youtubeapi.impl.unimplemented
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -105,7 +106,12 @@ class UnimplementedYoutubeApi(
     override val LoginPage = object : LoginPage() {
         override fun isImplemented(): Boolean = false
         @Composable
-        override fun LoginPage(modifier: Modifier, confirm_param: Any?, onFinished: (Result<YoutubeApi.UserAuthState>?) -> Unit) {
+        override fun LoginPage(
+            modifier: Modifier,
+            confirm_param: Any?,
+            content_padding: PaddingValues,
+            onFinished: (Result<YoutubeApi.UserAuthState>?) -> Unit
+        ) {
             TODO("Not yet implemented")
         }
         @Composable

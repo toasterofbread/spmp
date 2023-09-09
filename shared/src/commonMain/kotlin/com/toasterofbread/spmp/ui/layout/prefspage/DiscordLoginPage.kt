@@ -13,9 +13,6 @@ import com.toasterofbread.spmp.ui.layout.DiscordLogin
 
 internal fun getDiscordLoginPage(discord_auth: SettingsValueState<String>, manual: Boolean = false): SettingsPage {
     return object : SettingsPage() {
-        override val disable_padding: Boolean
-            @Composable
-            get() = !manual
         override val scrolling: Boolean
             @Composable
             get() = false

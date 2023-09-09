@@ -42,9 +42,6 @@ abstract class SettingsPage {
         internal set
     internal lateinit var settings_interface: SettingsInterface
 
-    open val disable_padding: Boolean
-        @Composable
-        get() = false
     open val scrolling: Boolean
         @Composable
         get() = true

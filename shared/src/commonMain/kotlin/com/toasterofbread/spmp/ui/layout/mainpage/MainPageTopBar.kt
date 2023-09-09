@@ -62,16 +62,6 @@ fun MainPageTopBar(modifier: Modifier = Modifier) {
                 can_show_visualiser = true
             )
 
-            var show_login_confirmation by remember { mutableStateOf(false) }
-            val login_page = player.context.ytapi.LoginPage.implementedOrNull()
-
-            if (login_page != null && show_login_confirmation) {
-                login_page.LoginConfirmationDialog(false) { param ->
-                    show_login_confirmation = false
-                    player.setOverlayPage(YtmLoginPage(login_page, param))
-                }
-            }
-
             Crossfade(player.main_page == player.main_page_state.Library) { library_open ->
                 if (library_open) {
                     IconButton({ player.navigateBack() }) {

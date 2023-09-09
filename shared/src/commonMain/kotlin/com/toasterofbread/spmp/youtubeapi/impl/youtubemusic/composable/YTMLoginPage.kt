@@ -4,6 +4,7 @@ import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,7 +30,6 @@ import com.google.gson.Gson
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.platform.WebViewLogin
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
-import com.toasterofbread.spmp.platform.getDefaultPaddingValues
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
@@ -45,6 +45,7 @@ import com.toasterofbread.spmp.youtubeapi.composable.LoginPage
 import com.toasterofbread.spmp.youtubeapi.endpoint.YoutubeChannelCreationFormEndpoint.YoutubeAccountCreationForm.ChannelCreationForm
 import com.toasterofbread.spmp.youtubeapi.executeResult
 import com.toasterofbread.spmp.youtubeapi.fromJson
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeChannelNotCreatedException
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
@@ -61,7 +62,12 @@ private const val MUSIC_LOGIN_URL = "https://accounts.google.com/v3/signin/ident
 
 class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
     @Composable
-    override fun LoginPage(modifier: Modifier, confirm_param: Any?, onFinished: (Result<YoutubeApi.UserAuthState>?) -> Unit) {
+    override fun LoginPage(
+        modifier: Modifier,
+        confirm_param: Any?,
+        content_padding: PaddingValues,
+        onFinished: (Result<YoutubeApi.UserAuthState>?) -> Unit
+    ) {
         val player = LocalPlayerState.current
         val manual = confirm_param == true
 
@@ -119,7 +125,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
                 val coroutine_scope = rememberCoroutineScope()
                 AccountSelectionPage(
                     state,
-                    Modifier.fillMaxWidth().padding(player.getDefaultPaddingValues())
+                    Modifier.fillMaxWidth().padding(content_padding)
                 ) { account ->
                     coroutine_scope.launch(Dispatchers.IO) {
                         account_selection_data = null
@@ -130,16 +136,16 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
             else if (state is Result<*>) {
                 val error = state.exceptionOrNull()
                 if (error != null) {
-                    ErrorInfoDisplay(error, Modifier.fillMaxWidth(), expanded_content_modifier = Modifier.fillMaxHeight())
+                    ErrorInfoDisplay(error, Modifier.fillMaxWidth().padding(content_padding), expanded_content_modifier = Modifier.fillMaxHeight())
                 }
             }
             else if (state == null) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(Modifier.fillMaxSize().padding(content_padding), contentAlignment = Alignment.Center) {
                     SubtleLoadingIndicator(message = getString("youtube_channel_creation_load_message"))
                 }
             }
             else if (manual) {
-                YoutubeMusicManualLogin(Modifier.fillMaxSize(), onFinished)
+                YoutubeMusicManualLogin(Modifier.fillMaxSize().padding(content_padding), onFinished)
             }
             else if (isWebViewLoginSupported()) {
                 var finished: Boolean by remember { mutableStateOf(false) }
@@ -147,7 +153,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
 
                 WebViewLogin(
                     api.api_url,
-                    Modifier.fillMaxSize(),
+                    Modifier.fillMaxSize().padding(content_padding),
                     loading_message = getString("youtube_login_load_message"),
                     shouldShowPage = { !it.startsWith(api.api_url) },
                     onClosed = { onFinished(null) }
@@ -274,9 +280,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
         return if (confirm_param == true) Icons.Default.PlayCircle else null
     }
 
-    override fun targetsDisabledPadding(confirm_param: Any?): Boolean {
-        return confirm_param == false
-    }
+    override fun targetsDisabledPadding(confirm_param: Any?): Boolean = false
 
     private fun completeLoginWithAccount(headers: Headers, account: AccountSwitcherEndpoint.AccountItem): Result<YoutubeMusicAuthInfo> {
         val account_headers: Headers
@@ -363,15 +367,27 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
             val result = api.performRequest(account_request)
             result.fold(
                 { response ->
-                    val parsed: YTAccountMenuResponse = api.gson.fromJson(response.body!!.charStream())!!
-                    response.close()
+                    try {
+                        val parsed: YTAccountMenuResponse = response.body!!.charStream().use { stream ->
+                            api.gson.fromJson(stream)
+                        }
 
-                    val channel = parsed.getAritst()
-                    if (channel == null) {
-                        return Result.failure(YoutubeChannelNotCreatedException(headers, parsed.getChannelCreationToken()))
+                        val channel = parsed.getAritst()
+                        if (channel == null) {
+                            return Result.failure(YoutubeChannelNotCreatedException(headers, parsed.getChannelCreationToken()))
+                        }
+
+                        return Result.success(YoutubeMusicAuthInfo(api, channel, headers))
                     }
-
-                    return Result.success(YoutubeMusicAuthInfo(api, channel, headers))
+                    catch (e: Throwable) {
+                        return Result.failure(
+                            DataParseException(cause = e) {
+                                runCatching {
+                                    api.performRequest(account_request).getOrThrow().body!!.string()
+                                }
+                            }
+                        )
+                    }
                 },
                 {
                     return Result.failure(it)

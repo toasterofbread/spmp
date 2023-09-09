@@ -79,11 +79,12 @@ fun ErrorInfoDisplay(
     message: String? = null,
     expanded_content_modifier: Modifier = Modifier.height(500.dp),
     disable_parent_scroll: Boolean = true,
+    start_expanded: Boolean = false,
     extraButtonContent: (@Composable () -> Unit)? = null,
     onExtraButtonPressed: (() -> Unit)? = null,
     onDismiss: (() -> Unit)? = null
 ) {
-    var expanded: Boolean by remember { mutableStateOf(false) }
+    var expanded: Boolean by remember { mutableStateOf(start_expanded) }
     val shape = RoundedCornerShape(20.dp)
 
     CompositionLocalProvider(LocalContentColor provides Theme.background) {

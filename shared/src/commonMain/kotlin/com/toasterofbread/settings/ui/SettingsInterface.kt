@@ -83,7 +83,6 @@ class SettingsInterface(
             Column(
                 Modifier
                     .fillMaxSize()
-                    .thenIf(!page.disable_padding, Modifier.padding(top = 18.dp, start = 20.dp, end = 20.dp))
                     .onSizeChanged { width = it.width }
             ) {
                 var go_back by remember { mutableStateOf(false) }
@@ -104,7 +103,7 @@ class SettingsInterface(
                     contentAlignment = Alignment.TopCenter
                 ) {
                     page.Page(
-                        if (!page.disable_padding) content_padding else PaddingValues(0.dp),
+                        content_padding,
                         { target_page_id, param ->
                             if (current_page.id != target_page_id) {
                                 page_stack.add(current_page)

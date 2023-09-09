@@ -1,15 +1,25 @@
 package com.toasterofbread.spmp.ui.layout.prefspage
 
 import LocalPlayerState
+import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.composesettings.ui.SettingsPage
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
+import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.youtubeapi.composable.LoginPage
-import java.net.SocketException
 
 internal fun getYoutubeMusicLoginPage(
     ytm_auth: SettingsValueState<Set<String>>,
@@ -22,9 +32,6 @@ internal fun getYoutubeMusicLoginPage(
                 return LocalPlayerState.current.context.ytapi.LoginPage
             }
 
-        override val disable_padding: Boolean
-            @Composable
-            get() = login_page.targetsDisabledPadding(confirm_param)
         override val scrolling: Boolean
             @Composable
             get() = false
@@ -46,18 +53,33 @@ internal fun getYoutubeMusicLoginPage(
             openCustomPage: (SettingsPage) -> Unit,
             goBack: () -> Unit,
         ) {
-            login_page.LoginPage(Modifier.fillMaxSize(), confirm_param) { result ->
-                result?.fold(
-                    { auth_info ->
-                        ytm_auth.set(auth_info.getSetData())
-                    },
-                    { error ->
-                        if (error !is SocketException) {
-                            throw RuntimeException(error)
-                        }
+            var login_error: Throwable? by remember { mutableStateOf(null) }
+            
+            Crossfade(login_error) { error ->
+                if (error == null) {
+                    login_page.LoginPage(Modifier.fillMaxSize(), confirm_param, content_padding) { result ->
+                        result?.fold(
+                            { auth_info ->
+                                ytm_auth.set(auth_info.getSetData())
+                                goBack()
+                            },
+                            { error ->
+                                login_error = error
+                            }
+                        )
                     }
-                )
-                goBack()
+                }
+                else {
+                    Box(Modifier.fillMaxSize().padding(content_padding), contentAlignment = Alignment.Center) {
+                        ErrorInfoDisplay(
+                            error,
+                            Modifier.fillMaxWidth(),
+                            expanded_content_modifier = Modifier.fillMaxHeight(),
+                            start_expanded = true,
+                            onDismiss = goBack
+                        )
+                    }
+                }
             }
         }
 

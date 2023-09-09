@@ -95,7 +95,6 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
         val ret = mutableListOf<MediaItemLayout>()
         for (row in rows) {
             when (val renderer = row.getRenderer()) {
-                is MusicDescriptionShelfRenderer -> continue
                 is YoutubeiHeaderContainer -> {
                     val header = renderer.header?.header_renderer ?: continue
 
@@ -165,7 +164,7 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
                         view_more = MediaItemViewMore(media_item)
                     )
                 }
-                else -> throw NotImplementedError(row.getRenderer().toString())
+                else -> continue
             }
         }
 

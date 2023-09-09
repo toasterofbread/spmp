@@ -9,6 +9,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -23,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -33,6 +37,7 @@ import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderArtist
+import com.toasterofbread.utils.modifier.vertical
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -58,19 +63,27 @@ fun RadioBuilderPage(
         }
     }
 
-    Box {
+    Box(modifier) {
         val pill_menu = remember {
             PillMenu(follow_player = true)
         }
         pill_menu.PillMenu()
         
-        Column(modifier.padding(horizontal = 10.dp)) {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(
+                    start = content_padding.calculateStartPadding(LocalLayoutDirection.current),
+                    end = content_padding.calculateEndPadding(LocalLayoutDirection.current),
+                    top = content_padding.calculateTopPadding()
+                )
+        ) {
             MusicTopBar(
                 Settings.KEY_LYRICS_SHOW_IN_RADIOBUILDER,
                 Modifier.fillMaxWidth()
             )
     
-            Crossfade(selected_artists) { selected ->
+            Crossfade(selected_artists, Modifier.fillMaxSize()) { selected ->
                 Column(
                     Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -123,7 +136,8 @@ fun RadioBuilderPage(
                         FilterSelectionPage(
                             selected,
                             artists_result!!.getOrThrow(),
-                            content_padding
+                            PaddingValues(bottom = content_padding.calculateBottomPadding()),
+                            Modifier.fillMaxSize().weight(1f)
                         )
                     }
                 }

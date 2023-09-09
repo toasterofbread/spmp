@@ -10,28 +10,8 @@ data class YoutubeiShelf(
     val musicPlaylistShelfRenderer: YTMGetHomeFeedEndpoint.MusicShelfRenderer?,
     val musicCardShelfRenderer: MusicCardShelfRenderer?,
     val gridRenderer: GridRenderer?,
-    val itemSectionRenderer: ItemSectionRenderer?,
-    val musicTastebuilderShelfRenderer: Any?,
-    val musicMultiRowListItemRenderer: MusicMultiRowListItemRenderer?,
-    val musicResponsiveHeaderRenderer: MusicResponsiveHeaderRenderer?
+    val itemSectionRenderer: ItemSectionRenderer?
 ) {
-    init {
-        assert(
-            musicShelfRenderer != null
-            || musicCarouselShelfRenderer != null
-            || musicDescriptionShelfRenderer != null
-            || musicPlaylistShelfRenderer != null
-            || musicCardShelfRenderer != null
-            || gridRenderer != null
-            || itemSectionRenderer != null
-            || musicTastebuilderShelfRenderer != null
-            || musicMultiRowListItemRenderer != null
-            || musicResponsiveHeaderRenderer != null
-        ) { "No known shelf renderer" }
-    }
-
-    val implemented: Boolean get() = musicTastebuilderShelfRenderer == null
-
     val title: TextRun? get() =
         if (musicShelfRenderer != null) musicShelfRenderer.title?.runs?.firstOrNull()
         else if (musicCarouselShelfRenderer != null) musicCarouselShelfRenderer.header.getRenderer()?.title?.runs?.firstOrNull()
@@ -67,16 +47,5 @@ data class YoutubeiShelf(
         musicPlaylistShelfRenderer ?:
         musicCardShelfRenderer ?:
         gridRenderer ?:
-        itemSectionRenderer ?:
-        musicTastebuilderShelfRenderer
-}
-
-class MusicResponsiveHeaderRenderer(
-    val thumbnail: Thumbnails,
-    val title: TextRuns,
-    val straplineThumbnail: Thumbnails,
-    val straplineTextOne: TextRuns,
-    val description: Description? = null
-) {
-    class Description(val musicDescriptionShelfRenderer: MusicDescriptionShelfRenderer?)
+        itemSectionRenderer
 }

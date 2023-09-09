@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -27,6 +28,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -108,14 +110,16 @@ internal fun RadioArtistSelector(
             val selected_border_size = 10.dp
 
             LazyVerticalGrid(GridCells.Fixed(3), modifier) {
-                items(artists.size) { index ->
-
-                    val radio_artist = artists[index]
-                    val artist = remember(radio_artist) {
-                        ArtistData(index.toString()).apply {
+                itemsIndexed(artists) { index, radio_artist ->
+                    val artist = remember(radio_artist, index) {
+                        ArtistData("RB$index").apply {
                             title = radio_artist.name
                             thumbnail_provider = MediaItemThumbnailProvider.fromThumbnails(listOf(radio_artist.thumbnail))
                         }
+                    }
+
+                    LaunchedEffect(artist) {
+                        artist.saveToDatabase(player.database)
                     }
 
                     Box(contentAlignment = Alignment.Center) {

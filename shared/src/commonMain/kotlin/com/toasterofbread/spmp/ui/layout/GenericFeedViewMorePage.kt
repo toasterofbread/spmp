@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.ui.layout
 
 import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -23,18 +25,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.ui.component.MusicTopBar
-import com.toasterofbread.spmp.ui.component.mediaitemlayout.getDefaultMediaItemPreviewSize
+import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
+import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
+import com.toasterofbread.spmp.ui.component.WAVE_BORDER_DEFAULT_HEIGHT
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.common.copy
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.composable.spanItem
+import kotlin.math.absoluteValue
 
 @Composable
 fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, content_padding: PaddingValues = PaddingValues(), title: String? = null) {
@@ -48,31 +54,40 @@ fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, co
     }
 
     Column(modifier) {
+        val top_padding: Dp = content_padding.calculateTopPadding()
+        var top_bar_showing: Boolean by remember { mutableStateOf(false) }
+
         MusicTopBar(
             Settings.KEY_LYRICS_SHOW_IN_VIEWMORE,
             Modifier.fillMaxWidth().zIndex(10f),
-            getBottomBorderColour = Theme.background_provider
+            getBottomBorderColour = Theme.background_provider,
+            padding = PaddingValues(top = top_padding),
+            onShowingChanged = { showing ->
+                top_bar_showing = showing
+            }
         )
+
+        val list_top_padding by animateDpAsState(if (top_bar_showing) WAVE_BORDER_DEFAULT_HEIGHT.dp else top_padding)
+        val list_padding = content_padding.copy(top = list_top_padding)
 
         items_result?.fold(
             { items ->
                 val multiselect_context = remember { MediaItemMultiSelectContext() }
 
                 val item_size = getDefaultMediaItemPreviewSize()
-                val item_spacing = 20.dp
+                val item_spacing = (item_size.width - item_size.height).value.absoluteValue.dp
                 val item_arrangement = Arrangement.spacedBy(item_spacing)
 
-                Column(Modifier.fillMaxSize().padding(horizontal = item_spacing)) {
+                Column(Modifier.fillMaxSize()) {
                     AnimatedVisibility(multiselect_context.is_active) {
-                        multiselect_context.InfoDisplay(Modifier.fillMaxWidth().padding(top = item_spacing))
+                        multiselect_context.InfoDisplay(Modifier.fillMaxWidth().padding(top = WAVE_BORDER_DEFAULT_HEIGHT.dp))
                     }
 
                     LazyVerticalGrid(
-                        GridCells.Adaptive(item_size.width),
+                        GridCells.Adaptive(maxOf(item_size.width, item_size.height)),
                         Modifier.fillMaxWidth(),
-                        contentPadding = content_padding.copy(top = item_spacing),
-                        verticalArrangement = item_arrangement,
-                        horizontalArrangement = item_arrangement
+                        contentPadding = list_padding,
+                        verticalArrangement = item_arrangement
                     ) {
                         if (title != null) {
                             spanItem {
@@ -83,7 +98,7 @@ fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, co
                         items(items) { item ->
                             MediaItemPreviewSquare(
                                 item,
-                                Modifier.size(item_size),
+                                Modifier.requiredSize(item_size),
                                 multiselect_context = multiselect_context
                             )
                         }
@@ -92,8 +107,7 @@ fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, co
 
             },
             { error ->
-                // TODO
-                Text(error.stackTraceToString())
+                ErrorInfoDisplay(error, Modifier.fillMaxWidth().padding(list_padding))
             }
         ) ?: Box(Modifier.fillMaxSize().weight(1f), contentAlignment = Alignment.Center) {
             SubtleLoadingIndicator()

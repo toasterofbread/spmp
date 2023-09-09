@@ -49,14 +49,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.artist.toReadableSubscriberCount
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
-import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.WidthShrinkText
 

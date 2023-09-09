@@ -22,7 +22,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
-import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
@@ -235,7 +235,7 @@ class RadioInstance(
                     val (error, callback) = it.second!!
                     ErrorInfoDisplay(
                         error,
-                        expanded_modifier = expanded_modifier,
+                        expanded_content_modifier = expanded_modifier,
                         disable_parent_scroll = disable_parent_scroll,
                         extraButtonContent = { Text(getString("radio_action_retry_failed_load")) },
                         onExtraButtonPressed = 

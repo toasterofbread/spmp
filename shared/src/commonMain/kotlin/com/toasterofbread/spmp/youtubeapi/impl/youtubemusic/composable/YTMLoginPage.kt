@@ -130,7 +130,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
             else if (state is Result<*>) {
                 val error = state.exceptionOrNull()
                 if (error != null) {
-                    ErrorInfoDisplay(error, Modifier.fillMaxWidth(), expanded_modifier = Modifier.fillMaxHeight())
+                    ErrorInfoDisplay(error, Modifier.fillMaxWidth(), expanded_content_modifier = Modifier.fillMaxHeight())
                 }
             }
             else if (state == null) {

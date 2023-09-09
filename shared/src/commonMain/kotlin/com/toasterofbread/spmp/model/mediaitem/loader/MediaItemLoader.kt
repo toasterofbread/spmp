@@ -19,7 +19,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter
 import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 import java.util.concurrent.locks.ReentrantLock
 

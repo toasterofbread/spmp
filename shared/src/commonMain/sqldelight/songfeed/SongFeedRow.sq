@@ -1,0 +1,25 @@
+CREATE TABLE SongFeedRow (
+    row_index INTEGER NOT NULL PRIMARY KEY,
+
+--  items SongFeedRowItem
+    creation_time INTEGER NOT NULL,
+    continuation_token TEXT,
+
+    title_type INTEGER,
+    title_key TEXT,
+    title_lang TEXT,
+    view_more_type INTEGER,
+    view_more_data TEXT
+);
+
+getAll: SELECT * FROM SongFeedRow ORDER BY row_index;
+
+insert:
+INSERT INTO SongFeedRow(row_index, creation_time, continuation_token, title_type, title_key, title_lang, view_more_type, view_more_data)
+VALUES (:row_index, :creation_time, :continuation_token, :title_type, :title_key, :title_lang, :view_more_type, :view_more_data);
+
+clearAllFeedData {
+    DELETE FROM SongFeedRowItem;
+    DELETE FROM SongFeedRow;
+    DELETE FROM SongFeedFilter;
+}

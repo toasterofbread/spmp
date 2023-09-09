@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Button
@@ -21,7 +20,7 @@ import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
-import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.launch
 
@@ -48,7 +47,7 @@ fun PlaylistPage.PlaylistFooter(
                 ErrorInfoDisplay(
                     state,
                     Modifier.fillMaxWidth(),
-                    expanded_modifier = Modifier.height(500.dp),
+                    expanded_content_modifier = Modifier.height(500.dp),
                     message = "Playlist load failed"
                 )
             }

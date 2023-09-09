@@ -51,6 +51,7 @@ import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
 import com.toasterofbread.spmp.model.mediaitem.isMediaItemHidden
+import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon

@@ -6,7 +6,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
-import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.youtubeapi.endpoint.LoadPlaylistEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi

@@ -16,7 +16,8 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeDurationString
 import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeSubscribersString
-import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemViewMore
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.fromJson
 import com.toasterofbread.spmp.youtubeapi.getReader
@@ -27,7 +28,6 @@ import com.toasterofbread.spmp.youtubeapi.radio.YoutubeiNextResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Response
-import java.io.InputStream
 import java.io.Reader
 
 class InvalidRadioException: Throwable()
@@ -227,7 +227,7 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                     }
 
                     val view_more = row.value.getNavigationEndpoint()?.getViewMore(item)
-                    if (view_more is MediaItemLayout.MediaItemViewMore) {
+                    if (view_more is MediaItemViewMore) {
                         val view_more_item = view_more.media_item as MediaItemData
                         view_more_item.title = layout_title?.getString()
                         if (view_more_item is MediaItem.DataWithArtist) {

@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.youtubeapi.endpoint
 
 import com.toasterofbread.spmp.model.FilterChip
-import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 
 data class HomeFeedLoadResult(

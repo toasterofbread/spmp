@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.DpSize
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.layout.BrowseParamsData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
@@ -23,7 +24,7 @@ import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
 import com.toasterofbread.spmp.service.playerservice.PlayerService
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
-import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
@@ -235,7 +236,7 @@ open class PlayerState protected constructor(
         item: MediaItem,
         from_current: Boolean = false,
         replace_current: Boolean = false,
-        browse_params: MediaItemLayout.BrowseParamsData? = null,
+        browse_params: BrowseParamsData? = null,
     ) { upstream!!.openMediaItem(
         item,
         from_current,

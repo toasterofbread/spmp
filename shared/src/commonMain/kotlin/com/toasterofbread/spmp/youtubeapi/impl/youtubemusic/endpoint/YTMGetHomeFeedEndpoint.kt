@@ -1,15 +1,15 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 
 import SpMp
-import com.toasterofbread.spmp.model.FilterChip
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
-import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemViewMore
+import com.toasterofbread.spmp.model.mediaitem.layout.PlainViewMore
+import com.toasterofbread.spmp.model.mediaitem.layout.ViewMore
 import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedLoadResult
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.ChipCloudRendererHeader
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import com.toasterofbread.spmp.youtubeapi.model.MusicDescriptionShelfRenderer
@@ -102,7 +102,7 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
                     fun add(
                         title: LocalisedYoutubeString,
                         subtitle: LocalisedYoutubeString? = null,
-                        view_more: MediaItemLayout.ViewMore? = null,
+                        view_more: ViewMore? = null,
                         type: MediaItemLayout.Type? = null
                     ) {
                         val items = row.getMediaItems(hl).toMutableList()
@@ -144,7 +144,7 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
                         add(
                             LocalisedYoutubeString.Type.APP.create(view_more_page_title_key),
                             null,
-                            view_more = MediaItemLayout.PlainViewMore(browse_endpoint.browseId),
+                            view_more = PlainViewMore(browse_endpoint.browseId),
                             type = when(browse_endpoint.browseId) {
                                 "FEmusic_listen_again" -> MediaItemLayout.Type.GRID_ALT
                                 else -> null
@@ -162,7 +162,7 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
                     add(
                         LocalisedYoutubeString.Type.RAW.create(header.title.first_text),
                         header.subtitle?.first_text?.let { LocalisedYoutubeString.Type.HOME_FEED.create(it) },
-                        view_more = MediaItemLayout.MediaItemViewMore(media_item)
+                        view_more = MediaItemViewMore(media_item)
                     )
                 }
                 else -> throw NotImplementedError(row.getRenderer().toString())

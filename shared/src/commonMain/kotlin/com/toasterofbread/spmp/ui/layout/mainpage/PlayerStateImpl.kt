@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.*
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.layout.BrowseParamsData
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.*
@@ -25,7 +26,7 @@ import com.toasterofbread.spmp.service.playerservice.PlayerService
 import com.toasterofbread.spmp.ui.component.*
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenu
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
-import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.ui.component.mediaitempreview.*
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.*
@@ -260,7 +261,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
         hideLongPressMenu()
     }
 
-    override fun openMediaItem(item: MediaItem, from_current: Boolean, replace_current: Boolean, browse_params: MediaItemLayout.BrowseParamsData?) {
+    override fun openMediaItem(item: MediaItem, from_current: Boolean, replace_current: Boolean, browse_params: BrowseParamsData?) {
         if (item is Artist && item.IsForItem.get(context.database)) {
             return
         }
@@ -390,10 +391,6 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
         CompositionLocalProvider(LocalContentColor provides Theme.on_background) {
             Crossfade(targetState = overlay_page) { page ->
                 Column(Modifier.fillMaxSize()) {
-                    if (page != null && page.first !is MediaItemPage) {
-                        Spacer(Modifier.requiredHeight(context.getStatusBarHeightDp()))
-                    }
-
                     val close = remember { { navigateBack() } }
 
                     if (page == null) {

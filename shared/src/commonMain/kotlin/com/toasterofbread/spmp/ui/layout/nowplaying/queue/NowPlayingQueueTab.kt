@@ -130,17 +130,27 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
 
     val items_above_queue = if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) 1 else 0
     val queue_list_state = rememberReorderableLazyListState(
-        onMove = { from, to ->
-            song_items.add(to.index - items_above_queue, song_items.removeAt(from.index - items_above_queue))
-        },
-        onDragEnd = { from, to ->
-            if (from != to) {
-                song_items.add(from - items_above_queue, song_items.removeAt(to - items_above_queue))
-                player.player?.undoableAction {
-                    moveSong(from - items_above_queue, to - items_above_queue)
-                }
-                playing_key = null
+        onMove = { base_from, base_to ->
+            val from = base_from.index - items_above_queue
+            val to = base_to.index - items_above_queue
+            if (to !in song_items.indices || from !in song_items.indices) {
+                return@rememberReorderableLazyListState
             }
+
+            song_items.add(to, song_items.removeAt(from))
+        },
+        onDragEnd = { base_from, base_to ->
+            val from = base_from - items_above_queue
+            val to = base_to - items_above_queue
+            if (from == to || to !in song_items.indices || from !in song_items.indices) {
+                return@rememberReorderableLazyListState
+            }
+
+            song_items.add(from, song_items.removeAt(to))
+            player.player?.undoableAction {
+                moveSong(from, to)
+            }
+            playing_key = null
         }
     )
 

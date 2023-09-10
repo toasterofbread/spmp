@@ -6,6 +6,8 @@ import android.os.Build
 import android.view.ViewGroup
 import android.webkit.*
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -81,7 +83,7 @@ actual fun WebViewLogin(
     var show_webview by remember { mutableStateOf(false) }
 
     Box(contentAlignment = Alignment.Center) {
-        AnimatedVisibility(!show_webview) {
+        AnimatedVisibility(!show_webview, enter = fadeIn(), exit = fadeOut()) {
             SubtleLoadingIndicator(message = loading_message)
         }
 

@@ -32,6 +32,7 @@ import com.toasterofbread.spmp.youtubeapi.endpoint.UserAuthStateEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.YoutubeChannelCreationFormEndpoint
 import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.unimplemented.UnimplementedYoutubeApi
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.PLAIN_HEADERS
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.failure
 import okhttp3.Headers
@@ -130,10 +131,9 @@ interface YoutubeApi {
     suspend fun Request.Builder.addAuthApiHeaders(
         include: List<String>? = null
     ): Request.Builder {
-        user_auth_state?.also { auth ->
-            for (header in auth.headers) {
-                header(header.first, header.second)
-            }
+        if (user_auth_state != null) {
+            user_auth_state?.addHeadersToRequest(this, include)
+            return this
         }
         return addAuthlessApiHeaders(include)
     }
@@ -286,6 +286,18 @@ interface YoutubeApi {
             }
         }
 
+        fun addHeadersToRequest(builder: Request.Builder, include: List<String>? = null) {
+            if (!include.isNullOrEmpty()) {
+                for (header in include.ifEmpty { PLAIN_HEADERS }) {
+                    val value = headers[header] ?: continue
+                    builder.header(header, value)
+                }
+            }
+            else {
+                builder.headers(headers)
+            }
+        }
+
         abstract class UserAuthEndpoint: Endpoint() {
             protected abstract val auth: UserAuthState
             override val api: YoutubeApi get() = auth.api
@@ -295,10 +307,10 @@ interface YoutubeApi {
                     addAuthlessApiHeaders(include)
                 }
 
-            override suspend fun Request.Builder.addAuthApiHeaders(include: List<String>?): Request.Builder =
-                with (api) {
-                    headers(auth.headers).addAuthlessApiHeaders(include)
-                }
+            override suspend fun Request.Builder.addAuthApiHeaders(include: List<String>?): Request.Builder {
+                auth.addHeadersToRequest(this, include)
+                return this
+            }
         }
 
         // --- Account playlists ---

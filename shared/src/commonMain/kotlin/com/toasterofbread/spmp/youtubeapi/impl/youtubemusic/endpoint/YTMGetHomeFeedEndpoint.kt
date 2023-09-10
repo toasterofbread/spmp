@@ -40,7 +40,7 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
             val endpoint = "/youtubei/v1/browse"
             val request = Request.Builder()
                 .endpointUrl(if (ctoken == null) endpoint else "$endpoint?ctoken=$ctoken&continuation=$ctoken&type=next")
-                .addAuthApiHeaders(listOf())
+                .addAuthApiHeaders()
                 .postWithBody(
                     params?.let {
                         mapOf("params" to it)

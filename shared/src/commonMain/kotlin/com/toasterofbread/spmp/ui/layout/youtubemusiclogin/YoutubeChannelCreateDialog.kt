@@ -44,7 +44,6 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import okhttp3.Headers
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun YoutubeChannelCreateDialog(
     headers: Headers,

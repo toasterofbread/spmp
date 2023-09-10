@@ -27,23 +27,18 @@ class YoutubeChannelNotCreatedException(
     val channel_creation_token: String?
 ): RuntimeException()
 
-class YoutubeMusicAuthInfo(
+class YoutubeMusicAuthInfo private constructor(
     override val api: YoutubeMusicApi,
     override val own_channel: Artist,
     override val headers: Headers
 ): YoutubeApi.UserAuthState {
-    init {
-        lazyAssert(
-            {
-                "Own channel (${own_channel.id}) is not in database"
-            }
-        ) {
-            api.context.database.artistQueries.byId(own_channel.id).executeAsOneOrNull() != null
-        }
-    }
-
     companion object {
         val REQUIRED_HEADERS = listOf("authorization", "cookie")
+
+        fun create(api: YoutubeMusicApi, own_channel: Artist, headers: Headers): YoutubeMusicAuthInfo {
+            own_channel.createDbEntry(api.database)
+            return YoutubeMusicAuthInfo(api, own_channel, headers)
+        }
     }
 
     override val AccountPlaylists = YTMAccountPlaylistsEndpoint(this)

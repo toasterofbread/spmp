@@ -51,11 +51,11 @@ import java.time.Duration
 import java.util.logging.Level
 import java.util.logging.Logger
 
-private val PLAIN_HEADERS = listOf("accept-language", "user-agent", "accept-encoding", "content-encoding", "origin")
+internal val PLAIN_HEADERS = listOf("accept-language", "user-agent", "accept-encoding", "content-encoding", "origin")
 
 class RelatedGroup(val title: String, val items: List<MediaItem>?, val description: String?)
 
-class YoutubeMusicApi(
+data class YoutubeMusicApi(
     override val context: PlatformContext,
     val api_url: String = YoutubeApi.Type.YOUTUBE_MUSIC.getDefaultUrl(),
 ): YoutubeApi {
@@ -254,14 +254,14 @@ class YoutubeMusicApi(
 
     private fun onUserAuthStateChanged() {
         user_auth_state = YoutubeApi.UserAuthState.unpackSetData(Settings.KEY_YTM_AUTH.get(context), context).let { data ->
-            if (data.first != null) YoutubeMusicAuthInfo(this, data.first!!, data.second)
+            if (data.first != null) YoutubeMusicAuthInfo.create(this, data.first!!, data.second)
             else null
         }
     }
 
     override var user_auth_state: YoutubeMusicAuthInfo? by mutableStateOf(
         YoutubeApi.UserAuthState.unpackSetData(Settings.KEY_YTM_AUTH.get(context), context).let { data ->
-            if (data.first != null) YoutubeMusicAuthInfo(this, data.first!!, data.second)
+            if (data.first != null) YoutubeMusicAuthInfo.create(this, data.first!!, data.second)
             else null
         }
     )

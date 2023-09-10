@@ -101,9 +101,8 @@ class SettingsValueState<T: Any>(
 
     override fun get(): T = _value!!
     override fun set(value: T) {
-        if (_value == null) {
-            throw IllegalStateException("State has not been initialised")
-        }
+        check(_value != null) { "State has not been initialised" }
+
         if (_value == value) {
             return
         }

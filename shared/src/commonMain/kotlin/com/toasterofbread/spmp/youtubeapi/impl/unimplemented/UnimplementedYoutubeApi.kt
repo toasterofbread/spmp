@@ -79,10 +79,6 @@ class UnimplementedYoutubeApi(
     override val user_auth_state: YoutubeApi.UserAuthState? = null
     override val UpdateUserAuthState = object : UserAuthStateEndpoint() {
         override fun isImplemented(): Boolean = false
-        override fun byChannelAndHeaders(own_channel: Artist?, headers: Headers): Result<YoutubeApi.UserAuthState> {
-            TODO("Not yet implemented")
-        }
-
         override suspend fun byHeaders(headers: Headers): Result<YoutubeApi.UserAuthState> {
             TODO("Not yet implemented")
         }

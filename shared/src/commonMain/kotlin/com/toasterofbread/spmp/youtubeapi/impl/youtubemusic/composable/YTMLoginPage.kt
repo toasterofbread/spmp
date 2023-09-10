@@ -56,6 +56,7 @@ import kotlinx.coroutines.launch
 import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.Response
 import java.net.URI
 
 private const val MUSIC_LOGIN_URL = "https://accounts.google.com/v3/signin/identifier?dsh=S1527412391%3A1678373417598386&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den-GB%26next%3Dhttps%253A%252F%252Fmusic.youtube.com%252F%253Fcbrd%253D1%26feature%3D__FEATURE__&hl=en-GB&ifkv=AWnogHfK4OXI8X1zVlVjzzjybvICXS4ojnbvzpE4Gn_Pfddw7fs3ERdfk-q3tRimJuoXjfofz6wuzg&ltmpl=music&passive=true&service=youtube&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin"
@@ -104,7 +105,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
                         { channel ->
                             onFinished(
                                 Result.success(
-                                    YoutubeMusicAuthInfo(
+                                    YoutubeMusicAuthInfo.create(
                                         api,
                                         channel,
                                         channel_error.headers
@@ -153,7 +154,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
 
                 WebViewLogin(
                     api.api_url,
-                    Modifier.fillMaxSize().padding(content_padding),
+                    Modifier.fillMaxSize(),
                     loading_message = getString("youtube_login_load_message"),
                     shouldShowPage = { !it.startsWith(api.api_url) },
                     onClosed = { onFinished(null) }
@@ -173,31 +174,37 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
                             finished = true
 
                             val cookie = getCookie(api.api_url)
-                            val headers = Headers.Builder()
-                                .add("cookie", cookie)
+                            val headers_builder = Headers.Builder()
+                                .add("Cookie", cookie)
                                 .apply {
                                     for (header in request.requestHeaders) {
                                         add(header.key, header.value)
                                     }
                                 }
-                                .build()
 
                             val account_switcher_request = with(api) {
                                 Request.Builder()
                                     .endpointUrl("/getAccountSwitcherEndpoint")
-                                    .headers(headers)
+                                    .headers(headers_builder.build())
                                     .get()
                                     .build()
                             }
 
                             val switcher_result = OkHttpClient().executeResult(account_switcher_request)
-                            val response = switcher_result.fold(
+                            val response: Response = switcher_result.fold(
                                 { it },
                                 { error ->
                                     onFinished(Result.failure(error))
                                     return@synchronized
                                 }
                             )
+
+                            val new_cookies = response.headers.mapNotNull { header ->
+                                if (header.first.lowercase() == "set-cookie") header.second
+                                else null
+                            }
+
+                            headers_builder["Cookie"] = replaceCookiesInString(cookie, new_cookies)
 
                             try {
                                 val response_body = response.body!!.string()
@@ -209,7 +216,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
 
                                 val accounts = parsed.getAccounts().filter { it.serviceEndpoint.selectActiveIdentityEndpoint.supportedTokens.any { it.accountSigninToken != null } }
                                 if (accounts.size > 1) {
-                                    account_selection_data = AccountSelectionData(accounts, headers)
+                                    account_selection_data = AccountSelectionData(accounts, headers_builder.build())
                                     return@synchronized
                                 }
                             }
@@ -221,7 +228,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
                                 response.close()
                             }
 
-                            val auth_result = completeLogin(headers)
+                            val auth_result = completeLogin(headers_builder.build())
                             auth_result.onFailure { error ->
                                 if (error is YoutubeChannelNotCreatedException) {
                                     channel_not_created_error = error
@@ -282,6 +289,32 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
 
     override fun targetsDisabledPadding(confirm_param: Any?): Boolean = false
 
+    private fun replaceCookiesInString(base_cookies: String, new_cookies: List<String>): String {
+        var cookie_string = base_cookies
+
+        for (cookie in new_cookies) {
+            val split = cookie.split('=', limit = 2)
+
+            val name: String = split[0]
+            val new_value: String = split[1].split(';', limit = 2)[0]
+
+            val cookie_start = cookie_string.indexOf("$name=") + name.length + 1
+            if (cookie_start != -1) {
+                val cookie_end = cookie_string.indexOf(';', cookie_start)
+                cookie_string = (
+                        cookie_string.substring(0, cookie_start)
+                                + new_value
+                                + if (cookie_end != -1) cookie_string.substring(cookie_end, cookie_string.length) else ""
+                        )
+            }
+            else {
+                cookie_string += "; $name=$new_value"
+            }
+        }
+
+        return cookie_string
+    }
+
     private fun completeLoginWithAccount(headers: Headers, account: AccountSwitcherEndpoint.AccountItem): Result<YoutubeMusicAuthInfo> {
         val account_headers: Headers
 
@@ -313,27 +346,10 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
                 }
             )
 
-            var cookie_string = headers["Cookie"]!!
-
-            for (cookie in new_cookies) {
-                val split = cookie.split('=', limit = 2)
-
-                val name: String = split[0]
-                val new_value: String = split[1].split(';', limit = 2)[0]
-
-                val cookie_start = cookie_string.indexOf("$name=") + name.length + 1
-                if (cookie_start != -1) {
-                    val cookie_end = cookie_string.indexOf(';', cookie_start)
-                    cookie_string = (
-                            cookie_string.substring(0, cookie_start)
-                                    + new_value
-                                    + if (cookie_end != -1) cookie_string.substring(cookie_end, cookie_string.length) else ""
-                            )
-                }
-                else {
-                    cookie_string += "; $name=$new_value"
-                }
-            }
+            val cookie_string = replaceCookiesInString(
+                headers["Cookie"]!!,
+                new_cookies
+            )
 
             account_headers = headers
                 .newBuilder()
@@ -345,7 +361,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
 
             if (channel_id != null) {
                 return Result.success(
-                    YoutubeMusicAuthInfo(api, ArtistRef("UC$channel_id"), account_headers)
+                    YoutubeMusicAuthInfo.create(api, ArtistRef("UC$channel_id"), account_headers)
                 )
             }
         }
@@ -372,12 +388,19 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
                             api.gson.fromJson(stream)
                         }
 
+                        val headers_builder = headers.newBuilder()
+                        val new_cookies = response.headers.mapNotNull { header ->
+                            if (header.first == "Set-Cookie") header.second
+                            else null
+                        }
+                        headers_builder["Cookie"] = replaceCookiesInString(headers_builder["Cookie"]!!, new_cookies)
+
                         val channel = parsed.getAritst()
                         if (channel == null) {
-                            return Result.failure(YoutubeChannelNotCreatedException(headers, parsed.getChannelCreationToken()))
+                            return Result.failure(YoutubeChannelNotCreatedException(headers_builder.build(), parsed.getChannelCreationToken()))
                         }
 
-                        return Result.success(YoutubeMusicAuthInfo(api, channel, headers))
+                        return Result.success(YoutubeMusicAuthInfo.create(api, channel, headers_builder.build()))
                     }
                     catch (e: Throwable) {
                         return Result.failure(

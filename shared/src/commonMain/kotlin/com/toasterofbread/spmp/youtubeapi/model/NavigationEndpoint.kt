@@ -8,11 +8,11 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 
 data class NavigationEndpoint(
-    val watchEndpoint: WatchEndpoint? = null,
-    val browseEndpoint: BrowseEndpoint? = null,
-    val searchEndpoint: SearchEndpoint? = null,
-    val watchPlaylistEndpoint: WatchPlaylistEndpoint? = null,
-    val channelCreationFormEndpoint: ChannelCreationFormEndpoint? = null
+    val watchEndpoint: WatchEndpoint?,
+    val browseEndpoint: BrowseEndpoint?,
+    val searchEndpoint: SearchEndpoint?,
+    val watchPlaylistEndpoint: WatchPlaylistEndpoint?,
+    val channelCreationFormEndpoint: ChannelCreationFormEndpoint?
 ) {
     fun getMediaItem(): MediaItemData? {
         if (watchEndpoint != null) {

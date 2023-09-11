@@ -105,10 +105,10 @@
 
     <string name="playlist_upload_to_account">アカウントにアップロードする</string>
 
-    <string name="sort_option_playlist">プレイリストの順番</string>
-    <string name="sort_option_alphabet">名前</string>
-    <string name="sort_option_duration">長さ</string>
-    <string name="sort_option_playcount">再生数</string>
+    <string name="sort_type_playlist">プレイリストの順番</string>
+    <string name="sort_type_alphabet">名前</string>
+    <string name="sort_type_duration">長さ</string>
+    <string name="sort_type_playcount">再生数</string>
 
     <string name="playlist_chip_play">再生</string>
     <string name="playlist_chip_shuffle">シャッフル</string>
@@ -134,6 +134,11 @@
     <string name="player_service_name">プレイヤーサービス</string>
     <string name="download_service_name">ダウンロードサービス</string>
     <string name="download_service_error_name">ダウンロードサービスエラー</string>
+
+    <string name="downloading_song_$title">$titleをダウンロード中</string>
+    <string name="downloading_$x_songs">$x曲をダウンロード中</string>
+    <string name="download_just_started">たった今</string>
+    <string name="download_started_$x_minutes_ago">$x分前</string>
 
     <string name="search_filter_all">全て</string>
     <string name="search_filter_videos">動画</string>
@@ -161,8 +166,10 @@
 
     <string name="error_message_generic">エラーが発生しました</string>
     <string name="error_yt_feed_parse_failed">YouTubeフィード解析に失敗しました</string>
+    <string name="error_player_service_not_connected">プレイヤーサービスとの接続がありません&#xA;バグが発生してる可能性があります</string>
 
     <string name="throw_error">スロー</string>
+    <string name="report_error">報告する</string>
     <string name="wrap_text_switch_label">折り返す</string>
     <string name="upload_to_paste_dot_ee">Paste.eeにアップロード</string>
     <string name="error_info_display_show_json_data">JSONデータを表示</string>

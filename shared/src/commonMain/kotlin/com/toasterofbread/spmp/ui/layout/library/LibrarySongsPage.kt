@@ -50,7 +50,7 @@ class LibrarySongsPage(context: PlatformContext): LibrarySubPage(context) {
         var sorted_songs: List<Song> by remember { mutableStateOf(emptyList()) }
 
         with(library_page) {
-            LaunchedEffect(search_filter, sort_option, reverse_sort, downloads) {
+            LaunchedEffect(search_filter, sort_type, reverse_sort, downloads) {
                 val filter = if (search_filter?.isNotEmpty() == true) search_filter else null
                 val filtered = downloads.mapNotNull {  download ->
                     if (download.progress != 1f) return@mapNotNull null
@@ -62,7 +62,7 @@ class LibrarySongsPage(context: PlatformContext): LibrarySubPage(context) {
                     return@mapNotNull download.song
                 }
 
-                sorted_songs = sort_option.sortItems(filtered, player.database, reverse_sort)
+                sorted_songs = sort_type.sortItems(filtered, player.database, reverse_sort)
             }
         }
 

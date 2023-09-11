@@ -13,9 +13,9 @@ enum class MediaItemSortType {
     fun getReadable(native_string_key: String? = null): String =
         getString(when(this) {
             NATIVE ->     native_string_key!!
-            ALPHABET ->   "sort_option_alphabet"
-            DURATION ->   "sort_option_duration"
-            PLAY_COUNT -> "sort_option_playcount"
+            ALPHABET ->   "sort_type_alphabet"
+            DURATION ->   "sort_type_duration"
+            PLAY_COUNT -> "sort_type_playcount"
         })
 
     fun <T: MediaItem> sortItems(items: List<T>, db: Database, reversed: Boolean = false): List<T> {
@@ -36,6 +36,15 @@ enum class MediaItemSortType {
             }
         }
         return items.sortedWith(if (reverse) compareByDescending(selector) else compareBy(selector))
+    }
+
+    fun <T: MediaItem> sortAndFilterItems(items: List<T>, filter: String?, db: Database, reversed: Boolean): List<T> {
+        val sorted = sortItems(items, db, reversed)
+        if (filter == null) {
+            return sorted
+        }
+
+        return sorted.filter { it.getActiveTitle(db)?.contains(filter, true) == true }
     }
 
     companion object {

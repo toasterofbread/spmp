@@ -80,7 +80,7 @@ fun ArtistPage(
     val db = player.context.database
 
     lazyAssert {
-        !artist.IsForItem.get(db)
+        !artist.isForItem()
     }
 
     var load_error: Throwable? by remember { mutableStateOf(null) }

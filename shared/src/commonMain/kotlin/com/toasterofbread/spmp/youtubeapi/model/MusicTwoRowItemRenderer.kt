@@ -15,9 +15,9 @@ import com.toasterofbread.spmp.youtubeapi.radio.YoutubeiNextResponse
 class MusicTwoRowItemRenderer(
     val navigationEndpoint: NavigationEndpoint,
     val title: TextRuns,
-    val subtitle: TextRuns? = null,
+    val subtitle: TextRuns?,
     val thumbnailRenderer: ThumbnailRenderer,
-    val menu: YoutubeiNextResponse.Menu? = null
+    val menu: YoutubeiNextResponse.Menu?
 ) {
     private fun getArtist(host_item: MediaItemData): Artist? {
         for (run in subtitle?.runs ?: emptyList()) {
@@ -34,7 +34,10 @@ class MusicTwoRowItemRenderer(
         if (host_item is SongData) {
             val index = if (host_item.song_type == SongType.VIDEO) 0 else 1
             subtitle?.runs?.getOrNull(index)?.also {
-                return ArtistData.createForItem(host_item).apply {
+                println("RUNS")
+                println(subtitle)
+                println("---")
+                return ArtistData(Artist.getForItemId(host_item)).apply {
                     title = it.text
                 }
             }

@@ -3,6 +3,8 @@
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -44,7 +46,7 @@ import com.toasterofbread.spmp.resources.uilocalisation.localised.UILanguages
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.mainpage.RootView
-import com.toasterofbread.spmp.ui.layout.mainpage.ServiceNotConnectedView
+import com.toasterofbread.spmp.ui.layout.mainpage.LoadingSplashView
 import com.toasterofbread.spmp.ui.theme.ApplicationTheme
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.fromJson
@@ -140,9 +142,7 @@ object SpMp {
                     if (player_state.service_connected) {
                         RootView(player_state)
                     }
-                    else {
-                        ServiceNotConnectedView()
-                    }
+                    LoadingSplashView(player_state.service_connected, Modifier.fillMaxSize())
                 }
                 error_manager.Indicator(Theme.accent_provider)
             }

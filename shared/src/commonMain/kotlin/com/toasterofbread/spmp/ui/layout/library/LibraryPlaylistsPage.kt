@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.library.createLocalPlaylist
@@ -48,7 +49,7 @@ import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.utils.composable.LoadActionIconButton
 import com.toasterofbread.utils.composable.spanItem
 
-class LibraryPlaylistsPage(context: PlatformContext): LibrarySubPage(context) {
+internal class LibraryPlaylistsPage(context: PlatformContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =
         MediaItemType.PLAYLIST_REM.getIcon()
 
@@ -67,6 +68,11 @@ class LibraryPlaylistsPage(context: PlatformContext): LibrarySubPage(context) {
         val local_playlists: List<LocalPlaylistData> = MediaItemLibrary.rememberLocalPlaylists(player.context) ?: emptyList()
         val account_playlists: List<RemotePlaylistRef>? = api.user_auth_state?.own_channel?.let { own_channel ->
             rememberOwnedPlaylists(own_channel, player.context)
+        }
+
+        val sorted_local_playlists = library_page.sort_type.sortAndFilterItems(local_playlists, library_page.search_filter, player.database, library_page.reverse_sort)
+        val sorted_account_playlists = account_playlists?.let { playlists ->
+            library_page.sort_type.sortAndFilterItems(playlists, library_page.search_filter, player.database, library_page.reverse_sort)
         }
 
         val item_spacing: Dp = 15.dp
@@ -90,7 +96,7 @@ class LibraryPlaylistsPage(context: PlatformContext): LibrarySubPage(context) {
 
             PlaylistItems(
                 "Local playlists",
-                local_playlists,
+                sorted_local_playlists,
                 multiselect_context,
                 cornerContent = {
                     LoadActionIconButton({
@@ -104,10 +110,10 @@ class LibraryPlaylistsPage(context: PlatformContext): LibrarySubPage(context) {
                 }
             )
 
-            if (account_playlists != null) {
+            if (sorted_account_playlists != null) {
                 PlaylistItems(
                     "Account playlists",
-                    account_playlists,
+                    sorted_account_playlists,
                     multiselect_context,
                     cornerContent = {
                         Row {

@@ -173,13 +173,13 @@ internal fun Controls(
                         .platformClickable(
                             onClick = {
                                 val artist: Artist? = song?.Artist?.get(db)
-                                if (artist?.IsForItem?.get(db) == false) {
+                                if (artist?.isForItem() == false) {
                                     player.onMediaItemClicked(artist)
                                 }
                             },
                             onAltClick = {
                                 val artist: Artist? = song?.Artist?.get(db)
-                                if (artist?.IsForItem?.get(db) == false) {
+                                if (artist?.isForItem() == false) {
                                     player.onMediaItemLongClicked(artist)
                                     SpMp.context.vibrateShort()
                                 }

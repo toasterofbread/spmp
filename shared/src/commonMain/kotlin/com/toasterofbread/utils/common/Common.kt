@@ -21,6 +21,13 @@ import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.resources.*
 import com.toasterofbread.spmp.youtubeapi.fromJson
 import kotlinx.coroutines.*
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.isSyncResourceLoadingSupported
+import org.jetbrains.compose.resources.orEmpty
+import org.jetbrains.compose.resources.readBytesSync
+import org.jetbrains.compose.resources.rememberImageBitmap
+import org.jetbrains.compose.resources.resource
+import org.jetbrains.compose.resources.toImageBitmap
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
@@ -28,6 +35,7 @@ import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
+import kotlin.reflect.KClass
 
 fun Boolean.toInt() = if (this) 1 else 0
 fun Boolean.toFloat() = if (this) 1f else 0f
@@ -190,4 +198,27 @@ fun String.substringBetween(start: String, end: String, ignore_case: Boolean = f
 	}
 
 	return substring(start_index, end_index)
+}
+
+@OptIn(ExperimentalResourceApi::class)
+@Composable
+fun bitmapResource(res: String): ImageBitmap =
+	if (isSyncResourceLoadingSupported()) {
+		remember(res) {
+			resource(res).readBytesSync().toImageBitmap()
+		}
+	}
+	else {
+		resource(res).rememberImageBitmap().orEmpty()
+	}
+
+fun Throwable.anyCauseIs(cls: KClass<out Throwable>): Boolean {
+	var checking: Throwable? = this
+	while(checking != null) {
+		if (cls.isInstance(checking)) {
+			return true
+		}
+		checking = checking.cause
+	}
+	return false
 }

@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
@@ -79,7 +80,7 @@ abstract class MediaItemData: MediaItem {
         }
 
         if (!artist_found && this is MediaItem.DataWithArtist) {
-            artist = ArtistData.createForItem(this).also {
+            artist = ArtistData(com.toasterofbread.spmp.model.mediaitem.artist.Artist.getForItemId(this)).also {
                 it.title = runs.getOrNull(1)?.text
             }
         }

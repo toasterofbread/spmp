@@ -1,10 +1,11 @@
 <resources>
     <string name="language_name">English</string>
 
-    <string name="version_string" translatable="false">0.1.3</string>
+    <string name="version_string" translatable="false">0.2.0</string>
     <string name="app_name" translatable="false">SpMp</string>
     <string name="app_name_debug" translatable="false">SpMp (debug)</string>
     <string name="project_url" translatable="false">https://github.com/toasterofbread/spmp</string>
+    <string name="report_issue_url" translatable="false">https://github.com/toasterofbread/spmp/issues/new?labels=Bug&amp;template=bug_report.md&amp;title=%5BBug%5D+</string>
 
     <string name="project_url_name">project URL</string>
 
@@ -111,10 +112,10 @@
 
     <string name="playlist_upload_to_account">Upload to account</string>
 
-    <string name="sort_option_playlist">Playlist order</string>
-    <string name="sort_option_alphabet">Name</string>
-    <string name="sort_option_duration">Duration</string>
-    <string name="sort_option_playcount">Listen count</string>
+    <string name="sort_type_playlist">Playlist order</string>
+    <string name="sort_type_alphabet">Name</string>
+    <string name="sort_type_duration">Duration</string>
+    <string name="sort_type_playcount">Listen count</string>
 
     <string name="playlist_chip_play">Play</string>
     <string name="playlist_chip_shuffle">Shuffle</string>
@@ -140,6 +141,11 @@
     <string name="player_service_name">Player Service</string>
     <string name="download_service_name">Download Service</string>
     <string name="download_service_error_name">Download Service errors</string>
+
+    <string name="downloading_song_$title">Downloading $title</string>
+    <string name="downloading_$x_songs">Downloading $x song(s)</string>
+    <string name="download_just_started">Just started</string>
+    <string name="download_started_$x_minutes_ago">Started $x min(s) ago</string>
 
     <string name="search_filter_all">All</string>
     <string name="search_filter_videos">Videos</string>
@@ -167,8 +173,10 @@
 
     <string name="error_message_generic">A error occurred</string>
     <string name="error_yt_feed_parse_failed">YouTube feed parsing failed</string>
+    <string name="error_player_service_not_connected">"Player service isn't connecting&#xA;A bug may have occurred"</string>
 
     <string name="throw_error">Throw</string>
+    <string name="report_error">Report</string>
     <string name="wrap_text_switch_label">Wrap text</string>
     <string name="upload_to_paste_dot_ee">Upload to Paste.ee</string>
     <string name="error_info_display_show_json_data">Show JSON data</string>

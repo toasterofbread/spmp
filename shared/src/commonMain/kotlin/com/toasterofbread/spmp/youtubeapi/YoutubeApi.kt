@@ -167,6 +167,11 @@ interface YoutubeApi {
                 addAuthApiHeaders(include)
             }
 
+        open suspend fun Request.Builder.addApiHeadersNoAuth(include: List<String>? = null): Request.Builder =
+            with (api) {
+                addAuthlessApiHeaders(include)
+            }
+
         fun Request.Builder.postWithBody(body: Map<String, Any?>? = null, context: PostBodyContext = PostBodyContext.BASE): Request.Builder =
             with (api) {
                 postWithBody(body, context)
@@ -288,13 +293,15 @@ interface YoutubeApi {
 
         fun addHeadersToRequest(builder: Request.Builder, include: List<String>? = null) {
             if (!include.isNullOrEmpty()) {
-                for (header in include.ifEmpty { PLAIN_HEADERS }) {
-                    val value = headers[header] ?: continue
-                    builder.header(header, value)
+                for (header_key in include) {
+                    val value = headers[header_key] ?: continue
+                    builder.header(header_key, value)
                 }
             }
             else {
-                builder.headers(headers)
+                for (header in headers) {
+                    builder.header(header.first, header.second)
+                }
             }
         }
 

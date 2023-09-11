@@ -4,12 +4,10 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -30,7 +28,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
@@ -44,7 +41,12 @@ import com.toasterofbread.utils.composable.ResizableOutlinedTextField
 
 abstract class LibrarySubPage(val context: PlatformContext) {
     abstract fun getIcon(): ImageVector
+
     open fun isHidden(): Boolean = false
+    open fun enableSearch(): Boolean = true
+    open fun enableSorting(): Boolean = true
+    open fun getDefaultSortType(): MediaItemSortType = MediaItemSortType.PLAY_COUNT
+    open fun nativeSortTypeLabel(): String? = null
 
     @Composable
     abstract fun Page(
@@ -59,22 +61,27 @@ class LibraryPage(state: MainPageState): MainPage(state) {
     val tabs: List<LibrarySubPage> = listOf(
         LibraryPlaylistsPage(state.context), LibrarySongsPage(state.context), LibraryProfilePage(state.context)
     )
-    var current_tab: LibrarySubPage by mutableStateOf(tabs.first())
+    private var current_tab: LibrarySubPage by mutableStateOf(tabs.first())
 
     private var show_search_field: Boolean by mutableStateOf(false)
     var search_filter: String? by mutableStateOf(null)
 
-    private var show_sort_option_menu: Boolean by mutableStateOf(false)
-    var sort_option: MediaItemSortType by mutableStateOf(MediaItemSortType.PLAY_COUNT)
+    private var show_sort_type_menu: Boolean by mutableStateOf(false)
+    var sort_type: MediaItemSortType by mutableStateOf(current_tab.getDefaultSortType())
     var reverse_sort: Boolean by mutableStateOf(false)
 
     override fun onOpened() {
+        setCurrentTab(tabs.first { !it.isHidden() })
+    }
+
+    private fun setCurrentTab(tab: LibrarySubPage) {
         show_search_field = false
         search_filter = null
-        show_sort_option_menu = false
-        sort_option = MediaItemSortType.PLAY_COUNT
+        show_sort_type_menu = false
+        sort_type = tab.getDefaultSortType()
         reverse_sort = false
-        current_tab = tabs.first { !it.isHidden() }
+
+        current_tab = tab
     }
 
     @Composable
@@ -84,17 +91,18 @@ class LibraryPage(state: MainPageState): MainPage(state) {
     @Composable
     override fun TopBarContent(modifier: Modifier, close: () -> Unit) {
         MediaItemSortType.SelectionMenu(
-            show_sort_option_menu,
-            sort_option,
-            { show_sort_option_menu = false },
+            show_sort_type_menu,
+            sort_type,
+            { show_sort_type_menu = false },
             {
-                if (it == sort_option) {
+                if (it == sort_type) {
                     reverse_sort = !reverse_sort
                 }
                 else {
-                    sort_option = it
+                    sort_type = it
                 }
-            }
+            },
+            current_tab.nativeSortTypeLabel()
         )
 
         Row(
@@ -102,22 +110,29 @@ class LibraryPage(state: MainPageState): MainPage(state) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             val keyboard_controller = LocalSoftwareKeyboardController.current
-            Crossfade(show_search_field) { searching ->
-                IconButton({
-                    if (searching) {
-                        keyboard_controller?.hide()
+
+            AnimatedVisibility(current_tab.enableSearch()) {
+                Crossfade(show_search_field) { searching ->
+                    IconButton({
+                        if (searching) {
+                            keyboard_controller?.hide()
+                        }
+                        show_search_field = !searching
+                        search_filter = null
+                    }) {
+                        Icon(
+                            if (searching) Icons.Default.Close else Icons.Default.Search,
+                            null
+                        )
                     }
-                    show_search_field = !searching
-                }) {
-                    Icon(
-                        if (searching) Icons.Default.Close else Icons.Default.Search,
-                        null
-                    )
                 }
             }
 
             Row(Modifier.fillMaxWidth().weight(1f)) {
-                AnimatedVisibility(show_search_field, enter = fadeIn() + expandHorizontally(clip = false)) {
+                AnimatedVisibility(
+                    show_search_field && current_tab.enableSearch(),
+                    enter = fadeIn() + expandHorizontally(clip = false)
+                ) {
                     ResizableOutlinedTextField(
                         search_filter ?: "",
                         { search_filter = it },
@@ -141,7 +156,7 @@ class LibraryPage(state: MainPageState): MainPage(state) {
                                 ElevatedFilterChip(
                                     selected,
                                     {
-                                        current_tab = tab.value
+                                        setCurrentTab(tab.value)
                                     },
                                     {
                                         Box(Modifier.fillMaxWidth().padding(end = 8.dp), contentAlignment = Alignment.Center) {
@@ -166,10 +181,12 @@ class LibraryPage(state: MainPageState): MainPage(state) {
                 }
             }
 
-            IconButton({
-                show_sort_option_menu = !show_sort_option_menu
-            }) {
-                Icon(Icons.Default.Sort, null)
+            AnimatedVisibility(current_tab.enableSorting()) {
+                IconButton({
+                    show_sort_type_menu = !show_sort_type_menu
+                }) {
+                    Icon(Icons.Default.Sort, null)
+                }
             }
         }
     }
@@ -190,14 +207,4 @@ class LibraryPage(state: MainPageState): MainPage(state) {
             )
         }
     }
-}
-
-@Composable
-fun LibraryPage(
-    content_padding: PaddingValues,
-    modifier: Modifier = Modifier,
-    outer_multiselect_context: MediaItemMultiSelectContext? = null,
-    close: () -> Unit
-) {
-    // TODO
 }

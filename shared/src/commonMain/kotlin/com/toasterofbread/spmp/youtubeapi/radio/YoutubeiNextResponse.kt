@@ -2,6 +2,7 @@
 
 package com.toasterofbread.spmp.youtubeapi.radio
 
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
@@ -121,7 +122,7 @@ data class YoutubeiNextResponse(
             val artist_title = longBylineText.runs?.firstOrNull { it.navigationEndpoint == null }
             if (artist_title != null) {
                 return Result.success(
-                    ArtistData.createForItem(host_item).apply {
+                    ArtistData(Artist.getForItemId(host_item)).apply {
                         title = artist_title.text
                     }
                 )

@@ -262,7 +262,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
     }
 
     override fun openMediaItem(item: MediaItem, from_current: Boolean, replace_current: Boolean, browse_params: BrowseParamsData?) {
-        if (item is Artist && item.IsForItem.get(context.database)) {
+        if (item is Artist && item.isForItem()) {
             return
         }
         openPage(MediaItemPage(item.getHolder(), browse_params), from_current, replace_current)

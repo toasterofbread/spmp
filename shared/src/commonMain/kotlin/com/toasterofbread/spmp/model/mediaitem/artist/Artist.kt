@@ -55,14 +55,6 @@ sealed interface Artist: MediaItem {
         get() = property_rememberer.rememberSingleQueryProperty(
             "SubscriberCount", { artistQueries.subscriberCountById(id) }, { subscriber_count?.toInt() }, { artistQueries.updateSubscriberCountById(it?.toLong(), id) }
         )
-    val IsForItem: Property<Boolean>
-        get() = property_rememberer.rememberSingleQueryProperty(
-            "IsForItem",
-            { artistQueries.isForItemById(id) },
-            { is_for_item.fromSQLBoolean() },
-            { artistQueries.updateIsForItemById(it.toSQLBoolean(), id) },
-            { false }
-        )
 
     val Subscribed: Property<Boolean?>
         get() = property_rememberer.rememberSingleQueryProperty(
@@ -88,9 +80,18 @@ sealed interface Artist: MediaItem {
             }
         }
         data.subscriber_count = SubscriberCount.get(db)
-        data.is_for_item = IsForItem.get(db)
     }
     override suspend fun loadData(context: PlatformContext, populate_data: Boolean, force: Boolean): Result<ArtistData> {
         return super.loadData(context, populate_data, force) as Result<ArtistData>
+    }
+
+    fun isForItem(): Boolean =
+        id.startsWith("FORITEM")
+
+    companion object {
+        fun getForItemId(item: MediaItem): String {
+            RuntimeException().printStackTrace()
+            return "FORITEM${item.id}"
+        }
     }
 }

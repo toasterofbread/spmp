@@ -20,8 +20,10 @@ private class ArtistBrowseResponse(val header: Header) {
 
 class YTMSubscribedToArtistEndpoint(override val auth: YoutubeMusicAuthInfo): SubscribedToArtistEndpoint() {
     override suspend fun isSubscribedToArtist(artist: Artist): Result<Boolean> = withContext(Dispatchers.IO) {
-        lazyAssert {
-            !artist.IsForItem.get(SpMp.context.database)
+        lazyAssert(
+            { artist.toString() }
+        ) {
+            !artist.isForItem()
         }
 
         val request: Request = Request.Builder()

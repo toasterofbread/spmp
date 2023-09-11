@@ -202,10 +202,9 @@ data class YoutubeMusicApi(
 
     override suspend fun Request.Builder.addAuthlessApiHeaders(include: List<String>?): Request.Builder {
         if (!include.isNullOrEmpty()) {
-            val headers = include.ifEmpty { PLAIN_HEADERS }
-            for (header in headers) {
-                val value = youtubei_headers[header] ?: continue
-                header(header, value)
+            for (header_key in include) {
+                val value = youtubei_headers[header_key] ?: continue
+                header(header_key, value)
             }
         }
         else {

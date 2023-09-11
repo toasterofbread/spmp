@@ -33,6 +33,7 @@ import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
+import com.toasterofbread.spmp.platform.BackHandler
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.mainpage.MainPage
 import com.toasterofbread.spmp.ui.layout.mainpage.MainPageState
@@ -142,6 +143,10 @@ class SearchPage(state: MainPageState, val context: PlatformContext): MainPage(s
         if (!search_endpoint.isImplemented()) {
             search_endpoint.NotImplementedMessage(modifier.fillMaxSize().padding(content_padding))
             return
+        }
+
+        BackHandler({ current_filter != null }) {
+            setFilter(null)
         }
 
         val player = LocalPlayerState.current

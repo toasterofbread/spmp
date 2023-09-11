@@ -28,7 +28,6 @@ import com.toasterofbread.spmp.platform.PlatformServiceImpl
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.resources.getStringTODO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -556,28 +555,27 @@ class PlayerDownloadService: PlatformServiceImpl() {
                 else {
                     builder.setProgress(100, (total_progress * 100).toInt(), false)
 
-                    val title = if (downloads.size == 1) {
-                        val song_title = context.database.mediaItemQueries.titleById(downloads.first().id).executeAsOne().title
+                    var title: String? = null
+                    if (downloads.size == 1) {
+                        val song = SongRef(downloads.first().id)
+                        val song_title = song.getActiveTitle(context.database)
                         if (song_title != null) {
-                            getStringTODO("Downloading $song_title")
-                        }
-                        else {
-                            getStringTODO("Downloading 1 song")
+                            title = getString("downloading_song_\$title").replace("\$title", song_title)
                         }
                     }
-                    else {
-                        getStringTODO("Downloading ${downloads.size} songs")
+
+                    if (title == null) {
+                        title = getString("downloading_\$x_songs").replace("\$x", downloads.size.toString())
                     }
 
                     builder.setContentTitle(if (paused) "$title (paused)" else title)
                     builder.setContentText(getNotificationText())
 
                     val elapsed_minutes = ((System.currentTimeMillis() - start_time) / 60000f).toInt()
-                    builder.setSubText(when(elapsed_minutes) {
-                        0 -> getStringTODO("Just started")
-                        1 -> getStringTODO("Started 1 min ago")
-                        else -> getStringTODO("Started $elapsed_minutes mins ago")
-                    })
+                    builder.setSubText(
+                        if (elapsed_minutes == 0) getString("download_just_started")
+                        else getString("download_started_\$x_minutes_ago").replace("\$x", elapsed_minutes.toString())
+                    )
                 }
 
                 if (ActivityCompat.checkSelfPermission(this, "android.permission.POST_NOTIFICATIONS") == PackageManager.PERMISSION_GRANTED) {

@@ -158,7 +158,7 @@ internal fun PlaylistPage.PlaylistInteractionBar(
         sort_type,
         { opened_menu = null },
         { setSortType(it) },
-        "sort_option_playlist"
+        "sort_type_playlist"
     )
 }
 

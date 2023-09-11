@@ -11,6 +11,7 @@ import com.toasterofbread.spmp.model.mediaitem.layout.ViewMore
 import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedLoadResult
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.PLAIN_HEADERS
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import com.toasterofbread.spmp.youtubeapi.model.MusicDescriptionShelfRenderer
 import com.toasterofbread.spmp.youtubeapi.model.NavigationEndpoint
@@ -41,6 +42,7 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
             val request = Request.Builder()
                 .endpointUrl(if (ctoken == null) endpoint else "$endpoint?ctoken=$ctoken&continuation=$ctoken&type=next")
                 .addAuthApiHeaders()
+                .addApiHeadersNoAuth(PLAIN_HEADERS)
                 .postWithBody(
                     params?.let {
                         mapOf("params" to it)

@@ -10,7 +10,6 @@ class ArtistData(
     var subscribe_channel_id: String? = null,
     var layouts: MutableList<ArtistLayoutData>? = null,
     var subscriber_count: Int? = null,
-    var is_for_item: Boolean = false,
 
     var subscribed: Boolean? = null
 ): MediaItemData(), Artist {
@@ -18,8 +17,7 @@ class ArtistData(
         super.getDataValues() + mapOf(
             "subscribe_channel_id" to subscribe_channel_id,
             "layouts" to layouts,
-            "subscriber_count" to subscriber_count,
-            "is_for_item" to is_for_item
+            "subscriber_count" to subscriber_count
         )
 
     override fun toString(): String = "ArtistData($id)"
@@ -43,12 +41,6 @@ class ArtistData(
 
             SubscribeChannelId.setNotNull(subscribe_channel_id, db, uncertain)
             SubscriberCount.setNotNull(subscriber_count, db, uncertain)
-            IsForItem.setNotNull(is_for_item, db, uncertain)
         }}
-    }
-
-    companion object {
-        fun createForItem(item: MediaItem): ArtistData =
-            ArtistData("", is_for_item = true)
     }
 }

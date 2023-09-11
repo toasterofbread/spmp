@@ -47,6 +47,7 @@ import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.db.SongFeedCache
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.model.mutableSettingsState
+import com.toasterofbread.spmp.platform.BackHandler
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.composable.SwipeRefresh
 import com.toasterofbread.spmp.resources.getString
@@ -60,13 +61,16 @@ import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
 import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedLoadResult
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
+import com.toasterofbread.utils.common.anyCauseIs
 import com.toasterofbread.utils.common.launchSingle
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
+import kotlin.reflect.KClass
 
 private const val ARTISTS_ROW_DEFAULT_MIN_OCCURRENCES: Int = 2
 private const val ARTISTS_ROW_MIN_ARTISTS: Int = 4
@@ -173,6 +177,11 @@ class SongFeedPage(state: MainPageState): MainPage(state) {
         if (!feed_endpoint.isImplemented()) {
             feed_endpoint.NotImplementedMessage(modifier.fillMaxSize())
             return
+        }
+
+        BackHandler({ selected_filter_chip != null }) {
+            selected_filter_chip = null
+            loadFeed(false)
         }
 
         val player = LocalPlayerState.current
@@ -380,6 +389,10 @@ class SongFeedPage(state: MainPageState): MainPage(state) {
                     return@withContext Result.success(Unit)
                 },
                 { error ->
+                    if (error.anyCauseIs(CancellationException::class)) {
+                        return@withContext Result.failure(error)
+                    }
+
                     if (allow_cached) {
                         val cached = SongFeedCache.loadFeedLayouts(state.context.database)
                         layouts = cached?.layouts
@@ -444,7 +457,7 @@ private fun populateArtistsLayout(
             }
 
             val artist = item.Artist.get(context.database) ?: continue
-            if (artist.id == own_channel?.id) {
+            if (artist.id == own_channel?.id || artist.isForItem()) {
                 continue
             }
 

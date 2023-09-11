@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.youtubeapi.model
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
@@ -12,13 +13,13 @@ import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeDurationStri
 import com.toasterofbread.spmp.youtubeapi.radio.YoutubeiNextResponse
 
 data class MusicResponsiveListItemRenderer(
-    val playlistItemData: RendererPlaylistItemData? = null,
-    val flexColumns: List<FlexColumn>? = null,
-    val fixedColumns: List<FixedColumn>? = null,
-    val thumbnail: ThumbnailRenderer? = null,
-    val navigationEndpoint: NavigationEndpoint? = null,
-    val menu: YoutubeiNextResponse.Menu? = null,
-    val index: TextRuns? = null
+    val playlistItemData: RendererPlaylistItemData?,
+    val flexColumns: List<FlexColumn>?,
+    val fixedColumns: List<FixedColumn>?,
+    val thumbnail: ThumbnailRenderer?,
+    val navigationEndpoint: NavigationEndpoint?,
+    val menu: YoutubeiNextResponse.Menu?,
+    val index: TextRuns?
 ) { 
     fun toMediaItemAndPlaylistSetVideoId(hl: String): Pair<MediaItemData, String?>? {
         var video_id: String? = playlistItemData?.videoId ?: navigationEndpoint?.watchEndpoint?.videoId
@@ -114,7 +115,7 @@ data class MusicResponsiveListItemRenderer(
             if (flexColumns != null && flexColumns.size > 1) {
                 val text = flexColumns[1].musicResponsiveListItemFlexColumnRenderer.text
                 if (text.runs != null) {
-                    artist = ArtistData.createForItem(item_data)
+                    artist = ArtistData(Artist.getForItemId(item_data))
                     artist.title = text.first_text
                 }
             }

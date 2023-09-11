@@ -138,7 +138,10 @@ class SettingsPageWithItems(
         goBack: () -> Unit
     ) {
         Crossfade(getItems()) { items ->
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(SETTINGS_PAGE_WITH_ITEMS_SPACING.dp), contentPadding = content_padding) {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(SETTINGS_PAGE_WITH_ITEMS_SPACING.dp),
+                contentPadding = content_padding
+            ) {
                 item {
                     Spacer(Modifier.requiredHeight(SETTINGS_PAGE_WITH_ITEMS_SPACING.dp))
                 }

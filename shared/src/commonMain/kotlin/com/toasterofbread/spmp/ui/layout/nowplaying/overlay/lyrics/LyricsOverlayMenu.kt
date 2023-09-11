@@ -181,8 +181,7 @@ class LyricsOverlayMenu: OverlayMenu() {
                                 }
                             }
                             1 -> ActionButton(Icons.Outlined.Info) { show_lyrics_info = !show_lyrics_info }
-                            2 -> ActionButton(Icons.Default.HourglassEmpty) { special_mode = SpecialMode.ADJUST_SYNC }
-                            3 -> Box(
+                            2 -> Box(
                                 Modifier.size(48.dp),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -197,7 +196,8 @@ class LyricsOverlayMenu: OverlayMenu() {
                                         })
                                 )
                             }
-                            4 -> ActionButton(Icons.Filled.Search) { submenu = Submenu.SEARCH }
+                            3 -> ActionButton(Icons.Filled.Search) { submenu = Submenu.SEARCH }
+                            4 -> ActionButton(Icons.Default.HourglassEmpty) { special_mode = SpecialMode.ADJUST_SYNC }
                         }
                     },
                     _background_colour = Theme.accent_provider,

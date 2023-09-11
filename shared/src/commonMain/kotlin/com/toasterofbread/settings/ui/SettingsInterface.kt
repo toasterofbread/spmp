@@ -21,6 +21,7 @@ import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.common.copy
 import com.toasterofbread.utils.common.thenIf
 
 class SettingsInterface(
@@ -94,7 +95,7 @@ class SettingsInterface(
 
                 page.TitleBar(
                     page.id == root_page,
-                    Modifier.zIndex(10f)
+                    Modifier.zIndex(10f).padding(content_padding.copy(bottom = 0.dp))
                 ) {
                     go_back = true
                 }
@@ -103,7 +104,7 @@ class SettingsInterface(
                     contentAlignment = Alignment.TopCenter
                 ) {
                     page.Page(
-                        content_padding,
+                        content_padding.copy(top = 0.dp),
                         { target_page_id, param ->
                             if (current_page.id != target_page_id) {
                                 page_stack.add(current_page)

@@ -83,7 +83,10 @@ class SettingsItemThemeSelector(
         openCustomPage: (SettingsPage) -> Unit
     ) {
         Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
                 ItemTitleText(
                     title,
                     theme,
@@ -104,6 +107,7 @@ class SettingsItemThemeSelector(
                 ) {
                     Icon(Icons.Filled.KeyboardArrowLeft, null)
                 }
+
                 ShapedIconButton(
                     { state.set((state.get() + 1).coerceAtMost(getThemeCount() - 1)) },
                     onLongClick = {
@@ -114,6 +118,7 @@ class SettingsItemThemeSelector(
                 ) {
                     Icon(Icons.Filled.KeyboardArrowRight, null)
                 }
+
                 IconButton({
                     val index = state.get() + 1
                     createTheme(index)
@@ -122,6 +127,7 @@ class SettingsItemThemeSelector(
                     Icon(Icons.Filled.Add, null)
                 }
             }
+            
             Crossfade(state.get()) { theme_index ->
                 val theme_data = getTheme(theme_index)
                 val height = 40.dp

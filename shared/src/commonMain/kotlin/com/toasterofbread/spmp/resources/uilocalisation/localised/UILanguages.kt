@@ -4,5 +4,5 @@ class UILanguages {
     val en: String = "en-GB"
     val ja: String = "ja-JP"
     val pl: String = "pl-PL"
-    val es: String = "es-US
+    val es: String = "es-US"
 }

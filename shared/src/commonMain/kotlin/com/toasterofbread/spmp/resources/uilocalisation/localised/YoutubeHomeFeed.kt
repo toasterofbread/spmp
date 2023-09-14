@@ -7,27 +7,32 @@ fun getYoutubeHomeFeedLocalisations(languages: UILanguages): YoutubeUILocalisati
         YoutubeUILocalisation.LocalisationSet().apply {
             add(
                 en to "Listen again",
-                ja to "もう一度聴く"
+                ja to "もう一度聴く" ,
+                es to "Volver a escuchar"
             )
             add(
                 en to "Quick picks",
-                ja to "おすすめ"
+                ja to "おすすめ" ,
+                es to "Selección rápida"
             )
             add(
                 en to "START RADIO BASED ON A SONG",
-                ja to "曲を選んでラジオを再生"
+                ja to "曲を選んでラジオを再生" 
             )
             add(
                 en to "Covers and remixes",
-                ja to "カバーとリミックス"
+                ja to "カバーとリミックス" ,
+                es to "Covers y remixes"
             )
             add(
                 en to "Recommended albums",
-                ja to "おすすめのアルバム"
+                ja to "おすすめのアルバム" ,
+                es to "Álbumes recomendados"
             )
             add(
                 en to "Forgotten favourites",
-                ja to "最近聞いていないお気に入り"
+                ja to "最近聞いていないお気に入り" ,
+                es to "Favoritos olvidados"
             )
             add(
                 en to "TODO",
@@ -35,19 +40,23 @@ fun getYoutubeHomeFeedLocalisations(languages: UILanguages): YoutubeUILocalisati
             )
             add(
                 en to "コミュニティから",
-                ja to "From the community"
+                ja to "From the community" ,
+                es to "De la comunidad"
             )
             add(
                 en to "Recommended music videos",
-                ja to "おすすめのミュージック ビデオ"
+                ja to "おすすめのミュージック ビデオ" ,
+                es to "Videos musicales recomendados"
             )
             add(
                 en to "Live performances",
-                ja to "ライブ"
+                ja to "ライブ" ,
+                es to "Presentaciones en vivo"
             )
             add(
                 en to "Recommended radios",
-                ja to "おすすめのラジオ"
+                ja to "おすすめのラジオ" ,
+                es to "Estaciones de radio recomendadas"
             )
             add(
                 en to "FOR YOU",
@@ -55,11 +64,13 @@ fun getYoutubeHomeFeedLocalisations(languages: UILanguages): YoutubeUILocalisati
             )
             add(
                 en to "Trending songs",
-                ja to "急上昇曲"
+                ja to "急上昇曲" ,
+                es to "Canciónes del momento"
             )
             add(
                 en to "Rock Artists",
-                ja to "ロック アーティスト"
+                ja to "ロック アーティスト" ,
+                es to "Artistas de Rock"
             )
             add(
                 en to "Hits by decade",
@@ -78,7 +89,8 @@ fun getYoutubeHomeFeedLocalisations(languages: UILanguages): YoutubeUILocalisati
             )
             add(
                 en to "Long listening",
-                ja to "長編ミュージック ビデオ"
+                ja to "長編ミュージック ビデオ" ,
+                es to "Reproducción prolongada"
             )
             add(
                 en to "Celebrating Africa Month",
@@ -101,7 +113,17 @@ fun getYoutubeHomeFeedLocalisations(languages: UILanguages): YoutubeUILocalisati
             )
             add(
                 en to "From your library",
-                ja to "ライブラリから"
+                ja to "ライブラリから" ,
+                es to "De tu biblioteca"
+            )
+            add(
+                es to "Nuevos Lanzamientos"
+            )
+            add(
+                es to "Mixes para ti"
+            )
+            add(
+                es to "Playlist recomendadas"
             )
         }
     }

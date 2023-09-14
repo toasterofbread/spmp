@@ -7,11 +7,13 @@ fun getYoutubeOwnChannelLocalisations(languages: UILanguages): YoutubeUILocalisa
         YoutubeUILocalisation.LocalisationSet().apply {
             add(
                 en to "Songs on repeat",
-                ja to "繰り返し再生されている曲"
+                ja to "繰り返し再生されている曲" ,
+                es to "Canciones que más escuchastes"
             )
             add(
                 en to "Artists on repeat",
-                ja to "繰り返し再生するアーティスト"
+                ja to "繰り返し再生するアーティスト" ,
+                es to "Artistas más escuchados" ,
             )
             add(
                 en to "Videos on repeat",
@@ -19,11 +21,13 @@ fun getYoutubeOwnChannelLocalisations(languages: UILanguages): YoutubeUILocalisa
             )
             add(
                 en to "Playlists on repeat",
-                ja to "繰り返し再生するプレイリスト"
+                ja to "繰り返し再生するプレイリスト" ,
+                es to "Playlist mas escuchadas" 
             )
             add(
                 en to "Playlists",
-                ja to "再生リスト"
+                ja to "再生リスト" ,
+                es to "Playlists"
             )
         }
     }

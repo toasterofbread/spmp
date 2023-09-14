@@ -34,9 +34,6 @@ class MusicTwoRowItemRenderer(
         if (host_item is SongData) {
             val index = if (host_item.song_type == SongType.VIDEO) 0 else 1
             subtitle?.runs?.getOrNull(index)?.also {
-                println("RUNS")
-                println(subtitle)
-                println("---")
                 return ArtistData(Artist.getForItemId(host_item)).apply {
                     title = it.text
                 }

@@ -90,7 +90,6 @@ sealed interface Artist: MediaItem {
 
     companion object {
         fun getForItemId(item: MediaItem): String {
-            RuntimeException().printStackTrace()
             return "FORITEM${item.id}"
         }
     }

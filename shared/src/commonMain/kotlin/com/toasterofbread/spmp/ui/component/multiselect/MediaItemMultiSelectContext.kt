@@ -71,6 +71,7 @@ import com.toasterofbread.utils.common.getContrasted
 import com.toasterofbread.utils.common.lazyAssert
 import com.toasterofbread.utils.common.setAlpha
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 
@@ -214,7 +215,7 @@ class MediaItemMultiSelectContext(
             onFinished()
             
             if (selected_playlists.isNotEmpty()) {
-                coroutine_scope.launch {
+                coroutine_scope.launch(NonCancellable) {
                     for (playlist in selected_playlists) {
                         val editor = playlist.getEditorOrNull(player.context).getOrNull() ?: continue
                         for (item in items) {

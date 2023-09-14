@@ -52,6 +52,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.library.createLocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
+import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.getEditorOrNull
 import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.resources.getString
@@ -63,6 +64,7 @@ import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
 import com.toasterofbread.utils.composable.ShapedIconButton
 import com.toasterofbread.utils.composable.WidthShrinkText
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 
 val SONG_THUMB_CORNER_ROUNDING = 10.dp
@@ -160,12 +162,15 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
                         {
                             if (selected_playlists.isNotEmpty()) {
                                 withSong { song ->
-                                    SpMp.context.database.transaction {
+                                    coroutine_scope.launch(NonCancellable) {
                                         for (playlist in selected_playlists) {
-                                            playlist.Items.addItem(song, null, SpMp.context.database)
+                                            val editor = playlist.getEditorOrNull(player.context).getOrNull() ?: continue
+                                            editor.addItem(song, null)
+                                            editor.applyChanges()
                                         }
+
+                                        player.context.sendToast(getString("toast_playlist_added"))
                                     }
-                                    SpMp.context.sendToast(getString("toast_playlist_added"))
                                 }
 
                                 onAction()
@@ -236,15 +241,15 @@ private fun LongPressMenuActionProvider.LPMActions(
 
     ActionButton(Icons.Default.Download, getString("lpm_action_download"), onClick = {
         withSong {
-            SpMp.context.download_manager.startDownload(it.id) { status: DownloadStatus ->
+            player.context.download_manager.startDownload(it.id) { status: DownloadStatus ->
                 when (status.status) {
-                    DownloadStatus.Status.FINISHED -> SpMp.context.sendToast(getString("notif_download_finished"))
-                    DownloadStatus.Status.ALREADY_FINISHED -> SpMp.context.sendToast(getString("notif_download_already_finished"))
-                    DownloadStatus.Status.CANCELLED -> SpMp.context.sendToast(getString("notif_download_cancelled"))
+                    DownloadStatus.Status.FINISHED -> player.context.sendToast(getString("notif_download_finished"))
+                    DownloadStatus.Status.ALREADY_FINISHED -> player.context.sendToast(getString("notif_download_already_finished"))
+                    DownloadStatus.Status.CANCELLED -> player.context.sendToast(getString("notif_download_cancelled"))
 
                     // IDLE, DOWNLOADING, PAUSED
                     else -> {
-                        SpMp.context.sendToast(getString("notif_download_already_downloading"))
+                        player.context.sendToast(getString("notif_download_already_downloading"))
                     }
                 }
             }
@@ -252,7 +257,7 @@ private fun LongPressMenuActionProvider.LPMActions(
     })
 
     if (item is MediaItem.WithArtist) {
-        val item_artist: Artist? by item.Artist.observe(SpMp.context.database)
+        val item_artist: Artist? by item.Artist.observe(player.database)
         item_artist?.also { artist ->
             ActionButton(Icons.Default.Person, getString("lpm_action_go_to_artist"), onClick = {
                 player.openMediaItem(artist,)

@@ -127,7 +127,7 @@ class SettingsItemThemeSelector(
                     Icon(Icons.Filled.Add, null)
                 }
             }
-            
+
             Crossfade(state.get()) { theme_index ->
                 val theme_data = getTheme(theme_index)
                 val height = 40.dp

@@ -30,7 +30,7 @@ updateItemIndex:
 UPDATE PlaylistItem SET item_index = :to WHERE item_index == :from AND playlist_id == :playlist_id;
 
 itemCount:
-SELECT COUNT(IIF(PlaylistItem.playlist_id = :playlist_id, 1, NULL)) FROM PlaylistItem;
+SELECT COUNT(CASE WHEN PlaylistItem.playlist_id == :playlist_id THEN 1 ELSE NULL END) FROM PlaylistItem;
 
 clearItems:
 DELETE FROM PlaylistItem WHERE playlist_id = :playlist_id AND item_index >= :from_index;

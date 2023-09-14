@@ -50,7 +50,7 @@ updateLayoutIndex:
 UPDATE ArtistLayout SET layout_index = :to WHERE layout_index == :from AND artist_id == :artist_id;
 
 layoutCount:
-SELECT COUNT(IIF(ArtistLayout.artist_id = :artist_id, 1, NULL)) FROM ArtistLayout;
+SELECT COUNT(CASE WHEN ArtistLayout.artist_id == :artist_id THEN 1 ELSE NULL END) FROM ArtistLayout;
 
 clearLayouts {
     DELETE FROM ArtistLayoutItem WHERE artist_id = :artist_id AND layout_index >= :from_index;

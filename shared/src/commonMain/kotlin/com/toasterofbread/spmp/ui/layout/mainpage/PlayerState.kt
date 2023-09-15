@@ -185,7 +185,7 @@ open class PlayerState protected constructor(
     }
 
     @Composable
-    open fun nowPlayingTopOffset(base: Modifier = Modifier): Modifier = upstream!!.nowPlayingTopOffset(base)
+    open fun nowPlayingTopOffset(base: Modifier): Modifier = upstream!!.nowPlayingTopOffset(base)
     @Composable
     open fun nowPlayingBottomPadding(include_np: Boolean = false): Dp = upstream!!.nowPlayingBottomPadding(include_np)
 

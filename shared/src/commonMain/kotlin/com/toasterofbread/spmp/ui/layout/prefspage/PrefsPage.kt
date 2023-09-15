@@ -33,6 +33,7 @@ import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.layout.*
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.common.blendWith
+import com.toasterofbread.utils.common.copy
 import com.toasterofbread.utils.modifier.background
 import org.jetbrains.compose.resources.*
 
@@ -158,8 +159,8 @@ fun PrefsPage(
     Box(modifier) {
         pill_menu.PillMenu()
 
-        Column(Modifier.fillMaxSize()) {
-            MusicTopBar(
+        Column(Modifier.fillMaxSize().padding(top = content_padding.calculateTopPadding())) {
+            val top_padding = MusicTopBar(
                 Settings.KEY_LYRICS_SHOW_IN_SETTINGS,
                 Modifier.fillMaxWidth().zIndex(10f),
                 getBottomBorderColour = if (current_category == null) Theme.background_provider else null
@@ -168,7 +169,7 @@ fun PrefsPage(
             Crossfade(category_open || settings_interface.current_page.id!! != PrefsPageScreen.ROOT.ordinal) { open ->
                 if (!open) {
                     LazyColumn(
-                        contentPadding = content_padding,
+                        contentPadding = content_padding.copy(top = top_padding),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                         modifier = Modifier.padding(horizontal = 10.dp)
                     ) {
@@ -254,7 +255,7 @@ fun PrefsPage(
                         CompositionLocalProvider(LocalContentColor provides Theme.on_background) {
                             settings_interface.Interface(
                                 Modifier.fillMaxSize(),
-                                content_padding = content_padding
+                                content_padding = content_padding.copy(top = top_padding)
                             )
                         }
                     }

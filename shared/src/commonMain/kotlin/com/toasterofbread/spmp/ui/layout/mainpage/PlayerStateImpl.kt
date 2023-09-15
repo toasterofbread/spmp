@@ -159,16 +159,19 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
         }
     }
 
+    private fun Density.getNpBottomPadding(insets: WindowInsets): Int {
+        return context.getNavigationBarHeight() + (if (np_overlay_menu.value == null) insets.getAdjustedKeyboardHeight(this, context) else 0)
+    }
+
     @Composable
     override fun nowPlayingTopOffset(base: Modifier): Modifier {
         val density = LocalDensity.current
+        val keyboard_insets = WindowInsets.ime
         val screen_height: Dp = screen_size.height
-        val keyboard_insets: WindowInsets = WindowInsets.ime
 
         return base.offset {
             with (density) {
-                val bottom_padding: Int = context.getNavigationBarHeight() + keyboard_insets.getAdjustedKeyboardHeight(density, context)
-
+                val bottom_padding = getNpBottomPadding(keyboard_insets)
                 val swipe_offset: Dp =
                     if (session_started) -np_swipe_state.value.offset.value.dp - (screen_height * 0.5f)
                     else 0.dp
@@ -183,15 +186,15 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
 
     @Composable
     override fun nowPlayingBottomPadding(include_np: Boolean): Dp {
-        val keyboard_height = with(LocalDensity.current) {
-            WindowInsets.ime.getAdjustedKeyboardHeight(LocalDensity.current, context).toDp()
+        val bottom_padding = with(LocalDensity.current) {
+            LocalDensity.current.getNpBottomPadding(WindowInsets.ime).toDp()
         }
 
         if (include_np) {
             val np by animateDpAsState(if (session_started) MINIMISED_NOW_PLAYING_HEIGHT_DP.dp else 0.dp)
-            return context.getNavigationBarHeightDp() + np + keyboard_height
+            return np + bottom_padding
         }
-        return context.getNavigationBarHeightDp() + keyboard_height
+        return bottom_padding
     }
 
     override fun onNavigationBarTargetColourChanged(colour: Color?, from_lpm: Boolean) {
@@ -329,27 +332,23 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
 
     @Composable
     fun NowPlaying() {
-        val bottom_padding = getCurrentBottomPadding()
+        val density = LocalDensity.current
+        val bottom_padding = density.getNpBottomPadding(WindowInsets.ime)
+
         OnChangedEffect(bottom_padding) {
-            bottom_padding_anim.animateTo(bottom_padding)
+            bottom_padding_anim.animateTo(bottom_padding.toFloat())
         }
 
-        val density = LocalDensity.current
-        val keyboard_height: Int = WindowInsets.ime.getBottom(density)
-        val navigation_bar_height: Dp = context.getNavigationBarHeightDp()
-
-        LaunchedEffect(screen_size.height, navigation_bar_height, keyboard_height) {
+        LaunchedEffect(screen_size.height, bottom_padding) {
             val half_screen_height: Float = screen_size.height.value * 0.5f
-            val adjusted_keyboard_height: Dp = with(density) {
-                if (keyboard_height > 0) (keyboard_height.toDp() - navigation_bar_height).coerceAtLeast(0.dp)
-                else keyboard_height.toDp()
-            }
 
-            np_swipe_anchors = (0..NOW_PLAYING_VERTICAL_PAGE_COUNT)
-                .associateBy { anchor ->
-                    if (anchor == 0) MINIMISED_NOW_PLAYING_HEIGHT_DP.toFloat() - half_screen_height
-                    else ((screen_size.height - navigation_bar_height - adjusted_keyboard_height).value * anchor) - half_screen_height
-                }
+            with(density) {
+                np_swipe_anchors = (0..NOW_PLAYING_VERTICAL_PAGE_COUNT)
+                    .associateBy { anchor ->
+                        if (anchor == 0) MINIMISED_NOW_PLAYING_HEIGHT_DP.toFloat() - half_screen_height
+                        else ((screen_size.height - bottom_padding.toDp()).value * anchor) - half_screen_height
+                    }
+            }
 
             val current_swipe_value = np_swipe_state.value.targetValue
             np_swipe_state.value = SwipeableState(0).apply {

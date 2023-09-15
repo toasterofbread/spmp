@@ -143,10 +143,6 @@ class SettingsPageWithItems(
                 verticalArrangement = Arrangement.spacedBy(SETTINGS_PAGE_WITH_ITEMS_SPACING.dp),
                 contentPadding = content_padding
             ) {
-                item {
-                    Spacer(Modifier.requiredHeight(SETTINGS_PAGE_WITH_ITEMS_SPACING.dp))
-                }
-
                 items(items.size) { i ->
                     val item = items[i]
                     item.initialise(player.context, settings_interface.prefs, settings_interface.default_provider)

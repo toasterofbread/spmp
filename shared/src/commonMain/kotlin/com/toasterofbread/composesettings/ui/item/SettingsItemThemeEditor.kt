@@ -314,8 +314,6 @@ private fun getEditPage(
                     .padding(content_padding),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                Spacer(Modifier.height(20.dp))
-
                 OutlinedTextField(
                     name,
                     { name = it },

@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.ui.component.PillMenu
+import com.toasterofbread.spmp.ui.component.WAVE_BORDER_DEFAULT_HEIGHT
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.common.copy
 
@@ -101,7 +102,7 @@ class SettingsInterface(
                     contentAlignment = Alignment.TopCenter
                 ) {
                     page.Page(
-                        content_padding.copy(top = 0.dp),
+                        content_padding.copy(top = WAVE_BORDER_DEFAULT_HEIGHT.dp),
                         { target_page_id, param ->
                             if (current_page.id != target_page_id) {
                                 page_stack.add(current_page)

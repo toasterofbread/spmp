@@ -307,10 +307,16 @@ class PillMenu(
                     ToggleButton(Action(background_colour, background_colour.getContrasted(), Modifier))
 
                     val start = if (vertical) top else left
-                    val fill_modifier = Modifier//if (vertical) Modifier.fillMaxHeight() else Modifier.fillMaxWidth()
-
-                    RowOrColumn(!vertical, fill_modifier.height(IntrinsicSize.Max), Arrangement.spacedBy(10.dp)) { getWeightModifier ->
-                        val action = remember(background_colour) { Action(background_colour, background_colour.getContrasted(), getWeightModifier(Float.MAX_VALUE).then(fill_modifier)) }
+                    RowOrColumn(
+                        !vertical,
+                        modifier
+                            .height(IntrinsicSize.Max)
+                            .thenIf(follow_player) {
+                                player.nowPlayingTopOffset(this)
+                            },
+                        Arrangement.spacedBy(10.dp)
+                    ) { getWeightModifier ->
+                        val action = remember(background_colour) { Action(background_colour, background_colour.getContrasted(), getWeightModifier(Float.MAX_VALUE)) }
 
                         @Composable
                         fun AlongsideContent() {
@@ -341,12 +347,8 @@ class PillMenu(
                             exit = exit
                         ) {
                             RowOrColumn(
-                                !vertical, 
-                                modifier
-                                    .thenIf(follow_player) {
-                                        player.nowPlayingTopOffset(this)
-                                    }
-                                    .background(background_colour, shape = CircleShape)
+                                !vertical,
+                                Modifier.background(background_colour, shape = CircleShape)
                             ) {
                                 if (align_start) {
                                     for (extra in extra_actions_outer) {

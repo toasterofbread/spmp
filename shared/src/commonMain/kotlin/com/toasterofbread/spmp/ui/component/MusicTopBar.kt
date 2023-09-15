@@ -37,6 +37,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.model.MusicTopBarMode
@@ -131,9 +132,9 @@ fun MusicTopBar(
     getBottomBorderOffset: ((height: Int) -> Int)? = null,
     getBottomBorderColour: (() -> Color)? = null,
     onShowingChanged: ((Boolean) -> Unit)? = null
-) {
+): Dp {
     val can_show: Boolean by can_show_key.rememberMutableState()
-    MusicTopBar(
+    return MusicTopBar(
         { MusicTopBarMode.LYRICS },
         can_show = can_show,
         can_show_visualiser = false,
@@ -160,7 +161,7 @@ private fun MusicTopBar(
     getBottomBorderColour: (() -> Color)? = null,
     onClick: (() -> Unit)? = null,
     onShowingChanged: ((Boolean) -> Unit)? = null
-) {
+): Dp {
     val player = LocalPlayerState.current
     val lyrics = loadLyricsOnSongChange(song, player.context, getTargetMode() == MusicTopBarMode.LYRICS)
     var mode_state: MusicTopBarMode by mutableStateOf(getTargetMode())
@@ -253,6 +254,8 @@ private fun MusicTopBar(
             }
         }
     }
+
+    return if (!show) padding.calculateTopPadding() else if (getBottomBorderColour != null) WAVE_BORDER_DEFAULT_HEIGHT.dp else 0.dp
 }
 
 @Composable

@@ -140,10 +140,10 @@ class MainOverlayMenu(
                 keyboardActions = KeyboardActions(onDone = {
                     song_title = edited_song_title
                 }),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
+                colors = OutlinedTextFieldDefaults.colors(
+                    cursorColor = button_colour,
                     focusedBorderColor = button_colour,
                     focusedLabelColor = button_colour,
-                    cursorColor = button_colour
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -162,7 +162,7 @@ class MainOverlayMenu(
 
                 Box(
                     button_modifier.clickable {
-                        song_title = edited_song_title
+                        song.CustomTitle.set(edited_song_title, player.database)
                     },
                     contentAlignment = Alignment.Center
                 ) {

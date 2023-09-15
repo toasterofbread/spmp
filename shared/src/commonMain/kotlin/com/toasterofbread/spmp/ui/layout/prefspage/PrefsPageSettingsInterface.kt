@@ -65,7 +65,6 @@ internal fun getPrefsPageSettingsInterface(
     settings_interface = SettingsInterface(
         { Theme },
         PrefsPageScreen.ROOT.ordinal,
-        SpMp.context,
         Settings.prefs,
         Settings.Companion::provideDefault,
         pill_menu,

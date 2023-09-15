@@ -24,8 +24,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.utils.modifier.background
 import com.toasterofbread.utils.common.setAlpha
+import com.toasterofbread.utils.modifier.background
 import kotlin.random.Random
 
 @Composable

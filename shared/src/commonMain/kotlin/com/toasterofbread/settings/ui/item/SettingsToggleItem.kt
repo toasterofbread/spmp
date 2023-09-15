@@ -1,5 +1,6 @@
 package com.toasterofbread.composesettings.ui.item
 
+import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -19,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composesettings.ui.SettingsPage
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.common.setAlpha
@@ -27,7 +29,7 @@ class SettingsToggleItem(
     val state: BasicSettingsValueState<Boolean>,
     val title: String?,
     val subtitle: String?,
-    val checker: ((target: Boolean, setLoading: (Boolean) -> Unit, (allow_change: Boolean) -> Unit) -> Unit)? = null
+    val checker: (PlatformContext.(target: Boolean, setLoading: (Boolean) -> Unit, (allow_change: Boolean) -> Unit) -> Unit)? = null
 ): SettingsItem() {
     private var loading: Boolean by mutableStateOf(false)
 
@@ -49,6 +51,8 @@ class SettingsToggleItem(
         openPage: (Int, Any?) -> Unit,
         openCustomPage: (SettingsPage) -> Unit
     ) {
+        val player = LocalPlayerState.current
+
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             Column(
                 Modifier
@@ -78,6 +82,7 @@ class SettingsToggleItem(
                             }
 
                             checker.invoke(
+                                player.context,
                                 !state.get(),
                                 { l ->
                                     loading = l

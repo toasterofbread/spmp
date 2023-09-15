@@ -71,7 +71,7 @@ internal fun PlaylistPage.PlaylistTopInfo(items: List<Pair<MediaItem, Int>>?, mo
 
     val shape = RoundedCornerShape(10.dp)
 
-    val playlist_title: String? by playlist.observeActiveTitle(player.context)
+    val playlist_title: String? by playlist.observeActiveTitle()
     val playlist_image_width: Float? by playlist.ImageWidth.observe(db)
 
     var split_position by remember(playlist) { mutableStateOf(playlist_image_width ?: 0f) }

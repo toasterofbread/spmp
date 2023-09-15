@@ -1,5 +1,6 @@
 package com.toasterofbread.composesettings.ui.item
 
+import LocalPlayerState
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -28,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.godaddy.android.colorpicker.ClassicColorPicker
 import com.godaddy.android.colorpicker.HsvColor
 import com.toasterofbread.composesettings.ui.SettingsPage
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.ui.component.PillMenu
@@ -212,6 +214,7 @@ private fun getEditPage(
             openCustomPage: (SettingsPage) -> Unit,
             goBack: () -> Unit,
         ) {
+            val player = LocalPlayerState.current
             val ui_theme = settings_interface.theme
             var previewing by remember { mutableStateOf(Theme.preview_active) }
 
@@ -223,7 +226,7 @@ private fun getEditPage(
             var randomise: Boolean by remember { mutableStateOf(false) }
 
             LaunchedEffect(Unit) {
-                resetKeys()
+                resetKeys(player.context)
                 if (pill_extra == null) {
                     pill_extra = {
                         ActionButton(Icons.Filled.Done) {
@@ -374,7 +377,7 @@ private fun getEditPage(
             }
         }
 
-        override suspend fun resetKeys() {
+        override suspend fun resetKeys(context: PlatformContext) {
             name = theme.name
             background = theme.background
             on_background = theme.on_background

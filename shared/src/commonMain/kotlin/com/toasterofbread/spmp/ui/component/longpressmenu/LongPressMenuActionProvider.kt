@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.component.longpressmenu
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
@@ -90,7 +89,7 @@ class LongPressMenuActionProvider(
                                     service.updateActiveQueueIndex(-1)
                                 },
                                 onLongClick = {
-                                    SpMp.context.vibrateShort()
+                                    player.context.vibrateShort()
                                     service.updateActiveQueueIndex(Int.MIN_VALUE)
                                 }
                             ),
@@ -108,7 +107,7 @@ class LongPressMenuActionProvider(
                                     service.updateActiveQueueIndex(1)
                                 },
                                 onLongClick = {
-                                    SpMp.context.vibrateShort()
+                                    player.context.vibrateShort()
                                     service.updateActiveQueueIndex(Int.MAX_VALUE)
                                 }
                             ),
@@ -147,6 +146,8 @@ class LongPressMenuActionProvider(
             onAction: () -> Unit,
             fill_width: Boolean = true
         ) {
+            val player = LocalPlayerState.current
+
             Row(
                 modifier
                     .combinedClickable(
@@ -158,7 +159,7 @@ class LongPressMenuActionProvider(
                         },
                         onLongClick = if (onLongClick == null) null else {
                             {
-                                SpMp.context.vibrateShort()
+                                player.context.vibrateShort()
                                 onLongClick()
                                 onAction()
                             }

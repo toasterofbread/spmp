@@ -24,8 +24,8 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.toInfoString
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.composable.WidthShrinkText
 import com.toasterofbread.utils.common.isDebugBuild
+import com.toasterofbread.utils.composable.WidthShrinkText
 
 const val MENU_ITEM_SPACING: Int = 20
 
@@ -104,6 +104,6 @@ internal fun ColumnScope.LongPressMenuActions(data: LongPressMenuData, getAccent
 
     // Hide
     LongPressMenuActionProvider.ActionButton(Icons.Filled.VisibilityOff, getString("lpm_action_hide"), getAccentColour, onClick = {
-        data.item.Hidden.set(true, player.context.database)
+        data.item.Hidden.set(true, player.database)
     }, onAction = onAction)
 }

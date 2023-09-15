@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.mainpage
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
@@ -109,7 +108,7 @@ private fun MultiSelectNextRowActions() {
                     player.player?.updateActiveQueueIndex(-1)
                 },
                 onLongClick = {
-                    SpMp.context.vibrateShort()
+                    player.context.vibrateShort()
                     player.withPlayer {
                         active_queue_index = current_song_index
                     }
@@ -128,7 +127,7 @@ private fun MultiSelectNextRowActions() {
                     player.player?.updateActiveQueueIndex(1)
                 },
                 onLongClick = {
-                    SpMp.context.vibrateShort()
+                    player.context.vibrateShort()
                     player.withPlayer {
                         active_queue_index = song_count - 1
                     }

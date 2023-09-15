@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem.db
 
+import LocalPlayerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -7,23 +8,23 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import app.cash.sqldelight.Query
-import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistRef
-import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
-import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
-import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
-import com.toasterofbread.spmp.platform.PlatformContext
 import mediaitem.ArtistQueries
 import mediaitem.PlaylistQueries
 import mediaitem.SongQueries
 
 @Composable
-fun rememberHiddenItems(context: PlatformContext, hidden: Boolean = true): List<MediaItem> {
-    val db = context.database
+fun rememberHiddenItems(hidden: Boolean = true): List<MediaItem> {
+    val player = LocalPlayerState.current
+    val db = player.database
 
     var hidden_songs: List<Song> by remember { mutableStateOf(
         db.songQueries.getByHidden(hidden)

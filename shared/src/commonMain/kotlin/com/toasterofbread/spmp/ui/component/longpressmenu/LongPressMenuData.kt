@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.component.longpressmenu
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -11,11 +10,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
-import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewInteractionPressStage
-import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
 import com.toasterofbread.spmp.ui.component.mediaitempreview.ArtistLongPressMenuActions
 import com.toasterofbread.spmp.ui.component.mediaitempreview.PlaylistLongPressMenuActions
@@ -50,6 +49,8 @@ data class LongPressMenuData(
 
     @Composable
     fun Actions(provider: LongPressMenuActionProvider, spacing: Dp) {
+        val player = LocalPlayerState.current
+
         with(provider) {
             if (item is Song || (item is Playlist && playlist_as_song)) {
                 SongLongPressMenuActions(item, spacing, multiselect_key) { callback ->
@@ -58,8 +59,8 @@ data class LongPressMenuData(
                             callback(item)
                         }
                         else if (item is Playlist) {
-                            item.loadData(SpMp.context).onSuccess {
-                                item.Items.get(SpMp.context.database)?.firstOrNull()?.also { item ->
+                            item.loadData(player.context).onSuccess {
+                                item.Items.get(player.database)?.firstOrNull()?.also { item ->
                                     callback(item)
                                 }
                             }

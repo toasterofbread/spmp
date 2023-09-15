@@ -1,8 +1,8 @@
 package com.toasterofbread.spmp.ui.layout.youtubemusiclogin
 
+import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.youtubeapi.model.BrowseEndpoint
 import com.toasterofbread.spmp.youtubeapi.model.MusicThumbnailRenderer

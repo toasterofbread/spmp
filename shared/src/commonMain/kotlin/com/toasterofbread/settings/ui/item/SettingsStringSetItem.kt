@@ -48,8 +48,8 @@ import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.composable.ShapedIconButton
 import com.toasterofbread.utils.common.setAlpha
+import com.toasterofbread.utils.composable.ShapedIconButton
 import kotlinx.coroutines.launch
 
 class SettingsStringSetItem(

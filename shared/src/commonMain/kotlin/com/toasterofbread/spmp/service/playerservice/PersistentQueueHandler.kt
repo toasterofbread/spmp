@@ -2,9 +2,9 @@ package com.toasterofbread.spmp.service.playerservice
 
 import SpMp
 import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
-import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.platform.PlatformContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

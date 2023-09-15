@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.overlay.lyrics
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -51,10 +50,11 @@ fun LyricsSyncMenu(
 ) {
     require(lyrics.synced)
 
-    val player = LocalPlayerState.current.player
+    val player = LocalPlayerState.current
+    val service = player.player
 
     LaunchedEffect(line_index) {
-        player?.seekTo(
+        service?.seekTo(
             lines[line_index].getLineRange().first - SONG_SEEK_MS
         )
     }
@@ -95,9 +95,9 @@ fun LyricsSyncMenu(
                 }
 
                 if (line_offset == 0) {
-                    PlayerControls(player) {
-                        val current_time: Long = player?.current_position_ms ?: return@PlayerControls
-                        SpMp.context.database.songQueries
+                    PlayerControls(service) {
+                        val current_time: Long = service?.current_position_ms ?: return@PlayerControls
+                        player.database.songQueries
                             .updateLyricsSyncOffsetById(
                                 lines[line_index].getLineRange().first - current_time,
                                 song.id

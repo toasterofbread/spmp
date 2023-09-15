@@ -9,8 +9,8 @@ import androidx.compose.ui.Modifier
 import app.cash.sqldelight.Query
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.db.incrementPlayCount
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.MediaPlayerService
 import com.toasterofbread.spmp.platform.MediaPlayerState
 import com.toasterofbread.spmp.platform.PlatformPreferences

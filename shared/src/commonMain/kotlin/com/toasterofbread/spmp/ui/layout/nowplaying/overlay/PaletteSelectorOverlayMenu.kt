@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.overlay
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.fadeIn
@@ -45,8 +44,8 @@ import com.toasterofbread.spmp.platform.generatePalette
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
-import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.common.setAlpha
+import com.toasterofbread.utils.composable.OnChangedEffect
 import kotlin.math.roundToInt
 
 //const val PALETTE_SIMILAR_COLOUR_THRESHOLD = 0.1f
@@ -69,7 +68,6 @@ class PaletteSelectorOverlayMenu(
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
-        val db = SpMp.context.database
         val player = LocalPlayerState.current
 
         val song = getSong()
@@ -81,8 +79,8 @@ class PaletteSelectorOverlayMenu(
             contentColor = player.getNPOnBackground()
         )
 
-        var np_gradient_depth: Float? by song.PlayerGradientDepth.observe(db)
-        var thumbnail_rounding: Int? by song.ThumbnailRounding.observe(db)
+        var np_gradient_depth: Float? by song.PlayerGradientDepth.observe(player.database)
+        var thumbnail_rounding: Int? by song.ThumbnailRounding.observe(player.database)
 
         LaunchedEffect(thumb_image) {
             palette_colours = null

@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.artistpage
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PersonRemove
@@ -21,9 +20,9 @@ import com.toasterofbread.spmp.model.mediaitem.loader.ArtistSubscribedLoader
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.isOwnChannel
+import com.toasterofbread.utils.common.getContrasted
 import com.toasterofbread.utils.composable.ShapedIconButton
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.utils.common.getContrasted
 import kotlinx.coroutines.launch
 
 @Composable
@@ -38,12 +37,12 @@ fun ArtistSubscribeButton(
     val coroutine_scope = rememberCoroutineScope()
 
     val subscribed_state = ArtistSubscribedLoader.rememberItemState(artist.id)
-    val artist_subscribed: Boolean? by artist.Subscribed.observe(player.context.database)
+    val artist_subscribed: Boolean? by artist.Subscribed.observe(player.database)
 
     LaunchedEffect(artist.id) {
         if (!artist.isOwnChannel(auth_state.api)) {
             coroutine_scope.launch {
-                ArtistSubscribedLoader.loadArtistSubscribed(artist, SpMp.context)
+                ArtistSubscribedLoader.loadArtistSubscribed(artist, player.context)
             }
         }
     }
@@ -58,8 +57,8 @@ fun ArtistSubscribeButton(
                     coroutine_scope.launch {
                         val result = artist.updateSubscribed(!subscribed, auth_state.SetSubscribedToArtist, player.context)
                         if (result.isFailure) {
-                            val artist_title: String? = artist.getActiveTitle(SpMp.context.database)
-                            SpMp.context.sendToast(getStringTODO(
+                            val artist_title: String? = artist.getActiveTitle(player.database)
+                            player.context.sendToast(getStringTODO(
                                 if (!subscribed) "Subscribing to $artist_title failed"
                                 else "Unsubscribing from $artist_title failed"
                             ))

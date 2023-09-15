@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.overlay
 
+import LocalPlayerState
 import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
@@ -60,6 +61,8 @@ actual class NotifImageOverlayMenu: OverlayMenu() {
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?,
     ) {
+        val player = LocalPlayerState.current
+
         Column(
             Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -151,7 +154,7 @@ actual class NotifImageOverlayMenu: OverlayMenu() {
                         }
                         IconButton({
                             openMenu(null)
-                            SpMp.context.database.songQueries.updateNotifImageOffsetById(
+                            player.database.songQueries.updateNotifImageOffsetById(
                                 offset_x.value.takeIf { it != 0f }?.roundToLong(),
                                 offset_y.value.takeIf { it != 0f }?.roundToLong(),
                                 song.id

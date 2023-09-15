@@ -19,9 +19,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.common.setAlpha
 import com.toasterofbread.utils.composable.LinkifyText
 import com.toasterofbread.utils.composable.NoRipple
-import com.toasterofbread.utils.common.setAlpha
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

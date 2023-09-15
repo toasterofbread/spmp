@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.composesettings.ui.SettingsPage
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.youtubeapi.composable.LoginPage
 
@@ -83,7 +84,7 @@ internal fun getYoutubeMusicLoginPage(
             }
         }
 
-        override suspend fun resetKeys() {
+        override suspend fun resetKeys(context: PlatformContext) {
             ytm_auth.reset()
         }
     }

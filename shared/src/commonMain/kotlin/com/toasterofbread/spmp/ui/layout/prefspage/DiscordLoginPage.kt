@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.prefspage
 
-import SpMp
+import LocalPlayerState
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.composesettings.ui.SettingsPage
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.DiscordLogin
 
@@ -31,6 +32,8 @@ internal fun getDiscordLoginPage(discord_auth: SettingsValueState<String>, manua
             openCustomPage: (SettingsPage) -> Unit,
             goBack: () -> Unit,
         ) {
+            val player = LocalPlayerState.current
+
             DiscordLogin(Modifier.fillMaxSize(), manual = manual) { auth_info ->
                 if (auth_info == null) {
                     goBack()
@@ -46,14 +49,14 @@ internal fun getDiscordLoginPage(discord_auth: SettingsValueState<String>, manua
                     },
                     { error ->
                         error.message?.also {
-                            SpMp.context.sendToast(it)
+                            player.context.sendToast(it)
                         }
                     }
                 )
             }
         }
 
-        override suspend fun resetKeys() {
+        override suspend fun resetKeys(context: PlatformContext) {
             discord_auth.reset()
         }
     }

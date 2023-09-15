@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.queue
 
-import SpMp
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyListScope
@@ -29,7 +28,7 @@ fun LazyListScope.QueueItems(
         ReorderableItem(queue_list_state, key = item.key) { is_dragging ->
             LaunchedEffect(is_dragging) {
                 if (is_dragging) {
-                    SpMp.context.vibrateShort()
+                    player.context.vibrateShort()
                     setPlayingKey(song_items[player.status.m_index].key)
                 }
             }

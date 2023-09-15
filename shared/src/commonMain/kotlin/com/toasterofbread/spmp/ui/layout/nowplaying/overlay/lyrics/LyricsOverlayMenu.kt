@@ -1,7 +1,7 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 package com.toasterofbread.spmp.ui.layout.nowplaying.overlay.lyrics
 
-import SpMp
+import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
@@ -54,8 +54,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.SongLyrics
-import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.resources.getString
@@ -64,9 +64,9 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
 import com.toasterofbread.utils.common.AnnotatedReadingTerm
-import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.common.launchSingle
 import com.toasterofbread.utils.common.setAlpha
+import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 
 private enum class Submenu {
     SEARCH, SYNC
@@ -83,11 +83,12 @@ class LyricsOverlayMenu: OverlayMenu() {
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
-        val pill_menu = remember { PillMenu(expand_state = mutableStateOf(false)) }
-        val scroll_state = rememberLazyListState()
+        val player = LocalPlayerState.current
         val coroutine_scope = rememberCoroutineScope()
+        val scroll_state = rememberLazyListState()
+        val pill_menu = remember { PillMenu(expand_state = mutableStateOf(false)) }
 
-        val lyrics_state = remember(getSong().id) { SongLyricsLoader.getItemState(getSong(), SpMp.context) }
+        val lyrics_state = remember(getSong().id) { SongLyricsLoader.getItemState(getSong(), player.context) }
         var show_furigana: Boolean by remember { mutableStateOf(Settings.KEY_LYRICS_DEFAULT_FURIGANA.get()) }
 
         var submenu: Submenu? by remember { mutableStateOf(null) }
@@ -105,7 +106,7 @@ class LyricsOverlayMenu: OverlayMenu() {
         }
 
         LaunchedEffect(lyrics_state) {
-            SongLyricsLoader.loadBySong(getSong(), SpMp.context)
+            SongLyricsLoader.loadBySong(getSong(), player.context)
         }
 
         LaunchedEffect(lyrics_state.loading) {
@@ -215,10 +216,10 @@ class LyricsOverlayMenu: OverlayMenu() {
                         submenu = null
                         if (changed) {
                             coroutine_scope.launchSingle {
-                                val result = SongLyricsLoader.loadBySong(getSong(), SpMp.context)
+                                val result = SongLyricsLoader.loadBySong(getSong(), player.context)
                                 result.onFailure { error ->
                                     // TODO
-                                    SpMp.context.sendToast(error.toString())
+                                    player.context.sendToast(error.toString())
                                 }
                             }
                         }

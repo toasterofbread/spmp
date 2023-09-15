@@ -2,7 +2,6 @@ package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 
 import SpMp
 import com.toasterofbread.spmp.model.mediaitem.layout.BrowseParamsData
-import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsRow
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi

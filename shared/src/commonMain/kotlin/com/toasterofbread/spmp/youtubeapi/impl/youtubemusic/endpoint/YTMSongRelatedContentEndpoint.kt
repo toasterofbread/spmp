@@ -1,9 +1,9 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 
 import SpMp
+import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
-import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.SongRelatedContentEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.RelatedGroup
@@ -14,7 +14,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.Request
 
 class YTMSongRelatedContentEndpoint(override val api: YoutubeMusicApi): SongRelatedContentEndpoint() {
-    override suspend fun getSongRelated(song: Song): Result<List<RelatedGroup>> {
+    override suspend fun getSongRelated(song: Song): Result<List<RelatedGroup>> = withContext(Dispatchers.IO) {
         var already_loaded = false
         var related_browse_id = api.database.transactionWithResult {
             val related_browse_id = api.database.songQueries.relatedBrowseIdById(song.id).executeAsOne().related_browse_id
@@ -38,25 +38,19 @@ class YTMSongRelatedContentEndpoint(override val api: YoutubeMusicApi): SongRela
 
             related_browse_id = load_result.fold(
                 { it.related_browse_id },
-                { return Result.failure(it) }
+                { return@withContext Result.failure(it) }
             )
         }
 
         if (related_browse_id == null) {
-            return Result.failure(RuntimeException("Song has no related_browse_id"))
+            return@withContext Result.failure(RuntimeException("Song has no related_browse_id"))
         }
 
-        return loadBrowseEndpoint(related_browse_id)
-    }
-
-    private class BrowseResponse(val contents: YoutubeiBrowseResponse.Content)
-
-    private suspend fun loadBrowseEndpoint(browse_id: String): Result<List<RelatedGroup>> = withContext(Dispatchers.IO) {
         val hl = SpMp.data_language
         val request = Request.Builder()
             .endpointUrl("/youtubei/v1/browse")
             .addAuthApiHeaders()
-            .postWithBody(mapOf("browseId" to browse_id))
+            .postWithBody(mapOf("browseId" to related_browse_id))
             .build()
 
         val result = api.performRequest(request)
@@ -64,14 +58,23 @@ class YTMSongRelatedContentEndpoint(override val api: YoutubeMusicApi): SongRela
             return@withContext Result.failure(it)
         }
 
-        return@withContext Result.success(
+        val groups = api.database.transactionWithResult {
             parsed.contents.sectionListRenderer.contents!!.map { group ->
+                val items = group.getMediaItemsOrNull(hl)
+                for (item in items ?: emptyList()) {
+                    item.saveToDatabase(api.database)
+                }
+
                 RelatedGroup(
                     title = group.title?.text ?: getString("song_related_group_other"),
-                    items = group.getMediaItemsOrNull(hl),
+                    items = items,
                     description = group.description
                 )
             }
-        )
+        }
+
+        return@withContext Result.success(groups)
     }
+
+    private class BrowseResponse(val contents: YoutubeiBrowseResponse.Content)
 }

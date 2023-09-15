@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.maintab
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandHorizontally
@@ -55,14 +54,16 @@ import com.github.krottv.compose.sliders.DefaultThumb
 import com.github.krottv.compose.sliders.DefaultTrack
 import com.github.krottv.compose.sliders.SliderValueHorizontal
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
-import com.toasterofbread.utils.composable.Marquee
+import com.toasterofbread.utils.common.getValue
 import com.toasterofbread.utils.common.setAlpha
+import com.toasterofbread.utils.composable.Marquee
 
 @Composable
 internal fun Controls(
@@ -70,13 +71,10 @@ internal fun Controls(
     seek: (Float) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val db = SpMp.context.database
     val player = LocalPlayerState.current
 
-    val song_title: String? = song?.Title?.observe(db)?.value
-    val song_artist_title: String? = song?.Artist?.observeOn(db) {
-        it?.Title
-    }
+    val song_title: String? by song?.observeActiveTitle()
+    val song_artist_title: String? by song?.Artist?.observePropertyActiveTitle()
 
     var show_title_edit_dialog: Boolean by remember { mutableStateOf(false) }
 
@@ -155,7 +153,7 @@ internal fun Controls(
                             .platformClickable(
                                 onAltClick = {
                                     show_title_edit_dialog = !show_title_edit_dialog
-                                    SpMp.context.vibrateShort()
+                                    player.context.vibrateShort()
                                 }
                             )
                     )
@@ -172,16 +170,16 @@ internal fun Controls(
                         .fillMaxWidth()
                         .platformClickable(
                             onClick = {
-                                val artist: Artist? = song?.Artist?.get(db)
+                                val artist: Artist? = song?.Artist?.get(player.database)
                                 if (artist?.isForItem() == false) {
                                     player.onMediaItemClicked(artist)
                                 }
                             },
                             onAltClick = {
-                                val artist: Artist? = song?.Artist?.get(db)
+                                val artist: Artist? = song?.Artist?.get(player.database)
                                 if (artist?.isForItem() == false) {
                                     player.onMediaItemLongClicked(artist)
-                                    SpMp.context.vibrateShort()
+                                    player.context.vibrateShort()
                                 }
                             }
                         )

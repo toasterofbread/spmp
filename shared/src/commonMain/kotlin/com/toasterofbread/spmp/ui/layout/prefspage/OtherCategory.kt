@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.ui.layout.prefspage
 
-import SpMp
 import com.toasterofbread.composesettings.ui.item.SettingsAccessibilityServiceItem
 import com.toasterofbread.composesettings.ui.item.SettingsGroupItem
 import com.toasterofbread.composesettings.ui.item.SettingsItem
@@ -78,13 +77,12 @@ private fun getAccessibilityServiceGroup(): List<SettingsItem> {
                     return PlayerAccessibilityService.isEnabled(context)
                 }
 
-                override fun setEnabled(enabled: Boolean) {
+                override fun setEnabled(enabled: Boolean, context: PlatformContext) {
                     if (!enabled) {
                         PlayerAccessibilityService.disable()
                         return
                     }
 
-                    val context = SpMp.context
                     if (PlayerAccessibilityService.isSettingsPermissionGranted(context)) {
                         PlayerAccessibilityService.enable(context, true)
                         return
@@ -105,8 +103,8 @@ private fun getAccessibilityServiceGroup(): List<SettingsItem> {
                 return@SettingsToggleItem
             }
 
-            if (!PlayerAccessibilityService.isOverlayPermissionGranted(SpMp.context)) {
-                PlayerAccessibilityService.requestOverlayPermission(SpMp.context) { success ->
+            if (!PlayerAccessibilityService.isOverlayPermissionGranted(this)) {
+                PlayerAccessibilityService.requestOverlayPermission(this) { success ->
                     allowChange(success)
                 }
                 return@SettingsToggleItem

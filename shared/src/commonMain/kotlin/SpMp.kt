@@ -292,7 +292,7 @@ class ErrorManager(private val context: PlatformContext) {
                         CircleShape,
                         onLongClick = {
                             dismiss = true
-                            SpMp.context.vibrateShort()
+                            context.vibrateShort()
                         },
                         colours = IconButtonDefaults.iconButtonColors(
                             containerColor = colour(),

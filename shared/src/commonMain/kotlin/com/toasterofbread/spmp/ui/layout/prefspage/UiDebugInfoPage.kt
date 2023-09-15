@@ -26,8 +26,8 @@ import com.toasterofbread.composesettings.ui.item.SettingsComposableItem
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.getNavigationBarHeightDp
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.utils.composable.RecomposeOnInterval
 import com.toasterofbread.utils.common.roundTo
+import com.toasterofbread.utils.composable.RecomposeOnInterval
 
 @Composable
 private fun SizeIndicator(

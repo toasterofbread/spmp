@@ -38,9 +38,9 @@ import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NOW_PLAYING_MAIN_PADDING
 import com.toasterofbread.utils.common.AnnotatedReadingTerm
 import com.toasterofbread.utils.common.calculateReadingsAnnotatedString
-import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.common.setAlpha
 import com.toasterofbread.utils.common.thenIf
+import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.delay
 
 @Composable
@@ -55,7 +55,7 @@ fun CoreLyricsDisplay(
     getOnLongClick: () -> ((line_data: Pair<Int, List<AnnotatedReadingTerm>>) -> Unit)?
 ) {
     val player = LocalPlayerState.current
-    val lyrics_sync_offset: Long? by song.LyricsSyncOffset.observe(player.context.database)
+    val lyrics_sync_offset: Long? by song.LyricsSyncOffset.observe(player.database)
 
     val screen_width = player.screen_size.width
     val size_px = with(LocalDensity.current) { ((screen_width - (NOW_PLAYING_MAIN_PADDING.dp * 2) - (15.dp * getExpansion() * 2)).value * 0.9.dp).toPx() }

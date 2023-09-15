@@ -22,10 +22,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.platform.rememberSongDownloads
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.rememberSongDownloads
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
@@ -130,7 +130,7 @@ private fun InfoRow(songs: List<Song>, modifier: Modifier = Modifier) {
         total_duration_string = null
 
         val duration = songs.sumOf {
-            it.Duration.get(player.context.database) ?: 0
+            it.Duration.get(player.database) ?: 0
         }
         if (duration == 0L) {
             return@LaunchedEffect

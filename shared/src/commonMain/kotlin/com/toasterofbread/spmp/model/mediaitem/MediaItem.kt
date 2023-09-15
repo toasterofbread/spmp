@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem
 
+import LocalPlayerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.runtime.Composable
@@ -37,11 +38,13 @@ interface MediaItem: MediaItemHolder {
     fun getActiveTitle(db: Database): String? {
         return db.mediaItemQueries.activeTitleById(id).executeAsOneOrNull()?.IFNULL
     }
+
     @Composable
-    fun observeActiveTitle(context: PlatformContext): MutableState<String?> {
-        return context.database.mediaItemQueries.activeTitleById(id)
+    fun observeActiveTitle(): MutableState<String?> {
+        val player = LocalPlayerState.current
+        return player.database.mediaItemQueries.activeTitleById(id)
             .observeAsState({ it.executeAsOneOrNull()?.IFNULL }) { title ->
-                setActiveTitle(title, context)
+                setActiveTitle(title, player.context)
             }
     }
 

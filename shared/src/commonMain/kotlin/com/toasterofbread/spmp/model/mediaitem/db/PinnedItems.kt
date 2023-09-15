@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem.db
 
+import LocalPlayerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
@@ -70,8 +71,8 @@ fun rememberPinnedItems(context: PlatformContext): List<MediaItem> {
 }
 
 @Composable
-fun MediaItem.observePinnedToHome(context: PlatformContext): MutableState<Boolean> {
-    val queries = context.database.pinnedItemQueries
+fun MediaItem.observePinnedToHome(): MutableState<Boolean> {
+    val queries = LocalPlayerState.current.database.pinnedItemQueries
     val query = remember(this) {
         queries.countByItem(id, getType().ordinal.toLong())
     }

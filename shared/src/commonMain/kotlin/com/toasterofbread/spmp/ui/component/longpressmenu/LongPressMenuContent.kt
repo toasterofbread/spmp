@@ -47,9 +47,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.vibrateShort
@@ -58,11 +58,11 @@ import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.composable.Marquee
-import com.toasterofbread.utils.composable.NoRipple
 import com.toasterofbread.utils.common.copy
 import com.toasterofbread.utils.common.setAlpha
 import com.toasterofbread.utils.common.thenIf
+import com.toasterofbread.utils.composable.Marquee
+import com.toasterofbread.utils.composable.NoRipple
 
 @Composable
 internal fun LongPressMenuContent(
@@ -86,8 +86,8 @@ internal fun LongPressMenuContent(
         }
     }
 
-    var item_pinned_to_home: Boolean by data.item.observePinnedToHome(player.context)
-    val item_title: String? by data.item.Title.observe(player.context.database)
+    var item_pinned_to_home: Boolean by data.item.observePinnedToHome()
+    val item_title: String? by data.item.observeActiveTitle()
 
     Column(modifier) {
         val density = LocalDensity.current
@@ -176,7 +176,7 @@ internal fun LongPressMenuContent(
 
                             // Artist
                             if (data.item is MediaItem.WithArtist) {
-                                val item_artist: Artist? by data.item.Artist.observe(player.context.database)
+                                val item_artist: Artist? by data.item.Artist.observe(player.database)
                                 item_artist?.also { artist ->
                                     Marquee {
                                         val player = LocalPlayerState.current

@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.mainpage
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -21,7 +20,7 @@ fun MainPageDisplay() {
 
     Column(Modifier.padding(horizontal = padding)) {
         val top_padding = WAVE_BORDER_DEFAULT_HEIGHT.dp
-        MainPageTopBar(Modifier.padding(top = SpMp.context.getStatusBarHeightDp()).zIndex(1f))
+        MainPageTopBar(Modifier.padding(top = player.context.getStatusBarHeightDp()).zIndex(1f))
 
         with(player.main_page) {
             Page(

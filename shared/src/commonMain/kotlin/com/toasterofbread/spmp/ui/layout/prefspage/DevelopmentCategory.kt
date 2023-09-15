@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.prefspage
 
+import LocalPlayerState
 import SpMp
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -93,13 +94,15 @@ private fun UnlocalisedStringList(strings: List<UnlocalisedString>) {
 
 @Composable
 private fun UnlocalisedString.InfoDisplay() {
+    val player = LocalPlayerState.current
+
     Row(verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.fillMaxWidth().weight(1f)) {
             Text("Key: $key")
             Text("Lang: $source_language")
         }
 
-        SpMp.context.CopyShareButtons {
+        player.context.CopyShareButtons {
             "String: ${this@InfoDisplay}\nStacktrace: ${stacktrace.joinToString("\n")}"
         }
     }

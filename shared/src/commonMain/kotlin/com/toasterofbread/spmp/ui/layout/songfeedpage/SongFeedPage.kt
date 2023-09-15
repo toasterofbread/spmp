@@ -70,7 +70,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
-import kotlin.reflect.KClass
 
 private const val ARTISTS_ROW_DEFAULT_MIN_OCCURRENCES: Int = 2
 private const val ARTISTS_ROW_MIN_ARTISTS: Int = 4

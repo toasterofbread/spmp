@@ -3,8 +3,8 @@ package com.toasterofbread.spmp.youtubeapi.lyrics
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.SongLyrics
-import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.getStringTODO
 import mediaitem.LyricsById

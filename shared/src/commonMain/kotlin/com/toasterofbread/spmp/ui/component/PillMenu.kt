@@ -48,9 +48,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.common.addUnique
-import com.toasterofbread.utils.composable.NoRipple
 import com.toasterofbread.utils.common.getContrasted
 import com.toasterofbread.utils.common.thenIf
+import com.toasterofbread.utils.composable.NoRipple
 
 class PillMenu(
     private val action_count: Int = 0,

@@ -2,7 +2,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.queue
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -85,7 +84,7 @@ fun QueueButtonsRow(
                 onLongClick = if (multiselect_context.is_active) null else ({
                     player.player?.undoableAction {
                         if (!multiselect_context.is_active) {
-                            SpMp.context.vibrateShort()
+                            player.context.vibrateShort()
                             player.player?.shuffleQueue(start = 0)
                         }
                     }
@@ -127,11 +126,11 @@ fun QueueButtonsRow(
                     enabled = player.status.m_undo_count != 0 || player.status.m_redo_count != 0,
                     onClick = {
                         player.player?.undo()
-                        SpMp.context.vibrateShort()
+                        player.context.vibrateShort()
                     },
                     onLongClick = {
                         player.player?.redo()
-                        SpMp.context.vibrateShort()
+                        player.context.vibrateShort()
                     }
                 )
                 .size(40.dp),

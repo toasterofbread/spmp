@@ -1,5 +1,6 @@
 package com.toasterofbread.settings.ui.item
 
+import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -31,12 +32,13 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.composesettings.ui.SettingsPage
 import com.toasterofbread.composesettings.ui.item.BasicSettingsValueState
 import com.toasterofbread.composesettings.ui.item.SettingsItem
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.common.toFloat
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.composable.WidthShrinkText
-import com.toasterofbread.utils.common.toFloat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -48,8 +50,9 @@ class SettingsFileItem(
     val state: BasicSettingsValueState<String>,
     val title: String,
     val subtitle: String?,
-    val getPathLabel: (String) -> String,
+    val getPathLabel: @Composable (String) -> String,
     val onSelectRequested: (
+        context: PlatformContext,
         setValue: (String) -> Unit,
         showDialog: (Dialog) -> Unit,
     ) -> Unit,
@@ -79,6 +82,8 @@ class SettingsFileItem(
 
     @Composable
     override fun GetItem(theme: Theme, openPage: (Int, Any?) -> Unit, openCustomPage: (SettingsPage) -> Unit) {
+        val player = LocalPlayerState.current
+
         var action_in_progress: Boolean by remember { mutableStateOf(false) }
         LaunchedEffect(current_dialog) {
             action_in_progress = false
@@ -167,6 +172,7 @@ class SettingsFileItem(
 
                 IconButton({
                     onSelectRequested(
+                        player.context,
                         { path ->
                             state.set(path)
                         },

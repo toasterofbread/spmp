@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.resources
 
+import SpMp
 import com.toasterofbread.spmp.platform.PlatformContext
 import kotlinx.coroutines.runBlocking
 import org.xmlpull.v1.XmlPullParser

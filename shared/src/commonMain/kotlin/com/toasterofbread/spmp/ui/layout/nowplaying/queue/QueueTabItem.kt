@@ -59,7 +59,7 @@ class QueueTabItem(val song: Song, val key: Int) {
         val indices = if (index < playing_index) index + 1 .. playing_index else playing_index until index
         for (i in indices) {
             val duration =
-                service.getSong(i)?.Duration?.observe(player.context.database)?.value
+                service.getSong(i)?.Duration?.observe(player.database)?.value
                 ?: return null
             delta += duration
         }

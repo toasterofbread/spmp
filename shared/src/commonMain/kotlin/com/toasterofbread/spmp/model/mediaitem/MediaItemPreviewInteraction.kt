@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.foundation.Indication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -98,7 +97,7 @@ fun Modifier.mediaItemPreviewInteraction(
                     delay(long_press_timeout * (++delays))
                     current_press_stage = stage
                     long_press_menu_data.current_interaction_stage = stage
-                    SpMp.context.vibrateShort()
+                    player.context.vibrateShort()
 
                     if (stage == MediaItemPreviewInteractionPressStage.values().last { it.isAvailable(long_press_menu_data) }) {
                         current_press_stage.execute(item, long_press_menu_data, onClick, onLongClick)

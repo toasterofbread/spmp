@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem.loader
 
+import LocalPlayerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -139,7 +140,8 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
     }
 
     @Composable
-    fun rememberItemState(item: MediaItem, context: PlatformContext): ItemState {
+    fun rememberItemState(item: MediaItem): ItemState {
+        val player = LocalPlayerState.current
         val state = remember(item) {
             object : ItemState {
                 override val loaded_images: MutableMap<MediaItemThumbnailProvider.Quality, WeakReference<ImageBitmap>> = mutableStateMapOf()
@@ -150,7 +152,7 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
         LaunchedEffect(state) {
             withContext(Dispatchers.Default) {
                 MediaItemThumbnailLoader.lock.withLock {
-                    val provider = item.ThumbnailProvider.get(context.database) ?: return@withContext
+                    val provider = item.ThumbnailProvider.get(player.database) ?: return@withContext
 
                     for (quality in MediaItemThumbnailProvider.Quality.values()) {
                         val key = MediaItemThumbnailLoaderKey(provider, quality, item.id)

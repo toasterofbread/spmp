@@ -17,17 +17,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.common.copy
-import com.toasterofbread.utils.common.thenIf
 
 class SettingsInterface(
     val themeProvider: () -> Theme,
     private val root_page: Int,
-    val context: PlatformContext,
     val prefs: PlatformPreferences,
     val default_provider: (String) -> Any,
     val pill_menu: PillMenu? = null,

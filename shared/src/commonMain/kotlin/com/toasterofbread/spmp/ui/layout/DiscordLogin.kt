@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.ui.layout
 
-import SpMp
+import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -85,6 +85,8 @@ fun DiscordLoginConfirmation(info_only: Boolean = false, onFinished: (manual: Bo
 
 @Composable
 fun DiscordLogin(modifier: Modifier = Modifier, manual: Boolean = false, onFinished: (Result<String?>?) -> Unit) {
+    val player = LocalPlayerState.current
+
     if (manual) {
         DiscordManualLogin(modifier, onFinished)
     }
@@ -106,7 +108,7 @@ fun DiscordLogin(modifier: Modifier = Modifier, manual: Boolean = false, onFinis
     else {
         // TODO
         LaunchedEffect(Unit) {
-            SpMp.context.openUrl(DISCORD_LOGIN_URL)
+            player.context.openUrl(DISCORD_LOGIN_URL)
         }
         DiscordManualLogin(modifier, onFinished)
     }

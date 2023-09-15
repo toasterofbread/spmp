@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.radiobuilder
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
@@ -10,8 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
@@ -106,7 +103,7 @@ fun FilterSelectionPage(
             }
 
             coroutine_scope.launch {
-                val result = builder_endpoint.getBuiltRadio(radio_token, SpMp.context)
+                val result = builder_endpoint.getBuiltRadio(radio_token, player.context)
                 result.fold(
                     { playlist ->
                         if (playlist == null) {

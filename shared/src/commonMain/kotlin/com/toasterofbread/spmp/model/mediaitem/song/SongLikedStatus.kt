@@ -24,7 +24,7 @@ fun SongLikedStatus?.toLong(): Long? =
         null -> null
     }
 
-suspend fun Song.updateLiked(liked: SongLikedStatus, endpoint: SetSongLikedEndpoint, context: PlatformContext = SpMp.context): Result<Unit> {
+suspend fun Song.updateLiked(liked: SongLikedStatus, endpoint: SetSongLikedEndpoint, context: PlatformContext): Result<Unit> {
     if (!endpoint.isImplemented()) {
         return Result.failure(EndpointNotImplementedException(endpoint))
     }

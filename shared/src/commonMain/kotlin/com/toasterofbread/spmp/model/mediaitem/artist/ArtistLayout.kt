@@ -3,25 +3,19 @@ package com.toasterofbread.spmp.model.mediaitem.artist
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import com.toasterofbread.Database
-import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
-import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.db.ListPropertyImpl
 import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.db.SingleProperty
 import com.toasterofbread.spmp.model.mediaitem.db.toLocalisedYoutubeString
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.model.mediaitem.getMediaItemFromUid
-import com.toasterofbread.spmp.model.mediaitem.getUid
-import com.toasterofbread.spmp.model.mediaitem.layout.LambdaViewMore
-import com.toasterofbread.spmp.model.mediaitem.layout.ListPageBrowseIdViewMore
-import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
-import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemViewMore
-import com.toasterofbread.spmp.model.mediaitem.layout.PlainViewMore
 import com.toasterofbread.spmp.model.mediaitem.layout.ViewMore
 import com.toasterofbread.spmp.model.mediaitem.layout.ViewMoreType
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
+import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 
 data class ArtistLayoutData(
     override var layout_index: Long?,

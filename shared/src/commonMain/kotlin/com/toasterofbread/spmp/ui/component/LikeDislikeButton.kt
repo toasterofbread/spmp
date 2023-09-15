@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.component
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -20,14 +19,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLikedLoader
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
-import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.common.launchSingle
+import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 
 @Composable
 fun LikeDislikeButton(
@@ -67,7 +66,7 @@ fun LikeDislikeButton(
                 ) { new_status ->
                     coroutine_scope.launchSingle {
                         song.Liked.set(new_status, context.database)
-                        song.updateLiked(new_status, set_liked_endpoint)
+                        song.updateLiked(new_status, set_liked_endpoint, context)
                     }
                 }
             }
@@ -87,6 +86,8 @@ private fun LikedStatusIcon(
     getColour: () -> Color,
     setStatus: (SongLikedStatus) -> Unit
 ) {
+    val player = LocalPlayerState.current
+
     Icon(
         if (status != SongLikedStatus.NEUTRAL) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp,
         null,
@@ -103,7 +104,7 @@ private fun LikedStatusIcon(
                     }
                 },
                 onLongClick = {
-                    SpMp.context.vibrateShort()
+                    player.context.vibrateShort()
                     when (status) {
                         SongLikedStatus.LIKED, SongLikedStatus.NEUTRAL -> setStatus(SongLikedStatus.DISLIKED)
                         SongLikedStatus.DISLIKED -> setStatus(SongLikedStatus.LIKED)

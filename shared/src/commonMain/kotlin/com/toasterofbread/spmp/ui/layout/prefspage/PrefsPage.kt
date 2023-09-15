@@ -2,7 +2,7 @@
 
 package com.toasterofbread.spmp.ui.layout.prefspage
 
-import SpMp
+import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -111,6 +111,7 @@ fun PrefsPage(
     modifier: Modifier = Modifier,
     close: () -> Unit,
 ) {
+    val player = LocalPlayerState.current
     var current_category by category_state
     val category_open by remember { derivedStateOf { current_category != null } }
     val show_reset_confirmation = remember { mutableStateOf(false) }
@@ -119,7 +120,7 @@ fun PrefsPage(
         show_reset_confirmation,
         { 
             if (category_open) {
-                settings_interface.current_page.resetKeys()
+                settings_interface.current_page.resetKeys(player.context)
             }
             else {
                 TODO("Reset keys in all categories (w/ different confirmation text)")
@@ -185,7 +186,7 @@ fun PrefsPage(
                                 val clipboard = LocalClipboardManager.current
                                 fun copyProjectUrl() {
                                     clipboard.setText(AnnotatedString(getString("project_url")))
-                                    SpMp.context.sendToast(getString("notif_copied_x_to_clipboard").replace("\$x", getString("project_url_name")))
+                                    player.context.sendToast(getString("notif_copied_x_to_clipboard").replace("\$x", getString("project_url_name")))
                                 }
     
                                 Icon(
@@ -193,17 +194,17 @@ fun PrefsPage(
                                     null,
                                     Modifier.platformClickable(
                                         onClick = {
-                                            if (SpMp.context.canOpenUrl()) {
-                                                SpMp.context.openUrl(getString("project_url"))
+                                            if (player.context.canOpenUrl()) {
+                                                player.context.openUrl(getString("project_url"))
                                             }
                                             else {
                                                 copyProjectUrl()
                                             }
                                         },
                                         onAltClick = {
-                                            if (SpMp.context.canOpenUrl()) {
+                                            if (player.context.canOpenUrl()) {
                                                 copyProjectUrl()
-                                                SpMp.context.vibrateShort()
+                                                player.context.vibrateShort()
                                             }
                                         }
                                     )

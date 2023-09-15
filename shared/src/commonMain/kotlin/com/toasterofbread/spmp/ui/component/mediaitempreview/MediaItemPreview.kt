@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.ui.component.mediaitempreview
 
-import SpMp
+import LocalPlayerState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,13 +24,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.observePlayCount
+import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
 import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
@@ -75,6 +76,8 @@ fun MediaItemPreviewSquare(
             )
         }
 ) {
+    val player = LocalPlayerState.current
+
     Column(
         modifier.mediaItemPreviewInteraction(item, long_press_menu_data),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -92,7 +95,7 @@ fun MediaItemPreviewSquare(
             }
         }
 
-        val item_title: String? by item.Title.observe(SpMp.context.database)
+        val item_title: String? by item.observeActiveTitle()
 
         Text(
             item_title ?: "",
@@ -127,6 +130,8 @@ fun MediaItemPreviewLong(
             )
         }
 ) {
+    val player = LocalPlayerState.current
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
@@ -154,7 +159,7 @@ fun MediaItemPreviewLong(
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            val item_title: String? by item.Title.observe(SpMp.context.database)
+            val item_title: String? by item.observeActiveTitle()
             Text(
                 item_title ?: "",
                 fontSize = 15.sp,
@@ -176,7 +181,7 @@ fun MediaItemPreviewLong(
                 }
 
                 if (show_play_count) {
-                    val play_count = item.observePlayCount(SpMp.context)
+                    val play_count = item.observePlayCount(player.context)
                     InfoText(
                         getString("mediaitem_play_count_\$x_short")
                             .replace("\$x", play_count.toString())
@@ -192,13 +197,7 @@ fun MediaItemPreviewLong(
                     InfoText(info)
                 }
 
-                val artist_title: String? =
-                    if (item is MediaItem.WithArtist)
-                        item.Artist.observeOn(SpMp.context.database) {
-                            it?.Title
-                        }
-                    else null
-
+                val artist_title: String? = (item as? MediaItem.WithArtist)?.Artist?.observePropertyActiveTitle()?.value
                 if (artist_title != null) {
                     InfoText(artist_title)
                 }

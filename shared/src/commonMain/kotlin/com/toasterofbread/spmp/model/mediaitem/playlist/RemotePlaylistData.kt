@@ -5,8 +5,8 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
-import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
+import com.toasterofbread.spmp.platform.PlatformContext
 
 class RemotePlaylistData(id: String): PlaylistData(id), RemotePlaylist {
     var continuation: MediaItemLayout.Continuation? = null

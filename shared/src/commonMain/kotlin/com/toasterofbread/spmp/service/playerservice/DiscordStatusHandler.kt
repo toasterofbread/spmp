@@ -1,12 +1,13 @@
 package com.toasterofbread.spmp.service.playerservice
 
+import SpMp
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.toThumbnailProvider
 import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.platform.PlatformContext

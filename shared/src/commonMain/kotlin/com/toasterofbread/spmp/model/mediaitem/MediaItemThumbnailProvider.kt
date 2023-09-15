@@ -2,7 +2,6 @@ package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.ui.unit.IntSize
 import mediaitem.ThumbnailProviderById
-import java.net.URI
 
 interface MediaItemThumbnailProvider {
     fun getThumbnailUrl(quality: Quality): String?

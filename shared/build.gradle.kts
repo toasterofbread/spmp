@@ -28,7 +28,7 @@ val DEBUG_KEY_NAMES = listOf(
     "DISCORD_STATUS_TEXT_BUTTON_PROJECT_OVERRIDE"
 )
 
-val buildConfigDir get() = project.layout.buildDirectory.dir("generated/buildconfig")
+val buildConfigDir: Provider<Directory> get() = project.layout.buildDirectory.dir("generated/buildconfig")
 
 fun GenerateBuildConfig.buildConfig(debug: Boolean) {
     val keys = Properties()
@@ -84,10 +84,10 @@ fun GenerateBuildConfig.buildConfig(debug: Boolean) {
     fields_to_generate.add(Triple("IS_DEBUG", "Boolean", debug.toString()))
 }
 
-val buildConfigDebug = tasks.register("buildConfigDebug", GenerateBuildConfig::class.java) {
-    buildConfig(debug = false)
+val buildConfigDebug: TaskProvider<GenerateBuildConfig> = tasks.register("buildConfigDebug", GenerateBuildConfig::class.java) {
+    buildConfig(debug = true)
 }
-val buildConfigRelease = tasks.register("buildConfigRelease", GenerateBuildConfig::class.java) {
+val buildConfigRelease: TaskProvider<GenerateBuildConfig> = tasks.register("buildConfigRelease", GenerateBuildConfig::class.java) {
     buildConfig(debug = false)
 }
 
@@ -124,7 +124,7 @@ kotlin {
                 implementation("com.godaddy.android.colorpicker:compose-color-picker:0.7.0")
                 implementation("org.apache.commons:commons-text:1.10.0")
                 implementation("com.atilika.kuromoji:kuromoji-ipadic:0.9.0")
-                implementation("org.jsoup:jsoup:1.15.3")
+                implementation("org.jsoup:jsoup:1.16.1")
                 implementation("org.burnoutcrew.composereorderable:reorderable:0.9.2")
                 implementation("com.github.SvenWoltmann:color-thief-java:v1.1.2")
                 implementation("com.github.catppuccin:java:v1.0.0")
@@ -135,11 +135,11 @@ kotlin {
 
         val androidMain by getting {
             dependencies {
-                api("androidx.activity:activity-compose:1.6.1")
-                api("androidx.core:core-ktx:1.9.0")
+                api("androidx.activity:activity-compose:1.7.2")
+                api("androidx.core:core-ktx:1.12.0")
                 api("androidx.appcompat:appcompat:1.6.1")
 
-                val media3_version = "1.1.0"
+                val media3_version = "1.1.1"
                 implementation("androidx.media3:media3-exoplayer:$media3_version")
                 implementation("androidx.media3:media3-ui:$media3_version")
                 implementation("androidx.media3:media3-session:$media3_version")

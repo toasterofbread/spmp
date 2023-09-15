@@ -38,7 +38,7 @@ class SettingsAccessibilityServiceItem(
         fun addEnabledListener(listener: (Boolean) -> Unit, context: PlatformContext)
         fun removeEnabledListener(listener: (Boolean) -> Unit, context: PlatformContext)
         fun isEnabled(context: PlatformContext): Boolean
-        fun setEnabled(enabled: Boolean)
+        fun setEnabled(enabled: Boolean, context: PlatformContext)
     }
 
     override fun initialiseValueStates(prefs: PlatformPreferences, default_provider: (String) -> Any) {}
@@ -75,7 +75,7 @@ class SettingsAccessibilityServiceItem(
                     horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(if (enabled) enabled_text else disabled_text)
-                    Button({ service_bridge.setEnabled(!enabled) },
+                    Button({ service_bridge.setEnabled(!enabled, context) },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (enabled) theme.vibrant_accent else theme.background,
                             contentColor = if (enabled) theme.on_accent else theme.on_background

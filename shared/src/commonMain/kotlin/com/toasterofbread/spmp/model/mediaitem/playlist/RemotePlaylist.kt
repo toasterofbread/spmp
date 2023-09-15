@@ -6,8 +6,8 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 

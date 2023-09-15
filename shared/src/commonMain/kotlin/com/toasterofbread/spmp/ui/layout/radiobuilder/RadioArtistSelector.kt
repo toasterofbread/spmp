@@ -39,8 +39,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.Thumbnail
@@ -49,10 +49,10 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.ARTIST_THUMB_CORNER
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getArtistLongPressMenuData
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderArtist
+import com.toasterofbread.utils.common.times
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.composable.crossOut
-import com.toasterofbread.utils.common.times
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

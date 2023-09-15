@@ -32,7 +32,6 @@ import com.toasterofbread.spmp.youtubeapi.endpoint.UserAuthStateEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.YoutubeChannelCreationFormEndpoint
 import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.unimplemented.UnimplementedYoutubeApi
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.PLAIN_HEADERS
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.failure
 import okhttp3.Headers

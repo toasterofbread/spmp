@@ -34,7 +34,7 @@ import com.toasterofbread.utils.composable.WidthShrinkText
 
 @Composable
 internal fun PlaylistPage.PlaylistButtonBar(modifier: Modifier = Modifier) {
-    var playlist_pinned: Boolean by playlist.observePinnedToHome(player.context)
+    var playlist_pinned: Boolean by playlist.observePinnedToHome()
 
     Crossfade(edit_in_progress, modifier) { editing ->
         if (editing) {
@@ -76,7 +76,7 @@ internal fun PlaylistPage.PlaylistButtonBar(modifier: Modifier = Modifier) {
 
 @Composable
 private fun PlaylistPage.PlaylistInfoText(items: List<MediaItem>?, modifier: Modifier = Modifier) {
-    val db = player.context.database
+    val db = player.database
 
     Row(
         modifier,

@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.platform
 
-import SpMp
+import LocalPlayerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -40,7 +40,7 @@ expect class PlayerDownloadManager(context: PlatformContext) {
 
 @Composable
 fun rememberSongDownloads(): List<PlayerDownloadManager.DownloadStatus> {
-    val download_manager = SpMp.context.download_manager
+    val download_manager = LocalPlayerState.current.context.download_manager
     var downloads: List<PlayerDownloadManager.DownloadStatus> by remember { mutableStateOf(emptyList()) }
 
     DisposableEffect(Unit) {

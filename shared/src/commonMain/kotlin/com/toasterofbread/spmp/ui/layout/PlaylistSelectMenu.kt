@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -59,7 +58,7 @@ fun PlaylistSelectMenu(
             loading = true
             val result = playlists_endpoint.getAccountPlaylists()
             result.onFailure { error ->
-                SpMp.context.sendToast(error.toString())
+                player.context.sendToast(error.toString())
             }
             loading = false
         }

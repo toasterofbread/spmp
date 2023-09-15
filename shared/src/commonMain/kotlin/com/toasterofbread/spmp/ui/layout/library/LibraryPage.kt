@@ -32,11 +32,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.mainpage.MainPage
 import com.toasterofbread.spmp.ui.layout.mainpage.MainPageState
 import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.utils.composable.ResizableOutlinedTextField
 
 abstract class LibrarySubPage(val context: PlatformContext) {

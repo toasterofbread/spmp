@@ -31,6 +31,7 @@ import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
 import com.toasterofbread.spmp.model.mediaitem.layout.BrowseParamsData
+import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.loadDataOnChange
@@ -45,7 +46,6 @@ import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
-import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemList
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -77,7 +77,7 @@ fun ArtistPage(
     multiselect_context: MediaItemMultiSelectContext? = null
 ) {
     val player = LocalPlayerState.current
-    val db = player.context.database
+    val db = player.database
 
     lazyAssert {
         !artist.isForItem()
@@ -92,7 +92,7 @@ fun ArtistPage(
     var browse_params_rows: List<ArtistWithParamsRow>? by remember { mutableStateOf(null) }
 
     val thumbnail_provider: MediaItemThumbnailProvider? by artist.ThumbnailProvider.observe(db)
-    val thumbnail_load_state = MediaItemThumbnailLoader.rememberItemState(artist, player.context)
+    val thumbnail_load_state = MediaItemThumbnailLoader.rememberItemState(artist)
 
     LaunchedEffect(artist.id, browse_params) {
         browse_params_rows = null

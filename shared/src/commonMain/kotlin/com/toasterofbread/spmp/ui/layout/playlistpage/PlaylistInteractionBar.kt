@@ -35,8 +35,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.ui.component.WaveBorder
-import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.composable.ResizableOutlinedTextField
+import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.launch
 
 @Composable

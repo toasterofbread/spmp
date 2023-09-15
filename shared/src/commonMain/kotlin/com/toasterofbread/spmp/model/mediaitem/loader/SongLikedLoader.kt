@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.model.mediaitem.loader
 
-import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
+import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.song.toLong
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.youtubeapi.endpoint.SongLikedEndpoint

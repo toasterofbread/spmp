@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp
 
+import LocalPlayerState
 import SpMp
 import android.content.Intent
 import android.os.Bundle
@@ -87,7 +88,7 @@ class ErrorReportActivity : ComponentActivity() {
         }
 
         Surface(modifier = Modifier.fillMaxSize()) {
-            var width by remember { mutableStateOf(0) }
+            var width by remember { mutableIntStateOf(0) }
 
             Column(
                 Modifier
@@ -144,7 +145,7 @@ class ErrorReportActivity : ComponentActivity() {
                                                 .build()
 
                                             val response = client.newCall(request).execute()
-                                            SpMp.context.sendToast(response.code.toString())
+                                            context?.sendToast(response.code.toString())
 
                                             if (!response.isSuccessful) {
                                                 println(response.body!!.string())

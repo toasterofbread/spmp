@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.mainpage
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
@@ -21,10 +20,6 @@ import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.Settings
@@ -34,7 +29,6 @@ import com.toasterofbread.spmp.ui.component.MusicTopBarWithVisualiser
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.layout.radiobuilder.RADIO_BUILDER_ICON_WIDTH_DP
 import com.toasterofbread.spmp.ui.layout.radiobuilder.RadioBuilderIcon
-import com.toasterofbread.spmp.youtubeapi.implementedOrNull
 
 @Composable
 fun MainPageTopBar(modifier: Modifier = Modifier) {
@@ -77,7 +71,7 @@ fun MainPageTopBar(modifier: Modifier = Modifier) {
                                 onClick = { player.setMainPage(player.main_page_state.Library) },
                                 onAltClick = {
                                     player.setOverlayPage(PlayerOverlayPage.RadioBuilderPage)
-                                    SpMp.context.vibrateShort()
+                                    player.context.vibrateShort()
                                 },
                                 indication = rememberRipple(false)
                             )

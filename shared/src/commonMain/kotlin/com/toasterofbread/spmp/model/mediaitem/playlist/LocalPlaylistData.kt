@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem.playlist
 
+import LocalPlayerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -9,20 +10,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.Database
-import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer
-import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.UnsupportedPropertyRememberer
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.ListProperty
 import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter.saveToFile
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.utils.composable.OnChangedEffect
 
 class LocalPlaylistData(id: String): PlaylistData(id), LocalPlaylist {
     var play_count: Int = 0
@@ -37,9 +37,11 @@ class LocalPlaylistData(id: String): PlaylistData(id), LocalPlaylist {
     override fun getActiveTitle(db: Database): String? {
         return title
     }
+
     @Composable
-    override fun observeActiveTitle(context: PlatformContext): MutableState<String?> {
-        val state: MutableState<String?> = remember(this) { mutableStateOf(getActiveTitle(context.database)) }
+    override fun observeActiveTitle(): MutableState<String?> {
+        val player = LocalPlayerState.current
+        val state: MutableState<String?> = remember(this) { mutableStateOf(getActiveTitle(player.database)) }
         var launched: Boolean by remember(this) { mutableStateOf(false) }
 
         LaunchedEffect(this, state.value) {
@@ -49,7 +51,7 @@ class LocalPlaylistData(id: String): PlaylistData(id), LocalPlaylist {
             }
 
             setDataActiveTitle(state.value ?: "")
-            setActiveTitle(state.value, context)
+            setActiveTitle(state.value, player.context)
         }
         return state
     }

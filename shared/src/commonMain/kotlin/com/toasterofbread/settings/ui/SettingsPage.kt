@@ -1,7 +1,6 @@
 package com.toasterofbread.composesettings.ui
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -32,6 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composesettings.ui.item.SettingsGroupItem
 import com.toasterofbread.composesettings.ui.item.SettingsItem
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.utils.composable.WidthShrinkText
@@ -93,7 +93,7 @@ abstract class SettingsPage {
 
                     IconButton({
                         coroutine_scope.launch {
-                            resetKeys()
+                            resetKeys(player.context)
                         }
                     }) {
                         Icon(Icons.Default.Refresh, null)
@@ -110,7 +110,7 @@ abstract class SettingsPage {
     @Composable
     protected abstract fun PageView(content_padding: PaddingValues, openPage: (Int, Any?) -> Unit, openCustomPage: (SettingsPage) -> Unit, goBack: () -> Unit)
 
-    abstract suspend fun resetKeys()
+    abstract suspend fun resetKeys(context: PlatformContext)
     open suspend fun onClosed() {}
 }
 
@@ -137,6 +137,7 @@ class SettingsPageWithItems(
         openCustomPage: (SettingsPage) -> Unit,
         goBack: () -> Unit
     ) {
+        val player = LocalPlayerState.current
         Crossfade(getItems()) { items ->
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(SETTINGS_PAGE_WITH_ITEMS_SPACING.dp),
@@ -148,7 +149,7 @@ class SettingsPageWithItems(
 
                 items(items.size) { i ->
                     val item = items[i]
-                    item.initialise(settings_interface.context, settings_interface.prefs, settings_interface.default_provider)
+                    item.initialise(player.context, settings_interface.prefs, settings_interface.default_provider)
 
                     if (i != 0 && item is SettingsGroupItem) {
                         Spacer(Modifier.height(30.dp))
@@ -160,9 +161,9 @@ class SettingsPageWithItems(
         }
     }
 
-    override suspend fun resetKeys() {
+    override suspend fun resetKeys(context: PlatformContext) {
         for (item in getItems()) {
-            item.initialise(settings_interface.context, settings_interface.prefs, settings_interface.default_provider)
+            item.initialise(context, settings_interface.prefs, settings_interface.default_provider)
             item.resetValues()
         }
     }

@@ -21,8 +21,8 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.MEDIA_ITEM_RELATED_CONTENT_ICON
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
@@ -52,7 +52,7 @@ class MainOverlayMenu(
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
         val player = LocalPlayerState.current
-        val db = player.context.database
+        val db = player.database
         val song = getSong()
         val download_manager = player.context.download_manager
 
@@ -123,7 +123,7 @@ class MainOverlayMenu(
                 MediaItemPreviewLong(artist, contentColour = { Color.White })
             }
 
-            var song_title: String? by song.Title.observe(db)
+            var song_title: String? by song.observeActiveTitle()
 
             var edited_song_title by remember(song) { mutableStateOf(song_title ?: "") }
             OutlinedTextField(

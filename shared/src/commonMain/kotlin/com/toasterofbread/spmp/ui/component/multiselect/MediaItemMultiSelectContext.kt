@@ -53,7 +53,6 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
-import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.model.mediaitem.db.setPinned
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
@@ -61,15 +60,16 @@ import com.toasterofbread.spmp.model.mediaitem.library.createLocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.getEditorOrNull
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.isPlaylistEditable
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
-import com.toasterofbread.utils.composable.ShapedIconButton
 import com.toasterofbread.utils.common.getContrasted
 import com.toasterofbread.utils.common.lazyAssert
 import com.toasterofbread.utils.common.setAlpha
+import com.toasterofbread.utils.composable.ShapedIconButton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.joinAll
@@ -283,7 +283,7 @@ class MediaItemMultiSelectContext(
         val all_are_pinned =
             if (selected_items.isEmpty()) false
             else selected_items.all { item ->
-                item.first.observePinnedToHome(player.context).value
+                item.first.observePinnedToHome().value
             }
 
         val any_are_songs by remember { derivedStateOf {

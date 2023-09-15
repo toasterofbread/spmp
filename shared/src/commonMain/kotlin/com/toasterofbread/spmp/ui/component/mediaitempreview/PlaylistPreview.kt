@@ -1,13 +1,11 @@
 package com.toasterofbread.spmp.ui.component.mediaitempreview
 
 import LocalPlayerState
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -32,7 +30,6 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuActionProvider
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrThrowHere
 import com.toasterofbread.utils.composable.WidthShrinkText
 import kotlinx.coroutines.launch

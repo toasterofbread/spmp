@@ -54,10 +54,10 @@ import com.toasterofbread.spmp.ui.layout.mainpage.PlayerOverlayPage
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
-import com.toasterofbread.utils.composable.stickyHeaderWithTopPadding
 import com.toasterofbread.utils.common.copy
 import com.toasterofbread.utils.common.getThemeColour
 import com.toasterofbread.utils.common.thenIf
+import com.toasterofbread.utils.composable.stickyHeaderWithTopPadding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -236,7 +236,7 @@ class PlaylistPage(
 
     @Composable
     override fun Page(previous_item: MediaItem?, close: () -> Unit) {
-        val db = player.context.database
+        val db = player.database
 
         val playlist_items: List<MediaItem>? by playlist.Items.observe(db)
         var sorted_items: List<Pair<MediaItem, Int>>? by remember { mutableStateOf(null) }
@@ -372,7 +372,7 @@ class PlaylistPage(
 
                                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                                val previous_item_title: String? by previous_item.Title.observe(db)
+                                val previous_item_title: String? by previous_item.observeActiveTitle()
                                 previous_item_title?.also { Text(it) }
 
                                 Spacer(Modifier.fillMaxWidth().weight(1f))

@@ -28,7 +28,6 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -50,21 +49,23 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.LargeDropdownMenu
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
-import com.toasterofbread.utils.composable.OnChangedEffect
+import com.toasterofbread.utils.common.getValue
 import com.toasterofbread.utils.common.setAlpha
+import com.toasterofbread.utils.composable.OnChangedEffect
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
 
 private const val LYRICS_SEARCH_RETRY_COUNT = 3
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun LyricsSearchMenu(
     song: Song,
@@ -74,10 +75,8 @@ fun LyricsSearchMenu(
     val player = LocalPlayerState.current
     val db = player.context.database
 
-    val song_title: String? by song.Title.observe(db)
-    val song_artist_title: String? = song.Artist.observeOn(db) {
-        it?.Title
-    }
+    val song_title: String? by song.observeActiveTitle()
+    val song_artist_title: String? by song.Artist.observePropertyActiveTitle()
 
     val on_accent = Theme.on_accent
     val accent = Theme.accent
@@ -148,7 +147,7 @@ fun LyricsSearchMenu(
                             edit_page_open = false
                         }
                         else {
-                            SpMp.context.sendToast(getString("lyrics_none_found"))
+                            player.context.sendToast(getString("lyrics_none_found"))
                         }
                     },
                     { SpMp.reportActionError(it) }
@@ -275,10 +274,10 @@ fun LyricsSearchMenu(
                     val selected = results.first[index]
                     val lyrics_source = results.second
 
-                    val current_lyrics = song.Lyrics.get(SpMp.context.database)
+                    val current_lyrics = song.Lyrics.get(player.database)
 
                     if (selected.id != current_lyrics?.id || lyrics_source != current_lyrics.source_index) {
-                        song.Lyrics.set(LyricsReference(lyrics_source, selected.id), SpMp.context.database)
+                        song.Lyrics.set(LyricsReference(lyrics_source, selected.id), player.database)
                         close(true)
                     }
                     else {

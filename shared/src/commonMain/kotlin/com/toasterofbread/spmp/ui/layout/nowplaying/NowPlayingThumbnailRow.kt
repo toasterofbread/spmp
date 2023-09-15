@@ -53,6 +53,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.getPixel
@@ -61,11 +62,12 @@ import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.OVERLAY_MENU_ANIMATION_DURATION
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.MainOverlayMenu
-import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.common.getInnerSquareSizeOfCircle
+import com.toasterofbread.utils.common.getValue
+import com.toasterofbread.utils.common.setAlpha
+import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.modifier.background
 import com.toasterofbread.utils.modifier.disableParentScroll
-import com.toasterofbread.utils.common.setAlpha
 import kotlin.math.absoluteValue
 import kotlin.math.min
 
@@ -95,10 +97,8 @@ fun ThumbnailRow(
     val expansion = LocalNowPlayingExpansion.current
     val current_song = player.status.m_song
 
-    val song_title: String? = current_song?.Title?.observe(db)?.value
-    val song_artist_title: String? = current_song?.Artist?.observeOn(db) {
-        it?.Title
-    }
+    val song_title: String? by current_song?.observeActiveTitle()
+    val song_artist_title: String? by current_song?.Artist?.observePropertyActiveTitle()
 
     val thumbnail_rounding: Int? = current_song?.ThumbnailRounding?.observe(db)?.value
 

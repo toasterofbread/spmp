@@ -1,5 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.prefspage
 
+import LocalPlayerState
+import SpMp
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import com.toasterofbread.composesettings.ui.item.SettingsItem
@@ -19,7 +21,8 @@ internal fun getLibraryCategory(): List<SettingsItem> {
             getString("s_key_library_path"),
             getString("s_sub_library_path"),
             { path ->
-                if (path.isBlank()) MediaItemLibrary.getDefaultLibraryDir(SpMp.context).let { location ->
+                val player = LocalPlayerState.current
+                if (path.isBlank()) MediaItemLibrary.getDefaultLibraryDir(player.context).let { location ->
                     location.absolute_path ?: location.path
                 }
                 else {
@@ -34,10 +37,10 @@ internal fun getLibraryCategory(): List<SettingsItem> {
                     }
                 }
             },
-            { setValue, showDialog ->
-                SpMp.context.promptForUserDirectory(true) { path ->
-                    val old_location = MediaItemLibrary.getLibraryDir(SpMp.context, Settings.KEY_LIBRARY_PATH.get())
-                    val new_location = MediaItemLibrary.getLibraryDir(SpMp.context, path ?: "")
+            { context, setValue, showDialog ->
+                context.promptForUserDirectory(true) { path ->
+                    val old_location = MediaItemLibrary.getLibraryDir(context, Settings.KEY_LIBRARY_PATH.get())
+                    val new_location = MediaItemLibrary.getLibraryDir(context, path ?: "")
 
                     if (old_location.uri == new_location.uri) {
                         return@promptForUserDirectory

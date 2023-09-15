@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.component
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
@@ -160,6 +159,7 @@ fun ErrorInfoDisplay(
 
 @Composable
 private fun LongTextDisplay(text: String, wrap_text: Boolean, modifier: Modifier = Modifier) {
+    val player = LocalPlayerState.current
     val split_text = remember(text) {
         text.chunked(10000)
     }
@@ -179,7 +179,7 @@ private fun LongTextDisplay(text: String, wrap_text: Boolean, modifier: Modifier
         if (text.none { it == '\n' }) {
             item {
                 Row {
-                    SpMp.context.CopyShareButtons() {
+                    player.context.CopyShareButtons() {
                         text
                     }
                 }
@@ -284,7 +284,7 @@ private fun ExpandedContent(error: Throwable, shape: Shape, disable_parent_scrol
 
                                             error.getCauseData().fold(
                                                 { text_to_show = it },
-                                                { SpMp.context.sendToast(it.toString()) }
+                                                { player.context.sendToast(it.toString()) }
                                             )
                                         }
                                     }

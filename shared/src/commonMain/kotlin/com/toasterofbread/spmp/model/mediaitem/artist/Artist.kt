@@ -7,9 +7,7 @@ import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer
 import com.toasterofbread.spmp.model.mediaitem.db.ListPropertyImpl
 import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.db.fromNullableSQLBoolean
-import com.toasterofbread.spmp.model.mediaitem.db.fromSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.db.toNullableSQLBoolean
-import com.toasterofbread.spmp.model.mediaitem.db.toSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.platform.PlatformContext
 

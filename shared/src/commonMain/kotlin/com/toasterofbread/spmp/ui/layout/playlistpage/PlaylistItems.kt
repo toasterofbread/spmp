@@ -24,8 +24,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
@@ -78,13 +78,13 @@ internal fun PlaylistPage.PlaylistItems(
                     Modifier.fillMaxWidth().weight(1f),
                     verticalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
-                    val item_title: String? by item.Title.observe(player.context.database)
+                    val item_title: String? by item.observeActiveTitle()
                     Text(
                         item_title ?: "",
                         style = MaterialTheme.typography.titleSmall
                     )
 
-                    val item_duration: Long? by item.Duration.observe(player.context.database)
+                    val item_duration: Long? by item.Duration.observe(player.database)
                     val duration_text = remember(item_duration) {
                         item_duration?.let { duration ->
                             durationToString(duration, true, hl = SpMp.ui_language)

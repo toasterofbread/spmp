@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.maintab
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.height
@@ -43,7 +42,6 @@ internal const val SEEK_BAR_GRADIENT_OVERFLOW_RATIO = 0.3f
 
 @Composable
 fun ColumnScope.NowPlayingMainTab(modifier: Modifier = Modifier) {
-    val db = SpMp.context.database
     val player = LocalPlayerState.current
 
     val current_song: Song? = player.status.m_song
@@ -54,7 +52,7 @@ fun ColumnScope.NowPlayingMainTab(modifier: Modifier = Modifier) {
         theme_colour = value
 
         current_song?.id?.also { song_id ->
-            db.mediaItemQueries.updateThemeColourById(theme_colour?.toArgb()?.toLong(), song_id)
+            player.database.mediaItemQueries.updateThemeColourById(theme_colour?.toArgb()?.toLong(), song_id)
         }
     }
 
@@ -73,7 +71,7 @@ fun ColumnScope.NowPlayingMainTab(modifier: Modifier = Modifier) {
             theme_colour = null
         }
         else {
-            val song_theme = song.ThemeColour.get(db)
+            val song_theme = song.ThemeColour.get(player.database)
             if (song_theme != null) {
                 theme_colour = song_theme
             }

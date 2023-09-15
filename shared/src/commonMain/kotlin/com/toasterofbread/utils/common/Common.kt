@@ -10,6 +10,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.*
 import androidx.compose.ui.graphics.*
@@ -36,6 +37,7 @@ import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty
 
 fun Boolean.toInt() = if (this) 1 else 0
 fun Boolean.toFloat() = if (this) 1f else 0f
@@ -221,4 +223,8 @@ fun Throwable.anyCauseIs(cls: KClass<out Throwable>): Boolean {
 		checking = checking.cause
 	}
 	return false
+}
+
+operator fun <T> State<T>?.getValue(t: T?, property: KProperty<*>): T? {
+	return this?.getValue(t, property)
 }

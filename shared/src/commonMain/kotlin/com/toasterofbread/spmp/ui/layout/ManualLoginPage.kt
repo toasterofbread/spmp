@@ -36,9 +36,9 @@ import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.platform.getDefaultPaddingValues
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.utils.common.setAlpha
 import com.toasterofbread.utils.composable.Marquee
 import com.toasterofbread.utils.composable.WidthShrinkText
-import com.toasterofbread.utils.common.setAlpha
 
 @Composable
 fun ManualLoginPage(

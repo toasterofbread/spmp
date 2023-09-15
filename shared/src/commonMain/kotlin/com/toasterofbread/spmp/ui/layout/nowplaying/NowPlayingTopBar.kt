@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -43,7 +42,7 @@ fun rememberTopBarShouldShowInQueue(mode: MusicTopBarMode): State<Boolean> {
 
     return remember(player.status.m_song?.id) {
         val lyrics_state = player.status.m_song?.let { song ->
-            SongLyricsLoader.getItemState(song, SpMp.context)
+            SongLyricsLoader.getItemState(song, player.context)
         }
 
         derivedStateOf {

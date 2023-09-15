@@ -1,14 +1,22 @@
 package com.toasterofbread.spmp.model.mediaitem.db
 
+import LocalPlayerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import app.cash.sqldelight.Query
 import com.toasterofbread.Database
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
+
+@Composable
+fun <T: MediaItem?> Property<T>.observePropertyActiveTitle(): State<String?>? {
+    val player = LocalPlayerState.current
+    val item: MediaItem? by observe(player.database)
+    return item?.observeActiveTitle()
+}
 
 interface Property<T> {
     fun get(db: Database): T

@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.component.mediaitemlayout
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -41,17 +40,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
-import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.rememberThemeColour
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
 import com.toasterofbread.spmp.model.mediaitem.isMediaItemHidden
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
@@ -71,13 +70,14 @@ fun MediaItemCard(
     multiselect_context: MediaItemMultiSelectContext? = null,
     apply_filter: Boolean = false
 ) {
+    val player = LocalPlayerState.current
+
     val item: MediaItem = layout.items.first()
-    if (apply_filter && isMediaItemHidden(item, SpMp.context.database)) {
+    if (apply_filter && isMediaItemHidden(item, player.database)) {
         return
     }
 
-    val accent_colour: Color? = item.rememberThemeColour(SpMp.context)
-    val player = LocalPlayerState.current
+    val accent_colour: Color? = item.rememberThemeColour()
 
     val shape = RoundedCornerShape(16.dp)
     val long_press_menu_data = remember(item) {
@@ -112,7 +112,7 @@ fun MediaItemCard(
             layout.TitleBar(Modifier.fillMaxWidth().weight(1f), multiselect_context = multiselect_context)
 
             val playlist_type: State<PlaylistType?>? =
-                if (item is RemotePlaylist) item.TypeOfPlaylist.observe(SpMp.context.database)
+                if (item is RemotePlaylist) item.TypeOfPlaylist.observe(player.database)
                 else null
 
             Text(
@@ -166,7 +166,7 @@ fun MediaItemCard(
                     .padding(horizontal = 15.dp, vertical = 5.dp),
                 verticalArrangement = Arrangement.SpaceEvenly
             ) {
-                val item_title: String? by item.Title.observe(SpMp.context.database)
+                val item_title: String? by item.observeActiveTitle()
                 Text(
                     item_title ?: "",
                     style = LocalTextStyle.current.copy(color = (accent_colour ?: Theme.accent).getContrasted()),
@@ -175,7 +175,7 @@ fun MediaItemCard(
                 )
 
                 if (item is MediaItem.WithArtist) {
-                    val item_artist: Artist? by item.Artist.observe(SpMp.context.database)
+                    val item_artist: Artist? by item.Artist.observe(player.database)
                     item_artist?.also { artist ->
                         MediaItemPreviewLong(artist, contentColour = { (accent_colour ?: Theme.accent).getContrasted() })
                     }

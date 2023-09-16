@@ -14,6 +14,7 @@ import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
+import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpointType
 import com.toasterofbread.spmp.youtubeapi.fromJson
 import okhttp3.Headers.Companion.toHeaders
 import java.util.*
@@ -117,6 +118,7 @@ enum class Settings {
     KEY_LYRICS_SHOW_IN_SEARCH,
 
     // Audio & Video
+    KEY_VIDEO_FORMATS_METHOD,
     KEY_STREAM_AUDIO_QUALITY,
     KEY_DOWNLOAD_AUDIO_QUALITY,
 
@@ -304,6 +306,7 @@ enum class Settings {
                 KEY_LYRICS_SHOW_IN_VIEWMORE -> true
                 KEY_LYRICS_SHOW_IN_SEARCH -> true
 
+                KEY_VIDEO_FORMATS_METHOD -> VideoFormatsEndpointType.DEFAULT.ordinal
                 KEY_STREAM_AUDIO_QUALITY -> SongAudioQuality.MEDIUM.ordinal
                 KEY_DOWNLOAD_AUDIO_QUALITY -> SongAudioQuality.MEDIUM.ordinal
 

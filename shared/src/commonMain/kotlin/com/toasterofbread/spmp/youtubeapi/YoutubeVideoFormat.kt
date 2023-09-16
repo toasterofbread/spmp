@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.youtubeapi
 
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import okhttp3.Request
 
@@ -9,7 +8,7 @@ data class YoutubeVideoFormat(
     val mimeType: String,
     val bitrate: Int,
     val signatureCipher: String? = null,
-    val url: String? = null,
+    val url: String? = null
 ) {
     val identifier: Int = itag ?: bitrate
     var stream_url: String? = url
@@ -39,15 +38,15 @@ internal data class YoutubeFormatsResponse(
     data class PlayabilityStatus(val status: String)
 }
 
-internal fun YoutubeApi.Endpoint.buildVideoFormatsRequest(id: String, alt: Boolean, api: YoutubeMusicApi): Request {
+internal fun YoutubeApi.Endpoint.buildVideoFormatsRequest(id: String): Request {
     return Request.Builder()
-        .url("${api.api_url}/youtubei/v1/player?key=${getString("yt_i_api_key")}")
+        .endpointUrl("/youtubei/v1/player")
         .postWithBody(
             mapOf(
                 "videoId" to id,
                 "playlistId" to null
             ),
-            if (alt) YoutubeApi.PostBodyContext.ALT else YoutubeApi.PostBodyContext.BASE
+            YoutubeApi.PostBodyContext.ANDROID_MUSIC
         )
         .build()
 }

@@ -16,7 +16,8 @@ import com.toasterofbread.spmp.resources.getStringSafe
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi.PostBodyContext
 import com.toasterofbread.spmp.youtubeapi.executeResult
-import com.toasterofbread.spmp.youtubeapi.formats.NewPipeVideoFormatsEndpoint
+import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpoint
+import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpointType
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.composable.YTMLoginPage
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMArtistWithParamsEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMCreateYoutubeChannelEndpoint
@@ -31,7 +32,6 @@ import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMSongRadi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMSongRelatedContentEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMYoutubeChannelCreationFormEndpoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import okhttp3.Headers
@@ -65,13 +65,12 @@ data class YoutubeMusicApi(
 
     override val database: Database get() = context.database
 
-    private var init_job: Job? = null
     private var initialised: Boolean = false
 
     private lateinit var youtubei_headers: Headers
 
     private lateinit var youtubei_context: JsonObject
-    private lateinit var youtubei_context_alt: JsonObject
+    private lateinit var youtubei_context_android_music: JsonObject
     private lateinit var youtubei_context_android: JsonObject
     private lateinit var youtubei_context_mobile: JsonObject
     private lateinit var youtube_context_ui_language: JsonObject
@@ -89,7 +88,7 @@ data class YoutubeMusicApi(
 
     override suspend fun init() {
         coroutineScope {
-            init_job = launch(Dispatchers.Default) {
+            launch(Dispatchers.Default) {
                 launch {
                     val headers_builder = Headers.Builder()
 
@@ -147,7 +146,6 @@ data class YoutubeMusicApi(
                         }
                     })
                 }
-
                 launch {
                     updateYtmContext()
                 }
@@ -168,8 +166,8 @@ data class YoutubeMusicApi(
         youtubei_context = JsonParser.parseString(
             context_substitutor.replace(getStringSafe("ytm_context", context))
         ).asJsonObject
-        youtubei_context_alt = JsonParser.parseString(
-            context_substitutor.replace(getStringSafe("ytm_context_alt", context))
+        youtubei_context_android_music = JsonParser.parseString(
+            context_substitutor.replace(getStringSafe("ytm_context_android_music", context))
         ).asJsonObject
         youtubei_context_android = JsonParser.parseString(
             context_substitutor.replace(getStringSafe("ytm_context_android", context))
@@ -194,7 +192,7 @@ data class YoutubeMusicApi(
     override fun PostBodyContext.getContextPostBody(): JsonObject =
         when (this) {
             PostBodyContext.BASE -> youtubei_context
-            PostBodyContext.ALT -> youtubei_context_alt
+            PostBodyContext.ANDROID_MUSIC -> youtubei_context_android_music
             PostBodyContext.ANDROID -> youtubei_context_android
             PostBodyContext.MOBILE -> youtubei_context_mobile
             PostBodyContext.UI_LANGUAGE -> youtube_context_ui_language
@@ -275,7 +273,8 @@ data class YoutubeMusicApi(
     override val LoadArtist = YTMLoadArtistEndpoint(this)
     override val LoadPlaylist = YTMLoadPlaylistEndpoint(this)
 
-    override val VideoFormats = NewPipeVideoFormatsEndpoint(this)
+    override val VideoFormats: VideoFormatsEndpoint
+        get() = Settings.getEnum<VideoFormatsEndpointType>(Settings.KEY_VIDEO_FORMATS_METHOD).instantiate(this)
 
     override val HomeFeed = YTMGetHomeFeedEndpoint(this)
     override val GenericFeedViewMorePage = YTMGenericFeedViewMorePageEndpoint(this)

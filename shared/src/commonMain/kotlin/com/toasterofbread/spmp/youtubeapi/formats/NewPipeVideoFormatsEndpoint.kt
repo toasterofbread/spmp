@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.youtubeapi.formats
 
+import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.YoutubeVideoFormat
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.exceptions.ParsingException
 import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeStreamLinkHandlerFactory
@@ -9,7 +9,7 @@ import org.schabi.newpipe.extractor.stream.AudioStream
 import org.schabi.newpipe.extractor.stream.StreamInfo
 import org.schabi.newpipe.extractor.stream.VideoStream
 
-class NewPipeVideoFormatsEndpoint(override val api: YoutubeMusicApi): VideoFormatsEndpoint() {
+class NewPipeVideoFormatsEndpoint(override val api: YoutubeApi): VideoFormatsEndpoint() {
     override fun getVideoFormats(id: String, filter: ((YoutubeVideoFormat) -> Boolean)?): Result<List<YoutubeVideoFormat>> {
         val stream_info: StreamInfo
 

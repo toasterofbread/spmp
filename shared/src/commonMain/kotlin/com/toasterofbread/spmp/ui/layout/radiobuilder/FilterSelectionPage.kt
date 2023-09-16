@@ -85,8 +85,9 @@ fun FilterSelectionPage(
                 return
             }
 
+            val selected_radio_artists: Set<RadioBuilderArtist> = selected_artists.map { artists[it] }.toSet()
             val radio_token = builder_endpoint.buildRadioToken(
-                selected_artists.map { artists[it] }.toSet(),
+                selected_radio_artists,
                 setOf(selection_type.value, artist_variety.value, filter_a.value, filter_b.value)
             )
 
@@ -105,12 +106,16 @@ fun FilterSelectionPage(
             coroutine_scope.launch {
                 val result = builder_endpoint.getBuiltRadio(radio_token, player.context)
                 result.fold(
-                    { playlist ->
+                    { playlist: RemotePlaylistData? ->
                         if (playlist == null) {
                             load_error = InvalidRadioException()
                         }
                         else {
-                            setRadioMetadata(playlist, artists, selected_artists)
+                            withContext(Dispatchers.IO) {
+                                setRadioMetadata(playlist, artists, selected_artists)
+                                playlist.saveToDatabase(player.database)
+                            }
+
                             if (preview) {
                                 preview_playlist = playlist
                             }
@@ -166,7 +171,9 @@ fun FilterSelectionPage(
                         }
                     }
                     else if (loading) {
-                        SubtleLoadingIndicator(Modifier.offset(y = -content_padding.calculateBottomPadding())) { Theme.on_background }
+                        Box(Modifier.fillMaxSize().padding(content_padding), contentAlignment = Alignment.Center) {
+                            SubtleLoadingIndicator { Theme.on_background }
+                        }
                     }
                     else {
                         val items = playlist?.items
@@ -206,7 +213,7 @@ fun FilterSelectionPage(
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
-                Column {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     val icon_button_colours = IconButtonDefaults.iconButtonColors(
                         containerColor = Theme.accent,
                         contentColor = Theme.on_accent
@@ -230,17 +237,16 @@ fun FilterSelectionPage(
 }
 
 private fun setRadioMetadata(radio_playlist: RemotePlaylistData, artists: List<RadioBuilderArtist>, selected_artists: Collection<Int>) {
-    assert(selected_artists.isNotEmpty())
-
-    val artists_string = StringBuilder()
+    val included_artists = selected_artists.take(2)
     val splitter = getString("radio_title_artists_splitter")
 
-    for (artist in selected_artists.withIndex()) {
-        artists_string.append(artists[artist.value].name)
-        if (artist.index + 1 < selected_artists.size) {
-            artists_string.append(splitter)
-        }
+    var artists_string = included_artists.joinToString(splitter) { index ->
+        artists[index].name
     }
 
-    radio_playlist.title = getString("radio_of_\$artists_title").replace("\$artists", artists_string.toString())
+    if (selected_artists.size > included_artists.size || included_artists.isEmpty()) {
+        artists_string += getString("radio_title_overflow")
+    }
+
+    radio_playlist.title = getString("radio_title_of_\$artists").replace("\$artists", artists_string)
 }

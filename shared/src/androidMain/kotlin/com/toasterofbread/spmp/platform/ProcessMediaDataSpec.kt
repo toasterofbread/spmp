@@ -80,7 +80,9 @@ internal fun processMediaDataSpec(data_spec: DataSpec, context: PlatformContext,
 
     val format = getSongStreamFormat(song.id, context).fold(
         { it },
-        { throw IOException(it) }
+        {
+            throw IOException(it)
+        }
     )
 
     if (local_file != null) {
@@ -88,7 +90,7 @@ internal fun processMediaDataSpec(data_spec: DataSpec, context: PlatformContext,
         return data_spec.withUri(Uri.parse(local_file!!.uri))
     }
     else {
-        println("Playing song ${song.id} from external format $format")
-        return data_spec.withUri(Uri.parse(format.stream_url))
+        println("Playing song ${song.id} from external format $format stream_url=${format.stream_url}")
+        return data_spec.withUri(Uri.parse(format.stream_url ?: format.url))
     }
 }

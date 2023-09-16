@@ -16,17 +16,19 @@ class UnlocalisedStringCollector {
         }
     }
     
-    val unlocalised_strings: MutableList<UnlocalisedString> = mutableStateListOf()
+    private val unlocalised_strings: MutableList<UnlocalisedString> = mutableStateListOf()
 
     fun add(string: UnlocalisedString): Boolean {
-        for (item in unlocalised_strings) {
-            if (item == string) {
-                return false
+        synchronized(unlocalised_strings) {
+            for (item in unlocalised_strings) {
+                if (item == string) {
+                    return false
+                }
             }
-        }
 
-        unlocalised_strings.add(string)
-        return true
+            unlocalised_strings.add(string)
+            return true
+        }
     }
     fun add(string: LocalisedYoutubeString) = add(UnlocalisedString.fromLocalised(string))
 

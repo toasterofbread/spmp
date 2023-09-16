@@ -61,7 +61,7 @@ class YTMMarkSongAsWatchedEndpoint(override val auth: YoutubeMusicAuthInfo): Mar
             .addAuthApiHeaders()
             .postWithBody(
                 mapOf("videoId" to id),
-                if (alt) YoutubeApi.PostBodyContext.ALT else YoutubeApi.PostBodyContext.BASE
+                if (alt) YoutubeApi.PostBodyContext.ANDROID_MUSIC else YoutubeApi.PostBodyContext.BASE
             )
             .build()
     }

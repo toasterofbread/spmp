@@ -1,12 +1,12 @@
 package com.toasterofbread.spmp.youtubeapi.formats
 
+import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.YoutubeVideoFormat
 import com.toasterofbread.spmp.youtubeapi.fromJson
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
 import okhttp3.Request
 
-class PipedVideoFormatsEndpoint(override val api: YoutubeMusicApi): VideoFormatsEndpoint() {
+class PipedVideoFormatsEndpoint(override val api: YoutubeApi): VideoFormatsEndpoint() {
     override fun getVideoFormats(id: String, filter: ((YoutubeVideoFormat) -> Boolean)?): Result<List<YoutubeVideoFormat>> {
         val request = Request.Builder().url("https://pipedapi.syncpundit.io/streams/$id").build()
         val result = api.performRequest(request)

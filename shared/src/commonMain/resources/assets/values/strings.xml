@@ -171,6 +171,10 @@
     <string name="lyrics_sync_line">Line sync</string>
     <string name="lyrics_sync_word">Word sync</string>
 
+    <string name="video_format_endpoint_piped">Piped API</string>
+    <string name="video_format_endpoint_youtubei">Youtubei</string>
+    <string name="video_format_endpoint_newpipe">NewPipe</string>
+
     <string name="error_message_generic">A error occurred</string>
     <string name="error_yt_feed_parse_failed">YouTube feed parsing failed</string>
     <string name="error_player_service_not_connected">"Player service isn't connecting&#xA;A bug may have occurred"</string>
@@ -254,8 +258,9 @@
     <string name="radio_builder_modifier_filter_focus">Focus</string>
     <string name="radio_filter_all">All</string>
 
-    <string name="radio_of_$artists_title">Radio of $artists</string>
+    <string name="radio_title_of_$artists">Radio of $artists</string>
     <string name="radio_title_artists_splitter">, </string>
+    <string name="radio_title_overflow">…</string>
     <string name="radio_action_retry_failed_load">Retry</string>
 
     <string name="settings_string_set_item_empty">No items added</string>
@@ -410,6 +415,8 @@
     <string name="s_option_audio_quality_low">Low</string>
 
     <string name="s_cat_download">Downloads</string>
+
+    <string name="s_key_video_formats_endpoint">Song stream/download method</string>
 
     <string name="s_key_auto_download_enabled">Enable song auto-download</string>
     <string name="s_key_auto_download_threshold">Auto-download threshold</string>

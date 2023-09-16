@@ -112,7 +112,7 @@ interface YoutubeApi {
 
     enum class PostBodyContext {
         BASE,
-        ALT,
+        ANDROID_MUSIC,
         ANDROID,
         MOBILE,
         UI_LANGUAGE

@@ -50,14 +50,14 @@
         \"user\": {}
     }}
     </string>
-    <string name="ytm_context_alt" translatable="false">
+    <string name="ytm_context_android_music" translatable="false">
     { \"context\": {
         \"client\":{
             \"hl\": \"${hl}\",
-            \"platform\": \"DESKTOP\",
-            \"clientName\": \"TVHTML5_SIMPLY_EMBEDDED_PLAYER\",
-            \"clientVersion\": \"2.0\",
-            \"userAgent\": \"${user_agent}\",
+            \"platform\": \"MOBILE\",
+            \"clientName\": \"ANDROID_MUSIC\",
+            \"clientVersion\": \"5.28.1\",
+            \"userAgent\": \"com.google.android.apps.youtube.music/5.28.1 (Linux; U; Android 11) gzip\",
             \"acceptHeader\": \"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8\"
         },
         \"user\": {}

@@ -8,9 +8,17 @@ import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpointType
 
 internal fun getDownloadCategory(): List<SettingsItem> {
     return listOf(
+        SettingsDropdownItem(
+            SettingsValueState(Settings.KEY_VIDEO_FORMATS_METHOD.name),
+            getString("s_key_video_formats_endpoint"), null, VideoFormatsEndpointType.values().size
+        ) { i ->
+            VideoFormatsEndpointType.values()[i].getReadable()
+        },
+
         SettingsToggleItem(
             SettingsValueState(Settings.KEY_AUTO_DOWNLOAD_ENABLED.name),
             getString("s_key_auto_download_enabled"), null

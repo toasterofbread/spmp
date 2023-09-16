@@ -247,8 +247,9 @@
     <string name="radio_builder_modifier_filter_focus">集中</string>
     <string name="radio_filter_all">すべて</string>
 
-    <string name="radio_of_$artists_title">$artistsのラジオ</string>
+    <string name="radio_title_of_$artists">$artistsのラジオ</string>
     <string name="radio_title_artists_splitter">・</string>
+    <string name="radio_title_overflow">…</string>
     <string name="radio_action_retry_failed_load">再試行</string>
 
     <string name="settings_string_set_item_empty">なにも入っていません</string>
@@ -403,6 +404,8 @@
     <string name="s_option_audio_quality_low">低</string>
 
     <string name="s_cat_download">ダウンロード</string>
+
+    <string name="s_key_video_formats_endpoint">曲のストリーム・ダウンロード方式</string>
 
     <string name="s_key_auto_download_enabled">曲を自動的にダウンロードする</string>
     <string name="s_key_auto_download_threshold">自動曲ダウンロード最低再生数</string>

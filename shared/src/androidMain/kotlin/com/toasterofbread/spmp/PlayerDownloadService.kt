@@ -391,7 +391,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
             { return Result.failure(it) }
         )
 
-        val connection = URL(format.stream_url).openConnection() as HttpURLConnection
+        val connection = URL(format.url).openConnection() as HttpURLConnection
         connection.connectTimeout = 3000
         connection.setRequestProperty("Range", "bytes=${download.downloaded}-")
 

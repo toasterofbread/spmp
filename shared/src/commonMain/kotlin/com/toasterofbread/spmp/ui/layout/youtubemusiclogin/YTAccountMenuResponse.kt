@@ -17,12 +17,12 @@ data class YTAccountMenuResponse(val actions: List<Action>) {
     data class Action(val openPopupAction: OpenPopupAction)
     data class OpenPopupAction(val popup: Popup)
     data class Popup(val multiPageMenuRenderer: MultiPageMenuRenderer)
-    data class MultiPageMenuRenderer(val sections: List<Section>, val header: Header? = null)
+    data class MultiPageMenuRenderer(val sections: List<Section>, val header: Header?)
 
     data class Section(val multiPageMenuSectionRenderer: MultiPageMenuSectionRenderer)
     data class MultiPageMenuSectionRenderer(val items: List<Item>)
     data class Item(val compactLinkRenderer: CompactLinkRenderer)
-    data class CompactLinkRenderer(val navigationEndpoint: NavigationEndpoint? = null)
+    data class CompactLinkRenderer(val navigationEndpoint: NavigationEndpoint?)
 
     data class Header(val activeAccountHeaderRenderer: ActiveAccountHeaderRenderer)
     data class ActiveAccountHeaderRenderer(val accountName: TextRuns, val accountPhoto: MusicThumbnailRenderer.Thumbnail)

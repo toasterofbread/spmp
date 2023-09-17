@@ -34,7 +34,7 @@ import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
-import com.toasterofbread.spmp.model.mediaitem.isMediaItemHidden
+import com.toasterofbread.spmp.model.mediaitem.db.isMediaItemHidden
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.loadDataOnChange
@@ -399,12 +399,13 @@ class PlaylistPage(
                         Theme.background_provider
                     ) {
                         PlaylistInteractionBar(
-                            modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .clickable(remember { MutableInteractionSource() }, indication = null) {},
+                            sorted_items,
                             loading = loading && load_type != LoadType.CONTINUE && sorted_items != null,
-                            list_state = list_state.listState
+                            list_state = list_state.listState,
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .clickable(remember { MutableInteractionSource() }, indication = null) {}
                         )
                     }
 

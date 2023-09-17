@@ -27,7 +27,7 @@ class YTMSongLyricsEndpoint(override val api: YoutubeMusicApi): SongLyricsEndpoi
         }
 
         val lyrics_text: String? =
-            data.contents.sectionListRenderer.contents?.firstOrNull()?.musicDescriptionShelfRenderer?.description?.firstTextOrNull()
+            data.contents.sectionListRenderer?.contents?.firstOrNull()?.musicDescriptionShelfRenderer?.description?.firstTextOrNull()
 
         if (lyrics_text == null) {
             return@withContext Result.failure(RuntimeException("Browse response for ID $lyrics_id contains no lyrics"))

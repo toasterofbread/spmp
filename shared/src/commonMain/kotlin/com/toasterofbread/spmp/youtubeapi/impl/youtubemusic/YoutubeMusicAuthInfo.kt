@@ -68,17 +68,21 @@ class YTMGenericFeedViewMorePageEndpoint(override val api: YoutubeApi): GenericF
             return@withContext Result.failure(it)
         }
 
-        val items = data
-            .contents!!
-            .singleColumnBrowseResultsRenderer!!
-            .tabs
-            .first()
-            .tabRenderer
-            .content!!
-            .sectionListRenderer
-            .contents!!
-            .first()
-            .getMediaItems(hl)
+        val items = try {
+            data.contents!!
+                .singleColumnBrowseResultsRenderer!!
+                .tabs
+                .first()
+                .tabRenderer
+                .content!!
+                .sectionListRenderer!!
+                .contents!!
+                .first()
+                .getMediaItems(hl)
+        }
+        catch (e: Throwable) {
+            return@withContext Result.failure(e)
+        }
 
         api.database.transaction {
             for (item in items) {

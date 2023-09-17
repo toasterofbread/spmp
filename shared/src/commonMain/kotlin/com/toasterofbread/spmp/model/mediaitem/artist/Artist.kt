@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.model.mediaitem.artist
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
+import com.toasterofbread.spmp.model.mediaitem.MediaItemRef
 import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer
 import com.toasterofbread.spmp.model.mediaitem.db.ListPropertyImpl
 import com.toasterofbread.spmp.model.mediaitem.db.Property
@@ -11,7 +12,7 @@ import com.toasterofbread.spmp.model.mediaitem.db.toNullableSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.platform.PlatformContext
 
-class ArtistRef(override val id: String): Artist {
+class ArtistRef(override val id: String): Artist, MediaItemRef() {
     override fun toString(): String = "ArtistRef($id)"
     override val property_rememberer: PropertyRememberer = PropertyRememberer()
 }

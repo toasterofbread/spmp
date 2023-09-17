@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.rememberSongDownloads
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
@@ -45,12 +46,12 @@ class LibrarySongsPage(context: PlatformContext): LibrarySubPage(context) {
         modifier: Modifier
     ) {
         val player = LocalPlayerState.current
-        val downloads = rememberSongDownloads()
+        val downloads: List<PlayerDownloadManager.DownloadStatus> = rememberSongDownloads()
 
         var sorted_songs: List<Song> by remember { mutableStateOf(emptyList()) }
 
         with(library_page) {
-            LaunchedEffect(search_filter, sort_type, reverse_sort, downloads) {
+            LaunchedEffect(downloads, search_filter, sort_type, reverse_sort) {
                 val filter = if (search_filter?.isNotEmpty() == true) search_filter else null
                 val filtered = downloads.mapNotNull {  download ->
                     if (download.progress != 1f) return@mapNotNull null

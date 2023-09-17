@@ -30,11 +30,13 @@
     <string name="home_feed_filter_focus">フォーカス</string>
 
     <string name="library_no_local_songs">保存済みの曲がありません</string>
+    <string name="library_no_local_artists">保存済みのアーティストがありません</string>
     <string name="library_no_playlists">プレイリストはありません</string>
     <string name="library_no_items_match_filter">フィルターに一致するアイテムがありません</string>
 
     <string name="library_$x_songs">$x曲</string>
     <string name="library_$x_playlists">$xプレイリスト</string>
+    <string name="artist_$x_songs">$x曲</string>
 
     <string name="library_recent_songs_all">すべて</string>
     <string name="library_recent_songs_year">年</string>

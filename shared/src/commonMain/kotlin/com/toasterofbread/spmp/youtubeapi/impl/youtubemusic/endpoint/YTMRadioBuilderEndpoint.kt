@@ -136,6 +136,6 @@ private class RadioBuilderBrowseResponse(
     class Mutation(val entityKey: String, val payload: Payload) {
         val token: String? get() = payload.musicFormBooleanChoice?.opaqueToken
     }
-    class Payload(val musicFormBooleanChoice: MusicFormBooleanChoice? = null)
+    class Payload(val musicFormBooleanChoice: MusicFormBooleanChoice?)
     class MusicFormBooleanChoice(val opaqueToken: String)
 }

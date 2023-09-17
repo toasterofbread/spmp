@@ -27,7 +27,7 @@ class MusicMultiRowListItemRenderer(
     val thumbnail: ThumbnailRenderer,
     val menu: YoutubeiNextResponse.Menu,
     val onTap: OnTap,
-    val secondTitle: TextRuns? = null
+    val secondTitle: TextRuns?
 ) {
     fun toMediaItem(hl: String): MediaItemData {
         val title = title.runs!!.first()

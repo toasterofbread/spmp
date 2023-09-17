@@ -16,6 +16,8 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer
 import com.toasterofbread.spmp.model.mediaitem.UnsupportedPropertyRememberer
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
+import com.toasterofbread.spmp.model.mediaitem.db.AltSetterProperty
 import com.toasterofbread.spmp.model.mediaitem.db.ListProperty
 import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
@@ -126,9 +128,9 @@ class LocalPlaylistData(id: String): PlaylistData(id), LocalPlaylist {
         get() = property_rememberer.rememberLocalSingleProperty(
             "Year", { year }, { year = it }
         )
-    override val Artist: Property<Artist?>
-        get() = property_rememberer.rememberLocalSingleProperty(
-            "Artist", { artist }, { artist = it }
+    override val Artist: AltSetterProperty<ArtistRef?, Artist?>
+        get() = property_rememberer.rememberAltSetterLocalSingleProperty(
+            "Artist", { artist?.let { ArtistRef(it.id) } }, { artist = it }, { artist = it }
         )
     override val Owner: Property<Artist?>
         get() = property_rememberer.rememberLocalSingleProperty(

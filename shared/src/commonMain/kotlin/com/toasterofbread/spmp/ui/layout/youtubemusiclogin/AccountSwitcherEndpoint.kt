@@ -27,7 +27,7 @@ internal class AccountSwitcherEndpoint(val data: Data) {
     data class AccountItem(
         val accountName: TextRuns,
         val accountPhoto: MusicThumbnailRenderer.Thumbnail,
-        val channelHandle: TextRuns? = null,
+        val channelHandle: TextRuns?,
         val accountByline: TextRuns,
         val isDisabled: Boolean,
         val isSelected: Boolean,
@@ -35,7 +35,7 @@ internal class AccountSwitcherEndpoint(val data: Data) {
     )
     data class ServiceEndpoint(val selectActiveIdentityEndpoint: SelectActiveIdentityEndpoint)
     data class SelectActiveIdentityEndpoint(val supportedTokens: List<Token>)
-    data class Token(val accountSigninToken: AccountSigninToken? = null, val offlineCacheKeyToken: OfflineCacheKeyToken? = null)
+    data class Token(val accountSigninToken: AccountSigninToken?, val offlineCacheKeyToken: OfflineCacheKeyToken?)
     data class AccountSigninToken(val signinUrl: String)
     data class OfflineCacheKeyToken(val clientCacheKey: String)
 }

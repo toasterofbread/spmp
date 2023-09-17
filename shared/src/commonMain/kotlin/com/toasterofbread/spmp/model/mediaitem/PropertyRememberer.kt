@@ -10,10 +10,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import app.cash.sqldelight.Query
 import com.toasterofbread.Database
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
+import com.toasterofbread.spmp.model.mediaitem.db.AltSetterProperty
+import com.toasterofbread.spmp.model.mediaitem.db.AltSetterSingleProperty
 import com.toasterofbread.spmp.model.mediaitem.db.ListProperty
 import com.toasterofbread.spmp.model.mediaitem.db.ListPropertyImpl
 import com.toasterofbread.spmp.model.mediaitem.db.Property
+import com.toasterofbread.spmp.model.mediaitem.db.PropertyImpl
 import com.toasterofbread.spmp.model.mediaitem.db.SingleProperty
+import mediaitem.song.ArtistById
 
 open class PropertyRememberer {
     private val properties: MutableMap<String, Any> = mutableMapOf()
@@ -21,45 +27,67 @@ open class PropertyRememberer {
     protected open fun onRead(key: String) {}
     protected open fun onWrite(key: String) {}
 
+    open inner class LocalProperty<T>(
+        val key: String,
+        val getValue: () -> T,
+        val setValue: (T) -> Unit
+    ): Property<T> {
+        override fun get(db: Database): T {
+            onRead(key)
+            return getValue()
+        }
+
+        @Composable
+        override fun observe(db: Database): MutableState<T> {
+            val state: MutableState<T> = remember(this) {
+                onRead(key)
+                mutableStateOf(getValue())
+            }
+            var launched: Boolean by remember(this) { mutableStateOf(false) }
+
+            LaunchedEffect(this, state.value) {
+                if (!launched) {
+                    launched = true
+                    return@LaunchedEffect
+                }
+
+                onWrite(key)
+                setValue(state.value)
+            }
+
+            return state
+        }
+
+        override fun set(value: T, db: Database) {
+            onWrite(key)
+            setValue(value)
+        }
+    }
+
     fun <T> rememberLocalSingleProperty(
         key: String,
         getValue: () -> T,
         setValue: (T) -> Unit
     ): Property<T> {
         return properties.getOrPut(key) {
-            object : Property<T> {
-                override fun get(db: Database): T {
-                    onRead(key)
-                    return getValue()
-                }
+            LocalProperty(key, getValue, setValue)
+        } as Property<T>
+    }
 
-                @Composable
-                override fun observe(db: Database): MutableState<T> {
-                    val state: MutableState<T> = remember(this) {
-                        onRead(key)
-                        mutableStateOf(getValue())
-                    }
-                    var launched: Boolean by remember(this) { mutableStateOf(false) }
-
-                    LaunchedEffect(this, state.value) {
-                        if (!launched) {
-                            launched = true
-                            return@LaunchedEffect
-                        }
-
-                        onWrite(key)
-                        setValue(state.value)
-                    }
-
-                    return state
-                }
-
-                override fun set(value: T, db: Database) {
+    fun <T: A, A> rememberAltSetterLocalSingleProperty(
+        key: String,
+        getValue: () -> T,
+        setValue: (T) -> Unit,
+        setValueAlt: (A) -> Unit
+    ): AltSetterProperty<T, A> {
+        return properties.getOrPut(key) {
+            object : LocalProperty<T>(key, getValue, setValue), AltSetterProperty<T, A> {
+                override fun setAlt(value: A, db: Database) {
                     onWrite(key)
-                    setValue(value)
+                    setValueAlt(value)
                 }
             }
-        } as Property<T>
+        } as AltSetterProperty<T, A>
     }
 
     fun <T> rememberLocalListProperty(
@@ -126,6 +154,37 @@ open class PropertyRememberer {
                 getDefault
             )
         } as Property<T>
+    }
+
+    fun <T: A, A, Q : Any> rememberAltSetterSingleQueryProperty(
+        key: String,
+        getQuery: Database.() -> Query<Q>,
+        getValue: Q.() -> T,
+        setValue: Database.(T) -> Unit,
+        setValueAlt: Database.(A) -> Unit,
+        getDefault: () -> T = { null as T }
+    ): AltSetterProperty<T, A> {
+        return properties.getOrPut(key) {
+            AltSetterSingleProperty(
+                getQuery = {
+                    onRead(key)
+                    getQuery()
+                },
+                getValue = {
+                    onRead(key)
+                    getValue()
+                },
+                setValue = {
+                    onWrite(key)
+                    setValue(it)
+                },
+                setValueAlt = {
+                    onWrite(key)
+                    setValueAlt(it)
+                },
+                getDefault
+            )
+        } as AltSetterProperty<T, A>
     }
 
     fun <T, Q : Any> rememberListQueryProperty(

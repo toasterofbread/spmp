@@ -54,6 +54,31 @@ interface Property<T> {
     }
 }
 
+interface AltSetterProperty<T: I, I>: Property<T> {
+    fun setAlt(value: I, db: Database)
+
+    fun setUncertainAlt(value: I, db: Database) {
+        if (value == null) {
+            return
+        }
+
+        db.transaction {
+            if (get(db) == null) {
+                setAlt(value, db)
+            }
+        }
+    }
+
+    fun setNotNullAlt(value: I, db: Database, uncertain: Boolean = false) {
+        if (uncertain) {
+            setUncertainAlt(value, db)
+        }
+        else if (value != null) {
+            setAlt(value, db)
+        }
+    }
+}
+
 internal open class PropertyImpl<T, Q: Query<*>>(
     private val getQuery: Database.() -> Q,
     private val getValue: Q.() -> T,
@@ -83,6 +108,26 @@ internal open class SingleProperty<T, Q: Any>(
     },
     setValue
 )
+
+internal open class AltSetterSingleProperty<T: A, A, Q: Any>(
+    getQuery: Database.() -> Query<Q>,
+    getValue: Q.() -> T,
+    setValue: Database.(T) -> Unit,
+    val setValueAlt: Database.(A) -> Unit,
+    getDefault: () -> T = { null as T }
+): PropertyImpl<T, Query<Q>>(
+    getQuery,
+    {
+        val query_result = executeAsOneOrNull()
+        if (query_result == null) getDefault() else getValue(query_result)
+    },
+    setValue
+), AltSetterProperty<T, A> {
+    override fun setAlt(value: A, db: Database) {
+        setValueAlt(db, value)
+    }
+}
+
 
 interface ListProperty<T> {
     fun get(db: Database): List<T>?
@@ -184,17 +229,21 @@ open class ListPropertyImpl<T, Q: Any>(
         val to = to.toLong()
 
         db.transaction {
-            setItemIndex(db, from, to)
+            val size = getSize(db)
+            setItemIndex(db, from, size)
+
             if (to > from) {
-                for (i in from until to) {
+                for (i in from + 1 .. to) {
                     setItemIndex(db, i, i - 1)
                 }
             }
             else {
-                for (i in to + 1 .. from) {
+                for (i in from - 1 downTo to) {
                     setItemIndex(db, i, i + 1)
                 }
             }
+
+            setItemIndex(db, size, to)
         }
     }
 }

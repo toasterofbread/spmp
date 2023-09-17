@@ -29,18 +29,22 @@ class YTMAccountPlaylistsEndpoint(override val auth: YoutubeMusicAuthInfo): Acco
                 return@withContext Result.failure(it)
             }
 
-            val playlist_data = data
-                .contents!!
-                .singleColumnBrowseResultsRenderer!!
-                .tabs
-                .first()
-                .tabRenderer
-                .content!!
-                .sectionListRenderer
-                .contents!!
-                .first()
-                .gridRenderer!!
-                .items
+            val playlist_data = try {
+                data.contents!!
+                    .singleColumnBrowseResultsRenderer!!
+                    .tabs
+                    .first()
+                    .tabRenderer
+                    .content!!
+                    .sectionListRenderer!!
+                    .contents!!
+                    .first()
+                    .gridRenderer!!
+                    .items
+            }
+            catch (e: Throwable) {
+                return@withContext Result.failure(e)
+            }
 
             val playlists: List<RemotePlaylistData> = playlist_data.mapNotNull {
                 // Skip 'New playlist' item

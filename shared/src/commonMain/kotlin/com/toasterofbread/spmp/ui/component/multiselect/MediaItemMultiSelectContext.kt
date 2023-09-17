@@ -139,6 +139,10 @@ class MediaItemMultiSelectContext(
 
     fun setItemSelected(item: MediaItem, selected: Boolean, key: Int? = null) {
         if (selected) {
+            if (!is_active) {
+                setActive(true)
+            }
+
             if (selected_items.any { it.first == item && it.second == key }) {
                 return
             }

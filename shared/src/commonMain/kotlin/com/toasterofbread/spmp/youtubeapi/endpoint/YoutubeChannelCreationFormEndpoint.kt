@@ -28,11 +28,11 @@ abstract class YoutubeChannelCreationFormEndpoint: YoutubeApi.Endpoint() {
         data class Contents(val createCoreIdentityChannelContentRenderer: CreateCoreIdentityChannelContentRenderer)
         data class CreateCoreIdentityChannelContentRenderer(
             val collectGivenName: Boolean,
-            val givenNameLabel: TextRuns? = null,
-            val givenNameValue: String? = null,
+            val givenNameLabel: TextRuns?,
+            val givenNameValue: String?,
             val collectFamilyName: Boolean,
-            val familyNameLabel: TextRuns? = null,
-            val familyNameValue: String? = null,
+            val familyNameLabel: TextRuns?,
+            val familyNameValue: String?,
             val profilePhoto: ProfilePhoto,
             val missingNameErrorMessage: TextRuns
         ) {
@@ -52,7 +52,7 @@ abstract class YoutubeChannelCreationFormEndpoint: YoutubeApi.Endpoint() {
             }
         }
         data class Button(val buttonRenderer: FormButtonRenderer)
-        data class FormButtonRenderer(val serviceEndpoint: FormServiceEndpoint? = null)
+        data class FormButtonRenderer(val serviceEndpoint: FormServiceEndpoint?)
         data class FormServiceEndpoint(val channelCreationServiceEndpoint: ChannelCreationServiceEndpoint)
         data class ChannelCreationServiceEndpoint(val channelCreationToken: String)
     }

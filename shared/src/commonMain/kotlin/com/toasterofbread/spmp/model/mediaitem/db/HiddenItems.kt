@@ -8,6 +8,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import app.cash.sqldelight.Query
+import com.toasterofbread.Database
+import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
@@ -20,6 +22,31 @@ import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import mediaitem.ArtistQueries
 import mediaitem.PlaylistQueries
 import mediaitem.SongQueries
+
+fun isMediaItemHidden(item: MediaItem, db: Database, hidden_items: List<MediaItem>? = null): Boolean {
+    if (hidden_items?.any { it.id == item.id } ?: item.Hidden.get(db)) {
+        return true
+    }
+
+    if (!Settings.KEY_FILTER_ENABLE.get<Boolean>()) {
+        return false
+    }
+
+    val title = item.getActiveTitle(db) ?: return false
+
+    if (item is Artist && !Settings.KEY_FILTER_APPLY_TO_ARTISTS.get<Boolean>()) {
+        return false
+    }
+
+    val keywords: Set<String> = Settings.KEY_FILTER_TITLE_KEYWORDS.get()
+    for (keyword in keywords) {
+        if (title.contains(keyword)) {
+            return true
+        }
+    }
+
+    return false
+}
 
 @Composable
 fun rememberHiddenItems(hidden: Boolean = true): List<MediaItem> {

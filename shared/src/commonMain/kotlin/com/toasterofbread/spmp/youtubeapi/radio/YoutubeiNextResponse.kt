@@ -23,10 +23,10 @@ data class YoutubeiNextResponse(
     class TabbedRenderer(val watchNextTabbedResultsRenderer: WatchNextTabbedResultsRenderer)
     class WatchNextTabbedResultsRenderer(val tabs: List<Tab>)
     class Tab(val tabRenderer: TabRenderer)
-    class TabRenderer(val content: Content? = null, val endpoint: TabRendererEndpoint? = null)
+    class TabRenderer(val content: Content?, val endpoint: TabRendererEndpoint?)
     class TabRendererEndpoint(val browseEndpoint: BrowseEndpoint)
     class Content(val musicQueueRenderer: MusicQueueRenderer)
-    class MusicQueueRenderer(val content: MusicQueueRendererContent, val subHeaderChipCloud: SubHeaderChipCloud? = null)
+    class MusicQueueRenderer(val content: MusicQueueRendererContent, val subHeaderChipCloud: SubHeaderChipCloud?)
 
     class SubHeaderChipCloud(val chipCloudRenderer: ChipCloudRenderer)
     class ChipCloudRenderer(val chips: List<Chip>)
@@ -41,8 +41,8 @@ data class YoutubeiNextResponse(
     class MusicQueueRendererContent(val playlistPanelRenderer: PlaylistPanelRenderer)
     class PlaylistPanelRenderer(val contents: List<ResponseRadioItem>, val continuations: List<Continuation>? = null)
     data class ResponseRadioItem(
-        val playlistPanelVideoRenderer: PlaylistPanelVideoRenderer? = null,
-        val playlistPanelVideoWrapperRenderer: PlaylistPanelVideoWrapperRenderer? = null
+        val playlistPanelVideoRenderer: PlaylistPanelVideoRenderer?,
+        val playlistPanelVideoWrapperRenderer: PlaylistPanelVideoWrapperRenderer?
     ) {
         fun getRenderer(): PlaylistPanelVideoRenderer {
             if (playlistPanelVideoRenderer != null) {
@@ -138,10 +138,10 @@ data class YoutubeiNextResponse(
                 it.menuNavigationItemRenderer?.icon?.iconType == "ARTIST"
             }
     }
-    data class MenuItem(val menuNavigationItemRenderer: MenuNavigationItemRenderer? = null)
+    data class MenuItem(val menuNavigationItemRenderer: MenuNavigationItemRenderer?)
     data class MenuNavigationItemRenderer(val icon: MenuIcon, val navigationEndpoint: NavigationEndpoint)
     data class MenuIcon(val iconType: String)
-    data class Continuation(val nextContinuationData: ContinuationData? = null, val nextRadioContinuationData: ContinuationData? = null) {
+    data class Continuation(val nextContinuationData: ContinuationData?, val nextRadioContinuationData: ContinuationData?) {
         val data: ContinuationData? get() = nextContinuationData ?: nextRadioContinuationData
     }
     data class ContinuationData(val continuation: String)

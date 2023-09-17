@@ -12,6 +12,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
+import com.toasterofbread.spmp.model.mediaitem.db.AltSetterProperty
 import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.db.fromSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.db.observeAsState
@@ -123,7 +125,7 @@ interface MediaItem: MediaItemHolder {
     )
 
     interface WithArtist: MediaItem {
-        val Artist: Property<Artist?>
+        val Artist: AltSetterProperty<ArtistRef?, Artist?>
 
         override fun populateData(data: MediaItemData, db: Database) {
             require(data is DataWithArtist)
@@ -154,8 +156,21 @@ interface MediaItem: MediaItemHolder {
                     artist_data.createDbEntry(db)
                 }
 
-                Artist.setNotNull(artist, db, uncertain)
+                Artist.setNotNullAlt(artist, db, uncertain)
             }}
         }
+    }
+}
+
+abstract class MediaItemRef: MediaItem {
+    override fun equals(other: Any?): Boolean {
+        if (other is MediaItemRef && other.getType() == getType()) {
+            return id == other.id
+        }
+        return false
+    }
+
+    override fun hashCode(): Int {
+        return id.hashCode()
     }
 }

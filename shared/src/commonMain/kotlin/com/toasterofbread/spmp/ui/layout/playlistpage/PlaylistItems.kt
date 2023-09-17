@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction
@@ -58,63 +59,25 @@ internal fun PlaylistPage.PlaylistItems(
                     item,
                     Modifier.fillMaxWidth().weight(1f),
                     long_press_menu_data = long_press_menu_data,
+                    title_lines = 2,
                     show_artist = false,
                     show_type = false,
-                    title_lines = 2
+                    getExtraInfo = {
+                        val item_duration: Long? by item.Duration.observe(player.database)
+                        remember(item_duration) {
+                            listOfNotNull(
+                                item_duration?.let { duration ->
+                                    durationToString(duration, true, hl = SpMp.ui_language)
+                                }
+                            )
+                        }
+                    }
                 )
 
                 AnimatedVisibility(reordering) {
-                    Icon(Icons.Default.Reorder, null, Modifier.padding(end = 0.dp).detectReorder(list_state))
+                    Icon(Icons.Default.Reorder, null, Modifier.padding(end = 20.dp).detectReorder(list_state))
                 }
             }
-
-//            Row(
-//                Modifier
-//                    .fillMaxWidth()
-//                    .padding(top = 10.dp)
-//                    .mediaItemPreviewInteraction(
-//                        item,
-//                        long_press_menu_data,
-//                        onClick = { item, index ->
-//                            player.playPlaylist(playlist, index!!)
-//                        }
-//                    ),
-//                verticalAlignment = Alignment.CenterVertically,
-//                horizontalArrangement = Arrangement.spacedBy(10.dp)
-//            ) {
-//                Box(Modifier.size(50.dp)) {
-//                    item.Thumbnail(
-//                        MediaItemThumbnailProvider.Quality.LOW,
-//                        Modifier.fillMaxSize().longPressMenuIcon(long_press_menu_data)
-//                    )
-//                    multiselect_context.SelectableItemOverlay(item, Modifier.fillMaxSize(), key = index)
-//                }
-//
-//                Column(
-//                    Modifier.fillMaxWidth().weight(1f),
-//                    verticalArrangement = Arrangement.spacedBy(5.dp)
-//                ) {
-//                    val item_title: String? by item.observeActiveTitle()
-//                    Text(
-//                        item_title ?: "",
-//                        style = MaterialTheme.typography.titleSmall
-//                    )
-//
-//                    val item_duration: Long? by item.Duration.observe(player.database)
-//                    val duration_text = remember(item_duration) {
-//                        item_duration?.let { duration ->
-//                            durationToString(duration, true, hl = SpMp.ui_language)
-//                        }
-//                    }
-//                    duration_text?.also { text ->
-//                        Text(text, style = MaterialTheme.typography.labelSmall)
-//                    }
-//                }
-//
-//                AnimatedVisibility(reordering) {
-//                    Icon(Icons.Default.Reorder, null, Modifier.padding(end = 20.dp).detectReorder(list_state))
-//                }
-//            }
         }
     }
 }

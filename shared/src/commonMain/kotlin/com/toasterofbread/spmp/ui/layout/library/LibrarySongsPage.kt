@@ -99,6 +99,7 @@ class LibrarySongsPage(context: PlatformContext): LibrarySubPage(context) {
                                     multiselect_key = index,
                                     show_type = false,
                                     show_play_count = true,
+                                    show_download_status = false,
                                     getExtraInfo = {
                                         val duration_string = remember(song.id) {
                                             song.Duration.get(player.database)?.let { duration ->

@@ -14,6 +14,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DownloadDone
+import androidx.compose.material.icons.filled.Downloading
+import androidx.compose.material.icons.filled.Inventory2
+import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,13 +40,16 @@ import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
 import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.platform.PlayerDownloadManager
+import com.toasterofbread.spmp.platform.rememberDownloadStatus
+import com.toasterofbread.spmp.platform.rememberSongDownloads
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 
-const val MEDIA_ITEM_PREVIEW_LONG_HEIGHT: Float = 40f
+const val MEDIA_ITEM_PREVIEW_LONG_HEIGHT: Float = 50f
 private const val INFO_SPLITTER: String = "\u2022"
 
 fun MediaItem.getLongPressMenuData(
@@ -78,8 +87,6 @@ fun MediaItemPreviewSquare(
             )
         }
 ) {
-    val player = LocalPlayerState.current
-
     Column(
         modifier.mediaItemPreviewInteraction(item, long_press_menu_data),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -101,7 +108,6 @@ fun MediaItemPreviewSquare(
 
         Text(
             item_title ?: "",
-//            Modifier.fillMaxSize().weight(1f),
             fontSize = 12.sp,
             color = contentColour?.invoke() ?: Color.Unspecified,
             maxLines = max_text_rows ?: 1,
@@ -120,6 +126,7 @@ fun MediaItemPreviewLong(
     show_type: Boolean = true,
     show_play_count: Boolean = false,
     show_artist: Boolean = true,
+    show_download_status: Boolean = true,
     title_lines: Int = 1,
     font_size: TextUnit = 15.sp,
     getExtraInfo: (@Composable () -> List<String>)? = null,
@@ -162,7 +169,7 @@ fun MediaItemPreviewLong(
             Modifier
                 .padding(horizontal = 10.dp)
                 .fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(5.dp)
+            verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
             val item_title: String? by item.observeActiveTitle()
             Text(
@@ -176,9 +183,14 @@ fun MediaItemPreviewLong(
 
             val artist_title: String? = if (show_artist) (item as? MediaItem.WithArtist)?.Artist?.observePropertyActiveTitle()?.value else null
             val extra_info = getExtraInfo?.invoke() ?: emptyList()
+            val download_status: PlayerDownloadManager.DownloadStatus? =
+                if (show_download_status) (item as? Song)?.rememberDownloadStatus() else null
 
-            if (show_play_count || show_type || extra_info.isNotEmpty() || artist_title != null) {
-                Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            if (download_status != null || show_play_count || show_type || extra_info.isNotEmpty() || artist_title != null) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     var text_displayed = false
 
                     @Composable
@@ -188,6 +200,16 @@ fun MediaItemPreviewLong(
                         }
                         text_displayed = true
                         InfoText(text, contentColour)
+                    }
+
+                    if (download_status != null) {
+                        text_displayed = true
+                        Icon(
+                            if (download_status.progress == 1f) Icons.Default.DownloadDone
+                            else Icons.Default.Downloading,
+                            null,
+                            Modifier.alpha(0.5f).size(13.dp)
+                        )
                     }
 
                     if (show_play_count) {

@@ -125,12 +125,12 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
             val data = PlayerDownloadService.getFilenameData(file.name)
             if (data.id == song.id) {
                 callback(DownloadStatus(
-                    SongRef(data.id),
-                    if (data.downloading) DownloadStatus.Status.IDLE else DownloadStatus.Status.FINISHED,
-                    null,
-                    if (data.downloading) -1f else 1f,
-                    file.name,
-                    file
+                    song = SongRef(data.id),
+                    status = if (data.downloading) DownloadStatus.Status.IDLE else DownloadStatus.Status.FINISHED,
+                    quality = null,
+                    progress = if (data.downloading) -1f else 1f,
+                    id = file.name,
+                    file = file
                 ))
                 return
             }
@@ -153,12 +153,12 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
 
                 val data = PlayerDownloadService.getFilenameData(file.name)
                 DownloadStatus(
-                    SongRef(data.id),
-                    if (data.downloading) DownloadStatus.Status.IDLE else DownloadStatus.Status.FINISHED,
-                    null,
-                    if (data.downloading) -1f else 1f,
-                    file.name,
-                    file
+                    song = SongRef(data.id),
+                    status = if (data.downloading) DownloadStatus.Status.IDLE else DownloadStatus.Status.FINISHED,
+                    quality = null,
+                    progress = if (data.downloading) -1f else 1f,
+                    id = file.name,
+                    file = file
                 )
             }
         )

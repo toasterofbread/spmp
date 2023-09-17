@@ -2,6 +2,8 @@ package com.toasterofbread.spmp.model.mediaitem.layout
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -16,6 +18,10 @@ import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
 
 fun getDefaultMediaItemPreviewSize(): DpSize = DpSize(100.dp, 120.dp)
+@Composable
+fun getMediaItemPreviewSquareAdditionalHeight(text_rows: Int?, line_height: TextUnit): Dp {
+    return with(LocalDensity.current) { line_height.toDp() } * ((text_rows ?: 1) - 1)
+}
 
 data class MediaItemLayout(
     val items: List<MediaItem>,
@@ -43,14 +49,16 @@ data class MediaItemLayout(
             layout: MediaItemLayout,
             modifier: Modifier = Modifier,
             multiselect_context: MediaItemMultiSelectContext? = null,
-            apply_filter: Boolean = false
+            apply_filter: Boolean = false,
+            square_item_max_text_rows: Int? = null,
+            show_download_indicators: Boolean = true
         ) {
             when (this) {
-                GRID -> MediaItemGrid(layout, modifier, multiselect_context = multiselect_context, apply_filter = apply_filter)
-                GRID_ALT -> MediaItemGrid(layout, modifier, alt_style = true, multiselect_context = multiselect_context, apply_filter = apply_filter)
-                ROW -> MediaItemGrid(layout, modifier, 1, multiselect_context = multiselect_context, apply_filter = apply_filter)
-                LIST -> MediaItemList(layout, modifier, false, multiselect_context = multiselect_context, apply_filter = apply_filter)
-                NUMBERED_LIST -> MediaItemList(layout, modifier, true, multiselect_context = multiselect_context, apply_filter = apply_filter)
+                GRID -> MediaItemGrid(layout, modifier, multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators)
+                GRID_ALT -> MediaItemGrid(layout, modifier, alt_style = true, multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators)
+                ROW -> MediaItemGrid(layout, modifier, 1, multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators)
+                LIST -> MediaItemList(layout, modifier, false, multiselect_context = multiselect_context, apply_filter = apply_filter, show_download_indicators = show_download_indicators)
+                NUMBERED_LIST -> MediaItemList(layout, modifier, true, multiselect_context = multiselect_context, apply_filter = apply_filter, show_download_indicators = show_download_indicators)
                 CARD -> com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemCard(
                     layout,
                     modifier,

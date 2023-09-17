@@ -4,7 +4,6 @@ import LocalPlayerState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -13,12 +12,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DownloadDone
 import androidx.compose.material.icons.filled.Downloading
-import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -42,7 +39,6 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.rememberDownloadStatus
-import com.toasterofbread.spmp.platform.rememberSongDownloads
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
@@ -50,6 +46,8 @@ import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 
 const val MEDIA_ITEM_PREVIEW_LONG_HEIGHT: Float = 50f
+const val MEDIA_ITEM_PREVIEW_SQUARE_FONT_SIZE_SP: Float = 12f
+const val MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP: Float = 14f
 private const val INFO_SPLITTER: String = "\u2022"
 
 fun MediaItem.getLongPressMenuData(
@@ -78,6 +76,9 @@ fun MediaItemPreviewSquare(
     multiselect_key: Int? = null,
     getInfoText: (@Composable () -> String?)? = null,
     max_text_rows: Int? = null,
+    show_download_indicator: Boolean = true,
+    font_size: TextUnit = MEDIA_ITEM_PREVIEW_SQUARE_FONT_SIZE_SP.sp,
+    line_height: TextUnit = MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP.sp,
     long_press_menu_data: LongPressMenuData =
         remember(item, multiselect_context, multiselect_key, getInfoText) {
             item.getLongPressMenuData(
@@ -104,16 +105,38 @@ fun MediaItemPreviewSquare(
             }
         }
 
-        val item_title: String? by item.observeActiveTitle()
+        Row(
+            Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally)
+        ) {
+            val item_title: String? by item.observeActiveTitle()
+            val max_lines = max_text_rows ?: 1
 
-        Text(
-            item_title ?: "",
-            fontSize = 12.sp,
-            color = contentColour?.invoke() ?: Color.Unspecified,
-            maxLines = max_text_rows ?: 1,
-            lineHeight = 14.sp,
-            overflow = TextOverflow.Ellipsis
-        )
+            Text(
+                item_title ?: "",
+                Modifier.fillMaxWidth().weight(1f),
+                fontSize = font_size,
+                color = contentColour?.invoke() ?: Color.Unspecified,
+                lineHeight = line_height,
+                maxLines = max_lines,
+                overflow = if (max_lines == 1) TextOverflow.Ellipsis else TextOverflow.Clip,
+                textAlign = TextAlign.Center
+            )
+
+            val download_status: PlayerDownloadManager.DownloadStatus? =
+                if (show_download_indicator) (item as? Song)?.rememberDownloadStatus() else null
+
+            if (download_status != null) {
+                Icon(
+                    if (download_status.progress == 1f) Icons.Default.DownloadDone
+                    else Icons.Default.Downloading,
+                    null,
+                    Modifier.alpha(0.5f).size(13.dp)
+                )
+            }
+        }
+
     }
 }
 
@@ -126,7 +149,7 @@ fun MediaItemPreviewLong(
     show_type: Boolean = true,
     show_play_count: Boolean = false,
     show_artist: Boolean = true,
-    show_download_status: Boolean = true,
+    show_download_indicator: Boolean = true,
     title_lines: Int = 1,
     font_size: TextUnit = 15.sp,
     getExtraInfo: (@Composable () -> List<String>)? = null,
@@ -184,7 +207,7 @@ fun MediaItemPreviewLong(
             val artist_title: String? = if (show_artist) (item as? MediaItem.WithArtist)?.Artist?.observePropertyActiveTitle()?.value else null
             val extra_info = getExtraInfo?.invoke() ?: emptyList()
             val download_status: PlayerDownloadManager.DownloadStatus? =
-                if (show_download_status) (item as? Song)?.rememberDownloadStatus() else null
+                if (show_download_indicator) (item as? Song)?.rememberDownloadStatus() else null
 
             if (download_status != null || show_play_count || show_type || extra_info.isNotEmpty() || artist_title != null) {
                 Row(

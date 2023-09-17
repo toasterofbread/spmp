@@ -26,9 +26,10 @@ fun MediaItemList(
     modifier: Modifier = Modifier,
     numbered: Boolean = false,
     multiselect_context: MediaItemMultiSelectContext? = null,
-    apply_filter: Boolean = false
+    apply_filter: Boolean = false,
+    show_download_indicators: Boolean = true
 ) {
-    MediaItemList(layout.items, modifier, numbered, layout.title, layout.subtitle, layout.view_more, multiselect_context, apply_filter)
+    MediaItemList(layout.items, modifier, numbered, layout.title, layout.subtitle, layout.view_more, multiselect_context, apply_filter, show_download_indicators = show_download_indicators)
 }
 
 @Composable
@@ -40,7 +41,8 @@ fun MediaItemList(
     subtitle: LocalisedYoutubeString? = null,
     view_more: ViewMore? = null,
     multiselect_context: MediaItemMultiSelectContext? = null,
-    apply_filter: Boolean = false
+    apply_filter: Boolean = false,
+    show_download_indicators: Boolean = true
 ) {
     val filtered_items = items.rememberFilteredItems(apply_filter)
 
@@ -61,7 +63,7 @@ fun MediaItemList(
                 }
 
                 item.value.item?.also {
-                    MediaItemPreviewLong(it, multiselect_context = multiselect_context)
+                    MediaItemPreviewLong(it, multiselect_context = multiselect_context, show_download_indicator = show_download_indicators)
                 }
             }
         }

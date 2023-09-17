@@ -159,7 +159,7 @@ fun PrefsPage(
     Box(modifier) {
         pill_menu.PillMenu()
 
-        Column(Modifier.fillMaxSize().padding(top = content_padding.calculateTopPadding())) {
+        Column(Modifier.fillMaxSize().padding(top = content_padding.calculateTopPadding(), start = 10.dp, end = 10.dp)) {
             val top_padding = MusicTopBar(
                 Settings.KEY_LYRICS_SHOW_IN_SETTINGS,
                 Modifier.fillMaxWidth().zIndex(10f),
@@ -170,8 +170,7 @@ fun PrefsPage(
                 if (!open) {
                     LazyColumn(
                         contentPadding = content_padding.copy(top = top_padding),
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                        modifier = Modifier.padding(horizontal = 10.dp)
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         item {
                             Row(

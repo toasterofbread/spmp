@@ -17,6 +17,11 @@ internal fun getFeedCategory(): List<SettingsItem> {
             getString("s_key_feed_show_filters"), null
         ),
 
+        SettingsToggleItem(
+            SettingsValueState(Settings.KEY_FEED_SHOW_SONG_DOWNLOAD_INDICATORS.name),
+            getString("s_key_feed_show_song_download_indicators"), null
+        ),
+
         SettingsSliderItem(
             SettingsValueState<Int>(Settings.KEY_FEED_INITIAL_ROWS.name),
             getString("s_key_feed_initial_rows"),

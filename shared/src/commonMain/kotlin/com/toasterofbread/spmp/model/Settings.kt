@@ -147,6 +147,7 @@ enum class Settings {
 
     // Recommendation feed
     KEY_FEED_SHOW_FILTERS,
+    KEY_FEED_SHOW_SONG_DOWNLOAD_INDICATORS,
     KEY_FEED_INITIAL_ROWS,
     KEY_FEED_SQUARE_PREVIEW_TEXT_LINES,
     KEY_FEED_SHOW_RADIOS,
@@ -328,8 +329,9 @@ enum class Settings {
 
                 // Recommendation feed
                 KEY_FEED_SHOW_FILTERS -> true
-                KEY_FEED_INITIAL_ROWS -> 1
-                KEY_FEED_SQUARE_PREVIEW_TEXT_LINES -> 2
+                KEY_FEED_SHOW_SONG_DOWNLOAD_INDICATORS -> false
+                KEY_FEED_INITIAL_ROWS -> 4
+                KEY_FEED_SQUARE_PREVIEW_TEXT_LINES -> 1
                 KEY_FEED_SHOW_RADIOS -> false
                 KEY_FEED_SHOW_LISTEN_ROW -> true
                 KEY_FEED_SHOW_MIX_ROW -> true

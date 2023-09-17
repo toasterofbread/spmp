@@ -302,6 +302,7 @@
 
     <string name="s_group_rec_feed">Recommended feed</string>
     <string name="s_key_feed_show_filters">Show filters if available</string>
+    <string name="s_key_feed_show_song_download_indicators">Show song download indicators</string>
     <string name="s_key_feed_initial_rows">Initial feed rows</string>
     <string name="s_key_feed_square_preview_text_lines">Square item max text rows</string>
     <string name="s_sub_feed_initial_rows">Minimum amount of feed rows to load automatically</string>

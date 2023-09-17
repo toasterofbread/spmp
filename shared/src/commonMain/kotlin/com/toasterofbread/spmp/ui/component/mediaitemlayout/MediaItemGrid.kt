@@ -18,15 +18,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.getUid
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.layout.ViewMore
 import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
+import com.toasterofbread.spmp.model.mediaitem.layout.getMediaItemPreviewSquareAdditionalHeight
 import com.toasterofbread.spmp.model.mediaitem.layout.shouldShowTitleBar
 import com.toasterofbread.spmp.model.mediaitem.rememberFilteredItems
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_LONG_HEIGHT
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -42,6 +45,7 @@ fun MediaItemGrid(
     apply_filter: Boolean = false,
     multiselect_context: MediaItemMultiSelectContext? = null,
     square_item_max_text_rows: Int? = null,
+    show_download_indicators: Boolean = true,
     itemSizeProvider: @Composable () -> DpSize = { getDefaultMediaItemPreviewSize() },
     startContent: (LazyGridScope.() -> Unit)? = null
 ) {
@@ -55,6 +59,7 @@ fun MediaItemGrid(
         alt_style = alt_style,
         apply_filter = apply_filter,
         square_item_max_text_rows = square_item_max_text_rows,
+        show_download_indicators = show_download_indicators,
         itemSizeProvider = itemSizeProvider,
         multiselect_context = multiselect_context,
         startContent = startContent
@@ -73,6 +78,7 @@ fun MediaItemGrid(
     alt_style: Boolean = false,
     square_item_max_text_rows: Int? = null,
     apply_filter: Boolean = false,
+    show_download_indicators: Boolean = true,
     itemSizeProvider: @Composable () -> DpSize = { getDefaultMediaItemPreviewSize() },
     multiselect_context: MediaItemMultiSelectContext? = null,
     startContent: (LazyGridScope.() -> Unit)? = null
@@ -81,7 +87,9 @@ fun MediaItemGrid(
 
     val row_count = (rows ?: if (filtered_items.size <= 3) 1 else 2) * (if (alt_style) 2 else 1)
     val item_spacing = Arrangement.spacedBy(if (alt_style) 7.dp else 15.dp)
-    val item_size = if (alt_style) DpSize(0.dp, MEDIA_ITEM_PREVIEW_LONG_HEIGHT.dp) else itemSizeProvider()
+    val item_size =
+        if (alt_style) DpSize(0.dp, MEDIA_ITEM_PREVIEW_LONG_HEIGHT.dp)
+        else itemSizeProvider() + DpSize(0.dp, getMediaItemPreviewSquareAdditionalHeight(square_item_max_text_rows, MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP.sp))
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         TitleBar(
@@ -111,9 +119,9 @@ fun MediaItemGrid(
                     )
 
                     if (alt_style) {
-                        MediaItemPreviewLong(item, preview_modifier, contentColour = Theme.on_background_provider, multiselect_context = multiselect_context)
+                        MediaItemPreviewLong(item, preview_modifier, contentColour = Theme.on_background_provider, multiselect_context = multiselect_context, show_download_indicator = show_download_indicators)
                     } else {
-                        MediaItemPreviewSquare(item, preview_modifier, contentColour = Theme.on_background_provider, multiselect_context = multiselect_context, max_text_rows = square_item_max_text_rows)
+                        MediaItemPreviewSquare(item, preview_modifier, contentColour = Theme.on_background_provider, multiselect_context = multiselect_context, max_text_rows = square_item_max_text_rows, show_download_indicator = show_download_indicators)
                     }
                 }
             }

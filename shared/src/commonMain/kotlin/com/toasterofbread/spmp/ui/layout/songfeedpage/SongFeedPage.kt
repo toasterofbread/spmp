@@ -195,6 +195,9 @@ class SongFeedPage(state: MainPageState): MainPage(state) {
             )
         }
 
+        val square_item_max_text_rows: Int by Settings.KEY_FEED_SQUARE_PREVIEW_TEXT_LINES.rememberMutableState()
+        val show_download_indicators: Boolean by Settings.KEY_FEED_SHOW_SONG_DOWNLOAD_INDICATORS.rememberMutableState()
+
         LaunchedEffect(Unit) {
             if (layouts.isNullOrEmpty()) {
                 coroutine_scope.launchSingle {
@@ -286,7 +289,9 @@ class SongFeedPage(state: MainPageState): MainPage(state) {
                                 layout,
                                 Modifier.padding(top = 20.dp),
                                 multiselect_context = player.main_multiselect_context,
-                                apply_filter = true
+                                apply_filter = true,
+                                square_item_max_text_rows = square_item_max_text_rows,
+                                show_download_indicators = show_download_indicators
                             )
                         }
 

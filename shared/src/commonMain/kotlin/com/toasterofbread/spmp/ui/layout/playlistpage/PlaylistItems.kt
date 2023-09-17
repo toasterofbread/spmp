@@ -29,6 +29,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getSongLongPressMenuData
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.ReorderableLazyListState
@@ -43,7 +44,7 @@ internal fun PlaylistPage.PlaylistItems(
         val (item, index) = it
         check(item is Song)
 
-        val long_press_menu_data = remember(item) {
+        val long_press_menu_data = remember(item, index) {
             getSongLongPressMenuData(
                 item,
                 multiselect_context = multiselect_context,
@@ -52,53 +53,68 @@ internal fun PlaylistPage.PlaylistItems(
         }
 
         ReorderableItem(list_state, key = index) { dragging ->
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp)
-                    .mediaItemPreviewInteraction(
-                        item,
-                        long_press_menu_data,
-                        onClick = { item, index ->
-                            player.playPlaylist(playlist, index!!)
-                        }
-                    ),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Box(Modifier.size(50.dp)) {
-                    item.Thumbnail(
-                        MediaItemThumbnailProvider.Quality.LOW,
-                        Modifier.fillMaxSize().longPressMenuIcon(long_press_menu_data)
-                    )
-                    multiselect_context.SelectableItemOverlay(item, Modifier.fillMaxSize(), key = index)
-                }
-
-                Column(
+            Row(Modifier.fillMaxWidth().padding(top = 10.dp)) {
+                MediaItemPreviewLong(
+                    item,
                     Modifier.fillMaxWidth().weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(5.dp)
-                ) {
-                    val item_title: String? by item.observeActiveTitle()
-                    Text(
-                        item_title ?: "",
-                        style = MaterialTheme.typography.titleSmall
-                    )
-
-                    val item_duration: Long? by item.Duration.observe(player.database)
-                    val duration_text = remember(item_duration) {
-                        item_duration?.let { duration ->
-                            durationToString(duration, true, hl = SpMp.ui_language)
-                        }
-                    }
-                    duration_text?.also { text ->
-                        Text(text, style = MaterialTheme.typography.labelSmall)
-                    }
-                }
+                    long_press_menu_data = long_press_menu_data,
+                    show_artist = false,
+                    show_type = false,
+                    title_lines = 2
+                )
 
                 AnimatedVisibility(reordering) {
-                    Icon(Icons.Default.Reorder, null, Modifier.padding(end = 20.dp).detectReorder(list_state))
+                    Icon(Icons.Default.Reorder, null, Modifier.padding(end = 0.dp).detectReorder(list_state))
                 }
             }
+
+//            Row(
+//                Modifier
+//                    .fillMaxWidth()
+//                    .padding(top = 10.dp)
+//                    .mediaItemPreviewInteraction(
+//                        item,
+//                        long_press_menu_data,
+//                        onClick = { item, index ->
+//                            player.playPlaylist(playlist, index!!)
+//                        }
+//                    ),
+//                verticalAlignment = Alignment.CenterVertically,
+//                horizontalArrangement = Arrangement.spacedBy(10.dp)
+//            ) {
+//                Box(Modifier.size(50.dp)) {
+//                    item.Thumbnail(
+//                        MediaItemThumbnailProvider.Quality.LOW,
+//                        Modifier.fillMaxSize().longPressMenuIcon(long_press_menu_data)
+//                    )
+//                    multiselect_context.SelectableItemOverlay(item, Modifier.fillMaxSize(), key = index)
+//                }
+//
+//                Column(
+//                    Modifier.fillMaxWidth().weight(1f),
+//                    verticalArrangement = Arrangement.spacedBy(5.dp)
+//                ) {
+//                    val item_title: String? by item.observeActiveTitle()
+//                    Text(
+//                        item_title ?: "",
+//                        style = MaterialTheme.typography.titleSmall
+//                    )
+//
+//                    val item_duration: Long? by item.Duration.observe(player.database)
+//                    val duration_text = remember(item_duration) {
+//                        item_duration?.let { duration ->
+//                            durationToString(duration, true, hl = SpMp.ui_language)
+//                        }
+//                    }
+//                    duration_text?.also { text ->
+//                        Text(text, style = MaterialTheme.typography.labelSmall)
+//                    }
+//                }
+//
+//                AnimatedVisibility(reordering) {
+//                    Icon(Icons.Default.Reorder, null, Modifier.padding(end = 20.dp).detectReorder(list_state))
+//                }
+//            }
         }
     }
 }

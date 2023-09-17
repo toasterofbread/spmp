@@ -173,9 +173,9 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
     }
 
     data class MusicShelfRenderer(
-        val title: TextRuns? = null,
+        val title: TextRuns?,
         val contents: List<YoutubeiShelfContentsItem>? = null,
         val continuations: List<YoutubeiNextResponse.Continuation>? = null,
-        val bottomEndpoint: NavigationEndpoint? = null
+        val bottomEndpoint: NavigationEndpoint?
     )
 }

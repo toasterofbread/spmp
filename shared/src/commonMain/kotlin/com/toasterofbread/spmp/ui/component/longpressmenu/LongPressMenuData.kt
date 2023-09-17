@@ -90,7 +90,11 @@ data class LongPressMenuData(
         if (auth_state != null) {
             when (item) {
                 is Song -> LikeDislikeButton(item, auth_state, modifier) { background.getContrasted() }
-                is Artist -> ArtistSubscribeButton(item, auth_state, modifier)
+                is Artist -> {
+                    if (!item.isForItem()) {
+                        ArtistSubscribeButton(item, auth_state, modifier)
+                    }
+                }
                 else -> {}
             }
         }

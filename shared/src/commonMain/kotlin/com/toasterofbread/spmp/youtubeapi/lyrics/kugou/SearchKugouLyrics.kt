@@ -60,5 +60,5 @@ private data class KugouSearchResponse(
     val data: Data
 ) {
     data class Data(val info: List<Info>)
-    data class Info(val hash: String, val songname: String, val singername: String? = null, val album_name: String? = null)
+    data class Info(val hash: String, val songname: String, val singername: String?, val album_name: String? = null)
 }

@@ -21,6 +21,7 @@ import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.isOwnChannel
 import com.toasterofbread.utils.common.getContrasted
+import com.toasterofbread.utils.common.lazyAssert
 import com.toasterofbread.utils.composable.ShapedIconButton
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.launch
@@ -40,6 +41,8 @@ fun ArtistSubscribeButton(
     val artist_subscribed: Boolean? by artist.Subscribed.observe(player.database)
 
     LaunchedEffect(artist.id) {
+        assert(!artist.isForItem()) { artist.toString() }
+
         if (!artist.isOwnChannel(auth_state.api)) {
             coroutine_scope.launch {
                 ArtistSubscribedLoader.loadArtistSubscribed(artist, player.context)

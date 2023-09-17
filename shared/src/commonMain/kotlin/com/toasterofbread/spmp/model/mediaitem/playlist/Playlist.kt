@@ -13,6 +13,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
+import com.toasterofbread.spmp.model.mediaitem.db.AltSetterProperty
 import com.toasterofbread.spmp.model.mediaitem.db.ListProperty
 import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
@@ -65,9 +66,9 @@ sealed interface Playlist: MediaItem.WithArtist {
         get() = property_rememberer.rememberSingleQueryProperty(
             "Year", { playlistQueries.yearById(id) }, { year?.toInt() }, { playlistQueries.updateYearById(it?.toLong(), id) }
         )
-    override val Artist: Property<Artist?>
-        get() = property_rememberer.rememberSingleQueryProperty(
-            "Artist", { playlistQueries.artistById(id) }, { artist?.let { ArtistRef(it) } }, { playlistQueries.updateArtistById(it?.id, id) }
+    override val Artist: AltSetterProperty<ArtistRef?, Artist?>
+        get() = property_rememberer.rememberAltSetterSingleQueryProperty(
+            "Artist", { playlistQueries.artistById(id) }, { artist?.let { ArtistRef(it) } }, { playlistQueries.updateArtistById(it?.id, id) }, { playlistQueries.updateArtistById(it?.id, id) }
         )
     val Owner: Property<Artist?>
         get() = property_rememberer.rememberSingleQueryProperty(

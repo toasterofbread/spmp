@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
@@ -117,6 +119,9 @@ fun MediaItemPreviewLong(
     enable_long_press_menu: Boolean = true,
     show_type: Boolean = true,
     show_play_count: Boolean = false,
+    show_artist: Boolean = true,
+    title_lines: Int = 1,
+    font_size: TextUnit = 15.sp,
     getExtraInfo: (@Composable () -> List<String>)? = null,
     multiselect_context: MediaItemMultiSelectContext? = null,
     multiselect_key: Int? = null,
@@ -139,16 +144,16 @@ fun MediaItemPreviewLong(
             .mediaItemPreviewInteraction(item, long_press_menu_data)
             .height(MEDIA_ITEM_PREVIEW_LONG_HEIGHT.dp)
     ) {
-        Box(Modifier.width(IntrinsicSize.Min).height(IntrinsicSize.Min), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxHeight().aspectRatio(1f), contentAlignment = Alignment.Center) {
             item.Thumbnail(
                 MediaItemThumbnailProvider.Quality.LOW,
                 Modifier
                     .longPressMenuIcon(long_press_menu_data, enable_long_press_menu)
-                    .size(MEDIA_ITEM_PREVIEW_LONG_HEIGHT.dp),
+                    .fillMaxSize(),
                 getContentColour = contentColour
             )
 
-            multiselect_context?.also { ctx ->
+            (multiselect_context ?: long_press_menu_data.multiselect_context)?.also { ctx ->
                 ctx.SelectableItemOverlay(item, Modifier.fillMaxSize(), key = long_press_menu_data.multiselect_key)
             }
         }
@@ -162,44 +167,48 @@ fun MediaItemPreviewLong(
             val item_title: String? by item.observeActiveTitle()
             Text(
                 item_title ?: "",
-                fontSize = 15.sp,
                 color = contentColour?.invoke() ?: Color.Unspecified,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                fontSize = font_size,
+                lineHeight = font_size,
+                maxLines = title_lines,
+                overflow = TextOverflow.Clip
             )
 
-            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                var text_displayed = false
+            val artist_title: String? = if (show_artist) (item as? MediaItem.WithArtist)?.Artist?.observePropertyActiveTitle()?.value else null
+            val extra_info = getExtraInfo?.invoke() ?: emptyList()
 
-                @Composable
-                fun InfoText(text: String) {
-                    if (text_displayed) {
-                        InfoText(INFO_SPLITTER, contentColour)
+            if (show_play_count || show_type || extra_info.isNotEmpty() || artist_title != null) {
+                Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                    var text_displayed = false
+
+                    @Composable
+                    fun InfoText(text: String) {
+                        if (text_displayed) {
+                            InfoText(INFO_SPLITTER, contentColour)
+                        }
+                        text_displayed = true
+                        InfoText(text, contentColour)
                     }
-                    text_displayed = true
-                    InfoText(text, contentColour)
-                }
 
-                if (show_play_count) {
-                    val play_count = item.observePlayCount(player.context)
-                    InfoText(
-                        getString("mediaitem_play_count_\$x_short")
-                            .replace("\$x", play_count.toString())
-                    )
-                }
+                    if (show_play_count) {
+                        val play_count = item.observePlayCount(player.context)
+                        InfoText(
+                            getString("mediaitem_play_count_\$x_short")
+                                .replace("\$x", play_count.toString())
+                        )
+                    }
 
-                if (show_type) {
-                    InfoText(item.getType().getReadable(false))
-                }
+                    if (show_type) {
+                        InfoText(item.getType().getReadable(false))
+                    }
 
-                val extra_info = getExtraInfo?.invoke() ?: emptyList()
-                for (info in extra_info) {
-                    InfoText(info)
-                }
+                    for (info in extra_info) {
+                        InfoText(info)
+                    }
 
-                val artist_title: String? = (item as? MediaItem.WithArtist)?.Artist?.observePropertyActiveTitle()?.value
-                if (artist_title != null) {
-                    InfoText(artist_title)
+                    if (artist_title != null) {
+                        InfoText(artist_title)
+                    }
                 }
             }
         }
@@ -211,7 +220,7 @@ private fun InfoText(text: String, contentColour: (() -> Color)?) {
     Text(
         text,
         Modifier.alpha(0.5f),
-        fontSize = 11.sp,
+        fontSize = 12.sp,
         color = contentColour?.invoke() ?: Color.Unspecified,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis

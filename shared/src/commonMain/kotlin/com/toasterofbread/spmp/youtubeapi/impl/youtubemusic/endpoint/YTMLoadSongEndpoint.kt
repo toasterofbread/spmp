@@ -11,7 +11,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.Request
 
 private data class PlayerData(
-    val videoDetails: VideoDetails? = null,
+    val videoDetails: VideoDetails?,
 ) {
     class VideoDetails(
         val title: String,

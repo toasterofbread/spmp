@@ -142,4 +142,4 @@ data class MusicResponsiveListItemRenderer(
     }
 }
 
-data class RendererPlaylistItemData(val videoId: String, val playlistSetVideoId: String? = null)
+data class RendererPlaylistItemData(val videoId: String, val playlistSetVideoId: String?)

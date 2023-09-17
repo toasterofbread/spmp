@@ -6,13 +6,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.IntOffset
+import app.cash.sqldelight.Query
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
+import com.toasterofbread.spmp.model.mediaitem.db.AltSetterProperty
 import com.toasterofbread.spmp.model.mediaitem.db.Property
+import com.toasterofbread.spmp.model.mediaitem.db.PropertyImpl
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
@@ -24,6 +27,8 @@ import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.toLyricsReference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import mediaitem.AlbumById
+import mediaitem.song.ArtistById
 import java.net.URL
 
 interface Song: MediaItem.WithArtist {
@@ -81,10 +86,16 @@ interface Song: MediaItem.WithArtist {
         get() = property_rememberer.rememberSingleQueryProperty(
         "Duration", { songQueries.durationById(id) }, { duration }, { songQueries.updateDurationById(it, id) }
     )
-    override val Artist: Property<Artist?>
-        get() = property_rememberer.rememberSingleQueryProperty(
-        "Artist", { songQueries.artistById(id) }, { artist?.let { ArtistRef(it) } }, { songQueries.updateArtistById(it?.id, id) }
-    )
+
+    override val Artist: AltSetterProperty<ArtistRef?, Artist?>
+        get() = object : PropertyImpl<ArtistRef?, Query<ArtistById>>(
+            { songQueries.artistById(id) }, { executeAsOne().artist?.let { ArtistRef(it) } }, { songQueries.updateArtistById(it?.id, id) }
+        ), AltSetterProperty<ArtistRef?, Artist?> {
+            override fun setAlt(value: Artist?, db: Database) {
+                db.songQueries.updateArtistById(value?.id, id)
+            }
+        }
+
     val Album: Property<RemotePlaylist?>
         get() = property_rememberer.rememberSingleQueryProperty(
         "Album", { songQueries.albumById(id) }, { album?.let { RemotePlaylistRef(it) } }, { songQueries.updateAlbumById(it?.id, id) }

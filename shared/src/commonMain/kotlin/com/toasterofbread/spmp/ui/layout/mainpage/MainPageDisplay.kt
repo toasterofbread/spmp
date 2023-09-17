@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
+import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_DEFAULT_HEIGHT
 
 @Composable
@@ -28,7 +29,7 @@ fun MainPageDisplay() {
                 Modifier,
                 PaddingValues(
                     top = top_padding,
-                    bottom = player.bottom_padding_dp
+                    bottom = player.nowPlayingBottomPadding(true) + player.getDefaultVerticalPadding()
                 )
             ) { player.navigateBack() }
         }

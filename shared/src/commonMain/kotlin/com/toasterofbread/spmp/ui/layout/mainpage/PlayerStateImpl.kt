@@ -64,11 +64,6 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
     private val overlay_page_undo_stack: MutableList<Pair<PlayerOverlayPage, MediaItem?>?> = mutableListOf()
     private var main_page_showing: Boolean by mutableStateOf(false)
 
-    @Composable
-    private fun getCurrentBottomPadding(): Float =
-        with(LocalDensity.current) {
-            (session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT_DP.dp.toPx()) + context.getNavigationBarHeight()
-        }
     private val bottom_padding_anim = Animatable(context.getNavigationBarHeight().toFloat())
 
     private val low_memory_listener: () -> Unit

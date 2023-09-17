@@ -90,7 +90,7 @@ internal fun processMediaDataSpec(data_spec: DataSpec, context: PlatformContext,
         return data_spec.withUri(Uri.parse(local_file!!.uri))
     }
     else {
-        println("Playing song ${song.id} from external format $format stream_url=${format.stream_url}")
-        return data_spec.withUri(Uri.parse(format.stream_url ?: format.url))
+        println("Playing song ${song.id} from external format $format stream_url=${format.url}")
+        return data_spec.withUri(Uri.parse(format.url))
     }
 }

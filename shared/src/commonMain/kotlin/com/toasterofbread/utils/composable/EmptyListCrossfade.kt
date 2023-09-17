@@ -22,7 +22,7 @@ fun <T> EmptyListCrossfade(
         }
     }
 
-    Crossfade(current_list.isEmpty(), modifier) { is_empty ->
+    Crossfade(list.isEmpty(), modifier) { is_empty ->
         content(if (is_empty) null else current_list)
     }
 }

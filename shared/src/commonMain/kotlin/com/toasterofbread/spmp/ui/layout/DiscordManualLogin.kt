@@ -9,7 +9,7 @@ import com.toasterofbread.spmp.resources.getStringArray
 import com.toasterofbread.spmp.youtubeapi.fromJson
 import com.toasterofbread.utils.common.launchSingle
 
-private data class DiscordErrorMessage(val message: String? = null)
+private data class DiscordErrorMessage(val message: String?)
 
 @Composable
 fun DiscordManualLogin(modifier: Modifier = Modifier, onFinished: (Result<String?>?) -> Unit) {

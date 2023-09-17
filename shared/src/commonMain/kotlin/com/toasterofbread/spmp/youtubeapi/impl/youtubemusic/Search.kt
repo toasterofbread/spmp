@@ -118,16 +118,16 @@ private data class YoutubeiSearchResponse(
     data class Contents(val tabbedSearchResultsRenderer: TabbedSearchResultsRenderer)
     data class TabbedSearchResultsRenderer(val tabs: List<Tab>)
     data class Tab(val tabRenderer: TabRenderer)
-    data class TabRenderer(val content: Content? = null)
+    data class TabRenderer(val content: Content?)
     data class Content(val sectionListRenderer: SectionListRenderer)
     data class SectionListRenderer(
-        val contents: List<YoutubeiShelf>? = null,
-        val header: ChipCloudRendererHeader? = null
+        val contents: List<YoutubeiShelf>?,
+        val header: ChipCloudRendererHeader?
     )
 }
 
 data class ChipCloudRenderer(val chips: List<Chip>)
 data class Chip(val chipCloudChipRenderer: ChipCloudChipRenderer)
-data class ChipCloudChipRenderer(val navigationEndpoint: NavigationEndpoint, val text: TextRuns? = null)
+data class ChipCloudChipRenderer(val navigationEndpoint: NavigationEndpoint, val text: TextRuns?)
 
-data class ChipCloudRendererHeader(val chipCloudRenderer: ChipCloudRenderer? = null)
+data class ChipCloudRendererHeader(val chipCloudRenderer: ChipCloudRenderer?)

@@ -87,27 +87,32 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
 
             // Skip unneeded information for radios
             if (item is RemotePlaylistData && item.playlist_type == PlaylistType.RADIO) {
-                val playlist_shelf = parsed
-                    .contents!!
-                    .singleColumnBrowseResultsRenderer!!
-                    .tabs[0]
-                    .tabRenderer
-                    .content!!
-                    .sectionListRenderer
-                    .contents!![0]
-                    .musicPlaylistShelfRenderer!!
+                try {
+                    val playlist_shelf = parsed
+                        .contents!!
+                        .singleColumnBrowseResultsRenderer!!
+                        .tabs[0]
+                        .tabRenderer
+                        .content!!
+                        .sectionListRenderer!!
+                        .contents!![0]
+                        .musicPlaylistShelfRenderer!!
 
-                item.items = playlist_shelf.contents!!.mapNotNull { data ->
-                    val data_item = data.toMediaItemData(hl)?.first
-                    if (data_item is SongData) {
-                        return@mapNotNull data_item
+                    item.items = playlist_shelf.contents!!.mapNotNull { data ->
+                        val data_item = data.toMediaItemData(hl)?.first
+                        if (data_item is SongData) {
+                            return@mapNotNull data_item
+                        }
+                        return@mapNotNull null
                     }
-                    return@mapNotNull null
-                }
 
-                val continuation = playlist_shelf.continuations?.firstOrNull()?.nextRadioContinuationData?.continuation
-                if (continuation != null) {
-                    item.continuation = MediaItemLayout.Continuation(continuation, MediaItemLayout.Continuation.Type.SONG, item.id)
+                    val continuation = playlist_shelf.continuations?.firstOrNull()?.nextRadioContinuationData?.continuation
+                    if (continuation != null) {
+                        item.continuation = MediaItemLayout.Continuation(continuation, MediaItemLayout.Continuation.Type.SONG, item.id)
+                    }
+                }
+                catch (e: Throwable) {
+                    return@withContext Result.failure(e)
                 }
 
                 val header_renderer = parsed.header?.getRenderer()

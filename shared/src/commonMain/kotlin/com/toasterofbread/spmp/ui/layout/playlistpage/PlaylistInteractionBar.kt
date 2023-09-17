@@ -14,9 +14,11 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Deselect
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Reorder
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -33,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.utils.composable.ResizableOutlinedTextField
@@ -41,6 +44,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 internal fun PlaylistPage.PlaylistInteractionBar(
+    items: List<Pair<MediaItem, Int>>?,
     list_state: LazyListState,
     loading: Boolean,
     modifier: Modifier = Modifier
@@ -124,6 +128,14 @@ internal fun PlaylistPage.PlaylistInteractionBar(
 
                     AnimatedVisibility(opened_menu != 0) {
                         Row {
+                            IconButton({
+                                for (item in items ?: emptyList()) {
+                                    multiselect_context.setItemSelected(item.first, true, item.second)
+                                }
+                            }) {
+                                Icon(Icons.Default.SelectAll, null)
+                            }
+
                             Crossfade(list_state.canScrollBackward) { enabled ->
                                 IconButton(
                                     { coroutine_scope.launch {

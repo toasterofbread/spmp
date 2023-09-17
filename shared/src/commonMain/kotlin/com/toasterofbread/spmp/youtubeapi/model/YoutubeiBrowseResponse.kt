@@ -29,18 +29,18 @@ data class YoutubeiBrowseResponse(
         }
 
     data class Contents(
-        val singleColumnBrowseResultsRenderer: SingleColumnBrowseResultsRenderer? = null,
-        val twoColumnBrowseResultsRenderer: TwoColumnBrowseResultsRenderer? = null
+        val singleColumnBrowseResultsRenderer: SingleColumnBrowseResultsRenderer?,
+        val twoColumnBrowseResultsRenderer: TwoColumnBrowseResultsRenderer?
     )
     data class SingleColumnBrowseResultsRenderer(val tabs: List<Tab>)
     data class Tab(val tabRenderer: TabRenderer)
-    data class TabRenderer(val content: Content? = null)
-    data class Content(val sectionListRenderer: SectionListRenderer)
+    data class TabRenderer(val content: Content?)
+    data class Content(val sectionListRenderer: SectionListRenderer?)
 
-    data class SectionListRenderer(val contents: List<YoutubeiShelf>? = null, val header: ChipCloudRendererHeader? = null, val continuations: List<YoutubeiNextResponse.Continuation>? = null)
+    data class SectionListRenderer(val contents: List<YoutubeiShelf>?, val header: ChipCloudRendererHeader?, val continuations: List<YoutubeiNextResponse.Continuation>?)
     class TwoColumnBrowseResultsRenderer(val tabs: List<Tab>, val secondaryContents: SecondaryContents) {
         class SecondaryContents(val sectionListRenderer: SectionListRenderer)
     }
 
-    data class ContinuationContents(val sectionListContinuation: SectionListRenderer? = null, val musicPlaylistShelfContinuation: YTMGetHomeFeedEndpoint.MusicShelfRenderer? = null)
+    data class ContinuationContents(val sectionListContinuation: SectionListRenderer?, val musicPlaylistShelfContinuation: YTMGetHomeFeedEndpoint.MusicShelfRenderer?)
 }

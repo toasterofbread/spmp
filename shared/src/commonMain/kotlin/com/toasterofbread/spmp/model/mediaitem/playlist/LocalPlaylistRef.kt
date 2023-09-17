@@ -1,12 +1,13 @@
 package com.toasterofbread.spmp.model.mediaitem.playlist
 
 import com.toasterofbread.Database
+import com.toasterofbread.spmp.model.mediaitem.MediaItemRef
 import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer
 import com.toasterofbread.spmp.model.mediaitem.UnsupportedPropertyRememberer
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.platform.PlatformContext
 
-class LocalPlaylistRef(override val id: String): LocalPlaylist {
+class LocalPlaylistRef(override val id: String): LocalPlaylist, MediaItemRef() {
     override fun toString(): String = "LocalPlaylistRef($id)"
 
     override fun createDbEntry(db: Database) {

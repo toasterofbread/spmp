@@ -4,8 +4,11 @@ import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -39,7 +42,6 @@ fun CurrentRadioIndicator(
     Row(Modifier.animateContentSize()) {
 
         val filters: List<List<RadioBuilderModifier>>? = player.player?.radio_filters
-        val filters_scroll_state = rememberScrollState()
         var show_radio_info: Boolean by remember { mutableStateOf(false) }
         val radio_item: MediaItem? = player.player?.radio_item.takeIf { item ->
             item !is Song || player.player?.radio_item_index == null
@@ -89,7 +91,7 @@ fun CurrentRadioIndicator(
                                 .fillMaxWidth()
                                 .padding(horizontal = horizontal_padding)
                                 .background(RoundedCornerShape(45), getAccentColour)
-                                .padding(5.dp)
+                                .padding(horizontal = 10.dp, vertical = 7.dp)
                         ) {
                             MediaItemPreviewLong(state)
                         }
@@ -103,7 +105,8 @@ fun CurrentRadioIndicator(
                         FiltersRow(
                             state as List<List<RadioBuilderModifier>>,
                             getAccentColour,
-                            Modifier.horizontalScroll(filters_scroll_state).padding(bottom = 5.dp)
+                            Modifier.padding(bottom = 5.dp),
+                            PaddingValues(horizontal = horizontal_padding)
                         )
                 }
             }
@@ -117,27 +120,30 @@ private fun FiltersRow(
     filters: List<List<RadioBuilderModifier>>,
     getAccentColour: () -> Color,
     modifier: Modifier = Modifier,
+    content_padding: PaddingValues = PaddingValues(),
 ) {
     val player = LocalPlayerState.current
-    Row(
+    LazyRow(
         modifier,
-        horizontalArrangement = Arrangement.spacedBy(15.dp)
+        horizontalArrangement = Arrangement.spacedBy(15.dp),
+        contentPadding = content_padding
     ) {
-        Spacer(Modifier)
-
         val current_filter = player.player?.radio_current_filter
-        for (filter in listOf(null) + filters.withIndex()) {
+
+        itemsIndexed(listOf(null) + filters) { i, filter ->
+            val index = if (filter == null) null else i - 1
+
             FilterChip(
-                current_filter == filter?.index,
+                current_filter == index,
                 modifier = Modifier.height(32.dp),
                 onClick = {
-                    if (player.player?.radio_current_filter != filter?.index) {
-                        player.player?.radio_current_filter = filter?.index
+                    if (player.player?.radio_current_filter != index) {
+                        player.player?.radio_current_filter = index
                     }
                 },
                 label = {
                     Text(
-                        filter?.value?.joinToString("|") { it.getReadable() }
+                        filter?.joinToString("|") { it.getReadable() }
                             ?: getString("radio_filter_all")
                     )
                 },

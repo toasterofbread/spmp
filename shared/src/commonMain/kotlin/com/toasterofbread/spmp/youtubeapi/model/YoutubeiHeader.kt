@@ -3,12 +3,12 @@ package com.toasterofbread.spmp.youtubeapi.model
 import com.toasterofbread.spmp.youtubeapi.radio.YoutubeiNextResponse
 
 data class Header(
-    val musicCarouselShelfBasicHeaderRenderer: HeaderRenderer? = null,
-    val musicImmersiveHeaderRenderer: HeaderRenderer? = null,
-    val musicVisualHeaderRenderer: HeaderRenderer? = null,
-    val musicDetailHeaderRenderer: MusicDetailHeaderRenderer? = null,
-    val musicEditablePlaylistDetailHeaderRenderer: MusicEditablePlaylistDetailHeaderRenderer? = null,
-    val musicCardShelfHeaderBasicRenderer: HeaderRenderer? = null
+    val musicCarouselShelfBasicHeaderRenderer: HeaderRenderer?,
+    val musicImmersiveHeaderRenderer: HeaderRenderer?,
+    val musicVisualHeaderRenderer: HeaderRenderer?,
+    val musicDetailHeaderRenderer: MusicDetailHeaderRenderer?,
+    val musicEditablePlaylistDetailHeaderRenderer: MusicEditablePlaylistDetailHeaderRenderer?,
+    val musicCardShelfHeaderBasicRenderer: HeaderRenderer?
 ): YoutubeiHeader {
     fun getRenderer(): HeaderRenderer? {
         return musicCarouselShelfBasicHeaderRenderer
@@ -44,7 +44,7 @@ data class Header(
     )
     data class Menu(val menuRenderer: MenuRenderer)
     data class MenuRenderer(val topLevelButtons: List<TopLevelButton>? = null)
-    data class TopLevelButton(val buttonRenderer: TopLevelButtonRenderer? = null)
+    data class TopLevelButton(val buttonRenderer: TopLevelButtonRenderer?)
     data class TopLevelButtonRenderer(val icon: YoutubeiNextResponse.MenuIcon? = null)
 
     override val header_renderer: HeaderRenderer?

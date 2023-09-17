@@ -9,7 +9,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.Request
 
 private class ArtistBrowseResponse(val header: Header) {
-    class Header(val musicImmersiveHeaderRenderer: MusicImmersiveHeaderRenderer? = null)
+    class Header(val musicImmersiveHeaderRenderer: MusicImmersiveHeaderRenderer?)
     class MusicImmersiveHeaderRenderer(val subscriptionButton: SubscriptionButton)
     class SubscriptionButton(val subscribeButtonRenderer: SubscribeButtonRenderer)
     class SubscribeButtonRenderer(val subscribed: Boolean)

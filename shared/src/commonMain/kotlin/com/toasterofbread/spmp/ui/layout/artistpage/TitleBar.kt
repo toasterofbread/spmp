@@ -159,7 +159,7 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
 
                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                if (item is Artist) {
+                if (item is Artist && !item.isForItem()) {
                     player.context.ytapi.user_auth_state?.also { auth_state ->
                         ArtistSubscribeButton(item, auth_state)
                     }

@@ -19,20 +19,30 @@ enum class MediaItemSortType {
         })
 
     fun <T: MediaItem> sortItems(items: List<T>, db: Database, reversed: Boolean = false): List<T> {
+        return sortItems(items, db, reversed) { it }
+    }
+
+    fun <T: MediaItem, V> sortItems(items: List<V>, db: Database, reversed: Boolean = false, mapValue: (V) -> T): List<V> {
         var reverse: Boolean = reversed
-        val selector: (T) -> Comparable<*> = when (this) {
+        val selector: (V) -> Comparable<*> = when (this) {
             NATIVE ->
                 return if (reversed) items.asReversed()
                 else items
+
             ALPHABET -> {
-                { it.getActiveTitle(db) ?: "" }
+                { mapValue(it).getActiveTitle(db) ?: "" }
             }
+
             DURATION -> {
-                { if (it is Song) it.Duration.get(db) ?: 0 else 0 }
+                {
+                    val value = mapValue(it)
+                    if (value is Song) value.Duration.get(db) ?: 0 else 0
+                }
             }
+
             PLAY_COUNT -> {
                 reverse = !reverse
-                { it.getPlayCount(db) }
+                { mapValue(it).getPlayCount(db) }
             }
         }
         return items.sortedWith(if (reverse) compareByDescending(selector) else compareBy(selector))

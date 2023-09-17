@@ -59,7 +59,7 @@ class YTMSongRelatedContentEndpoint(override val api: YoutubeMusicApi): SongRela
         }
 
         val groups = api.database.transactionWithResult {
-            parsed.contents.sectionListRenderer.contents!!.map { group ->
+            parsed.contents.sectionListRenderer?.contents?.map { group ->
                 val items = group.getMediaItemsOrNull(hl)
                 for (item in items ?: emptyList()) {
                     item.saveToDatabase(api.database)
@@ -71,6 +71,10 @@ class YTMSongRelatedContentEndpoint(override val api: YoutubeMusicApi): SongRela
                     description = group.description
                 )
             }
+        }
+
+        if (groups == null) {
+            return@withContext Result.failure(NullPointerException())
         }
 
         return@withContext Result.success(groups)

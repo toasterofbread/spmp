@@ -18,6 +18,8 @@ import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 
+const val MEDIAITEM_LIST_DEFAULT_SPACING_DP: Float = 10f
+
 @Composable
 fun MediaItemList(
     layout: MediaItemLayout,
@@ -42,7 +44,7 @@ fun MediaItemList(
 ) {
     val filtered_items = items.rememberFilteredItems(apply_filter)
 
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(MEDIAITEM_LIST_DEFAULT_SPACING_DP.dp)) {
         TitleBar(
             items,
             title,

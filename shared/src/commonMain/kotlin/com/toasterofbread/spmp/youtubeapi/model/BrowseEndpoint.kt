@@ -8,13 +8,13 @@ import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemViewMore
 import com.toasterofbread.spmp.model.mediaitem.layout.PlainViewMore
 import com.toasterofbread.spmp.model.mediaitem.layout.ViewMore
 
-data class WatchEndpoint(val videoId: String? = null, val playlistId: String? = null)
+data class WatchEndpoint(val videoId: String?, val playlistId: String?)
 data class BrowseEndpointContextMusicConfig(val pageType: String)
 data class BrowseEndpointContextSupportedConfigs(val browseEndpointContextMusicConfig: BrowseEndpointContextMusicConfig)
 data class BrowseEndpoint(
     val browseId: String,
-    val browseEndpointContextSupportedConfigs: BrowseEndpointContextSupportedConfigs? = null,
-    val params: String? = null
+    val browseEndpointContextSupportedConfigs: BrowseEndpointContextSupportedConfigs?,
+    val params: String?
 ) {
     fun getPageType(): String? =
         browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType
@@ -43,5 +43,5 @@ data class BrowseEndpoint(
         }
     }
 }
-data class SearchEndpoint(val query: String, val params: String? = null)
+data class SearchEndpoint(val query: String, val params: String?)
 data class WatchPlaylistEndpoint(val playlistId: String, val params: String)

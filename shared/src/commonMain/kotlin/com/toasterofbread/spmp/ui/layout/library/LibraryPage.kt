@@ -59,7 +59,10 @@ abstract class LibrarySubPage(val context: PlatformContext) {
 
 class LibraryPage(state: MainPageState): MainPage(state) {
     val tabs: List<LibrarySubPage> = listOf(
-        LibraryPlaylistsPage(state.context), LibrarySongsPage(state.context), LibraryProfilePage(state.context)
+        LibraryPlaylistsPage(state.context),
+        LibrarySongsPage(state.context),
+        LibraryArtistsPage(state.context),
+        LibraryProfilePage(state.context)
     )
     private var current_tab: LibrarySubPage by mutableStateOf(tabs.first())
 

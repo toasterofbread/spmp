@@ -39,6 +39,50 @@ expect class PlayerDownloadManager(context: PlatformContext) {
 }
 
 @Composable
+fun Song.rememberDownloadStatus(): PlayerDownloadManager.DownloadStatus? {
+    val download_manager: PlayerDownloadManager = LocalPlayerState.current.context.download_manager
+    var download_status: PlayerDownloadManager.DownloadStatus? by remember { mutableStateOf(null) }
+    var instance: Int by remember { mutableStateOf(0) }
+
+    DisposableEffect(id) {
+        download_status = null
+
+        val this_instance = ++instance
+        download_manager.getDownload(this@rememberDownloadStatus) {
+            if (instance == this_instance) {
+                download_status = it
+            }
+        }
+
+        val listener = object : PlayerDownloadManager.DownloadStatusListener() {
+            override fun onDownloadAdded(status: PlayerDownloadManager.DownloadStatus) {
+                if (status.song.id == id) {
+                    download_status = status
+                }
+            }
+            override fun onDownloadRemoved(id: String) {
+                if (id == this@rememberDownloadStatus.id) {
+                    download_status = null
+                }
+            }
+            override fun onDownloadChanged(status: PlayerDownloadManager.DownloadStatus) {
+                if (status.song.id == id) {
+                    download_status = status
+                }
+            }
+        }
+
+        download_manager.addDownloadStatusListener(listener)
+
+        onDispose {
+            download_manager.removeDownloadStatusListener(listener)
+        }
+    }
+
+    return download_status
+}
+
+@Composable
 fun rememberSongDownloads(): List<PlayerDownloadManager.DownloadStatus> {
     val download_manager = LocalPlayerState.current.context.download_manager
     var downloads: List<PlayerDownloadManager.DownloadStatus> by remember { mutableStateOf(emptyList()) }

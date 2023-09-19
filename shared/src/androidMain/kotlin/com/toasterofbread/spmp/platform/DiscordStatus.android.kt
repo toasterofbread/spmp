@@ -4,11 +4,15 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
+import com.google.gson.Gson
 import com.my.kizzyrpc.KizzyRPC
 import com.my.kizzyrpc.model.Activity
 import com.my.kizzyrpc.model.Assets
 import com.my.kizzyrpc.model.Metadata
 import com.my.kizzyrpc.model.Timestamps
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.youtubeapi.executeResult
+import com.toasterofbread.spmp.youtubeapi.fromJson
 import com.toasterofbread.utils.common.indexOfFirstOrNull
 import com.toasterofbread.utils.common.indexOfOrNull
 import dev.kord.common.entity.DiscordMessage
@@ -26,10 +30,19 @@ import dev.kord.rest.service.createTextChannel
 import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.request.forms.ChannelProvider
 import io.ktor.utils.io.jvm.javaio.toByteReadChannel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromByteArray
+import kotlinx.serialization.protobuf.ProtoBuf
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.util.Base64
 
 private const val RATE_LIMIT_ADDITIONAL_WAIT_MS: Long = 1000
 
@@ -38,7 +51,7 @@ actual class DiscordStatus actual constructor(
     private val guild_id: Long?,
     private val custom_images_channel_category_id: Long?,
     private val custom_images_channel_name_prefix: String,
-    account_token: String?
+    private val account_token: String?
 ) {
     actual companion object {
         actual fun isSupported(): Boolean = true
@@ -72,6 +85,84 @@ actual class DiscordStatus actual constructor(
         }
     }
     actual enum class Type { PLAYING, STREAMING, LISTENING, WATCHING, COMPETING }
+
+    @Serializable
+    data class PreloadedUserSettings(
+        val versions: Unit,
+        val inbox: Unit,
+        val guilds: Unit,
+        val user_content: Unit,
+        val voice_and_video: Unit,
+        val text_and_images: Unit,
+        val notifications: Unit,
+        val privacy: Unit,
+        val debug: Unit,
+        val game_library: Unit,
+        val status: StatusSettings,
+//        val localization: Unit,
+//        val appearance: Unit
+    ) {
+        @Serializable
+        data class StatusSettings(
+            val status: UserStatus
+        )
+
+        @Serializable
+        data class UserStatus(
+            val status: String
+        )
+
+        fun getStatus(): String = status.status.status
+    }
+
+    private data class ProtoSettingsResponse(
+        val settings: String
+    )
+
+    actual suspend fun shouldUpdateStatus(context: PlatformContext): Boolean = withContext(Dispatchers.IO) {
+        if (account_token == null) {
+            return@withContext true
+        }
+
+        val request = Request.Builder()
+            .url("https://discord.com/api/v9/users/@me/settings-proto/1")
+            .addHeader("authorization", account_token)
+            .build()
+
+        val response: Response = OkHttpClient().executeResult(request).getOrElse {
+            return@withContext true
+        }
+
+        val result: ProtoSettingsResponse =
+            try {
+                response.use {
+                    Gson().fromJson(it.body!!.charStream())
+                }
+            }
+            catch (e: Throwable) {
+                return@withContext true
+            }
+
+        val settings: PreloadedUserSettings =
+            try {
+                val bytes = Base64.getDecoder().decode(result.settings)
+                ProtoBuf.decodeFromByteArray(bytes)
+            }
+            catch (e: Throwable) {
+                return@withContext true
+            }
+
+        val disable: Boolean = when (settings.getStatus()) {
+            "invisible" -> Settings.KEY_DISCORD_STATUS_DISABLE_WHEN_INVISIBLE.get(context)
+            "dnd" -> Settings.KEY_DISCORD_STATUS_DISABLE_WHEN_DND.get(context)
+            "idle" -> Settings.KEY_DISCORD_STATUS_DISABLE_WHEN_IDLE.get(context)
+            "offline" -> Settings.KEY_DISCORD_STATUS_DISABLE_WHEN_OFFLINE.get(context)
+            "online" -> Settings.KEY_DISCORD_STATUS_DISABLE_WHEN_ONLINE.get(context)
+            else -> throw NotImplementedError(settings.getStatus())
+        }
+
+        return@withContext !disable
+    }
 
     actual fun setActivity(
         name: String,
@@ -143,14 +234,10 @@ actual class DiscordStatus actual constructor(
         }
     }
 
-    actual suspend fun getCustomImage(unique_id: String, imageProvider: suspend () -> ImageBitmap?): Result<String?> {
-        if (bot_token == null) {
-            return Result.failure(NullPointerException("bot_token is null"))
-        }
-
+    private suspend fun getKord(token: String): Result<Kord> {
         var kord: Kord
         try {
-            kord = Kord(bot_token)
+            kord = Kord(token)
         }
         // Handle Discord rate limit
         catch (e: KordInitializationException) {
@@ -163,7 +250,7 @@ actual class DiscordStatus actual constructor(
             delay((retry_after * 1000L).toLong() + RATE_LIMIT_ADDITIONAL_WAIT_MS)
 
             try {
-                kord = Kord(bot_token)
+                kord = Kord(token)
             }
             catch (e: Throwable) {
                 return Result.failure(e)
@@ -171,6 +258,16 @@ actual class DiscordStatus actual constructor(
         }
         catch (e: ConnectTimeoutException) {
             return Result.failure(IOException(e))
+        }
+
+        return Result.success(kord)
+    }
+
+    actual suspend fun getCustomImage(unique_id: String, imageProvider: suspend () -> ImageBitmap?): Result<String?> {
+        check(bot_token != null)
+
+        val kord: Kord = getKord(bot_token).getOrElse {
+            return Result.failure(it)
         }
 
         val result = with(kord.rest.channel) {

@@ -5,6 +5,9 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
 import android.graphics.Bitmap
+import android.media.AudioDeviceCallback
+import android.media.AudioDeviceInfo
+import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -48,10 +51,10 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.toasterofbread.spmp.exovisualiser.FFTAudioProcessor
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
+import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.song.toSongLikedStatus
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.shared.R
@@ -123,8 +126,10 @@ class MediaPlayerServiceSession: MediaSessionService() {
     private lateinit var notification_builder: NotificationCompat.Builder
 
     private var current_song: Song? = null
+    private var paused_by_device_disconnect: Boolean = false
+    private var device_connection_changed_playing_status: Boolean = false
 
-    private inner class PlayerListener: Player.Listener {
+    private val player_listener = object : Player.Listener {
         private fun onSongLikeStatusChanged() {
             val liked_status = current_song?.let { song ->
                 context.database.songQueries.likedById(song.id).executeAsOne().liked.toSongLikedStatus()
@@ -157,7 +162,64 @@ class MediaPlayerServiceSession: MediaSessionService() {
             current_song = song
             onSongLikeStatusChanged()
         }
+
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            if (device_connection_changed_playing_status) {
+                device_connection_changed_playing_status = false
+            }
+            else {
+                paused_by_device_disconnect = false
+            }
+        }
     }
+
+    private val audio_device_callback = object : AudioDeviceCallback() {
+        private fun isBluetoothAudio(device: AudioDeviceInfo): Boolean {
+            if (!device.isSink) return false
+            return device.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP
+        }
+        private fun isWiredAudio(device: AudioDeviceInfo): Boolean {
+            if (!device.isSink) return false
+            return device.type == AudioDeviceInfo.TYPE_WIRED_HEADSET ||
+                    device.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
+                    device.type == AudioDeviceInfo.TYPE_USB_HEADSET
+        }
+
+        override fun onAudioDevicesAdded(addedDevices: Array<AudioDeviceInfo>) {
+            if (player.isPlaying || !paused_by_device_disconnect) {
+                return
+            }
+
+            val resume_on_bt: Boolean = Settings.KEY_RESUME_ON_BT_CONNECT.get()
+            val resume_on_wired: Boolean = Settings.KEY_RESUME_ON_WIRED_CONNECT.get()
+
+            for (device in addedDevices) {
+                if ((resume_on_bt && isBluetoothAudio(device)) || (resume_on_wired && isWiredAudio(device))) {
+                    player.play()
+                    break
+                }
+            }
+        }
+
+        override fun onAudioDevicesRemoved(removedDevices: Array<AudioDeviceInfo>) {
+            if (!player.isPlaying && player.playbackState == Player.STATE_READY) {
+                return
+            }
+
+            val pause_on_bt: Boolean = Settings.KEY_PAUSE_ON_BT_DISCONNECT.get()
+            val pause_on_wired: Boolean = Settings.KEY_PAUSE_ON_WIRED_DISCONNECT.get()
+
+            for (device in removedDevices) {
+                if ((pause_on_bt && isBluetoothAudio(device)) || (pause_on_wired && isWiredAudio(device))) {
+                    device_connection_changed_playing_status = true
+                    paused_by_device_disconnect = true
+                    player.pause()
+                    break
+                }
+            }
+        }
+    }
+
 
     companion object {
         // If there's a better way to provide this to MediaControllers, I'd like to know
@@ -172,6 +234,9 @@ class MediaPlayerServiceSession: MediaSessionService() {
         initialiseSessionAndPlayer()
         createNotificationChannel()
         updatePlayerCustomActions(null)
+
+        val audio_manager = getSystemService(AUDIO_SERVICE) as AudioManager?
+        audio_manager?.registerAudioDeviceCallback(audio_device_callback, null)
 
         notification_builder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_spmp)
@@ -211,6 +276,10 @@ class MediaPlayerServiceSession: MediaSessionService() {
         coroutine_scope.cancel()
         player.release()
         media_session.release()
+
+        val audio_manager = getSystemService(AUDIO_SERVICE) as AudioManager?
+        audio_manager?.unregisterAudioDeviceCallback(audio_device_callback)
+
         clearListener()
         super.onDestroy()
     }
@@ -325,7 +394,7 @@ class MediaPlayerServiceSession: MediaSessionService() {
             .setUsePlatformDiagnostics(false)
             .build()
             .apply {
-                addListener(PlayerListener())
+                addListener(player_listener)
                 playWhenReady = true
                 prepare()
             }

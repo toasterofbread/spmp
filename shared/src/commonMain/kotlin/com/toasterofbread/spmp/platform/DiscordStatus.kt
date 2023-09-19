@@ -20,6 +20,8 @@ expect class DiscordStatus(
 
     fun close()
 
+    suspend fun shouldUpdateStatus(context: PlatformContext): Boolean
+
     fun setActivity(
         name: String,
         type: Type,

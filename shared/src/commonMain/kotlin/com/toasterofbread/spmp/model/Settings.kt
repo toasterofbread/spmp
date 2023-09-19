@@ -157,9 +157,13 @@ enum class Settings {
     KEY_FEED_SHOW_MOODS_ROW,
     KEY_FEED_SHOW_CHARTS_ROW,
 
-    // Now playing queue
+    // Player
     KEY_NP_QUEUE_RADIO_INFO_POSITION, // TODO prefs item
     KEY_NP_QUEUE_WAVE_BORDER_MODE,
+    KEY_RESUME_ON_BT_CONNECT,
+    KEY_PAUSE_ON_BT_DISCONNECT,
+    KEY_RESUME_ON_WIRED_CONNECT,
+    KEY_PAUSE_ON_WIRED_DISCONNECT,
 
     // Server
     KEY_SPMS_PORT,
@@ -177,6 +181,11 @@ enum class Settings {
     KEY_DISCORD_BUTTON_SONG_TEXT,
     KEY_DISCORD_SHOW_BUTTON_PROJECT,
     KEY_DISCORD_BUTTON_PROJECT_TEXT,
+    KEY_DISCORD_STATUS_DISABLE_WHEN_INVISIBLE,
+    KEY_DISCORD_STATUS_DISABLE_WHEN_DND,
+    KEY_DISCORD_STATUS_DISABLE_WHEN_IDLE,
+    KEY_DISCORD_STATUS_DISABLE_WHEN_OFFLINE,
+    KEY_DISCORD_STATUS_DISABLE_WHEN_ONLINE,
 
     // Caching
     KEY_THUMB_CACHE_ENABLED, // TODO Max size, management
@@ -208,6 +217,7 @@ enum class Settings {
     // Internal
     INTERNAL_TOPBAR_MODE_HOME,
     INTERNAL_TOPBAR_MODE_NOWPLAYING,
+    INTERNAL_DISCORD_WARNING_ACCEPTED
 
     ;
 
@@ -341,6 +351,10 @@ enum class Settings {
 
                 KEY_NP_QUEUE_RADIO_INFO_POSITION -> NowPlayingQueueRadioInfoPosition.TOP_BAR.ordinal
                 KEY_NP_QUEUE_WAVE_BORDER_MODE -> NowPlayingQueueWaveBorderMode.TIME.ordinal
+                KEY_RESUME_ON_BT_CONNECT -> true
+                KEY_PAUSE_ON_BT_DISCONNECT -> true
+                KEY_RESUME_ON_WIRED_CONNECT -> true
+                KEY_PAUSE_ON_WIRED_DISCONNECT -> true
 
                 KEY_YTM_AUTH -> {
                     with(ProjectBuildConfig) {
@@ -362,6 +376,12 @@ enum class Settings {
                 KEY_DISCORD_BUTTON_SONG_TEXT -> ProjectBuildConfig.DISCORD_STATUS_TEXT_BUTTON_SONG_OVERRIDE ?: getString("discord_status_default_button_song")
                 KEY_DISCORD_SHOW_BUTTON_PROJECT -> true
                 KEY_DISCORD_BUTTON_PROJECT_TEXT -> ProjectBuildConfig.DISCORD_STATUS_TEXT_BUTTON_PROJECT_OVERRIDE ?: getString("discord_status_default_button_project")
+
+                KEY_DISCORD_STATUS_DISABLE_WHEN_INVISIBLE -> false
+                KEY_DISCORD_STATUS_DISABLE_WHEN_DND -> false
+                KEY_DISCORD_STATUS_DISABLE_WHEN_IDLE -> false
+                KEY_DISCORD_STATUS_DISABLE_WHEN_OFFLINE -> false
+                KEY_DISCORD_STATUS_DISABLE_WHEN_ONLINE -> false
 
                 // Caching
                 KEY_THUMB_CACHE_ENABLED -> true
@@ -393,6 +413,7 @@ enum class Settings {
                 // Internal
                 INTERNAL_TOPBAR_MODE_HOME -> MusicTopBarMode.LYRICS.ordinal
                 INTERNAL_TOPBAR_MODE_NOWPLAYING -> MusicTopBarMode.LYRICS.ordinal
+                INTERNAL_DISCORD_WARNING_ACCEPTED -> false
             } as T
         }
 

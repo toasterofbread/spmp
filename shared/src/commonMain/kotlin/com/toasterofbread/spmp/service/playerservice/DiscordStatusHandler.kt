@@ -90,6 +90,12 @@ internal class DiscordStatusHandler(val player: PlayerService, val context: Plat
                     return@apply
                 }
 
+                if (!shouldUpdateStatus(context)) {
+                    close()
+                    SpMp.Log.info("discord_rpc.shouldUpdateStatus() returned false")
+                    return@apply
+                }
+
                 val name = formatText(Settings.KEY_DISCORD_STATUS_NAME.get(), status_song, song_title)
                 val text_a = formatText(Settings.KEY_DISCORD_STATUS_TEXT_A.get(), status_song, song_title)
                 val text_b = formatText(Settings.KEY_DISCORD_STATUS_TEXT_B.get(), status_song, song_title)
@@ -145,8 +151,8 @@ internal class DiscordStatusHandler(val player: PlayerService, val context: Plat
                     large_text = text_c.ifEmpty { null },
                     small_image = small_image,
                     small_text =
-                    if (small_image != null) status_song.Artist.get(context.database)?.getActiveTitle(context.database)
-                    else null,
+                        if (small_image != null) status_song.Artist.get(context.database)?.getActiveTitle(context.database)
+                        else null,
                     application_id = DISCORD_APPLICATION_ID
                 )
 

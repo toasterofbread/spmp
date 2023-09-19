@@ -13,7 +13,6 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import com.toasterofbread.spmp.platform.ApplicationContext
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.ui.theme.Theme

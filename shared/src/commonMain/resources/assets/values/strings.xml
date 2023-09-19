@@ -94,6 +94,7 @@
     <string name="action_share">Share</string>
     <string name="action_confirm_action">Yes</string>
     <string name="action_deny_action">No</string>
+    <string name="action_warning_accept">Accept</string>
     <string name="prompt_confirm_action">Please confirm</string>
     <string name="prompt_confirm_settings_page_reset">Reset all values on this page?</string>
 
@@ -345,6 +346,13 @@
     <string name="s_option_wave_border_mode_none">No animation</string>
     <string name="s_option_wave_border_mode_line">Line border</string>
 
+    <string name="s_key_resume_on_bt_connect">Resume when Bluetooth device connected</string>
+    <string name="s_sub_resume_on_bt_connect">If playback was paused by device disconnection, playback will resume when a Bluetooth audio device is connected</string>
+    <string name="s_key_pause_on_bt_disconnect">Pause when Bluetooth device disconnected</string>
+    <string name="s_key_resume_on_wired_connect">Resume when wired device disconnected</string>
+    <string name="s_sub_resume_on_wired_connect">If playback was paused by device disconnection, playback will resume when a wired audio device is connected</string>
+    <string name="s_key_pause_on_wired_disconnect">Pause when wired device disconnected</string>
+
     <string name="s_cat_library">Library</string>
 
     <string name="s_key_library_path">Library storage path</string>
@@ -479,6 +487,14 @@
 
     <string name="s_cat_discord_status">Discord status</string>
 
+    <string name="s_group_discord_status_disable_when">Disable status when</string>
+    <string name="s_key_discord_status_disable_when_invisible">Invisible</string>
+    <string name="s_key_discord_status_disable_when_dnd">Do-not-disturb</string>
+    <string name="s_key_discord_status_disable_when_idle">Idle</string>
+    <string name="s_key_discord_status_disable_when_offline">Offline</string>
+    <string name="s_key_discord_status_disable_when_online">Online</string>
+
+    <string name="s_group_discord_status_content">Status content</string>
     <string name="s_discord_status_text_info">To display information about the current song, use the strings below:&#xA;- $song&#xA;- $artist</string>
 
     <string name="s_key_discord_status_name">Status title</string>
@@ -533,6 +549,7 @@
     <string name="info_ytm_login">You will be directed to an in-app webview in order to log into YouTube Music.&#xA;&#xA;Once logged in, your session cookie will be extracted, stored, and used only for API requests to YouTube Music such as getting your recommended feed and subscribing to artists.</string>
     <string name="warning_discord_login">You will be directed to an in-app webview in order to log into Discord.&#xA;&#xA;Once logged in, your account token will be extracted, stored, and used only for gateway connections to Discord for setting your current status.&#xA;&#xA;See https://github.com/dead8309/Kizzy for more information.&#xA;&#xA;Continue?</string>
     <string name="info_discord_login">You will be directed to an in-app webview in order to log into Discord.&#xA;&#xA;Once logged in, your account token will be extracted, stored, and used only for gateway connections to Discord for setting your current status.&#xA;&#xA;See https://github.com/dead8309/Kizzy for more information.</string>
+    <string name="warning_discord_kizzy">SpMp uses the KizzyRPC library to set your Discord account's status. This involves using the Discord Gateway connection, which may be considered a violation of Discord's TOS. However, there are no known cases of user accounts being suspended for this reason. Use at your own risk.&#xA;&#xA;See https://github.com/dead8309/Kizzy for more information.</string>
 
     <string name="youtube_manual_login_title">YouTube manual log-in</string>
     <string-array name="youtube_manual_login_steps">

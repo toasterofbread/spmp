@@ -25,6 +25,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.mapSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -162,10 +163,10 @@ suspend fun getDiscordAccountInfo(account_token: String): Result<DiscordMeRespon
     return@withContext Result.success(me)
 }
 
-private val DiscordMeResponseSaver = run {
+private val DiscordMeResponseSaver: Saver<DiscordMeResponse?, Any> = run {
     mapSaver(
-        save = { it: DiscordMeResponse ->
-            if (it.isEmpty()) emptyMap()
+        save = { it: DiscordMeResponse? ->
+            if (it == null || it.isEmpty()) emptyMap()
             else with (it) { mapOf(
                 "id" to id,
                 "username" to username,
@@ -184,12 +185,12 @@ private val DiscordMeResponseSaver = run {
 
 @Composable
 fun DiscordAccountPreview(account_token: String, modifier: Modifier = Modifier) {
-    var account_info: DiscordMeResponse by rememberSaveable(stateSaver = DiscordMeResponseSaver) { mutableStateOf(DiscordMeResponse.EMPTY) }
+    var account_info: DiscordMeResponse? by rememberSaveable(stateSaver = DiscordMeResponseSaver) { mutableStateOf(DiscordMeResponse.EMPTY) }
     var started by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
 
     LaunchedEffect(account_token) {
-        if (account_info.token != account_token) {
+        if (account_info?.token != account_token) {
             account_info = DiscordMeResponse.EMPTY
             loading = true
             started = true
@@ -198,7 +199,7 @@ fun DiscordAccountPreview(account_token: String, modifier: Modifier = Modifier) 
         loading = false
     }
 
-    Crossfade(if (!account_info.isEmpty()) account_info else if (started) loading else null, modifier.fillMaxHeight()) { state ->
+    Crossfade(if (account_info?.isEmpty() == false) account_info else if (started) loading else null, modifier.fillMaxHeight()) { state ->
         Row(horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.CenterVertically) {
             when (state) {
                 true -> {

@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.ui.layout.prefspage
 
 import com.toasterofbread.composesettings.ui.item.SettingsItem
 import com.toasterofbread.composesettings.ui.item.SettingsMultipleChoiceItem
+import com.toasterofbread.composesettings.ui.item.SettingsToggleItem
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.NowPlayingQueueWaveBorderMode
 import com.toasterofbread.spmp.model.Settings
@@ -24,6 +25,23 @@ internal fun getPlayerCategory(): List<SettingsItem> {
                     NowPlayingQueueWaveBorderMode.LINE -> getString("s_option_wave_border_mode_line")
                 }
             }
+        ),
+
+        SettingsToggleItem(
+            SettingsValueState(Settings.KEY_PAUSE_ON_BT_DISCONNECT.name),
+            getString("s_key_pause_on_bt_disconnect"), null
+        ),
+        SettingsToggleItem(
+            SettingsValueState(Settings.KEY_RESUME_ON_BT_CONNECT.name),
+            getString("s_key_resume_on_bt_connect"), getString("s_sub_resume_on_bt_connect")
+        ),
+        SettingsToggleItem(
+            SettingsValueState(Settings.KEY_PAUSE_ON_WIRED_DISCONNECT.name),
+            getString("s_key_pause_on_wired_disconnect"), null
+        ),
+        SettingsToggleItem(
+            SettingsValueState(Settings.KEY_RESUME_ON_WIRED_CONNECT.name),
+            getString("s_key_resume_on_wired_connect"), getString("s_sub_resume_on_wired_connect")
         )
     )
 }

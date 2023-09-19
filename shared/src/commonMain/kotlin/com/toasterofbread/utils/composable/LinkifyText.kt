@@ -17,6 +17,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.TextUnit
 import com.toasterofbread.spmp.ui.theme.Theme
 import java.util.regex.Pattern
 
@@ -27,7 +28,8 @@ fun LinkifyText(
     modifier: Modifier = Modifier,
     colour: Color = LocalContentColor.current,
     highlight_colour: Color = Theme.accent,
-    style: TextStyle = LocalTextStyle.current
+    style: TextStyle = LocalTextStyle.current,
+    font_size: TextUnit = TextUnit.Unspecified
 ) {
 	val annotated_string = buildAnnotatedString {
         append(text)
@@ -58,6 +60,7 @@ fun LinkifyText(
         text = annotated_string,
         color = colour,
         style = style,
+        fontSize = font_size,
         overflow = TextOverflow.Ellipsis,
         modifier = modifier.pointerInput(Unit) {
             detectTapGestures { offsetPosition ->

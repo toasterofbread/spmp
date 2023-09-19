@@ -3,6 +3,7 @@ import java.util.*
 
 plugins {
     kotlin("multiplatform")
+    kotlin("plugin.serialization") version "1.9.0"
     id("com.android.library")
     id("org.jetbrains.compose")
     id("app.cash.sqldelight") version "2.0.0-rc02"
@@ -157,6 +158,7 @@ kotlin {
                 implementation("dev.kord:kord-core:0.9.0")
                 implementation("app.cash.sqldelight:android-driver:2.0.0-rc02")
                 implementation("com.anggrayudi:storage:1.5.5")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.6.0")
             }
         }
 

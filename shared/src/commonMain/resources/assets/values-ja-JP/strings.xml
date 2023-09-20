@@ -369,7 +369,7 @@
     <string name="s_option_np_accent_elements">エレメントをアクセント色で彩る</string>
     <string name="s_option_np_accent_none">アクセント色不使用</string>
 
-    <string name="s_key_np_default_gradient_depth">Default gradient depth</string>
+    <string name="s_key_np_default_gradient_depth">グラデーションのデフォルトの深さ</string>
 
     <string name="s_cat_lyrics">歌詞</string>
 
@@ -400,14 +400,14 @@
 
     <string name="s_group_top_bar_lyrics">トップバーの歌詞</string>
     <string name="s_key_top_bar_lyrics_show_furigana">ふりがなを表示</string>
-    <string name="s_key_top_bar_lyrics_show_in_library">Show in library</string>
-    <string name="s_key_top_bar_lyrics_show_in_radiobuilder">Show in the radio builder</string>
-    <string name="s_key_top_bar_lyrics_show_in_settings">Show in settings</string>
-    <string name="s_key_top_bar_lyrics_show_in_login">Show in login pages</string>
-    <string name="s_key_top_bar_lyrics_show_in_playlist">Show in playlist pages</string>
-    <string name="s_key_top_bar_lyrics_show_in_artist">Show in artist pages</string>
-    <string name="s_key_top_bar_lyrics_show_in_viewmore">Show in home feed view more pages</string>
-    <string name="s_key_top_bar_lyrics_show_in_search">Show in search page</string>
+    <string name="s_key_top_bar_lyrics_show_in_library">ライブラリで表示</string>
+    <string name="s_key_top_bar_lyrics_show_in_radiobuilder">ラジオ作成画面で表示</string>
+    <string name="s_key_top_bar_lyrics_show_in_settings">設定で表示</string>
+    <string name="s_key_top_bar_lyrics_show_in_login">ログイン画面で表示</string>
+    <string name="s_key_top_bar_lyrics_show_in_playlist">プライリストで表示</string>
+    <string name="s_key_top_bar_lyrics_show_in_artist">アーティストで表示</string>
+    <string name="s_key_top_bar_lyrics_show_in_viewmore">ホームの「もっと見る」画面で表示</string>
+    <string name="s_key_top_bar_lyrics_show_in_search">検索画面で表示</string>
 
 
     <string name="s_cat_audio_video">音・動画</string>
@@ -570,7 +570,7 @@
     <string name="manual_login_error_missing_following_headers">以下のヘッダーが含まれていません：</string>
     <string name="manual_login_desktop_browser_may_be_needed">この手順を行うには、デスクトップ上のブラウザーが必要かもしれません</string>
 
-    <string name="discord_manual_login_title">Discord manual log-in</string>
+    <string name="discord_manual_login_title">Discord手動ログイン</string>
     <string-array name="discord_manual_login_steps">
         <item>ブラウザーで新しいタブを開く</item>
         <item>開発者コンソールを開く (多くのブラウザーではctrl+shift+I)</item>

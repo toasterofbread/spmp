@@ -373,7 +373,7 @@
     <string name="s_option_np_accent_elements">Colour elements with accent</string>
     <string name="s_option_np_accent_none">Don\'t use accent colour</string>
 
-    <string name="s_key_np_default_gradient_depth">グラデーションのデフォルトの深さ</string>
+    <string name="s_key_np_default_gradient_depth">Default gradient depth</string>
 
     <string name="s_cat_lyrics">Lyrics</string>
 
@@ -404,15 +404,14 @@
 
     <string name="s_group_top_bar_lyrics">Top bar lyrics</string>
     <string name="s_key_top_bar_lyrics_show_furigana">Show furigana</string>
-    <string name="s_key_top_bar_lyrics_show_in_library">ライブラリで表示</string>
-    <string name="s_key_top_bar_lyrics_show_in_radiobuilder">ラジオ作成画面で表示</string>
-    <string name="s_key_top_bar_lyrics_show_in_settings">設定で表示</string>
-    <string name="s_key_top_bar_lyrics_show_in_login">Show ログイン画面で表示</string>
-    <string name="s_key_top_bar_lyrics_show_in_playlist">プライリストで表示</string>
-    <string name="s_key_top_bar_lyrics_show_in_artist">アーティストで表示</string>
-    <string name="s_key_top_bar_lyrics_show_in_viewmore">ホームの「もっと見る」画面で表示</string>
-    <string name="s_key_top_bar_lyrics_show_in_search">検索画面で表示</string>
-
+    <string name="s_key_top_bar_lyrics_show_in_library">Show in library</string>
+    <string name="s_key_top_bar_lyrics_show_in_radiobuilder">Show in the radio builder</string>
+    <string name="s_key_top_bar_lyrics_show_in_settings">Show in settings</string>
+    <string name="s_key_top_bar_lyrics_show_in_login">Show in login pages</string>
+    <string name="s_key_top_bar_lyrics_show_in_playlist">Show in playlist pages</string>
+    <string name="s_key_top_bar_lyrics_show_in_artist">Show in artist pages</string>
+    <string name="s_key_top_bar_lyrics_show_in_viewmore">Show in home feed view more pages</string>
+    <string name="s_key_top_bar_lyrics_show_in_search">Show in search page</string>
 
     <string name="s_cat_audio_video">Audio / Video</string>
 

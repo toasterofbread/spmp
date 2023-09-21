@@ -194,8 +194,8 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                         continue
                     }
 
-                    val items = row.value.getMediaItemsAndSetIds(hl)
-                    val items_mapped = items.map {
+                    val items: List<Pair<MediaItemData, String?>> = row.value.getMediaItemsAndSetIds(hl)
+                    val items_mapped: List<MediaItemData> = items.map {
                         val list_item = it.first
                         if (item is Artist && list_item is SongData && list_item.song_type == SongType.PODCAST) {
                             list_item.artist = item

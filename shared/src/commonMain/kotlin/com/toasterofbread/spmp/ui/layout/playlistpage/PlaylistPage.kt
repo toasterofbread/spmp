@@ -230,8 +230,8 @@ class PlaylistPage(
         }
     }
 
-    fun onThumbnailLoaded(image: ImageBitmap) {
-        accent_colour = image.getThemeColour()
+    fun onThumbnailLoaded(image: ImageBitmap?) {
+        accent_colour = image?.getThemeColour()
     }
 
     @Composable

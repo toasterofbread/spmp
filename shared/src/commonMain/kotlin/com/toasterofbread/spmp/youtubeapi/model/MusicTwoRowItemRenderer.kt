@@ -74,6 +74,8 @@ class MusicTwoRowItemRenderer(
             val page_type = navigationEndpoint.browseEndpoint.getPageType()!!
 
             item = when (MediaItemType.fromBrowseEndpointType(page_type)) {
+                MediaItemType.SONG -> SongData(browse_id)
+                MediaItemType.ARTIST -> ArtistData(browse_id)
                 MediaItemType.PLAYLIST_REM -> {
                     if (RemotePlaylist.formatYoutubeId(browse_id).startsWith("RDAT") && !Settings.get<Boolean>(Settings.KEY_FEED_SHOW_RADIOS)) {
                         return null
@@ -86,8 +88,7 @@ class MusicTwoRowItemRenderer(
 //                            ?.any { it.menuNavigationItemRenderer?.icon?.iconType == "DELETE" } == true
                     }
                 }
-                MediaItemType.ARTIST -> ArtistData(browse_id)
-                else -> throw NotImplementedError("$page_type ($browse_id)")
+                MediaItemType.PLAYLIST_LOC -> throw IllegalStateException("$page_type ($browse_id)")
             }
 
             item.title = title.first_text

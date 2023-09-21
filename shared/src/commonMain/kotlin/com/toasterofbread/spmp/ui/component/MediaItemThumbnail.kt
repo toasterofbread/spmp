@@ -68,7 +68,7 @@ fun MediaItem.Thumbnail(
     load_failed_icon: ImageVector? = Icons.Default.CloudOff,
     provider_override: MediaItemThumbnailProvider? = null,
     getContentColour: (() -> Color)? = null,
-    onLoaded: ((ImageBitmap) -> Unit)? = null
+    onLoaded: ((ImageBitmap?) -> Unit)? = null
 ) {
     val player = LocalPlayerState.current
     var loading by remember { mutableStateOf(true) }
@@ -91,6 +91,8 @@ fun MediaItem.Thumbnail(
                 }
             }
         }
+
+        onLoaded?.invoke(null)
 
         return@remember mutableStateOf(null)
     }

@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.ui.layout.mainpage
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -39,11 +40,14 @@ class PlayerStatus internal constructor(private val player: PlayerService) {
 
     fun getPositionMillis(): Long = player.current_position_ms
 
+    private val _song_state = mutableStateOf(player.getSong())
+    val song_state: State<Song?> get() = _song_state
+
     var m_playing: Boolean by mutableStateOf(player.is_playing)
         private set
     var m_duration_ms: Long by mutableStateOf(player.duration_ms)
         private set
-    var m_song: Song? by mutableStateOf(player.getSong())
+    var m_song: Song? by _song_state
         private set
     var m_index: Int by mutableStateOf(player.current_song_index)
         private set

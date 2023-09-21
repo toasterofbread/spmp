@@ -31,58 +31,79 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.ThumbnailRow
 import com.toasterofbread.spmp.ui.layout.nowplaying.TopBar
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.common.getThemeColour
+import kotlinx.coroutines.delay
 import kotlin.math.absoluteValue
 
 const val NOW_PLAYING_MAIN_PADDING = 10f
 
-internal const val MINIMISED_NOW_PLAYING_HORIZ_PADDING = 10f
+internal const val MINIMISED_NOW_PLAYING_HORIZ_PADDING: Float = 10f
 internal const val OVERLAY_MENU_ANIMATION_DURATION: Int = 200
 internal const val NOW_PLAYING_TOP_BAR_HEIGHT: Int = 40
-internal const val SEEK_BAR_GRADIENT_OVERFLOW_RATIO = 0.3f
+internal const val SEEK_BAR_GRADIENT_OVERFLOW_RATIO: Float = 0.3f
+private const val ACCENT_CLEAR_WAIT_TIME_MS: Long = 1000
 
 @Composable
 fun ColumnScope.NowPlayingMainTab(modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
 
-    val current_song: Song? = player.status.m_song
+    val current_song: Song? by player.status.song_state
     val expansion = LocalNowPlayingExpansion.current
 
     var theme_colour by remember { mutableStateOf<Color?>(null) }
-    fun setThemeColour(value: Color?) {
-        theme_colour = value
-
-        current_song?.id?.also { song_id ->
-            player.database.mediaItemQueries.updateThemeColourById(theme_colour?.toArgb()?.toLong(), song_id)
-        }
-    }
+    var colour_song: Song? by remember { mutableStateOf(null) }
 
     var seek_state by remember { mutableStateOf(-1f) }
 
-    LaunchedEffect(theme_colour) {
+    fun setThemeColour(value: Color?, custom: Boolean) {
+        theme_colour = value
         Theme.currentThumbnnailColourChanged(theme_colour)
+
+        if (custom) {
+            current_song?.ThemeColour?.set(theme_colour, player.database)
+        }
+
+        colour_song = current_song
     }
 
     fun onThumbnailLoaded(song: Song?, image: ImageBitmap?) {
-        if (song != current_song) {
+        if (song?.id != current_song?.id || song?.id == colour_song?.id) {
             return
         }
 
         if (song == null) {
-            theme_colour = null
+            setThemeColour(null, false)
         }
         else {
             val song_theme = song.ThemeColour.get(player.database)
             if (song_theme != null) {
-                theme_colour = song_theme
+                setThemeColour(song_theme, false)
             }
             else {
-                theme_colour = image?.getThemeColour()
+                setThemeColour(image?.getThemeColour(), false)
             }
         }
     }
 
     LaunchedEffect(current_song) {
-        onThumbnailLoaded(current_song, null)
+        val song = current_song
+
+        if (song?.id == colour_song?.id) {
+            return@LaunchedEffect
+        }
+
+        if (song != null) {
+            val song_theme = song.ThemeColour.get(player.database)
+            if (song_theme != null) {
+                setThemeColour(song_theme, false)
+                return@LaunchedEffect
+            }
+        }
+
+        delay(ACCENT_CLEAR_WAIT_TIME_MS)
+
+        if (song?.id != colour_song?.id) {
+            onThumbnailLoaded(song, null)
+        }
     }
 
     Column(
@@ -112,8 +133,12 @@ fun ColumnScope.NowPlayingMainTab(modifier: Modifier = Modifier) {
                             (2 * (MINIMISED_NOW_PLAYING_HORIZ_PADDING.dp + ((MINIMISED_NOW_PLAYING_HORIZ_PADDING.dp - NOW_PLAYING_MAIN_PADDING.dp) * expansion.getAbsolute())))
                     )
                     .weight(1f, false),
-                onThumbnailLoaded = { song, image -> onThumbnailLoaded(song, image) },
-                setThemeColour = { setThemeColour(it) },
+                onThumbnailLoaded = { song, image ->
+                    onThumbnailLoaded(song, image)
+                },
+                setThemeColour = {
+                    setThemeColour(it, true)
+                },
                 getSeekState = { seek_state }
             )
         }

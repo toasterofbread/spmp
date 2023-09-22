@@ -53,10 +53,10 @@ const val DEFAULT_THUMBNAIL_ROUNDING: Int = 5
 const val MIN_THUMBNAIL_ROUNDING: Int = 0
 const val MAX_THUMBNAIL_ROUNDING: Int = 50
 
-class PaletteSelectorOverlayMenu(
+class PaletteSelectorPlayerOverlayMenu(
     val requestColourPicker: ((Color?) -> Unit) -> Unit,
     val onColourSelected: (Color) -> Unit
-): OverlayMenu() {
+): PlayerOverlayMenu() {
 
     override fun closeOnTap(): Boolean = true
 
@@ -64,7 +64,7 @@ class PaletteSelectorOverlayMenu(
     override fun Menu(
         getSong: () -> Song,
         getExpansion: () -> Float,
-        openMenu: (OverlayMenu?) -> Unit,
+        openMenu: (PlayerOverlayMenu?) -> Unit,
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
@@ -226,9 +226,9 @@ class PaletteSelectorOverlayMenu(
                     }
                 }
 
-                val notif_image_menu_button_text = notifImageOverlayMenuButtonText()
+                val notif_image_menu_button_text = notifImagePlayerOverlayMenuButtonText()
                 if (notif_image_menu_button_text != null) {
-                    Button({ openMenu(NotifImageOverlayMenu()) }, colors = button_colours) {
+                    Button({ openMenu(NotifImagePlayerOverlayMenu()) }, colors = button_colours) {
                         Text(notif_image_menu_button_text)
                     }
                 }

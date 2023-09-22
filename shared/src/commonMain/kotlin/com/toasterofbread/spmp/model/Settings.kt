@@ -13,6 +13,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpointType
 import com.toasterofbread.spmp.youtubeapi.fromJson
@@ -158,6 +159,8 @@ enum class Settings {
     KEY_FEED_SHOW_CHARTS_ROW,
 
     // Player
+    KEY_PLAYER_OVERLAY_CUSTOM_ACTION,
+    KEY_PLAYER_OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS,
     KEY_NP_QUEUE_RADIO_INFO_POSITION, // TODO prefs item
     KEY_NP_QUEUE_WAVE_BORDER_MODE,
     KEY_RESUME_ON_BT_CONNECT,
@@ -349,6 +352,8 @@ enum class Settings {
                 KEY_FEED_SHOW_MOODS_ROW -> true
                 KEY_FEED_SHOW_CHARTS_ROW -> true
 
+                KEY_PLAYER_OVERLAY_CUSTOM_ACTION -> PlayerOverlayMenuAction.DEFAULT_CUSTOM.ordinal
+                KEY_PLAYER_OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS -> false
                 KEY_NP_QUEUE_RADIO_INFO_POSITION -> NowPlayingQueueRadioInfoPosition.TOP_BAR.ordinal
                 KEY_NP_QUEUE_WAVE_BORDER_MODE -> NowPlayingQueueWaveBorderMode.TIME.ordinal
                 KEY_RESUME_ON_BT_CONNECT -> true

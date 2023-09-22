@@ -34,12 +34,13 @@ import com.toasterofbread.utils.modifier.background
 @Composable
 fun CurrentRadioIndicator(
     getAccentColour: () -> Color,
-    multiselect_context: MediaItemMultiSelectContext
+    multiselect_context: MediaItemMultiSelectContext,
+    modifier: Modifier = Modifier
 ) {
     val player = LocalPlayerState.current
     val horizontal_padding = 15.dp
 
-    Row(Modifier.animateContentSize()) {
+    Row(modifier.animateContentSize()) {
 
         val filters: List<List<RadioBuilderModifier>>? = player.player?.radio_filters
         var show_radio_info: Boolean by remember { mutableStateOf(false) }
@@ -93,7 +94,7 @@ fun CurrentRadioIndicator(
                                 .background(RoundedCornerShape(45), getAccentColour)
                                 .padding(horizontal = 10.dp, vertical = 7.dp)
                         ) {
-                            MediaItemPreviewLong(state)
+                            MediaItemPreviewLong(state, Modifier.height(35.dp))
                         }
                     true ->
                         multiselect_context.InfoDisplay(

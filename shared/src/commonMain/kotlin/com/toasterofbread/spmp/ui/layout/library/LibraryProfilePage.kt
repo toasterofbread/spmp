@@ -34,7 +34,8 @@ class LibraryProfilePage(context: PlatformContext): LibrarySubPage(context) {
             channel,
             modifier.clipToBounds(),
             content_padding = content_padding,
-            multiselect_context = multiselect_context
+            multiselect_context = multiselect_context,
+            show_top_bar = false
         )
     }
 }

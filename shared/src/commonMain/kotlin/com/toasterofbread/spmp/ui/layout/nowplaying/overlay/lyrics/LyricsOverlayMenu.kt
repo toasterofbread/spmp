@@ -60,7 +60,7 @@ import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.PillMenu
-import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
 import com.toasterofbread.utils.common.AnnotatedReadingTerm
@@ -72,14 +72,14 @@ private enum class Submenu {
     SEARCH, SYNC
 }
 
-class LyricsOverlayMenu: OverlayMenu() {
+class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
     override fun closeOnTap(): Boolean = false
 
     @Composable
     override fun Menu(
         getSong: () -> Song,
         getExpansion: () -> Float,
-        openMenu: (OverlayMenu?) -> Unit,
+        openMenu: (PlayerOverlayMenu?) -> Unit,
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?
     ) {

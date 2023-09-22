@@ -50,14 +50,14 @@ import com.toasterofbread.utils.common.launchSingle
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
-actual fun notifImageOverlayMenuButtonText(): String? = getString("song_notif_image_menu_open")
+actual fun notifImagePlayerOverlayMenuButtonText(): String? = getString("song_notif_image_menu_open")
 
-actual class NotifImageOverlayMenu: OverlayMenu() {
+actual class NotifImagePlayerOverlayMenu: PlayerOverlayMenu() {
     @Composable
     override fun Menu(
         getSong: () -> Song,
         getExpansion: () -> Float,
-        openMenu: (OverlayMenu?) -> Unit,
+        openMenu: (PlayerOverlayMenu?) -> Unit,
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?,
     ) {

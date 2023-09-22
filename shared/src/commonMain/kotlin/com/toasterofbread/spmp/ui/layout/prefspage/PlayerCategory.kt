@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.prefspage
 
+import com.toasterofbread.composesettings.ui.item.SettingsGroupItem
 import com.toasterofbread.composesettings.ui.item.SettingsItem
 import com.toasterofbread.composesettings.ui.item.SettingsMultipleChoiceItem
 import com.toasterofbread.composesettings.ui.item.SettingsToggleItem
@@ -7,9 +8,30 @@ import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.NowPlayingQueueWaveBorderMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
 
 internal fun getPlayerCategory(): List<SettingsItem> {
     return listOf(
+        SettingsMultipleChoiceItem(
+            SettingsValueState(Settings.KEY_PLAYER_OVERLAY_CUSTOM_ACTION.name),
+            getString("s_key_player_overlay_menu_custom_action"),
+            getString("s_sub_player_overlay_menu_custom_action"),
+            PlayerOverlayMenuAction.values().size,
+            false,
+            { index ->
+                PlayerOverlayMenuAction.values()[index].getReadable()
+            }
+        ),
+
+        SettingsToggleItem(
+            SettingsValueState(Settings.KEY_PLAYER_OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.name),
+            getString("s_key_player_overlay_menu_swap_long_short_press_actions"),
+            null,
+            title_max_lines = 2
+        ),
+
+        SettingsGroupItem(null),
+
         SettingsMultipleChoiceItem(
             SettingsValueState(Settings.KEY_NP_QUEUE_WAVE_BORDER_MODE.name),
             getString("s_key_np_queue_wave_border_mode"),

@@ -155,7 +155,7 @@ object Theme: ThemeData {
             loaded_themes = default_themes
         }
         else {
-            loaded_themes = loaded_themes.toMutableList().also { it.removeAt(index) }
+            loaded_themes = loaded_themes.toMutableList().also { it.removeAt(index - 1) }
         }
         saveThemes()
     }

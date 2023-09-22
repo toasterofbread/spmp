@@ -45,7 +45,7 @@ import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 
-const val MEDIA_ITEM_PREVIEW_LONG_HEIGHT: Float = 50f
+const val MEDIA_ITEM_PREVIEW_LONG_HEIGHT_DP: Float = 50f
 const val MEDIA_ITEM_PREVIEW_SQUARE_FONT_SIZE_SP: Float = 12f
 const val MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP: Float = 14f
 private const val INFO_SPLITTER: String = "\u2022"
@@ -172,7 +172,7 @@ fun MediaItemPreviewLong(
         modifier = modifier
             .fillMaxWidth()
             .mediaItemPreviewInteraction(item, long_press_menu_data)
-            .height(MEDIA_ITEM_PREVIEW_LONG_HEIGHT.dp)
+            .height(MEDIA_ITEM_PREVIEW_LONG_HEIGHT_DP.dp)
     ) {
         Box(Modifier.fillMaxHeight().aspectRatio(1f), contentAlignment = Alignment.Center) {
             item.Thumbnail(

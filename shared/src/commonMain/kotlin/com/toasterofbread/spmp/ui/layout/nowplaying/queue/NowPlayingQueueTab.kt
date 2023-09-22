@@ -191,7 +191,7 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
                 )
 
                 if (radio_info_position == NowPlayingQueueRadioInfoPosition.TOP_BAR) {
-                    CurrentRadioIndicator(getBackgroundColour, multiselect_context)
+                    CurrentRadioIndicator(getBackgroundColour, multiselect_context, Modifier.padding(bottom = 10.dp))
                 }
 
                 val wave_border_mode: NowPlayingQueueWaveBorderMode by Settings.KEY_NP_QUEUE_WAVE_BORDER_MODE.rememberMutableEnumState()

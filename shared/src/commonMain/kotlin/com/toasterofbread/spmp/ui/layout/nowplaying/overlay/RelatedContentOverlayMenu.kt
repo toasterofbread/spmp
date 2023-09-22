@@ -19,16 +19,16 @@ import com.toasterofbread.spmp.ui.layout.SongRelatedPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.youtubeapi.SongRelatedContentEndpoint
 
-class RelatedContentOverlayMenu(
+class RelatedContentPlayerOverlayMenu(
     private val related_endpoint: SongRelatedContentEndpoint
-) : OverlayMenu() {
+) : PlayerOverlayMenu() {
     override fun closeOnTap(): Boolean = false
 
     @Composable
     override fun Menu(
         getSong: () -> Song,
         getExpansion: () -> Float,
-        openMenu: (OverlayMenu?) -> Unit,
+        openMenu: (PlayerOverlayMenu?) -> Unit,
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?
     ) {

@@ -85,6 +85,7 @@ fun ArtistLayout(
     previous_item: MediaItem? = null,
     content_padding: PaddingValues = PaddingValues(),
     multiselect_context: MediaItemMultiSelectContext? = null,
+    show_top_bar: Boolean = true,
     loading: Boolean = false,
     onReload: (() -> Unit)? = null,
     content: LazyListScope.(accent_colour: Color?, show_info: MutableState<Boolean>, Modifier) -> Unit
@@ -163,12 +164,12 @@ fun ArtistLayout(
     }
 
     Column(modifier) {
-        if (!top_bar_over_image) {
+        if (show_top_bar && !top_bar_over_image) {
             TopBar()
         }
 
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-            if (top_bar_over_image) {
+            if (show_top_bar && top_bar_over_image) {
                 TopBar()
             }
 

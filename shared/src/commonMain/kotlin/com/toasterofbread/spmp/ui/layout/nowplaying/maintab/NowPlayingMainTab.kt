@@ -62,7 +62,9 @@ fun ColumnScope.NowPlayingMainTab(modifier: Modifier = Modifier) {
             current_song?.ThemeColour?.set(theme_colour, player.database)
         }
 
-        colour_song = current_song
+        if (value != null) {
+            colour_song = current_song
+        }
     }
 
     fun onThumbnailLoaded(song: Song?, image: ImageBitmap?) {

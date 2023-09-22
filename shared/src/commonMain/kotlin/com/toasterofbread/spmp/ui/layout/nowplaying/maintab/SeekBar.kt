@@ -9,14 +9,17 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -35,6 +38,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.utils.common.formatElapsedTime
 import com.toasterofbread.utils.composable.RecomposeOnInterval
+import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 
 @Composable
 fun SeekBar(seek: (Float) -> Unit) {
@@ -61,7 +65,11 @@ fun SeekBar(seek: (Float) -> Unit) {
         state
 
         Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-            Row(Modifier.fillMaxWidth().padding(horizontal = 7.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+            Row(
+                Modifier.fillMaxWidth().height(10.dp).padding(horizontal = 7.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 SeekBarTimeText(player.status.getPositionMillis(), player.getNPOnBackground())
                 SeekBarTimeText(player.status.m_duration_ms, player.getNPOnBackground())
             }
@@ -86,13 +94,18 @@ fun SeekBar(seek: (Float) -> Unit) {
 
 @Composable
 private fun SeekBarTimeText(time: Long, colour: Color) {
-    val seconds = time / 1000f
-    Text(
-        remember(seconds) { if (seconds < 0f) "" else formatElapsedTime(seconds.toLong()) },
-        fontSize = 10.sp,
-        fontWeight = FontWeight.Light,
-        color = colour
-    )
+    if (time < 0) {
+        SubtleLoadingIndicator()
+    }
+    else {
+        val seconds = time / 1000f
+        Text(
+            remember(seconds) { if (seconds < 0f) "" else formatElapsedTime(seconds.toLong()) },
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Light,
+            color = colour
+        )
+    }
 }
 
 @Composable

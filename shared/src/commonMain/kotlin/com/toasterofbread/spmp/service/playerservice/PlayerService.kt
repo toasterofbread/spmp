@@ -403,6 +403,8 @@ class PlayerService: MediaPlayerService() {
 
             radio.checkRadioContinuation()
             discord_status.updateDiscordStatus(song)
+
+            play()
         }
 
         override fun onSongMoved(from: Int, to: Int) {

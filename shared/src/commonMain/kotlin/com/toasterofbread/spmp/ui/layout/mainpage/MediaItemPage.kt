@@ -15,7 +15,7 @@ import com.toasterofbread.spmp.ui.layout.SongRelatedPage
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistPage
 import com.toasterofbread.spmp.ui.layout.playlistpage.PlaylistPage
 
-data class MediaItemPage(private val holder: MediaItemHolder, private val browse_params: BrowseParamsData? = null): PlayerOverlayPage {
+data class MediaItemPage(private val holder: MediaItemHolder, private val browse_params: BrowseParamsData? = null): OverlayPage {
     override fun getItem(): MediaItem? = holder.item
 
     @Composable

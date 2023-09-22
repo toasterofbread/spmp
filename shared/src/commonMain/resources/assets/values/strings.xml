@@ -98,6 +98,14 @@
     <string name="prompt_confirm_action">Please confirm</string>
     <string name="prompt_confirm_settings_page_reset">Reset all values on this page?</string>
 
+    <string name="player_overlay_menu_action_open_main_menu">Open main overlay menu</string>
+    <string name="player_overlay_menu_action_open_theming">Open theming</string>
+    <string name="player_overlay_menu_action_pick_theme_colour">Pick accent colour from image</string>
+    <string name="player_overlay_menu_action_adjust_notification_image_offset">Adjust notification image offset</string>
+    <string name="player_overlay_menu_action_open_lyrics">Open lyrics</string>
+    <string name="player_overlay_menu_action_open_related">Open related</string>
+    <string name="player_overlay_menu_action_download">Download</string>
+
     <string name="song_theme_menu_pick_colour_from_thumb">Pick from thumbnail</string>
     <string name="song_theme_menu_corner_radius_$x">Corner radius: $x</string>
     <string name="song_theme_menu_gradient_depth_$x">Gradient depth: $x</string>
@@ -337,6 +345,10 @@
     <string name="s_sub_stop_player_on_app_close">Music player will be stopped if the app is cleared from recents</string>
 
     <string name="s_cat_player">Player</string>
+
+    <string name="s_key_player_overlay_menu_custom_action">Overlay menu custom action</string>
+    <string name="s_sub_player_overlay_menu_custom_action">By default, triggers on long press</string>
+    <string name="s_key_player_overlay_menu_swap_long_short_press_actions">Swap overlay menu long and short press actions</string>
 
     <string name="s_key_np_queue_wave_border_mode">Queue wave border mode</string>
     <string name="s_sub_np_queue_wave_border_mode">Animation mode of the wave border between the queued songs and option buttons</string>

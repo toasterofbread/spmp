@@ -33,12 +33,12 @@ import com.toasterofbread.spmp.youtubeapi.implementedOrNull
 import com.toasterofbread.utils.composable.OnChangedEffect
 import kotlinx.coroutines.delay
 
-class MainOverlayMenu(
-    val setOverlayMenu: (OverlayMenu?) -> Unit,
+class MainPlayerOverlayMenu(
+    val setPlayerOverlayMenu: (PlayerOverlayMenu?) -> Unit,
     val requestColourPicker: ((Color?) -> Unit) -> Unit,
     val onColourSelected: (Color) -> Unit,
     val getScreenWidth: @Composable () -> Dp
-): OverlayMenu() {
+): PlayerOverlayMenu() {
 
     override fun closeOnTap(): Boolean = true
 
@@ -47,7 +47,7 @@ class MainOverlayMenu(
     override fun Menu(
         getSong: () -> Song,
         getExpansion: () -> Float,
-        openMenu: (OverlayMenu?) -> Unit,
+        openMenu: (PlayerOverlayMenu?) -> Unit,
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
@@ -179,8 +179,8 @@ class MainOverlayMenu(
                 Box(
                     button_modifier
                         .clickable {
-                            setOverlayMenu(
-                                PaletteSelectorOverlayMenu(
+                            setPlayerOverlayMenu(
+                                PaletteSelectorPlayerOverlayMenu(
                                     requestColourPicker,
                                     onColourSelected
                                 )
@@ -194,7 +194,7 @@ class MainOverlayMenu(
                 Box(
                     button_modifier
                         .clickable { 
-                            setOverlayMenu(getLyricsMenu())
+                            setPlayerOverlayMenu(getLyricsMenu())
                         },
                     contentAlignment = Alignment.Center
                 ) {
@@ -209,7 +209,7 @@ class MainOverlayMenu(
                                 remember { MutableInteractionSource() },
                                 null
                             ) {
-                                setOverlayMenu(RelatedContentOverlayMenu(related_endpoint))
+                                setPlayerOverlayMenu(RelatedContentPlayerOverlayMenu(related_endpoint))
                             },
                         contentAlignment = Alignment.Center
                     ) {

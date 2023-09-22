@@ -1,5 +1,5 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.overlay
 
-expect fun notifImageOverlayMenuButtonText(): String?
+expect fun notifImagePlayerOverlayMenuButtonText(): String?
 
-expect class NotifImageOverlayMenu(): OverlayMenu
+expect class NotifImagePlayerOverlayMenu(): PlayerOverlayMenu

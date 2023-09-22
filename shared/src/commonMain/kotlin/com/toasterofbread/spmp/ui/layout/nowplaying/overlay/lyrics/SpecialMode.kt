@@ -47,7 +47,7 @@ internal fun SpecialModeMenu(special_mode: SpecialMode?, song: Song, setMode: (S
             .background(RoundedCornerShape(16.dp), Theme.accent_provider)
             .padding(horizontal = 10.dp)
     ) { mode ->
-        val button_width = 35.dp
+        val button_width = 40.dp
 
         Row(
             Modifier.fillMaxWidth(),
@@ -76,20 +76,20 @@ internal fun SpecialModeMenu(special_mode: SpecialMode?, song: Song, setMode: (S
 
                         IconButton(
                             {
-                            setMode(SpecialMode.SELECT_SYNC_LINE)
-                            },
-                            Modifier.width(button_width)
-                        ) {
-                            Icon(Icons.Default.HourglassBottom, null)
-                        }
-
-                        IconButton(
-                            {
                                 sync_offset = null
                             },
                             Modifier.width(button_width)
                         ) {
                             Icon(Icons.Default.Refresh, null)
+                        }
+
+                        IconButton(
+                            {
+                            setMode(SpecialMode.SELECT_SYNC_LINE)
+                            },
+                            Modifier.width(button_width)
+                        ) {
+                            Icon(Icons.Default.HourglassBottom, null)
                         }
                     }
 

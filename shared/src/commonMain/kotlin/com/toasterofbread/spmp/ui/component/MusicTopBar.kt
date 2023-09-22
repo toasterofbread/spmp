@@ -47,7 +47,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.composeScope
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.utils.common.getContrasted
 import com.toasterofbread.utils.common.setAlpha
 import com.toasterofbread.utils.composable.loadLyricsOnSongChange
@@ -200,7 +200,7 @@ private fun MusicTopBar(
             onClick = onClick,
             onAltClick = {
                 if (current_state is SongLyrics) {
-                    player.openNowPlayingOverlayMenu(OverlayMenu.getLyricsMenu())
+                    player.openNowPlayingPlayerOverlayMenu(PlayerOverlayMenu.getLyricsMenu())
                 }
             }
         ),

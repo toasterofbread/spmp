@@ -27,7 +27,7 @@ import com.toasterofbread.spmp.service.playerservice.PlayerService
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
-import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.utils.common.indexOfOrNull
 import java.net.URI
 import java.net.URISyntaxException
@@ -112,11 +112,11 @@ open class PlayerState protected constructor(
     open val main_page_state: MainPageState get() = upstream!!.main_page_state
     val main_page: MainPage get() = main_page_state.current_page
 
-    open val overlay_page: Pair<PlayerOverlayPage, MediaItem?>? get() = upstream!!.overlay_page
+    open val overlay_page: Pair<OverlayPage, MediaItem?>? get() = upstream!!.overlay_page
     open val bottom_padding: Float get() = upstream!!.bottom_padding
     open val main_multiselect_context: MediaItemMultiSelectContext get() = upstream!!.main_multiselect_context
     open val np_theme_mode: ThemeMode get() = upstream!!.np_theme_mode
-    open val np_overlay_menu: MutableState<OverlayMenu?> get() = upstream!!.np_overlay_menu
+    open val np_overlay_menu: MutableState<PlayerOverlayMenu?> get() = upstream!!.np_overlay_menu
 
     open val player: PlayerService? get() = upstream!!.player
     open fun withPlayer(action: PlayerService.() -> Unit) {
@@ -196,7 +196,7 @@ open class PlayerState protected constructor(
     open fun onNavigationBarTargetColourChanged(colour: Color?, from_lpm: Boolean): Unit = upstream!!.onNavigationBarTargetColourChanged(colour, from_lpm)
 
     open fun setMainPage(page: MainPage?) { upstream!!.setMainPage(page) }
-    open fun setOverlayPage(page: PlayerOverlayPage?, from_current: Boolean = false, replace_current: Boolean = false) { upstream!!.setOverlayPage(
+    open fun setOverlayPage(page: OverlayPage?, from_current: Boolean = false, replace_current: Boolean = false) { upstream!!.setOverlayPage(
         page,
         from_current,
         replace_current
@@ -226,7 +226,7 @@ open class PlayerState protected constructor(
     }
 
     open fun openPage(
-        page: PlayerOverlayPage,
+        page: OverlayPage,
         from_current: Boolean = false,
         replace_current: Boolean = false,
     ) { upstream!!.openPage(
@@ -250,7 +250,7 @@ open class PlayerState protected constructor(
     open fun playMediaItem(item: MediaItem, shuffle: Boolean = false) { upstream!!.playMediaItem(item, shuffle) }
     open fun playPlaylist(playlist: Playlist, from_index: Int = 0) { upstream!!.playPlaylist(playlist, from_index) }
     open fun openViewMorePage(browse_id: String, title: String?) { upstream!!.openViewMorePage(browse_id, title) }
-    open fun openNowPlayingOverlayMenu(menu: OverlayMenu? = null) { upstream!!.openNowPlayingOverlayMenu(menu) }
+    open fun openNowPlayingPlayerOverlayMenu(menu: PlayerOverlayMenu? = null) { upstream!!.openNowPlayingPlayerOverlayMenu(menu) }
 
     open fun showLongPressMenu(data: LongPressMenuData) { upstream!!.showLongPressMenu(data) }
     fun showLongPressMenu(item: MediaItem) { showLongPressMenu(LongPressMenuData(item)) }

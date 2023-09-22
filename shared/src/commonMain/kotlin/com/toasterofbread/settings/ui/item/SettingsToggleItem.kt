@@ -29,6 +29,7 @@ class SettingsToggleItem(
     val state: BasicSettingsValueState<Boolean>,
     val title: String?,
     val subtitle: String?,
+    val title_max_lines: Int = 1,
     val checker: (PlatformContext.(target: Boolean, setLoading: (Boolean) -> Unit, (allow_change: Boolean) -> Unit) -> Unit)? = null
 ): SettingsItem() {
     private var loading: Boolean by mutableStateOf(false)
@@ -60,7 +61,7 @@ class SettingsToggleItem(
                     .weight(1f),
                 verticalArrangement = Arrangement.spacedBy(5.dp)
             ) {
-                ItemTitleText(title, theme)
+                ItemTitleText(title, theme, max_lines = title_max_lines)
                 ItemText(subtitle, theme)
             }
 

@@ -47,12 +47,13 @@ abstract class SettingsItem {
     
     companion object {
         @Composable
-        fun ItemTitleText(text: String?, theme: Theme, modifier: Modifier = Modifier) {
+        fun ItemTitleText(text: String?, theme: Theme, modifier: Modifier = Modifier, max_lines: Int = 1) {
             if (text?.isNotBlank() == true) {
                 WidthShrinkText(
                     text,
                     modifier,
-                    style = MaterialTheme.typography.titleMedium.copy(color = theme.on_background)
+                    style = MaterialTheme.typography.titleMedium.copy(color = theme.on_background),
+                    max_lines = max_lines
                 )
             }
         }

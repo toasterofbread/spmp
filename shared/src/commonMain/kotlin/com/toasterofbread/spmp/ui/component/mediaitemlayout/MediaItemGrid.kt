@@ -28,7 +28,7 @@ import com.toasterofbread.spmp.model.mediaitem.layout.getMediaItemPreviewSquareA
 import com.toasterofbread.spmp.model.mediaitem.layout.shouldShowTitleBar
 import com.toasterofbread.spmp.model.mediaitem.rememberFilteredItems
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
-import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_LONG_HEIGHT
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_LONG_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
@@ -88,7 +88,7 @@ fun MediaItemGrid(
     val row_count = (rows ?: if (filtered_items.size <= 3) 1 else 2) * (if (alt_style) 2 else 1)
     val item_spacing = Arrangement.spacedBy(if (alt_style) 7.dp else 15.dp)
     val item_size =
-        if (alt_style) DpSize(0.dp, MEDIA_ITEM_PREVIEW_LONG_HEIGHT.dp)
+        if (alt_style) DpSize(0.dp, MEDIA_ITEM_PREVIEW_LONG_HEIGHT_DP.dp)
         else itemSizeProvider() + DpSize(0.dp, getMediaItemPreviewSquareAdditionalHeight(square_item_max_text_rows, MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP.sp))
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {

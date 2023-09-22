@@ -21,7 +21,7 @@ import com.toasterofbread.spmp.ui.layout.prefspage.PrefsPageCategory
 import com.toasterofbread.spmp.ui.layout.prefspage.getPrefsPageSettingsInterface
 import com.toasterofbread.spmp.ui.layout.radiobuilder.RadioBuilderPage
 
-interface PlayerOverlayPage {
+interface OverlayPage {
     @Composable
     fun Page(previous_item: MediaItem?, close: () -> Unit)
 
@@ -49,14 +49,14 @@ interface PlayerOverlayPage {
     fun getItem(): MediaItem? = null
 
     companion object {
-        fun getViewMorePage(browse_id: String, title: String?): PlayerOverlayPage = when (browse_id) {
+        fun getViewMorePage(browse_id: String, title: String?): OverlayPage = when (browse_id) {
             "FEmusic_listen_again", "FEmusic_mixed_for_you", "FEmusic_new_releases_albums" -> GenericFeedViewMorePage(browse_id, title)
             "FEmusic_moods_and_genres" -> TODO(browse_id)
             "FEmusic_charts" -> TODO(browse_id)
             else -> throw NotImplementedError(browse_id)
         }
 
-        val RadioBuilderPage = object : PlayerOverlayPage {
+        val RadioBuilderPage = object : OverlayPage {
             @Composable
             override fun Page(previous_item: MediaItem?, close: () -> Unit) {
                 RadioBuilderPage(
@@ -67,7 +67,7 @@ interface PlayerOverlayPage {
             }
         }
 
-        val SettingsPage = object : PlayerOverlayPage {
+        val SettingsPage = object : OverlayPage {
             val current_category: MutableState<PrefsPageCategory?> = mutableStateOf(null)
             val pill_menu: PillMenu = PillMenu(follow_player = true)
             val ytm_auth: SettingsValueState<Set<String>> =

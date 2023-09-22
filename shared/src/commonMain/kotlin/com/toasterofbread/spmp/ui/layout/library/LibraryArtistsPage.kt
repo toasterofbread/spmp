@@ -34,7 +34,7 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.artistpage.LocalArtistPage
-import com.toasterofbread.spmp.ui.layout.mainpage.PlayerOverlayPage
+import com.toasterofbread.spmp.ui.layout.mainpage.OverlayPage
 import com.toasterofbread.utils.composable.EmptyListCrossfade
 
 class LibraryArtistsPage(context: PlatformContext): LibrarySubPage(context) {
@@ -101,7 +101,7 @@ class LibraryArtistsPage(context: PlatformContext): LibrarySubPage(context) {
 
         CompositionLocalProvider(LocalPlayerState provides remember { player.copy(onClickedOverride = { item, index ->
             player.openPage(
-                object : PlayerOverlayPage {
+                object : OverlayPage {
                     @Composable
                     override fun Page(previous_item: MediaItem?, close: () -> Unit) {
                         LocalArtistPage(item as Artist, previous_item = previous_item, content_padding = getContentPadding())

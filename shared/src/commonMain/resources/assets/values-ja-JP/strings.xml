@@ -91,6 +91,14 @@
     <string name="prompt_confirm_action">確認してください</string>
     <string name="prompt_confirm_settings_page_reset">このページのバリューを全てリセットしますか？</string>
 
+    <string name="player_overlay_menu_action_open_main_menu">オーバーレイ画面を開く</string>
+    <string name="player_overlay_menu_action_open_theming">テーマ画面を開く</string>
+    <string name="player_overlay_menu_action_pick_theme_colour">アクセント色をイメージから選ぶ</string>
+    <string name="player_overlay_menu_action_adjust_notification_image_offset">通知イメージの位置を調節</string>
+    <string name="player_overlay_menu_action_open_lyrics">歌詞を開く</string>
+    <string name="player_overlay_menu_action_open_related">関係コンテンツを開く</string>
+    <string name="player_overlay_menu_action_download">ダウンロード</string>
+
     <string name="song_theme_menu_pick_colour_from_thumb">サムネールから選ぶ</string>
     <string name="song_theme_menu_corner_radius_$x">コーナーの半径: $x</string>
     <string name="song_theme_menu_gradient_depth_$x">グラデーションの深さ</string>
@@ -327,6 +335,10 @@
 
     <string name="s_cat_player">プレイヤー</string>
 
+    <string name="s_key_player_overlay_menu_custom_action">オーバーレイ画面のカスタムアクション</string>
+    <string name="s_sub_player_overlay_menu_custom_action">デフォルトでは、長押しで発生します</string>
+    <string name="s_key_player_overlay_menu_swap_long_short_press_actions">オーバーレイ画面の短押しと長押しアクションを交換する</string>
+
     <string name="s_key_np_queue_wave_border_mode">曲キューの波ボーダーのアニメーションモード</string>
     <string name="s_sub_np_queue_wave_border_mode">曲キューと操作ボタンの間にある波型ボーダーのアニメーション方法</string>
     <string name="s_option_wave_border_mode_time">時の流れ</string>
@@ -334,13 +346,6 @@
     <string name="s_option_wave_border_mode_scroll">曲キューのスクロールと</string>
     <string name="s_option_wave_border_mode_none">アニメーションなし</string>
     <string name="s_option_wave_border_mode_line">線型ボーダー</string>
-
-    <string name="s_key_resume_on_bt_connect">Resume when Bluetooth device connected</string>
-    <string name="s_sub_resume_on_bt_connect">If playback was paused by device disconnection, playback will resume when a Bluetooth audio device is connected</string>
-    <string name="s_key_pause_on_bt_disconnect">Pause when Bluetooth device disconnected</string>
-    <string name="s_key_resume_on_wired_connect">Resume when wired device disconnected</string>
-    <string name="s_sub_resume_on_wired_connect">If playback was paused by device disconnection, playback will resume when a wired audio device is connected</string>
-    <string name="s_key_pause_on_wired_disconnect">Pause when wired device disconnected</string>
 
     <string name="s_key_resume_on_bt_connect">Bluetoothデバイス接続時に再生を再開</string>
     <string name="s_sub_resume_on_bt_connect">デバイスの切断によって再生が停止された場合、Bluetoothオーディオデバイスが接続されると再生が再開されます</string>

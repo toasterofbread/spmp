@@ -7,9 +7,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,16 +50,24 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.composable.BackHandler
+import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.getPixel
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.OVERLAY_MENU_ANIMATION_DURATION
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
-import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.MainOverlayMenu
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.MainPlayerOverlayMenu
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.RelatedContentPlayerOverlayMenu
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.NotifImagePlayerOverlayMenu
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PaletteSelectorPlayerOverlayMenu
+import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 import com.toasterofbread.utils.common.getInnerSquareSizeOfCircle
 import com.toasterofbread.utils.common.getValue
 import com.toasterofbread.utils.common.setAlpha
@@ -113,7 +119,7 @@ fun ThumbnailRow(
     }
 
     val main_overlay_menu = remember {
-        MainOverlayMenu(
+        MainPlayerOverlayMenu(
             { overlay_menu = it },
             { colourpick_callback = it },
             {
@@ -147,6 +153,61 @@ fun ThumbnailRow(
         Spacer(Modifier)
 
         Box(Modifier.aspectRatio(1f)) {
+            fun performPressAction(long_press: Boolean) {
+                if (overlay_menu != null || expansion.get() !in 0.9f .. 1.1f) {
+                    return
+                }
+
+                val custom_action: Boolean =
+                    if (Settings.KEY_PLAYER_OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.get()) !long_press
+                    else long_press
+
+                val action: PlayerOverlayMenuAction =
+                    if (custom_action) Settings.KEY_PLAYER_OVERLAY_CUSTOM_ACTION.getEnum()
+                    else PlayerOverlayMenuAction.DEFAULT
+
+                when (action) {
+                    PlayerOverlayMenuAction.OPEN_MAIN_MENU -> overlay_menu = main_overlay_menu
+                    PlayerOverlayMenuAction.OPEN_THEMING -> {
+                        overlay_menu = PaletteSelectorPlayerOverlayMenu(
+                            { colourpick_callback = it },
+                            {
+                                setThemeColour(it)
+                                overlay_menu = null
+                            }
+                        )
+                    }
+                    PlayerOverlayMenuAction.PICK_THEME_COLOUR -> {
+                        colourpick_callback = { colour ->
+                            if (colour != null) {
+                                setThemeColour(colour)
+                                overlay_menu = null
+                                colourpick_callback = null
+                            }
+                        }
+                    }
+                    PlayerOverlayMenuAction.ADJUST_NOTIFICATION_IMAGE_OFFSET -> {
+                        overlay_menu = NotifImagePlayerOverlayMenu()
+                    }
+                    PlayerOverlayMenuAction.OPEN_LYRICS -> {
+                        overlay_menu = PlayerOverlayMenu.getLyricsMenu()
+                    }
+                    PlayerOverlayMenuAction.OPEN_RELATED -> {
+                        val related_endpoint = player.context.ytapi.SongRelatedContent
+                        if (related_endpoint.isImplemented()) {
+                            overlay_menu = RelatedContentPlayerOverlayMenu(related_endpoint)
+                        }
+                        else {
+                            throw EndpointNotImplementedException(related_endpoint)
+                        }
+                    }
+                    PlayerOverlayMenuAction.DOWNLOAD -> {
+                        current_song?.also { song ->
+                            player.context.download_manager.startDownload(song.id)
+                        }
+                    }
+                }
+            }
 
             Crossfade(current_song, animationSpec = tween(250)) { song ->
                 song?.Thumbnail(
@@ -162,20 +223,20 @@ fun ThumbnailRow(
                         .onSizeChanged {
                             image_size = it
                         }
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null
-                        ) {
-                            if (overlay_menu == null && expansion.get() in 0.9f .. 1.1f) {
-                                overlay_menu = main_overlay_menu
+                        .platformClickable(
+                            onClick = {
+                                performPressAction(false)
+                            },
+                            onAltClick = {
+                                performPressAction(true)
                             }
-                        }
+                        )
                 )
             }
 
             // Thumbnail overlay menu
             androidx.compose.animation.AnimatedVisibility(
-                overlay_menu != null,
+                overlay_menu != null || colourpick_callback != null,
                 Modifier.fillMaxSize(),
                 enter = fadeIn(tween(OVERLAY_MENU_ANIMATION_DURATION)),
                 exit = fadeOut(tween(OVERLAY_MENU_ANIMATION_DURATION))

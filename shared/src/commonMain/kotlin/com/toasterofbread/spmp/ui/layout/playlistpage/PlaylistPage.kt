@@ -50,7 +50,7 @@ import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_DEFAULT_HEIGHT
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.mainpage.PlayerOverlayPage
+import com.toasterofbread.spmp.ui.layout.mainpage.OverlayPage
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
@@ -72,7 +72,7 @@ private enum class LoadType {
 class PlaylistPage(
     playlist: Playlist,
     val player: PlayerState
-): PlayerOverlayPage {
+): OverlayPage {
     var edit_in_progress: Boolean by mutableStateOf(false)
         private set
 

@@ -34,7 +34,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.getAdjustedKeyboardHeight
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
-import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.common.init
 import com.toasterofbread.utils.common.toFloat
@@ -61,7 +61,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
 
     private var now_playing_switch_page: Int by mutableStateOf(-1)
     private val main_page_undo_stack: MutableList<MainPage?> = mutableStateListOf()
-    private val overlay_page_undo_stack: MutableList<Pair<PlayerOverlayPage, MediaItem?>?> = mutableListOf()
+    private val overlay_page_undo_stack: MutableList<Pair<OverlayPage, MediaItem?>?> = mutableListOf()
     private var main_page_showing: Boolean by mutableStateOf(false)
 
     private val bottom_padding_anim = Animatable(context.getNavigationBarHeight().toFloat())
@@ -83,12 +83,12 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
     val expansion_state = NowPlayingExpansionState(np_swipe_state)
 
     override val main_page_state = MainPageState(context)
-    override var overlay_page: Pair<PlayerOverlayPage, MediaItem?>? by mutableStateOf(null)
+    override var overlay_page: Pair<OverlayPage, MediaItem?>? by mutableStateOf(null)
         private set
     override val bottom_padding: Float get() = bottom_padding_anim.value
     override val main_multiselect_context: MediaItemMultiSelectContext = getPlayerStateMultiSelectContext()
     override var np_theme_mode: ThemeMode by mutableStateOf(Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE, context.getPrefs()))
-    override val np_overlay_menu: MutableState<OverlayMenu?> = mutableStateOf(null)
+    override val np_overlay_menu: MutableState<PlayerOverlayMenu?> = mutableStateOf(null)
 
     init {
         low_memory_listener = {
@@ -209,7 +209,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
         }
     }
 
-    override fun setOverlayPage(page: PlayerOverlayPage?, from_current: Boolean, replace_current: Boolean) {
+    override fun setOverlayPage(page: OverlayPage?, from_current: Boolean, replace_current: Boolean) {
         val new_page = page?.let {
             Pair(
                 page,
@@ -250,7 +250,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
         })
     }
 
-    override fun openPage(page: PlayerOverlayPage, from_current: Boolean, replace_current: Boolean) {
+    override fun openPage(page: OverlayPage, from_current: Boolean, replace_current: Boolean) {
         setOverlayPage(page, from_current, replace_current)
         if (np_swipe_state.value.targetValue != 0) {
             switchNowPlayingPage(0)
@@ -266,10 +266,10 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
     }
 
     override fun openViewMorePage(browse_id: String, title: String?) {
-        openPage(PlayerOverlayPage.getViewMorePage(browse_id, title))
+        openPage(OverlayPage.getViewMorePage(browse_id, title))
     }
 
-    override fun openNowPlayingOverlayMenu(menu: OverlayMenu?) {
+    override fun openNowPlayingPlayerOverlayMenu(menu: PlayerOverlayMenu?) {
         np_overlay_menu.value = menu
         expansion_state.scrollTo(1)
     }

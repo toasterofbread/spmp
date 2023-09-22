@@ -46,7 +46,8 @@ fun ArtistPage(
     previous_item: MediaItem? = null,
     content_padding: PaddingValues = PaddingValues(),
     browse_params: Pair<BrowseParamsData, ArtistWithParamsEndpoint>? = null,
-    multiselect_context: MediaItemMultiSelectContext? = null
+    multiselect_context: MediaItemMultiSelectContext? = null,
+    show_top_bar: Boolean = true
 ) {
     val player = LocalPlayerState.current
     val coroutine_scope = rememberCoroutineScope()
@@ -87,7 +88,8 @@ fun ArtistPage(
         modifier,
         previous_item,
         content_padding,
-        own_multiselect_context,
+        multiselect_context ?: own_multiselect_context,
+        show_top_bar = show_top_bar,
         loading = refreshed && loading,
         onReload = {
             refreshed = true

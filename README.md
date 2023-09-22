@@ -27,7 +27,7 @@ Support for Compose Multiplatform on desktop is [planned](https://github.com/toa
 - Edit song, artist, and playlist titles
 - Set separate languages for app UI and metadata like song titles
 - In-app YouTube Music login
-- Display time-synchronised lyrics from [PetitLyrics](https://petitlyrics.com/)
+- Display time-synchronised lyrics from [KuGou](https://www.kugou.com/) and [PetitLyrics](https://petitlyrics.com/)
     - Timed lyrics are displayed in a toggleable bar above every app page
     - Furigana (readings) display above Japanese kanji within lyrics
 - Select multiple songs for batch actions on any screen
@@ -83,7 +83,7 @@ The app is currently being developed for both English and Japanese. Contribution
 - [ViMusic](https://github.com/vfsfitvnm/ViMusic): A major inspiration for this project
 
 #### Libraries (see all in [shared/build.gradle.kts](/shared/build.gradle.kts))
-- [NewPipeExtractor](https://github.com/TeamNewPipe/NewPipeExtractor): Provides stream URLs for music playback
+- [Piped](https://github.com/TeamPiped/Piped): Provides stream URLs for music playback
 - [SQLDelight](https://github.com/cashapp/sqldelight): Database for media metadata
 - [Kuromoji](https://github.com/atilika/kuromoji): Generates furigana (readings) for Japanese lyrics
 - [KizzyRPC](https://github.com/dead8309/KizzyRPC) and [Kord](https://github.com/kordlib/kord): Discord status functionality and custom image support

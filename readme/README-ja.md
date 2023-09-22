@@ -27,7 +27,7 @@ Compose Multiplatformでのデスクトップ上サポートは[計画](https://
 - 曲、アーティスト、またはプレイリストのタイトルを編集
 - UIとメタデータに別々の言語を設定
 - アプリ内でYouTube Musicにログイン
-- [プチリリ](https://petitlyrics.com/ja/)から同期可能の歌詞を表示
+- [KuGou](https://www.kugou.com/)と[プチリリ](https://petitlyrics.com/ja/)から同期可能の歌詞を表示
     - 同期可能の歌詞をアプリ内すべての画面の上に表示
     - 歌詞内の漢字の上にふりがなを表示
 - どの画面からでも曲を複数選択
@@ -83,7 +83,7 @@ Pull requestと機能の提案は歓迎です！これは僕の初めてのCompo
 - [ViMusic](https://github.com/vfsfitvnm/ViMusic): このプロジェクトへの大きなインスピレーションでした
 
 #### ライブラリ（すべてのライブラリを[shared/build.gradle.kts](/shared/build.gradle.kts)確認できます）
-- [NewPipeExtractor](https://github.com/TeamNewPipe/NewPipeExtractor): 曲再生用のストリームURLを提供
+- [Piped](https://github.com/TeamPiped/Piped): 曲再生用のストリームURLを提供
 - [SQLDelight](https://github.com/cashapp/sqldelight): メディアのメタデータ用データベース
 - [Kuromoji](https://github.com/atilika/kuromoji): 日本語歌詞のふりがなを生成
 - [KizzyRPC](https://github.com/dead8309/KizzyRPC) and [Kord](https://github.com/kordlib/kord): Discordステータスとその画像機能

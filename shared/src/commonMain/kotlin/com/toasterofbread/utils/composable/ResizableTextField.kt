@@ -28,7 +28,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.utils.common.thenIf
 
-@ExperimentalMaterial3Api
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResizableOutlinedTextField(
     value: String,
@@ -36,7 +36,7 @@ fun ResizableOutlinedTextField(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     readOnly: Boolean = false,
-    showKeyboard: Boolean = true,
+    showKeyboard: Boolean = false,
     textStyle: TextStyle = LocalTextStyle.current,
     label: @Composable (() -> Unit)? = null,
     placeholder: @Composable (() -> Unit)? = null,

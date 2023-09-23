@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.composesettings.ui.SettingsPage
 import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.composable.ResizableOutlinedTextField
 
 // TODO Styling
 class SettingsTextFieldItem(
@@ -31,13 +32,12 @@ class SettingsTextFieldItem(
         state.reset()
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun GetItem(theme: Theme, openPage: (Int, Any?) -> Unit, openCustomPage: (SettingsPage) -> Unit) {
         Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(5.dp)) {
             ItemTitleText(title, theme)
             ItemText(subtitle, theme)
-            TextField(state.get(), { state.set(it) }, Modifier.fillMaxWidth(), singleLine = single_line)
+            ResizableOutlinedTextField(state.get(), { state.set(it) }, Modifier.fillMaxWidth(), singleLine = single_line)
         }
     }
 }

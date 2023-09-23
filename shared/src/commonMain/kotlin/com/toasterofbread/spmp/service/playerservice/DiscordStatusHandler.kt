@@ -4,11 +4,11 @@ import SpMp
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.mediaitem.toThumbnailProvider
 import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.getString
@@ -44,6 +44,7 @@ internal class DiscordStatusHandler(val player: PlayerService, val context: Plat
         }
 
         discord_rpc = DiscordStatus(
+            context,
             bot_token = ProjectBuildConfig.DISCORD_BOT_TOKEN,
             custom_images_channel_category_id = ProjectBuildConfig.DISCORD_CUSTOM_IMAGES_CHANNEL_CATEGORY,
             custom_images_channel_name_prefix = ProjectBuildConfig.DISCORD_CUSTOM_IMAGES_CHANNEL_NAME_PREFIX ?: "",
@@ -90,7 +91,7 @@ internal class DiscordStatusHandler(val player: PlayerService, val context: Plat
                     return@apply
                 }
 
-                if (!shouldUpdateStatus(context)) {
+                if (!shouldUpdateStatus()) {
                     close()
                     SpMp.Log.info("discord_rpc.shouldUpdateStatus() returned false")
                     return@apply
@@ -107,25 +108,38 @@ internal class DiscordStatusHandler(val player: PlayerService, val context: Plat
                 SpMp.Log.info("Loading Discord status images for $status_song ($song_title)...")
 
                 try {
-                    large_image = getCustomImage(status_song.id) {
-                        val thumbnail_provider = mediaItemQueries.thumbnailProviderById(status_song.id).executeAsOne().toThumbnailProvider()
-                            ?: return@getCustomImage null
+                    val artist: ArtistRef? = status_song.Artist.get(context.database)
+                    val images_to_get: List<String> = listOf(status_song.id, artist?.id ?: "")
 
-                        MediaItemThumbnailLoader.loadItemThumbnail(status_song, thumbnail_provider, MediaItemThumbnailProvider.Quality.LOW, context).getOrThrowHere()
-                    }.getOrNull()
+                    val images: List<String?> = getCustomImages(images_to_get) { item_id ->
+                        if (item_id.isEmpty()) {
+                            return@getCustomImages null
+                        }
 
-                    val artist = songQueries.artistById(status_song.id).executeAsOne().artist?.let { ArtistRef(it) }
-                    if (artist != null) {
-                        small_image = getCustomImage(artist.id) {
-                            val thumbnail_provider = mediaItemQueries.thumbnailProviderById(artist.id).executeAsOne().toThumbnailProvider()
-                                ?: return@getCustomImage null
+                        val item: MediaItem = if (item_id == status_song.id) status_song else artist!!
 
-                            MediaItemThumbnailLoader.loadItemThumbnail(artist, thumbnail_provider, MediaItemThumbnailProvider.Quality.LOW, context).getOrThrowHere()
-                        }.getOrNull()
-                    } else {
-                        small_image = null
-                    }
-                } catch (e: Throwable) {
+                        var thumbnail_provider = item.ThumbnailProvider.get(context.database)
+                        if (thumbnail_provider == null && !item.Loaded.get(context.database)) {
+                            val data = item.loadData(context).getOrNull()
+                            thumbnail_provider = data?.thumbnail_provider
+                        }
+
+                        if (thumbnail_provider == null) {
+                            return@getCustomImages null
+                        }
+
+                        MediaItemThumbnailLoader.loadItemThumbnail(
+                            if (item_id == status_song.id) status_song else artist!!,
+                            thumbnail_provider,
+                            MediaItemThumbnailProvider.Quality.LOW,
+                            context
+                        ).getOrThrowHere()
+                    }.getOrThrowHere()
+
+                    large_image = images.getOrNull(0)
+                    small_image = images.getOrNull(1)
+                }
+                catch (e: Throwable) {
                     SpMp.Log.info("Failed loading Discord status images for $status_song ($song_title)\n$e")
                     return@apply
                 }
@@ -161,4 +175,3 @@ internal class DiscordStatusHandler(val player: PlayerService, val context: Plat
         }
     }
 }
-

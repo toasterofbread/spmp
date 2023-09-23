@@ -4,6 +4,9 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
 import com.my.kizzyrpc.KizzyRPC
 import com.my.kizzyrpc.model.Activity
@@ -33,6 +36,7 @@ import io.ktor.utils.io.jvm.javaio.toByteReadChannel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromByteArray
@@ -45,8 +49,10 @@ import java.io.IOException
 import java.util.Base64
 
 private const val RATE_LIMIT_ADDITIONAL_WAIT_MS: Long = 1000
+private const val IMAGE_ID_INDEX_LENGTH: Int = 2
 
 actual class DiscordStatus actual constructor(
+    private val context: PlatformContext,
     private val bot_token: String?,
     private val guild_id: Long?,
     private val custom_images_channel_category_id: Long?,
@@ -119,7 +125,7 @@ actual class DiscordStatus actual constructor(
         val settings: String
     )
 
-    actual suspend fun shouldUpdateStatus(context: PlatformContext): Boolean = withContext(Dispatchers.IO) {
+    actual suspend fun shouldUpdateStatus(): Boolean = withContext(Dispatchers.IO) {
         if (account_token == null) {
             return@withContext true
         }
@@ -209,21 +215,21 @@ actual class DiscordStatus actual constructor(
                 return null
             }
 
-            var last_message: DiscordMessage = messages.first()
+            var first_message: DiscordMessage = messages.first()
             for (message in messages) {
                 if (predicate(message)) {
                     return message
                 }
 
-                if (last_message.timestamp < message.timestamp) {
-                    last_message = message
+                if (first_message.timestamp < message.timestamp) {
+                    first_message = message
                 }
             }
 
-            if (position?.value == last_message.id) {
+            if (position?.value == first_message.id) {
                 return null
             }
-            position = Position.After(last_message.id)
+            position = Position.Before(first_message.id)
         }
     }
 
@@ -263,44 +269,88 @@ actual class DiscordStatus actual constructor(
         return Result.success(kord)
     }
 
-    actual suspend fun getCustomImage(unique_id: String, imageProvider: suspend () -> ImageBitmap?): Result<String?> {
+    private fun getIndexOfImageId(image_id: String): String =
+        image_id.take(IMAGE_ID_INDEX_LENGTH).lowercase()
+
+    private suspend fun getExistingImages(image_ids: List<String>): Result<List<String?>> = withContext(Dispatchers.IO) {
+        val db = Firebase.firestore
+        val ret: MutableList<String?> = List(image_ids.size) { null }.toMutableList()
+
+        val tasks = image_ids.map { image_id ->
+            db.collection(getIndexOfImageId(image_id)).document(image_id).get()
+        }
+
+        for (task in tasks.withIndex()) {
+            val result: DocumentSnapshot? = task.value.await()
+            ret[task.index] = result?.getString("url")
+        }
+
+        return@withContext Result.success(ret)
+    }
+
+    private fun onImagesUploaded(image_urls: Map<String, String>) {
+        if (image_urls.isEmpty()) {
+            return
+        }
+
+        val db = Firebase.firestore
+        db.runBatch { batch ->
+            for ((image_id, image_url) in image_urls) {
+                val document = db.collection(getIndexOfImageId(image_id)).document(image_id)
+                batch.set(document, mapOf("url" to image_url))
+            }
+        }
+    }
+
+    actual suspend fun getCustomImages(image_ids: List<String>, imageProvider: suspend (String) -> ImageBitmap?): Result<List<String?>> {
         check(bot_token != null)
+
+        val ret: MutableList<String?> = getExistingImages(image_ids)
+            .getOrElse { List(image_ids.size) { null } }
+            .map { url ->
+                url?.let { getProxyUrlAttachment(it) }
+            }
+            .toMutableList()
+
+        if (ret.all { it != null }) {
+            return Result.success(ret)
+        }
 
         val kord: Kord = getKord(bot_token).getOrElse {
             return Result.failure(it)
         }
 
-        val result = with(kord.rest.channel) {
-            val channel_name = getChannelNameFor(unique_id.first())
+        val found_channels: MutableMap<Char, Snowflake> = mutableMapOf()
+        val uploaded_image_urls: MutableMap<String, String> = mutableMapOf()
 
-            var channel: Snowflake?
-            val category: Category?
-
-            // Get existing channel from category or guild
-            if (custom_images_channel_category_id != null) {
-                category = Category(getChannel(Snowflake(custom_images_channel_category_id)).toData(), kord)
-                channel = category.channels.firstOrNull {
-                    it.name.equals(channel_name, true)
-                }?.id
-            }
-            else {
-                check(guild_id != null)
-                category = null
-                channel = kord.defaultSupplier.getGuildChannels(Snowflake(guild_id)).firstOrNull { it.name == channel_name }?.id
+        for (image in image_ids.withIndex()) {
+            if (ret[image.index] != null) {
+                continue
             }
 
-            // Find matching image from existing channel
-            if (channel != null) {
-                val message = firstMessageOrNull(channel) { message ->
-                    message.author.id == kord.selfId && message.content == unique_id
+            val id_index: Char = image.value.first()
+            val channel_name = getChannelNameFor(id_index)
+
+            var channel: Snowflake? = found_channels[id_index]
+            val category: Category? = custom_images_channel_category_id?.let { category_id ->
+                Category(kord.rest.channel.getChannel(Snowflake(custom_images_channel_category_id)).toData(), kord)
+            }
+
+            if (channel == null) {
+                // Get existing channel from category or guild
+                if (category != null) {
+                    channel = category.channels.firstOrNull {
+                        it.name.equals(channel_name, true)
+                    }?.id
                 }
-                if (message != null) {
-                    return@with getProxyUrlAttachment(message.attachments.first().proxyUrl)
+                else {
+                    check(guild_id != null)
+                    channel = kord.defaultSupplier.getGuildChannels(Snowflake(guild_id)).firstOrNull { it.name == channel_name }?.id
                 }
             }
 
             // Get image from caller
-            val image = imageProvider() ?: return@with null
+            val image_data: ImageBitmap = imageProvider(image.value) ?: continue
 
             // Create new channel if needed
             if (channel == null) {
@@ -310,21 +360,28 @@ actual class DiscordStatus actual constructor(
                     else kord.rest.guild.createTextChannel(Snowflake(guild_id!!), channel_name, channel_builder).id
             }
 
+            found_channels[id_index] = channel
+
             // Upload image data to channel
-            val message = createMessage(channel) {
-                content = unique_id
+            val message = kord.rest.channel.createMessage(channel) {
+                content = image.value
 
                 val stream = ByteArrayOutputStream()
-                image.asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 100, stream)
+                image_data.asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 100, stream)
 
                 val bytes = stream.toByteArray()
-                files.add(NamedFile("$unique_id.png", ChannelProvider(bytes.size.toLong(), { bytes.inputStream().toByteReadChannel() })))
+                files.add(NamedFile("${image.value}.png", ChannelProvider(bytes.size.toLong(), { bytes.inputStream().toByteReadChannel() })))
             }
 
-            return@with getProxyUrlAttachment(message.attachments.first().proxyUrl)
+            val image_url = message.attachments.first().proxyUrl
+            uploaded_image_urls[image.value] = image_url
+            ret[image.index] = getProxyUrlAttachment(image_url)
         }
 
         kord.shutdown()
-        return Result.success(result)
+
+        onImagesUploaded(uploaded_image_urls)
+
+        return Result.success(ret)
     }
 }

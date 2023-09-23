@@ -16,6 +16,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.exovisualiser.ExoVisualizer
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
@@ -34,6 +35,10 @@ actual open class MediaPlayerService {
         this.context = context
         this.player = player
         listener.addToPlayer(player)
+
+        if (ProjectBuildConfig.MUTE_PLAYER == true) {
+            player.volume = 0f
+        }
     }
 
     actual interface UndoRedoAction {
@@ -413,7 +418,6 @@ actual open class MediaPlayerService {
                     }
 
                     val controller = instance ?: cls.newInstance()
-//                    controller.init(PlatformContext(ctx), controller_future.get())
                     controller.init(context, controller_future.get())
                     if (instance == null) {
                         controller.onCreate()

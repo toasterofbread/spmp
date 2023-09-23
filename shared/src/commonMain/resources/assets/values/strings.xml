@@ -460,10 +460,13 @@
     <string name="s_confirm_reset_stats">All recorded stats will be deleted</string>
 
     <string name="s_cat_other">Other</string>
-    
+
+    <string name="s_key_navbar_height_multiplier">Navigation bar height multiplier</string>
+    <string name="s_sub_navbar_height_multiplier">Use if your system doesn't report the navbar height correctly (requires app restart)</string>
+
     <string name="s_group_caching">Caching</string>
     <string name="s_key_enable_thumbnail_cache">Enable thumbnail cache</string>
-    
+
     <string name="s_group_acc_service">Accessibility service</string>
 
     <string name="s_acc_service_enabled">Service is enabled</string>

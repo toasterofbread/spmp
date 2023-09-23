@@ -116,7 +116,13 @@ private fun getAccessibilityServiceGroup(): List<SettingsItem> {
 }
 
 internal fun getOtherCategory(): List<SettingsItem> {
-    return getCachingGroup() + getAccessibilityServiceGroup() + getMusicTopBarGroup()
+    return listOf(
+        SettingsSliderItem(
+            SettingsValueState(Settings.KEY_NAVBAR_HEIGHT_MULTIPLIER.name),
+            getString("s_key_navbar_height_multiplier"),
+            getString("s_sub_navbar_height_multiplier")
+        )
+    ) + getCachingGroup() + getAccessibilityServiceGroup() + getMusicTopBarGroup()
 }
 
 private fun getCachingGroup(): List<SettingsItem> {

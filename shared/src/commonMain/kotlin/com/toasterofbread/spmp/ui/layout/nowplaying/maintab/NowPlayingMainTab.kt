@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
+import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.composeScope
 import com.toasterofbread.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
@@ -68,7 +69,7 @@ fun ColumnScope.NowPlayingMainTab(modifier: Modifier = Modifier) {
     }
 
     fun onThumbnailLoaded(song: Song?, image: ImageBitmap?) {
-        if (song?.id != current_song?.id || song?.id == colour_song?.id) {
+        if (song?.id != current_song?.id || (song?.id == colour_song?.id && image == null)) {
             return
         }
 

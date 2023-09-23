@@ -66,7 +66,7 @@ abstract class SettingsItem {
         @Composable
         fun ItemText(text: String?, colour: Color) {
             if (text?.isNotBlank() == true) {
-                Text(text, color = colour, style = MaterialTheme.typography.bodySmall)
+                LinkifyText(text, style = MaterialTheme.typography.bodySmall.copy(color = colour))
             }
         }
     }

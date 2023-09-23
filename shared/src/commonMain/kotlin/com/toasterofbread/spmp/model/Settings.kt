@@ -216,6 +216,7 @@ enum class Settings {
     KEY_FONT,
     KEY_STOP_PLAYER_ON_APP_CLOSE,
     KEY_LIBRARY_PATH,
+    KEY_NAVBAR_HEIGHT_MULTIPLIER,
 
     // Internal
     INTERNAL_TOPBAR_MODE_HOME,
@@ -412,6 +413,7 @@ enum class Settings {
                 KEY_FONT -> FontMode.DEFAULT.ordinal
                 KEY_STOP_PLAYER_ON_APP_CLOSE -> false
                 KEY_LIBRARY_PATH -> ""
+                KEY_NAVBAR_HEIGHT_MULTIPLIER -> 1f
 
                 KEY_SPMS_PORT -> 3973
 

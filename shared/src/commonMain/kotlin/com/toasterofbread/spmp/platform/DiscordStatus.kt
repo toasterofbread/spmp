@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.platform
 import androidx.compose.ui.graphics.ImageBitmap
 
 expect class DiscordStatus(
+    context: PlatformContext,
     bot_token: String? = null,
     guild_id: Long? = null,
     custom_images_channel_category_id: Long? = null,
@@ -20,7 +21,7 @@ expect class DiscordStatus(
 
     fun close()
 
-    suspend fun shouldUpdateStatus(context: PlatformContext): Boolean
+    suspend fun shouldUpdateStatus(): Boolean
 
     fun setActivity(
         name: String,
@@ -37,5 +38,5 @@ expect class DiscordStatus(
         buttons: List<Pair<String, String>>? = null
     )
 
-    suspend fun getCustomImage(unique_id: String, imageProvider: suspend () -> ImageBitmap?): Result<String?>
+    suspend fun getCustomImages(image_ids: List<String>, imageProvider: suspend (String) -> ImageBitmap?): Result<List<String?>>
 }

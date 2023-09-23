@@ -45,7 +45,7 @@ class SettingsInterface(
         }
     }
 
-    suspend fun goBack() {
+    fun goBack() {
         pill_menu?.clearAlongsideActions()
         pill_menu?.clearExtraActions()
         if (page_stack.size > 0) {
@@ -84,19 +84,10 @@ class SettingsInterface(
                     .fillMaxSize()
                     .onSizeChanged { width = it.width }
             ) {
-                var go_back by remember { mutableStateOf(false) }
-                LaunchedEffect(go_back) {
-                    if (go_back) {
-                        goBack()
-                    }
-                }
-
                 page.TitleBar(
                     page.id == root_page,
                     Modifier.zIndex(10f).padding(content_padding.copy(bottom = 0.dp))
-                ) {
-                    go_back = true
-                }
+                )
 
                 Box(
                     contentAlignment = Alignment.TopCenter
@@ -111,7 +102,7 @@ class SettingsInterface(
                             }
                         },
                         this@SettingsInterface::openPage,
-                        { go_back = true }
+                        this@SettingsInterface::goBack
                     )
                 }
             }

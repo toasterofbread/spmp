@@ -29,7 +29,7 @@ data class BrowseEndpoint(
     fun getViewMore(base_item: MediaItem): ViewMore {
         val item = getMediaItem()
         if (item != null) {
-            return MediaItemViewMore(item, params)
+            return MediaItemViewMore(item, params, base_item)
         }
         else if (params != null) {
             return ListPageBrowseIdViewMore(

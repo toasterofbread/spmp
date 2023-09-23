@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.composesettings.ui.item.SettingsGroupItem
 import com.toasterofbread.composesettings.ui.item.SettingsItem
 import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.utils.composable.WidthShrinkText
 import kotlinx.coroutines.launch
@@ -58,13 +56,10 @@ abstract class SettingsPage {
         CompositionLocalProvider(LocalContentColor provides settings_interface.theme.on_background) {
             PageView(content_padding, openPage, openCustomPage, goBack)
         }
-        BackHandler {
-            goBack()
-        }
     }
 
     @Composable
-    open fun TitleBar(is_root: Boolean, modifier: Modifier = Modifier, goBack: () -> Unit) {
+    open fun TitleBar(is_root: Boolean, modifier: Modifier = Modifier) {
         val player = LocalPlayerState.current
         val coroutine_scope = rememberCoroutineScope()
 
@@ -111,7 +106,7 @@ abstract class SettingsPage {
     protected abstract fun PageView(content_padding: PaddingValues, openPage: (Int, Any?) -> Unit, openCustomPage: (SettingsPage) -> Unit, goBack: () -> Unit)
 
     abstract suspend fun resetKeys(context: PlatformContext)
-    open suspend fun onClosed() {}
+    open fun onClosed() {}
 }
 
 private const val SETTINGS_PAGE_WITH_ITEMS_SPACING = 20f

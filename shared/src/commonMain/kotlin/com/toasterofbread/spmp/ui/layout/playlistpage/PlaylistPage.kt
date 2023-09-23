@@ -5,6 +5,8 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.model.mediaitem.db.isMediaItemHidden
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
@@ -50,8 +53,10 @@ import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_DEFAULT_HEIGHT
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.mainpage.OverlayPage
-import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
+import com.toasterofbread.spmp.ui.layout.apppage.AppPage
+import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
+import com.toasterofbread.spmp.ui.layout.apppage.AppPageWithItem
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
 import com.toasterofbread.utils.common.copy
@@ -70,9 +75,18 @@ private enum class LoadType {
 }
 
 class PlaylistPage(
+    override val state: AppPageState,
     playlist: Playlist,
     val player: PlayerState
-): OverlayPage {
+): AppPageWithItem() {
+    override val item: MediaItemHolder = playlist
+
+    private var previous_item: MediaItemHolder? by mutableStateOf(null)
+    override fun onOpened(from_item: MediaItemHolder?) {
+        super.onOpened(from_item)
+        previous_item = from_item
+    }
+
     var edit_in_progress: Boolean by mutableStateOf(false)
         private set
 
@@ -235,12 +249,16 @@ class PlaylistPage(
     }
 
     @Composable
-    override fun Page(previous_item: MediaItem?, close: () -> Unit) {
+    override fun ColumnScope.Page(
+        multiselect_context: MediaItemMultiSelectContext,
+        modifier: Modifier,
+        content_padding: PaddingValues,
+        close: () -> Unit,
+    ) {
         val db = player.database
 
         val playlist_items: List<MediaItem>? by playlist.Items.observe(db)
         var sorted_items: List<Pair<MediaItem, Int>>? by remember { mutableStateOf(null) }
-        val content_padding = getContentPadding()
 
         var load_type: LoadType by remember { mutableStateOf(LoadType.AUTO) }
         var load_error: Throwable? by remember { mutableStateOf(null) }
@@ -363,7 +381,7 @@ class PlaylistPage(
                     modifier = Modifier.reorderable(list_state),
                     contentPadding = content_padding.copy(top = top_padding)
                 ) {
-                    if (previous_item != null) {
+                    previous_item?.item?.also { prev ->
                         item {
                             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 IconButton(close) {
@@ -372,12 +390,12 @@ class PlaylistPage(
 
                                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                                val previous_item_title: String? by previous_item.observeActiveTitle()
+                                val previous_item_title: String? by prev.observeActiveTitle()
                                 previous_item_title?.also { Text(it) }
 
                                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                                IconButton({ player.showLongPressMenu(previous_item) }) {
+                                IconButton({ player.showLongPressMenu(prev) }) {
                                     Icon(Icons.Default.MoreVert, null)
                                 }
                             }

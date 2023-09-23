@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.db.rememberPinnedItems
 import com.toasterofbread.spmp.model.mediaitem.db.setPinned
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
-import com.toasterofbread.spmp.ui.layout.mainpage.getMainPageItemSize
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.getMainPageItemSize
 
 @Composable
 fun PinnedItemsRow(

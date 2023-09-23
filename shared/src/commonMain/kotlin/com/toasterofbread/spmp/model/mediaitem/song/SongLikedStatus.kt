@@ -5,7 +5,7 @@ import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 import com.toasterofbread.spmp.youtubeapi.endpoint.SetSongLikedEndpoint
 
 enum class SongLikedStatus {
-    NEUTRAL, LIKED, DISLIKED
+    NEUTRAL, LIKED, DISLIKED;
 }
 
 fun Long?.toSongLikedStatus(): SongLikedStatus? =
@@ -28,6 +28,8 @@ suspend fun Song.updateLiked(liked: SongLikedStatus, endpoint: SetSongLikedEndpo
     if (!endpoint.isImplemented()) {
         return Result.failure(EndpointNotImplementedException(endpoint))
     }
+
+    Liked.set(liked, context.database)
 
     return endpoint.setSongLiked(this, liked).onSuccess {
         Liked.set(liked, context.database)

@@ -29,6 +29,11 @@ jobs:
         touch keys.properties
         echo "$KEYS_PROPERTIES" >> keys.properties
 
+    - name: Create and populate shared/google-services.json
+      run: |
+        touch shared/google-services.json
+        echo "$GOOGLE_SERVICES_JSON" >> shared/google-services.json
+
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 

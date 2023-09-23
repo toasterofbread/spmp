@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composesettings.ui.SettingsInterface
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
@@ -29,11 +30,12 @@ interface OverlayPage {
     fun getContentPadding(): PaddingValues {
         val player = LocalPlayerState.current
 
-        val bottom_padding =
+        val bottom_padding = with(LocalDensity.current) {
             (
                 if (player.session_started) MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
                 else 0.dp
-            ) + player.context.getNavigationBarHeightDp() + player.getDefaultVerticalPadding()
+            ) + player.context.getNavigationBarHeightDp() + player.getDefaultVerticalPadding() + (player.context.getImeInsets()?.getBottom(this@with)?.toDp() ?: 0.dp)
+        }
 
         val horizontal_padding = player.getDefaultHorizontalPadding()
         val vertical_padding = player.getDefaultVerticalPadding()

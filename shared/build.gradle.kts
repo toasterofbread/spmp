@@ -7,26 +7,28 @@ plugins {
     id("com.android.library")
     id("org.jetbrains.compose")
     id("app.cash.sqldelight") version "2.0.0-rc02"
+    id("com.google.gms.google-services")
 }
 
 val KEY_NAMES = mapOf(
     "DISCORD_BOT_TOKEN" to "String",
     "DISCORD_CUSTOM_IMAGES_CHANNEL_CATEGORY" to "Long",
     "DISCORD_CUSTOM_IMAGES_CHANNEL_NAME_PREFIX" to "String",
-    "PASTE_EE_TOKEN" to "String"
+    "PASTE_EE_TOKEN" to "String",
 )
-val DEBUG_KEY_NAMES = listOf(
-    "YTM_CHANNEL_ID",
-    "YTM_COOKIE",
-    "YTM_HEADERS",
-    "DISCORD_ACCOUNT_TOKEN",
-    "DISCORD_ERROR_REPORT_WEBHOOK",
-    "DISCORD_STATUS_TEXT_NAME_OVERRIDE",
-    "DISCORD_STATUS_TEXT_TEXT_A_OVERRIDE",
-    "DISCORD_STATUS_TEXT_TEXT_B_OVERRIDE",
-    "DISCORD_STATUS_TEXT_TEXT_C_OVERRIDE",
-    "DISCORD_STATUS_TEXT_BUTTON_SONG_OVERRIDE",
-    "DISCORD_STATUS_TEXT_BUTTON_PROJECT_OVERRIDE"
+val DEBUG_KEY_NAMES = mapOf(
+    "YTM_CHANNEL_ID" to "String",
+    "YTM_COOKIE" to "String",
+    "YTM_HEADERS" to "String",
+    "DISCORD_ACCOUNT_TOKEN" to "String",
+    "DISCORD_ERROR_REPORT_WEBHOOK" to "String",
+    "DISCORD_STATUS_TEXT_NAME_OVERRIDE" to "String",
+    "DISCORD_STATUS_TEXT_TEXT_A_OVERRIDE" to "String",
+    "DISCORD_STATUS_TEXT_TEXT_B_OVERRIDE" to "String",
+    "DISCORD_STATUS_TEXT_TEXT_C_OVERRIDE" to "String",
+    "DISCORD_STATUS_TEXT_BUTTON_SONG_OVERRIDE" to "String",
+    "DISCORD_STATUS_TEXT_BUTTON_PROJECT_OVERRIDE" to "String",
+    "MUTE_PLAYER" to "Boolean"
 )
 
 val buildConfigDir: Provider<Directory> get() = project.layout.buildDirectory.dir("generated/buildconfig")
@@ -39,13 +41,13 @@ fun GenerateBuildConfig.buildConfig(debug: Boolean) {
             keys.clear()
             keys.load(FileInputStream(file))
 
-            for (item in keys) {
-                val key = item.key.toString()
+            for (key in key_names) {
                 fields_to_generate.add(
                     Triple(
                         key,
                         getType(key) + '?',
-                        if (debug_only && !debug) null.toString() else item.value.toString()
+                        if (debug_only && !debug) null.toString()
+                        else keys[key].toString()
                     )
                 )
             }
@@ -77,8 +79,10 @@ fun GenerateBuildConfig.buildConfig(debug: Boolean) {
 
     loadKeys(
         rootProject.file("debug_keys.properties"),
-        { "String" },
-        DEBUG_KEY_NAMES,
+        { key ->
+            DEBUG_KEY_NAMES[key]!!
+        },
+        DEBUG_KEY_NAMES.keys,
         debug_only = true
     )
 
@@ -159,6 +163,9 @@ kotlin {
                 implementation("app.cash.sqldelight:android-driver:2.0.0-rc02")
                 implementation("com.anggrayudi:storage:1.5.5")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.6.0")
+
+                implementation(platform("com.google.firebase:firebase-bom:32.3.1"))
+                implementation("com.google.firebase:firebase-firestore-ktx")
             }
         }
 

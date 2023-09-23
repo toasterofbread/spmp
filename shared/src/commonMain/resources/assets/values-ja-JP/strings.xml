@@ -450,7 +450,10 @@
     <string name="s_confirm_reset_stats"></string> <!--TODO-->
 
     <string name="s_cat_other">その他</string>
-    
+
+    <string name="s_key_navbar_height_multiplier">ナビゲーションバーの高さの倍率</string>
+    <string name="s_sub_navbar_height_multiplier">システムが正しい高さを報告しない場合、これで調節できます（アプリの再起動が必要です）</string>
+
     <string name="s_group_caching">キャッシュ</string>
     <string name="s_key_enable_thumbnail_cache">サムネール画像をキャッシュする</string>
     

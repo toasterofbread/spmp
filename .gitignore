@@ -17,3 +17,4 @@ keys.properties
 debug_keys.properties
 androidApp/keystore.properties
 androidApp/main.keystore
+/shared/google-services.json

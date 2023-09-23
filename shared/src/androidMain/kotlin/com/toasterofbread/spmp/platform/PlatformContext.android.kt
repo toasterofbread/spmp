@@ -64,6 +64,7 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
+import kotlin.math.roundToInt
 
 private const val DEFAULT_NOTIFICATION_CHANNEL_ID = "default_channel"
 private const val ERROR_NOTIFICATION_CHANNEL_ID = "download_error_channel"
@@ -493,9 +494,14 @@ actual class PlatformContext(
 
     @SuppressLint("InternalInsetResource", "DiscouragedApi")
     actual fun getNavigationBarHeight(): Int {
+        val multiplier: Float = Settings.KEY_NAVBAR_HEIGHT_MULTIPLIER.get(this)
+        if (multiplier == 0f) {
+            return 0
+        }
+
         val resources = ctx.resources
         val resource_id = resources.getIdentifier("navigation_bar_height", "dimen", "android")
-        return if (resource_id > 0) resources.getDimensionPixelSize(resource_id) else 0
+        return if (resource_id > 0) (resources.getDimensionPixelSize(resource_id) * multiplier).roundToInt() else 0
     }
 
     actual fun setNavigationBarColour(colour: Color?) {

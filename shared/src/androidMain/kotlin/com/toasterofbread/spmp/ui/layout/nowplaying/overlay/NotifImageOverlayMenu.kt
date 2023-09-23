@@ -73,8 +73,15 @@ actual class NotifImagePlayerOverlayMenu: PlayerOverlayMenu() {
             val coroutine_scope = rememberCoroutineScope()
 
             var size_and_max_offset: Triple<ImageBitmap, IntSize, IntOffset>? by remember { mutableStateOf(null) }
+            val song_notif_offset: IntOffset? by song.NotificationImageOffset.observe(player.database)
+
             val offset_x = remember { Animatable(0f) }
             val offset_y = remember { Animatable(0f) }
+
+            LaunchedEffect(song_notif_offset) {
+                offset_x.animateTo(song_notif_offset?.x?.toFloat() ?: 0f)
+                offset_y.animateTo(song_notif_offset?.y?.toFloat() ?: 0f)
+            }
 
             LaunchedEffect(thumbnail) {
                 size_and_max_offset = thumbnail?.let {
@@ -93,7 +100,10 @@ actual class NotifImagePlayerOverlayMenu: PlayerOverlayMenu() {
                     return@Crossfade
                 }
 
-                Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)) {
                     val (image, image_size, max_offset) = state
                     val shape = RoundedCornerShape(16.dp)
 
@@ -154,10 +164,14 @@ actual class NotifImagePlayerOverlayMenu: PlayerOverlayMenu() {
                         }
                         IconButton({
                             openMenu(null)
-                            player.database.songQueries.updateNotifImageOffsetById(
-                                offset_x.value.takeIf { it != 0f }?.roundToLong(),
-                                offset_y.value.takeIf { it != 0f }?.roundToLong(),
-                                song.id
+
+                            val x = offset_x.value.takeIf { it != 0f }?.roundToInt()
+                            val y = offset_y.value.takeIf { it != 0f }?.roundToInt()
+
+                            song.NotificationImageOffset.set(
+                                if (x != null || y != null) IntOffset( x ?: 0, y ?: 0)
+                                else null,
+                                player.database
                             )
                         }) {
                             Icon(Icons.Default.Done, null)

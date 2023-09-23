@@ -65,7 +65,6 @@ fun LikeDislikeButton(
                     getColour
                 ) { new_status ->
                     coroutine_scope.launchSingle {
-                        song.Liked.set(new_status, context.database)
                         song.updateLiked(new_status, set_liked_endpoint, context)
                     }
                 }

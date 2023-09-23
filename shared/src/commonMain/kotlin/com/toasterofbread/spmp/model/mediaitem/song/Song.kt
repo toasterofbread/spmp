@@ -130,10 +130,11 @@ interface Song: MediaItem.WithArtist {
         "NotificationImageOffset",
         { songQueries.notifImageOffsetById(id) },
         {
-            if (notif_image_offset_x != null || notif_image_offset_y != null) IntOffset(
-                notif_image_offset_x?.toInt() ?: 0,
-                notif_image_offset_y?.toInt() ?: 0
-            )
+            if (notif_image_offset_x != null || notif_image_offset_y != null)
+                IntOffset(
+                    notif_image_offset_x?.toInt() ?: 0,
+                    notif_image_offset_y?.toInt() ?: 0
+                )
             else null
         },
         { songQueries.updateNotifImageOffsetById(it?.x?.toLong(), it?.y?.toLong(), id) }

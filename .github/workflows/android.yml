@@ -12,6 +12,7 @@ jobs:
 
     env:
       KEYS_PROPERTIES: ${{ secrets.KEYS_PROPERTIES }}
+      GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
 
     steps:
     - uses: actions/checkout@v3

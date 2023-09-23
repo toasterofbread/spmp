@@ -28,7 +28,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider.Qualit
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistDefaultThumbnail
-import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.utils.common.launchSingle
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator

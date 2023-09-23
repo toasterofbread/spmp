@@ -197,7 +197,6 @@ private fun getEditPage(
             get() = editor_title
 
         private var reset by mutableStateOf(false)
-        private var close by mutableStateOf(false)
 
         private var pill_extra: (@Composable PillMenu.Action.(Int) -> Unit)? = null
         private var pill_side_extra: (@Composable PillMenu.Action.() -> Unit)? = null
@@ -212,7 +211,7 @@ private fun getEditPage(
             content_padding: PaddingValues,
             openPage: (Int, Any?) -> Unit,
             openCustomPage: (SettingsPage) -> Unit,
-            goBack: () -> Unit,
+            goBack: () -> Unit
         ) {
             val player = LocalPlayerState.current
             val ui_theme = settings_interface.theme
@@ -231,7 +230,7 @@ private fun getEditPage(
                     pill_extra = {
                         ActionButton(Icons.Filled.Done) {
                             onEditCompleted(StaticThemeData(name, background, on_background, accent))
-                            close = true
+                            goBack()
                         }
                     }
                     settings_interface.pill_menu?.addExtraAction(action = pill_extra!!)
@@ -292,13 +291,6 @@ private fun getEditPage(
                 }
                 else {
                     Theme.setPreviewThemeData(null)
-                }
-            }
-
-            OnChangedEffect(close) {
-                if (close) {
-                    close = false
-                    goBack()
                 }
             }
 
@@ -383,7 +375,7 @@ private fun getEditPage(
             reset = !reset
         }
 
-        override suspend fun onClosed() {
+        override fun onClosed() {
             super.onClosed()
             Theme.setPreviewThemeData(null)
 

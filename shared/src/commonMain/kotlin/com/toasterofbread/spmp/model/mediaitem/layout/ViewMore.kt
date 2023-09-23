@@ -5,7 +5,7 @@ import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.getMediaItemFromUid
 import com.toasterofbread.spmp.model.mediaitem.getUid
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
-import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 
 sealed interface ViewMore {
     fun execute(player: PlayerState, title: LocalisedYoutubeString?)
@@ -17,15 +17,23 @@ enum class ViewMoreType {
     fun getViewMore(data: String): ViewMore =
         when (this) {
             MediaItem -> {
-                val split = data.split(VIEW_MORE_SPLIT_CHAR, limit = 2)
-                MediaItemViewMore(getMediaItemFromUid(split[0]), split.getOrNull(1))
+                val split = data.split(VIEW_MORE_SPLIT_CHAR, limit = 3)
+                MediaItemViewMore(
+                    browse_media_item = getMediaItemFromUid(split[0]),
+                    browse_params = split[1],
+                    media_item = split.getOrNull(2)?.let { getMediaItemFromUid(it) }
+                )
             }
             ListPage -> {
                 val split = data.split(VIEW_MORE_SPLIT_CHAR, limit = 3)
-                ListPageBrowseIdViewMore(split[0], split[1], split[2])
+                ListPageBrowseIdViewMore(
+                    item_id = split[0],
+                    list_page_browse_id = split[1],
+                    browse_params = split[2]
+                )
             }
             Plain -> {
-                PlainViewMore(data)
+                PlainViewMore(browse_id = data)
             }
         }
 
@@ -36,12 +44,12 @@ enum class ViewMoreType {
                 is MediaItemViewMore ->
                     Pair(
                         MediaItem.ordinal.toLong(),
-                        view_more.media_item.getUid() + VIEW_MORE_SPLIT_CHAR + (view_more.browse_params ?: "")
+                        view_more.browse_media_item.getUid() + VIEW_MORE_SPLIT_CHAR + (view_more.browse_params ?: "") + VIEW_MORE_SPLIT_CHAR + (view_more.media_item?.getUid() ?: "")
                     )
                 is ListPageBrowseIdViewMore ->
                     Pair(
                         ListPage.ordinal.toLong(),
-                        view_more.item_id + VIEW_MORE_SPLIT_CHAR + view_more.list_page_browse_id + VIEW_MORE_SPLIT_CHAR + (view_more.browse_params ?: "")
+                        view_more.item_id + VIEW_MORE_SPLIT_CHAR + view_more.list_page_browse_id + VIEW_MORE_SPLIT_CHAR + view_more.browse_params
                     )
                 is PlainViewMore ->
                     Pair(
@@ -66,15 +74,16 @@ data class BrowseParamsData(
 )
 
 data class MediaItemViewMore(
-    val media_item: MediaItem,
-    val browse_params: String? = null
+    val browse_media_item: MediaItem,
+    val browse_params: String?,
+    val media_item: MediaItem? = null
 ): ViewMore {
     override fun execute(player: PlayerState, title: LocalisedYoutubeString?) {
         player.openMediaItem(
-            media_item,
+            media_item ?: browse_media_item,
             true,
             browse_params = browse_params?.let { params ->
-                BrowseParamsData(media_item.id, params, title?.getString() ?: "")
+                BrowseParamsData(browse_media_item.id, params, title?.getString() ?: "")
             }
         )
     }

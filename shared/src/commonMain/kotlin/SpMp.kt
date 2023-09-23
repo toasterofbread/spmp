@@ -3,8 +3,6 @@
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -43,10 +41,10 @@ import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.resources.uilocalisation.UnlocalisedStringCollector
 import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
 import com.toasterofbread.spmp.resources.uilocalisation.localised.UILanguages
-import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
-import com.toasterofbread.spmp.ui.layout.mainpage.PlayerStateImpl
-import com.toasterofbread.spmp.ui.layout.mainpage.RootView
-import com.toasterofbread.spmp.ui.layout.mainpage.LoadingSplashView
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.LoadingSplashView
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerStateImpl
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.RootView
 import com.toasterofbread.spmp.ui.theme.ApplicationTheme
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.fromJson

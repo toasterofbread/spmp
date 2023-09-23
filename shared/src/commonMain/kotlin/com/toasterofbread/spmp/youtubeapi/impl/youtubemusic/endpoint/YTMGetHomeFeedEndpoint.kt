@@ -162,7 +162,7 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
                     add(
                         LocalisedYoutubeString.Type.RAW.create(header.title.first_text),
                         header.subtitle?.first_text?.let { LocalisedYoutubeString.Type.HOME_FEED.create(it) },
-                        view_more = MediaItemViewMore(media_item)
+                        view_more = MediaItemViewMore(media_item, null)
                     )
                 }
                 else -> continue

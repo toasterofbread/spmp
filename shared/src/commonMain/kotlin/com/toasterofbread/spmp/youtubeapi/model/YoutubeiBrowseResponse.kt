@@ -1,7 +1,8 @@
 package com.toasterofbread.spmp.youtubeapi.model
 
 import com.toasterofbread.spmp.model.FilterChip
-import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
+import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
+import com.toasterofbread.spmp.resources.uilocalisation.YoutubeLocalisedString
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.ChipCloudRendererHeader
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMGetHomeFeedEndpoint
 import com.toasterofbread.spmp.youtubeapi.radio.YoutubeiNextResponse
@@ -23,7 +24,7 @@ data class YoutubeiBrowseResponse(
     fun getHeaderChips(): List<FilterChip>? =
         contents?.singleColumnBrowseResultsRenderer?.tabs?.first()?.tabRenderer?.content?.sectionListRenderer?.header?.chipCloudRenderer?.chips?.map {
             FilterChip(
-                LocalisedYoutubeString.Type.FILTER_CHIP.create(it.chipCloudChipRenderer.text!!.first_text),
+                YoutubeLocalisedString.Type.FILTER_CHIP.createFromKey(it.chipCloudChipRenderer.text!!.first_text),
                 it.chipCloudChipRenderer.navigationEndpoint.browseEndpoint!!.params!!
             )
         }

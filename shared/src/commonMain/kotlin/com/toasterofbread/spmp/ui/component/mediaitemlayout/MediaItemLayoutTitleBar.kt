@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.layout.ViewMore
 import com.toasterofbread.spmp.model.mediaitem.layout.shouldShowTitleBar
-import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
+import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.WidthShrinkText
@@ -30,8 +30,8 @@ import com.toasterofbread.utils.composable.WidthShrinkText
 @Composable
 fun TitleBar(
     items: List<MediaItemHolder>,
-    title: LocalisedYoutubeString?,
-    subtitle: LocalisedYoutubeString?,
+    title: LocalisedString?,
+    subtitle: LocalisedString?,
     modifier: Modifier = Modifier,
     view_more: ViewMore? = null,
     font_size: TextUnit? = null,

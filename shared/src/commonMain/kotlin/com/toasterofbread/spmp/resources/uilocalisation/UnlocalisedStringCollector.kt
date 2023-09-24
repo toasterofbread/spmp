@@ -5,14 +5,14 @@ import androidx.compose.runtime.mutableStateListOf
 class UnlocalisedStringCollector {
     data class UnlocalisedString(
         val type: String, 
-        val key: String?, 
-        val source_language: String
+        val key: String?,
+        val source_language: String?
     ) {
-        val stacktrace = Throwable().getStackTrace().takeLast(5)
+        val stacktrace: List<StackTraceElement> = Throwable().stackTrace.takeLast(5)
         
         companion object {
-            fun fromLocalised(string: LocalisedYoutubeString) =
-                UnlocalisedString("LocalisedYoutubeString.${string.type}", string.key, string.source_language)
+            fun fromLocalised(string: LocalisedString) =
+                UnlocalisedString(string.getType().name, string.serialise(), null)
         }
     }
     
@@ -30,7 +30,7 @@ class UnlocalisedStringCollector {
             return true
         }
     }
-    fun add(string: LocalisedYoutubeString) = add(UnlocalisedString.fromLocalised(string))
+    fun add(string: LocalisedString) = add(UnlocalisedString.fromLocalised(string))
 
     fun getStrings(): List<UnlocalisedString> = unlocalised_strings
 }

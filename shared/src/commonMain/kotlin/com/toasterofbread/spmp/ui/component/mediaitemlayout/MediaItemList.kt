@@ -14,7 +14,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.layout.ViewMore
 import com.toasterofbread.spmp.model.mediaitem.rememberFilteredItems
-import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
+import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 
@@ -24,21 +24,23 @@ const val MEDIAITEM_LIST_DEFAULT_SPACING_DP: Float = 10f
 fun MediaItemList(
     layout: MediaItemLayout,
     modifier: Modifier = Modifier,
+    title_modifier: Modifier = Modifier,
     numbered: Boolean = false,
     multiselect_context: MediaItemMultiSelectContext? = null,
     apply_filter: Boolean = false,
     show_download_indicators: Boolean = true
 ) {
-    MediaItemList(layout.items, modifier, numbered, layout.title, layout.subtitle, layout.view_more, multiselect_context, apply_filter, show_download_indicators = show_download_indicators)
+    MediaItemList(layout.items, modifier, title_modifier, numbered, layout.title, layout.subtitle, layout.view_more, multiselect_context, apply_filter, show_download_indicators = show_download_indicators)
 }
 
 @Composable
 fun MediaItemList(
     items: List<MediaItemHolder>,
     modifier: Modifier = Modifier,
+    title_modifier: Modifier = Modifier,
     numbered: Boolean = false,
-    title: LocalisedYoutubeString? = null,
-    subtitle: LocalisedYoutubeString? = null,
+    title: LocalisedString? = null,
+    subtitle: LocalisedString? = null,
     view_more: ViewMore? = null,
     multiselect_context: MediaItemMultiSelectContext? = null,
     apply_filter: Boolean = false,
@@ -51,7 +53,7 @@ fun MediaItemList(
             items,
             title,
             subtitle,
-            Modifier.padding(bottom = 5.dp),
+            title_modifier.padding(bottom = 5.dp),
             view_more = view_more,
             multiselect_context = multiselect_context
         )

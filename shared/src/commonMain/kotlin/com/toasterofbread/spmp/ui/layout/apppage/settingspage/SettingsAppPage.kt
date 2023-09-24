@@ -270,7 +270,7 @@ class SettingsAppPage(override val state: AppPageState): AppPage() {
                             CompositionLocalProvider(LocalContentColor provides Theme.on_background) {
                                 settings_interface.Interface(
                                     Modifier.fillMaxSize(),
-                                    content_padding = content_padding.copy(top = top_padding)
+                                    content_padding = PaddingValues(top = top_padding, bottom = content_padding.calculateBottomPadding())
                                 )
                             }
                         }

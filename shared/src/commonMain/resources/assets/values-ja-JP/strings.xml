@@ -90,6 +90,7 @@
     <string name="action_warning_accept">同意する</string>
     <string name="prompt_confirm_action">確認してください</string>
     <string name="prompt_confirm_settings_page_reset">このページのバリューを全てリセットしますか？</string>
+    <string name="prompt_hide_feed_rows_with_$title">タイトルが「$title」の行を隠しますか？</string>
 
     <string name="player_overlay_menu_action_open_main_menu">オーバーレイ画面を開く</string>
     <string name="player_overlay_menu_action_open_theming">テーマ画面を開く</string>
@@ -305,11 +306,9 @@
     <string name="s_key_feed_square_preview_text_lines">四角形アイテムの最高テキスト行数</string>
     <string name="s_sub_feed_initial_rows">自動的にロードするフィード行の最小数</string>
     <string name="s_key_feed_show_radios">フィードにラジオを表示する</string>
-    <string name="s_key_feed_show_listen_row">「もう一度聴く」行を表示する</string>
-    <string name="s_key_feed_show_mix_row">「おすすめのミックス」行を表示する</string>
-    <string name="s_key_feed_show_new_row">「新作」行を表示する</string>
-    <string name="s_key_feed_show_moods_row">「おすすめのプレイリスト」行を表示する</string>
-    <string name="s_key_feed_show_charts_row">「チャート」行を表示する</string>
+    <string name="s_key_hidden_feed_rows">隠された行</string>
+    <string name="s_sub_hidden_feed_rows">行のタイトルを長押しして隠すこともできます</string>
+    <string name="s_hidden_feed_rows_dialog_title">タイトルで行を隠す</string>
 
     <string name="s_key_vol_steps">音量変化のステップ</string>
     <string name="s_sub_vol_steps">アクセシビリティサービスで音量を変える時のステップ量</string>

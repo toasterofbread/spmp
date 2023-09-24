@@ -8,7 +8,7 @@ import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
-import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
+import com.toasterofbread.spmp.resources.uilocalisation.YoutubeLocalisedString
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchFilter
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchResults
@@ -70,7 +70,7 @@ class SearchEndpointImpl(override val api: YoutubeMusicApi): SearchEndpoint() {
                 category_layouts.add(Pair(
                     MediaItemLayout(
                         mutableListOf(card.getMediaItem()),
-                        LocalisedYoutubeString.Type.SEARCH_PAGE.create(card.header.musicCardShelfHeaderBasicRenderer!!.title!!.first_text),
+                        YoutubeLocalisedString.Type.SEARCH_PAGE.createFromKey(card.header.musicCardShelfHeaderBasicRenderer!!.title!!.first_text),
                         null,
                         type = MediaItemLayout.Type.CARD
                     ),
@@ -84,7 +84,7 @@ class SearchEndpointImpl(override val api: YoutubeMusicApi): SearchEndpoint() {
             val search_params = if (category.index == 0) null else chips[category.index - 1].chipCloudChipRenderer.navigationEndpoint.searchEndpoint!!.params
 
             category_layouts.add(Pair(
-                MediaItemLayout(items, LocalisedYoutubeString.Type.SEARCH_PAGE.create(shelf.title!!.first_text), null),
+                MediaItemLayout(items, YoutubeLocalisedString.Type.SEARCH_PAGE.createFromKey(shelf.title!!.first_text), null),
                 search_params?.let {
                     val item = items.firstOrNull() ?: return@let null
                     SearchFilter(when (item) {

@@ -37,7 +37,7 @@ import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.resources.initResources
-import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
+import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.resources.uilocalisation.UnlocalisedStringCollector
 import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
 import com.toasterofbread.spmp.resources.uilocalisation.localised.UILanguages
@@ -188,7 +188,7 @@ object SpMp {
     fun onUnlocalisedStringFound(type: String, key: String?, source_language: String) =
         onUnlocalisedStringFound(UnlocalisedStringCollector.UnlocalisedString(type, key, source_language))
     
-    fun onUnlocalisedStringFound(string: LocalisedYoutubeString) =
+    fun onUnlocalisedStringFound(string: LocalisedString) =
         onUnlocalisedStringFound(UnlocalisedStringCollector.UnlocalisedString.fromLocalised(string))
 }
 

@@ -152,11 +152,7 @@ enum class Settings {
     KEY_FEED_INITIAL_ROWS,
     KEY_FEED_SQUARE_PREVIEW_TEXT_LINES,
     KEY_FEED_SHOW_RADIOS,
-    KEY_FEED_SHOW_LISTEN_ROW,
-    KEY_FEED_SHOW_MIX_ROW,
-    KEY_FEED_SHOW_NEW_ROW,
-    KEY_FEED_SHOW_MOODS_ROW,
-    KEY_FEED_SHOW_CHARTS_ROW,
+    KEY_FEED_HIDDEN_ROWS,
 
     // Player
     KEY_PLAYER_OVERLAY_CUSTOM_ACTION,
@@ -347,11 +343,7 @@ enum class Settings {
                 KEY_FEED_INITIAL_ROWS -> 4
                 KEY_FEED_SQUARE_PREVIEW_TEXT_LINES -> 1
                 KEY_FEED_SHOW_RADIOS -> false
-                KEY_FEED_SHOW_LISTEN_ROW -> true
-                KEY_FEED_SHOW_MIX_ROW -> true
-                KEY_FEED_SHOW_NEW_ROW -> true
-                KEY_FEED_SHOW_MOODS_ROW -> true
-                KEY_FEED_SHOW_CHARTS_ROW -> true
+                KEY_FEED_HIDDEN_ROWS -> emptySet<String>()
 
                 KEY_PLAYER_OVERLAY_CUSTOM_ACTION -> PlayerOverlayMenuAction.DEFAULT_CUSTOM.ordinal
                 KEY_PLAYER_OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS -> false

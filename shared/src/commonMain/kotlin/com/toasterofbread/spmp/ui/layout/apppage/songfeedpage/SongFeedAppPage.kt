@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -49,8 +50,11 @@ import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.model.mutableSettingsState
 import com.toasterofbread.spmp.platform.BackHandler
 import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.platform.composable.SwipeRefresh
+import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.PinnedItemsRow
@@ -195,6 +199,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
                 type = MediaItemLayout.Type.ROW
             )
         }
+        val hidden_rows: Set<String> by Settings.KEY_FEED_HIDDEN_ROWS.rememberMutableState()
 
         val square_item_max_text_rows: Int by Settings.KEY_FEED_SQUARE_PREVIEW_TEXT_LINES.rememberMutableState()
         val show_download_indicators: Boolean by Settings.KEY_FEED_SHOW_SONG_DOWNLOAD_INDICATORS.rememberMutableState()
@@ -250,6 +255,41 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
                 PinnedItemsRow(Modifier.padding(bottom = 10.dp))
             }
 
+            var hiding_layout: MediaItemLayout? by remember { mutableStateOf(null) }
+
+            hiding_layout?.also { layout ->
+                check(layout.title != null)
+
+                PlatformAlertDialog(
+                    onDismissRequest = { hiding_layout = null },
+                    confirmButton = {
+                        Button({
+                            val hidden_rows: Set<String> = Settings.KEY_FEED_HIDDEN_ROWS.get()
+                            Settings.KEY_FEED_HIDDEN_ROWS.set(
+                                hidden_rows.plus(layout.title.serialise())
+                            )
+
+                            hiding_layout = null
+                        }) {
+                            Text(getString("action_confirm_action"))
+                        }
+                    },
+                    dismissButton = {
+                        Button({
+                            hiding_layout = null
+                        }) {
+                            Text(getString("action_deny_action"))
+                        }
+                    },
+                    title = {
+                        Text(getString("prompt_confirm_action"))
+                    },
+                    text = {
+                        Text(getString("prompt_hide_feed_rows_with_\$title").replace("\$title", layout.title.getString()))
+                    }
+                )
+            }
+
             val state = current_state
 
             when (state) {
@@ -280,15 +320,33 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
                             }
                         }
 
-                        items(state as List<MediaItemLayout>) { layout ->
+                        items((state as List<MediaItemLayout>)) { layout ->
                             if (layout.items.isEmpty()) {
                                 return@items
+                            }
+
+                            if (layout.title != null) {
+                                val title: String = layout.title.getString()
+                                if (
+                                    hidden_rows.any { row_title ->
+                                        LocalisedString.deserialise(row_title).getString() == title
+                                    }
+                                ) {
+                                    return@items
+                                }
                             }
 
                             val type = layout.type ?: MediaItemLayout.Type.GRID
                             type.Layout(
                                 layout,
                                 Modifier.padding(top = 20.dp),
+                                title_modifier = Modifier.platformClickable(
+                                    onAltClick = {
+                                        if (layout.title != null) {
+                                            hiding_layout = layout
+                                        }
+                                    }
+                                ),
                                 multiselect_context = player.main_multiselect_context,
                                 apply_filter = true,
                                 square_item_max_text_rows = square_item_max_text_rows,

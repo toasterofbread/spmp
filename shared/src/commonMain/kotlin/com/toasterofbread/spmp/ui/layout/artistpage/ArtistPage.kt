@@ -23,7 +23,9 @@ import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.loadDataOnChange
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
+import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
+import com.toasterofbread.spmp.resources.uilocalisation.RawLocalisedString
+import com.toasterofbread.spmp.resources.uilocalisation.YoutubeLocalisedString
 import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
@@ -126,7 +128,7 @@ fun ArtistPage(
                     row.items,
                     content_modifier.padding(content_padding),
                     title = row.title?.let { title ->
-                        LocalisedYoutubeString.Type.RAW.create(title)
+                        RawLocalisedString(title)
                     }
                 )
             }
@@ -155,7 +157,7 @@ fun ArtistPage(
                 ) {
                     for (artist_layout in item_layouts ?: emptyList()) {
                         val layout = artist_layout.rememberMediaItemLayout(player.database)
-                        val layout_id = layout.title?.getID()
+                        val layout_id = (layout.title as? YoutubeLocalisedString)?.getYoutubeStringId()
 
                         val is_singles =
                             Settings.KEY_TREAT_SINGLES_AS_SONG.get()

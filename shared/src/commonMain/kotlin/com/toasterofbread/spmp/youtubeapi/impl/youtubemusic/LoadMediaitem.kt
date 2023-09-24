@@ -15,7 +15,8 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
-import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
+import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
+import com.toasterofbread.spmp.resources.uilocalisation.YoutubeLocalisedString
 import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeDurationString
 import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeSubscribersString
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
@@ -227,8 +228,8 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                     check(item is ArtistData)
 
                     val layout_title = row.value.title?.text?.let {
-                        if (item.isOwnChannel(api)) LocalisedYoutubeString.Type.OWN_CHANNEL.create(it)
-                        else LocalisedYoutubeString.mediaItemPage(it, item.getType())
+                        if (item.isOwnChannel(api)) YoutubeLocalisedString.Type.OWN_CHANNEL.createFromKey(it)
+                        else YoutubeLocalisedString.mediaItemPage(it, item.getType())
                     }
 
                     val view_more = row.value.getNavigationEndpoint()?.getViewMore(item)

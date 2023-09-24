@@ -264,12 +264,7 @@
 	<string name="s_key_enable_stats">Habilitar estadísticas de reproducción</string>
 	<string name="s_key_enable_thumbnail_cache">Habilitar caché de miniaturas</string>
 	<string name="s_key_feed_initial_rows">Filas de alimentación inicial</string>
-	<string name="s_key_feed_show_charts_row">Habilitar la fila \'Rankings\'</string>
 	<string name="s_key_feed_show_filters">Mostrar filtros si están disponibles</string>
-	<string name="s_key_feed_show_listen_row">Habilitar la fila \'Volver a escuchar\'</string>
-	<string name="s_key_feed_show_mix_row">Enable \'Mixed for you\' row</string>
-	<string name="s_key_feed_show_moods_row">Habilitar la fila \'Playlist recomendadas\'</string>
-	<string name="s_key_feed_show_new_row">Habilitar la fila \'Nuevos lanzamientos\'</string>
 	<string name="s_key_feed_show_radios">Mostrar elementos de radio en el feed</string>
 	<string name="s_key_feed_square_preview_text_lines">Filas de texto máximas de elementos cuadrados</string>
 	<string name="s_key_filter_apply_to_artist_items">Aplicar filtro a elementos de artista</string>

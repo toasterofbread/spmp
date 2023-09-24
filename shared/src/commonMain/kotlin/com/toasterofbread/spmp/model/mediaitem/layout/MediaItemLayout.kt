@@ -10,7 +10,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
+import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemList
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -25,8 +25,8 @@ fun getMediaItemPreviewSquareAdditionalHeight(text_rows: Int?, line_height: Text
 
 data class MediaItemLayout(
     val items: List<MediaItem>,
-    val title: LocalisedYoutubeString?,
-    val subtitle: LocalisedYoutubeString?,
+    val title: LocalisedString?,
+    val subtitle: LocalisedString?,
     val type: Type? = null,
     var view_more: ViewMore? = null,
     val continuation: Continuation? = null
@@ -48,17 +48,18 @@ data class MediaItemLayout(
         fun Layout(
             layout: MediaItemLayout,
             modifier: Modifier = Modifier,
+            title_modifier: Modifier = Modifier,
             multiselect_context: MediaItemMultiSelectContext? = null,
             apply_filter: Boolean = false,
             square_item_max_text_rows: Int? = null,
             show_download_indicators: Boolean = true
         ) {
             when (this) {
-                GRID -> MediaItemGrid(layout, modifier, multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators)
-                GRID_ALT -> MediaItemGrid(layout, modifier, alt_style = true, multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators)
-                ROW -> MediaItemGrid(layout, modifier, 1, multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators)
-                LIST -> MediaItemList(layout, modifier, false, multiselect_context = multiselect_context, apply_filter = apply_filter, show_download_indicators = show_download_indicators)
-                NUMBERED_LIST -> MediaItemList(layout, modifier, true, multiselect_context = multiselect_context, apply_filter = apply_filter, show_download_indicators = show_download_indicators)
+                GRID -> MediaItemGrid(layout, modifier, title_modifier, multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators)
+                GRID_ALT -> MediaItemGrid(layout, modifier, title_modifier, alt_style = true, multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators)
+                ROW -> MediaItemGrid(layout, modifier, title_modifier, 1, multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators)
+                LIST -> MediaItemList(layout, modifier, title_modifier, false, multiselect_context = multiselect_context, apply_filter = apply_filter, show_download_indicators = show_download_indicators)
+                NUMBERED_LIST -> MediaItemList(layout, modifier, title_modifier, true, multiselect_context = multiselect_context, apply_filter = apply_filter, show_download_indicators = show_download_indicators)
                 CARD -> com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemCard(
                     layout,
                     modifier,
@@ -70,8 +71,8 @@ data class MediaItemLayout(
     }
 
     @Composable
-    fun Layout(modifier: Modifier = Modifier, multiselect_context: MediaItemMultiSelectContext? = null, apply_filter: Boolean = false) {
-        type!!.Layout(this, modifier, multiselect_context, apply_filter)
+    fun Layout(modifier: Modifier = Modifier, title_Modifier: Modifier = Modifier, multiselect_context: MediaItemMultiSelectContext? = null, apply_filter: Boolean = false) {
+        type!!.Layout(this, modifier, title_Modifier, multiselect_context, apply_filter)
     }
 
     data class Continuation(var token: String, var type: Type, val param: Any? = null) {
@@ -140,7 +141,7 @@ data class MediaItemLayout(
 }
 
 internal fun shouldShowTitleBar(
-    title: LocalisedYoutubeString?,
-    subtitle: LocalisedYoutubeString?,
+    title: LocalisedString?,
+    subtitle: LocalisedString?,
     view_more: ViewMore? = null
 ): Boolean = title != null || subtitle != null || view_more != null

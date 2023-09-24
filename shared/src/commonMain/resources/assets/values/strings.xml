@@ -97,6 +97,7 @@
     <string name="action_warning_accept">Accept</string>
     <string name="prompt_confirm_action">Please confirm</string>
     <string name="prompt_confirm_settings_page_reset">Reset all values on this page?</string>
+    <string name="prompt_hide_feed_rows_with_$title">Hide feed rows with title '$title'?</string>
 
     <string name="player_overlay_menu_action_open_main_menu">Open main overlay menu</string>
     <string name="player_overlay_menu_action_open_theming">Open theming</string>
@@ -316,11 +317,9 @@
     <string name="s_key_feed_square_preview_text_lines">Square item max text rows</string>
     <string name="s_sub_feed_initial_rows">Minimum amount of feed rows to load automatically</string>
     <string name="s_key_feed_show_radios">Show radio items in feed</string>
-    <string name="s_key_feed_show_listen_row">Enable \'Listen again\' row</string>
-    <string name="s_key_feed_show_mix_row">Enable \'Mixed for you\' row</string>
-    <string name="s_key_feed_show_new_row">Enable \'New releases\' row</string>
-    <string name="s_key_feed_show_moods_row">Enable \'Recommended playlists\' row</string>
-    <string name="s_key_feed_show_charts_row">Enable \'Charts\' row</string>
+    <string name="s_key_hidden_feed_rows">Hidden rows</string>
+    <string name="s_sub_hidden_feed_rows">Rows can also be hidden by long-pressing their title</string>
+    <string name="s_hidden_feed_rows_dialog_title">Hide row by title</string>
 
     <string name="s_key_vol_steps">Volume steps</string>
     <string name="s_sub_vol_steps">Amount of steps when changing volume</string>

@@ -1,12 +1,16 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
+import androidx.compose.runtime.remember
 import com.toasterofbread.composesettings.ui.item.SettingsGroupItem
 import com.toasterofbread.composesettings.ui.item.SettingsItem
 import com.toasterofbread.composesettings.ui.item.SettingsSliderItem
+import com.toasterofbread.composesettings.ui.item.SettingsStringSetItem
 import com.toasterofbread.composesettings.ui.item.SettingsToggleItem
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
+import com.toasterofbread.spmp.resources.uilocalisation.RawLocalisedString
 
 internal fun getFeedCategory(): List<SettingsItem> {
     return listOf(
@@ -46,25 +50,18 @@ internal fun getFeedCategory(): List<SettingsItem> {
             getString("s_key_feed_show_radios"), null
         ),
 
-        SettingsToggleItem(
-            SettingsValueState(Settings.KEY_FEED_SHOW_LISTEN_ROW.name),
-            getString("s_key_feed_show_listen_row"), null
-        ),
-        SettingsToggleItem(
-            SettingsValueState(Settings.KEY_FEED_SHOW_MIX_ROW.name),
-            getString("s_key_feed_show_mix_row"), null
-        ),
-        SettingsToggleItem(
-            SettingsValueState(Settings.KEY_FEED_SHOW_NEW_ROW.name),
-            getString("s_key_feed_show_new_row"), null
-        ),
-        SettingsToggleItem(
-            SettingsValueState(Settings.KEY_FEED_SHOW_MOODS_ROW.name),
-            getString("s_key_feed_show_moods_row"), null
-        ),
-        SettingsToggleItem(
-            SettingsValueState(Settings.KEY_FEED_SHOW_CHARTS_ROW.name),
-            getString("s_key_feed_show_charts_row"), null
+        SettingsStringSetItem(
+            SettingsValueState(Settings.KEY_FEED_HIDDEN_ROWS.name),
+            getString("s_key_hidden_feed_rows"), getString("s_sub_hidden_feed_rows"),
+            getString("s_hidden_feed_rows_dialog_title"),
+            itemToText = {
+                remember(it) {
+                    LocalisedString.deserialise(it).getString()
+                }
+            },
+            textToItem = {
+                RawLocalisedString(it).serialise()
+            }
         )
     )
 }

@@ -25,7 +25,6 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -58,7 +57,9 @@ class SettingsStringSetItem(
     val subtitle: String?,
     val add_dialog_title: String,
     val single_line_content: Boolean = true,
-    val max_height: Dp = 300.dp
+    val max_height: Dp = 300.dp,
+    val itemToText: @Composable (String) -> String = { it },
+    val textToItem: (String) -> String = { it }
 ): SettingsItem() {
     override fun initialiseValueStates(prefs: PlatformPreferences, default_provider: (String) -> Any) {
         state.init(prefs, default_provider)
@@ -72,7 +73,6 @@ class SettingsStringSetItem(
         state.reset()
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun GetItem(
         theme: Theme,
@@ -97,7 +97,7 @@ class SettingsStringSetItem(
                     Crossfade(can_add_item) { enabled ->
                         ShapedIconButton(
                             {
-                                state.set(state.get().plus(new_item_content))
+                                state.set(state.get().plus(textToItem(new_item_content)))
                                 show_add_item_dialog = false
                             },
                             colours = icon_button_colours,
@@ -165,7 +165,7 @@ class SettingsStringSetItem(
                         for (item in set) {
                             item {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(item, Modifier.fillMaxWidth().weight(1f))
+                                    Text(itemToText(item), Modifier.fillMaxWidth().weight(1f))
 
                                     IconButton(
                                         { state.set(set.minus(item)) }

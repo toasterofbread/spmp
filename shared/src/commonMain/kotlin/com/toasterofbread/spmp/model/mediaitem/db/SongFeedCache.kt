@@ -5,7 +5,8 @@ import com.toasterofbread.spmp.model.FilterChip
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.layout.ViewMoreType
-import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
+import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
+import com.toasterofbread.spmp.resources.uilocalisation.YoutubeLocalisedString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.Duration
@@ -40,9 +41,7 @@ object SongFeedCache {
                     row.index.toLong(),
                     now,
                     if (row.index + 1 == layouts.size) continuation_token else null,
-                    title?.type?.ordinal?.toLong(),
-                    title?.key,
-                    title?.source_language,
+                    title?.serialise(),
                     view_more?.first,
                     view_more?.second
                 )
@@ -64,9 +63,7 @@ object SongFeedCache {
                     database.songFeedFilterQueries.insert(
                         filter.index.toLong(),
                         filter.value.params,
-                        text.type.ordinal.toLong(),
-                        text.key,
-                        text.source_language
+                        text.serialise()
                     )
                 }
             }
@@ -100,12 +97,8 @@ object SongFeedCache {
 
                     MediaItemLayout(
                         items,
-                        row.title_key?.let { title_key ->
-                            LocalisedYoutubeString(
-                                title_key,
-                                LocalisedYoutubeString.Type.values()[row.title_type?.toInt() ?: 0],
-                                row.title_lang!!
-                            )
+                        row.title_data?.let {
+                            LocalisedString.deserialise(it)
                         },
                         null,
                         view_more = row.view_more_type?.let { view_more_type ->
@@ -119,7 +112,7 @@ object SongFeedCache {
                 .executeAsList()
                 .map { filter ->
                     FilterChip(
-                        LocalisedYoutubeString(filter.text_key, LocalisedYoutubeString.Type.values()[filter.text_type.toInt()], filter.text_lang),
+                        LocalisedString.deserialise(filter.text_data),
                         filter.params
                     )
                 }

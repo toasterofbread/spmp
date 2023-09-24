@@ -2,11 +2,9 @@ CREATE TABLE SongFeedFilter (
     filter_index INTEGER NOT NULL PRIMARY KEY,
 
     params TEXT NOT NULL,
-    text_type INTEGER NOT NULL,
-    text_key TEXT NOT NULL,
-    text_lang TEXT NOT NULL
+    text_data TEXT NOT NULL
 );
 
 getAll: SELECT * FROM SongFeedFilter ORDER BY filter_index;
 
-insert: INSERT INTO SongFeedFilter(filter_index, params, text_type, text_key, text_lang) VALUES(:filter_index, :params, :text_type, :text_key, :text_lang);
+insert: INSERT INTO SongFeedFilter(filter_index, params, text_data) VALUES(:filter_index, :params, :text_data);

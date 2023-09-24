@@ -27,7 +27,7 @@ import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreview
 import com.toasterofbread.spmp.model.mediaitem.layout.getMediaItemPreviewSquareAdditionalHeight
 import com.toasterofbread.spmp.model.mediaitem.layout.shouldShowTitleBar
 import com.toasterofbread.spmp.model.mediaitem.rememberFilteredItems
-import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
+import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_LONG_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
@@ -40,6 +40,7 @@ import com.toasterofbread.utils.modifier.background
 fun MediaItemGrid(
     layout: MediaItemLayout,
     modifier: Modifier = Modifier,
+    title_modifier: Modifier = Modifier,
     rows: Int? = null,
     alt_style: Boolean = false,
     apply_filter: Boolean = false,
@@ -52,6 +53,7 @@ fun MediaItemGrid(
     MediaItemGrid(
         layout.items,
         modifier,
+        title_modifier,
         rows,
         layout.title,
         layout.subtitle,
@@ -71,9 +73,10 @@ fun MediaItemGrid(
 fun MediaItemGrid(
     items: List<MediaItemHolder>,
     modifier: Modifier = Modifier,
+    title_modifier: Modifier = Modifier,
     rows: Int? = null,
-    title: LocalisedYoutubeString? = null,
-    subtitle: LocalisedYoutubeString? = null,
+    title: LocalisedString? = null,
+    subtitle: LocalisedString? = null,
     view_more: ViewMore? = null,
     alt_style: Boolean = false,
     square_item_max_text_rows: Int? = null,
@@ -96,6 +99,7 @@ fun MediaItemGrid(
             items,
             title,
             subtitle,
+            title_modifier,
             view_more = view_more,
             multiselect_context = multiselect_context
         )

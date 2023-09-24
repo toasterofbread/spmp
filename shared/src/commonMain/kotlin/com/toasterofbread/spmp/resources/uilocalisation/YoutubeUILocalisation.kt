@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.resources.uilocalisation
 
-import SpMp
 import com.toasterofbread.spmp.resources.uilocalisation.localised.UILanguages
 import com.toasterofbread.spmp.resources.uilocalisation.localised.getYoutubeArtistPageLocalisations
 import com.toasterofbread.spmp.resources.uilocalisation.localised.getYoutubeFilterChipsLocalisations
@@ -43,18 +42,4 @@ class YoutubeUILocalisation(languages: UILanguages) {
     internal val ARTIST_PAGE_STRINGS: LocalisationSet = getYoutubeArtistPageLocalisations(languages)
     internal val SEARCH_PAGE_STRINGS: LocalisationSet = getYoutubeSearchPageLocalisations(languages)
     internal val FILTER_CHIPS: LocalisationSet = getYoutubeFilterChipsLocalisations(languages)
-
-    internal fun getLocalised(string: String, localisations: LocalisationSet, source_language: String?): Pair<String, StringID?>? {
-        val target: String = SpMp.ui_language
-
-        for (localisation in localisations.items.withIndex()) {
-            if (localisation.value[source_language]?.first == string) {
-                val string_data: Pair<String, String?> = localisation.value[target] ?: break
-                val id = localisations.item_ids[localisation.index]
-                return Pair(string_data.second ?: string_data.first, id)
-            }
-        }
-
-        return null
-    }
 }

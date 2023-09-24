@@ -8,22 +8,21 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.db.ListPropertyImpl
 import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.db.SingleProperty
-import com.toasterofbread.spmp.model.mediaitem.db.toLocalisedYoutubeString
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.layout.ViewMore
 import com.toasterofbread.spmp.model.mediaitem.layout.ViewMoreType
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
-import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
+import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 
 data class ArtistLayoutData(
     override var layout_index: Long?,
     override val artist_id: String,
 
     var items: List<MediaItemData>? = null,
-    var title: LocalisedYoutubeString? = null,
-    var subtitle: LocalisedYoutubeString? = null,
+    var title: LocalisedString? = null,
+    var subtitle: LocalisedString? = null,
     var type: MediaItemLayout.Type? = null,
     var view_more: ViewMore? = null,
     var playlist: RemotePlaylist? = null
@@ -56,8 +55,8 @@ sealed interface ArtistLayout {
     @Composable
     fun rememberMediaItemLayout(db: Database): MediaItemLayout {
         val items: List<MediaItem>? by Items.observe(db)
-        val title: LocalisedYoutubeString? by Title.observe(db)
-        val subtitle: LocalisedYoutubeString? by Subtitle.observe(db)
+        val title: LocalisedString? by Title.observe(db)
+        val subtitle: LocalisedString? by Subtitle.observe(db)
         val type: MediaItemLayout.Type? by Type.observe(db)
         val view_more: ViewMore? by ViewMore.observe(db)
         val playlist: RemotePlaylist? by Playlist.observe(db)
@@ -96,17 +95,17 @@ sealed interface ArtistLayout {
         }
     )
 
-    val Title: Property<LocalisedYoutubeString?>
+    val Title: Property<LocalisedString?>
         get() = SingleProperty(
         { artistLayoutQueries.titleByIndex(artist_id, layout_index!!) },
-        { title_type.toLocalisedYoutubeString(title_key, title_lang) },
-        { artistLayoutQueries.updateTitleByIndex(it?.type?.ordinal?.toLong(), it?.key, it?.source_language, artist_id, layout_index!!) }
+        { title_data?.let { LocalisedString.deserialise(it) } },
+        { artistLayoutQueries.updateTitleByIndex(it?.serialise(), artist_id, layout_index!!) }
     )
-    val Subtitle: Property<LocalisedYoutubeString?>
+    val Subtitle: Property<LocalisedString?>
         get() = SingleProperty(
         { artistLayoutQueries.subtitleByIndex(artist_id, layout_index!!) },
-        { subtitle_type.toLocalisedYoutubeString(subtitle_key, subtitle_lang) },
-        { artistLayoutQueries.updateSubtitleByIndex(it?.type?.ordinal?.toLong(), it?.key, it?.source_language, artist_id, layout_index!!) }
+        { subtitle_data?.let { LocalisedString.deserialise(it) } },
+        { artistLayoutQueries.updateSubtitleByIndex(it?.serialise(), artist_id, layout_index!!) }
     )
     val Type: Property<MediaItemLayout.Type?>
         get() = SingleProperty(

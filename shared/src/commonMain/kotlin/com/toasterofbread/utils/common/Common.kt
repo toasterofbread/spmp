@@ -145,7 +145,7 @@ fun formatElapsedTime(seconds: Long): String {
 	}
 }
 
-fun <K, V : Any> MutableMap<K, V>.putIfAbsent(key: K, getValue: () -> V): V {
+inline fun <K, V : Any> MutableMap<K, V>.putIfAbsent(key: K, getValue: () -> V): V {
 	var v = this[key]
 	if (v == null) {
 		v = getValue()

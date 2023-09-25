@@ -167,12 +167,12 @@ private fun getLyricsInlineTextContent(
                 else 0.5f
             ),
             height = (font_size.value + (reading_font_size.value * 2)).sp,
-            placeholderVerticalAlign = PlaceholderVerticalAlign.Bottom,
+            placeholderVerticalAlign = PlaceholderVerticalAlign.Bottom
         ),
         children = { alternate_text ->
             Box(
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.CenterStart
             ) {
                 if (show_readings && reading != null) {
                     textElement(

@@ -291,7 +291,7 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
 fun getLyricsTextStyle(font_size: TextUnit): TextStyle =
     LocalTextStyle.current.copy(
         fontSize = font_size,
-        lineHeight = ((font_size.value * 1.5) + 10).sp,
+        lineHeight = (font_size.value * 1.5).sp,
         letterSpacing = 0.sp,
         textAlign = TextAlign.Start
     )

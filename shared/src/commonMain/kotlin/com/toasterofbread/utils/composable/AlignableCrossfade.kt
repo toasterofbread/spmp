@@ -57,7 +57,8 @@ fun <T> Transition<T>.AlignableCrossfade(
         }
         if (replacementId == -1) {
             currentlyVisible.add(targetState)
-        } else {
+        } 
+        else {
             currentlyVisible[replacementId] = targetState
         }
         contentMap.clear()

@@ -272,7 +272,8 @@ private fun ExpandedContent(error: Throwable, shape: Shape, disable_parent_scrol
 
                             if (text_to_show != null) {
                                 text_to_show = null
-                            } else {
+                            }
+                            else {
                                 when (error) {
                                     is com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException -> {
                                         coroutine_scope.launch {

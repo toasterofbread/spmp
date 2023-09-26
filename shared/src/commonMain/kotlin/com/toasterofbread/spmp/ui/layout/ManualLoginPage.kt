@@ -78,7 +78,8 @@ fun ManualLoginPage(
                         text,
                         style = MaterialTheme.typography.bodyLarge
                     )
-                } else {
+                }
+                else {
                     Text(
                         text,
                         style = MaterialTheme.typography.bodyLarge,

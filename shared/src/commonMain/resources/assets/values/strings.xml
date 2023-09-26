@@ -311,7 +311,8 @@
     <string name="s_sub_hp_show_timed_lyrics">Timed lyrics will appear on the top bar if available</string>
 
     <string name="s_group_rec_feed">Recommended feed</string>
-    <string name="s_key_feed_show_filters">Show filters if available</string>
+    <string name="s_key_feed_show_filter_bar">Show filter bar</string>
+    <string name="s_sub_feed_show_filter_bar">If hidden, the search page still can be accessed by long-pressing the library search button</string>
     <string name="s_key_feed_show_song_download_indicators">Show song download indicators</string>
     <string name="s_key_feed_initial_rows">Initial feed rows</string>
     <string name="s_key_feed_square_preview_text_lines">Square item max text rows</string>
@@ -545,6 +546,9 @@
     <string name="s_cat_desc_download">Download quality and automatic download options</string>
     <string name="s_cat_desc_discord_status">Manage Discord account and customise status appearance</string>
     <string name="s_cat_desc_other">Cache and accessibility service options</string>
+    
+    <string name="song_related_page_no_content">Song has no related content</string>
+    <string name="song_related_page_empty_row">No content</string>
 
     <string name="discord_status_default_name">$artist</string>
     <string name="discord_status_default_text_a">$song</string>
@@ -552,6 +556,7 @@
     <string name="discord_status_default_text_c">Listening on SpMp</string>
     <string name="discord_status_default_button_song">Open song on YouTube</string>
     <string name="discord_status_default_button_project">Visit project page</string>
+    <string name="discord_status_unknown_artist_replacement">Unknown</string>
 
     <string name="action_login_manually">Log in manually</string>
     <string name="auth_not_signed_in">Not signed in</string>

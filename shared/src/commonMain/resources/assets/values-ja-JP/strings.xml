@@ -300,7 +300,8 @@
     <string name="s_sub_hp_show_timed_lyrics">流れてる曲に同期可能の歌詞があればトップバーに表示されます</string>
 
     <string name="s_group_rec_feed">おすすめフィード</string>
-    <string name="s_key_feed_show_filters">フィルターを表示する</string>
+    <string name="s_key_feed_show_filter_bar">フィルターバーを表示する</string>
+    <string name="s_sub_feed_show_filter_bar">バーが無表示でも、検索ページはライブラリの検索ボタンを長押ししてアクセスできます</string>
     <string name="s_key_feed_show_song_download_indicators">曲のダウンロード状態を表示する</string>
     <string name="s_key_feed_initial_rows">最初のフィード行数</string>
     <string name="s_key_feed_square_preview_text_lines">四角形アイテムの最高テキスト行数</string>
@@ -536,12 +537,16 @@
     <string name="s_cat_desc_discord_status">Discordアカウントとステータスの表示の調節</string>
     <string name="s_cat_desc_other">キャッシュとアクセシビリティサービスの設定</string>
 
+    <string name="song_related_page_no_content">この曲には関係コンテンツがありません</string>
+    <string name="song_related_page_empty_row">なにもありません</string>
+
     <string name="discord_status_default_name">$artist</string>
     <string name="discord_status_default_text_a">$song</string>
     <string name="discord_status_default_text_b">$artist</string>
     <string name="discord_status_default_text_c">Listening on SpMp</string>
     <string name="discord_status_default_button_song">Open song on YouTube</string>
     <string name="discord_status_default_button_project">Visit project page</string>
+    <string name="discord_status_unknown_artist_replacement">不明</string>
 
     <string name="action_login_manually">手動でログインする</string>
     <string name="auth_not_signed_in">ログインされていません</string>

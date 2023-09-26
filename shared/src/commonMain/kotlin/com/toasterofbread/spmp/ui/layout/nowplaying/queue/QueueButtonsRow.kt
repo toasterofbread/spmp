@@ -53,7 +53,8 @@ fun QueueButtonsRow(
                             player.player?.removeFromQueue(item.second!!)
                         }
                         multiselect_context.onActionPerformed()
-                    } else {
+                    }
+                    else {
                         player.player?.clearQueue(keep_current = player.status.m_song_count > 1)
                     }
                 }
@@ -75,7 +76,8 @@ fun QueueButtonsRow(
                             player.player?.shuffleQueueIndices(multiselect_context.getSelectedItems().map { it.second!! })
                         }
                         multiselect_context.onActionPerformed()
-                    } else {
+                    }
+                    else {
                         player.player?.undoableAction {
                             player.player?.shuffleQueue()
                         }

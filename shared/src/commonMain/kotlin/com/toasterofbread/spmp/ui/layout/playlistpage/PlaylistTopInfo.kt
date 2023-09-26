@@ -200,7 +200,8 @@ internal fun PlaylistPage.PlaylistTopInfo(items: List<Pair<MediaItem, Int>>?, mo
                                 }
                             )
                         )
-                    } else {
+                    }
+                    else {
                         val colour = LocalContentColor.current
                         val line_padding = with(LocalDensity.current) { 5.dp.toPx() }
                         val line_width = with(LocalDensity.current) { 1.dp.toPx() }

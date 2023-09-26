@@ -7,7 +7,8 @@ actual fun log(message: Any?) {
     if (content.length > 3000) {
         Log.d("SpMp", content.substring(0, 3000))
         log(content.substring(3000))
-    } else {
+    }
+    else {
         Log.d("SpMp", content)
     }
 }

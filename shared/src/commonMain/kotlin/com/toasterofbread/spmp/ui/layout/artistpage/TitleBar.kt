@@ -107,7 +107,7 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                         onValueChange = { text ->
                             edited_title = text
                         },
-                        label = { Text(getStringTODO("Edit title")) },
+                        label = { Text(getString("edit_\$x_title_dialog_title").replace("\$x", item.getType().getReadable())) },
                         singleLine = true,
                         trailingIcon = {
                             Icon(Icons.Filled.Close, null, Modifier.clickable { edited_title = "" })

@@ -40,7 +40,8 @@ fun <T, Q: Query<*>> Q.observeAsState(
                 } catch (e: Throwable) {
                     throw RuntimeException("onExternalChange failed for observed query (${this@observeAsState}, $current_value)", e)
                 }
-            } else {
+            }
+            else {
                 throw IllegalStateException("onExternalChange has not been defined (${this@observeAsState}, $current_value)")
             }
         }

@@ -23,10 +23,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MEDIA_ITEM_RELATED_CONTENT_ICON
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
-import com.toasterofbread.spmp.resources.getStringTODO
+import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.implementedOrNull
@@ -131,7 +132,7 @@ class MainPlayerOverlayMenu(
                 onValueChange = { text ->
                     edited_song_title = text
                 },
-                label = { Text(getStringTODO("Edit title")) },
+                label = { Text(getString("edit_\$x_title_dialog_title").replace("\$x", MediaItemType.SONG.getReadable())) },
                 singleLine = true,
                 trailingIcon = {
                     Icon(Icons.Filled.Close, null, Modifier.clickable { edited_song_title = "" })

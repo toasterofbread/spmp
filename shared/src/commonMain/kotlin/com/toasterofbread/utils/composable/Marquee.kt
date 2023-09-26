@@ -43,7 +43,8 @@ fun Marquee(modifier: Modifier = Modifier, arrangement: Arrangement.Horizontal =
                 with(density) {
                     if (container_width >= content_width) {
                         0.dp
-                    } else {
+                    } 
+                    else {
                         (-scroll_state.value).coerceIn(container_width - content_width, 0).toDp()
                     }
                 }

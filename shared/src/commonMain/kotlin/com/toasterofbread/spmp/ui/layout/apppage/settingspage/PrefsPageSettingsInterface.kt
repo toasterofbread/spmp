@@ -40,7 +40,8 @@ internal fun getPrefsPageSettingsInterface(
                 go_back = true
             }
             true
-        } else {
+        }
+        else {
             false
         }
     }
@@ -94,7 +95,8 @@ internal fun getPrefsPageSettingsInterface(
         { page: Int? ->
             if (page == PrefsPageScreen.ROOT.ordinal) {
                 pill_menu.removeActionOverrider(pill_menu_action_overrider)
-            } else {
+            } 
+        else {
                 pill_menu.addActionOverrider(pill_menu_action_overrider)
             }
         },

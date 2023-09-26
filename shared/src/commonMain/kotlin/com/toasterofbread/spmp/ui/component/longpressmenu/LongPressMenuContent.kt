@@ -4,6 +4,7 @@ import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -61,6 +62,7 @@ import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.common.copy
 import com.toasterofbread.utils.common.setAlpha
 import com.toasterofbread.utils.common.thenIf
+import com.toasterofbread.utils.composable.AlignableCrossfade
 import com.toasterofbread.utils.composable.Marquee
 import com.toasterofbread.utils.composable.NoRipple
 
@@ -207,15 +209,16 @@ internal fun LongPressMenuContent(
                             Modifier
                                 .fillMaxWidth()
                                 .weight(1f)
-                                .onSizeChanged { box_width = it.width }
+                                .onSizeChanged { box_width = it.width },
+                            contentAlignment = Alignment.CenterStart
                         ) {
-                            Crossfade(show_info) { info ->
+                            AlignableCrossfade(show_info, Modifier.requiredHeight(40.dp), contentAlignment = Alignment.CenterStart) { info ->
                                 val text = if (info) data.info_title else data.getInitialInfoTitle?.invoke()
                                 val current = info == show_info
                                 if (text != null) {
                                     Text(
                                         text,
-                                        Modifier.offset(y = (-10).dp).onSizeChanged { if (current) info_title_width = it.width },
+                                        Modifier.onSizeChanged { if (current) info_title_width = it.width },
                                         overflow = TextOverflow.Visible
                                     )
                                 }
@@ -254,7 +257,14 @@ internal fun LongPressMenuContent(
                             }
                         }
 
-                        data.SideButton(Modifier.requiredHeight(40.dp), Theme.background)
+                        data.SideButton(
+                            Modifier
+                                .requiredHeight(40.dp)
+                                .thenIf(data.infoContent == null) {
+                                    padding(start = 10.dp)
+                                },
+                            Theme.background
+                        )
                     }
 
                     // Info/action list

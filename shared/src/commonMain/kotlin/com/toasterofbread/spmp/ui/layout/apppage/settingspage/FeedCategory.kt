@@ -17,8 +17,8 @@ internal fun getFeedCategory(): List<SettingsItem> {
         SettingsGroupItem(getString("s_group_rec_feed")),
 
         SettingsToggleItem(
-            SettingsValueState(Settings.KEY_FEED_SHOW_FILTERS.name),
-            getString("s_key_feed_show_filters"), null
+            SettingsValueState(Settings.KEY_FEED_SHOW_FILTER_BAR.name),
+            getString("s_key_feed_show_filter_bar"), getString("s_sub_feed_show_filter_bar")
         ),
 
         SettingsToggleItem(

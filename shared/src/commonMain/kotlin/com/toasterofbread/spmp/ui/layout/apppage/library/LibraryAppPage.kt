@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.apppage.library
 
+import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.expandHorizontally
@@ -35,10 +36,12 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.composable.PlatformClickableIconButton
 import com.toasterofbread.utils.composable.ResizableOutlinedTextField
 
 abstract class LibrarySubPage(val context: PlatformContext) {
@@ -98,6 +101,8 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
     @Composable
     override fun TopBarContent(modifier: Modifier, close: () -> Unit) {
+        val player = LocalPlayerState.current
+
         MediaItemSortType.SelectionMenu(
             show_sort_type_menu,
             sort_type,
@@ -121,13 +126,21 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
 
             AnimatedVisibility(current_tab.enableSearch()) {
                 Crossfade(show_search_field) { searching ->
-                    IconButton({
-                        if (searching) {
-                            keyboard_controller?.hide()
+                    PlatformClickableIconButton(
+                        onClick = {
+                            if (searching) {
+                                keyboard_controller?.hide()
+                            }
+                            show_search_field = !searching
+                            search_filter = null
+                        },
+                        onAltClick = {
+                            if (!searching) {
+                                player.setAppPage(player.app_page_state.Search)
+                                player.context.vibrateShort()
+                            }
                         }
-                        show_search_field = !searching
-                        search_filter = null
-                    }) {
+                    ) {
                         Icon(
                             if (searching) Icons.Default.Close else Icons.Default.Search,
                             null

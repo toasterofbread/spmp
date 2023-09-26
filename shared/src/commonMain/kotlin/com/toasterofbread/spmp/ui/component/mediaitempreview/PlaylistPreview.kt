@@ -65,7 +65,7 @@ fun LongPressMenuActionProvider.PlaylistLongPressMenuActions(playlist: MediaItem
     ActionButton(
         Icons.Default.Shuffle, getString("lpm_action_shuffle_playlist"),
         onClick = {
-            TODO() // Shuffle
+            player.playMediaItem(playlist, true)
         }
     )
 
@@ -74,10 +74,10 @@ fun LongPressMenuActionProvider.PlaylistLongPressMenuActions(playlist: MediaItem
             getString(if (distance == 1) "lpm_action_play_after_1_song" else "lpm_action_play_after_x_songs").replace("\$x", distance.toString()) 
         },
         onClick = { active_queue_index ->
-            TODO() // Insert at position
+            player.playMediaItem(playlist, at_index = active_queue_index + 1)
         },
         onLongClick = { active_queue_index ->
-            TODO() // Insert shuffled at position
+            player.playMediaItem(playlist, at_index = active_queue_index + 1, shuffle = true)
         }
     )
 

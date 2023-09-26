@@ -192,7 +192,8 @@ internal fun MultiSelectRow(
                                     ) {
                                         Text(getText(i))
                                     }
-                                } else {
+                                }
+                                else {
                                     OutlinedButton(
                                         { onSelected(i) },
                                         Modifier.fillMaxWidth(),

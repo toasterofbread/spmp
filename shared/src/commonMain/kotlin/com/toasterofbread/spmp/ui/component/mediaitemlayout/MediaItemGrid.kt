@@ -124,7 +124,8 @@ fun MediaItemGrid(
 
                     if (alt_style) {
                         MediaItemPreviewLong(item, preview_modifier, contentColour = Theme.on_background_provider, multiselect_context = multiselect_context, show_download_indicator = show_download_indicators)
-                    } else {
+                    }
+                    else {
                         MediaItemPreviewSquare(item, preview_modifier, contentColour = Theme.on_background_provider, multiselect_context = multiselect_context, max_text_rows = square_item_max_text_rows, show_download_indicator = show_download_indicators)
                     }
                 }

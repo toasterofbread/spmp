@@ -52,15 +52,17 @@ class PlayerService: MediaPlayerService() {
         }
     }
 
-    fun playSong(song: Song, start_radio: Boolean = true, shuffle: Boolean = false) {
+    fun playSong(song: Song, start_radio: Boolean = true, shuffle: Boolean = false, at_index: Int = 0) {
         require(start_radio || !shuffle)
+        require(at_index >= 0)
 
         undoableAction {
-            if (song.id == getSong()?.id && start_radio) {
+            if (at_index == 0 && song.id == getSong()?.id && start_radio) {
                 clearQueue(keep_current = true, save = false)
-            } else {
-                clearQueue(keep_current = false, save = false, cancel_radio = !start_radio)
-                addToQueue(song)
+            } 
+            else {
+                clearQueue(at_index, keep_current = false, save = false, cancel_radio = !start_radio)
+                addToQueue(song, at_index)
 
                 if (!start_radio) {
                     return@undoableAction
@@ -68,9 +70,9 @@ class PlayerService: MediaPlayerService() {
             }
 
             startRadioAtIndex(
-                1,
+                at_index + 1,
                 song,
-                0,
+                at_index,
                 skip_first = true,
                 shuffle = shuffle
             )
@@ -157,7 +159,8 @@ class PlayerService: MediaPlayerService() {
                 current_song_index + 1..end
             } else if (song_count - start <= 1) {
                 return
-            } else {
+            } 
+        else {
                 start..end
             }
         shuffleQueue(range)
@@ -213,7 +216,8 @@ class PlayerService: MediaPlayerService() {
         val add_to_index: Int
         if (index == null) {
             add_to_index = song_count - 1
-        } else {
+        } 
+        else {
             add_to_index = if (index < song_count) index else song_count - 1
         }
 
@@ -257,7 +261,8 @@ class PlayerService: MediaPlayerService() {
         val to_add: List<Song> =
             if (!skip_existing) {
                 songs
-            } else {
+            } 
+        else {
                 songs.toMutableList().apply {
                     iterateSongs { _, song ->
                         removeAll { it.id == song.id }

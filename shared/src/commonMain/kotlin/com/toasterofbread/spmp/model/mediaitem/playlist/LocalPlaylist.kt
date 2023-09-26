@@ -1,11 +1,20 @@
 package com.toasterofbread.spmp.model.mediaitem.playlist
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlaylistPlay
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.library.createLocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter.saveToFile
 import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.modifier.background
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -53,4 +62,11 @@ suspend fun Playlist.downloadAsLocalPlaylist(context: PlatformContext, replace: 
     }
 
     return@withContext Result.success(local_playlist)
+}
+
+@Composable
+fun LocalPlaylist.LocalPlaylistDefaultThumbnail(modifier: Modifier = Modifier) {
+    Box(modifier.background(Theme.accent_provider), contentAlignment = Alignment.Center) {
+        Icon(Icons.Default.PlaylistPlay, null, tint = Theme.on_accent)
+    }
 }

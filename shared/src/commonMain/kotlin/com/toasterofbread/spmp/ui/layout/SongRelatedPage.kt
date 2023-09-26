@@ -29,7 +29,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.resources.getStringTODO
+import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
@@ -73,7 +73,7 @@ fun SongRelatedPage(
                 ErrorInfoDisplay(result.exceptionOrNull()!!)
             }
             else if (related.isEmpty()) {
-                Text(getStringTODO("Song has no related content"))
+                Text(getString("song_related_page_no_content"))
             }
             else {
                 Column(Modifier.padding(padding.horizontal)) {
@@ -109,7 +109,7 @@ fun SongRelatedPage(
                                     Text(group.description, style = description_text_style)
                                 }
                                 else {
-                                    Text(getStringTODO("No content"))
+                                    Text(getString("song_related_page_empty_row"))
                                 }
                             }
                         }

@@ -18,11 +18,13 @@ fun Divider(
     thickness: Dp = DividerDefaults.Thickness,
     colorProvider: () -> Color,
 ) {
-    val targetThickness = if (thickness == Dp.Hairline) {
-        (1f / LocalDensity.current.density).dp
-    } else {
-        thickness
-    }
+    val targetThickness = 
+        if (thickness == Dp.Hairline) {
+            (1f / LocalDensity.current.density).dp
+        } 
+        else {
+            thickness
+        }
     Box(
         modifier
             .fillMaxWidth()

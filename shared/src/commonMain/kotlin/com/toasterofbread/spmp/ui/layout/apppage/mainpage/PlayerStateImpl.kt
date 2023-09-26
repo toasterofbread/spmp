@@ -252,13 +252,13 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
         expansion_state.scrollTo(1)
     }
 
-    override fun playMediaItem(item: MediaItem, shuffle: Boolean) {
+    override fun playMediaItem(item: MediaItem, shuffle: Boolean, at_index: Int) {
         withPlayer {
             if (item is Song) {
-                playSong(item, start_radio = true, shuffle = shuffle)
+                playSong(item, start_radio = true, shuffle = shuffle, at_index = at_index)
             }
             else {
-                startRadioAtIndex(0, item, shuffle = shuffle)
+                startRadioAtIndex(at_index, item, shuffle = shuffle)
             }
 
             if (np_swipe_state.value.targetValue == 0 && Settings.get(Settings.KEY_OPEN_NP_ON_SONG_PLAYED)) {

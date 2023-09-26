@@ -12,7 +12,6 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrThrowHere
 import com.toasterofbread.utils.common.launchSingle
 import kotlinx.coroutines.CoroutineScope
@@ -61,7 +60,7 @@ internal class DiscordStatusHandler(val player: PlayerService, val context: Plat
         }
 
         return text
-            .replace("\$artist", artist_title ?: getStringTODO("Unknown"))
+            .replace("\$artist", artist_title ?: getString("discord_status_unknown_artist_replacement"))
             .replace("\$song", title)
     }
 

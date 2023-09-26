@@ -141,7 +141,8 @@ fun CoreLyricsDisplay(
             data_without_readings = calculateReadingsAnnotatedString(terms, false, text_style, text_element) {
                 data_without_readings!!.getLineIndexOfTerm(it)
             }
-        } else {
+        }
+        else {
             data_without_readings = calculateReadingsAnnotatedString(terms, false, text_style, text_element) {
                 data_without_readings!!.getLineIndexOfTerm(it)
             }
@@ -177,7 +178,8 @@ fun CoreLyricsDisplay(
                                 line.index,
                                 getScrollOffset()
                             )
-                        } else {
+                        } 
+        else {
                             scroll_state.animateScrollToItem(
                                 line.index,
                                 getScrollOffset()

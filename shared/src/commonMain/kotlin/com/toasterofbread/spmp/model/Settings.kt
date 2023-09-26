@@ -147,7 +147,7 @@ enum class Settings {
     KEY_TOPBAR_DISPLAY_OVER_ARTIST_IMAGE,
 
     // Recommendation feed
-    KEY_FEED_SHOW_FILTERS,
+    KEY_FEED_SHOW_FILTER_BAR,
     KEY_FEED_SHOW_SONG_DOWNLOAD_INDICATORS,
     KEY_FEED_INITIAL_ROWS,
     KEY_FEED_SQUARE_PREVIEW_TEXT_LINES,
@@ -338,7 +338,7 @@ enum class Settings {
                 KEY_TOPBAR_DISPLAY_OVER_ARTIST_IMAGE -> false
 
                 // Recommendation feed
-                KEY_FEED_SHOW_FILTERS -> true
+                KEY_FEED_SHOW_FILTER_BAR -> true
                 KEY_FEED_SHOW_SONG_DOWNLOAD_INDICATORS -> false
                 KEY_FEED_INITIAL_ROWS -> 4
                 KEY_FEED_SQUARE_PREVIEW_TEXT_LINES -> 1

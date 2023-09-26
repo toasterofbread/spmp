@@ -42,7 +42,7 @@ fun MediaItemTitleEditDialog(item: MediaItem, modifier: Modifier = Modifier, clo
             }
         },
         title = {
-            Text(getString("edit_\$x_title_dialog_title").replace("\$x", item.getType().getReadable(false)))
+            Text(getString("edit_\$x_title_dialog_title").replace("\$x", item.getType().getReadable()))
         },
         text = {
             TextField(

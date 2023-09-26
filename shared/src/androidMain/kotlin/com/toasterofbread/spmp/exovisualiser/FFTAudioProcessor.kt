@@ -163,14 +163,16 @@ class FFTAudioProcessor : AudioProcessor {
 
         if (processBuffer.capacity() < outputSize) {
             processBuffer = ByteBuffer.allocateDirect(outputSize).order(ByteOrder.nativeOrder())
-        } else {
+        }
+        else {
             processBuffer.clear()
         }
 
         if (fftBuffer.capacity() < singleChannelOutputSize) {
             fftBuffer =
                 ByteBuffer.allocateDirect(singleChannelOutputSize).order(ByteOrder.nativeOrder())
-        } else {
+        }
+        else {
             fftBuffer.clear()
         }
 
@@ -211,7 +213,8 @@ class FFTAudioProcessor : AudioProcessor {
             tempByteArray.forEachIndexed { index, byte ->
                 if (currentByte == null) {
                     currentByte = byte
-                } else {
+                } 
+        else {
                     src[index / 2] =
                         (currentByte!!.toFloat() * Byte.MAX_VALUE + byte) / (Byte.MAX_VALUE * Byte.MAX_VALUE)
                     dst[index / 2] = 0f

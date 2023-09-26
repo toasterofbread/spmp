@@ -129,7 +129,8 @@ internal fun getDiscordStatusGroup(discord_auth: SettingsValueState<String>): Li
         ) { target, setEnabled, _, openPage ->
             if (target) {
                 openPage(PrefsPageScreen.DISCORD_LOGIN.ordinal, null)
-            } else {
+            }
+            else {
                 setEnabled(false)
             }
         },

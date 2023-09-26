@@ -105,7 +105,8 @@ internal fun RadioArtistSelector(
             Box(modifier, contentAlignment = Alignment.Center) {
                 SubtleLoadingIndicator(getColour = { Theme.on_background })
             }
-        } else {
+        } 
+        else {
             val thumb_size = 80.dp
             val selected_border_size = 10.dp
 

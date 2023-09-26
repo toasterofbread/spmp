@@ -108,37 +108,39 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
     @Composable
     override fun TopBarContent(modifier: Modifier, close: () -> Unit) {
         val player = LocalPlayerState.current
-        Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-            IconButton({ player.setAppPage(player.app_page_state.Search) }) {
-                Icon(Icons.Default.Search, null)
-            }
+        val show: Boolean by mutableSettingsState(Settings.KEY_FEED_SHOW_FILTER_BAR)
+        
+        AnimatedVisibility(show) {
+            Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+                IconButton({ player.setAppPage(player.app_page_state.Search) }) {
+                    Icon(Icons.Default.Search, null)
+                }
 
-            val enabled: Boolean by mutableSettingsState(Settings.KEY_FEED_SHOW_FILTERS)
-
-            Crossfade(if (enabled) filter_chips else null, modifier) { chips ->
-                if (chips.isNullOrEmpty()) {
-                    if (load_state != FeedLoadState.LOADING && load_state != FeedLoadState.CONTINUING) {
-                        Box(Modifier.fillMaxWidth().padding(end = 40.dp), contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.CloudOff, null)
+                Crossfade(filter_chips, modifier) { chips ->
+                    if (chips.isNullOrEmpty()) {
+                        if (load_state != FeedLoadState.LOADING && load_state != FeedLoadState.CONTINUING) {
+                            Box(Modifier.fillMaxWidth().padding(end = 40.dp), contentAlignment = Alignment.Center) {
+                                Icon(Icons.Default.CloudOff, null)
+                            }
                         }
                     }
-                }
-                else {
-                    FilterChipsRow(
-                        chips.size,
-                        { it == selected_filter_chip },
-                        {
-                            if (it == selected_filter_chip) {
-                                selected_filter_chip = null
-                            }
-                            else {
-                                selected_filter_chip = it
-                            }
-                            loadFeed(false)
-                        },
-                        Modifier.fillMaxWidth()
-                    ) { index ->
-                        Text(chips[index].text.getString())
+                    else {
+                        FilterChipsRow(
+                            chips.size,
+                            { it == selected_filter_chip },
+                            {
+                                if (it == selected_filter_chip) {
+                                    selected_filter_chip = null
+                                }
+                                else {
+                                    selected_filter_chip = it
+                                }
+                                loadFeed(false)
+                            },
+                            Modifier.fillMaxWidth()
+                        ) { index ->
+                            Text(chips[index].text.getString())
+                        }
                     }
                 }
             }

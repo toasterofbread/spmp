@@ -35,7 +35,6 @@ import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.common.blendWith
-import com.toasterofbread.utils.common.copy
 import com.toasterofbread.utils.modifier.background
 import com.toasterofbread.utils.modifier.getHorizontal
 import org.jetbrains.compose.resources.*

@@ -18,7 +18,8 @@ fun RecomposeOnInterval(interval_ms: Long, enabled: Boolean = true, content: @Co
                 delay(interval_ms)
                 recomposition_state = !recomposition_state
             }
-        } else {
+        } 
+        else {
             recomposition_state = !recomposition_state
         }
     }

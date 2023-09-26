@@ -236,7 +236,7 @@ open class PlayerState protected constructor(
         browse_params
     ) }
 
-    open fun playMediaItem(item: MediaItem, shuffle: Boolean = false) { upstream!!.playMediaItem(item, shuffle) }
+    open fun playMediaItem(item: MediaItem, shuffle: Boolean = false, at_index: Int = 0) { upstream!!.playMediaItem(item, shuffle, at_index) }
     open fun playPlaylist(playlist: Playlist, from_index: Int = 0) { upstream!!.playPlaylist(playlist, from_index) }
     open fun openViewMorePage(browse_id: String, title: String?) { upstream!!.openViewMorePage(browse_id, title) }
     open fun openNowPlayingPlayerOverlayMenu(menu: PlayerOverlayMenu? = null) { upstream!!.openNowPlayingPlayerOverlayMenu(menu) }

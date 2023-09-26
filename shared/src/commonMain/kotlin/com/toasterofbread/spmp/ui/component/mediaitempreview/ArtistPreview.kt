@@ -93,10 +93,10 @@ fun LongPressMenuActionProvider.ArtistLongPressMenuActions(artist: MediaItem) {
             getString(if (distance == 1) "lpm_action_play_after_1_song" else "lpm_action_play_after_x_songs").replace("\$x", distance.toString()) 
         },
         onClick = { active_queue_index ->
-            TODO() // Insert songs
+            player.playMediaItem(artist, at_index = active_queue_index + 1)
         },
         onLongClick = { active_queue_index ->
-            TODO() // Insert radio
+            player.playMediaItem(artist, at_index = active_queue_index + 1, shuffle = true)
         }
     )
 

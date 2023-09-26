@@ -70,7 +70,8 @@ class SettingsSliderItem(
         value_state = value
         if (is_int) {
             (state as BasicSettingsValueState<Int>).set(value.roundToInt())
-        } else {
+        }
+        else {
             (state as BasicSettingsValueState<Float>).set(value)
         }
     }

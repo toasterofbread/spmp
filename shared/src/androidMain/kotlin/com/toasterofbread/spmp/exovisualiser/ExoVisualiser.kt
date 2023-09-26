@@ -99,7 +99,8 @@ class ExoVisualizer(
                 // A window might be empty which would result in a 0 division
                 if (nextLimitAtPosition - currentFftPosition != 0) {
                     accum /= (nextLimitAtPosition - currentFftPosition)
-                } else {
+                }
+                else {
                     accum = 0.0f
                 }
                 currentFftPosition = nextLimitAtPosition
@@ -113,7 +114,8 @@ class ExoVisualizer(
                     if (i != smoothing_factor - 1) {
                         previous_values[i * bands + currentFrequencyBandLimitIndex] =
                             previous_values[(i + 1) * bands + currentFrequencyBandLimitIndex]
-                    } else {
+                    }
+                    else {
                         previous_values[i * bands + currentFrequencyBandLimitIndex] = accum
                     }
                 }

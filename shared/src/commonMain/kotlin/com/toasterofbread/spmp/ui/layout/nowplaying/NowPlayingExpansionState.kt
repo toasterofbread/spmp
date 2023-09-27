@@ -72,16 +72,20 @@ class NowPlayingExpansionState(swipe_state: State<SwipeableState<Int>>) {
             low = anchors.entries.firstOrNull { it.value == low_index }?.key ?: return low_index.toFloat()
             high = low
         }
+        else {
+            check(low != null)
+            check(high != null)
+        }
 
         val progress: Float
-        if (offset == low) {
+        if (offset <= low) {
             progress = 0f
         }
-        else if (offset == high) {
+        else if (offset >= high) {
             progress = 1f
         }
         else {
-            progress = (offset - low!!) / (high!! - low)
+            progress = (offset - low) / (high - low)
         }
 
         return low_index + progress

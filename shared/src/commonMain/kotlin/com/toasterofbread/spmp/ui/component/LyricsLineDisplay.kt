@@ -6,7 +6,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -17,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.utils.common.BasicFuriganaText
 import kotlinx.coroutines.delay
@@ -80,34 +83,30 @@ fun LyricsLineDisplay(
     val enter = slideInVertically { it }
     val exit = slideOutVertically { -it } + fadeOut()
 
-    Box(modifier, contentAlignment = Alignment.Center) {
+    val max_lines: Int by Settings.KEY_LYRICS_TOP_BAR_MAX_LINES.rememberMutableState()
+
+    Box(modifier.height(IntrinsicSize.Min), contentAlignment = Alignment.Center) {
         val show_a = line_a != null && show_line_a
         val show_b = line_b != null && !show_line_a
 
-        AnimatedVisibility(show_a, enter = enter, exit = exit) {
-            var line by remember { mutableStateOf(line_a) }
-            LaunchedEffect(line_a) {
-                if (line_a != null) {
-                    line = line_a
+        @Composable
+        fun phase(show: Boolean, index: Int?) {
+            AnimatedVisibility(show, Modifier.height(IntrinsicSize.Min), enter = enter, exit = exit) {
+                var line by remember { mutableStateOf(index) }
+                LaunchedEffect(index) {
+                    if (index != null) {
+                        line = index
+                    }
+                }
+
+                line?.also {
+                    BasicFuriganaText(lyrics.lines[it], show_readings = show_furigana, text_colour = text_colour, max_lines = max_lines)
                 }
             }
-
-            line?.also {
-                BasicFuriganaText(lyrics.lines[it], show_readings = show_furigana, text_colour = text_colour)
-            }
         }
-        AnimatedVisibility(show_b, enter = enter, exit = exit) {
-            var line by remember { mutableStateOf(line_b) }
-            LaunchedEffect(line_b) {
-                if (line_a != null) {
-                    line = line_b
-                }
-            }
 
-            line?.also {
-                BasicFuriganaText(lyrics.lines[it], show_readings = show_furigana, text_colour = text_colour)
-            }
-        }
+        phase(show_a, line_a)
+        phase(show_b, line_b)
 
         Crossfade(if (show_a || show_b) null else emptyContent, Modifier.fillMaxWidth()) { content ->
             if (content != null) {

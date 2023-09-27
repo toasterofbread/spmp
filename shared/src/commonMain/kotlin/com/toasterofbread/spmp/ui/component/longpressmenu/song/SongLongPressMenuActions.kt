@@ -1,11 +1,10 @@
-package com.toasterofbread.spmp.ui.component.mediaitempreview
+package com.toasterofbread.spmp.ui.component.longpressmenu.song
 
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -19,7 +18,6 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.Radio
-import androidx.compose.material.icons.filled.SubdirectoryArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -35,14 +33,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MEDIA_ITEM_RELATED_CONTENT_ICON
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
@@ -52,39 +46,16 @@ import com.toasterofbread.spmp.model.mediaitem.library.createLocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.getEditorOrNull
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
+import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuActionProvider
-import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
-import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
 import com.toasterofbread.utils.composable.ShapedIconButton
-import com.toasterofbread.utils.composable.WidthShrinkText
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
-
-val SONG_THUMB_CORNER_ROUNDING = 10.dp
-
-fun getSongLongPressMenuData(
-    song: Song,
-    thumb_shape: Shape? = RoundedCornerShape(SONG_THUMB_CORNER_ROUNDING),
-    multiselect_key: Int? = null,
-    multiselect_context: MediaItemMultiSelectContext? = null,
-    getInfoText: (@Composable () -> String?)? = null
-): LongPressMenuData {
-    return LongPressMenuData(
-        song,
-        thumb_shape,
-        { SongLongPressMenuInfo(song, multiselect_key, it) },
-        getString("lpm_long_press_actions"),
-        getInitialInfoTitle = getInfoText,
-        multiselect_context = multiselect_context,
-        multiselect_key = multiselect_key
-    )
-}
 
 @Composable
 fun LongPressMenuActionProvider.SongLongPressMenuActions(
@@ -108,8 +79,7 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
             ) {
                 LPMActions(item, withSong, queue_index) { adding_to_playlist = true }
             }
-        }
-        else {
+        } else {
             BackHandler {
                 adding_to_playlist = false
             }
@@ -128,7 +98,7 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
                     player.context.ytapi.user_auth_state,
                     Modifier.fillMaxHeight().weight(1f)
                 )
-                
+
                 val button_colours = IconButtonDefaults.iconButtonColors(
                     containerColor = Theme.accent,
                     contentColor = Theme.on_accent
@@ -144,8 +114,9 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
                     Button(
                         {
                             coroutine_scope.launch {
-                                val playlist = MediaItemLibrary.createLocalPlaylist(player.context).getOrReport("SongLongPressMenuActionsCreateLocalPlaylist")
-                                    ?: return@launch
+                                val playlist =
+                                    MediaItemLibrary.createLocalPlaylist(player.context).getOrReport("SongLongPressMenuActionsCreateLocalPlaylist")
+                                        ?: return@launch
                                 selected_playlists.add(playlist)
                             }
                         },
@@ -240,11 +211,11 @@ private fun LongPressMenuActionProvider.LPMActions(
 
     ActionButton(Icons.Default.Download, getString("lpm_action_download"), onClick = {
         withSong {
-            player.context.download_manager.startDownload(it.id) { status: DownloadStatus ->
+            player.context.download_manager.startDownload(it.id) { status: PlayerDownloadManager.DownloadStatus ->
                 when (status.status) {
-                    DownloadStatus.Status.FINISHED -> player.context.sendToast(getString("notif_download_finished"))
-                    DownloadStatus.Status.ALREADY_FINISHED -> player.context.sendToast(getString("notif_download_already_finished"))
-                    DownloadStatus.Status.CANCELLED -> player.context.sendToast(getString("notif_download_cancelled"))
+                    PlayerDownloadManager.DownloadStatus.Status.FINISHED -> player.context.sendToast(getString("notif_download_finished"))
+                    PlayerDownloadManager.DownloadStatus.Status.ALREADY_FINISHED -> player.context.sendToast(getString("notif_download_already_finished"))
+                    PlayerDownloadManager.DownloadStatus.Status.CANCELLED -> player.context.sendToast(getString("notif_download_cancelled"))
 
                     // IDLE, DOWNLOADING, PAUSED
                     else -> {
@@ -269,34 +240,4 @@ private fun LongPressMenuActionProvider.LPMActions(
             player.openMediaItem(it,)
         }
     })
-}
-
-@Composable
-private fun ColumnScope.SongLongPressMenuInfo(song: Song, queue_index: Int?, getAccentColour: () -> Color) {
-    @Composable
-    fun Item(icon: ImageVector, text: String, modifier: Modifier = Modifier) {
-        Row(
-            modifier,
-            horizontalArrangement = Arrangement.spacedBy(20.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(icon, null, tint = getAccentColour())
-            WidthShrinkText(text, fontSize = 15.sp)
-        }
-    }
-
-    if (queue_index != null) {
-        Item(Icons.Default.Radio, getString("lpm_action_radio_at_song_pos"))
-    }
-
-    val player = LocalPlayerState.current
-    if ((player.player?.active_queue_index ?: Int.MAX_VALUE) < player.status.m_song_count) {
-        Item(Icons.Default.SubdirectoryArrowRight, getString("lpm_action_radio_after_x_songs"))
-    }
-
-    Spacer(Modifier.fillMaxHeight().weight(1f))
-
-    if (queue_index != null) {
-        Text(getString("lpm_info_queue_index").replace("\$index", queue_index.toString()))
-    }
 }

@@ -404,6 +404,7 @@
     <string name="s_key_lyrics_font_size">フォントサイズ</string>
 
     <string name="s_group_top_bar_lyrics">トップバーの歌詞</string>
+    <string name="s_key_lyrics_top_bar_max_lines">最高テキスト行数</string>
     <string name="s_key_top_bar_lyrics_show_furigana">ふりがなを表示</string>
     <string name="s_key_top_bar_lyrics_show_in_library">ライブラリで表示</string>
     <string name="s_key_top_bar_lyrics_show_in_radiobuilder">ラジオ作成画面で表示</string>
@@ -413,7 +414,6 @@
     <string name="s_key_top_bar_lyrics_show_in_artist">アーティストで表示</string>
     <string name="s_key_top_bar_lyrics_show_in_viewmore">ホームの「もっと見る」画面で表示</string>
     <string name="s_key_top_bar_lyrics_show_in_search">検索画面で表示</string>
-
 
     <string name="s_cat_audio_video">音・動画</string>
 

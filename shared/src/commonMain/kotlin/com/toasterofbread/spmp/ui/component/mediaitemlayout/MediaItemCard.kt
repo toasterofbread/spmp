@@ -49,15 +49,18 @@ import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.Thumbnail
+import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
-import com.toasterofbread.spmp.ui.component.mediaitempreview.getArtistLongPressMenuData
-import com.toasterofbread.spmp.ui.component.mediaitempreview.getPlaylistLongPressMenuData
-import com.toasterofbread.spmp.ui.component.mediaitempreview.getSongLongPressMenuData
+import com.toasterofbread.spmp.ui.component.mediaitempreview.getArtistThumbShape
+import com.toasterofbread.spmp.ui.component.mediaitempreview.getPlaylistThumbShape
+import com.toasterofbread.spmp.ui.component.mediaitempreview.getSongThumbShape
+import com.toasterofbread.spmp.ui.component.mediaitempreview.getThumbShape
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.common.getContrasted
@@ -79,15 +82,11 @@ fun MediaItemCard(
 
     val accent_colour: Color? = item.rememberThemeColour()
 
-    val shape = RoundedCornerShape(16.dp)
+    val shape = remember(item) {
+        item.getType().getThumbShape()
+    }
     val long_press_menu_data = remember(item) {
-        // TODO Move to MediaItem
-        when (item) {
-            is Song -> getSongLongPressMenuData(item, shape, multiselect_context = multiselect_context)
-            is Artist -> getArtistLongPressMenuData(item, multiselect_context = multiselect_context)
-            is RemotePlaylist -> getPlaylistLongPressMenuData(item, shape, multiselect_context = multiselect_context)
-            else -> throw NotImplementedError(item.javaClass.name)
-        }
+        LongPressMenuData(item, shape, multiselect_context = multiselect_context)
     }
 
     Column(

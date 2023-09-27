@@ -415,6 +415,7 @@
     <string name="s_key_lyrics_font_size">Font size</string>
 
     <string name="s_group_top_bar_lyrics">Top bar lyrics</string>
+    <string name="s_key_lyrics_top_bar_max_lines">Max lines</string>
     <string name="s_key_top_bar_lyrics_show_furigana">Show furigana</string>
     <string name="s_key_top_bar_lyrics_show_in_library">Show in library</string>
     <string name="s_key_top_bar_lyrics_show_in_radiobuilder">Show in the radio builder</string>

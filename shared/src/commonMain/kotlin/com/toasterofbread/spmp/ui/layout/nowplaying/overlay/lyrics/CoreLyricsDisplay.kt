@@ -179,7 +179,7 @@ fun CoreLyricsDisplay(
                                 getScrollOffset()
                             )
                         } 
-        else {
+                        else {
                             scroll_state.animateScrollToItem(
                                 line.index,
                                 getScrollOffset()

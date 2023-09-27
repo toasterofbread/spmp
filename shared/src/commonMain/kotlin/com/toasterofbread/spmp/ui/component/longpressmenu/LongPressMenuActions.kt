@@ -20,9 +20,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.toInfoString
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.longpressmenu.artist.ArtistLongPressMenuInfo
+import com.toasterofbread.spmp.ui.component.longpressmenu.playlist.PlaylistLongPressMenuInfo
+import com.toasterofbread.spmp.ui.component.longpressmenu.song.SongLongPressMenuInfo
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.common.isDebugBuild
 import com.toasterofbread.utils.composable.WidthShrinkText
@@ -38,8 +43,15 @@ internal fun ColumnScope.LongPressMenuInfoActions(
 ) {
     val player = LocalPlayerState.current
 
-    Column(Modifier.fillMaxHeight().weight(1f), verticalArrangement = Arrangement.spacedBy(spacing)) {
-        data.infoContent?.invoke(this, getAccentColour)
+    Column(
+        Modifier.fillMaxHeight().weight(1f),
+        verticalArrangement = Arrangement.spacedBy(spacing)
+    ) {
+        when (data.item) {
+            is Song -> SongLongPressMenuInfo(data.item, data.multiselect_key, getAccentColour)
+            is Artist -> ArtistLongPressMenuInfo(data.item, getAccentColour)
+            is Playlist -> PlaylistLongPressMenuInfo(data.item, getAccentColour)
+        }
     }
 
     // Share
@@ -103,7 +115,13 @@ internal fun ColumnScope.LongPressMenuActions(data: LongPressMenuData, getAccent
     )
 
     // Hide
-    LongPressMenuActionProvider.ActionButton(Icons.Filled.VisibilityOff, getString("lpm_action_hide"), getAccentColour, onClick = {
-        data.item.Hidden.set(true, player.database)
-    }, onAction = onAction)
+    LongPressMenuActionProvider.ActionButton(
+        Icons.Filled.VisibilityOff,
+        getString("lpm_action_hide"),
+        getAccentColour,
+        onClick = {
+            data.item.Hidden.set(true, player.database)
+        },
+        onAction = onAction
+    )
 }

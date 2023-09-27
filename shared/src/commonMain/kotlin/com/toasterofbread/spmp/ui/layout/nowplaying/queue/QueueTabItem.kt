@@ -46,7 +46,7 @@ class QueueTabItem(val song: Song, val key: Int) {
     }
 
     @Composable
-    private fun getInfoText(index: Int): String? {
+    private fun getLPMTitle(index: Int): String? {
         val player = LocalPlayerState.current
         val playing_index = player.status.m_index
         if (index == playing_index) {
@@ -112,7 +112,7 @@ class QueueTabItem(val song: Song, val key: Int) {
                     show_type = false,
                     multiselect_context = multiselect_context,
                     multiselect_key = index,
-                    getInfoText = { getInfoText(index) }
+                    getTitle = { getLPMTitle(index) }
                 )
 
                 val radio_item_index = player.player?.radio_item_index

@@ -31,11 +31,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.observePlayCount
 import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
 import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction
-import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.rememberDownloadStatus
@@ -53,18 +51,15 @@ private const val INFO_SPLITTER: String = "\u2022"
 fun MediaItem.getLongPressMenuData(
     multiselect_context: MediaItemMultiSelectContext? = null,
     multiselect_key: Int? = null,
-    getInfoText: (@Composable () -> String?)? = null
-): LongPressMenuData = when (this) {
-    is Song -> getSongLongPressMenuData(
+    getTitle: (@Composable () -> String?)? = null
+): LongPressMenuData =
+    LongPressMenuData(
         this,
-        multiselect_key = multiselect_key,
+        getType().getThumbShape(),
         multiselect_context = multiselect_context,
-        getInfoText = getInfoText
+        multiselect_key = multiselect_key,
+        getTitle = getTitle
     )
-    is Artist -> getArtistLongPressMenuData(this, multiselect_context = multiselect_context)
-    is Playlist -> getPlaylistLongPressMenuData(this, multiselect_context = multiselect_context)
-    else -> throw NotImplementedError(this.getType().toString())
-}
 
 @Composable
 fun MediaItemPreviewSquare(
@@ -74,17 +69,17 @@ fun MediaItemPreviewSquare(
     enable_long_press_menu: Boolean = true,
     multiselect_context: MediaItemMultiSelectContext? = null,
     multiselect_key: Int? = null,
-    getInfoText: (@Composable () -> String?)? = null,
+    getTitle: (@Composable () -> String?)? = null,
     max_text_rows: Int? = null,
     show_download_indicator: Boolean = true,
     font_size: TextUnit = MEDIA_ITEM_PREVIEW_SQUARE_FONT_SIZE_SP.sp,
     line_height: TextUnit = MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP.sp,
     long_press_menu_data: LongPressMenuData =
-        remember(item, multiselect_context, multiselect_key, getInfoText) {
+        remember(item, multiselect_context, multiselect_key, getTitle) {
             item.getLongPressMenuData(
                 multiselect_context,
                 multiselect_key,
-                getInfoText
+                getTitle
             )
         }
 ) {
@@ -155,13 +150,13 @@ fun MediaItemPreviewLong(
     getExtraInfo: (@Composable () -> List<String>)? = null,
     multiselect_context: MediaItemMultiSelectContext? = null,
     multiselect_key: Int? = null,
-    getInfoText: (@Composable () -> String?)? = null,
+    getTitle: (@Composable () -> String?)? = null,
     long_press_menu_data: LongPressMenuData =
-        remember(item, multiselect_context, multiselect_key, getInfoText) {
+        remember(item, multiselect_context, multiselect_key, getTitle) {
             item.getLongPressMenuData(
                 multiselect_context,
                 multiselect_key,
-                getInfoText
+                getTitle
             )
         }
 ) {

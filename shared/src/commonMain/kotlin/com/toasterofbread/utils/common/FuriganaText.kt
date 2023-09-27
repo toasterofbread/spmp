@@ -2,10 +2,15 @@ package com.toasterofbread.utils.common
 
 // Originally based on https://github.com/mainrs/android-compose-furigana
 
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.requiredWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
@@ -13,14 +18,22 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -83,34 +96,64 @@ fun calculateReadingsAnnotatedString(
 fun BasicFuriganaText(
     terms: List<SongLyrics.Term>,
     show_readings: Boolean = true,
+    max_lines: Int = 1,
     font_size: TextUnit = LocalTextStyle.current.fontSize,
-    text_colour: Color = LocalContentColor.current
+    text_colour: Color = LocalContentColor.current,
+    style: TextStyle = LocalTextStyle.current
 ) {
     val reading_font_size = font_size / 2
     val line_height = with(LocalDensity.current) { (font_size.value + (reading_font_size.value * 2)).sp.toDp() }
 
-    val string_builder = AnnotatedString.Builder()
-    val inline_content: MutableMap<String, InlineTextContent> = mutableMapOf()
+    var annotated_string: AnnotatedString by remember { mutableStateOf(AnnotatedString("")) }
+    var inline_content: Map<String, InlineTextContent> by remember { mutableStateOf(emptyMap()) }
 
-    for (term in terms) {
-        for (subterm in term.subterms) {
-            string_builder.appendInlineContent(subterm.text)
+    val density = LocalDensity.current
+    var width: Dp by remember { mutableStateOf(Dp.Unspecified) }
+    val height: Dp by animateDpAsState(line_height * max_lines)
 
-            inline_content.putIfAbsent(subterm.text) {
-                getLyricsInlineTextContent(
-                    subterm.text, subterm.furi, show_readings, font_size, reading_font_size
-                ) { is_reading, text, alternate_text, font_size, modifier ->
-                    Text(text, modifier, fontSize = font_size, color = text_colour, softWrap = false)
+    LaunchedEffect(terms, max_lines) {
+        val string_builder = AnnotatedString.Builder()
+        val content: MutableMap<String, InlineTextContent> = mutableMapOf()
+
+        for (term in terms) {
+            for (subterm in term.subterms) {
+                string_builder.appendInlineContent(subterm.text)
+
+                content.putIfAbsent(subterm.text) {
+                    getLyricsInlineTextContent(
+                        subterm.text, subterm.furi, show_readings, font_size, reading_font_size
+                    ) { is_reading, text, alternate_text, font_size, modifier ->
+                        Text(
+                            text,
+                            modifier.widthIn(max = width),
+                            fontSize = font_size,
+                            color = text_colour,
+                            softWrap = true,
+                            overflow = TextOverflow.Visible,
+                            maxLines = max_lines
+                        )
+                    }
                 }
             }
         }
+
+        annotated_string = string_builder.toAnnotatedString()
+        inline_content = content
     }
 
-    Box(Modifier.height(line_height), contentAlignment = Alignment.CenterStart) {
+    Box(
+        Modifier.requiredHeight(height).fillMaxWidth().onSizeChanged {
+            width = with(density) { it.width.toDp() }
+        },
+        contentAlignment = Alignment.CenterStart
+    ) {
         Text(
-            string_builder.toAnnotatedString(),
+            annotated_string,
             inlineContent = inline_content,
-            color = text_colour
+            color = text_colour,
+            style = style,
+            maxLines = max_lines,
+            overflow = TextOverflow.Visible
         )
     }
 }
@@ -162,10 +205,7 @@ private fun getLyricsInlineTextContent(
 ): InlineTextContent {
     return InlineTextContent(
         placeholder = Placeholder(
-            width = (text.length.toDouble() + (text.length - 1) * 0.05).em * (
-                if (text.any { it.isFullWidth() }) 1f
-                else 0.5f
-            ),
+            width = (text.length.toDouble() + (text.length - 1) * 0.05).em,
             height = (font_size.value + (reading_font_size.value * 2)).sp,
             placeholderVerticalAlign = PlaceholderVerticalAlign.Bottom
         ),

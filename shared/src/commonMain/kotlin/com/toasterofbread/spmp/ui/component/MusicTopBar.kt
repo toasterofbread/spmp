@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -196,18 +197,19 @@ private fun MusicTopBar(
 
     AnimatedVisibility(
         show,
-        modifier.platformClickable(
-            onClick = onClick,
-            onAltClick = {
-                if (current_state is SongLyrics) {
-                    player.openNowPlayingPlayerOverlayMenu(PlayerOverlayMenu.getLyricsMenu())
+        modifier
+            .platformClickable(
+                onClick = onClick,
+                onAltClick = {
+                    if (current_state is SongLyrics) {
+                        player.openNowPlayingPlayerOverlayMenu(PlayerOverlayMenu.getLyricsMenu())
+                    }
                 }
-            }
-        ),
+            ),
         enter = expandVertically(),
         exit = shrinkVertically()
     ) {
-        Column(Modifier.height(30.dp + padding.calculateTopPadding() + padding.calculateBottomPadding())) {
+        Column(Modifier.heightIn(30.dp + padding.calculateTopPadding() + padding.calculateBottomPadding())) {
             Box(Modifier.padding(padding)) {
                 innerContent?.invoke(mode_state)
 

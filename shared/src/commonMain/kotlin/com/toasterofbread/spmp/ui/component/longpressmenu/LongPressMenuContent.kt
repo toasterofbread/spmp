@@ -4,7 +4,6 @@ import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -54,6 +53,7 @@ import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.vibrateShort
+import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
@@ -213,7 +213,7 @@ internal fun LongPressMenuContent(
                             contentAlignment = Alignment.CenterStart
                         ) {
                             AlignableCrossfade(show_info, Modifier.requiredHeight(40.dp), contentAlignment = Alignment.CenterStart) { info ->
-                                val text = if (info) data.info_title else data.getInitialInfoTitle?.invoke()
+                                val text = if (info) getString("lpm_long_press_actions") else data.getTitle?.invoke()
                                 val current = info == show_info
                                 if (text != null) {
                                     Text(
@@ -249,20 +249,14 @@ internal fun LongPressMenuContent(
                             }
                         }
 
-                        if (data.infoContent != null) {
-                            IconButton({ show_info = !show_info }, Modifier.requiredHeight(40.dp)) {
-                                Crossfade(show_info) { info ->
-                                    Icon(if (info) Icons.Filled.Close else Icons.Filled.Info, null)
-                                }
+                        IconButton({ show_info = !show_info }, Modifier.requiredHeight(40.dp)) {
+                            Crossfade(show_info) { info ->
+                                Icon(if (info) Icons.Filled.Close else Icons.Filled.Info, null)
                             }
                         }
 
                         data.SideButton(
-                            Modifier
-                                .requiredHeight(40.dp)
-                                .thenIf(data.infoContent == null) {
-                                    padding(start = 10.dp)
-                                },
+                            Modifier.requiredHeight(40.dp),
                             Theme.background
                         )
                     }

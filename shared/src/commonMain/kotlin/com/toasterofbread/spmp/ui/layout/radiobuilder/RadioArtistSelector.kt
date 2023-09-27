@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
@@ -45,8 +44,8 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
-import com.toasterofbread.spmp.ui.component.mediaitempreview.ARTIST_THUMB_CORNER_ROUNDING
-import com.toasterofbread.spmp.ui.component.mediaitempreview.getArtistLongPressMenuData
+import com.toasterofbread.spmp.ui.component.mediaitempreview.getArtistThumbShape
+import com.toasterofbread.spmp.ui.component.mediaitempreview.getLongPressMenuData
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderArtist
 import com.toasterofbread.utils.common.times
@@ -132,7 +131,7 @@ internal fun RadioArtistSelector(
                         }
 
                         val long_press_menu_data = remember(artist) {
-                            getArtistLongPressMenuData(artist)
+                            artist.getLongPressMenuData()
                         }
 
                         Column(
@@ -159,7 +158,7 @@ internal fun RadioArtistSelector(
                                     Box(
                                         Modifier
                                             .size(thumb_size + selected_border_size * border_expansion.value)
-                                            .border(1.dp, Theme.on_background, RoundedCornerShape(ARTIST_THUMB_CORNER_ROUNDING))
+                                            .border(1.dp, Theme.on_background, getArtistThumbShape())
                                     )
                                 }
                                 artist.Thumbnail(

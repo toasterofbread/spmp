@@ -5,11 +5,13 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreHoriz
@@ -20,6 +22,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
@@ -83,7 +86,8 @@ fun TopBar(modifier: Modifier = Modifier) {
         player.status.m_song,
         modifier
             .fillMaxWidth()
-            .requiredHeight(minOf(NOW_PLAYING_TOP_BAR_HEIGHT.dp * top_bar_height, max_height))
+            .heightIn(minOf(NOW_PLAYING_TOP_BAR_HEIGHT.dp * top_bar_height, max_height))
+            .height(IntrinsicSize.Min)
             .padding(horizontal = NOW_PLAYING_MAIN_PADDING.dp)
             .graphicsLayer { alpha = getAlpha() }
     ) { song ->
@@ -91,7 +95,11 @@ fun TopBar(modifier: Modifier = Modifier) {
             return@Crossfade
         }
 
-        Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Row(
+            Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             val buttons_alpha by remember { derivedStateOf { (2f - expansion.getBounded()).coerceIn(0f, 1f) } }
 
             composeScope {
@@ -109,13 +117,11 @@ fun TopBar(modifier: Modifier = Modifier) {
                 }
             }
 
-            Box(Modifier.fillMaxSize().weight(1f)) {
-                MusicTopBarWithVisualiser(
-                    Settings.INTERNAL_TOPBAR_MODE_NOWPLAYING,
-                    Modifier.fillMaxSize(),
-                    song = song
-                )
-            }
+            MusicTopBarWithVisualiser(
+                Settings.INTERNAL_TOPBAR_MODE_NOWPLAYING,
+                Modifier.fillMaxSize().weight(1f),
+                song = song
+            )
 
             composeScope {
                 IconButton(

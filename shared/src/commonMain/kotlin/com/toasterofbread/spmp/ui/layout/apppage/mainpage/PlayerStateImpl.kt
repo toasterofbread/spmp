@@ -229,11 +229,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
         }
     }
     override fun onMediaItemLongClicked(item: MediaItem, long_press_data: LongPressMenuData?) {
-        showLongPressMenu(when (item) {
-            is Song -> long_press_data ?: getSongLongPressMenuData(item)
-            is Artist -> long_press_data ?: getArtistLongPressMenuData(item)
-            else -> long_press_data ?: LongPressMenuData(item)
-        })
+        showLongPressMenu(long_press_data ?: item.getLongPressMenuData())
     }
 
     override fun openMediaItem(item: MediaItem, from_current: Boolean, replace_current: Boolean, browse_params: BrowseParamsData?) {

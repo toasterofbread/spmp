@@ -20,6 +20,7 @@ import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.Settings
@@ -35,7 +36,7 @@ fun MainPageTopBar(modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
 
     Column(modifier) {
-        Row(Modifier.height(IntrinsicSize.Min)) {
+        Row(Modifier.height(IntrinsicSize.Min), verticalAlignment = Alignment.CenterVertically) {
             Crossfade(player.app_page == player.app_page_state.Default) { default_open ->
                 if (default_open) {
                     IconButton({ player.setAppPage(player.app_page_state.Settings) }) {

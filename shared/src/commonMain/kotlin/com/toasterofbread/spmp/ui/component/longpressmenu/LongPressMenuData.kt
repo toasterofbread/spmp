@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.component.longpressmenu
 
 import LocalPlayerState
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -16,9 +15,9 @@ import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
-import com.toasterofbread.spmp.ui.component.mediaitempreview.ArtistLongPressMenuActions
-import com.toasterofbread.spmp.ui.component.mediaitempreview.PlaylistLongPressMenuActions
-import com.toasterofbread.spmp.ui.component.mediaitempreview.SongLongPressMenuActions
+import com.toasterofbread.spmp.ui.component.longpressmenu.artist.ArtistLongPressMenuActions
+import com.toasterofbread.spmp.ui.component.longpressmenu.playlist.PlaylistLongPressMenuActions
+import com.toasterofbread.spmp.ui.component.longpressmenu.song.SongLongPressMenuActions
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistSubscribeButton
 import com.toasterofbread.utils.common.getContrasted
@@ -29,9 +28,7 @@ import kotlinx.coroutines.launch
 data class LongPressMenuData(
     val item: MediaItem,
     val thumb_shape: Shape? = null,
-    val infoContent: (@Composable ColumnScope.(accent: () -> Color) -> Unit)? = null,
-    val info_title: String? = null,
-    val getInitialInfoTitle: (@Composable () -> String?)? = null,
+    val getTitle: (@Composable () -> String?)? = null,
     val multiselect_context: MediaItemMultiSelectContext? = null,
     val multiselect_key: Int? = null,
     val playlist_as_song: Boolean = false

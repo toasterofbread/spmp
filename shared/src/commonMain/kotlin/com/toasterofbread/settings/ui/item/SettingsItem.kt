@@ -138,15 +138,17 @@ class SettingsValueState<T: Any>(
 
         updateValue()
 
-        listener = object : PlatformPreferences.Listener {
-            override fun onChanged(prefs: PlatformPreferences, key: String) {
-                if (key == this@SettingsValueState.key) {
-                    updateValue()
+        listener =
+            object : PlatformPreferences.Listener {
+                override fun onChanged(prefs: PlatformPreferences, key: String) {
+                    if (key == this@SettingsValueState.key) {
+                        updateValue()
+                    }
                 }
             }
-        }.also {
-            prefs.addListener(it)
-        }
+            .also {
+                prefs.addListener(it)
+            }
 
         return this
     }

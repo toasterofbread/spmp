@@ -43,20 +43,20 @@ import kotlin.math.absoluteValue
 
 @Composable
 fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, content_padding: PaddingValues = PaddingValues(), title: String? = null) {
-    val context = LocalPlayerState.current.context
-    check(context.ytapi.GenericFeedViewMorePage.isImplemented())
+    val player = LocalPlayerState.current
+    check(player.context.ytapi.GenericFeedViewMorePage.isImplemented())
 
     var items_result: Result<List<MediaItem>>? by remember { mutableStateOf(null) }
     LaunchedEffect(browse_id) {
         items_result = null
-        items_result = context.ytapi.GenericFeedViewMorePage.getGenericFeedViewMorePage(browse_id)
+        items_result = player.context.ytapi.GenericFeedViewMorePage.getGenericFeedViewMorePage(browse_id)
     }
 
     Column(modifier) {
         val top_padding: Dp = content_padding.calculateTopPadding()
         var top_bar_showing: Boolean by remember { mutableStateOf(false) }
 
-        MusicTopBar(
+        player.top_bar.MusicTopBar(
             Settings.KEY_LYRICS_SHOW_IN_VIEWMORE,
             Modifier.fillMaxWidth().zIndex(10f),
             getBottomBorderColour = Theme.background_provider,

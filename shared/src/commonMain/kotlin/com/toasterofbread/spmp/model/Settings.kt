@@ -109,6 +109,7 @@ enum class Settings {
     KEY_LYRICS_FONT_SIZE,
     KEY_LYRICS_DEFAULT_SOURCE,
     KEY_LYRICS_TOP_BAR_MAX_LINES,
+    KEY_LYRICS_TOP_BAR_PREAPPLY_MAX_LINES,
 
     KEY_LYRICS_SHOW_IN_LIBRARY,
     KEY_LYRICS_SHOW_IN_RADIOBUILDER,
@@ -158,6 +159,7 @@ enum class Settings {
     // Player
     KEY_PLAYER_OVERLAY_CUSTOM_ACTION,
     KEY_PLAYER_OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS,
+    KEY_MINI_PLAYER_SHOW_PREV_BUTTON,
     KEY_NP_QUEUE_RADIO_INFO_POSITION, // TODO prefs item
     KEY_NP_QUEUE_WAVE_BORDER_MODE,
     KEY_RESUME_ON_BT_CONNECT,
@@ -308,7 +310,8 @@ enum class Settings {
                 KEY_LYRICS_ENABLE_WORD_SYNC -> false
                 KEY_LYRICS_FONT_SIZE -> 0.5f
                 KEY_LYRICS_DEFAULT_SOURCE -> 0
-                KEY_LYRICS_TOP_BAR_MAX_LINES -> 1
+                KEY_LYRICS_TOP_BAR_MAX_LINES -> 3
+                KEY_LYRICS_TOP_BAR_PREAPPLY_MAX_LINES -> false
 
                 KEY_LYRICS_SHOW_IN_LIBRARY -> true
                 KEY_LYRICS_SHOW_IN_RADIOBUILDER -> true
@@ -349,6 +352,7 @@ enum class Settings {
 
                 KEY_PLAYER_OVERLAY_CUSTOM_ACTION -> PlayerOverlayMenuAction.DEFAULT_CUSTOM.ordinal
                 KEY_PLAYER_OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS -> false
+                KEY_MINI_PLAYER_SHOW_PREV_BUTTON -> false
                 KEY_NP_QUEUE_RADIO_INFO_POSITION -> NowPlayingQueueRadioInfoPosition.TOP_BAR.ordinal
                 KEY_NP_QUEUE_WAVE_BORDER_MODE -> NowPlayingQueueWaveBorderMode.TIME.ordinal
                 KEY_RESUME_ON_BT_CONNECT -> true

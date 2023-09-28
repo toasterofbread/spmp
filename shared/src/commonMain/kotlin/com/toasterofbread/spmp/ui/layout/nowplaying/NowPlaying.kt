@@ -210,6 +210,8 @@ private fun NowPlayingCardContent(page_height: Dp, modifier: Modifier = Modifier
     StatusBarColourHandler(page_height)
     MinimisedProgressBar()
 
+    var top_bar_height by remember { mutableStateOf(0.dp) }
+
     Column(modifier.fillMaxHeight(), verticalArrangement = Arrangement.Top) {
         Column(
             verticalArrangement = Arrangement.Top,
@@ -247,7 +249,10 @@ private fun NowPlayingCardContent(page_height: Dp, modifier: Modifier = Modifier
                     }
                 )
             }) {
-                NowPlayingMainTab(Modifier.fillMaxWidth().requiredHeight(page_height).offset(offsetProvider))
+                NowPlayingMainTab(
+                    onTopBarHeightChanged = { top_bar_height = it },
+                    modifier = Modifier.fillMaxWidth().requiredHeight(page_height).offset(offsetProvider)
+                )
             }
 
             composeScope {
@@ -261,6 +266,7 @@ private fun NowPlayingCardContent(page_height: Dp, modifier: Modifier = Modifier
 
         QueueTab(
             page_height,
+            { top_bar_height },
             Modifier.offset(0.dp, -player.nowPlayingBottomPadding())
         )
     }

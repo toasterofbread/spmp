@@ -29,8 +29,10 @@ class YTMLoadArtistEndpoint(override val api: YoutubeMusicApi): LoadArtistEndpoi
             return@withContext Result.failure(DataParseException.ofYoutubeJsonRequest(request, api, cause = it))
         }
 
-        processDefaultResponse(artist_data, response, hl, api).onFailure {
-            return@withContext Result.failure(DataParseException.ofYoutubeJsonRequest(request, api, cause = it))
+        response.use {
+            processDefaultResponse(artist_data, response, hl, api).onFailure {
+                return@withContext Result.failure(DataParseException.ofYoutubeJsonRequest(request, api, cause = it))
+            }
         }
 
         artist_data.loaded = true

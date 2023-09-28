@@ -3,13 +3,12 @@ package com.toasterofbread.utils.common
 // Originally based on https://github.com/mainrs/android-compose-furigana
 
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.requiredHeight
-import androidx.compose.foundation.layout.requiredWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.text.InlineTextContent
@@ -32,6 +31,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
@@ -95,8 +95,10 @@ fun calculateReadingsAnnotatedString(
 @Composable
 fun BasicFuriganaText(
     terms: List<SongLyrics.Term>,
+    modifier: Modifier = Modifier,
     show_readings: Boolean = true,
     max_lines: Int = 1,
+    preallocate_needed_space: Boolean = false,
     font_size: TextUnit = LocalTextStyle.current.fontSize,
     text_colour: Color = LocalContentColor.current,
     style: TextStyle = LocalTextStyle.current
@@ -108,8 +110,13 @@ fun BasicFuriganaText(
     var inline_content: Map<String, InlineTextContent> by remember { mutableStateOf(emptyMap()) }
 
     val density = LocalDensity.current
-    var width: Dp by remember { mutableStateOf(Dp.Unspecified) }
-    val height: Dp by animateDpAsState(line_height * max_lines)
+    var box_width: Dp by remember { mutableStateOf(Dp.Unspecified) }
+
+    var line_count: Int by remember { mutableStateOf(1) }
+    val required_height: Dp by animateDpAsState(
+        if (preallocate_needed_space) line_height * max_lines
+        else line_height * minOf(line_count, max_lines)
+    )
 
     LaunchedEffect(terms, max_lines) {
         val string_builder = AnnotatedString.Builder()
@@ -121,16 +128,27 @@ fun BasicFuriganaText(
 
                 content.putIfAbsent(subterm.text) {
                     getLyricsInlineTextContent(
-                        subterm.text, subterm.furi, show_readings, font_size, reading_font_size
+                        subterm.text,
+                        subterm.furi,
+                        show_readings,
+                        font_size,
+                        reading_font_size,
+                        getModifier = {
+                            Modifier.width(box_width).fillMaxHeight()
+                        }
                     ) { is_reading, text, alternate_text, font_size, modifier ->
                         Text(
                             text,
-                            modifier.widthIn(max = width),
+                            modifier.widthIn(max = box_width),
                             fontSize = font_size,
                             color = text_colour,
                             softWrap = true,
                             overflow = TextOverflow.Visible,
-                            maxLines = max_lines
+                            maxLines = max_lines,
+                            textAlign = TextAlign.Center,
+                            onTextLayout = { layout_result ->
+                                line_count = maxOf(line_count, layout_result.lineCount)
+                            }
                         )
                     }
                 }
@@ -142,10 +160,13 @@ fun BasicFuriganaText(
     }
 
     Box(
-        Modifier.requiredHeight(height).fillMaxWidth().onSizeChanged {
-            width = with(density) { it.width.toDp() }
-        },
-        contentAlignment = Alignment.CenterStart
+        modifier
+            .requiredHeight(required_height)
+            .fillMaxWidth()
+            .onSizeChanged {
+                box_width = with(density) { it.width.toDp() }
+            },
+        contentAlignment = Alignment.Center
     ) {
         Text(
             annotated_string,
@@ -153,7 +174,10 @@ fun BasicFuriganaText(
             color = text_colour,
             style = style,
             maxLines = max_lines,
-            overflow = TextOverflow.Visible
+            overflow = TextOverflow.Visible,
+            onTextLayout = { layout_result ->
+                line_count = maxOf(line_count, layout_result.lineCount)
+            }
         )
     }
 }
@@ -201,18 +225,22 @@ private fun getLyricsInlineTextContent(
     show_readings: Boolean,
     font_size: TextUnit,
     reading_font_size: TextUnit,
+    getModifier: @Composable () -> Modifier = { Modifier },
     textElement: @Composable (is_reading: Boolean, text: String, alternate_text: String, font_size: TextUnit, modifier: Modifier) -> Unit
 ): InlineTextContent {
     return InlineTextContent(
         placeholder = Placeholder(
-            width = (text.length.toDouble() + (text.length - 1) * 0.05).em,
+            width = (text.length.toDouble() + ((text.length - 1) * 0.05)).em * (
+                    if (text.any { it.isFullWidth() }) 1f
+                    else 0.51f
+            ),
             height = (font_size.value + (reading_font_size.value * 2)).sp,
             placeholderVerticalAlign = PlaceholderVerticalAlign.Bottom
         ),
         children = { alternate_text ->
             Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.CenterStart
+                modifier = getModifier(),
+                contentAlignment = Alignment.Center
             ) {
                 if (show_readings && reading != null) {
                     textElement(

@@ -18,6 +18,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
@@ -37,13 +40,13 @@ const val NOW_PLAYING_MAIN_PADDING = 10f
 
 internal const val MINIMISED_NOW_PLAYING_HORIZ_PADDING: Float = 10f
 internal const val OVERLAY_MENU_ANIMATION_DURATION: Int = 200
-internal const val NOW_PLAYING_TOP_BAR_HEIGHT: Int = 40
 internal const val SEEK_BAR_GRADIENT_OVERFLOW_RATIO: Float = 0.3f
 private const val ACCENT_CLEAR_WAIT_TIME_MS: Long = 1000
 
 @Composable
-fun ColumnScope.NowPlayingMainTab(modifier: Modifier = Modifier) {
+fun ColumnScope.NowPlayingMainTab(onTopBarHeightChanged: (Dp) -> Unit, modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
+    val density = LocalDensity.current
 
     val current_song: Song? by player.status.song_state
     val expansion = LocalNowPlayingExpansion.current
@@ -111,7 +114,9 @@ fun ColumnScope.NowPlayingMainTab(modifier: Modifier = Modifier) {
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        TopBar()
+        TopBar(Modifier.onSizeChanged {
+            onTopBarHeightChanged(with(density) { it.height.toDp() })
+        })
 
         val screen_width = player.screen_size.width
 

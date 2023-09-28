@@ -339,7 +339,7 @@ class PlaylistPage(
             )
 
             var top_bar_showing by remember { mutableStateOf(false) }
-            MusicTopBar(
+            player.top_bar.MusicTopBar(
                 Settings.KEY_LYRICS_SHOW_IN_SEARCH,
                 Modifier.fillMaxWidth().zIndex(2f),
                 padding = content_padding.copy(bottom = 0.dp),

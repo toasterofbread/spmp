@@ -1,6 +1,8 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.queue
 
 import LocalPlayerState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -50,7 +52,6 @@ import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_
 import com.toasterofbread.spmp.ui.layout.nowplaying.LocalNowPlayingExpansion
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
-import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NOW_PLAYING_TOP_BAR_HEIGHT
 import com.toasterofbread.spmp.ui.layout.nowplaying.rememberTopBarShouldShowInQueue
 import com.toasterofbread.utils.common.getContrasted
 import kotlinx.coroutines.delay
@@ -59,7 +60,7 @@ import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 
 @Composable
-fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
+fun QueueTab(page_height: Dp, getTopBarHeight: () -> Dp, modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
     val expansion = LocalNowPlayingExpansion.current
     val density = LocalDensity.current
@@ -156,7 +157,7 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
 
     val show_top_bar by rememberTopBarShouldShowInQueue(expansion.top_bar_mode.value)
     val top_bar_height by animateDpAsState(
-        if (show_top_bar) NOW_PLAYING_TOP_BAR_HEIGHT.dp else 0.dp
+        if (show_top_bar) getTopBarHeight() else 0.dp
     )
 
     val expanded by remember { derivedStateOf { expansion.get() > 1f } }
@@ -247,9 +248,8 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
 
                         item {
                             var bottom_padding: Dp = (
-                                NOW_PLAYING_TOP_BAR_HEIGHT.dp
+                                MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
                                 + list_position
-                                + top_padding
                             )
 
                             if (player.player?.radio_loading == true) {

@@ -131,7 +131,6 @@ internal abstract class Loader<V> {
                     cancelled = --awaiting_count == 0
                     if (cancelled) {
                         current_job.cancel(e)
-                        job = null
                     }
                 }
 
@@ -209,9 +208,9 @@ internal suspend inline fun <K, V> performSafeLoad(
 
         lock.withLock {
             running[instance_key] = load_job
+            load_job.start()
         }
 
-        load_job.start()
         load_job.await()
     }
 

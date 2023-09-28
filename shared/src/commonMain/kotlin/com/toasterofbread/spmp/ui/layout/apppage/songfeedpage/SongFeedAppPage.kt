@@ -5,9 +5,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -37,7 +34,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.FilterChip
@@ -55,7 +51,6 @@ import com.toasterofbread.spmp.platform.composable.SwipeRefresh
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
-import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.PinnedItemsRow
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.FeedLoadState
@@ -63,6 +58,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
+import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedLoadResult
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
 import com.toasterofbread.utils.common.anyCauseIs
@@ -112,7 +108,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
         
         AnimatedVisibility(show) {
             Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-                IconButton({ player.setAppPage(player.app_page_state.Search) }) {
+                IconButton({ player.openAppPage(player.app_page_state.Search) }) {
                     Icon(Icons.Default.Search, null)
                 }
 
@@ -143,34 +139,6 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
                         }
                     }
                 }
-            }
-        }
-    }
-
-    @Composable
-    private fun LoadErrorDisplay() {
-        AnimatedVisibility(
-            load_error != null,
-            enter = expandVertically(),
-            exit = shrinkVertically()
-        ) {
-            var error: Throwable? by remember { mutableStateOf(load_error) }
-            LaunchedEffect(load_error) {
-                if (load_error != null) {
-                    error = load_error
-                }
-            }
-
-            error?.also {
-                ErrorInfoDisplay(
-                    it,
-                    modifier = Modifier.padding(bottom = 20.dp),
-                    message = getString("error_yt_feed_parse_failed"),
-                    onDismiss = {
-                        load_error = null
-                    },
-                    disable_parent_scroll = false
-                )
             }
         }
     }
@@ -309,10 +277,6 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
                         userScrollEnabled = !state_alpha.isRunning
                     ) {
                         item {
-                            LoadErrorDisplay()
-                        }
-
-                        item {
                             TopContent()
                         }
 
@@ -387,8 +351,16 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
 
                 // Load failed
                 else -> {
-                    Box(Modifier.fillMaxSize().padding(content_padding).background(Color.Green)) {
-                        LoadErrorDisplay()
+                    LaunchedEffect(load_error) {
+                        if (load_error == null) {
+                            return@LaunchedEffect
+                        }
+
+                        val library = player.app_page_state.Library
+                        library.external_load_error = load_error
+                        load_error = null
+
+                        player.openAppPage(library)
                     }
                 }
             }
@@ -412,7 +384,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
 
         try {
             if (load_state != FeedLoadState.PREINIT && load_state != FeedLoadState.NONE) {
-                val error =IllegalStateException("Illegal load state $load_state")
+                val error = IllegalStateException("Illegal load state $load_state")
                 load_error = error
                 return@withContext Result.failure(error)
             }
@@ -476,6 +448,10 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
                     return@withContext Result.failure(error)
                 }
             )
+        }
+        catch (e: Throwable) {
+            load_error = e
+            return@withContext Result.failure(e)
         }
         finally {
             load_state = FeedLoadState.NONE

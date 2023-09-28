@@ -198,7 +198,11 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
                             .padding(padding),
                         contentAlignment = Alignment.Center
                     ) {
-                        ErrorInfoDisplay(results, Modifier.fillMaxWidth())
+                        ErrorInfoDisplay(
+                            results,
+                            Modifier.fillMaxWidth(),
+                            onDismiss = { error = null }
+                        )
                     }
                 }
                 else if (search_in_progress) {

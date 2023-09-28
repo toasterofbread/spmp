@@ -198,7 +198,7 @@ open class PlayerState protected constructor(
 
     open fun onNavigationBarTargetColourChanged(colour: Color?, from_lpm: Boolean): Unit = upstream!!.onNavigationBarTargetColourChanged(colour, from_lpm)
 
-    open fun setAppPage(page: AppPage?, from_current: Boolean = false, replace_current: Boolean = false) { upstream!!.setAppPage(
+    open fun openAppPage(page: AppPage?, from_current: Boolean = false, replace_current: Boolean = false) { upstream!!.openAppPage(
         page,
         replace_current = replace_current
     ) }

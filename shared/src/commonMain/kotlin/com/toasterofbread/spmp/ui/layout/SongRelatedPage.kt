@@ -70,7 +70,7 @@ fun SongRelatedPage(
                 SubtleLoadingIndicator()
             }
             else if (related == null) {
-                ErrorInfoDisplay(result.exceptionOrNull()!!)
+                ErrorInfoDisplay(result.exceptionOrNull()!!, onDismiss = null)
             }
             else if (related.isEmpty()) {
                 Text(getString("song_related_page_no_content"))

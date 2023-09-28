@@ -203,7 +203,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
         )
     }
 
-    override fun setAppPage(page: AppPage?, from_current: Boolean, replace_current: Boolean) {
+    override fun openAppPage(page: AppPage?, from_current: Boolean, replace_current: Boolean) {
         if (page != app_page) {
             if (!replace_current) {
                 app_page_undo_stack.add(app_page)
@@ -240,11 +240,11 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
         if (item is Artist && item.isForItem()) {
             return
         }
-        setAppPage(MediaItemAppPage(app_page_state, item.getHolder(), browse_params), from_current, replace_current)
+        openAppPage(MediaItemAppPage(app_page_state, item.getHolder(), browse_params), from_current, replace_current)
     }
 
     override fun openViewMorePage(browse_id: String, title: String?) {
-        setAppPage(app_page_state.getViewMorePage(browse_id, title))
+        openAppPage(app_page_state.getViewMorePage(browse_id, title))
     }
 
     override fun openNowPlayingPlayerOverlayMenu(menu: PlayerOverlayMenu?) {

@@ -248,9 +248,7 @@ internal fun Controls(
                 }
 
                 AnimatedVisibility(!volume_slider_visible, enter = expandHorizontally(), exit = shrinkHorizontally()) {
-                    Spacer(Modifier
-                        .width(48.dp)
-                        .background(Color.Green))
+                    Spacer(Modifier.width(48.dp))
                 }
             }
         }

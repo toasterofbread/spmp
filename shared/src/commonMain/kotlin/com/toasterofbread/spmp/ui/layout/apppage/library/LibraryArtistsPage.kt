@@ -102,7 +102,7 @@ class LibraryArtistsPage(context: PlatformContext): LibrarySubPage(context) {
         }
 
         CompositionLocalProvider(LocalPlayerState provides remember { player.copy(onClickedOverride = { item, index ->
-            player.setAppPage(
+            player.openAppPage(
                 object : AppPageWithItem() {
                     override val item: MediaItemHolder = item
                     override val state: AppPageState = player.app_page_state

@@ -104,7 +104,11 @@ fun ArtistPage(
         if (load_error != null) {
             item {
                 load_error?.also { error ->
-                    ErrorInfoDisplay(error, content_modifier)
+                    ErrorInfoDisplay(
+                        error,
+                        content_modifier,
+                        onDismiss = { load_error = null }
+                    )
                 }
             }
         }

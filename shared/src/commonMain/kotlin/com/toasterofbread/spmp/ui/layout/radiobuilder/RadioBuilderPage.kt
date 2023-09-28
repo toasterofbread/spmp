@@ -49,7 +49,8 @@ fun RadioBuilderPage(
     var artists_result: Result<List<RadioBuilderArtist>>? by remember { mutableStateOf(null) }
     var selected_artists: Set<Int>? by remember { mutableStateOf(null) }
 
-    val builder_endpoint = LocalPlayerState.current.context.ytapi.RadioBuilder
+    val player = LocalPlayerState.current
+    val builder_endpoint = player.context.ytapi.RadioBuilder
     check(builder_endpoint.isImplemented())
 
     LaunchedEffect(Unit) {
@@ -75,7 +76,7 @@ fun RadioBuilderPage(
                     top = content_padding.calculateTopPadding()
                 )
         ) {
-            MusicTopBar(
+            player.top_bar.MusicTopBar(
                 Settings.KEY_LYRICS_SHOW_IN_RADIOBUILDER,
                 Modifier.fillMaxWidth()
             )

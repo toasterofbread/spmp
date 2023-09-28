@@ -21,7 +21,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -32,9 +34,7 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.platform.composeScope
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
-import com.toasterofbread.spmp.ui.component.MusicTopBarWithVisualiser
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NOW_PLAYING_MAIN_PADDING
-import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NOW_PLAYING_TOP_BAR_HEIGHT
 import com.toasterofbread.utils.common.setAlpha
 
 @Composable
@@ -61,8 +61,8 @@ fun rememberTopBarShouldShowInQueue(mode: MusicTopBarMode): State<Boolean> {
 private fun getMaxHeight(show_in_queue: Boolean): State<Dp> {
     val expansion = LocalNowPlayingExpansion.current
     return animateDpAsState(
-        if (!show_in_queue) NOW_PLAYING_TOP_BAR_HEIGHT.dp * (2f - expansion.get().coerceIn(1f, 2f))
-        else NOW_PLAYING_TOP_BAR_HEIGHT.dp
+        if (!show_in_queue) 40.dp * (2f - expansion.get().coerceIn(1f, 2f))
+        else 40.dp
     )
 }
 
@@ -72,6 +72,7 @@ fun TopBar(modifier: Modifier = Modifier) {
     val expansion = LocalNowPlayingExpansion.current
 
     val show_in_queue by rememberTopBarShouldShowInQueue(expansion.top_bar_mode.value)
+    var lyrics_showing: Boolean by remember { mutableStateOf(false) }
 
     val top_bar_height by remember { derivedStateOf {
         if (!show_in_queue || expansion.getBounded() < 1f) expansion.getAppearing() else 1f
@@ -86,7 +87,7 @@ fun TopBar(modifier: Modifier = Modifier) {
         player.status.m_song,
         modifier
             .fillMaxWidth()
-            .heightIn(minOf(NOW_PLAYING_TOP_BAR_HEIGHT.dp * top_bar_height, max_height))
+            .heightIn(max = if (lyrics_showing) Dp.Infinity else minOf(40.dp * top_bar_height, max_height))
             .height(IntrinsicSize.Min)
             .padding(horizontal = NOW_PLAYING_MAIN_PADDING.dp)
             .graphicsLayer { alpha = getAlpha() }
@@ -117,10 +118,13 @@ fun TopBar(modifier: Modifier = Modifier) {
                 }
             }
 
-            MusicTopBarWithVisualiser(
+            player.top_bar.MusicTopBarWithVisualiser(
                 Settings.INTERNAL_TOPBAR_MODE_NOWPLAYING,
                 Modifier.fillMaxSize().weight(1f),
-                song = song
+                song = song,
+                onShowingChanged = {
+                    lyrics_showing = it
+                }
             )
 
             composeScope {

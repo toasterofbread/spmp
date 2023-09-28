@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.SkipNext
+import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -334,6 +335,19 @@ fun ThumbnailRow(
             }
 
             val player_button_modifier = Modifier.size(40.dp)
+
+            val show_prev_button: Boolean by Settings.KEY_MINI_PLAYER_SHOW_PREV_BUTTON.rememberMutableState()
+
+            if (show_prev_button) {
+                IconButton({ player.player?.seekToPrevious() }, player_button_modifier) {
+                    Image(
+                        Icons.Rounded.SkipPrevious,
+                        null,
+                        colorFilter = ColorFilter.tint(player.getNPOnBackground())
+                    )
+                }
+            }
+
             IconButton({ player.player?.playPause() }, player_button_modifier) {
                 Image(
                     if (player.status.m_playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,

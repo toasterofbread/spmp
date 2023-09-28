@@ -15,7 +15,7 @@ import java.io.IOException
 import java.nio.charset.Charset
 import java.util.Base64
 
-private const val START_SKIP_LINES: Int = 4
+private const val START_SKIP_LINES: Int = 0
 
 suspend fun loadKugouLyrics(hash: String): Result<List<List<SongLyrics.Term>>> =
     withContext(Dispatchers.IO) { kotlin.runCatching {

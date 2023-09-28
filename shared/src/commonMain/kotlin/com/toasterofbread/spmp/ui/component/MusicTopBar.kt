@@ -11,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -37,227 +38,311 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import app.cash.sqldelight.Query
 import com.toasterofbread.spmp.model.MusicTopBarMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.SongLyrics
+import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.composeScope
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.utils.common.getContrasted
+import com.toasterofbread.utils.common.launchSingle
 import com.toasterofbread.utils.common.setAlpha
-import com.toasterofbread.utils.composable.loadLyricsOnSongChange
+import com.toasterofbread.utils.common.thenIf
+import com.toasterofbread.utils.composable.AlignableCrossfade
 import com.toasterofbread.utils.composable.pauseableInfiniteRepeatableAnimation
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 
-@Composable
-fun MusicTopBarWithVisualiser(
-    target_mode_key: Settings,
-    modifier: Modifier = Modifier,
-    song: Song? = LocalPlayerState.current.status.m_song,
-    can_show_visualiser: Boolean = false,
-    hide_while_inactive: Boolean = true,
-    padding: PaddingValues = PaddingValues(),
-    onShowingChanged: ((Boolean) -> Unit)? = null
-) {
-    var target_mode: MusicTopBarMode by target_mode_key.rememberMutableEnumState()
-    val show_toast = remember { mutableStateOf(false) }
+class MusicTopBar(val player: PlayerState) {
+    var lyrics: SongLyrics? by mutableStateOf(null)
+        private set
+    private var current_song: Song? by mutableStateOf(null)
 
-    MusicTopBar(
-        { target_mode },
-        true,
-        can_show_visualiser,
-        hide_while_inactive,
-        modifier,
-        song,
-        padding,
-        innerContent = { mode ->
-            Crossfade(Pair(target_mode, mode), Modifier.fillMaxSize()) { state ->
-                val (target, current) = state
+    private val coroutine_scope = CoroutineScope(Job())
+    private val lyrics_listener = Query.Listener {
+        val song = player.status.m_song
+        if (song == null) {
+            return@Listener
+        }
 
-                val toast_alpha = remember { Animatable(if (show_toast.value) 1f else 0f) }
-                LaunchedEffect(Unit) {
-                    if (!show_toast.value) {
-                        return@LaunchedEffect
-                    }
+        val reference = song.Lyrics.get(player.database)
+        if (lyrics != null && lyrics?.reference == reference) {
+            return@Listener
+        }
 
-                    show_toast.value = false
-                    delay(500)
-                    toast_alpha.animateTo(0f)
-                }
+        lyrics = null
 
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Box(
-                        Modifier
-                            .graphicsLayer { alpha = toast_alpha.value }
-                            .background(LocalContentColor.current, RoundedCornerShape(16.dp)),
-                    ) {
-                        Row(
-                            Modifier.padding(vertical = 5.dp, horizontal = 15.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(5.dp)
-                        ) {
-                            val colour = LocalContentColor.current.getContrasted()
-                            Icon(
-                                target.getIcon(),
-                                null,
-                                tint = colour
-                            )
+        coroutine_scope.launchSingle {
+            val result =
+                if (reference != null) SongLyricsLoader.loadByLyrics(reference, player.context)
+                else SongLyricsLoader.loadBySong(song, player.context)
 
-                            if (target != current) {
-                                Text(getString("topbar_mode_unavailable"), color = colour)
-                            }
-                        }
-                    }
-                }
+            result.onSuccess {
+                lyrics = it
             }
-        },
-        onClick = {
-            target_mode = target_mode.getNext(can_show_visualiser)
-            show_toast.value = true
-        },
-        onShowingChanged = onShowingChanged
-    )
-}
-
-@Composable
-fun MusicTopBar(
-    can_show_key: Settings,
-    modifier: Modifier = Modifier,
-    padding: PaddingValues = PaddingValues(),
-    getBottomBorderOffset: ((height: Int) -> Int)? = null,
-    getBottomBorderColour: (() -> Color)? = null,
-    onShowingChanged: ((Boolean) -> Unit)? = null
-): Dp {
-    val can_show: Boolean by can_show_key.rememberMutableState()
-    return MusicTopBar(
-        { MusicTopBarMode.LYRICS },
-        can_show = can_show,
-        can_show_visualiser = false,
-        hide_while_inactive = true,
-        modifier = modifier,
-        padding = padding,
-        getBottomBorderOffset = getBottomBorderOffset,
-        getBottomBorderColour = getBottomBorderColour,
-        onShowingChanged = onShowingChanged
-    )
-}
-
-@Composable
-private fun MusicTopBar(
-    getTargetMode: () -> MusicTopBarMode,
-    can_show: Boolean,
-    can_show_visualiser: Boolean,
-    hide_while_inactive: Boolean,
-    modifier: Modifier = Modifier,
-    song: Song? = LocalPlayerState.current.status.m_song,
-    padding: PaddingValues = PaddingValues(),
-    innerContent: (@Composable (MusicTopBarMode) -> Unit)? = null,
-    getBottomBorderOffset: ((height: Int) -> Int)? = null,
-    getBottomBorderColour: (() -> Color)? = null,
-    onClick: (() -> Unit)? = null,
-    onShowingChanged: ((Boolean) -> Unit)? = null
-): Dp {
-    val player = LocalPlayerState.current
-    val lyrics = loadLyricsOnSongChange(song, player.context, getTargetMode() == MusicTopBarMode.LYRICS)
-    var mode_state: MusicTopBarMode by mutableStateOf(getTargetMode())
-
-    val visualiser_width: Float by Settings.KEY_TOPBAR_VISUALISER_WIDTH.rememberMutableState()
-    check(visualiser_width in 0f .. 1f)
-
-    val sync_offset_state: State<Long?>? = song?.LyricsSyncOffset?.observe(player.database)
-
-    val current_state by remember(lyrics) {
-        derivedStateOf {
-            val target = getTargetMode()
-            for (mode_i in target.ordinal downTo 0) {
-                val mode = MusicTopBarMode.values()[mode_i]
-                val state = getModeState(mode, lyrics)
-                if (state != null) {
-                    mode_state = mode
-                    return@derivedStateOf state
-                }
-            }
-            throw NotImplementedError(target.toString())
         }
     }
 
-    val show = !hide_while_inactive || isStateActive(current_state, can_show_visualiser)
-    DisposableEffect(show) {
-        onShowingChanged?.invoke(show)
-        onDispose {
-            onShowingChanged?.invoke(false)
-        }
+    init {
+        reconnect()
     }
 
-    AnimatedVisibility(
-        show,
-        modifier
-            .platformClickable(
-                onClick = onClick,
-                onAltClick = {
-                    if (current_state is SongLyrics) {
-                        player.openNowPlayingPlayerOverlayMenu(PlayerOverlayMenu.getLyricsMenu())
-                    }
-                }
-            ),
-        enter = expandVertically(),
-        exit = shrinkVertically()
+    fun reconnect() {
+        player.database.songQueries.lyricsById("").addListener(lyrics_listener)
+    }
+
+    fun release() {
+        player.database.songQueries.lyricsById("").removeListener(lyrics_listener)
+    }
+
+    @Composable
+    fun MusicTopBarWithVisualiser(
+        target_mode_key: Settings,
+        modifier: Modifier = Modifier,
+        song: Song? = LocalPlayerState.current.status.m_song,
+        can_show_visualiser: Boolean = false,
+        hide_while_inactive: Boolean = true,
+        padding: PaddingValues = PaddingValues(),
+        onShowingChanged: ((Boolean) -> Unit)? = null
     ) {
-        Column(Modifier.heightIn(30.dp + padding.calculateTopPadding() + padding.calculateBottomPadding())) {
-            Box(Modifier.padding(padding)) {
-                innerContent?.invoke(mode_state)
+        var target_mode: MusicTopBarMode by target_mode_key.rememberMutableEnumState()
+        val show_toast = remember { mutableStateOf(false) }
 
-                Crossfade(current_state, Modifier.fillMaxSize()) { state ->
+        MusicTopBar(
+            { target_mode },
+            true,
+            can_show_visualiser,
+            hide_while_inactive,
+            modifier,
+            song,
+            padding,
+            innerContent = { mode ->
+                Crossfade(Pair(target_mode, mode), Modifier.fillMaxSize()) { state ->
+                    val (target, current) = state
+
+                    val toast_alpha = remember { Animatable(if (show_toast.value) 1f else 0f) }
+                    LaunchedEffect(Unit) {
+                        if (!show_toast.value) {
+                            return@LaunchedEffect
+                        }
+
+                        show_toast.value = false
+                        delay(500)
+                        toast_alpha.animateTo(0f)
+                    }
+
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        when (state) {
-                            is SongLyrics -> {
-                                val linger: Boolean by Settings.KEY_TOPBAR_LYRICS_LINGER.rememberMutableState()
-                                val show_furigana: Boolean by Settings.KEY_TOPBAR_LYRICS_SHOW_FURIGANA.rememberMutableState()
+                        Box(
+                            Modifier
+                                .graphicsLayer { alpha = toast_alpha.value }
+                                .background(LocalContentColor.current, RoundedCornerShape(16.dp)),
+                        ) {
+                            Row(
+                                Modifier.padding(vertical = 5.dp, horizontal = 15.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(5.dp)
+                            ) {
+                                val colour = LocalContentColor.current.getContrasted()
+                                Icon(
+                                    target.getIcon(),
+                                    null,
+                                    tint = colour
+                                )
 
-                                LyricsLineDisplay(
-                                    state,
-                                    {
-                                        (player.player?.current_position_ms ?: 0) +
-                                            (sync_offset_state?.value ?: 0)
-                                    },
-                                    linger,
-                                    show_furigana,
-                                    emptyContent = {
-                                        TopBarEmptyContent()
-                                    }
-                                )
+                                if (target != current) {
+                                    Text(getString("topbar_mode_unavailable"), color = colour)
+                                }
                             }
-                            MusicTopBarMode.VISUALISER -> {
-                                player.player?.Visualiser(
-                                    LocalContentColor.current,
-                                    Modifier.fillMaxHeight().fillMaxWidth(visualiser_width).padding(vertical = 10.dp),
-                                    opacity = 0.5f
-                                )
+                        }
+                    }
+                }
+            },
+            onClick = {
+                target_mode = target_mode.getNext(can_show_visualiser)
+                show_toast.value = true
+            },
+            onShowingChanged = onShowingChanged
+        )
+    }
+
+    @Composable
+    fun MusicTopBar(
+        can_show_key: Settings,
+        modifier: Modifier = Modifier,
+        padding: PaddingValues = PaddingValues(),
+        getBottomBorderOffset: ((height: Int) -> Int)? = null,
+        getBottomBorderColour: (() -> Color)? = null,
+        onShowingChanged: ((Boolean) -> Unit)? = null
+    ): Dp {
+        val can_show: Boolean by can_show_key.rememberMutableState()
+        return MusicTopBar(
+            { MusicTopBarMode.LYRICS },
+            can_show = can_show,
+            can_show_visualiser = false,
+            hide_while_inactive = true,
+            modifier = modifier,
+            padding = padding,
+            getBottomBorderOffset = getBottomBorderOffset,
+            getBottomBorderColour = getBottomBorderColour,
+            onShowingChanged = onShowingChanged
+        )
+    }
+
+    @Composable
+    private fun MusicTopBar(
+        getTargetMode: () -> MusicTopBarMode,
+        can_show: Boolean,
+        can_show_visualiser: Boolean,
+        hide_while_inactive: Boolean,
+        modifier: Modifier = Modifier,
+        song: Song? = LocalPlayerState.current.status.m_song,
+        padding: PaddingValues = PaddingValues(),
+        innerContent: (@Composable (MusicTopBarMode) -> Unit)? = null,
+        getBottomBorderOffset: ((height: Int) -> Int)? = null,
+        getBottomBorderColour: (() -> Color)? = null,
+        onClick: (() -> Unit)? = null,
+        onShowingChanged: ((Boolean) -> Unit)? = null
+    ): Dp {
+        val player = LocalPlayerState.current
+        var mode_state: MusicTopBarMode by mutableStateOf(getTargetMode())
+
+        val visualiser_width: Float by Settings.KEY_TOPBAR_VISUALISER_WIDTH.rememberMutableState()
+        check(visualiser_width in 0f .. 1f)
+
+        val sync_offset_state: State<Long?>? = song?.LyricsSyncOffset?.observe(player.database)
+
+        val current_state by remember(lyrics) {
+            derivedStateOf {
+                val target = getTargetMode()
+                for (mode_i in target.ordinal downTo 0) {
+                    val mode = MusicTopBarMode.values()[mode_i]
+                    val state = getModeState(mode, lyrics)
+                    if (state != null) {
+                        mode_state = mode
+                        return@derivedStateOf state
+                    }
+                }
+                throw NotImplementedError(target.toString())
+            }
+        }
+
+        val show = !hide_while_inactive || isStateActive(current_state, can_show_visualiser)
+        onShowingChanged?.invoke(show)
+
+        LaunchedEffect(song?.id) {
+            if (song?.id == current_song?.id) {
+                return@LaunchedEffect
+            }
+
+            lyrics = null
+            current_song = song
+
+            if (song != null) {
+                val reference = song.Lyrics.get(player.database)
+                if (lyrics == null || lyrics?.reference != reference) {
+                    val loaded_lyrics = reference?.let {
+                        SongLyricsLoader.getLoadedByLyrics(it)
+                    }
+
+                    if (loaded_lyrics != null) {
+                        lyrics = loaded_lyrics
+                    }
+                    else {
+                        coroutine_scope.launchSingle {
+                            val result = SongLyricsLoader.loadBySong(song, player.context)
+                            result.onSuccess {
+                                lyrics = it
                             }
                         }
                     }
                 }
             }
+        }
 
-            composeScope {
-                if (getBottomBorderColour != null) {
-                    WaveBorder(
-                        Modifier.fillMaxWidth().zIndex(-1f),
-                        getColour = { getBottomBorderColour() },
-                        getOffset = getBottomBorderOffset
-                    )
+        AnimatedVisibility(
+            show,
+            modifier
+                .height(IntrinsicSize.Min)
+                .platformClickable(
+                    onClick = onClick,
+                    onAltClick = {
+                        if (current_state is SongLyrics) {
+                            player.openNowPlayingPlayerOverlayMenu(PlayerOverlayMenu.getLyricsMenu())
+                        }
+                    }
+                ),
+            enter = expandVertically(),
+            exit = shrinkVertically()
+        ) {
+            Column(
+                Modifier.heightIn(30.dp + padding.calculateTopPadding() + padding.calculateBottomPadding()).fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(Modifier.padding(padding).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    innerContent?.invoke(mode_state)
+
+                    AlignableCrossfade(current_state, Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { state ->
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            when (state) {
+                                is SongLyrics -> {
+                                    val linger: Boolean by Settings.KEY_TOPBAR_LYRICS_LINGER.rememberMutableState()
+                                    val show_furigana: Boolean by Settings.KEY_TOPBAR_LYRICS_SHOW_FURIGANA.rememberMutableState()
+                                    val max_lines: Int by Settings.KEY_LYRICS_TOP_BAR_MAX_LINES.rememberMutableState()
+                                    val preallocate_max_space: Boolean by Settings.KEY_LYRICS_TOP_BAR_PREAPPLY_MAX_LINES.rememberMutableState()
+
+                                    LyricsLineDisplay(
+                                        lyrics = state,
+                                        getTime = {
+                                            (player.player?.current_position_ms ?: 0) +
+                                                    (sync_offset_state?.value ?: 0)
+                                        },
+                                        lyrics_linger = linger,
+                                        show_furigana = show_furigana,
+                                        max_lines = max_lines,
+                                        preallocate_needed_space = preallocate_max_space,
+                                        modifier = Modifier.fillMaxWidth(),
+                                        emptyContent = {
+                                            TopBarEmptyContent()
+                                        }
+                                    )
+                                }
+                                MusicTopBarMode.VISUALISER -> {
+                                    player.player?.Visualiser(
+                                        LocalContentColor.current,
+                                        Modifier.fillMaxHeight().fillMaxWidth(visualiser_width).padding(vertical = 10.dp),
+                                        opacity = 0.5f
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                composeScope {
+                    if (getBottomBorderColour != null) {
+                        WaveBorder(
+                            Modifier.fillMaxWidth().zIndex(-1f),
+                            getColour = { getBottomBorderColour() },
+                            getOffset = getBottomBorderOffset
+                        )
+                    }
                 }
             }
         }
-    }
 
-    return if (!show) padding.calculateTopPadding() else if (getBottomBorderColour != null) WAVE_BORDER_DEFAULT_HEIGHT.dp else 0.dp
+        return if (!show) padding.calculateTopPadding() else if (getBottomBorderColour != null) WAVE_BORDER_DEFAULT_HEIGHT.dp else 0.dp
+    }
 }
 
 @Composable

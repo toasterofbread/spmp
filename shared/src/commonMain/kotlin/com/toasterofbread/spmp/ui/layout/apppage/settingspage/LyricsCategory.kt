@@ -72,6 +72,11 @@ internal fun getLyricsCategory(): List<SettingsItem> {
         ),
 
         SettingsToggleItem(
+            SettingsValueState(Settings.KEY_LYRICS_TOP_BAR_PREAPPLY_MAX_LINES.name),
+            getString("s_key_lyrics_top_bar_preapply_max_lines"), null
+        ),
+
+        SettingsToggleItem(
             SettingsValueState(Settings.KEY_TOPBAR_LYRICS_SHOW_FURIGANA.name),
             getString("s_key_top_bar_lyrics_show_furigana"), null
         ),

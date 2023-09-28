@@ -10,7 +10,8 @@ fun Char.isKanji(): Boolean = of(this) == CJK_UNIFIED_IDEOGRAPHS
 fun Char.isHiragana(): Boolean = of(this) == HIRAGANA
 fun Char.isKatakana(): Boolean = of(this) == KATAKANA
 
-// http://kevin3sei.blog95.fc2.com/blog-entry-111.html
+// http://kevin3sei.blog95.fc2.com/blog-entry-
+// 111.html
 fun Char.isFullWidth(): Boolean =
     !(this <= '\u007e' || this == '\u00a5' || this == '\u203e' || this in '\uff61'..'\uff9f')
 

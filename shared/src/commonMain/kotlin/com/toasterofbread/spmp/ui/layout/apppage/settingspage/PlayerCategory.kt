@@ -12,6 +12,11 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAct
 
 internal fun getPlayerCategory(): List<SettingsItem> {
     return listOf(
+        SettingsToggleItem(
+            SettingsValueState(Settings.KEY_MINI_PLAYER_SHOW_PREV_BUTTON.name),
+            getString("s_key_mini_player_show_prev_button"), null
+        ),
+
         SettingsMultipleChoiceItem(
             SettingsValueState(Settings.KEY_PLAYER_OVERLAY_CUSTOM_ACTION.name),
             getString("s_key_player_overlay_menu_custom_action"),

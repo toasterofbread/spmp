@@ -86,6 +86,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
     override val main_multiselect_context: MediaItemMultiSelectContext = getPlayerStateMultiSelectContext()
     override var np_theme_mode: ThemeMode by mutableStateOf(Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE, context.getPrefs()))
     override val np_overlay_menu: MutableState<PlayerOverlayMenu?> = mutableStateOf(null)
+    override val top_bar: MusicTopBar = MusicTopBar(this)
 
     init {
         low_memory_listener = {
@@ -131,6 +132,8 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
                 service_connecting = false
             }
         )
+
+        top_bar.reconnect()
     }
 
     fun onStop() {
@@ -138,6 +141,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
         SpMp.removeLowMemoryListener(low_memory_listener)
         Settings.prefs.removeListener(prefs_listener)
         _player = null
+        top_bar.release()
     }
 
     override fun interactService(action: (player: PlayerService) -> Unit) {

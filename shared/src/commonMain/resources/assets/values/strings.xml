@@ -1,3 +1,4 @@
+
 <resources>
     <string name="language_name">English</string>
 
@@ -346,6 +347,8 @@
 
     <string name="s_cat_player">Player</string>
 
+    <string name="s_key_mini_player_show_prev_button">Show previous button in mini-player</string>
+
     <string name="s_key_player_overlay_menu_custom_action">Overlay menu custom action</string>
     <string name="s_sub_player_overlay_menu_custom_action">By default, triggers on long press</string>
     <string name="s_key_player_overlay_menu_swap_long_short_press_actions">Swap overlay menu long and short press actions</string>
@@ -416,6 +419,7 @@
 
     <string name="s_group_top_bar_lyrics">Top bar lyrics</string>
     <string name="s_key_lyrics_top_bar_max_lines">Max lines</string>
+    <string name="s_key_lyrics_top_bar_preapply_max_lines">Pre-allocate the space needed to display max lines</string>
     <string name="s_key_top_bar_lyrics_show_furigana">Show furigana</string>
     <string name="s_key_top_bar_lyrics_show_in_library">Show in library</string>
     <string name="s_key_top_bar_lyrics_show_in_radiobuilder">Show in the radio builder</string>

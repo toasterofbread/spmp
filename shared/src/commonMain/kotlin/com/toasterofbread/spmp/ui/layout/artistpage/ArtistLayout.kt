@@ -147,7 +147,7 @@ fun ArtistLayout(
                 Spacer(Modifier.height(player.context.getStatusBarHeightDp()))
             }
 
-            MusicTopBar(
+            player.top_bar.MusicTopBar(
                 Settings.KEY_LYRICS_SHOW_IN_ARTIST,
                 Modifier.fillMaxWidth().zIndex(1f),
                 padding = content_padding.horizontal

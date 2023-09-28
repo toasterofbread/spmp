@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.component
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -19,9 +18,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.utils.common.BasicFuriganaText
+import com.toasterofbread.utils.composable.AlignableCrossfade
 import kotlinx.coroutines.delay
 
 private const val UPDATE_INTERVAL_MS = 100L
@@ -47,6 +46,8 @@ fun LyricsLineDisplay(
     getTime: () -> Long,
     lyrics_linger: Boolean = true,
     show_furigana: Boolean = true,
+    max_lines: Int = 1,
+    preallocate_needed_space: Boolean = false,
     modifier: Modifier = Modifier,
     text_colour: Color = LocalContentColor.current,
     emptyContent: (@Composable () -> Unit)? = null
@@ -83,15 +84,13 @@ fun LyricsLineDisplay(
     val enter = slideInVertically { it }
     val exit = slideOutVertically { -it } + fadeOut()
 
-    val max_lines: Int by Settings.KEY_LYRICS_TOP_BAR_MAX_LINES.rememberMutableState()
-
     Box(modifier.height(IntrinsicSize.Min), contentAlignment = Alignment.Center) {
         val show_a = line_a != null && show_line_a
         val show_b = line_b != null && !show_line_a
 
         @Composable
         fun phase(show: Boolean, index: Int?) {
-            AnimatedVisibility(show, Modifier.height(IntrinsicSize.Min), enter = enter, exit = exit) {
+            AnimatedVisibility(show, Modifier.height(IntrinsicSize.Min).fillMaxWidth(), enter = enter, exit = exit) {
                 var line by remember { mutableStateOf(index) }
                 LaunchedEffect(index) {
                     if (index != null) {
@@ -100,7 +99,13 @@ fun LyricsLineDisplay(
                 }
 
                 line?.also {
-                    BasicFuriganaText(lyrics.lines[it], show_readings = show_furigana, text_colour = text_colour, max_lines = max_lines)
+                    BasicFuriganaText(
+                        lyrics.lines[it],
+                        show_readings = show_furigana,
+                        text_colour = text_colour,
+                        max_lines = max_lines,
+                        preallocate_needed_space = preallocate_needed_space
+                    )
                 }
             }
         }
@@ -108,7 +113,11 @@ fun LyricsLineDisplay(
         phase(show_a, line_a)
         phase(show_b, line_b)
 
-        Crossfade(if (show_a || show_b) null else emptyContent, Modifier.fillMaxWidth()) { content ->
+        AlignableCrossfade(
+            if (show_a || show_b) null else emptyContent,
+            Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) { content ->
             if (content != null) {
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                     content()

@@ -165,7 +165,11 @@ fun FilterSelectionPage(
                             )
 
                             AnimatedVisibility(show_error) {
-                                ErrorInfoDisplay(error, Modifier.fillMaxWidth())
+                                ErrorInfoDisplay(
+                                    error,
+                                    Modifier.fillMaxWidth(),
+                                    onDismiss = { load_error = null }
+                                )
                             }
                         }
                     }

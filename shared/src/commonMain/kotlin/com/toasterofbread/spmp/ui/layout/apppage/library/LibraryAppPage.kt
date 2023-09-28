@@ -4,7 +4,9 @@ import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -24,8 +26,10 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -37,10 +41,13 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.vibrateShort
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.common.copy
 import com.toasterofbread.utils.composable.PlatformClickableIconButton
 import com.toasterofbread.utils.composable.ResizableOutlinedTextField
 
@@ -77,6 +84,8 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
     private var show_sort_type_menu: Boolean by mutableStateOf(false)
     var sort_type: MediaItemSortType by mutableStateOf(current_tab.getDefaultSortType())
     var reverse_sort: Boolean by mutableStateOf(false)
+
+    var external_load_error: Throwable? by mutableStateOf(null)
 
     override fun onOpened(from_item: MediaItemHolder?) {
         setCurrentTab(tabs.first { !it.isHidden() })
@@ -136,7 +145,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
                         },
                         onAltClick = {
                             if (!searching) {
-                                player.setAppPage(player.app_page_state.Search)
+                                player.openAppPage(player.app_page_state.Search)
                                 player.context.vibrateShort()
                             }
                         }
@@ -219,10 +228,35 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
         content_padding: PaddingValues,
         close: () -> Unit
     ) {
+        AnimatedVisibility(
+            external_load_error != null,
+            enter = expandVertically(),
+            exit = shrinkVertically()
+        ) {
+            var error: Throwable? by remember { mutableStateOf(external_load_error) }
+            LaunchedEffect(external_load_error) {
+                if (external_load_error != null) {
+                    error = external_load_error
+                }
+            }
+
+            error?.also {
+                ErrorInfoDisplay(
+                    it,
+                    modifier = Modifier.padding(content_padding.copy(bottom = 20.dp)),
+                    message = getString("error_yt_feed_parse_failed"),
+                    onDismiss = {
+                        external_load_error = null
+                    },
+                    disable_parent_scroll = false
+                )
+            }
+        }
+
         Crossfade(current_tab, modifier) { tab ->
             tab.Page(
                 this@LibraryAppPage,
-                content_padding,
+                content_padding.copy(top = if (external_load_error != null) 0.dp else null),
                 multiselect_context,
                 Modifier.fillMaxSize()
             )

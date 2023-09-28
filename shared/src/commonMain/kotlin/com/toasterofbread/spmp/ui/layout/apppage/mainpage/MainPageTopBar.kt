@@ -38,12 +38,12 @@ fun MainPageTopBar(modifier: Modifier = Modifier) {
         Row(Modifier.height(IntrinsicSize.Min), verticalAlignment = Alignment.CenterVertically) {
             Crossfade(player.app_page == player.app_page_state.Default) { default_open ->
                 if (default_open) {
-                    IconButton({ player.setAppPage(player.app_page_state.Settings) }) {
+                    IconButton({ player.openAppPage(player.app_page_state.Settings) }) {
                         Icon(Icons.Default.Settings, null, Modifier.width(RADIO_BUILDER_ICON_WIDTH_DP.dp))
                     }
                 }
                 else {
-                    IconButton({ player.setAppPage(player.app_page_state.RadioBuilder) }) {
+                    IconButton({ player.openAppPage(player.app_page_state.RadioBuilder) }) {
                         RadioBuilderIcon()
                     }
                 }
@@ -58,7 +58,7 @@ fun MainPageTopBar(modifier: Modifier = Modifier) {
 
             Crossfade(player.app_page == player.app_page_state.Library) { library_open ->
                 if (library_open) {
-                    IconButton({ player.setAppPage(player.app_page_state.Default) }) {
+                    IconButton({ player.openAppPage(player.app_page_state.Default) }) {
                         Icon(Icons.Default.List, null)
                     }
                 }
@@ -68,9 +68,9 @@ fun MainPageTopBar(modifier: Modifier = Modifier) {
                             Icons.Default.MusicNote,
                             null,
                             Modifier.platformClickable(
-                                onClick = { player.setAppPage(player.app_page_state.Library) },
+                                onClick = { player.openAppPage(player.app_page_state.Library) },
                                 onAltClick = {
-                                    player.setAppPage(player.app_page_state.RadioBuilder)
+                                    player.openAppPage(player.app_page_state.RadioBuilder)
                                     player.context.vibrateShort()
                                 },
                                 indication = rememberRipple(false)

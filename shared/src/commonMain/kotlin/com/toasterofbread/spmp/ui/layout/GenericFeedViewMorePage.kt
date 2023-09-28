@@ -106,7 +106,7 @@ fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, co
 
             },
             { error ->
-                ErrorInfoDisplay(error, Modifier.fillMaxWidth().padding(list_padding))
+                ErrorInfoDisplay(error, Modifier.fillMaxWidth().padding(list_padding), onDismiss = null)
             }
         ) ?: Box(Modifier.fillMaxSize().weight(1f), contentAlignment = Alignment.Center) {
             SubtleLoadingIndicator()

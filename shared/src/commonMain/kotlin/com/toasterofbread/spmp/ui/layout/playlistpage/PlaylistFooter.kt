@@ -48,7 +48,8 @@ fun PlaylistPage.PlaylistFooter(
                     state,
                     Modifier.fillMaxWidth(),
                     expanded_content_modifier = Modifier.height(500.dp),
-                    message = "Playlist load failed"
+                    message = "Playlist load failed",
+                    onDismiss = null
                 )
             }
             false -> {

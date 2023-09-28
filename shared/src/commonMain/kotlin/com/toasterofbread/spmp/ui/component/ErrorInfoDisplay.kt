@@ -81,7 +81,7 @@ fun ErrorInfoDisplay(
     start_expanded: Boolean = false,
     extraButtonContent: (@Composable () -> Unit)? = null,
     onExtraButtonPressed: (() -> Unit)? = null,
-    onDismiss: (() -> Unit)? = null
+    onDismiss: (() -> Unit)?
 ) {
     var expanded: Boolean by remember { mutableStateOf(start_expanded) }
     val shape = RoundedCornerShape(20.dp)

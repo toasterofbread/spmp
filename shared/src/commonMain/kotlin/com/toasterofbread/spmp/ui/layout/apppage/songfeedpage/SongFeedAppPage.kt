@@ -75,14 +75,14 @@ private const val ARTISTS_ROW_DEFAULT_MIN_OCCURRENCES: Int = 2
 private const val ARTISTS_ROW_MIN_ARTISTS: Int = 4
 
 class SongFeedAppPage(override val state: AppPageState): AppPage() {
-    private val scroll_state = LazyListState()
+    private val scroll_state: LazyListState = LazyListState()
 
-    private val feed_endpoint = state.context.ytapi.HomeFeed
+    private val feed_endpoint: HomeFeedEndpoint = state.context.ytapi.HomeFeed
 
     private var load_state by mutableStateOf(FeedLoadState.PREINIT)
     private var load_error: Throwable? by mutableStateOf(null)
-    private val load_lock = Mutex()
-    private val coroutine_scope = CoroutineScope(Job())
+    private val load_lock: Mutex = Mutex()
+    private val coroutine_scope: CoroutineScope = CoroutineScope(Job())
 
     private var continuation: String? by mutableStateOf(null)
     private var layouts: List<MediaItemLayout>? by mutableStateOf(null)

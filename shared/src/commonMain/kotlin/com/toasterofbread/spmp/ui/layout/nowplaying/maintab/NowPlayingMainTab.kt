@@ -30,7 +30,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
 import com.toasterofbread.spmp.ui.layout.nowplaying.LocalNowPlayingExpansion
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThumbnailRow
-import com.toasterofbread.spmp.ui.layout.nowplaying.TopBar
+import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.common.getThemeColour
 import kotlinx.coroutines.delay
@@ -46,7 +46,6 @@ private const val ACCENT_CLEAR_WAIT_TIME_MS: Long = 1000
 @Composable
 fun ColumnScope.NowPlayingMainTab(onTopBarHeightChanged: (Dp) -> Unit, modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
-    val density = LocalDensity.current
 
     val current_song: Song? by player.status.song_state
     val expansion = LocalNowPlayingExpansion.current
@@ -114,9 +113,7 @@ fun ColumnScope.NowPlayingMainTab(onTopBarHeightChanged: (Dp) -> Unit, modifier:
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        TopBar(Modifier.onSizeChanged {
-            onTopBarHeightChanged(with(density) { it.height.toDp() })
-        })
+        NowPlayingTopBar(onHeightChanged = onTopBarHeightChanged)
 
         val screen_width = player.screen_size.width
 

@@ -113,6 +113,7 @@ class MusicTopBar(val player: PlayerState) {
         song: Song? = LocalPlayerState.current.status.m_song,
         can_show_visualiser: Boolean = false,
         hide_while_inactive: Boolean = true,
+        alignment: Alignment = Alignment.Center,
         padding: PaddingValues = PaddingValues(),
         onShowingChanged: ((Boolean) -> Unit)? = null
     ) {
@@ -127,6 +128,7 @@ class MusicTopBar(val player: PlayerState) {
             modifier,
             song,
             padding,
+            alignment,
             innerContent = { mode ->
                 Crossfade(Pair(target_mode, mode), Modifier.fillMaxSize()) { state ->
                     val (target, current) = state
@@ -208,6 +210,7 @@ class MusicTopBar(val player: PlayerState) {
         modifier: Modifier = Modifier,
         song: Song? = LocalPlayerState.current.status.m_song,
         padding: PaddingValues = PaddingValues(),
+        alignment: Alignment = Alignment.Center,
         innerContent: (@Composable (MusicTopBarMode) -> Unit)? = null,
         getBottomBorderOffset: ((height: Int) -> Int)? = null,
         getBottomBorderColour: (() -> Color)? = null,
@@ -285,57 +288,59 @@ class MusicTopBar(val player: PlayerState) {
             enter = expandVertically(),
             exit = shrinkVertically()
         ) {
-            Column(
-                Modifier.heightIn(30.dp + padding.calculateTopPadding() + padding.calculateBottomPadding()).fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Box(Modifier.padding(padding).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    innerContent?.invoke(mode_state)
+            Box(Modifier.fillMaxSize(), contentAlignment = alignment) {
+                Column(
+                    Modifier.heightIn(30.dp + padding.calculateTopPadding() + padding.calculateBottomPadding()).fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(Modifier.padding(padding).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        innerContent?.invoke(mode_state)
 
-                    AlignableCrossfade(current_state, Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { state ->
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            when (state) {
-                                is SongLyrics -> {
-                                    val linger: Boolean by Settings.KEY_TOPBAR_LYRICS_LINGER.rememberMutableState()
-                                    val show_furigana: Boolean by Settings.KEY_TOPBAR_LYRICS_SHOW_FURIGANA.rememberMutableState()
-                                    val max_lines: Int by Settings.KEY_LYRICS_TOP_BAR_MAX_LINES.rememberMutableState()
-                                    val preallocate_max_space: Boolean by Settings.KEY_LYRICS_TOP_BAR_PREAPPLY_MAX_LINES.rememberMutableState()
+                        AlignableCrossfade(current_state, Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { state ->
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                when (state) {
+                                    is SongLyrics -> {
+                                        val linger: Boolean by Settings.KEY_TOPBAR_LYRICS_LINGER.rememberMutableState()
+                                        val show_furigana: Boolean by Settings.KEY_TOPBAR_LYRICS_SHOW_FURIGANA.rememberMutableState()
+                                        val max_lines: Int by Settings.KEY_LYRICS_TOP_BAR_MAX_LINES.rememberMutableState()
+                                        val preallocate_max_space: Boolean by Settings.KEY_LYRICS_TOP_BAR_PREAPPLY_MAX_LINES.rememberMutableState()
 
-                                    LyricsLineDisplay(
-                                        lyrics = state,
-                                        getTime = {
-                                            (player.player?.current_position_ms ?: 0) +
-                                                    (sync_offset_state?.value ?: 0)
-                                        },
-                                        lyrics_linger = linger,
-                                        show_furigana = show_furigana,
-                                        max_lines = max_lines,
-                                        preallocate_needed_space = preallocate_max_space,
-                                        modifier = Modifier.fillMaxWidth(),
-                                        emptyContent = {
-                                            TopBarEmptyContent()
-                                        }
-                                    )
-                                }
-                                MusicTopBarMode.VISUALISER -> {
-                                    player.player?.Visualiser(
-                                        LocalContentColor.current,
-                                        Modifier.fillMaxHeight().fillMaxWidth(visualiser_width).padding(vertical = 10.dp),
-                                        opacity = 0.5f
-                                    )
+                                        LyricsLineDisplay(
+                                            lyrics = state,
+                                            getTime = {
+                                                (player.player?.current_position_ms ?: 0) +
+                                                        (sync_offset_state?.value ?: 0)
+                                            },
+                                            lyrics_linger = linger,
+                                            show_furigana = show_furigana,
+                                            max_lines = max_lines,
+                                            preallocate_needed_space = preallocate_max_space,
+                                            modifier = Modifier.fillMaxWidth(),
+                                            emptyContent = {
+                                                TopBarEmptyContent()
+                                            }
+                                        )
+                                    }
+                                    MusicTopBarMode.VISUALISER -> {
+                                        player.player?.Visualiser(
+                                            LocalContentColor.current,
+                                            Modifier.fillMaxHeight().fillMaxWidth(visualiser_width).padding(vertical = 10.dp),
+                                            opacity = 0.5f
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                composeScope {
-                    if (getBottomBorderColour != null) {
-                        WaveBorder(
-                            Modifier.fillMaxWidth().zIndex(-1f),
-                            getColour = { getBottomBorderColour() },
-                            getOffset = getBottomBorderOffset
-                        )
+                    composeScope {
+                        if (getBottomBorderColour != null) {
+                            WaveBorder(
+                                Modifier.fillMaxWidth().zIndex(-1f),
+                                getColour = { getBottomBorderColour() },
+                                getOffset = getBottomBorderOffset
+                            )
+                        }
                     }
                 }
             }

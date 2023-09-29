@@ -12,8 +12,6 @@
 	<string name="action_share">Compartir</string>
 	<string name="album">Álbum</string>
 	<string name="albums">Álbumes</string>
-	<string name="app_name" translatable="false">SpMp</string>
-	<string name="app_name_debug" translatable="false">SpMp (debug)</string>
 	<string name="artist">Artista</string>
 	<string name="artist_chip_details">Detalles</string>
 	<string name="artist_chip_open">Abrir</string>
@@ -162,7 +160,6 @@
 	<string name="playlists">Playlist</string>
 	<string name="podcast">Podcast</string>
 	<string name="podcasts">Podcasts</string>
-	<string name="project_url" translatable="false">https://github.com/toasterofbread/spmp</string>
 	<string name="project_url_name">URL del proyecto</string>
 	<string name="prompt_confirm_action">Por favor confirme</string>
 	<string name="prompt_confirm_settings_page_reset">Restablecer todos los valores de esta página?</string>
@@ -200,7 +197,6 @@
 	<string name="radio_title_artists_splitter">, </string>
 	<string name="radios">Radios</string>
 	<string name="report_error">Reportar</string>
-	<string name="report_issue_url" translatable="false">https://github.com/toasterofbread/spmp/issues/new?labels=Bug&amp;template=bug_report.md&amp;title=%5BBug%5D+</string>
 	<string name="s_acc_service_disable">Desabilitar</string>
 	<string name="s_acc_service_disabled">El servicio está deshabilitado</string>
 	<string name="s_acc_service_enable">Habilitar</string>
@@ -420,7 +416,6 @@
 	<string name="toast_playlist_added">Agregado a la playlist</string>
 	<string name="topbar_mode_unavailable">(No disponible)</string>
 	<string name="upload_to_paste_dot_ee">Subir a Paste.ee</string>
-	<string name="version_string" translatable="false">0.1.3</string>
 	<string name="videos">Videos</string>
 	<string name="warning_discord_login">Se lo dirigirá a una vista web en la aplicación para iniciar sesión en Discord.\n\nUna vez que haya iniciado sesión, el token de su cuenta se extraerá, almacenará y utilizará únicamente para conexiones de puerta de enlace a Discord para configurar su estado actual.\n\nConsulte https://github.com/dead8309/Kizzy para obtener más información.\n\n¿Continuar?</string>
 	<string name="warning_ytm_login">Se lo dirigirá a una vista web en la aplicación para iniciar sesión en YouTube Music.\n\nUna vez que haya iniciado sesión, su cookie de sesión se extraerá, almacenará y utilizará solo para solicitudes de API a YouTube Music, como obtener su feed recomendado y suscribirse a artistas.\n\n¿Continuar?</string>

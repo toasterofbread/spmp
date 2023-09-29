@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreHoriz
@@ -27,6 +28,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.MusicTopBarMode
@@ -36,6 +39,7 @@ import com.toasterofbread.spmp.platform.composeScope
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NOW_PLAYING_MAIN_PADDING
 import com.toasterofbread.utils.common.setAlpha
+import com.toasterofbread.utils.common.thenIf
 
 @Composable
 fun rememberTopBarShouldShowInQueue(mode: MusicTopBarMode): State<Boolean> {
@@ -67,9 +71,10 @@ private fun getMaxHeight(show_in_queue: Boolean): State<Dp> {
 }
 
 @Composable
-fun TopBar(modifier: Modifier = Modifier) {
+fun NowPlayingTopBar(modifier: Modifier = Modifier, onHeightChanged: (Dp) -> Unit = {}) {
     val player = LocalPlayerState.current
     val expansion = LocalNowPlayingExpansion.current
+    val density = LocalDensity.current
 
     val show_in_queue by rememberTopBarShouldShowInQueue(expansion.top_bar_mode.value)
     var lyrics_showing: Boolean by remember { mutableStateOf(false) }
@@ -79,25 +84,32 @@ fun TopBar(modifier: Modifier = Modifier) {
     } }
 
     val max_height by getMaxHeight(show_in_queue)
+    val alpha by remember { derivedStateOf { if (!show_in_queue || expansion.getBounded() < 1f) 1f - expansion.getDisappearing() else 1f } }
+    val hide_content by remember { derivedStateOf { alpha <= 0f } }
 
-    fun getAlpha() = if (!show_in_queue || expansion.getBounded() < 1f) 1f - expansion.getDisappearing() else 1f
-    val hide_content by remember { derivedStateOf { getAlpha() <= 0f } }
+    var bar_height: Dp by remember { mutableStateOf(40.dp) }
 
     Crossfade(
         player.status.m_song,
         modifier
             .fillMaxWidth()
             .heightIn(max = if (lyrics_showing) Dp.Infinity else minOf(40.dp * top_bar_height, max_height))
+            .thenIf(hide_content) {
+                requiredHeight(bar_height * top_bar_height)
+            }
             .height(IntrinsicSize.Min)
             .padding(horizontal = NOW_PLAYING_MAIN_PADDING.dp)
-            .graphicsLayer { alpha = getAlpha() }
+            .graphicsLayer { this@graphicsLayer.alpha = alpha }
     ) { song ->
-        if (song == null || hide_content) {
+        if (hide_content || song == null) {
             return@Crossfade
         }
 
         Row(
-            Modifier.fillMaxSize(),
+            Modifier.fillMaxSize().onSizeChanged {
+                bar_height = with(density) { it.height.toDp() }
+                onHeightChanged(bar_height)
+            },
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -110,7 +122,7 @@ fun TopBar(modifier: Modifier = Modifier) {
                         LikeDislikeButton(
                             song,
                             auth_state,
-                            Modifier.fillMaxSize().graphicsLayer { alpha = buttons_alpha },
+                            Modifier.fillMaxSize().graphicsLayer { this@graphicsLayer.alpha = buttons_alpha },
                             { 1f - expansion.getDisappearing() > 0f },
                             { player.getNPOnBackground().setAlpha(0.5f) }
                         )
@@ -134,7 +146,7 @@ fun TopBar(modifier: Modifier = Modifier) {
                             player.onMediaItemLongClicked(song, player.status.m_index)
                         }
                     },
-                    Modifier.graphicsLayer { alpha = buttons_alpha }.width(40.dp * buttons_alpha)
+                    Modifier.graphicsLayer { this@graphicsLayer.alpha = buttons_alpha }.width(40.dp * buttons_alpha)
                 ) {
                     Icon(Icons.Filled.MoreHoriz, null, tint = player.getNPOnBackground().setAlpha(0.5f))
                 }

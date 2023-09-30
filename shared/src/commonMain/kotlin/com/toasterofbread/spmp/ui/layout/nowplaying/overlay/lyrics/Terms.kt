@@ -68,10 +68,10 @@ internal fun SongLyrics.getReadingTerms(): MutableList<ReadingTextData> =
                 for (term in line.withIndex()) {
                     for (subterm in term.value.subterms.withIndex()) {
                         if (subterm.index + 1 == term.value.subterms.size && term.index + 1 == line.size) {
-                            add(ReadingTextData(subterm.value.text + "\n", subterm.value.furi, term.value))
+                            add(ReadingTextData(subterm.value.text + "\n", subterm.value.reading, term.value))
                         }
                         else {
-                            add(ReadingTextData(subterm.value.text, subterm.value.furi, term.value))
+                            add(ReadingTextData(subterm.value.text, subterm.value.reading, term.value))
                         }
                     }
                 }

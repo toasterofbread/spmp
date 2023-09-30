@@ -51,18 +51,18 @@ data class SongLyrics(
         var line_range: LongRange? = null
         var data: Any? = null
 
-        data class Text(val text: String, var furi: String? = null) {
+        data class Text(val text: String, var reading: String? = null) {
             init {
                 require(text.isNotEmpty())
 
-                if (furi != null) {
-                    if (furi == "*") {
-                        this.furi = null
+                if (reading != null) {
+                    if (reading == "*") {
+                        this.reading = null
                     }
                     else {
-                        furi = furi!!.toHiragana()
-                        if (furi == text.toHiragana()) {
-                            furi = null
+                        reading = reading!!.toHiragana()
+                        if (reading == text.toHiragana()) {
+                            reading = null
                         }
                     }
                 }

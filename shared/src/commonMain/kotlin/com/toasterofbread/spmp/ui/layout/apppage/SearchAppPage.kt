@@ -176,51 +176,57 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
             }
         }
 
-        Column(modifier.fillMaxSize().weight(1f)) {
-            val padding = content_padding.copy(
-                bottom = content_padding.calculateBottomPadding() + SEARCH_BAR_HEIGHT + (SEARCH_BAR_V_PADDING * 2)
-            )
+        Box(modifier.fillMaxSize()) {
+            Column(Modifier.fillMaxSize()) {
+                val padding = content_padding.copy(
+                    bottom = content_padding.calculateBottomPadding() + SEARCH_BAR_HEIGHT + (SEARCH_BAR_V_PADDING * 2)
+                )
 
-            Crossfade(
-                error ?: current_results
-            ) { results ->
-                if (results is SearchResults) {
-                    Results(
-                        results,
-                        padding,
-                        multiselect_context
-                    )
-                }
-                else if (results is Throwable) {
-                    Box(
-                        Modifier
-                            .fillMaxSize()
-                            .padding(padding),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        ErrorInfoDisplay(
+                Crossfade(
+                    error ?: current_results
+                ) { results ->
+                    if (results is SearchResults) {
+                        Results(
                             results,
-                            Modifier.fillMaxWidth(),
-                            onDismiss = { error = null }
+                            padding,
+                            multiselect_context
                         )
                     }
-                }
-                else if (search_in_progress) {
-                    Box(
-                        Modifier.fillMaxSize().padding(padding),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        SubtleLoadingIndicator(getColour = { Theme.on_background }, message = getString("search_results_loading"))
+                    else if (results is Throwable) {
+                        Box(
+                            Modifier
+                                .fillMaxSize()
+                                .padding(padding),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            ErrorInfoDisplay(
+                                results,
+                                Modifier.fillMaxWidth(),
+                                onDismiss = { error = null }
+                            )
+                        }
+                    }
+                    else if (search_in_progress) {
+                        Box(
+                            Modifier.fillMaxSize().padding(padding),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            SubtleLoadingIndicator(getColour = { Theme.on_background }, message = getString("search_results_loading"))
+                        }
                     }
                 }
             }
-        }
 
-        SearchBar(
-            focus_state,
-            player.nowPlayingTopOffset(Modifier).zIndex(1f),
-            close
-        )
+            SearchBar(
+                focus_state,
+                player.nowPlayingTopOffset(
+                    Modifier
+                        .zIndex(1f)
+                        .align(Alignment.BottomCenter)
+                ),
+                close
+            )
+        }
     }
 
     fun performSearch() {

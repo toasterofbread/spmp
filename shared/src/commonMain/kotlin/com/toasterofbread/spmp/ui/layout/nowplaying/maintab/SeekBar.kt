@@ -80,7 +80,9 @@ fun SeekBar(seek: (Float) -> Unit) {
                     position_override = it
                 },
                 onValueChangeFinished = {
-                    seek(position_override!!)
+                    position_override?.also {
+                        seek(it)
+                    }
                     old_position = player.status.getProgress()
                     cancel_area_side = null
                 },

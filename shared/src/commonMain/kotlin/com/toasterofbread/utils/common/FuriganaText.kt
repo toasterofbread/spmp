@@ -25,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
@@ -129,19 +130,18 @@ fun BasicFuriganaText(
                 content.putIfAbsent(subterm.text) {
                     getLyricsInlineTextContent(
                         subterm.text,
-                        subterm.furi,
+                        subterm.reading,
                         show_readings,
                         font_size,
                         reading_font_size,
                         getModifier = {
-                            Modifier.width(box_width).fillMaxHeight()
+                            Modifier.width(box_width)
                         }
                     ) { is_reading, text, alternate_text, font_size, modifier ->
                         Text(
                             text,
                             modifier.widthIn(max = box_width),
                             fontSize = font_size,
-                            color = text_colour,
                             softWrap = true,
                             overflow = TextOverflow.Visible,
                             maxLines = max_lines,
@@ -177,7 +177,8 @@ fun BasicFuriganaText(
             overflow = TextOverflow.Visible,
             onTextLayout = { layout_result ->
                 line_count = maxOf(line_count, layout_result.lineCount)
-            }
+            },
+            fontSize = font_size
         )
     }
 }
@@ -231,15 +232,15 @@ private fun getLyricsInlineTextContent(
     return InlineTextContent(
         placeholder = Placeholder(
             width = (text.length.toDouble() + ((text.length - 1) * 0.05)).em * (
-                    if (text.any { it.isFullWidth() }) 1f
-                    else 0.51f
+                if (text.any { it.isFullWidth() }) 1f
+                else 0.50f
             ),
             height = (font_size.value + (reading_font_size.value * 2)).sp,
             placeholderVerticalAlign = PlaceholderVerticalAlign.Bottom
         ),
         children = { alternate_text ->
             Box(
-                modifier = getModifier(),
+                modifier = getModifier().fillMaxHeight(),
                 contentAlignment = Alignment.Center
             ) {
                 if (show_readings && reading != null) {
@@ -258,7 +259,16 @@ private fun getLyricsInlineTextContent(
                     )
                 }
 
-                textElement(false, text, alternate_text, font_size, Modifier)
+                textElement(
+                    false,
+                    text,
+                    alternate_text,
+                    font_size,
+                    Modifier
+                        .graphicsLayer {
+                            translationY = (font_size.toPx() - size.height) / 4
+                        }
+                )
             }
         }
     )

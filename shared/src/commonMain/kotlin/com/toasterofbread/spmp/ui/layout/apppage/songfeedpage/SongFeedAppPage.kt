@@ -90,7 +90,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
     private var selected_filter_chip: Int? by mutableStateOf(null)
 
     fun resetSongFeed() {
-        layouts = emptyList()
+        layouts = null
         filter_chips = null
         selected_filter_chip = null
     }
@@ -434,9 +434,11 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
 
                     if (allow_cached) {
                         val cached = SongFeedCache.loadFeedLayouts(state.context.database)
-                        layouts = cached?.layouts
-                        filter_chips = cached?.filter_chips
-                        continuation = cached?.continuation_token
+                        if (cached?.layouts?.isNotEmpty() == true) {
+                            layouts = cached.layouts
+                            filter_chips = cached.filter_chips
+                            continuation = cached.continuation_token
+                        }
                     }
                     else {
                         layouts = null

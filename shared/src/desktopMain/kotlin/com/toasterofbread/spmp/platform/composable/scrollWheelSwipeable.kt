@@ -3,6 +3,7 @@
 package com.toasterofbread.spmp.platform.composable
 
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
 import androidx.compose.material.ThresholdConfig
@@ -18,15 +19,16 @@ actual fun Modifier.scrollWheelSwipeable(
     anchors: Map<Float, Int>,
     thresholds: (from: Int, to: Int) -> ThresholdConfig,
     orientation: Orientation,
-    reverseDirection: Boolean
+    reverse_direction: Boolean,
+    interaction_source: MutableInteractionSource?
 ): Modifier = composed {
     return@composed mouseWheelInput { direction ->
-        val target = state.targetValue + (if (reverseDirection) -direction else direction)
+        val target = state.targetValue + (if (reverse_direction) -direction else direction)
         if (anchors.values.contains(target)) {
             state.animateTo(target)
         }
         return@mouseWheelInput true
-    }.swipeable(state = state, anchors = anchors, thresholds = thresholds, orientation = orientation, reverseDirection = reverseDirection)
+    }.swipeable(state = state, anchors = anchors, thresholds = thresholds, orientation = orientation, reverseDirection = reverse_direction, interactionSource = interaction_source)
 }
 
 private inline val PointerEvent.isConsumed: Boolean get() = changes.any { c: PointerInputChange -> c.isConsumed }

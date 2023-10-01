@@ -54,7 +54,7 @@ internal fun getLibraryCategory(): List<SettingsItem> {
                                     SettingsFileItem.Dialog(
                                         getStringTODO("Transfer failed"),
                                         error.toString(),
-                                        getString("action_confirm"),
+                                        getString("action_confirm_action"),
                                         getString("action_cancel")
                                     ) { accepted ->
                                         processDialogSelection(accepted, true)

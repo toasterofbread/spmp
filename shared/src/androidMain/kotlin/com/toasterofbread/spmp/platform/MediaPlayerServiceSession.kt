@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.platform
 
 import SpMp
+import android.app.PendingIntent
 import android.content.Intent
 import android.graphics.Bitmap
 import android.media.AudioDeviceCallback
@@ -372,6 +373,14 @@ class MediaPlayerServiceSession: MediaSessionService() {
                     }
                 }
             })
+            .setSessionActivity(
+                PendingIntent.getActivity(
+                    this,
+                    1,
+                    packageManager.getLaunchIntentForPackage(packageName),
+                    PendingIntent.FLAG_IMMUTABLE
+                )
+            )
             .setCallback(object : MediaSession.Callback {
                 override fun onAddMediaItems(
                     media_session: MediaSession,

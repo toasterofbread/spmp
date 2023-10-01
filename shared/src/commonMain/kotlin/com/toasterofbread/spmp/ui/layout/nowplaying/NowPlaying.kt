@@ -7,6 +7,8 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.interaction.DragInteraction
+import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.ExperimentalMaterialApi
@@ -19,10 +21,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
+import com.toasterofbread.spmp.model.OverscrollClearMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.BackHandler
 import com.toasterofbread.spmp.platform.composable.scrollWheelSwipeable
 import com.toasterofbread.spmp.platform.composeScope
+import com.toasterofbread.spmp.platform.vibrateShort
+import com.toasterofbread.spmp.service.playerservice.PlayerService
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NowPlayingMainTab
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.QueueTab
@@ -33,6 +38,7 @@ import com.toasterofbread.utils.common.setAlpha
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.composable.RecomposeOnInterval
 import com.toasterofbread.utils.modifier.brushBackground
+import kotlinx.coroutines.delay
 
 enum class ThemeMode { BACKGROUND, ELEMENTS, NONE }
 
@@ -43,6 +49,7 @@ const val EXPANDED_THRESHOLD = 0.1f
 const val POSITION_UPDATE_INTERVAL_MS: Long = 100
 private const val GRADIENT_BOTTOM_PADDING_DP = 100
 private const val GRADIENT_TOP_START_RATIO = 0.7f
+private const val OVERSCROLL_CLEAR_DISTANCE_THRESHOLD_DP = 5f
 
 internal fun PlayerState.getNPBackground(): Color {
     return when (np_theme_mode) {
@@ -81,11 +88,31 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
     val expansion = LocalNowPlayingExpansion.current
     val density = LocalDensity.current
 
+    val swipe_interaction_source = remember { MutableInteractionSource() }
+    val swipe_interactions: MutableList<Interaction> = remember { mutableStateListOf() }
+    var player_alpha: Float by remember { mutableStateOf(1f) }
+
+    LaunchedEffect(swipe_interaction_source) {
+        swipe_interaction_source.interactions.collect { interaction ->
+            when (interaction) {
+                is DragInteraction.Start -> {
+                    swipe_interactions.add(interaction)
+                }
+                is DragInteraction.Stop -> {
+                    swipe_interactions.remove(interaction.start)
+                }
+                is DragInteraction.Cancel -> {
+                    swipe_interactions.remove(interaction.start)
+                }
+            }
+        }
+    }
+
     CompositionLocalProvider(LocalNowPlayingExpansion provides SpMp.player_state.expansion_state) {
-        LocalNowPlayingExpansion.current.init()
+        expansion.init()
 
         AnimatedVisibility(
-            LocalPlayerState.current.session_started,
+            player.session_started,
             exit = slideOutVertically(),
             enter = slideInVertically()
         ) {
@@ -109,6 +136,67 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
                 }
             }
 
+            val overscroll_clear_enabled: Boolean by Settings.KEY_MINI_PLAYER_OVERSCROLL_CLEAR_ENABLED.rememberMutableState()
+            val overscroll_clear_time: Float by Settings.KEY_MINI_PLAYER_OVERSCROLL_CLEAR_TIME.rememberMutableState()
+            val overscroll_clear_mode: OverscrollClearMode by Settings.KEY_MINI_PLAYER_OVERSCROLL_CLEAR_MODE.rememberMutableEnumState()
+
+            LaunchedEffect(player.player, swipe_interactions.isNotEmpty(), overscroll_clear_enabled) {
+                if (!overscroll_clear_enabled) {
+                    return@LaunchedEffect
+                }
+
+                val service: PlayerService = player.player ?: return@LaunchedEffect
+                val anchor: Float = swipe_anchors.keys.first()
+                val delta: Long = 50
+                val time_threshold: Float = overscroll_clear_time * 1000
+
+                var time_below_threshold: Long = 0
+                var triggered: Boolean = false
+
+                player_alpha = 1f
+
+                while (swipe_interactions.isNotEmpty()) {
+                    delay(delta)
+
+                    if (service.song_count == 0 && overscroll_clear_mode == OverscrollClearMode.NONE_IF_QUEUE_EMPTY) {
+                        continue
+                    }
+
+                    if (time_threshold == 0f) {
+                        player_alpha = 1f
+                    }
+                    else {
+                        player_alpha = 1f - (time_below_threshold / time_threshold).coerceIn(0f, 1f)
+                    }
+
+                    val offset: Dp = with(density) { (swipe_state.offset.value - anchor).toDp() }
+                    if (offset < -OVERSCROLL_CLEAR_DISTANCE_THRESHOLD_DP.dp) {
+                        if (!triggered && time_below_threshold >= time_threshold) {
+                            if (
+                                overscroll_clear_mode == OverscrollClearMode.ALWAYS_HIDE
+                                || (overscroll_clear_mode == OverscrollClearMode.HIDE_IF_QUEUE_EMPTY && service.song_count == 0)
+                            ) {
+                                service.session_started = false
+                            }
+
+                            if (service.song_count > 0) {
+                                service.clearQueue()
+                            }
+
+                            player.context.vibrateShort()
+
+                            triggered = true
+                        }
+
+                        time_below_threshold += delta
+                    }
+                    else {
+                        time_below_threshold = 0
+                        triggered = false
+                    }
+                }
+            }
+
             val song_gradient_depth: Float? =
                 player.status.m_song?.PlayerGradientDepth?.observe(player.database)?.value
 
@@ -129,7 +217,8 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
                         anchors = swipe_anchors,
                         thresholds = { _, _ -> FractionalThreshold(0.2f) },
                         orientation = Orientation.Vertical,
-                        reverseDirection = true,
+                        reverse_direction = true,
+                        interaction_source = swipe_interaction_source
                     )
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
@@ -138,6 +227,9 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
                         if (is_shut) {
                             switch_to_page = if (swipe_state.targetValue == 0) 1 else 0
                         }
+                    }
+                    .graphicsLayer {
+                        alpha = player_alpha
                     }
                     .brushBackground {
                         with(density) {

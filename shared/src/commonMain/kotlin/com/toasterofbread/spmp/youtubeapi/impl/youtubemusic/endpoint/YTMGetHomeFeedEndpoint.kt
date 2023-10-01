@@ -157,17 +157,18 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
                         continue
                     }
 
-                    val page_type = browse_endpoint.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType!!
+                    val page_type = browse_endpoint.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType
+                    if (page_type != null) {
+                        val media_item = MediaItemType.fromBrowseEndpointType(page_type).referenceFromId(browse_endpoint.browseId).apply {
+                            Title.set(header.title.runs?.getOrNull(0)?.text, api.database)
+                        }
 
-                    val media_item = MediaItemType.fromBrowseEndpointType(page_type).referenceFromId(browse_endpoint.browseId).apply {
-                        Title.set(header.title.runs?.getOrNull(0)?.text, api.database)
+                        add(
+                            RawLocalisedString(header.title.first_text),
+                            header.subtitle?.first_text?.let { YoutubeLocalisedString.Type.HOME_FEED.createFromKey(it) },
+                            view_more = MediaItemViewMore(media_item, null)
+                        )
                     }
-
-                    add(
-                        RawLocalisedString(header.title.first_text),
-                        header.subtitle?.first_text?.let { YoutubeLocalisedString.Type.HOME_FEED.createFromKey(it) },
-                        view_more = MediaItemViewMore(media_item, null)
-                    )
                 }
                 else -> continue
             }

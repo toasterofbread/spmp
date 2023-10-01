@@ -83,6 +83,19 @@ enum class FontMode {
     }
 }
 
+enum class OverscrollClearMode {
+    ALWAYS_HIDE,
+    HIDE_IF_QUEUE_EMPTY,
+    NONE_IF_QUEUE_EMPTY;
+
+    fun getReadable(): String =
+        when (this) {
+            ALWAYS_HIDE -> getString("s_option_mini_player_overscroll_clear_mode_always_hide")
+            HIDE_IF_QUEUE_EMPTY -> getString("s_option_mini_player_overscroll_clear_mode_hide_if_queue_empty")
+            NONE_IF_QUEUE_EMPTY -> getString("s_option_mini_player_overscroll_clear_mode_none_if_queue_empty")
+        }
+}
+
 enum class Settings {
     // Language
     KEY_LANG_UI,
@@ -160,6 +173,9 @@ enum class Settings {
     KEY_PLAYER_OVERLAY_CUSTOM_ACTION,
     KEY_PLAYER_OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS,
     KEY_MINI_PLAYER_SHOW_PREV_BUTTON,
+    KEY_MINI_PLAYER_OVERSCROLL_CLEAR_ENABLED,
+    KEY_MINI_PLAYER_OVERSCROLL_CLEAR_TIME,
+    KEY_MINI_PLAYER_OVERSCROLL_CLEAR_MODE,
     KEY_NP_QUEUE_RADIO_INFO_POSITION, // TODO prefs item
     KEY_NP_QUEUE_WAVE_BORDER_MODE,
     KEY_RESUME_ON_BT_CONNECT,
@@ -353,6 +369,9 @@ enum class Settings {
                 KEY_PLAYER_OVERLAY_CUSTOM_ACTION -> PlayerOverlayMenuAction.DEFAULT_CUSTOM.ordinal
                 KEY_PLAYER_OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS -> false
                 KEY_MINI_PLAYER_SHOW_PREV_BUTTON -> false
+                KEY_MINI_PLAYER_OVERSCROLL_CLEAR_ENABLED -> false
+                KEY_MINI_PLAYER_OVERSCROLL_CLEAR_TIME -> 0.2f
+                KEY_MINI_PLAYER_OVERSCROLL_CLEAR_MODE -> OverscrollClearMode.HIDE_IF_QUEUE_EMPTY.ordinal
                 KEY_NP_QUEUE_RADIO_INFO_POSITION -> NowPlayingQueueRadioInfoPosition.TOP_BAR.ordinal
                 KEY_NP_QUEUE_WAVE_BORDER_MODE -> NowPlayingQueueWaveBorderMode.TIME.ordinal
                 KEY_RESUME_ON_BT_CONNECT -> true

@@ -19,6 +19,7 @@ import com.toasterofbread.spmp.youtubeapi.executeResult
 import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpoint
 import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpointType
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.composable.YTMLoginPage
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMSearchEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMArtistWithParamsEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMCreateYoutubeChannelEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMGetHomeFeedEndpoint
@@ -27,6 +28,7 @@ import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMLoadPlay
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMLoadSongEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMPlaylistContinuationEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMRadioBuilderEndpoint
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMSearchSuggestionsEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMSongLyricsEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMSongRadioEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMSongRelatedContentEndpoint
@@ -289,5 +291,6 @@ data class YoutubeMusicApi(
     override val SongRelatedContent = YTMSongRelatedContentEndpoint(this)
     override val SongLyrics = YTMSongLyricsEndpoint(this)
 
-    override val Search = SearchEndpointImpl(this)
+    override val Search = YTMSearchEndpoint(this)
+    override val SearchSuggestions = YTMSearchSuggestionsEndpoint(this)
 }

@@ -22,6 +22,7 @@ import com.toasterofbread.spmp.youtubeapi.endpoint.LoadSongEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.MarkSongAsWatchedEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.PlaylistContinuationEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchEndpoint
+import com.toasterofbread.spmp.youtubeapi.endpoint.SearchSuggestionsEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.SetSongLikedEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.SetSubscribedToArtistEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.SongLikedEndpoint
@@ -228,6 +229,7 @@ interface YoutubeApi {
 
     // --- Search ---
     val Search: SearchEndpoint
+    val SearchSuggestions: SearchSuggestionsEndpoint
 
     // --- Radio builder ---
     val RadioBuilder: RadioBuilderEndpoint

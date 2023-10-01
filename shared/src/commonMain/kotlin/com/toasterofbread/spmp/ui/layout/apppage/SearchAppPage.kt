@@ -3,6 +3,8 @@ package com.toasterofbread.spmp.ui.layout.apppage
 import LocalPlayerState
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -16,9 +18,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
@@ -45,16 +49,20 @@ import com.toasterofbread.spmp.youtubeapi.endpoint.SearchType
 import com.toasterofbread.utils.*
 import com.toasterofbread.utils.common.copy
 import com.toasterofbread.utils.common.launchSingle
+import com.toasterofbread.utils.composable.AlignableCrossfade
 import com.toasterofbread.utils.composable.ShapedIconButton
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.composable.rememberKeyboardOpen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.delay
 
 val SEARCH_FIELD_FONT_SIZE: TextUnit = 18.sp
-private val SEARCH_BAR_HEIGHT = 45.dp
-private val SEARCH_BAR_V_PADDING = 15.dp
+private const val SEARCH_BAR_HEIGHT_DP = 45f
+private const val SEARCH_BAR_V_PADDING_DP = 15f
+private const val SEARCH_SUGGESTIONS_LOAD_DELAY_MS: Long = 200
+private const val SEARCH_MAX_SUGGESTIONS: Int = 5
 
 class SearchAppPage(override val state: AppPageState, val context: PlatformContext): AppPage() {
     private val coroutine_scope = CoroutineScope(Job())
@@ -119,7 +127,7 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
                 Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .height(SEARCH_BAR_HEIGHT),
+                    .height(SEARCH_BAR_HEIGHT_DP.dp),
                 spacing = 5.dp
             ) { index ->
                 Text(when (if (index == 0) null else SearchType.values()[index - 1]) {
@@ -179,7 +187,7 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
         Box(modifier.fillMaxSize()) {
             Column(Modifier.fillMaxSize()) {
                 val padding = content_padding.copy(
-                    bottom = content_padding.calculateBottomPadding() + SEARCH_BAR_HEIGHT + (SEARCH_BAR_V_PADDING * 2)
+                    bottom = content_padding.calculateBottomPadding() + SEARCH_BAR_HEIGHT_DP.dp + (SEARCH_BAR_V_PADDING_DP.dp * 2)
                 )
 
                 Crossfade(
@@ -221,10 +229,12 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
                 focus_state,
                 player.nowPlayingTopOffset(
                     Modifier
-                        .zIndex(1f)
                         .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .padding(horizontal = player.getDefaultHorizontalPadding())
+                        .zIndex(1f)
                 ),
-                close
+                close = close
             )
         }
     }
@@ -274,9 +284,29 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
     }
 
     @Composable
+    private fun SearchSuggestion(
+        suggestion: String,
+        shape: Shape,
+        modifier: Modifier = Modifier,
+        onSelected: () -> Unit,
+    ) {
+        Row(
+            modifier
+                .clickable(onClick = onSelected)
+                .clip(shape)
+                .background(Theme.background)
+                .border(1.dp, Theme.accent, shape)
+                .padding(10.dp)
+        ) {
+            Text(suggestion)
+        }
+    }
+
+    @Composable
     private fun SearchBar(
         focus_state: MutableState<Boolean>,
         modifier: Modifier = Modifier,
+        shape: Shape = CircleShape,
         close: () -> Unit
     ) {
         val player = LocalPlayerState.current
@@ -289,97 +319,160 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
             }
         }
 
-        Row(
-            modifier
-                .fillMaxWidth()
-                .padding(vertical = SEARCH_BAR_V_PADDING, horizontal = player.getDefaultHorizontalPadding())
-                .height(IntrinsicSize.Max),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.Bottom
-        ) {
-            BasicTextField(
-                value = current_query,
-                onValueChange = { current_query = it },
-                singleLine = true,
-                textStyle = LocalTextStyle.current.copy(
-                    fontSize = SEARCH_FIELD_FONT_SIZE,
-                    color = Theme.on_accent
-                ),
-                modifier = Modifier
-                    .height(SEARCH_BAR_HEIGHT)
-                    .weight(1f)
-                    .focusRequester(focus_requester)
-                    .onFocusChanged {
-                        focus_state.value = it.isFocused
-                    },
-                decorationBox = { innerTextField ->
-                    Row(
-                        Modifier
-                            .background(
-                                Theme.accent,
-                                CircleShape
-                            )
-                            .padding(horizontal = 10.dp)
-                            .fillMaxSize(),
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically
+        var suggestions: List<String> by remember { mutableStateOf(emptyList()) }
+
+        LaunchedEffect(focus_state.value) {
+            if (!focus_state.value) {
+                suggestions = emptyList()
+            }
+        }
+
+        LaunchedEffect(current_query, focus_state.value) {
+            if (search_in_progress || !focus_state.value) {
+                return@LaunchedEffect
+            }
+
+            val query = current_query
+            if (query.isBlank()) {
+                suggestions = emptyList()
+                return@LaunchedEffect
+            }
+
+            delay(SEARCH_SUGGESTIONS_LOAD_DELAY_MS)
+
+            val suggestions_endpoint = player.context.ytapi.SearchSuggestions
+            if (!suggestions_endpoint.isImplemented()) {
+                suggestions = emptyList()
+                return@LaunchedEffect
+            }
+
+            suggestions = suggestions_endpoint
+                .getSearchSuggestions(query).getOrNull()?.take(SEARCH_MAX_SUGGESTIONS)?.asReversed()
+                    ?: emptyList()
+        }
+
+        Column(modifier) {
+            AnimatedVisibility(suggestions.isNotEmpty()) {
+                var current_suggestions: List<String> by remember { mutableStateOf(suggestions) }
+                LaunchedEffect(suggestions) {
+                    if (suggestions.isNotEmpty()) {
+                        current_suggestions = suggestions
+                    }
+                }
+
+                AlignableCrossfade(
+                    current_suggestions,
+                    contentAlignment = Alignment.BottomCenter
+                ) {
+                    Column(
+                        Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Bottom)
                     ) {
-
-                        // Search field
-                        Box(Modifier.fillMaxWidth(0.9f), contentAlignment = Alignment.CenterStart) {
-
-                            // Query hint
-                            if (current_query.isEmpty()) {
-                                Text(getString("search_entry_field_hint"), fontSize = SEARCH_FIELD_FONT_SIZE, color = Theme.on_accent)
-                            }
-
-                            // Text input
-                            innerTextField()
-                        }
-
-                        // Clear field button
-                        IconButton(onClick = { current_query = "" }, Modifier.fillMaxWidth()) {
-                            Icon(Icons.Filled.Clear, null, Modifier, Theme.on_accent)
-                        }
-
-                        // Search button / search indicator
-                        Crossfade(search_in_progress) { in_progress ->
-                            if (!in_progress) {
-                                IconButton(onClick = {
-                                    if (!search_in_progress) {
-                                        performSearch()
-                                    }
-                                }) {
-                                    Icon(Icons.Filled.Search, null)
+                        for (suggestion in it) {
+                            SearchSuggestion(suggestion, shape) {
+                                if (!search_in_progress) {
+                                    current_query = suggestion
+                                    current_suggestions = emptyList()
+                                    performSearch()
                                 }
                             }
-                            else {
-                                CircularProgressIndicator(Modifier.size(30.dp))
+                        }
+                    }
+                }
+            }
+
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = SEARCH_BAR_V_PADDING_DP.dp)
+                    .height(IntrinsicSize.Max),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.Bottom
+            ) {
+                BasicTextField(
+                    value = current_query,
+                    onValueChange = { current_query = it },
+                    singleLine = true,
+                    textStyle = LocalTextStyle.current.copy(
+                        fontSize = SEARCH_FIELD_FONT_SIZE,
+                        color = Theme.on_accent
+                    ),
+                    modifier = Modifier
+                        .height(SEARCH_BAR_HEIGHT_DP.dp)
+                        .weight(1f)
+                        .focusRequester(focus_requester)
+                        .onFocusChanged {
+                            focus_state.value = it.isFocused
+                        },
+                    decorationBox = { innerTextField ->
+                        Row(
+                            Modifier
+                                .background(
+                                    Theme.accent,
+                                    shape
+                                )
+                                .padding(horizontal = 10.dp)
+                                .fillMaxSize(),
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+
+                            // Search field
+                            Box(Modifier.fillMaxWidth(0.9f), contentAlignment = Alignment.CenterStart) {
+
+                                // Query hint
+                                if (current_query.isEmpty()) {
+                                    Text(getString("search_entry_field_hint"), fontSize = SEARCH_FIELD_FONT_SIZE, color = Theme.on_accent)
+                                }
+
+                                // Text input
+                                innerTextField()
+                            }
+
+                            // Clear field button
+                            IconButton(onClick = { current_query = "" }, Modifier.fillMaxWidth()) {
+                                Icon(Icons.Filled.Clear, null, Modifier, Theme.on_accent)
+                            }
+
+                            // Search button / search indicator
+                            Crossfade(search_in_progress) { in_progress ->
+                                if (!in_progress) {
+                                    IconButton(onClick = {
+                                        if (!search_in_progress) {
+                                            performSearch()
+                                        }
+                                    }) {
+                                        Icon(Icons.Filled.Search, null)
+                                    }
+                                }
+                                else {
+                                    CircularProgressIndicator(Modifier.size(30.dp))
+                                }
                             }
                         }
-                    }
-                },
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(
-                    onSearch = {
-                        if (!search_in_progress) {
-                            performSearch()
+                    },
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    keyboardActions = KeyboardActions(
+                        onSearch = {
+                            if (!search_in_progress) {
+                                performSearch()
+                            }
                         }
-                    }
+                    )
                 )
-            )
 
-            ShapedIconButton(
-                { performSearch() },
-                Modifier
-                    .fillMaxHeight()
-                    .aspectRatio(1f),
-                colours = IconButtonDefaults.iconButtonColors(
-                    containerColor = Theme.accent,
-                    contentColor = Theme.on_accent
-                )
-            ) {
-                Icon(Icons.Filled.Search, null)
+                ShapedIconButton(
+                    { performSearch() },
+                    Modifier
+                        .fillMaxHeight()
+                        .aspectRatio(1f),
+                    colours = IconButtonDefaults.iconButtonColors(
+                        containerColor = Theme.accent,
+                        contentColor = Theme.on_accent
+                    )
+                ) {
+                    Icon(Icons.Filled.Search, null)
+                }
             }
         }
     }

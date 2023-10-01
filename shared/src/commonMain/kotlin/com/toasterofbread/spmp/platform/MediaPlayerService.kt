@@ -44,7 +44,6 @@ expect open class MediaPlayerService() {
     }
 
     var session_started: Boolean
-        private set
 
     var context: PlatformContext
         private set

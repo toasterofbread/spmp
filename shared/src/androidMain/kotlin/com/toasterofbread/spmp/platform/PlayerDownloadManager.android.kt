@@ -59,7 +59,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
         val data = result.data
         val status: DownloadStatus = data["status"] as DownloadStatus
 
-        val instance: Int? = data["instance"] as Int?
+        val instance: Int? = result.instance
         if (instance != null) {
             synchronized(result_callbacks) {
                 result_callbacks[result.action]?.get(status.song.id)?.remove(instance)?.invoke(data)
@@ -100,7 +100,9 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
 
     private fun addResultCallback(action: PlayerDownloadService.IntentAction, song_id: String, instance: Int, callback: (data: Map<String, Any?>) -> Unit) {
         synchronized(result_callbacks) {
-            val callbacks = result_callbacks.getOrPut(action) { mutableMapOf() }.getOrPut(song_id) { mutableMapOf() }
+            val callbacks = result_callbacks
+                .getOrPut(action) { mutableMapOf() }
+                .getOrPut(song_id) { mutableMapOf() }
             callbacks[instance] = callback
         }
     }
@@ -115,7 +117,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
 
     actual fun getDownload(song: Song, callback: (DownloadStatus?) -> Unit) {
         service?.apply {
-            getDownloadStatus(song.id)?.also {
+            getDownloadStatus(song)?.also {
                 callback(it)
                 return
             }
@@ -183,7 +185,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
         onService {
             val instance = result_callback_id++
             if (onCompleted != null) {
-                addResultCallback(PlayerDownloadService.IntentAction.STATUS_CHANGED, song_id, instance) { data ->
+                addResultCallback(PlayerDownloadService.IntentAction.START_DOWNLOAD, song_id, instance) { data ->
                     onCompleted(data["status"] as DownloadStatus)
                 }
             }
@@ -255,10 +257,11 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
     }
 }
 
-actual fun Song.getLocalAudioFile(context: PlatformContext): PlatformFile? {
+actual fun Song.getLocalAudioFile(context: PlatformContext, allow_partial: Boolean): PlatformFile? {
     val files = PlayerDownloadManager.getDownloadDir(context).listFiles() ?: return null
     for (file in files) {
-        if (PlayerDownloadService.fileMatchesDownload(file.name, id) == true) {
+        val status: Boolean? = PlayerDownloadService.fileMatchesDownload(file.name, id)
+        if (status == true || (allow_partial && status == false)) {
             return file
         }
     }

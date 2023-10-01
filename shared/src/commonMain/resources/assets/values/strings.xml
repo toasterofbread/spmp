@@ -348,6 +348,12 @@
     <string name="s_cat_player">Player</string>
 
     <string name="s_key_mini_player_show_prev_button">Show previous button in mini-player</string>
+    <string name="s_key_mini_player_overscroll_clear_enabled">Swipe mini-player down to clear queue</string>
+    <string name="s_key_mini_player_overscroll_clear_time">Swipe clear hold time</string>
+    <string name="s_key_mini_player_overscroll_clear_mode">When clearing</string>
+    <string name="s_option_mini_player_overscroll_clear_mode_always_hide">Always hide player</string>
+    <string name="s_option_mini_player_overscroll_clear_mode_hide_if_queue_empty">Hide player if queue empty</string>
+    <string name="s_option_mini_player_overscroll_clear_mode_none_if_queue_empty">Only clear queue</string>
 
     <string name="s_key_player_overlay_menu_custom_action">Overlay menu custom action</string>
     <string name="s_sub_player_overlay_menu_custom_action">By default, triggers on long press</string>

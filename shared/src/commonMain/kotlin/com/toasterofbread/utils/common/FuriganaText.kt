@@ -233,7 +233,7 @@ private fun getLyricsInlineTextContent(
         placeholder = Placeholder(
             width = (text.length.toDouble() + ((text.length - 1) * 0.05)).em * (
                 if (text.any { it.isFullWidth() }) 1f
-                else 0.50f
+                else 0.55f
             ),
             height = (font_size.value + (reading_font_size.value * 2)).sp,
             placeholderVerticalAlign = PlaceholderVerticalAlign.Bottom

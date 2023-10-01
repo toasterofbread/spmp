@@ -27,6 +27,7 @@ import com.toasterofbread.spmp.platform.PlatformFile
 import com.toasterofbread.spmp.platform.PlatformServiceImpl
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
+import com.toasterofbread.spmp.platform.getLocalAudioFile
 import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -45,13 +46,17 @@ private const val DOWNLOAD_MAX_RETRY_COUNT = 3
 
 class PlayerDownloadService: PlatformServiceImpl() {
     private inner class Download(
-        val id: String,
+        context: PlatformContext,
+        val song: Song,
         val quality: SongAudioQuality,
         var silent: Boolean,
         val instance: Int,
-        var file: PlatformFile? = null
     ) {
-        var status: DownloadStatus.Status = DownloadStatus.Status.IDLE
+        var file: PlatformFile? = song.getLocalAudioFile(context, allow_partial = true)
+
+        var status: DownloadStatus.Status =
+            if (file?.let { fileMatchesDownload(it.name, song.id)} == true) DownloadStatus.Status.ALREADY_FINISHED
+            else DownloadStatus.Status.IDLE
             set(value) {
                 if (field != value) {
                     field = value
@@ -73,7 +78,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
 
         fun getStatusObject(): DownloadStatus =
             DownloadStatus(
-                SongRef(id),
+                song,
                 status,
                 quality,
                 progress,
@@ -85,12 +90,8 @@ class PlayerDownloadService: PlatformServiceImpl() {
             cancelled = true
         }
 
-        fun matchesFile(file: File): Boolean? {
-            return fileMatchesDownload(file.name, id)
-        }
-
         fun generatePath(extension: String, in_progress: Boolean): String {
-            return getDownloadPath(id, quality, extension, in_progress)
+            return getDownloadPath(song.id, quality, extension, in_progress)
         }
 
         fun broadcastResult(result: Result<PlatformFile?>?, instance: Int) {
@@ -112,26 +113,26 @@ class PlayerDownloadService: PlatformServiceImpl() {
         }
 
         override fun toString(): String =
-            "Download(id=$id, quality=$quality, silent=$silent, instance=$instance, file=$file)"
+            "Download(id=${song.id}, quality=$quality, silent=$silent, instance=$instance, file=$file)"
     }
 
     private var download_inc: Int = 0
-    private fun getOrCreateDownload(song_id: String): Download {
+    private fun getOrCreateDownload(context: PlatformContext, song: Song): Download {
         synchronized(downloads) {
             for (download in downloads) {
-                if (download.id == song_id) {
+                if (download.song.id == song.id) {
                     return download
                 }
             }
-            return Download(song_id, Settings.getEnum(Settings.KEY_DOWNLOAD_AUDIO_QUALITY), true, download_inc++)
+            return Download(context, song, Settings.getEnum(Settings.KEY_DOWNLOAD_AUDIO_QUALITY), true, download_inc++)
         }
     }
 
     fun getAllDownloadsStatus(): List<DownloadStatus> =
         downloads.map { it.getStatusObject() }
 
-    fun getDownloadStatus(song_id: String): DownloadStatus? =
-        downloads.firstOrNull { it.id == song_id }?.getStatusObject()
+    fun getDownloadStatus(song: Song): DownloadStatus? =
+        downloads.firstOrNull { it.song.id == song.id }?.getStatusObject()
 
     private fun Collection<Download>.getTotalProgress(): Float {
         if (isEmpty()) {
@@ -166,10 +167,6 @@ class PlayerDownloadService: PlatformServiceImpl() {
                 split[1],
                 downloading
             )
-        }
-
-        fun getFilenameSong(filename: String): Song {
-            return SongRef(filename.take(filename.indexOf('.')))
         }
 
         // Filename format: id.quality.mediatype(.part)
@@ -271,7 +268,8 @@ class PlayerDownloadService: PlatformServiceImpl() {
 
     private fun startDownload(message: PlayerDownloadManager.PlayerDownloadMessage) {
         require(message.instance != null)
-        val download = getOrCreateDownload(message.data["song_id"] as String)
+
+        val download = getOrCreateDownload(context, SongRef(message.data["song_id"] as String))
 
         val silent = message.data["silent"] as Boolean
         if (!silent) {
@@ -344,7 +342,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
                 }
 
                 synchronized(downloads) {
-                    downloads.removeIf { it.id == download.id }
+                    downloads.removeIf { it.song.id == download.song.id }
                     if (downloads.isEmpty()) {
                         cancelled = download.cancelled
                         stopForeground(false)
@@ -374,7 +372,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
     private fun cancelDownload(message: PlayerDownloadManager.PlayerDownloadMessage) {
         val id = message.data["id"] as String
         synchronized(downloads) {
-            downloads.firstOrNull { it.id == id }?.cancel()
+            downloads.firstOrNull { it.song.id == id }?.cancel()
         }
     }
 
@@ -386,7 +384,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
     }
 
     private fun performDownload(download: Download): Result<PlatformFile?> {
-        val format = getSongFormatByQuality(download.id, download.quality, context).fold(
+        val format = getSongFormatByQuality(download.song.id, download.quality, context).fold(
             { it },
             { return Result.failure(it) }
         )
@@ -404,7 +402,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
 
         if (connection.responseCode != 200 && connection.responseCode != 206) {
             return Result.failure(ConnectException(
-                "${download.id}: Server returned code ${connection.responseCode} ${connection.responseMessage}"
+                "${download.song.id}: Server returned code ${connection.responseCode} ${connection.responseMessage}"
             ))
         }
 
@@ -463,7 +461,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
         metadata_retriever.setDataSource(context.ctx, Uri.parse(file.uri))
 
         val duration_ms = metadata_retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong()
-        SongRef(download.id).Duration.setNotNull(duration_ms, context.database)
+        SongRef(download.song.id).Duration.setNotNull(duration_ms, context.database)
 
         close(DownloadStatus.Status.FINISHED)
 
@@ -557,8 +555,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
 
                     var title: String? = null
                     if (downloads.size == 1) {
-                        val song = SongRef(downloads.first().id)
-                        val song_title = song.getActiveTitle(context.database)
+                        val song_title = downloads.first().song.getActiveTitle(context.database)
                         if (song_title != null) {
                             title = getString("downloading_song_\$title").replace("\$title", song_title)
                         }

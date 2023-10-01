@@ -336,6 +336,12 @@
     <string name="s_cat_player">プレイヤー</string>
 
     <string name="s_key_mini_player_show_prev_button">ミニプレイヤーで「前へ」のボタンを表示</string>
+    <string name="s_key_mini_player_overscroll_clear_enabled">ミニプレーヤーを下にスワイプして曲キューをクリア</string>
+    <string name="s_key_mini_player_overscroll_clear_time">スワイプクリアのホールド時間</string>
+    <string name="s_key_mini_player_overscroll_clear_mode">スワイプクリア時に</string>
+    <string name="s_option_mini_player_overscroll_clear_mode_always_hide">必ずプレイヤーを隠す</string>
+    <string name="s_option_mini_player_overscroll_clear_mode_hide_if_queue_empty">曲キューが空の場合のみプレイヤーを隠す</string>
+    <string name="s_option_mini_player_overscroll_clear_mode_none_if_queue_empty">曲キューをクリアするのみ</string>
 
     <string name="s_key_player_overlay_menu_custom_action">オーバーレイ画面のカスタムアクション</string>
     <string name="s_sub_player_overlay_menu_custom_action">デフォルトでは、長押しで発生します</string>

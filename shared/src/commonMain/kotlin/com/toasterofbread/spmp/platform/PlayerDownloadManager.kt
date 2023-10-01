@@ -121,4 +121,4 @@ fun rememberSongDownloads(): List<PlayerDownloadManager.DownloadStatus> {
     return downloads
 }
 
-expect fun Song.getLocalAudioFile(context: PlatformContext): PlatformFile?
+expect fun Song.getLocalAudioFile(context: PlatformContext, allow_partial: Boolean = false): PlatformFile?

@@ -3,9 +3,11 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 import com.toasterofbread.composesettings.ui.item.SettingsGroupItem
 import com.toasterofbread.composesettings.ui.item.SettingsItem
 import com.toasterofbread.composesettings.ui.item.SettingsMultipleChoiceItem
+import com.toasterofbread.composesettings.ui.item.SettingsSliderItem
 import com.toasterofbread.composesettings.ui.item.SettingsToggleItem
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.NowPlayingQueueWaveBorderMode
+import com.toasterofbread.spmp.model.OverscrollClearMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
@@ -16,6 +18,26 @@ internal fun getPlayerCategory(): List<SettingsItem> {
             SettingsValueState(Settings.KEY_MINI_PLAYER_SHOW_PREV_BUTTON.name),
             getString("s_key_mini_player_show_prev_button"), null
         ),
+
+        SettingsToggleItem(
+            SettingsValueState(Settings.KEY_MINI_PLAYER_OVERSCROLL_CLEAR_ENABLED.name),
+            getString("s_key_mini_player_overscroll_clear_enabled"), null
+        ),
+
+        SettingsSliderItem(
+            SettingsValueState(Settings.KEY_MINI_PLAYER_OVERSCROLL_CLEAR_TIME.name),
+            getString("s_key_mini_player_overscroll_clear_time"), null,
+            range = 0f .. 1f
+        ),
+
+        SettingsMultipleChoiceItem(
+            SettingsValueState(Settings.KEY_MINI_PLAYER_OVERSCROLL_CLEAR_MODE.name),
+            getString("s_key_mini_player_overscroll_clear_mode"), null,
+            choice_amount = OverscrollClearMode.values().size,
+            radio_style = false
+        ) { index ->
+            OverscrollClearMode.values()[index].getReadable()
+        },
 
         SettingsMultipleChoiceItem(
             SettingsValueState(Settings.KEY_PLAYER_OVERLAY_CUSTOM_ACTION.name),

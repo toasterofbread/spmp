@@ -1,0 +1,12 @@
+<b>Features:</b>
+
+- Edit song, artist, and playlist titles
+- Set separate languages for app UI and metadata like song titles
+- In-app YouTube Music login
+- Display time-synchronised lyrics from [KuGou](https://www.kugou.com/)
+    - Timed lyrics are displayed in a toggleable bar above every app page
+    - Furigana (readings) display above Japanese kanji within lyrics
+- Select multiple songs for batch actions on any screen
+- Pin any song, playlist, album, or artist to the top of the main page
+- Customisable Discord rich presence
+- Easily insert songs at any position in the queue

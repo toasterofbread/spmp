@@ -21,7 +21,7 @@ Compose Multiplatformでのデスクトップ上サポートは[計画](https://
 
 <br>
 
-<img align="right" width="20%" src="screenshot_2.png">
+<img align="right" width="20%" src="screenshot_1.png">
 
 ## 機能
 - 曲、アーティスト、またはプレイリストのタイトルを編集
@@ -40,23 +40,23 @@ Compose Multiplatformでのデスクトップ上サポートは[計画](https://
 <details open>
     <summary><h2>スクリーンショット</h2></summary>
     <p align="center">
-        <img src="screenshot_11.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="screenshot_5.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="screenshot_10.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="../metadata/en-US/images/phoneScreenshots/5.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="../metadata/en-US/images/phoneScreenshots/2.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="../metadata/en-US/images/phoneScreenshots/4.png" style="max-height:70vh;object-fit:contain;" width="25%">
     </p>
 </details>
 
 <details closed>
     <summary><h2>他のスクリーンショット</h2></summary>
     <p align="center">
-        <img src="screenshot_15.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="screenshot_19.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="screenshot_16.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="../metadata/en-US/images/phoneScreenshots/7.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="../metadata/en-US/images/phoneScreenshots/10.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="../metadata/en-US/images/phoneScreenshots/8.png" style="max-height:70vh;object-fit:contain;" width="25%">
     </p>
     <p align="center">
-        <img src="screenshot_14.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="screenshot_17.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="screenshot_8.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="../metadata/en-US/images/phoneScreenshots/6.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="../metadata/en-US/images/phoneScreenshots/9.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="../metadata/en-US/images/phoneScreenshots/3.png" style="max-height:70vh;object-fit:contain;" width="25%">
     </p>
 </details>
 

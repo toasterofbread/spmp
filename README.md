@@ -21,7 +21,7 @@ Support for Compose Multiplatform on desktop is [planned](https://github.com/toa
 
 <br>
 
-<img align="right" width="20%" src="readme/screenshot_2.png">
+<img align="right" width="20%" src="metadata/en-US/images/phoneScreenshots/1.png">
 
 # Features
 - Edit song, artist, and playlist titles
@@ -40,23 +40,23 @@ Support for Compose Multiplatform on desktop is [planned](https://github.com/toa
 <details open>
     <summary><h2>Screenshots</h2></summary>
     <p align="center">
-        <img src="readme/screenshot_11.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="readme/screenshot_5.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="readme/screenshot_10.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="metadata/en-US/images/phoneScreenshots/5.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="metadata/en-US/images/phoneScreenshots/2.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="metadata/en-US/images/phoneScreenshots/4.png" style="max-height:70vh;object-fit:contain;" width="25%">
     </p>
 </details>
 
 <details closed>
     <summary><h2>More Screenshots</h2></summary>
     <p align="center">
-        <img src="readme/screenshot_15.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="readme/screenshot_19.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="readme/screenshot_16.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="metadata/en-US/images/phoneScreenshots/6.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="metadata/en-US/images/phoneScreenshots/10.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="metadata/en-US/images/phoneScreenshots/8.png" style="max-height:70vh;object-fit:contain;" width="25%">
     </p>
     <p align="center">
-        <img src="readme/screenshot_14.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="readme/screenshot_17.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="readme/screenshot_8.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="metadata/en-US/images/phoneScreenshots/7.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="metadata/en-US/images/phoneScreenshots/9.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="metadata/en-US/images/phoneScreenshots/3.png" style="max-height:70vh;object-fit:contain;" width="25%">
     </p>
 </details>
 

@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic
+package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 
 import SpMp
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
@@ -15,6 +15,8 @@ import com.toasterofbread.spmp.youtubeapi.endpoint.SearchResults
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchType
 import com.toasterofbread.spmp.youtubeapi.fromJson
 import com.toasterofbread.spmp.youtubeapi.getReader
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
 import com.toasterofbread.spmp.youtubeapi.model.NavigationEndpoint
 import com.toasterofbread.spmp.youtubeapi.model.TextRuns
 import com.toasterofbread.spmp.youtubeapi.model.YoutubeiShelf
@@ -23,7 +25,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.Request
 import java.io.Reader
 
-class SearchEndpointImpl(override val api: YoutubeMusicApi): SearchEndpoint() {
+class YTMSearchEndpoint(override val api: YoutubeMusicApi): SearchEndpoint() {
     override suspend fun searchMusic(query: String, params: String?): Result<SearchResults> = withContext(Dispatchers.IO) {
         val hl = SpMp.data_language
         val request = Request.Builder()
@@ -33,17 +35,8 @@ class SearchEndpointImpl(override val api: YoutubeMusicApi): SearchEndpoint() {
             .build()
 
         val result = api.performRequest(request)
-        val response = result.getOrNull() ?: return@withContext result.cast()
-
-        val reader: Reader = response.getReader(api)
-        val parsed: YoutubeiSearchResponse = try {
-            api.gson.fromJson(reader)
-        }
-        catch (e: Throwable) {
-            return@withContext Result.failure(e)
-        }
-        finally {
-            reader.close()
+        val parsed: YoutubeiSearchResponse = result.parseJsonResponse {
+            return@withContext Result.failure(it)
         }
 
         val tab = parsed.contents.tabbedSearchResultsRenderer.tabs.first().tabRenderer

@@ -35,6 +35,7 @@ import com.toasterofbread.spmp.youtubeapi.endpoint.LoadSongEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.PlaylistContinuationEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchResults
+import com.toasterofbread.spmp.youtubeapi.endpoint.SearchSuggestionsEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.SongLyricsEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.SongRadioEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.UserAuthStateEndpoint
@@ -136,63 +137,70 @@ class UnimplementedYoutubeApi(
         override val api = this@UnimplementedYoutubeApi
     }
     override val LoadPlaylist = object : LoadPlaylistEndpoint() {
-    override fun isImplemented(): Boolean = false
+        override fun isImplemented(): Boolean = false
         override suspend fun loadPlaylist(playlist_data: RemotePlaylistData, continuation: MediaItemLayout.Continuation?): Result<RemotePlaylistData> {
             throw NotImplementedError()
         }
         override val api = this@UnimplementedYoutubeApi
     }
     override val VideoFormats = object : VideoFormatsEndpoint() {
-    override fun isImplemented(): Boolean = false
+        override fun isImplemented(): Boolean = false
         override fun getVideoFormats(id: String, filter: ((YoutubeVideoFormat) -> Boolean)?): Result<List<YoutubeVideoFormat>> {
             throw NotImplementedError()
         }
         override val api = this@UnimplementedYoutubeApi
     }
     override val HomeFeed = object : HomeFeedEndpoint() {
-    override fun isImplemented(): Boolean = false
+        override fun isImplemented(): Boolean = false
         override suspend fun getHomeFeed(min_rows: Int, allow_cached: Boolean, params: String?, continuation: String?): Result<HomeFeedLoadResult> {
             throw NotImplementedError()
         }
         override val api = this@UnimplementedYoutubeApi
     }
     override val GenericFeedViewMorePage = object : GenericFeedViewMorePageEndpoint() {
-    override fun isImplemented(): Boolean = false
+        override fun isImplemented(): Boolean = false
         override suspend fun getGenericFeedViewMorePage(browse_id: String): Result<List<MediaItem>> {
             throw NotImplementedError()
         }
         override val api = this@UnimplementedYoutubeApi
     }
     override val SongRadio = object : SongRadioEndpoint() {
-    override fun isImplemented(): Boolean = false
+        override fun isImplemented(): Boolean = false
         override suspend fun getSongRadio(video_id: String, continuation: String?, filters: List<RadioBuilderModifier>): Result<RadioData> {
             throw NotImplementedError()
         }
         override val api = this@UnimplementedYoutubeApi
     }
     override val ArtistsWithParams = object : ArtistWithParamsEndpoint() {
-    override fun isImplemented(): Boolean = false
+        override fun isImplemented(): Boolean = false
         override suspend fun loadArtistWithParams(browse_params: BrowseParamsData): Result<List<ArtistWithParamsRow>> {
             throw NotImplementedError()
         }
         override val api = this@UnimplementedYoutubeApi
     }
     override val PlaylistContinuation = object : PlaylistContinuationEndpoint() {
-    override fun isImplemented(): Boolean = false
+        override fun isImplemented(): Boolean = false
         override suspend fun getPlaylistContinuation(initial: Boolean, token: String, skip_initial: Int): Result<Pair<List<MediaItemData>, String?>> {
             throw NotImplementedError()
         }
         override val api = this@UnimplementedYoutubeApi
     }
     override val Search = object : SearchEndpoint() {
-    override fun isImplemented(): Boolean = false
+        override fun isImplemented(): Boolean = false
         override suspend fun searchMusic(query: String, params: String?): Result<SearchResults> {
             throw NotImplementedError()
         }
         override val api = this@UnimplementedYoutubeApi
     }
+    override val SearchSuggestions = object : SearchSuggestionsEndpoint() {
+        override fun isImplemented(): Boolean = false
+        override suspend fun getSearchSuggestions(query: String): Result<List<String>> {
+            throw NotImplementedError()
+        }
+        override val api = this@UnimplementedYoutubeApi
+    }
     override val RadioBuilder = object : RadioBuilderEndpoint() {
-    override fun isImplemented(): Boolean = false
+        override fun isImplemented(): Boolean = false
         override suspend fun getRadioBuilderArtists(selectThumbnail: (List<MediaItemThumbnailProvider.Thumbnail>) -> MediaItemThumbnailProvider.Thumbnail): Result<List<RadioBuilderArtist>> {
             throw NotImplementedError()
         }
@@ -205,14 +213,14 @@ class UnimplementedYoutubeApi(
         override val api = this@UnimplementedYoutubeApi
     }
     override val SongRelatedContent = object : SongRelatedContentEndpoint() {
-    override fun isImplemented(): Boolean = false
+        override fun isImplemented(): Boolean = false
         override suspend fun getSongRelated(song: Song): Result<List<RelatedGroup>> {
             throw NotImplementedError()
         }
         override val api = this@UnimplementedYoutubeApi
     }
     override val SongLyrics = object : SongLyricsEndpoint() {
-    override fun isImplemented(): Boolean = false
+        override fun isImplemented(): Boolean = false
         override suspend fun getSongLyrics(lyrics_id: String): Result<String> {
             throw NotImplementedError()
         }

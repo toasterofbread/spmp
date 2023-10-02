@@ -4,15 +4,13 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
-import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
 import com.my.kizzyrpc.KizzyRPC
 import com.my.kizzyrpc.model.Activity
 import com.my.kizzyrpc.model.Assets
 import com.my.kizzyrpc.model.Metadata
 import com.my.kizzyrpc.model.Timestamps
+import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.youtubeapi.executeResult
 import com.toasterofbread.spmp.youtubeapi.fromJson
@@ -30,13 +28,14 @@ import dev.kord.rest.builder.channel.TextChannelCreateBuilder
 import dev.kord.rest.route.Position
 import dev.kord.rest.service.ChannelService
 import dev.kord.rest.service.createTextChannel
+import io.github.jan.supabase.plugins.standaloneSupabaseModule
+import io.github.jan.supabase.postgrest.Postgrest
 import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.request.forms.ChannelProvider
 import io.ktor.utils.io.jvm.javaio.toByteReadChannel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromByteArray
@@ -49,7 +48,6 @@ import java.io.IOException
 import java.util.Base64
 
 private const val RATE_LIMIT_ADDITIONAL_WAIT_MS: Long = 1000
-private const val IMAGE_ID_INDEX_LENGTH: Int = 2
 
 actual class DiscordStatus actual constructor(
     private val context: PlatformContext,
@@ -269,43 +267,42 @@ actual class DiscordStatus actual constructor(
         return Result.success(kord)
     }
 
-    private fun getIndexOfImageId(image_id: String): String =
-        image_id.take(IMAGE_ID_INDEX_LENGTH).lowercase()
+    @Serializable
+    private data class DBImage(val id: String, val attachment_url: String)
 
-    private suspend fun getExistingImages(image_ids: List<String>): Result<List<String?>> = withContext(Dispatchers.IO) {
-        val db = Firebase.firestore
-        val ret: MutableList<String?> = List(image_ids.size) { null }.toMutableList()
+    private fun getDbClient(): Postgrest =
+        standaloneSupabaseModule(
+            Postgrest,
+            ProjectBuildConfig.SUPABASE_DB_URL,
+            ProjectBuildConfig.SUPABASE_DB_KEY
+        )
 
-        val tasks = image_ids.map { image_id ->
-            db.collection(getIndexOfImageId(image_id)).document(image_id).get()
+    private suspend fun getExistingImages(db_client: Postgrest, image_ids: List<String>): Result<List<String?>> {
+        return runCatching {
+            val images: List<DBImage> = db_client["images"].select {
+                isIn("id", image_ids)
+            }.decodeList()
+
+            return@runCatching image_ids.map { id ->
+                images.firstOrNull { it.id == id }?.attachment_url
+            }
         }
-
-        for (task in tasks.withIndex()) {
-            val result: DocumentSnapshot? = task.value.await()
-            ret[task.index] = result?.getString("url")
-        }
-
-        return@withContext Result.success(ret)
     }
 
-    private fun onImagesUploaded(image_urls: Map<String, String>) {
-        if (image_urls.isEmpty()) {
+    private suspend fun onImagesUploaded(db_client: Postgrest, images: List<DBImage>) {
+        if (images.isEmpty()) {
             return
         }
 
-        val db = Firebase.firestore
-        db.runBatch { batch ->
-            for ((image_id, image_url) in image_urls) {
-                val document = db.collection(getIndexOfImageId(image_id)).document(image_id)
-                batch.set(document, mapOf("url" to image_url))
-            }
-        }
+        db_client["images"].insert(images)
     }
 
     actual suspend fun getCustomImages(image_ids: List<String>, imageProvider: suspend (String) -> ImageBitmap?): Result<List<String?>> {
         check(bot_token != null)
 
-        val ret: MutableList<String?> = getExistingImages(image_ids)
+        val db_client = getDbClient()
+
+        val ret: MutableList<String?> = getExistingImages(db_client, image_ids)
             .getOrElse { List(image_ids.size) { null } }
             .map { url ->
                 url?.let { getProxyUrlAttachment(it) }
@@ -321,7 +318,7 @@ actual class DiscordStatus actual constructor(
         }
 
         val found_channels: MutableMap<Char, Snowflake> = mutableMapOf()
-        val uploaded_image_urls: MutableMap<String, String> = mutableMapOf()
+        val uploaded_images: MutableList<DBImage> = mutableListOf()
 
         for (image in image_ids.withIndex()) {
             if (ret[image.index] != null) {
@@ -332,7 +329,7 @@ actual class DiscordStatus actual constructor(
             val channel_name = getChannelNameFor(id_index)
 
             var channel: Snowflake? = found_channels[id_index]
-            val category: Category? = custom_images_channel_category_id?.let { category_id ->
+            val category: Category? = custom_images_channel_category_id?.let {
                 Category(kord.rest.channel.getChannel(Snowflake(custom_images_channel_category_id)).toData(), kord)
             }
 
@@ -374,13 +371,13 @@ actual class DiscordStatus actual constructor(
             }
 
             val image_url = message.attachments.first().proxyUrl
-            uploaded_image_urls[image.value] = image_url
+            uploaded_images.add(DBImage(image.value, image_url))
             ret[image.index] = getProxyUrlAttachment(image_url)
         }
 
         kord.shutdown()
 
-        onImagesUploaded(uploaded_image_urls)
+        onImagesUploaded(db_client, uploaded_images)
 
         return Result.success(ret)
     }

@@ -7,7 +7,6 @@ plugins {
     id("com.android.library")
     id("org.jetbrains.compose")
     id("app.cash.sqldelight") version "2.0.0-rc02"
-    id("com.google.gms.google-services")
 }
 
 val KEY_NAMES = mapOf(
@@ -15,6 +14,8 @@ val KEY_NAMES = mapOf(
     "DISCORD_CUSTOM_IMAGES_CHANNEL_CATEGORY" to "Long",
     "DISCORD_CUSTOM_IMAGES_CHANNEL_NAME_PREFIX" to "String",
     "PASTE_EE_TOKEN" to "String",
+    "SUPABASE_DB_URL" to "String",
+    "SUPABASE_DB_KEY" to "String"
 )
 val DEBUG_KEY_NAMES = mapOf(
     "YTM_CHANNEL_ID" to "String",
@@ -45,7 +46,7 @@ fun GenerateBuildConfig.buildConfig(debug: Boolean) {
                 fields_to_generate.add(
                     Triple(
                         key,
-                        getType(key) + '?',
+                        getType(key),
                         if (debug_only && !debug) null.toString()
                         else keys[key].toString()
                     )
@@ -57,7 +58,7 @@ fun GenerateBuildConfig.buildConfig(debug: Boolean) {
                 fields_to_generate.add(
                     Triple(
                         key,
-                        getType(key) + '?',
+                        getType(key),
                         null.toString()
                     )
                 )
@@ -80,7 +81,7 @@ fun GenerateBuildConfig.buildConfig(debug: Boolean) {
     loadKeys(
         rootProject.file("debug_keys.properties"),
         { key ->
-            DEBUG_KEY_NAMES[key]!!
+            DEBUG_KEY_NAMES[key]!! + '?'
         },
         DEBUG_KEY_NAMES.keys,
         debug_only = true
@@ -163,9 +164,7 @@ kotlin {
                 implementation("app.cash.sqldelight:android-driver:2.0.0-rc02")
                 implementation("com.anggrayudi:storage:1.5.5")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.6.0")
-
-                implementation(platform("com.google.firebase:firebase-bom:32.3.1"))
-                implementation("com.google.firebase:firebase-firestore-ktx")
+                implementation("io.github.jan-tennert.supabase:postgrest-kt:1.3.2")
             }
         }
 

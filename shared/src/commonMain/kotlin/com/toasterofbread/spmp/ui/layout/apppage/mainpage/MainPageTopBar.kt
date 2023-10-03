@@ -36,15 +36,15 @@ fun MainPageTopBar(modifier: Modifier = Modifier) {
 
     Column(modifier) {
         Row(Modifier.height(IntrinsicSize.Min), verticalAlignment = Alignment.CenterVertically) {
-            Crossfade(player.app_page == player.app_page_state.Default) { default_open ->
-                if (default_open) {
-                    IconButton({ player.openAppPage(player.app_page_state.Settings) }) {
-                        Icon(Icons.Default.Settings, null, Modifier.width(RADIO_BUILDER_ICON_WIDTH_DP.dp))
+            Crossfade(player.app_page == player.app_page_state.Library) { library_open ->
+                if (library_open) {
+                    IconButton({ player.openAppPage(player.app_page_state.RadioBuilder) }) {
+                        RadioBuilderIcon()
                     }
                 }
                 else {
-                    IconButton({ player.openAppPage(player.app_page_state.RadioBuilder) }) {
-                        RadioBuilderIcon()
+                    IconButton({ player.openAppPage(player.app_page_state.Settings) }) {
+                        Icon(Icons.Default.Settings, null, Modifier.width(RADIO_BUILDER_ICON_WIDTH_DP.dp))
                     }
                 }
             }

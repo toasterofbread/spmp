@@ -13,7 +13,6 @@ local.properties
 app/debug/
 app/release/
 
-keys.properties
 debug_keys.properties
 androidApp/keystore.properties
 androidApp/main.keystore

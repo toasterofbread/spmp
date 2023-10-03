@@ -10,12 +10,9 @@ plugins {
 }
 
 val KEY_NAMES = mapOf(
-    "DISCORD_BOT_TOKEN" to "String",
-    "DISCORD_CUSTOM_IMAGES_CHANNEL_CATEGORY" to "Long",
-    "DISCORD_CUSTOM_IMAGES_CHANNEL_NAME_PREFIX" to "String",
     "PASTE_EE_TOKEN" to "String",
-    "SUPABASE_DB_URL" to "String",
-    "SUPABASE_DB_KEY" to "String"
+    "SUPABASE_URL" to "String",
+    "SUPABASE_KEY" to "String"
 )
 val DEBUG_KEY_NAMES = mapOf(
     "YTM_CHANNEL_ID" to "String",
@@ -54,6 +51,14 @@ fun GenerateBuildConfig.buildConfig(debug: Boolean) {
             }
         }
         else {
+            val required_keys = key_names.filter { key ->
+                !getType(key).endsWith("?")
+            }
+
+            if (required_keys.isNotEmpty()) {
+                throw NullPointerException("No file found at ${file.path} for required keys $required_keys")
+            }
+
             for (key in key_names) {
                 fields_to_generate.add(
                     Triple(
@@ -160,11 +165,11 @@ kotlin {
                 implementation("com.github.andob:android-awt:1.0.0")
                 implementation("io.coil-kt:coil-compose:2.3.0")
                 implementation("com.github.toasterofbread:KizzyRPC:84e79614b4")
-                implementation("dev.kord:kord-core:0.9.0")
                 implementation("app.cash.sqldelight:android-driver:2.0.0-rc02")
                 implementation("com.anggrayudi:storage:1.5.5")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.6.0")
-                implementation("io.github.jan-tennert.supabase:postgrest-kt:1.3.2")
+                implementation("io.github.jan-tennert.supabase:functions-kt:1.3.2")
+                implementation("io.ktor:ktor-client-cio:2.3.4")
             }
         }
 

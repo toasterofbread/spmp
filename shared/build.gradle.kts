@@ -31,6 +31,7 @@ val DEBUG_KEY_NAMES = mapOf(
 
 val buildConfigDir: Provider<Directory> get() = project.layout.buildDirectory.dir("generated/buildconfig")
 
+
 fun GenerateBuildConfig.buildConfig(debug: Boolean) {
     val keys = Properties()
 
@@ -176,7 +177,7 @@ kotlin {
         val desktopMain by getting {
             dependencies {
                 implementation(compose.desktop.common)
-                implementation("com.github.bluemods:kxml2:4dae70b2a995e72f842eca0c778792ce90d6cfc7")
+//                implementation("com.github.bluemods:kxml2:4dae70b2a995e72f842eca0c778792ce90d6cfc7")
                 implementation("org.zeromq:jeromq:0.5.3")
                 implementation("com.github.ltttttttttttt:load-the-image:1.0.5")
             }

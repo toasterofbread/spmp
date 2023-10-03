@@ -32,6 +32,9 @@
 -dontwarn org.bouncycastle.**
 -dontwarn org.openjsse.**
 
+# F-Droid
+-dontwarn org.slf4j.impl.StaticLoggerBinder
+
 # ???
 -dontwarn java.awt.AWTEvent
 -dontwarn java.awt.Component

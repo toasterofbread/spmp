@@ -1,13 +1,10 @@
 package com.toasterofbread.spmp.platform
 
-import androidx.compose.ui.graphics.ImageBitmap
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 
 expect class DiscordStatus(
     context: PlatformContext,
-    bot_token: String? = null,
-    guild_id: Long? = null,
-    custom_images_channel_category_id: Long? = null,
-    custom_images_channel_name_prefix: String = "",
     account_token: String? = null
 ) {
 
@@ -38,5 +35,5 @@ expect class DiscordStatus(
         buttons: List<Pair<String, String>>? = null
     )
 
-    suspend fun getCustomImages(image_ids: List<String>, imageProvider: suspend (String) -> ImageBitmap?): Result<List<String?>>
+    suspend fun getCustomImages(image_items: List<MediaItem>, target_quality: MediaItemThumbnailProvider.Quality): Result<List<String?>>
 }

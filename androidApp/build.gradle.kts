@@ -100,7 +100,7 @@ android {
 
     splits {
         abi {
-            isEnable = true
+            isEnable = project.hasProperty("enableApkSplit")
             reset()
 
             isUniversalApk = true

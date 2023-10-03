@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
@@ -295,10 +296,10 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
                 .clickable(onClick = onSelected)
                 .clip(shape)
                 .background(Theme.background)
-                .border(1.dp, Theme.accent, shape)
+                .border(2.dp, Theme.accent, shape)
                 .padding(10.dp)
         ) {
-            Text(suggestion)
+            Text(suggestion, softWrap = false, overflow = TextOverflow.Ellipsis)
         }
     }
 

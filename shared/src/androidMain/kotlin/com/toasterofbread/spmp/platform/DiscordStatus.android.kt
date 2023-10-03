@@ -194,6 +194,8 @@ actual class DiscordStatus actual constructor(
 
     actual suspend fun getCustomImages(image_items: List<MediaItem>, target_quality: MediaItemThumbnailProvider.Quality): Result<List<String?>> {
         val supabase_functions = getSupabaseFunctions()
+
+        // The source code for this function is available at https://github.com/toasterofbread/discordimageindex
         val response: HttpResponse = supabase_functions.invoke(
             "get-images",
             body = buildJsonObject {

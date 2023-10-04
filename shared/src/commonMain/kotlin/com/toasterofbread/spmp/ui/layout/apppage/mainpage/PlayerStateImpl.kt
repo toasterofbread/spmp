@@ -94,7 +94,6 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
                 app_page_state.SongFeed.resetSongFeed()
             }
         }
-        SpMp.addLowMemoryListener(low_memory_listener)
 
         prefs_listener = object : PlatformPreferences.Listener {
             override fun onChanged(prefs: PlatformPreferences, key: String) {
@@ -105,10 +104,12 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
                 }
             }
         }
-        context.getPrefs().addListener(prefs_listener)
     }
 
     fun onStart() {
+        SpMp.addLowMemoryListener(low_memory_listener)
+        context.getPrefs().addListener(prefs_listener)
+
         if (service_connecting) {
             return
         }
@@ -139,7 +140,11 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
     fun onStop() {
         MediaPlayerService.disconnect(context, service_connection)
         SpMp.removeLowMemoryListener(low_memory_listener)
-        Settings.prefs.removeListener(prefs_listener)
+        context.getPrefs().removeListener(prefs_listener)
+    }
+
+    fun release() {
+        onStop()
         _player = null
         top_bar.release()
     }

@@ -11,8 +11,8 @@ plugins {
     id("org.jetbrains.compose")
 }
 
-val strings_file = rootProject.file("shared/src/commonMain/resources/assets/values/strings.xml")
-var keystore_props_file = rootProject.file("androidApp/keystore.properties")
+val strings_file: File = rootProject.file("shared/src/commonMain/resources/assets/values/strings.xml")
+var keystore_props_file: File = rootProject.file("androidApp/keystore.properties")
 if (!keystore_props_file.isFile) {
     keystore_props_file = rootProject.file("androidApp/keystore.properties.debug")
 }
@@ -79,6 +79,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+        multiDexEnabled = true
     }
 
     buildTypes {
@@ -111,6 +112,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlin {
@@ -127,20 +129,21 @@ android {
         kotlinCompilerExtensionVersion = "1.5.2"
     }
 
-    packagingOptions {
+    packaging {
         resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-        exclude("META-INF/DEPENDENCIES")
-        exclude("mozilla/public-suffix-list.txt")
+            excludes.add("/META-INF/{AL2.0,LGPL2.1}")
+            excludes.add("META-INF/DEPENDENCIES")
+            excludes.add("mozilla/public-suffix-list.txt")
 
-        // For Kuromoji
-        pickFirst("META-INF/CONTRIBUTORS.md")
-        pickFirst("META-INF/LICENSE.md")
+            // For Kuromoji
+            pickFirsts.add("META-INF/CONTRIBUTORS.md")
+            pickFirsts.add("META-INF/LICENSE.md")
+        }
     }
 
-    lintOptions {
-        disable("ByteOrderMark")
+    lint {
+        // What is this needed for?
+        disable.add("ByteOrderMark")
     }
 
     sourceSets {
@@ -154,4 +157,8 @@ android {
             }
         }
     }
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3")
 }

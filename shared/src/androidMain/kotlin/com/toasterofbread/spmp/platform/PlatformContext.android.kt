@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.platform
 
 import android.Manifest
+import android.R
 import android.annotation.SuppressLint
 import android.app.*
 import android.content.ContentResolver
@@ -38,7 +39,10 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.app.NotificationChannelCompat
+import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.graphics.drawable.IconCompat
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import com.anggrayudi.storage.callback.FileCallback
@@ -508,7 +512,7 @@ actual class PlatformContext(
         val window = ctx.findWindow() ?: return
         window.navigationBarColor = (colour ?: Color.Transparent).toArgb()
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+        if (Build.VERSION.SDK_INT in Build.VERSION_CODES.O .. Build.VERSION_CODES.Q) {
             window.decorView.apply {
                 if (colour?.isDark() == false) {
                     systemUiVisibility = systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
@@ -596,8 +600,22 @@ actual class PlatformContext(
     }
 
     actual fun vibrate(duration: Double) {
-        val vibrator = ctx.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator?
-        vibrator?.vibrate(VibrationEffect.createOneShot((duration * 1000.0).toLong(), VibrationEffect.DEFAULT_AMPLITUDE))
+        val vibrator = (ctx.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator?) ?: return
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(
+                VibrationEffect.createOneShot(
+                    (duration * 1000.0).toLong(),
+                    VibrationEffect.DEFAULT_AMPLITUDE
+                )
+            )
+        }
+        else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(
+                (duration * 1000.0).toLong()
+            )
+        }
     }
 
     actual fun deleteFile(name: String): Boolean = ctx.deleteFile(name)
@@ -613,7 +631,7 @@ actual class PlatformContext(
     @SuppressLint("MissingPermission")
     actual fun sendNotification(title: String, body: String) {
         if (canSendNotifications()) {
-            val notification = Notification.Builder(context, getDefaultNotificationChannel(ctx))
+            val notification = NotificationCompat.Builder(context, getDefaultNotificationChannel(ctx))
                 .setContentTitle(title)
                 .setContentText(body)
                 .build()
@@ -678,36 +696,37 @@ private fun Context.findWindow(): Window? {
 }
 
 private fun getDefaultNotificationChannel(context: Context): String {
-    val channel = NotificationChannel(
+    val channel = NotificationChannelCompat.Builder(
         DEFAULT_NOTIFICATION_CHANNEL_ID,
-        getStringTODO("Default channel"),
-        NotificationManager.IMPORTANCE_DEFAULT
-    )
+        NotificationManagerCompat.IMPORTANCE_DEFAULT
+    ).build()
 
     NotificationManagerCompat.from(context).createNotificationChannel(channel)
     return DEFAULT_NOTIFICATION_CHANNEL_ID
 }
 
 private fun getErrorNotificationChannel(context: Context): String {
-    val channel = NotificationChannel(
-        ERROR_NOTIFICATION_CHANNEL_ID,
-        getString("download_service_error_name"),
-        NotificationManager.IMPORTANCE_HIGH
-    )
+    val channel =
+        NotificationChannelCompat.Builder(
+            ERROR_NOTIFICATION_CHANNEL_ID,
+            NotificationManagerCompat.IMPORTANCE_HIGH
+        )
+        .setName(getString("download_service_error_name"))
+        .build()
 
     NotificationManagerCompat.from(context).createNotificationChannel(channel)
     return ERROR_NOTIFICATION_CHANNEL_ID
 }
 
 fun Throwable.createNotification(context: Context, notification_channel: String): Notification {
-    return Notification.Builder(context, notification_channel)
-        .setSmallIcon(android.R.drawable.stat_notify_error)
+    return NotificationCompat.Builder(context, notification_channel)
+        .setSmallIcon(R.drawable.stat_notify_error)
         .setContentTitle(this::class.simpleName)
         .setContentText(message)
-        .setStyle(Notification.BigTextStyle().bigText("$message\nStack trace:\n${stackTraceToString()}"))
+        .setStyle(NotificationCompat.BigTextStyle().bigText("$message\nStack trace:\n${stackTraceToString()}"))
         .addAction(
-            Notification.Action.Builder(
-                Icon.createWithResource(context, android.R.drawable.ic_menu_share),
+            NotificationCompat.Action.Builder(
+                IconCompat.createWithResource(context, R.drawable.ic_menu_share),
                 "Share",
                 PendingIntent.getActivity(
                     context,
@@ -721,7 +740,8 @@ fun Throwable.createNotification(context: Context, notification_channel: String)
                     }, null),
                     PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_CANCEL_CURRENT
                 )
-            ).build())
+            ).build()
+        )
         .build()
 }
 
@@ -751,13 +771,7 @@ fun Context.isAppInForeground(): Boolean {
 
 fun Context.isConnectionMetered(): Boolean {
     val manager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-    val capabilities = manager.getNetworkCapabilities(manager.activeNetwork)
-
-    if (capabilities == null) {
-        return false
-    }
-
-    return !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
+    return manager.isActiveNetworkMetered
 }
 
 fun <T> Settings.get(context: Context): T {

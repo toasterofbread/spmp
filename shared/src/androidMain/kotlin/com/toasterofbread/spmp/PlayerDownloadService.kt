@@ -2,20 +2,22 @@ package com.toasterofbread.spmp
 
 import SpMp
 import android.Manifest
+import android.R
 import android.app.Notification
-import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.drawable.Icon
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
 import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationChannelCompat
+import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
+import androidx.core.graphics.drawable.IconCompat
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
@@ -31,7 +33,6 @@ import com.toasterofbread.spmp.platform.getLocalAudioFile
 import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import java.io.File
 import java.net.ConnectException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -183,7 +184,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
         }
     }
 
-    private var notification_builder: Notification.Builder? = null
+    private var notification_builder: NotificationCompat.Builder? = null
     private lateinit var notification_manager: NotificationManagerCompat
 
     private val download_dir: PlatformFile get() = PlayerDownloadManager.getDownloadDir(context)
@@ -204,7 +205,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
         }
 
     private lateinit var notification_delete_intent: PendingIntent
-    private lateinit var pause_resume_action: Notification.Action
+    private lateinit var pause_resume_action: NotificationCompat.Action
 
     override fun onCreate() {
         super.onCreate()
@@ -220,8 +221,8 @@ class PlayerDownloadService: PlatformServiceImpl() {
             Intent(this, PlayerDownloadService::class.java).putExtra("action", IntentAction.STOP),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_ONE_SHOT
         )
-        pause_resume_action = Notification.Action.Builder(
-            Icon.createWithResource(this, android.R.drawable.ic_menu_close_clear_cancel),
+        pause_resume_action = NotificationCompat.Action.Builder(
+            IconCompat.createWithResource(this, R.drawable.ic_menu_close_clear_cancel),
             "Pause",
             PendingIntent.getService(
                 this,
@@ -535,7 +536,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
 
                     if (cancelled) {
                         builder.setContentTitle("Download cancelled")
-                        builder.setSmallIcon(android.R.drawable.ic_menu_close_clear_cancel)
+                        builder.setSmallIcon(R.drawable.ic_menu_close_clear_cancel)
                     }
                     else if (completed_downloads == 0) {
                         builder.setContentTitle("Download failed")
@@ -606,22 +607,22 @@ class PlayerDownloadService: PlatformServiceImpl() {
         return super.onStartCommand(intent, flags, startId)
     }
 
-    private fun getNotificationBuilder(): Notification.Builder {
+    private fun getNotificationBuilder(): NotificationCompat.Builder {
         val content_intent: PendingIntent = PendingIntent.getActivity(
             this, 0,
             Intent(this@PlayerDownloadService, PlatformContext.main_activity),
             PendingIntent.FLAG_IMMUTABLE
         )
 
-        return Notification.Builder(this, getNotificationChannel())
+        return NotificationCompat.Builder(this, getNotificationChannel())
             .setSmallIcon(android.R.drawable.stat_sys_download)
             .setContentIntent(content_intent)
             .setOnlyAlertOnce(true)
             .setOngoing(true)
             .setProgress(100, 0, false)
             .addAction(pause_resume_action)
-            .addAction(Notification.Action.Builder(
-                Icon.createWithResource(this, android.R.drawable.ic_menu_close_clear_cancel),
+            .addAction(NotificationCompat.Action.Builder(
+                IconCompat.createWithResource(this, R.drawable.ic_menu_close_clear_cancel),
                 "Cancel",
                 PendingIntent.getService(
                     this,
@@ -632,18 +633,20 @@ class PlayerDownloadService: PlatformServiceImpl() {
             ).build())
             .apply {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
+                    foregroundServiceBehavior = Notification.FOREGROUND_SERVICE_IMMEDIATE
                 }
             }
     }
 
     private fun getNotificationChannel(): String {
-        val channel = NotificationChannel(
-            NOTIFICATION_CHANNEL_ID,
-            getString("download_service_name"),
-            NotificationManager.IMPORTANCE_LOW
-        )
-        channel.setSound(null, null)
+        val channel =
+            NotificationChannelCompat.Builder(
+                NOTIFICATION_CHANNEL_ID,
+                NotificationManager.IMPORTANCE_LOW
+            )
+            .setName(getString("download_service_name"))
+            .setSound(null, null)
+            .build()
 
         notification_manager.createNotificationChannel(channel)
         return NOTIFICATION_CHANNEL_ID

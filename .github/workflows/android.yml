@@ -10,10 +10,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    env:
-      KEYS_PROPERTIES: ${{ secrets.KEYS_PROPERTIES }}
-      GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
-
     steps:
     - uses: actions/checkout@v3
       with:
@@ -24,16 +20,6 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-
-    - name: Create and populate keys.properties
-      run: |
-        touch keys.properties
-        echo "$KEYS_PROPERTIES" >> keys.properties
-
-    - name: Create and populate shared/google-services.json
-      run: |
-        touch shared/google-services.json
-        echo "$GOOGLE_SERVICES_JSON" >> shared/google-services.json
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
@@ -47,10 +33,10 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: androidApp-universal-debug.apk
-        path: androidApp/build/outputs/apk/debug/androidApp-universal-debug.apk
+        path: androidApp/build/outputs/apk/debug/androidApp-debug.apk
 
     - name: Upload universal release APK artifact
       uses: actions/upload-artifact@v3
       with:
         name: androidApp-universal-release.apk
-        path: androidApp/build/outputs/apk/release/androidApp-universal-release.apk
+        path: androidApp/build/outputs/apk/release/androidApp-release.apk

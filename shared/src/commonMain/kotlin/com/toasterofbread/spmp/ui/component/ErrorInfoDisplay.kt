@@ -226,19 +226,21 @@ private fun ExpandedContent(error: Throwable, shape: Shape, disable_parent_scrol
 
                     Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                    val paste_token = ProjectBuildConfig.PASTE_EE_TOKEN
-                    if (paste_token != null) {
-                        Button(
-                            {
-                                coroutine_scope.launch {
-                                    text_to_show = uploadErrorToPasteEe(error, paste_token, player.context).getOrElse { it.toString() }
-                                }
-                            },
-                            colors = button_colours,
-                            contentPadding = PaddingValues(0.dp),
-                        ) {
-                            WidthShrinkText(getString("upload_to_paste_dot_ee"), alignment = TextAlign.Center)
-                        }
+                    Button(
+                        {
+                            coroutine_scope.launch {
+                                text_to_show = uploadErrorToPasteEe(
+                                    error.message.toString(),
+                                    error.stackTraceToString(),
+                                    ProjectBuildConfig.PASTE_EE_TOKEN,
+                                    error = error
+                                ).getOrElse { it.toString() }
+                            }
+                        },
+                        colors = button_colours,
+                        contentPadding = PaddingValues(0.dp),
+                    ) {
+                        WidthShrinkText(getString("upload_to_paste_dot_ee"), alignment = TextAlign.Center)
                     }
                 }
 
@@ -319,10 +321,16 @@ private fun ExpandedContent(error: Throwable, shape: Shape, disable_parent_scrol
     }
 }
 
-private suspend fun uploadErrorToPasteEe(error: Throwable, token: String, context: PlatformContext): Result<String> = withContext(Dispatchers.IO) {
+suspend fun uploadErrorToPasteEe(
+    message: String,
+    stack_trace: String,
+    token: String,
+    error: Throwable? = null,
+    logs: String? = null,
+): Result<String> = withContext(Dispatchers.IO) {
     val sections = mutableListOf(
-        mapOf("name" to "MESSAGE", "contents" to error.message.toString()),
-        mapOf("name" to "STACKTRACE", "contents" to error.stackTraceToString()),
+        mapOf("name" to "MESSAGE", "contents" to message),
+        mapOf("name" to "STACKTRACE", "contents" to stack_trace),
     )
 
     if (error is com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException) {
@@ -337,11 +345,20 @@ private suspend fun uploadErrorToPasteEe(error: Throwable, token: String, contex
         )
     }
 
+    if (logs != null) {
+        sections.add(
+            mapOf(
+                "name" to "LOGS",
+                "contents" to logs
+            )
+        )
+    }
+
     val request = Request.Builder()
         .url("https://api.paste.ee/v1/pastes")
         .header("X-Auth-Token", token)
         .post(
-            context.ytapi.gson.toJson(mapOf("sections" to sections))
+            Gson().toJson(mapOf("sections" to sections))
                 .toRequestBody("application/json".toMediaType())
         )
         .build()

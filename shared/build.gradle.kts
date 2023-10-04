@@ -129,8 +129,6 @@ kotlin {
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
 
-                implementation("com.github.TeamNewPipe:NewPipeExtractor") // Submodule
-
                 implementation("com.squareup.okhttp3:okhttp:4.10.0")
                 implementation("com.google.code.gson:gson:2.10.1")
                 implementation("com.godaddy.android.colorpicker:compose-color-picker:0.7.0")

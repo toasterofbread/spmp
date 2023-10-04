@@ -112,6 +112,7 @@ object SpMp {
     fun release() {
         _yt_ui_localisation = null
         coroutine_scope.cancel()
+        player_state.release()
     }
 
     fun onStart() {

@@ -32,11 +32,11 @@ jobs:
     - name: Upload universal debug APK artifact
       uses: actions/upload-artifact@v3
       with:
-        name: androidApp-universal-debug.apk
+        name: androidApp-debug.apk
         path: androidApp/build/outputs/apk/debug/androidApp-debug.apk
 
     - name: Upload universal release APK artifact
       uses: actions/upload-artifact@v3
       with:
-        name: androidApp-universal-release.apk
+        name: androidApp-release.apk
         path: androidApp/build/outputs/apk/release/androidApp-release.apk

@@ -45,9 +45,6 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import org.apache.commons.text.StringSubstitutor
-import org.schabi.newpipe.extractor.NewPipe
-import org.schabi.newpipe.extractor.downloader.Downloader
-import org.schabi.newpipe.extractor.exceptions.ReCaptchaException
 import java.io.Reader
 import java.time.Duration
 import java.util.logging.Level
@@ -109,44 +106,6 @@ data class YoutubeMusicApi(
                 }
                 launch {
                     context.getPrefs().addListener(prefs_change_listener)
-
-                    NewPipe.init(object : Downloader() {
-                        override fun execute(request: org.schabi.newpipe.extractor.downloader.Request): org.schabi.newpipe.extractor.downloader.Response {
-                            val url = request.url()
-                            val request_body: RequestBody? = request.dataToSend()?.let {
-                                it.toRequestBody(null, 0, it.size)
-                            }
-
-                            val request_builder = Request.Builder()
-                                .method(request.httpMethod(), request_body).url(url)
-                                .addHeader("User-Agent", getUserAgent())
-
-                            for ((header_name, header_value_list) in request.headers()) {
-                                if (header_value_list.size > 1) {
-                                    request_builder.removeHeader(header_name)
-                                    for (headerValue in header_value_list) {
-                                        request_builder.addHeader(header_name, headerValue)
-                                    }
-                                } else if (header_value_list.size == 1) {
-                                    request_builder.header(header_name, header_value_list[0])
-                                }
-                            }
-
-                            val response = performRequest(request_builder.build(), true).getOrThrowHere()
-                            if (response.code == 429) {
-                                response.close()
-                                throw ReCaptchaException("reCaptcha Challenge requested", url)
-                            }
-
-                            return org.schabi.newpipe.extractor.downloader.Response(
-                                response.code,
-                                response.message,
-                                response.headers.toMultimap(),
-                                response.body?.string(),
-                                response.request.url.toString()
-                            )
-                        }
-                    })
                 }
                 launch {
                     updateYtmContext()

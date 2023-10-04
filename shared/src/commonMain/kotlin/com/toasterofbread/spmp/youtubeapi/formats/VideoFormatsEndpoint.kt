@@ -6,21 +6,18 @@ import com.toasterofbread.spmp.youtubeapi.YoutubeVideoFormat
 
 enum class VideoFormatsEndpointType {
     YOUTUBEI,
-    PIPED,
-    NEWPIPE;
-
+    PIPED;
+  
     fun instantiate(api: YoutubeApi): VideoFormatsEndpoint =
         when(this) {
             YOUTUBEI -> YoutubeiVideoFormatsEndpoint(api)
             PIPED -> PipedVideoFormatsEndpoint(api)
-            NEWPIPE -> NewPipeVideoFormatsEndpoint(api)
         }
 
     fun getReadable(): String =
         when(this) {
             YOUTUBEI -> getString("video_format_endpoint_youtubei")
             PIPED -> getString("video_format_endpoint_piped")
-            NEWPIPE -> getString("video_format_endpoint_newpipe")
         }
 
     companion object {

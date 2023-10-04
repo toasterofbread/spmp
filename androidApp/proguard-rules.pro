@@ -7,9 +7,6 @@
 -keep interface com.beust.klaxon.** { *; }
 -keep class kotlin.Metadata { *; }
 
-# NewPipe
--keep class org.mozilla.javascript.**
-
 # KizzyRPC
 # See https://github.com/google/gson/blob/6d9c3566b71900c54644a9f71ce028696ee5d4bd/examples/android-proguard-example/proguard.cfg
 -keepattributes Signature

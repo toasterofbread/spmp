@@ -35,9 +35,3 @@ dependencyResolutionManagement {
         maven("https://jitpack.io")
     }
 }
-
-includeBuild("androidApp/src/thirdparty/NewPipeExtractor") {
-    dependencySubstitution {
-        substitute(module("com.github.TeamNewPipe:NewPipeExtractor")).using(project(":extractor"))
-    }
-}

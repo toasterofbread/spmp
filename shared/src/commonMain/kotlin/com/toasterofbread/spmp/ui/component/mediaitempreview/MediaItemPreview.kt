@@ -234,7 +234,7 @@ fun MediaItemPreviewLong(
                         val play_count = item.observePlayCount(player.context)
                         InfoText(
                             getString("mediaitem_play_count_\$x_short")
-                                .replace("\$x", play_count.toString())
+                                .replace("\$x", play_count?.toString() ?: "?")
                         )
                     }
 

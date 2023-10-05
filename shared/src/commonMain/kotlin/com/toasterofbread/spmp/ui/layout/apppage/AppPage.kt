@@ -44,6 +44,7 @@ abstract class AppPage {
     ) { }
 
     open fun onOpened(from_item: MediaItemHolder? = null) {}
+    open fun onClosed(next_page: AppPage?) {}
     open fun onBackNavigation(): Boolean = false
 
     @OptIn(ExperimentalMaterial3Api::class)

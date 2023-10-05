@@ -33,6 +33,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -81,6 +82,7 @@ fun ErrorInfoDisplay(
     start_expanded: Boolean = false,
     extraButtonContent: (@Composable () -> Unit)? = null,
     onExtraButtonPressed: (() -> Unit)? = null,
+    onRetry: (() -> Unit)? = null,
     onDismiss: (() -> Unit)?
 ) {
     var expanded: Boolean by remember { mutableStateOf(start_expanded) }
@@ -110,25 +112,40 @@ fun ErrorInfoDisplay(
                 Crossfade(expanded) { expanded ->
                     Icon(
                         if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                        null
+                        null,
+                        tint = Theme.on_accent
                     )
                 }
 
                 WidthShrinkText(
                     message ?: error::class.java.simpleName,
-                    modifier = Modifier.fillMaxWidth().weight(1f)
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    style = LocalTextStyle.current.copy(color = Theme.on_accent),
+                    max_lines = 2
+                )
+
+                val button_colours = ButtonDefaults.buttonColors(
+                    containerColor = Theme.background,
+                    contentColor = Theme.on_background
                 )
 
                 if (onExtraButtonPressed != null) {
                     Button(
                         onExtraButtonPressed,
                         shape = shape,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Theme.background,
-                            contentColor = Theme.on_background
-                        )
+                        colors = button_colours
                     ) {
                         extraButtonContent!!.invoke()
+                    }
+                }
+
+                if (onRetry != null) {
+                    Button(
+                        onRetry,
+                        shape = shape,
+                        colors = button_colours
+                    ) {
+                        Text(getString("action_load_retry"))
                     }
                 }
 
@@ -193,7 +210,12 @@ private fun LongTextDisplay(text: String, wrap_text: Boolean, modifier: Modifier
 }
 
 @Composable
-private fun ExpandedContent(error: Throwable, shape: Shape, disable_parent_scroll: Boolean, modifier: Modifier = Modifier) {
+private fun ExpandedContent(
+    error: Throwable, 
+    shape: Shape, 
+    disable_parent_scroll: Boolean, 
+    modifier: Modifier = Modifier
+) {
     val coroutine_scope = rememberCoroutineScope()
     val player = LocalPlayerState.current
 
@@ -201,7 +223,7 @@ private fun ExpandedContent(error: Throwable, shape: Shape, disable_parent_scrol
     var wrap_text by remember { mutableStateOf(false) }
     val button_colours = ButtonDefaults.buttonColors(
         containerColor = Theme.accent,
-        contentColor = Theme.background
+        contentColor = Theme.on_accent
     )
 
     Box(
@@ -240,7 +262,7 @@ private fun ExpandedContent(error: Throwable, shape: Shape, disable_parent_scrol
                         colors = button_colours,
                         contentPadding = PaddingValues(0.dp),
                     ) {
-                        WidthShrinkText(getString("upload_to_paste_dot_ee"), alignment = TextAlign.Center)
+                        WidthShrinkText(getString("upload_to_paste_dot_ee"), alignment = TextAlign.Center, style = LocalTextStyle.current.copy(color = Theme.on_accent))
                     }
                 }
 

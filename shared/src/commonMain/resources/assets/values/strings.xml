@@ -96,6 +96,7 @@
     <string name="action_confirm_action">Yes</string>
     <string name="action_deny_action">No</string>
     <string name="action_warning_accept">Accept</string>
+    <string name="action_load_retry">Retry</string>
     <string name="prompt_confirm_action">Please confirm</string>
     <string name="prompt_confirm_settings_page_reset">Reset all values on this page?</string>
     <string name="prompt_hide_feed_rows_with_$title">Hide feed rows with title '$title'?</string>
@@ -273,7 +274,6 @@
     <string name="radio_title_of_$artists">Radio of $artists</string>
     <string name="radio_title_artists_splitter">, </string>
     <string name="radio_title_overflow">…</string>
-    <string name="radio_action_retry_failed_load">Retry</string>
 
     <string name="settings_string_set_item_empty">No items added</string>
     <string name="settings_string_set_item_already_added">Item already added</string>

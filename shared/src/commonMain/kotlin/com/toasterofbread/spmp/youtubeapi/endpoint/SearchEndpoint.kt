@@ -36,4 +36,4 @@ enum class SearchType {
     }
 }
 data class SearchFilter(val type: SearchType, val params: String)
-data class SearchResults(val suggested_correction: String?, val categories: List<Pair<MediaItemLayout, SearchFilter?>>)
+data class SearchResults(val categories: List<Pair<MediaItemLayout, SearchFilter?>>, val suggested_correction: String?)

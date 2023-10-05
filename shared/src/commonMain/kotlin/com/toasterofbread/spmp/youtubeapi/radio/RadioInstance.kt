@@ -237,8 +237,7 @@ class RadioInstance(
                         error,
                         expanded_content_modifier = expanded_modifier,
                         disable_parent_scroll = disable_parent_scroll,
-                        extraButtonContent = { Text(getString("radio_action_retry_failed_load")) },
-                        onExtraButtonPressed = 
+                        onRetry = 
                             if (callback != null) {{
                                 loadContinuation(
                                     context,

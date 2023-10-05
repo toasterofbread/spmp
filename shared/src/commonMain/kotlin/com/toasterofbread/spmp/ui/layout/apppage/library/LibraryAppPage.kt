@@ -91,6 +91,10 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
         setCurrentTab(tabs.first { !it.isHidden() })
     }
 
+    override fun onClosed(next_page: AppPage?) {
+        external_load_error = null
+    }
+
     private fun setCurrentTab(tab: LibrarySubPage) {
         show_search_field = false
         search_filter = null
@@ -228,6 +232,8 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
         content_padding: PaddingValues,
         close: () -> Unit
     ) {
+        val player = LocalPlayerState.current
+
         AnimatedVisibility(
             external_load_error != null,
             enter = expandVertically(),
@@ -245,6 +251,10 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
                     it,
                     modifier = Modifier.padding(content_padding.copy(bottom = 20.dp)),
                     message = getString("error_yt_feed_parse_failed"),
+                    onRetry = {
+                        player.app_page_state.SongFeed.retrying = true
+                        player.openAppPage(player.app_page_state.SongFeed)
+                    },
                     onDismiss = {
                         external_load_error = null
                     },

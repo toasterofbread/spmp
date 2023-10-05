@@ -13,17 +13,13 @@ import com.toasterofbread.spmp.youtubeapi.endpoint.SearchEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchFilter
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchResults
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchType
-import com.toasterofbread.spmp.youtubeapi.fromJson
-import com.toasterofbread.spmp.youtubeapi.getReader
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
 import com.toasterofbread.spmp.youtubeapi.model.NavigationEndpoint
 import com.toasterofbread.spmp.youtubeapi.model.TextRuns
 import com.toasterofbread.spmp.youtubeapi.model.YoutubeiShelf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
-import java.io.Reader
 
 class YTMSearchEndpoint(override val api: YoutubeMusicApi): SearchEndpoint() {
     override suspend fun searchMusic(query: String, params: String?): Result<SearchResults> = withContext(Dispatchers.IO) {
@@ -101,7 +97,7 @@ class YTMSearchEndpoint(override val api: YoutubeMusicApi): SearchEndpoint() {
             }
         }
 
-        return@withContext Result.success(SearchResults(correction_suggestion, category_layouts))
+        return@withContext Result.success(SearchResults(category_layouts, correction_suggestion))
     }
 }
 

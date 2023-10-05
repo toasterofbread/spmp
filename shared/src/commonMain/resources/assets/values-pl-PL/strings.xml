@@ -230,7 +230,7 @@
 
     <string name="radio_of_$artists_title">Radio $artystów</string>
     <string name="radio_title_artists_splitter">, </string>
-    <string name="radio_action_retry_failed_load">Powtórz</string>
+    <string name="action_load_retry">Powtórz</string>
 
     <string name="settings_string_set_item_empty">Nie dodano żadnych elementów</string>
     <string name="settings_string_set_item_already_added">Pozycja już dodana</string>

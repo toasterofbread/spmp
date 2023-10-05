@@ -51,6 +51,8 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
+import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
+import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
@@ -60,11 +62,13 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLon
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.common.copy
+import com.toasterofbread.utils.common.launchSingle
 import com.toasterofbread.utils.common.setAlpha
 import com.toasterofbread.utils.common.thenIf
 import com.toasterofbread.utils.composable.AlignableCrossfade
 import com.toasterofbread.utils.composable.Marquee
 import com.toasterofbread.utils.composable.NoRipple
+import com.toasterofbread.utils.composable.PlatformClickableIconButton
 
 @Composable
 internal fun LongPressMenuContent(
@@ -201,7 +205,7 @@ internal fun LongPressMenuContent(
                     }
 
                     // Info header
-                    Row(Modifier.requiredHeight(1.dp)) {
+                    Row(Modifier.requiredHeight(1.dp), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                         var info_title_width: Int by remember { mutableStateOf(0) }
                         var box_width: Int by remember { mutableStateOf(-1) }
 
@@ -249,16 +253,22 @@ internal fun LongPressMenuContent(
                             }
                         }
 
-                        IconButton({ show_info = !show_info }, Modifier.requiredHeight(40.dp)) {
-                            Crossfade(show_info) { info ->
-                                Icon(if (info) Icons.Filled.Close else Icons.Filled.Info, null)
-                            }
-                        }
-
                         data.SideButton(
                             Modifier.requiredHeight(40.dp),
                             Theme.background
                         )
+
+                        PlatformClickableIconButton(
+                            onClick = {
+                                show_info = !show_info
+                            },
+                            modifier = Modifier.requiredHeight(40.dp),
+                            apply_minimum_size = false
+                        ) {
+                            Crossfade(show_info) { info ->
+                                Icon(if (info) Icons.Filled.Close else Icons.Filled.Info, null)
+                            }
+                        }
                     }
 
                     // Info/action list

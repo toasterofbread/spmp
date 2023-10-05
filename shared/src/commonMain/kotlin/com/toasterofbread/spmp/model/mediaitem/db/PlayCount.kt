@@ -72,12 +72,12 @@ fun MediaItem.getPlayCount(db: Database, range: Duration? = null): Int {
 }
 
 @Composable
-fun MediaItem.observePlayCount(context: PlatformContext, range: Duration? = null): Int {
+fun MediaItem.observePlayCount(context: PlatformContext, range: Duration? = null): Int? {
     val db = context.database
-    var play_count_state: Int by remember { mutableStateOf(0) }
+    var play_count_state: Int? by remember { mutableStateOf(null) }
 
     LaunchedEffect(id, range) {
-        play_count_state = 0
+        play_count_state = null
         withContext(Dispatchers.IO) {
             play_count_state = getPlayCount(db, range)
         }

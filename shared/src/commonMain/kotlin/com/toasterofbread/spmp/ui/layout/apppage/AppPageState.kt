@@ -24,6 +24,9 @@ class AppPageState(val context: PlatformContext) {
         if (new_page != current_page) {
             val old_page = current_page
             current_page = new_page
+
+            old_page.onClosed(new_page)
+
             if (!going_back) {
                 new_page.onOpened(
                     if (from_current) (old_page as? AppPageWithItem)?.item

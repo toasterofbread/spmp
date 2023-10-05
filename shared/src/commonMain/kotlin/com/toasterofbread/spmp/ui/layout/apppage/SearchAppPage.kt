@@ -211,7 +211,10 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
                             ErrorInfoDisplay(
                                 results,
                                 Modifier.fillMaxWidth(),
-                                onDismiss = { error = null }
+                                onDismiss = { error = null },
+                                onRetry = {
+                                    performSearch()
+                                }
                             )
                         }
                     }
@@ -255,6 +258,7 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
             val query = current_query
             current_results = null
             current_filter = filter?.type
+            error = null
             multiselect_context?.setActive(false)
 
             coroutine_scope.launchSingle {

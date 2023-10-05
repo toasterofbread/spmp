@@ -53,9 +53,9 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.PinnedItemsRow
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.FeedLoadState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.FeedLoadState
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
 import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedEndpoint
@@ -88,6 +88,8 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
     private var layouts: List<MediaItemLayout>? by mutableStateOf(null)
     private var filter_chips: List<FilterChip>? by mutableStateOf(null)
     private var selected_filter_chip: Int? by mutableStateOf(null)
+
+    var retrying: Boolean = false
 
     fun resetSongFeed() {
         layouts = null
@@ -177,7 +179,8 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
         LaunchedEffect(Unit) {
             if (layouts.isNullOrEmpty()) {
                 coroutine_scope.launchSingle {
-                    loadFeed(allow_cached = true, continue_feed = false)
+                    loadFeed(allow_cached = !retrying, continue_feed = false)
+                    retrying = false
                 }
             }
         }

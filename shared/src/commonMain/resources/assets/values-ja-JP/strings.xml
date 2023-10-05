@@ -88,6 +88,7 @@
     <string name="action_confirm_action">はい</string>
     <string name="action_deny_action">いいえ</string>
     <string name="action_warning_accept">同意する</string>
+    <string name="action_load_retry">再試行</string>
     <string name="prompt_confirm_action">確認してください</string>
     <string name="prompt_confirm_settings_page_reset">このページのバリューを全てリセットしますか？</string>
     <string name="prompt_hide_feed_rows_with_$title">タイトルが「$title」の行を隠しますか？</string>
@@ -262,7 +263,6 @@
     <string name="radio_title_of_$artists">$artistsのラジオ</string>
     <string name="radio_title_artists_splitter">・</string>
     <string name="radio_title_overflow">…</string>
-    <string name="radio_action_retry_failed_load">再試行</string>
 
     <string name="settings_string_set_item_empty">なにも入っていません</string>
     <string name="settings_string_set_item_already_added">そのアイテムはすでに含まれてます</string>

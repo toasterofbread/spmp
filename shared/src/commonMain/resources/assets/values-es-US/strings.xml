@@ -166,7 +166,7 @@
 	<string name="queue_clear">Limpiar</string>
 	<string name="queue_shuffle">Reproducción aleatoria</string>
 	<string name="radio">Radio</string>
-	<string name="radio_action_retry_failed_load">Reintentar</string>
+	<string name="action_load_retry">Reintentar</string>
 	<string name="radio_builder_artists_title">Artistas seleccionados</string>
 	<string name="radio_builder_modifier_filter_a">Filtro</string>
 	<string name="radio_builder_modifier_filter_a_hidden">Poco conocidas</string>

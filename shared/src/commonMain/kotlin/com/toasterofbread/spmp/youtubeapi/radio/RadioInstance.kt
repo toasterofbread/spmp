@@ -3,7 +3,6 @@ package com.toasterofbread.spmp.youtubeapi.radio
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Box
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,6 +13,8 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.isMediaItemHidden
+import com.toasterofbread.spmp.model.mediaitem.getMediaItemFromUid
+import com.toasterofbread.spmp.model.mediaitem.getUid
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
@@ -21,7 +22,6 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
@@ -33,33 +33,57 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.job
+import kotlinx.serialization.Serializable
 
-class RadioInstance(
+abstract class RadioInstance(
     val context: PlatformContext
 ) {
-    var state: RadioState by mutableStateOf(RadioState())
-        private set
+    private var _state: RadioState by mutableStateOf(RadioState())
+
+    var state: RadioState
+        get() = _state
+        set(value) {
+            if (value == _state) {
+                return
+            }
+
+            _state = value
+            onStateChanged()
+        }
+
     val active: Boolean get() = state.item != null
-    var loading: Boolean by mutableStateOf(false)
-        private set
+    val loading: Boolean get() = state.loading
+
+    abstract fun onStateChanged()
 
     private val coroutine_scope = CoroutineScope(Dispatchers.IO)
     private val lock = coroutine_scope
-    private var failed_load: Pair<Throwable, (suspend (Result<List<Song>>, Boolean) -> Unit)?>? by mutableStateOf(null)
+    private var failed_load_retry: (suspend (Result<List<Song>>, Boolean) -> Unit)? by mutableStateOf(null)
 
-    class RadioState {
-        var item: Pair<MediaItem, Int?>? by mutableStateOf(null)
-        var continuation: MediaItemLayout.Continuation? by mutableStateOf(null)
-        var initial_songs_loaded = false
-        var filters: List<List<RadioBuilderModifier>>? by mutableStateOf(null)
-        var current_filter: Int? by mutableStateOf(null)
-        var shuffle: Boolean = false
+    @Serializable
+    data class RadioState(
+        val item: Pair<String, Int?>? = null,
+        val continuation: MediaItemLayout.Continuation? = null,
+        val initial_songs_loaded: Boolean = false,
+        val filters: List<List<RadioBuilderModifier>>? = null,
+        val current_filter: Int? = null,
+        val shuffle: Boolean = false,
+        val loading: Boolean = false,
+        val load_error: Pair<String, String>? = null
+    ) {
+        internal fun copyWithFilter(filter_index: Int?): RadioState =
+            copy(
+                current_filter = filter_index,
+                continuation = null,
+                initial_songs_loaded = false
+            )
 
-        internal fun setFilter(filter_index: Int?) {
-            current_filter = filter_index
-            continuation = null
-            initial_songs_loaded = false
-        }
+        internal fun copyWithLoadError(error: Throwable?): RadioState =
+            copy(
+                load_error = error?.let {
+                    Pair(it.message.toString(), it.stackTraceToString())
+                }
+            )
 
         override fun toString(): String {
             return "RadioState(item=$item, continuation=$continuation)"
@@ -68,10 +92,12 @@ class RadioInstance(
 
     fun playMediaItem(item: MediaItem, index: Int? = null, shuffle: Boolean = false): RadioState {
         synchronized(lock) {
-            return setRadioState(RadioState().also { state ->
-                state.item = Pair(item, index)
-                state.shuffle = shuffle
-            })
+            return setRadioState(
+                RadioState(
+                    item = Pair(item.getUid(), index),
+                    shuffle = shuffle
+                )
+            )
         }
     }
 
@@ -80,7 +106,7 @@ class RadioInstance(
             if (filter_index == state.current_filter) {
                 return
             }
-            state.setFilter(filter_index)
+            state = state.copyWithFilter(filter_index)
             cancelJob()
         }
     }
@@ -92,7 +118,9 @@ class RadioInstance(
                 cancelRadio()
             }
             else if (index < current_index) {
-                state.item = state.item?.copy(second = current_index - 1)
+                state = state.copy(
+                    item = state.item?.copy(second = current_index - 1)
+                )
             }
         }
     }
@@ -106,13 +134,19 @@ class RadioInstance(
             val current_index = state.item?.second ?: return
 
             if (from == current_index) {
-                state.item = state.item?.copy(second = to)
+                state = state.copy(
+                    item = state.item?.copy(second = to)
+                )
             }
             else if (current_index in from..to) {
-                state.item = state.item?.copy(second = current_index - 1)
+                state = state.copy(
+                    item = state.item?.copy(second = current_index - 1)
+                )
             }
             else if (current_index in to .. from) {
-                state.item = state.item?.copy(second = current_index + 1)
+                state = state.copy(
+                    item = state.item?.copy(second = current_index + 1)
+                )
             }
         }
     }
@@ -140,12 +174,12 @@ class RadioInstance(
 
     fun cancelJob() {
         coroutine_scope.coroutineContext.cancelChildren()
-        loading = false
+        state = state.copy(loading = false)
     }
 
     fun loadContinuation(
         context: PlatformContext,
-        onStart: (suspend () -> Unit)? = null, 
+        onStart: (suspend () -> Unit)? = null,
         can_retry: Boolean = false,
         is_retry: Boolean = false,
         callback: suspend (result: Result<List<Song>>, is_retry: Boolean) -> Unit
@@ -155,13 +189,13 @@ class RadioInstance(
                 coroutineContext.job.invokeOnCompletion { cause ->
                     if (cause !is CancellationException) {
                         synchronized(lock) {
-                            loading = false
+                            state = state.copy(loading = false)
                         }
                     }
                 }
                 synchronized(lock) {
-                    loading = true
-                    failed_load = null
+                    state = state.copy(loading = true)
+                    failed_load_retry = null
                 }
 
                 onStart?.invoke()
@@ -174,17 +208,15 @@ class RadioInstance(
                     val initial_songs = getInitialSongs()
                     initial_songs.onFailure { error ->
                         synchronized(lock) {
-                            failed_load = Pair(
-                                error,
-                                if (can_retry) callback else null
-                            )
+                            state = state.copyWithLoadError(error)
+                            failed_load_retry = if (can_retry) callback else null
                         }
                     }
 
                     val formatted = formatContinuationResult(initial_songs)
                     callback(formatted, is_retry)
 
-                    state.initial_songs_loaded = true
+                    state = state.copy(initial_songs_loaded = true)
                     return@launchSingle
                 }
 
@@ -196,10 +228,8 @@ class RadioInstance(
                     { it },
                     { error ->
                         synchronized(lock) {
-                            failed_load = Pair(
-                                error,
-                                if (can_retry) callback else null
-                            )
+                            state = state.copyWithLoadError(error)
+                            failed_load_retry = if (can_retry) callback else null
                         }
                         callback(result.cast(), is_retry)
                         return@launchSingle
@@ -210,7 +240,7 @@ class RadioInstance(
                     state.continuation!!.update(cont)
                 }
                 else {
-                    state.continuation = null
+                    state = state.copy(continuation = null)
                 }
 
                 callback(formatContinuationResult(Result.success(items.filterIsInstance<SongData>())), is_retry)
@@ -220,24 +250,25 @@ class RadioInstance(
 
     @Composable
     fun LoadStatus(
-        modifier: Modifier = Modifier, 
+        modifier: Modifier = Modifier,
         expanded_modifier: Modifier = Modifier,
         disable_parent_scroll: Boolean = false
     ) {
         val context = LocalPlayerState.current.context
 
         Box(modifier, contentAlignment = Alignment.Center) {
-            Crossfade(Pair(loading, failed_load)) {
+            Crossfade(Pair(loading, state.load_error?.let { Pair(it, failed_load_retry) })) {
                 if (it.first) {
                     SubtleLoadingIndicator()
                 }
                 else if (it.second != null) {
                     val (error, callback) = it.second!!
                     ErrorInfoDisplay(
-                        error,
+                        null,
+                        pair_error = error,
                         expanded_content_modifier = expanded_modifier,
                         disable_parent_scroll = disable_parent_scroll,
-                        onRetry = 
+                        onRetry =
                             if (callback != null) {{
                                 loadContinuation(
                                     context,
@@ -246,11 +277,11 @@ class RadioInstance(
                                     is_retry = true,
                                     callback = callback
                                 )
-                            }} 
+                            }}
                             else null,
                         onDismiss = {
                             synchronized(lock) {
-                                failed_load = null
+                                failed_load_retry = null
                             }
                         }
                     )
@@ -279,18 +310,17 @@ class RadioInstance(
         )
 
     private suspend fun getInitialSongs(): Result<List<Song>> {
-        when (val item = state.item!!.first) {
+        when (val item = getMediaItemFromUid(state.item!!.first)) {
             is Song -> {
                 val result = context.ytapi.SongRadio.getSongRadio(item.id, null, state.current_filter?.let { state.filters?.get(it) } ?: emptyList())
                 return result.fold(
                     { data ->
-                        state.continuation = data.continuation?.let { continuation ->
-                            MediaItemLayout.Continuation(continuation, MediaItemLayout.Continuation.Type.SONG, item.id)
-                        }
-
-                        if (state.filters == null) {
-                            state.filters = data.filters
-                        }
+                        state = state.copy(
+                            continuation = data.continuation?.let { continuation ->
+                                MediaItemLayout.Continuation(continuation, MediaItemLayout.Continuation.Type.SONG, item.id)
+                            },
+                            filters = state.filters ?: data.filters
+                        )
 
                         Result.success(data.items)
                     },
@@ -304,11 +334,15 @@ class RadioInstance(
                 }
 
                 if (items == null) {
-                    state.continuation = continuation ?: MediaItemLayout.Continuation(item.id, MediaItemLayout.Continuation.Type.PLAYLIST_INITIAL)
+                    state = state.copy(
+                        continuation = continuation ?: MediaItemLayout.Continuation(item.id, MediaItemLayout.Continuation.Type.PLAYLIST_INITIAL)
+                    )
                     return Result.success(emptyList())
                 }
 
-                state.continuation = continuation
+                state = state.copy(
+                    continuation = continuation
+                )
 
                 return Result.success(items)
             }

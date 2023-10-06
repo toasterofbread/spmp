@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
+import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
 
 internal const val AUTO_DOWNLOAD_SOFT_TIMEOUT = 1500 // ms
 
@@ -58,7 +59,7 @@ expect abstract class PlatformPlayerController() {
     val undo_count: Int
     val redo_count: Int
 
-    val radio: RadioHandler
+    val radio: RadioInstance.RadioState
 
     var repeat_mode: MediaPlayerRepeatMode
     var volume: Float

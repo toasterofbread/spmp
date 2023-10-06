@@ -111,7 +111,7 @@ tasks.all {
 }
 
 kotlin {
-    androidTarget()
+    android()
 
     jvm("desktop")
 
@@ -139,6 +139,7 @@ kotlin {
                 implementation("com.github.SvenWoltmann:color-thief-java:v1.1.2")
                 implementation("com.github.catppuccin:java:v1.0.0")
                 implementation("com.github.paramsen:noise:2.0.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
             }
             kotlin.srcDir(buildConfigDir)
         }

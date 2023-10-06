@@ -10,9 +10,15 @@ import kotlinx.coroutines.withContext
 // TODO Add setting
 private const val RADIO_MIN_LENGTH: Int = 10
 
-class RadioHandler(val player: PlayerController, val context: PlatformContext) {
-    val instance: RadioInstance = RadioInstance(context)
-    
+abstract class RadioHandler(val player: PlayerController, val context: PlatformContext) {
+    val instance: RadioInstance = object : RadioInstance(context) {
+        override fun onStateChanged() {
+            onInstanceStateChanged(state)
+        }
+    }
+
+    abstract fun onInstanceStateChanged(state: RadioInstance.RadioState)
+
     fun getRadioChangeUndoRedo(
         previous_radio_state: RadioInstance.RadioState,
         continuation_index: Int,

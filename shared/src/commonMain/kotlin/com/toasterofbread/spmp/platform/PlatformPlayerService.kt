@@ -1,8 +1,6 @@
 package com.toasterofbread.spmp.platform
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import SpMp
 import app.cash.sqldelight.Query
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.db.incrementPlayCount
@@ -11,6 +9,7 @@ import com.toasterofbread.spmp.service.playercontroller.DiscordStatusHandler
 import com.toasterofbread.spmp.service.playercontroller.PersistentQueueHandler
 import com.toasterofbread.spmp.service.playercontroller.PlayerController
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
+import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -24,7 +23,8 @@ private const val UPDATE_INTERVAL: Long = 5000 // ms
 private const val SONG_MARK_WATCHED_POSITION = 1000 // ms
 
 data class PlayerServiceState(
-    val stop_after_current_song: Boolean = false
+    val stop_after_current_song: Boolean = false,
+    val radio_state: RadioInstance.RadioState = RadioInstance.RadioState()
 ) {
     companion object
 }
@@ -137,7 +137,13 @@ class PlayerService: PlatformPlayerService() {
         controller.addListener(player_listener)
         context.getPrefs().addListener(prefs_listener)
 
-        radio = RadioHandler(controller, context)
+        radio = object : RadioHandler(controller, context) {
+            override fun onInstanceStateChanged(state: RadioInstance.RadioState) {
+                this@PlayerService.state = this@PlayerService.state.copy(
+                    radio_state = state
+                )
+            }
+        }
         persistent_queue = PersistentQueueHandler(controller, context)
         discord_status = DiscordStatusHandler(controller, context)
 

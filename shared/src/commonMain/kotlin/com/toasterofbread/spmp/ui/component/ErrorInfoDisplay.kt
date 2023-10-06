@@ -74,9 +74,10 @@ import okhttp3.RequestBody.Companion.toRequestBody
 
 @Composable
 fun ErrorInfoDisplay(
-    error: Throwable,
+    error: Throwable?,
     modifier: Modifier = Modifier,
     message: String? = null,
+    pair_error: Pair<String, String>? = null,
     expanded_content_modifier: Modifier = Modifier.height(500.dp),
     disable_parent_scroll: Boolean = true,
     start_expanded: Boolean = false,
@@ -118,7 +119,7 @@ fun ErrorInfoDisplay(
                 }
 
                 WidthShrinkText(
-                    message ?: error::class.java.simpleName,
+                    message ?: pair_error?.second ?: error!!::class.java.simpleName,
                     modifier = Modifier.fillMaxWidth().weight(1f),
                     style = LocalTextStyle.current.copy(color = Theme.on_accent),
                     max_lines = 2
@@ -168,7 +169,7 @@ fun ErrorInfoDisplay(
                 enter = expandVertically(),
                 exit = shrinkVertically()
             ) {
-                ExpandedContent(error, shape, disable_parent_scroll, expanded_content_modifier)
+                ExpandedContent(error, pair_error, shape, disable_parent_scroll, expanded_content_modifier)
             }
         }
     }
@@ -211,7 +212,8 @@ private fun LongTextDisplay(text: String, wrap_text: Boolean, modifier: Modifier
 
 @Composable
 private fun ExpandedContent(
-    error: Throwable, 
+    error: Throwable?,
+    pair_error: Pair<String, String>?,
     shape: Shape, 
     disable_parent_scroll: Boolean, 
     modifier: Modifier = Modifier
@@ -252,8 +254,8 @@ private fun ExpandedContent(
                         {
                             coroutine_scope.launch {
                                 text_to_show = uploadErrorToPasteEe(
-                                    error.message.toString(),
-                                    error.stackTraceToString(),
+                                    error?.message ?: pair_error!!.first,
+                                    error?.stackTraceToString() ?: pair_error!!.second,
                                     ProjectBuildConfig.PASTE_EE_TOKEN,
                                     error = error
                                 ).getOrElse { it.toString() }
@@ -266,7 +268,7 @@ private fun ExpandedContent(
                     }
                 }
 
-                Crossfade(text_to_show ?: error.stackTraceToString()) { text ->
+                Crossfade(text_to_show ?: error?.stackTraceToString() ?: pair_error!!.second!!) { text ->
                     LongTextDisplay(
                         text,
                         wrap_text,
@@ -330,7 +332,7 @@ private fun ExpandedContent(
                     }
                 }
 
-                if (isDebugBuild()) {
+                if (isDebugBuild() && error != null) {
                     Button(
                         { throw error },
                         colors = button_colours

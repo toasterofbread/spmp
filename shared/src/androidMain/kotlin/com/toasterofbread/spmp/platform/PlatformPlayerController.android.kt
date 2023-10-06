@@ -28,6 +28,7 @@ import com.toasterofbread.spmp.exovisualiser.ExoVisualizer
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
+import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
 import com.toasterofbread.utils.common.synchronizedBlock
 import androidx.media3.common.MediaItem as ExoMediaItem
 
@@ -162,7 +163,7 @@ actual abstract class PlatformPlayerController {
     actual val duration_ms: Long get() = player.duration
     actual val undo_count: Int get() = action_head
     actual val redo_count: Int get() = action_list.size - undo_count
-    actual val radio: RadioHandler get() = TODO()
+    actual val radio: RadioInstance.RadioState get() = service_state.radio_state
 
     actual var repeat_mode: MediaPlayerRepeatMode
         get() = MediaPlayerRepeatMode.values()[player.repeatMode]

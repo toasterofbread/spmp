@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.db.incrementPlayCount
+import com.toasterofbread.spmp.model.mediaitem.getMediaItemFromUid
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.PlatformPlayerController
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
@@ -20,14 +21,15 @@ import kotlin.random.nextInt
 class PlayerController: PlatformPlayerController() {
     var active_queue_index: Int by mutableIntStateOf(0)
 
-    val radio_loading: Boolean get() = radio.instance.loading
-    val radio_item: MediaItem? get() = radio.instance.state.item?.first
-    val radio_item_index: Int? get() = radio.instance.state.item?.second
-    val radio_filters: List<List<RadioBuilderModifier>>? get() = radio.instance.state.filters
+    val radio_loading: Boolean get() = radio.loading
+    val radio_item: MediaItem? get() = radio.item?.first?.let { getMediaItemFromUid(it) }
+    val radio_item_index: Int? get() = radio.item?.second
+    val radio_filters: List<List<RadioBuilderModifier>>? get() = radio.filters
     var radio_current_filter: Int?
-        get() = radio.instance.state.current_filter
+        get() = radio.current_filter
         set(value) {
-            radio.setRadioFilter(value)
+            TODO()
+//            radio.setRadioFilter(value)
         }
 
     private val coroutine_scope = CoroutineScope(Dispatchers.Main)

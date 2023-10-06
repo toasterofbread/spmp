@@ -1,13 +1,16 @@
-package com.toasterofbread.spmp.platform
+package com.toasterofbread.spmp.platform.playerservice
 
 import SpMp
 import app.cash.sqldelight.Query
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.db.incrementPlayCount
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.platform.MediaPlayerRepeatMode
+import com.toasterofbread.spmp.platform.MediaPlayerState
+import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.service.playercontroller.DiscordStatusHandler
 import com.toasterofbread.spmp.service.playercontroller.PersistentQueueHandler
-import com.toasterofbread.spmp.service.playercontroller.PlayerController
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
 import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
 import kotlinx.coroutines.CoroutineScope
@@ -31,23 +34,68 @@ data class PlayerServiceState(
 
 expect abstract class PlatformPlayerService() {
     val context: PlatformContext
-    val controller: PlayerController
+    val service_player: PlayerServicePlayer
 
     open fun onCreate()
     open fun onDestroy()
 
+    open class Listener() {
+        open fun onSongTransition(song: Song?, manual: Boolean)
+        open fun onStateChanged(state: MediaPlayerState)
+        open fun onPlayingChanged(is_playing: Boolean)
+        open fun onRepeatModeChanged(repeat_mode: MediaPlayerRepeatMode)
+        open fun onVolumeChanged(volume: Float)
+        open fun onDurationChanged(duration_ms: Long)
+        open fun onSeeked(position_ms: Long)
+        open fun onUndoStateChanged()
+
+        open fun onSongAdded(index: Int, song: Song)
+        open fun onSongRemoved(index: Int)
+        open fun onSongMoved(from: Int, to: Int)
+
+        open fun onEvents()
+    }
+
+    val state: MediaPlayerState
+    val is_playing: Boolean
+    val song_count: Int
+    val current_song_index: Int
+    val current_position_ms: Long
+    val duration_ms: Long
+    val has_focus: Boolean
+
+    val radio_state: RadioInstance.RadioState
+
+    var repeat_mode: MediaPlayerRepeatMode
+    var volume: Float
+
+    open fun play()
+    open fun pause()
+    open fun playPause()
+
+    open fun seekTo(position_ms: Long)
+    open fun seekToSong(index: Int)
+    open fun seekToNext()
+    open fun seekToPrevious()
+
+    fun getSong(): Song?
+    fun getSong(index: Int): Song?
+
+    fun addSong(song: Song)
+    fun addSong(song: Song, index: Int)
+    fun moveSong(from: Int, to: Int)
+    fun removeSong(index: Int)
+
+    fun addListener(listener: Listener)
+    fun removeListener(listener: Listener)
+
     abstract fun savePersistentQueue()
 
-    var state: PlayerServiceState
+    var service_state: PlayerServiceState
 }
 
-// TODO | Load persistent queue
 class PlayerService: PlatformPlayerService() {
     private val coroutine_scope = CoroutineScope(Dispatchers.Main)
-
-    private lateinit var radio: RadioHandler
-    private lateinit var persistent_queue: PersistentQueueHandler
-    private lateinit var discord_status: DiscordStatusHandler
 
     private var update_timer: Timer? = null
 
@@ -67,7 +115,7 @@ class PlayerService: PlatformPlayerService() {
         }
     }
 
-    private val player_listener = object : PlatformPlayerController.Listener() {
+    private val player_listener = object : Listener() {
         var current_song: Song? = null
 
         val song_metadata_listener = Query.Listener {
@@ -76,7 +124,7 @@ class PlayerService: PlatformPlayerService() {
 
         override fun onSongTransition(song: Song?, manual: Boolean) {
             if (manual) {
-                state = state.copy(stop_after_current_song = false)
+                service_state = service_state.copy(stop_after_current_song = false)
             }
 
             with(context.database) {
@@ -95,20 +143,20 @@ class PlayerService: PlatformPlayerService() {
                 persistent_queue.savePersistentQueue()
             }
 
-            if (controller.current_song_index == tracking_song_index + 1) {
+            if (current_song_index == tracking_song_index + 1) {
                 onSongEnded()
             }
-            tracking_song_index = controller.current_song_index
+            tracking_song_index = current_song_index
             song_marked_as_watched = false
 
             radio.checkRadioContinuation()
             discord_status.updateDiscordStatus(song)
 
-            controller.play()
+            play()
         }
 
         override fun onSongMoved(from: Int, to: Int) {
-            radio.checkRadioContinuation()
+            service_player.radio.checkRadioContinuation()
             radio.instance.onSongMoved(from, to)
         }
 
@@ -125,27 +173,27 @@ class PlayerService: PlatformPlayerService() {
     }
 
     private fun onSongEnded() {
-        if (state.stop_after_current_song) {
-            controller.pause()
-            state = state.copy(stop_after_current_song = false)
+        if (service_state.stop_after_current_song) {
+            pause()
+            service_state = service_state.copy(stop_after_current_song = false)
         }
     }
 
     override fun onCreate() {
         super.onCreate()
 
-        controller.addListener(player_listener)
+        addListener(player_listener)
         context.getPrefs().addListener(prefs_listener)
 
-        radio = object : RadioHandler(controller, context) {
+        radio = object : RadioHandler(service_player, context) {
             override fun onInstanceStateChanged(state: RadioInstance.RadioState) {
-                this@PlayerService.state = this@PlayerService.state.copy(
+                this@PlayerService.service_state = this@PlayerService.service_state.copy(
                     radio_state = state
                 )
             }
         }
-        persistent_queue = PersistentQueueHandler(controller, context)
-        discord_status = DiscordStatusHandler(controller, context)
+        persistent_queue = PersistentQueueHandler(service_player, context)
+        discord_status = DiscordStatusHandler(service_player, context)
 
         if (update_timer == null) {
             update_timer = createUpdateTimer()
@@ -157,7 +205,7 @@ class PlayerService: PlatformPlayerService() {
     override fun onDestroy() {
         coroutine_scope.cancel()
 
-        controller.removeListener(player_listener)
+        removeListener(player_listener)
         context.getPrefs().removeListener(prefs_listener)
 
         discord_status.release()
@@ -174,7 +222,6 @@ class PlayerService: PlatformPlayerService() {
         }
     }
 
-
     private fun createUpdateTimer(): Timer {
         return Timer().apply {
             scheduleAtFixedRate(
@@ -189,12 +236,12 @@ class PlayerService: PlatformPlayerService() {
                     suspend fun markWatched() = withContext(Dispatchers.Main) {
                         if (
                             !song_marked_as_watched
-                            && controller.is_playing
-                            && controller.current_position_ms >= SONG_MARK_WATCHED_POSITION
+                            && is_playing
+                            && current_position_ms >= SONG_MARK_WATCHED_POSITION
                         ) {
                             song_marked_as_watched = true
 
-                            val song = controller.getSong() ?: return@withContext
+                            val song = getSong() ?: return@withContext
 
                             withContext(Dispatchers.IO) {
                                 song.incrementPlayCount(context)

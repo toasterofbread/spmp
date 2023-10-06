@@ -55,7 +55,7 @@
         <activity android:name=".ErrorReportActivity" />
 
         <service
-            android:name=".platform.PlayerService"
+            android:name=".platform.playerservice.PlayerService"
             android:exported="true"
             android:foregroundServiceType="mediaPlayback">
             <intent-filter>

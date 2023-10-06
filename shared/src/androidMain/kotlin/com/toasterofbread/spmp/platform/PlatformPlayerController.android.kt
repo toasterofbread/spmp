@@ -16,7 +16,6 @@ import androidx.core.net.toUri
 import androidx.core.os.bundleOf
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
-import androidx.media3.common.Player.MEDIA_ITEM_TRANSITION_REASON_SEEK
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionCommand
@@ -27,9 +26,11 @@ import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.exovisualiser.ExoVisualizer
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
-import com.toasterofbread.spmp.service.playercontroller.RadioHandler
+import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
+import com.toasterofbread.spmp.platform.playerservice.PlayerService
+import com.toasterofbread.spmp.platform.playerservice.PlayerServiceState
+import com.toasterofbread.spmp.platform.playerservice.fromBundle
 import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
-import com.toasterofbread.utils.common.synchronizedBlock
 import androidx.media3.common.MediaItem as ExoMediaItem
 
 @UnstableApi
@@ -55,62 +56,6 @@ actual abstract class PlatformPlayerController {
         }
     }
 
-    actual interface UndoRedoAction {
-        actual fun undo()
-        actual fun redo()
-    }
-
-    actual open class Listener {
-        actual open fun onSongTransition(song: Song?, manual: Boolean) {}
-        actual open fun onStateChanged(state: MediaPlayerState) {}
-        actual open fun onPlayingChanged(is_playing: Boolean) {}
-        actual open fun onRepeatModeChanged(repeat_mode: MediaPlayerRepeatMode) {}
-        actual open fun onVolumeChanged(volume: Float) {}
-        actual open fun onDurationChanged(duration_ms: Long) {}
-        actual open fun onSeeked(position_ms: Long) {}
-        actual open fun onUndoStateChanged() {}
-        
-        actual open fun onSongAdded(index: Int, song: Song) {}
-        actual open fun onSongRemoved(index: Int) {}
-        actual open fun onSongMoved(from: Int, to: Int) {}
-
-        actual open fun onEvents() {}
-
-        private val player_listener = object : Player.Listener {
-            var current_song: Song? = null
-            override fun onMediaItemTransition(item: ExoMediaItem?, reason: Int) {
-                val song = item?.getSong()
-                if (song?.id == current_song?.id) {
-                    return
-                }
-                current_song = song
-                onSongTransition(song, reason == MEDIA_ITEM_TRANSITION_REASON_SEEK)
-            }
-            override fun onPlaybackStateChanged(state: Int) {
-                onStateChanged(convertState(state))
-            }
-            override fun onIsPlayingChanged(is_playing: Boolean) {
-                onPlayingChanged(is_playing)
-            }
-            override fun onRepeatModeChanged(repeat_mode: Int) {
-                onRepeatModeChanged(MediaPlayerRepeatMode.values()[repeat_mode])
-            }
-            override fun onVolumeChanged(volume: Float) {
-                this@Listener.onVolumeChanged(volume)
-            }
-            override fun onEvents(player: Player, events: Player.Events) {
-                onEvents()
-            }
-        }
-
-        internal fun addToPlayer(player: Player) {
-            player.addListener(player_listener)
-        }
-        internal fun removeFromPlayer(player: Player) {
-            player.removeListener(player_listener)
-        }
-    }
-
     private val listener = object : Listener() {
         override fun onSongTransition(song: Song?, manual: Boolean) {
             pending_seek_position = null
@@ -126,12 +71,6 @@ actual abstract class PlatformPlayerController {
         }
     }
     private val listeners: MutableList<Listener> = mutableListOf(listener)
-
-    // Undo
-    private var current_action: MutableList<UndoRedoAction>? = null
-    private var current_action_is_further: Boolean = false
-    private val action_list: MutableList<List<UndoRedoAction>> = mutableListOf()
-    private var action_head: Int = 0
 
     // Seek
     private var pending_seek_position: Long? = null
@@ -256,165 +195,6 @@ actual abstract class PlatformPlayerController {
                 bundleOf("value" to value)
             )
         )
-    }
-
-    actual fun undoableAction(action: PlatformPlayerController.(furtherAction: (PlatformPlayerController.() -> Unit) -> Unit) -> Unit) {
-        customUndoableAction { furtherAction ->
-            action {
-                furtherAction {
-                    it()
-                    null
-                }
-            }
-            null
-        }
-    }
-
-    private fun handleFurtherAction(current: MutableList<UndoRedoAction>, further: PlatformPlayerController.() -> UndoRedoAction?) {
-        synchronized(action_list) {
-            current_action_is_further = true
-            current_action = current
-
-            val custom_action = further(this)
-            if (custom_action != null) {
-                performAction(custom_action)
-            }
-
-            current_action = null
-            current_action_is_further = false
-        }
-    }
-
-    actual fun customUndoableAction(action: PlatformPlayerController.(furtherAction: (PlatformPlayerController.() -> UndoRedoAction?) -> Unit) -> UndoRedoAction?) {
-        current_action?.also { c_action ->
-            val custom_action = action(this) { further ->
-                handleFurtherAction(c_action, further)
-            }
-            if (custom_action != null) {
-                performAction(custom_action)
-            }
-            return
-        }
-
-        synchronized(action_list) {
-            val c_action: MutableList<UndoRedoAction> = mutableListOf()
-            current_action = c_action
-
-            val custom_action = action(this) { further ->
-                handleFurtherAction(c_action, further)
-            }
-            if (custom_action != null) {
-                performAction(custom_action)
-            }
-
-            commitActionList(c_action)
-            current_action = null
-        }
-    }
-
-    private fun commitActionList(actions: List<UndoRedoAction>) {
-        for (i in 0 until redo_count) {
-            action_list.removeLast()
-        }
-        action_list.add(actions)
-        action_head++
-
-        listeners.forEach { it.onUndoStateChanged() }
-    }
-
-    private fun performAction(action: UndoRedoAction) {
-        synchronizedBlock(action_list) {
-            action.redo()
-
-            val current = current_action
-            if (current != null) {
-                current.add(action)
-            }
-            else if (!current_action_is_further) {
-                // If not being performed as part of an undoableAction, commit as a single aciton        
-                commitActionList(listOf(action))
-            }
-        }
-    }
-
-    actual fun redo() {
-        synchronized(action_list) {
-            if (redo_count == 0) {
-                return
-            }
-            for (action in action_list[action_head++]) {
-                action.redo()
-            }
-        }
-    }
-
-    actual fun redoAll() {
-        synchronized(action_list) {
-            for (i in 0 until redo_count) {
-                for (action in action_list[action_head++]) {
-                    action.redo()
-                }
-            }
-            listeners.forEach { it.onUndoStateChanged() }
-        }
-    }
-
-    actual fun undo() {
-        synchronized(action_list) {
-            if (undo_count == 0) {
-                return
-            }
-            for (action in action_list[--action_head].asReversed()) {
-                action.undo()
-            }
-            listeners.forEach { it.onUndoStateChanged() }
-        }
-    }
-
-    actual fun undoAll() {
-        synchronized(action_list) {
-            for (i in 0 until undo_count) {
-                for (action in action_list[--action_head].asReversed()) {
-                    action.undo()
-                }
-            }
-            listeners.forEach { it.onUndoStateChanged() }
-        }
-    }
-
-    private abstract inner class Action: UndoRedoAction {
-        protected val is_undoable: Boolean get() = current_action != null
-    }
-    private inner class AddAction(val item: ExoMediaItem, val index: Int): Action() {
-        override fun redo() {
-            player.addMediaItem(index, item)
-            listeners.forEach { it.onSongAdded(index, item.getSong()) }
-        }
-        override fun undo() {
-            player.removeMediaItem(index)
-            listeners.forEach { it.onSongRemoved(index) }
-        }
-    }
-    private inner class MoveAction(val from: Int, val to: Int): Action() {
-        override fun redo() {
-            player.moveMediaItem(from, to)
-            listeners.forEach { it.onSongMoved(from, to) }
-        }
-        override fun undo() {
-            player.moveMediaItem(to, from)
-            listeners.forEach { it.onSongMoved(to, from) }
-        }
-    }
-    private inner class RemoveAction(val index: Int): Action() {
-        private lateinit var item: ExoMediaItem
-        override fun redo() {
-            item = player.getMediaItemAt(index)
-            player.removeMediaItem(index)
-            listeners.forEach { it.onSongRemoved(index) }
-        }        override fun undo() {
-            player.addMediaItem(index, item)
-            listeners.forEach { it.onSongAdded(index, item.getSong()) }
-        }
     }
 
     private fun release() {

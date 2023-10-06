@@ -6,6 +6,7 @@ import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.job
@@ -32,12 +33,12 @@ private data class PersistentQueueMetadata(val song_index: Int, val position_ms:
     }
 }
 
-internal class PersistentQueueHandler(val player: PlayerController, val context: PlatformContext) {
+internal class PersistentQueueHandler(val player: PlayerServicePlayer, val context: PlatformContext) {
     private var persistent_queue_loaded: Boolean = false
     private val queue_lock = Mutex()
 
     private fun getPersistentQueueMetadata(): PersistentQueueMetadata =
-        PersistentQueueMetadata(player.current_song_index, player.current_position_ms)
+        PersistentQueueMetadata(player.service.current_song_index, player.service.current_position_ms)
 
     suspend fun savePersistentQueue() {
         if (!persistent_queue_loaded || !Settings.KEY_PERSISTENT_QUEUE.get<Boolean>(context)) {
@@ -48,8 +49,8 @@ internal class PersistentQueueHandler(val player: PlayerController, val context:
         val metadata: PersistentQueueMetadata
 
         withContext(Dispatchers.Main) {
-            for (i in 0 until player.song_count) {
-                val song = player.getSong(i)
+            for (i in 0 until player.service.song_count) {
+                val song = player.service.getSong(i)
                 if (song != null) {
                     songs.add(song)
                 }
@@ -79,7 +80,7 @@ internal class PersistentQueueHandler(val player: PlayerController, val context:
     }
 
     suspend fun loadPersistentQueue() {
-        if (player.song_count != 0) {
+        if (player.service.song_count != 0) {
             persistent_queue_loaded = true
             return
         }
@@ -147,7 +148,8 @@ internal class PersistentQueueHandler(val player: PlayerController, val context:
 
                 jobs.joinAll()
 
-            } finally {
+            }
+            finally {
                 queue_lock.unlock()
                 persistent_queue_loaded = true
             }
@@ -156,12 +158,11 @@ internal class PersistentQueueHandler(val player: PlayerController, val context:
                 SpMp.Log.info("loadPersistentQueue adding ${songs.size} songs to $metadata")
 
                 player.apply {
-                    @Suppress("KotlinConstantConditions")
-                    if (song_count == 0) {
+                    if (player.service.song_count == 0) {
                         clearQueue(save = false)
                         addMultipleToQueue(songs, 0)
-                        seekToSong(metadata.song_index)
-                        seekTo(metadata.position_ms)
+                        player.service.seekToSong(metadata.song_index)
+                        player.service.seekTo(metadata.position_ms)
                     }
                 }
             }

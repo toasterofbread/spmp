@@ -186,6 +186,7 @@ fun Float.roundTo(decimals: Int): Float {
 	return (this * multiplier).roundToInt() / multiplier
 }
 
+// Kotlin doesn't like certain syntax when used within a lambda that returns a value
 inline fun synchronizedBlock(lock: Any, block: () -> Unit) {
 	synchronized(lock, block)
 }

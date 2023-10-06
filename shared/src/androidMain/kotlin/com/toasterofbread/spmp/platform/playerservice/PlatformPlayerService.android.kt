@@ -1,4 +1,5 @@
-package com.toasterofbread.spmp.platform
+@file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
+package com.toasterofbread.spmp.platform.playerservice
 
 import SpMp
 import android.app.PendingIntent
@@ -12,15 +13,12 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.core.os.bundleOf
 import androidx.media3.common.AudioAttributes
-import androidx.media3.common.Bundleable
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -58,16 +56,24 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
+import com.toasterofbread.spmp.platform.MediaPlayerRepeatMode
+import com.toasterofbread.spmp.platform.MediaPlayerState
+import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.PlayerServiceCommand
+import com.toasterofbread.spmp.platform.buildExoMediaItem
+import com.toasterofbread.spmp.platform.convertState
+import com.toasterofbread.spmp.platform.getSong
+import com.toasterofbread.spmp.platform.isConnectionMetered
+import com.toasterofbread.spmp.platform.processMediaDataSpec
 import com.toasterofbread.spmp.resources.getStringTODO
-import com.toasterofbread.spmp.service.playercontroller.PlayerController
 import com.toasterofbread.spmp.shared.R
 import com.toasterofbread.spmp.youtubeapi.endpoint.SetSongLikedEndpoint
+import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.Serializable
 import java.io.IOException
 import java.util.concurrent.Executors
 import kotlin.math.roundToInt
@@ -130,7 +136,7 @@ actual abstract class PlatformPlayerService: MediaSessionService() {
     actual abstract fun savePersistentQueue()
 
     private var _state: MutableState<PlayerServiceState> = mutableStateOf(PlayerServiceState())
-    actual var state: PlayerServiceState
+    actual var service_state: PlayerServiceState
         get() = _state.value
         set(value) {
             if (value == _state.value) {
@@ -142,10 +148,7 @@ actual abstract class PlatformPlayerService: MediaSessionService() {
         }
 
     actual val context: PlatformContext get() = _context
-    actual val controller: PlayerController get() = _controller
-
     private lateinit var _context: PlatformContext
-    private lateinit var _controller: PlayerController
 
     private val coroutine_scope = CoroutineScope(Dispatchers.Main)
     private lateinit var player: Player
@@ -237,6 +240,57 @@ actual abstract class PlatformPlayerService: MediaSessionService() {
         }
     }
 
+    actual open class Listener {
+        actual open fun onSongTransition(song: Song?, manual: Boolean) {}
+        actual open fun onStateChanged(state: MediaPlayerState) {}
+        actual open fun onPlayingChanged(is_playing: Boolean) {}
+        actual open fun onRepeatModeChanged(repeat_mode: MediaPlayerRepeatMode) {}
+        actual open fun onVolumeChanged(volume: Float) {}
+        actual open fun onDurationChanged(duration_ms: Long) {}
+        actual open fun onSeeked(position_ms: Long) {}
+        actual open fun onUndoStateChanged() {}
+
+        actual open fun onSongAdded(index: Int, song: Song) {}
+        actual open fun onSongRemoved(index: Int) {}
+        actual open fun onSongMoved(from: Int, to: Int) {}
+
+        actual open fun onEvents() {}
+
+        private val player_listener = object : Player.Listener {
+            var current_song: Song? = null
+            override fun onMediaItemTransition(item: MediaItem?, reason: Int) {
+                val song = item?.getSong()
+                if (song?.id == current_song?.id) {
+                    return
+                }
+                current_song = song
+                onSongTransition(song, reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK)
+            }
+            override fun onPlaybackStateChanged(state: Int) {
+                onStateChanged(convertState(state))
+            }
+            override fun onIsPlayingChanged(is_playing: Boolean) {
+                onPlayingChanged(is_playing)
+            }
+            override fun onRepeatModeChanged(repeat_mode: Int) {
+                onRepeatModeChanged(MediaPlayerRepeatMode.values()[repeat_mode])
+            }
+            override fun onVolumeChanged(volume: Float) {
+                this@Listener.onVolumeChanged(volume)
+            }
+            override fun onEvents(player: Player, events: Player.Events) {
+                onEvents()
+            }
+        }
+
+        internal fun addToPlayer(player: Player) {
+            player.addListener(player_listener)
+        }
+        internal fun removeFromPlayer(player: Player) {
+            player.removeListener(player_listener)
+        }
+    }
+
     companion object {
         // If there's a better way to provide this to MediaControllers, I'd like to know
         val audio_processor = FFTAudioProcessor()
@@ -248,12 +302,6 @@ actual abstract class PlatformPlayerService: MediaSessionService() {
         _context = PlatformContext(this, coroutine_scope).init()
 
         initialiseSessionAndPlayer()
-
-        _controller = PlayerController()
-        _controller.init(context, player, _state) { session_command ->
-            val command = PlayerServiceCommand.fromIdOrNull(session_command.customAction) ?: return@init
-            onPlayerServiceCommand(command, session_command.customExtras)
-        }
 
         val audio_manager = getSystemService(AUDIO_SERVICE) as AudioManager?
         audio_manager?.registerAudioDeviceCallback(audio_device_callback, null)
@@ -302,8 +350,7 @@ actual abstract class PlatformPlayerService: MediaSessionService() {
                             }
                         )
                         .setSessionCommand(
-                            if (liked == SongLikedStatus.NEUTRAL) PlayerServiceCommand.SetLikeTrue.getSessionCommand()
-                            else PlayerServiceCommand.SetLikeNeutral.getSessionCommand()
+                            PlayerServiceCommand.SetLiked(liked).getSessionCommand()
                         )
                         .setIconResId(
                             when (liked) {
@@ -439,8 +486,8 @@ actual abstract class PlatformPlayerService: MediaSessionService() {
                     val session_commands = result.availableSessionCommands
                         .buildUpon()
 
-                    for (command in PlayerServiceCommand.values()) {
-                        session_commands.add(command.getSessionCommand())
+                    for (command in PlayerServiceCommand.getBaseSessionCommands()) {
+                        session_commands.add(command)
                     }
 
                     return MediaSession.ConnectionResult.accept(session_commands.build(), result.availablePlayerCommands)
@@ -452,12 +499,12 @@ actual abstract class PlatformPlayerService: MediaSessionService() {
                     customCommand: SessionCommand,
                     args: Bundle
                 ): ListenableFuture<SessionResult> {
-                    val command: PlayerServiceCommand? = PlayerServiceCommand.fromIdOrNull(customCommand.customAction)
+                    val command: PlayerServiceCommand? = PlayerServiceCommand.fromSessionCommand(customCommand)
                     if (command == null) {
                         return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_BAD_VALUE))
                     }
 
-                    val result: Bundle = onPlayerServiceCommand(command, args)
+                    val result: Bundle = onPlayerServiceCommand(command)
                     return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS, result))
                 }
             })
@@ -477,17 +524,16 @@ actual abstract class PlatformPlayerService: MediaSessionService() {
         }
     }
 
-    private fun onPlayerServiceCommand(command: PlayerServiceCommand, args: Bundle): Bundle {
+    private fun onPlayerServiceCommand(command: PlayerServiceCommand): Bundle {
         when (command) {
-            PlayerServiceCommand.SetLikeTrue, PlayerServiceCommand.SetLikeNeutral -> {
+            is PlayerServiceCommand.SetLiked -> {
                 val song = current_song
                 if (song != null) {
                     coroutine_scope.launch {
                         val endpoint: SetSongLikedEndpoint? = SpMp.context.ytapi.user_auth_state?.SetSongLiked
                         if (endpoint?.isImplemented() == true) {
                             song.updateLiked(
-                                if (command == PlayerServiceCommand.SetLikeTrue) SongLikedStatus.LIKED
-                                else SongLikedStatus.NEUTRAL,
+                                command.value,
                                 endpoint,
                                 SpMp.context
                             )
@@ -495,11 +541,11 @@ actual abstract class PlatformPlayerService: MediaSessionService() {
                     }
                 }
             }
-            PlayerServiceCommand.TriggerPersistentQueueSave -> {
+            PlayerServiceCommand.SavePersistentQueue -> {
                 savePersistentQueue()
             }
-            PlayerServiceCommand.SetStopAfterCurrentSong -> {
-                state = state.copy(stop_after_current_song = args.getBoolean("value"))
+            is PlayerServiceCommand.SetStopAfterCurrentSong -> {
+                service_state = service_state.copy(stop_after_current_song = command.value)
             }
         }
 
@@ -508,5 +554,95 @@ actual abstract class PlatformPlayerService: MediaSessionService() {
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
         return media_session
+    }
+
+    actual val service_player: PlayerServicePlayer = PlayerServicePlayer(this)
+    actual val state: MediaPlayerState get() = convertState(player.playbackState)
+    actual val is_playing: Boolean get() = player.isPlaying
+    actual val song_count: Int get() = player.mediaItemCount
+    actual val current_song_index: Int get() = player.currentMediaItemIndex
+    actual val current_position_ms: Long get() = player.currentPosition
+    actual val duration_ms: Long get() = player.duration
+    actual val radio: RadioInstance.RadioState get() = service_state.radio_state
+    actual var repeat_mode: MediaPlayerRepeatMode
+        get() = MediaPlayerRepeatMode.values()[player.repeatMode]
+        set(value) {
+            player.repeatMode = value.ordinal
+        }
+    actual var volume: Float
+        get() = player.volume
+        set(value) {
+            player.volume = value
+        }
+    actual val has_focus: Boolean
+        get() = TODO()
+
+    actual open fun play() {
+        player.play()
+    }
+
+    actual open fun pause() {
+        player.pause()
+    }
+
+    actual open fun playPause() {
+        if (player.isPlaying) {
+            player.pause()
+        }
+        else {
+            player.play()
+        }
+    }
+
+    actual open fun seekTo(position_ms: Long) {
+        player.seekTo(position_ms)
+    }
+
+    actual open fun seekToSong(index: Int) {
+        player.seekTo(index, 0)
+    }
+
+    actual open fun seekToNext() {
+        player.seekToNext()
+    }
+
+    actual open fun seekToPrevious() {
+        player.seekToPrevious()
+    }
+
+    actual fun getSong(): Song? {
+        return player.currentMediaItem?.getSong()
+    }
+
+    actual fun getSong(index: Int): Song? {
+        if (index !in 0 until song_count) {
+            return null
+        }
+
+        return player.getMediaItemAt(index).getSong()
+    }
+
+    actual fun addSong(song: Song) {
+        addSong(song, song_count)
+    }
+
+    actual fun addSong(song: Song, index: Int) {
+        player.addMediaItem(index, song.buildExoMediaItem(context))
+    }
+
+    actual fun moveSong(from: Int, to: Int) {
+        player.moveMediaItem(from, to)
+    }
+
+    actual fun removeSong(index: Int) {
+        player.removeMediaItem(index)
+    }
+
+    actual fun addListener(listener: Listener) {
+        listener.addToPlayer(player)
+    }
+
+    actual fun removeListener(listener: Listener) {
+        listener.removeFromPlayer(player)
     }
 }

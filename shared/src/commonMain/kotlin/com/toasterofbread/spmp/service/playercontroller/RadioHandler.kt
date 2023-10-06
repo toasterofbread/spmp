@@ -2,6 +2,10 @@ package com.toasterofbread.spmp.service.playercontroller
 
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformPlayerController
+import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
+import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
+import com.toasterofbread.spmp.platform.playerservice.UndoHandler
+import com.toasterofbread.spmp.platform.playerservice.UndoRedoAction
 import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -10,7 +14,7 @@ import kotlinx.coroutines.withContext
 // TODO Add setting
 private const val RADIO_MIN_LENGTH: Int = 10
 
-abstract class RadioHandler(val player: PlayerController, val context: PlatformContext) {
+abstract class RadioHandler(val player: PlayerServicePlayer, val context: PlatformContext) {
     val instance: RadioInstance = object : RadioInstance(context) {
         override fun onStateChanged() {
             onInstanceStateChanged(state)
@@ -25,8 +29,8 @@ abstract class RadioHandler(val player: PlayerController, val context: PlatformC
         save: Boolean = true,
         skip_existing: Boolean = true,
         onLoad: (suspend (success: Boolean) -> Unit)? = null,
-        furtherAction: (PlatformPlayerController.() -> PlatformPlayerController.UndoRedoAction?) -> Unit
-    ): PlatformPlayerController.UndoRedoAction {
+        furtherAction: (PlayerServicePlayer.() -> UndoRedoAction?) -> Unit
+    ): UndoRedoAction {
         val radio_state: RadioInstance.RadioState = instance.state
 
         synchronized(instance) {
@@ -50,7 +54,7 @@ abstract class RadioHandler(val player: PlayerController, val context: PlatformC
                     },
                     {
                         if (save) {
-                            player.triggerSavePersistentQueue()
+                            player.savePersistentQueue()
                         }
                     }
                 )
@@ -59,12 +63,12 @@ abstract class RadioHandler(val player: PlayerController, val context: PlatformC
             }
         }
 
-        return object : PlatformPlayerController.UndoRedoAction {
-            override fun redo() {
+        return object : UndoRedoAction {
+            override fun redo(service: PlatformPlayerService) {
                 instance.setRadioState(radio_state)
             }
 
-            override fun undo() {
+            override fun undo(service: PlatformPlayerService) {
                 instance.setRadioState(previous_radio_state)
             }
         }
@@ -104,12 +108,12 @@ abstract class RadioHandler(val player: PlayerController, val context: PlatformC
                 }
             }
 
-            return@customUndoableAction object : PlatformPlayerController.UndoRedoAction {
-                override fun redo() {
+            return@customUndoableAction object : UndoRedoAction {
+                override fun redo(service: PlatformPlayerService) {
                     instance.setFilter(filter_index)
                 }
 
-                override fun undo() {
+                override fun undo(service: PlatformPlayerService) {
                     instance.setFilter(previous_filter_index)
                 }
             }

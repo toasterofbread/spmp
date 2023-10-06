@@ -96,7 +96,12 @@ data class YoutubeLocalisedString(
     private fun getLocalised(): Pair<String, String?> {
         if (localised == null) {
             val strings = type.getStringData()
-            return strings.items[index][SpMp.ui_language]!!
+            try {
+                return strings.items[index][SpMp.ui_language]!!
+            }
+            catch (e: Throwable) {
+                throw RuntimeException("Could not get localised string ($index, ${SpMp.ui_language}, ${strings.items.toList()})", e)
+            }
         }
 
         return localised!!

@@ -21,7 +21,8 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.platform.composable.BackHandler
-import com.toasterofbread.spmp.service.playerservice.PlayerService
+import com.toasterofbread.spmp.platform.PlatformPlayerController
+import com.toasterofbread.spmp.service.playercontroller.PlayerController
 import com.toasterofbread.spmp.ui.component.*
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenu
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
@@ -55,7 +56,7 @@ fun PlayerState.getMainPageItemSize(): DpSize {
 
 @OptIn(ExperimentalMaterialApi::class)
 class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, null, null) {
-    private var _player: PlayerService? by mutableStateOf(null)
+    private var _player: PlayerController? by mutableStateOf(null)
     override val session_started: Boolean get() = _player?.session_started == true
 
     override var screen_size: DpSize by mutableStateOf(DpSize.Zero)
@@ -87,6 +88,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
     override var np_theme_mode: ThemeMode by mutableStateOf(Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE, context.getPrefs()))
     override val np_overlay_menu: MutableState<PlayerOverlayMenu?> = mutableStateOf(null)
     override val top_bar: MusicTopBar = MusicTopBar(this)
+    override var active_queue_index: Int by mutableIntStateOf(0)
 
     init {
         low_memory_listener = {
@@ -115,15 +117,15 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
         }
 
         service_connecting = true
-        service_connection = MediaPlayerService.connect(
+        service_connection = PlatformPlayerController.connect(
             context,
-            PlayerService::class.java,
+            PlayerController::class.java,
             _player,
             { service ->
                 synchronized(service_connected_listeners) {
                     _player = service
-                    status = PlayerStatus(_player!!)
                     service_connecting = false
+                    status = PlayerStatus(this, _player!!)
 
                     service_connected_listeners.forEach { it(service) }
                     service_connected_listeners.clear()
@@ -138,7 +140,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
     }
 
     fun onStop() {
-        MediaPlayerService.disconnect(context, service_connection)
+        PlatformPlayerController.disconnect(context, service_connection)
         SpMp.removeLowMemoryListener(low_memory_listener)
         context.getPrefs().removeListener(prefs_listener)
     }
@@ -149,7 +151,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
         top_bar.release()
     }
 
-    override fun interactService(action: (player: PlayerService) -> Unit) {
+    override fun interactService(action: (player: PlayerController) -> Unit) {
         synchronized(service_connected_listeners) {
             _player?.also {
                 action(it)
@@ -371,21 +373,21 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
 
     // PlayerServiceHost
 
-    override val player: PlayerService? get() = _player
-    override fun withPlayer(action: PlayerService.() -> Unit) {
+    override val controller: PlayerController? get() = _player
+    override fun withPlayer(action: PlayerController.() -> Unit) {
         _player?.also { action(it) }
     }
 
     val service_connected: Boolean get() = _player != null
 
     private var service_connecting = false
-    private var service_connected_listeners = mutableListOf<(PlayerService) -> Unit>()
+    private var service_connected_listeners = mutableListOf<(PlayerController) -> Unit>()
     private lateinit var service_connection: Any
 
     override lateinit var status: PlayerStatus
         private set
 
     override fun isRunningAndFocused(): Boolean {
-        return player?.has_focus == true
+        return controller?.has_focus == true
     }
 }

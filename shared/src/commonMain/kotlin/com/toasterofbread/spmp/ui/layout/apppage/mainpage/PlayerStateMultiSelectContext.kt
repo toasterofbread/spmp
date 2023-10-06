@@ -52,7 +52,7 @@ fun getPlayerStateMultiSelectContext(): MediaItemMultiSelectContext =
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(Icons.Default.SubdirectoryArrowRight, null)
-                player.player?.apply {
+                player.controller?.apply {
                     val distance = active_queue_index - player.status.m_index + 1
                     Text(
                         getString(if (distance == 1) "lpm_action_play_after_1_song" else "lpm_action_play_after_x_songs").replace(
@@ -78,7 +78,7 @@ private fun MultiSelectNextRowActions() {
 
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         val active_queue_item =
-            player.player?.run {
+            player.controller?.run {
                 if (active_queue_index < song_count)
                     getSong(active_queue_index)
                 else null
@@ -105,7 +105,7 @@ private fun MultiSelectNextRowActions() {
                 remember { MutableInteractionSource() },
                 rememberRipple(),
                 onClick = {
-                    player.player?.updateActiveQueueIndex(-1)
+                    player.controller?.updateActiveQueueIndex(-1)
                 },
                 onLongClick = {
                     player.context.vibrateShort()
@@ -124,7 +124,7 @@ private fun MultiSelectNextRowActions() {
                 remember { MutableInteractionSource() },
                 rememberRipple(),
                 onClick = {
-                    player.player?.updateActiveQueueIndex(1)
+                    player.controller?.updateActiveQueueIndex(1)
                 },
                 onLongClick = {
                     player.context.vibrateShort()

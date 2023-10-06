@@ -4,6 +4,7 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -262,9 +264,7 @@ class SettingsAppPage(override val state: AppPageState): AppPage() {
                     }
                     else {
                         BoxWithConstraints(
-                            Modifier
-                                .background(Theme.background_provider)
-                                .pointerInput(Unit) {}
+                            Modifier.pointerInput(Unit) {}
                         ) {
                             CompositionLocalProvider(LocalContentColor provides Theme.on_background) {
                                 settings_interface.Interface(

@@ -14,7 +14,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.platform.Font
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.service.playerservice.PlayerService
+import com.toasterofbread.spmp.service.playercontroller.PlayerController
 import org.jetbrains.skiko.OS
 import org.jetbrains.skiko.hostOs
 import java.awt.Desktop
@@ -108,12 +108,12 @@ actual open class PlatformContext {
 
     actual fun openResourceFile(path: String): InputStream {
         val resource_path = getResourceDir().resolve(path).path
-        return PlayerService::class.java.getResourceAsStream(resource_path)!!
+        return PlayerController::class.java.getResourceAsStream(resource_path)!!
     }
 
     actual fun listResourceFiles(path: String): List<String>? {
         val resource_path = getResourceDir().resolve(path).path
-        val resource = PlayerService::class.java.getResource(resource_path)!!
+        val resource = PlayerController::class.java.getResource(resource_path)!!
 
         val file_system = FileSystems.newFileSystem(resource.toURI(), emptyMap<String, Any>())
         return Files.list(file_system.getPath(resource_path)).toList().map { it.name }
@@ -122,7 +122,7 @@ actual open class PlatformContext {
     actual fun loadFontFromFile(path: String): Font {
         val resource_path = getResourceDir().resolve(path).path
 
-        val stream = PlayerService::class.java.getResourceAsStream(resource_path)!!
+        val stream = PlayerController::class.java.getResourceAsStream(resource_path)!!
         val bytes = stream.readBytes()
         stream.close()
 

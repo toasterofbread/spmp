@@ -1,39 +1,24 @@
-package com.toasterofbread.spmp.service.playerservice
+package com.toasterofbread.spmp.service.playercontroller
 
-import SpMp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import app.cash.sqldelight.Query
-import com.toasterofbread.spmp.ProjectBuildConfig
-import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.db.incrementPlayCount
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.MediaPlayerService
-import com.toasterofbread.spmp.platform.MediaPlayerState
-import com.toasterofbread.spmp.platform.PlatformPreferences
-import com.toasterofbread.spmp.ui.component.MusicTopBar
+import com.toasterofbread.spmp.platform.PlatformPlayerController
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.Timer
-import java.util.TimerTask
 import kotlin.random.Random
 import kotlin.random.nextInt
 
-private const val UPDATE_INTERVAL: Long = 5000 // ms
-//private const val VOL_NOTIF_SHOW_DURATION: Long = 1000
-private const val SONG_MARK_WATCHED_POSITION = 1000 // ms
-
-class PlayerService: MediaPlayerService() {
-    var active_queue_index: Int by mutableStateOf(0)
-    var stop_after_current_song: Boolean by mutableStateOf(false)
+class PlayerController: PlatformPlayerController() {
+    var active_queue_index: Int by mutableIntStateOf(0)
 
     val radio_loading: Boolean get() = radio.instance.loading
     val radio_item: MediaItem? get() = radio.instance.state.item?.first
@@ -45,10 +30,13 @@ class PlayerService: MediaPlayerService() {
             radio.setRadioFilter(value)
         }
 
+    private val coroutine_scope = CoroutineScope(Dispatchers.Main)
+
     fun updateActiveQueueIndex(delta: Int = 0) {
         if (delta != 0) {
             active_queue_index = (active_queue_index + delta).coerceIn(current_song_index, song_count - 1)
-        } else if (active_queue_index >= song_count) {
+        }
+        else if (active_queue_index >= song_count) {
             active_queue_index = current_song_index
         }
     }
@@ -146,9 +134,7 @@ class PlayerService: MediaPlayerService() {
         }
 
         if (save) {
-            coroutine_scope.launch {
-                persistent_queue.savePersistentQueue()
-            }
+            triggerSavePersistentQueue()
         }
 
         updateActiveQueueIndex()
@@ -174,9 +160,7 @@ class PlayerService: MediaPlayerService() {
                 swapQueuePositions(i, swap, false)
             }
         }
-        coroutine_scope.launch {
-            persistent_queue.savePersistentQueue()
-        }
+        triggerSavePersistentQueue()
     }
 
     fun shuffleQueueIndices(indices: List<Int>) {
@@ -186,9 +170,7 @@ class PlayerService: MediaPlayerService() {
                 swapQueuePositions(i.value, indices[swap_index], false)
             }
         }
-        coroutine_scope.launch {
-            persistent_queue.savePersistentQueue()
-        }
+        triggerSavePersistentQueue()
     }
 
     fun swapQueuePositions(a: Int, b: Int, save: Boolean = true) {
@@ -207,9 +189,7 @@ class PlayerService: MediaPlayerService() {
         }
 
         if (save) {
-            coroutine_scope.launch {
-                persistent_queue.savePersistentQueue()
-            }
+            triggerSavePersistentQueue()
         }
     }
 
@@ -240,9 +220,7 @@ class PlayerService: MediaPlayerService() {
                     )
                 }
             } else if (save) {
-                coroutine_scope.launch {
-                    persistent_queue.savePersistentQueue()
-                }
+                triggerSavePersistentQueue()
             }
 
             return@customUndoableAction null
@@ -293,9 +271,7 @@ class PlayerService: MediaPlayerService() {
         }
 
         if (save) {
-            coroutine_scope.launch {
-                persistent_queue.savePersistentQueue()
-            }
+            triggerSavePersistentQueue()
         }
     }
 
@@ -307,25 +283,13 @@ class PlayerService: MediaPlayerService() {
         }
 
         if (save) {
-            coroutine_scope.launch {
-                persistent_queue.savePersistentQueue()
-            }
+            triggerSavePersistentQueue()
         }
         return song
     }
 
     fun seekBy(delta_ms: Long) {
         seekTo(current_position_ms + delta_ms)
-    }
-
-    override fun seekToNext() {
-        stop_after_current_song = false
-        super.seekToNext()
-    }
-
-    override fun seekToPrevious() {
-        stop_after_current_song = false
-        super.seekToPrevious()
     }
 
     @Composable
@@ -341,16 +305,6 @@ class PlayerService: MediaPlayerService() {
 
     // --- Internal ---
 
-    private val coroutine_scope = CoroutineScope(Dispatchers.Main)
-    private var update_timer: Timer? = null
-
-    private lateinit var radio: RadioHandler
-    internal lateinit var persistent_queue: PersistentQueueHandler
-    private lateinit var discord_status: DiscordStatusHandler
-
-    private var song_marked_as_watched: Boolean = false
-    private var tracking_song_index = 0
-
     // Volume notification
 //    private var vol_notif_enabled: Boolean = false
 //    private lateinit var vol_notif: ComposeView
@@ -365,91 +319,8 @@ class PlayerService: MediaPlayerService() {
 //    )
 //    private var vol_notif_instance: Int = 0
 
-    private val prefs_listener = object : PlatformPreferences.Listener {
-        override fun onChanged(prefs: PlatformPreferences, key: String) {
-            when (key) {
-                Settings.KEY_DISCORD_ACCOUNT_TOKEN.name -> {
-                    discord_status.onDiscordAccountTokenChanged()
-                }
-//                Settings.KEY_ACC_VOL_INTERCEPT_NOTIFICATION.name -> {
-//                    vol_notif_enabled = Settings.KEY_ACC_VOL_INTERCEPT_NOTIFICATION.get(preferences = prefs)
-//                }
-            }
-        }
-    }
-
-    private val player_listener = object : Listener() {
-        var current_song: Song? = null
-
-        val song_metadata_listener = Query.Listener {
-            discord_status.updateDiscordStatus(current_song)
-        }
-
-        override fun onSongTransition(song: Song?) {
-            with(context.database) {
-                current_song?.also { current ->
-                    mediaItemQueries.titleById(current.id).removeListener(song_metadata_listener)
-                    songQueries.artistById(current.id).removeListener(song_metadata_listener)
-                }
-                current_song = song
-                current_song?.also { current ->
-                    mediaItemQueries.titleById(current.id).addListener(song_metadata_listener)
-                    songQueries.artistById(current.id).addListener(song_metadata_listener)
-                }
-            }
-
-            coroutine_scope.launch {
-                persistent_queue.savePersistentQueue()
-            }
-
-            if (current_song_index == tracking_song_index + 1) {
-                onSongEnded()
-            }
-            tracking_song_index = current_song_index
-            song_marked_as_watched = false
-
-            radio.checkRadioContinuation()
-            discord_status.updateDiscordStatus(song)
-
-            play()
-        }
-
-        override fun onSongMoved(from: Int, to: Int) {
-            radio.checkRadioContinuation()
-            radio.instance.onSongMoved(from, to)
-        }
-
-        override fun onSongRemoved(index: Int) {
-            radio.checkRadioContinuation()
-            radio.instance.onSongRemoved(index)
-        }
-
-        override fun onStateChanged(state: MediaPlayerState) {
-            if (state == MediaPlayerState.ENDED) {
-                onSongEnded()
-            }
-        }
-    }
-
     override fun onCreate() {
         super.onCreate()
-
-        addListener(player_listener)
-        context.getPrefs().addListener(prefs_listener)
-
-        radio = RadioHandler(this, context)
-        persistent_queue = PersistentQueueHandler(this, context)
-        discord_status = DiscordStatusHandler(this, context)
-
-        coroutine_scope.launch {
-            persistent_queue.loadPersistentQueue()
-        }
-
-        if (update_timer == null) {
-            update_timer = createUpdateTimer()
-        }
-
-        discord_status.onDiscordAccountTokenChanged()
 
 //        // Create volume notification view
 //        vol_notif = ComposeView(this@PlayerService)
@@ -480,73 +351,6 @@ class PlayerService: MediaPlayerService() {
 //        vol_notif_enabled = Settings.KEY_ACC_VOL_INTERCEPT_NOTIFICATION.get(preferences = prefs)
 
 //        LocalBroadcastManager.getInstance(this).registerReceiver(broadcast_receiver, IntentFilter(PlayerService::class.java.canonicalName))
-    }
-
-    override fun onDestroy() {
-        removeListener(player_listener)
-        coroutine_scope.cancel()
-
-        update_timer?.cancel()
-        update_timer = null
-
-        discord_status.release()
-
-//        if (vol_notif.isShown) {
-//            (getSystemService(Context.WINDOW_SERVICE) as WindowManager).removeView(vol_notif)
-//        }
-//        ProjectContext(this).getPrefs().removeListener(prefs_listener)
-
-//        LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcast_receiver)
-
-        super.onDestroy()
-    }
-
-    private fun onSongEnded() {
-        if (stop_after_current_song) {
-            pause()
-            stop_after_current_song = false
-        }
-    }
-
-    private fun createUpdateTimer(): Timer {
-        return Timer().apply {
-            scheduleAtFixedRate(
-                object : TimerTask() {
-                    override fun run() {
-                        coroutine_scope.launch(Dispatchers.Main) {
-                            persistent_queue.savePersistentQueue()
-                            markWatched()
-                        }
-                    }
-
-                    suspend fun markWatched() = withContext(Dispatchers.Main) {
-                        if (
-                            !song_marked_as_watched
-                            && is_playing
-                            && current_position_ms >= SONG_MARK_WATCHED_POSITION
-                        ) {
-                            song_marked_as_watched = true
-
-                            val song = getSong() ?: return@withContext
-
-                            withContext(Dispatchers.IO) {
-                                song.incrementPlayCount(context)
-
-                                val mark_endpoint = context.ytapi.user_auth_state?.MarkSongAsWatched
-                                if (mark_endpoint?.isImplemented() == true && Settings.KEY_ADD_SONGS_TO_HISTORY.get(context)) {
-                                    val result = mark_endpoint.markSongAsWatched(song)
-                                    if (result.isFailure) {
-                                        SpMp.error_manager.onError("autoMarkSongAsWatched", result.exceptionOrNull()!!)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                0,
-                UPDATE_INTERVAL
-            )
-        }
     }
 
 //    private fun onActionIntentReceived(intent: Intent) {

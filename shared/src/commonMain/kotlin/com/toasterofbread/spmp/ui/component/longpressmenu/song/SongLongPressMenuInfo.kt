@@ -41,7 +41,7 @@ fun ColumnScope.SongLongPressMenuInfo(song: Song, queue_index: Int?, getAccentCo
     }
 
     val player = LocalPlayerState.current
-    if ((player.player?.active_queue_index ?: Int.MAX_VALUE) < player.status.m_song_count) {
+    if ((player.controller?.active_queue_index ?: Int.MAX_VALUE) < player.status.m_song_count) {
         Item(Icons.Default.SubdirectoryArrowRight, getString("lpm_action_radio_after_x_songs"))
     }
 

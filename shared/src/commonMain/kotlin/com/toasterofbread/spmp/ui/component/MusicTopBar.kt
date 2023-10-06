@@ -25,7 +25,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
@@ -38,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -57,7 +55,6 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.utils.common.getContrasted
 import com.toasterofbread.utils.common.launchSingle
 import com.toasterofbread.utils.common.setAlpha
-import com.toasterofbread.utils.common.thenIf
 import com.toasterofbread.utils.composable.AlignableCrossfade
 import com.toasterofbread.utils.composable.pauseableInfiniteRepeatableAnimation
 import kotlinx.coroutines.CoroutineScope
@@ -308,7 +305,7 @@ class MusicTopBar(val player: PlayerState) {
                                         LyricsLineDisplay(
                                             lyrics = state,
                                             getTime = {
-                                                (player.player?.current_position_ms ?: 0) +
+                                                (player.controller?.current_position_ms ?: 0) +
                                                         (sync_offset_state?.value ?: 0)
                                             },
                                             lyrics_linger = linger,
@@ -322,7 +319,7 @@ class MusicTopBar(val player: PlayerState) {
                                         )
                                     }
                                     MusicTopBarMode.VISUALISER -> {
-                                        player.player?.Visualiser(
+                                        player.controller?.Visualiser(
                                             LocalContentColor.current,
                                             Modifier.fillMaxHeight().fillMaxWidth(visualiser_width).padding(vertical = 10.dp),
                                             opacity = 0.5f

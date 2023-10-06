@@ -36,8 +36,8 @@ fun RepeatButton(getBackgroundColour: () -> Color, modifier: Modifier = Modifier
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    player.player?.repeat_mode =
-                        when (player.player?.repeat_mode) {
+                    player.controller?.repeat_mode =
+                        when (player.controller?.repeat_mode) {
                             MediaPlayerRepeatMode.ALL -> MediaPlayerRepeatMode.ONE
                             MediaPlayerRepeatMode.ONE -> MediaPlayerRepeatMode.NONE
                             else -> MediaPlayerRepeatMode.ALL

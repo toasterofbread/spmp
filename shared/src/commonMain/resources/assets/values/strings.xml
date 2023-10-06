@@ -165,6 +165,7 @@
     <string name="search_filter_videos">Videos</string>
     <string name="search_entry_field_hint">Search</string>
     <string name="search_results_loading">Loading</string>
+    <string name="search_suggested_correction_$x">Did you mean $x?</string>
 
     <string name="lyrics_none_found">No lyrics found</string>
     <string name="lyrics_no_more_results">No more results</string>
@@ -471,6 +472,7 @@
 
     <string name="s_cat_other">Other</string>
 
+    <string name="s_key_search_show_suggestions">Show search suggestions</string>
     <string name="s_key_navbar_height_multiplier">Navigation bar height multiplier</string>
     <string name="s_sub_navbar_height_multiplier">Use if your system doesn't report the navbar height correctly (requires app restart)</string>
 

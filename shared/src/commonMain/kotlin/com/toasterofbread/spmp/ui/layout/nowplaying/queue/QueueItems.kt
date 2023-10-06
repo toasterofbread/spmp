@@ -45,8 +45,8 @@ fun LazyListScope.QueueItems(
                     },
                     multiselect_context
                 ) {
-                    player.player?.undoableAction {
-                        player.player?.removeFromQueue(index)
+                    player.controller?.undoableAction {
+                        player.controller?.removeFromQueue(index)
                     }
                 }
             }

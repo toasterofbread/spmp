@@ -121,6 +121,11 @@ internal fun getOtherCategory(): List<SettingsItem> {
             SettingsValueState(Settings.KEY_NAVBAR_HEIGHT_MULTIPLIER.name),
             getString("s_key_navbar_height_multiplier"),
             getString("s_sub_navbar_height_multiplier")
+        ),
+
+        SettingsToggleItem(
+            SettingsValueState(Settings.KEY_SEARCH_SHOW_SUGGESTIONS.name),
+            getString("s_key_search_show_suggestions"), null
         )
     ) + getCachingGroup() + getAccessibilityServiceGroup() + getMusicTopBarGroup()
 }

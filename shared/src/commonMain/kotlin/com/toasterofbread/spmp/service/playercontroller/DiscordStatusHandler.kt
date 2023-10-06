@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.service.playerservice
+package com.toasterofbread.spmp.service.playercontroller
 
 import SpMp
 import com.toasterofbread.Database
@@ -18,7 +18,7 @@ import kotlinx.coroutines.cancel
 private const val DISCORD_APPLICATION_ID = "1081929293979992134"
 private const val DISCORD_ASSET_ICON_PRIMARY = "1103702923852132372"
 
-internal class DiscordStatusHandler(val player: PlayerService, val context: PlatformContext) {
+internal class DiscordStatusHandler(val player: PlayerController, val context: PlatformContext) {
     private var discord_rpc: DiscordStatus? = null
     private val coroutine_scope = CoroutineScope(Dispatchers.Main)
 

@@ -48,7 +48,7 @@ class LongPressMenuActionProvider(
         onLongClick: ((active_queue_index: Int) -> Unit)? = null
     ) {
         val player = LocalPlayerState.current
-        val service = LocalPlayerState.current.player ?: return
+        val service = LocalPlayerState.current.controller ?: return
         
         var active_queue_item: Song? by remember { mutableStateOf(null) }
         AnimatedVisibility(service.active_queue_index < player.status.m_song_count) {

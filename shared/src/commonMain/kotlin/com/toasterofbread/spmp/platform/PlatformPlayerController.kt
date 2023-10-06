@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.service.playercontroller.RadioHandler
 
 internal const val AUTO_DOWNLOAD_SOFT_TIMEOUT = 1500 // ms
 
@@ -20,14 +21,14 @@ enum class MediaPlayerRepeatMode {
     ALL
 }
 
-expect open class MediaPlayerService() {
+expect abstract class PlatformPlayerController() {
     interface UndoRedoAction {
         fun redo()
         fun undo()
     }
 
     open class Listener() {
-        open fun onSongTransition(song: Song?)
+        open fun onSongTransition(song: Song?, manual: Boolean)
         open fun onStateChanged(state: MediaPlayerState)
         open fun onPlayingChanged(is_playing: Boolean)
         open fun onRepeatModeChanged(repeat_mode: MediaPlayerRepeatMode)
@@ -45,8 +46,8 @@ expect open class MediaPlayerService() {
 
     var session_started: Boolean
 
-    var context: PlatformContext
-        private set
+    val context: PlatformContext
+    val service_state: PlayerServiceState
 
     val state: MediaPlayerState
     val is_playing: Boolean
@@ -56,6 +57,8 @@ expect open class MediaPlayerService() {
     val duration_ms: Long
     val undo_count: Int
     val redo_count: Int
+
+    val radio: RadioHandler
 
     var repeat_mode: MediaPlayerRepeatMode
     var volume: Float
@@ -68,8 +71,8 @@ expect open class MediaPlayerService() {
     @Composable
     fun Visualiser(colour: Color, modifier: Modifier = Modifier, opacity: Float = 1f)
 
-    fun undoableAction(action: MediaPlayerService.(furtherAction: (MediaPlayerService.() -> Unit) -> Unit) -> Unit)
-    fun customUndoableAction(action: MediaPlayerService.(furtherAction: (MediaPlayerService.() -> UndoRedoAction?) -> Unit) -> UndoRedoAction?)
+    fun undoableAction(action: PlatformPlayerController.(furtherAction: (PlatformPlayerController.() -> Unit) -> Unit) -> Unit)
+    fun customUndoableAction(action: PlatformPlayerController.(furtherAction: (PlatformPlayerController.() -> UndoRedoAction?) -> Unit) -> UndoRedoAction?)
 
     fun redo()
     fun redoAll()
@@ -96,12 +99,15 @@ expect open class MediaPlayerService() {
     fun addListener(listener: Listener)
     fun removeListener(listener: Listener)
 
+    fun triggerSavePersistentQueue()
+    fun setStopAfterCurrentSong(value: Boolean)
+
     companion object {
-        fun <T: MediaPlayerService> connect(
+        fun <C: PlatformPlayerController> connect(
             context: PlatformContext,
-            cls: Class<T>,
-            instance: T? = null,
-            onConnected: (service: T) -> Unit,
+            controller_class: Class<C>,
+            instance: C? = null,
+            onConnected: (service: C) -> Unit,
             onCancelled: () -> Unit
         ): Any
         fun disconnect(context: PlatformContext, connection: Any)

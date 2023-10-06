@@ -1,7 +1,11 @@
 package com.toasterofbread.spmp.platform
 
 import android.content.ComponentName
+import android.content.Context
+import android.os.Bundle
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -9,10 +13,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.net.toUri
+import androidx.core.os.bundleOf
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
+import androidx.media3.common.Player.MEDIA_ITEM_TRANSITION_REASON_SEEK
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
+import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
@@ -20,20 +27,26 @@ import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.exovisualiser.ExoVisualizer
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
+import com.toasterofbread.spmp.service.playercontroller.RadioHandler
 import com.toasterofbread.utils.common.synchronizedBlock
-import kotlin.properties.Delegates
 import androidx.media3.common.MediaItem as ExoMediaItem
 
-//import com.google.android.exoplayer2.upstream.cache.Cache as ExoCache
-
 @UnstableApi
-actual open class MediaPlayerService {
-    actual var context: PlatformContext by Delegates.notNull()
-    private lateinit var player: MediaController
+actual abstract class PlatformPlayerController {
+    actual val context: PlatformContext get() = _context
+    actual val service_state: PlayerServiceState get() = _service_state.value
 
-    fun init(context: PlatformContext, player: MediaController) {
-        this.context = context
+    private lateinit var _context: PlatformContext
+    private lateinit var player: Player
+    private lateinit var sendCustomCommand: (SessionCommand) -> Unit
+    private lateinit var _service_state: State<PlayerServiceState>
+
+    fun init(context: PlatformContext, player: Player, service_state: State<PlayerServiceState>, sendCustomCommand: (SessionCommand) -> Unit) {
+        _context = context
         this.player = player
+        this.sendCustomCommand = sendCustomCommand
+        _service_state = service_state
+
         listener.addToPlayer(player)
 
         if (ProjectBuildConfig.MUTE_PLAYER == true) {
@@ -47,7 +60,7 @@ actual open class MediaPlayerService {
     }
 
     actual open class Listener {
-        actual open fun onSongTransition(song: Song?) {}
+        actual open fun onSongTransition(song: Song?, manual: Boolean) {}
         actual open fun onStateChanged(state: MediaPlayerState) {}
         actual open fun onPlayingChanged(is_playing: Boolean) {}
         actual open fun onRepeatModeChanged(repeat_mode: MediaPlayerRepeatMode) {}
@@ -70,7 +83,7 @@ actual open class MediaPlayerService {
                     return
                 }
                 current_song = song
-                onSongTransition(song)
+                onSongTransition(song, reason == MEDIA_ITEM_TRANSITION_REASON_SEEK)
             }
             override fun onPlaybackStateChanged(state: Int) {
                 onStateChanged(convertState(state))
@@ -98,7 +111,7 @@ actual open class MediaPlayerService {
     }
 
     private val listener = object : Listener() {
-        override fun onSongTransition(song: Song?) {
+        override fun onSongTransition(song: Song?, manual: Boolean) {
             pending_seek_position = null
         }
 
@@ -135,7 +148,7 @@ actual open class MediaPlayerService {
 
     @Composable
     actual fun Visualiser(colour: Color, modifier: Modifier, opacity: Float) {
-        val visualiser = remember { ExoVisualizer(MediaPlayerServiceSession.audio_processor) }
+        val visualiser = remember { ExoVisualizer(PlatformPlayerService.audio_processor) }
         visualiser.Visualiser(colour, modifier, opacity)
     }
 
@@ -149,6 +162,7 @@ actual open class MediaPlayerService {
     actual val duration_ms: Long get() = player.duration
     actual val undo_count: Int get() = action_head
     actual val redo_count: Int get() = action_list.size - undo_count
+    actual val radio: RadioHandler get() = TODO()
 
     actual var repeat_mode: MediaPlayerRepeatMode
         get() = MediaPlayerRepeatMode.values()[player.repeatMode]
@@ -231,7 +245,19 @@ actual open class MediaPlayerService {
         listeners.remove(listener)
     }
 
-    actual fun undoableAction(action: MediaPlayerService.(furtherAction: (MediaPlayerService.() -> Unit) -> Unit) -> Unit) {
+    actual fun triggerSavePersistentQueue() {
+        sendCustomCommand(PlayerServiceCommand.TriggerPersistentQueueSave.getSessionCommand())
+    }
+
+    actual fun setStopAfterCurrentSong(value: Boolean) {
+        sendCustomCommand(
+            PlayerServiceCommand.SetStopAfterCurrentSong.getSessionCommand(
+                bundleOf("value" to value)
+            )
+        )
+    }
+
+    actual fun undoableAction(action: PlatformPlayerController.(furtherAction: (PlatformPlayerController.() -> Unit) -> Unit) -> Unit) {
         customUndoableAction { furtherAction ->
             action {
                 furtherAction {
@@ -243,7 +269,7 @@ actual open class MediaPlayerService {
         }
     }
 
-    private fun handleFurtherAction(current: MutableList<UndoRedoAction>, further: MediaPlayerService.() -> UndoRedoAction?) {
+    private fun handleFurtherAction(current: MutableList<UndoRedoAction>, further: PlatformPlayerController.() -> UndoRedoAction?) {
         synchronized(action_list) {
             current_action_is_further = true
             current_action = current
@@ -258,7 +284,7 @@ actual open class MediaPlayerService {
         }
     }
 
-    actual fun customUndoableAction(action: MediaPlayerService.(furtherAction: (MediaPlayerService.() -> UndoRedoAction?) -> Unit) -> UndoRedoAction?) {
+    actual fun customUndoableAction(action: PlatformPlayerController.(furtherAction: (PlatformPlayerController.() -> UndoRedoAction?) -> Unit) -> UndoRedoAction?) {
         current_action?.also { c_action ->
             val custom_action = action(this) { further ->
                 handleFurtherAction(c_action, further)
@@ -384,8 +410,7 @@ actual open class MediaPlayerService {
             item = player.getMediaItemAt(index)
             player.removeMediaItem(index)
             listeners.forEach { it.onSongRemoved(index) }
-        }
-        override fun undo() {
+        }        override fun undo() {
             player.addMediaItem(index, item)
             listeners.forEach { it.onSongAdded(index, item.getSong()) }
         }
@@ -397,18 +422,29 @@ actual open class MediaPlayerService {
     }
     
     actual companion object {
-        actual fun <T: MediaPlayerService> connect(
+        actual fun <C: PlatformPlayerController> connect(
             context: PlatformContext,
-            cls: Class<T>,
-            instance: T?,
-            onConnected: (controller: T) -> Unit,
-            onCancelled: () -> Unit
+            controller_class: Class<C>,
+            instance: C?,
+            onConnected: (service: C) -> Unit,
+            onCancelled: () -> Unit,
         ): Any {
-            val ctx = context.ctx.applicationContext
-            val controller_future = MediaController.Builder(
-                ctx,
-                SessionToken(ctx, ComponentName(ctx, MediaPlayerServiceSession::class.java))
-            ).buildAsync()
+            val ctx: Context = context.ctx.applicationContext
+            val service_state: MutableState<PlayerServiceState> = mutableStateOf(PlayerServiceState())
+
+            val controller_future: ListenableFuture<MediaController> =
+                MediaController.Builder(
+                    ctx,
+                    SessionToken(ctx, ComponentName(ctx, PlayerService::class.java))
+                )
+                    .setListener(
+                        object : MediaController.Listener {
+                            override fun onExtrasChanged(controller: MediaController, extras: Bundle) {
+                                service_state.value = PlayerServiceState.fromBundle(extras)
+                            }
+                        }
+                    )
+                    .buildAsync()
 
             controller_future.addListener(
                 {
@@ -417,8 +453,13 @@ actual open class MediaPlayerService {
                         return@addListener
                     }
 
-                    val controller = instance ?: cls.newInstance()
-                    controller.init(context, controller_future.get())
+                    val controller: C = instance ?: controller_class.newInstance()
+                    val media_controller: MediaController = controller_future.get()
+
+                    controller.init(context, media_controller, service_state) { command ->
+                        media_controller.sendCustomCommand(command, Bundle.EMPTY)
+                    }
+
                     if (instance == null) {
                         controller.onCreate()
                     }
@@ -429,6 +470,7 @@ actual open class MediaPlayerService {
 
             return controller_future
         }
+
         actual fun disconnect(context: PlatformContext, connection: Any) {
             MediaController.releaseFuture(connection as ListenableFuture<MediaController>)
         }

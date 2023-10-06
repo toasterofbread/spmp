@@ -53,7 +53,7 @@ class QueueTabItem(val song: Song, val key: Int) {
             return getString("lpm_song_now_playing")
         }
 
-        val service = player.player ?: return null
+        val service = player.controller ?: return null
 
         var delta = 0L
         val indices = if (index < playing_index) index + 1 .. playing_index else playing_index until index
@@ -115,7 +115,7 @@ class QueueTabItem(val song: Song, val key: Int) {
                     getTitle = { getLPMTitle(index) }
                 )
 
-                val radio_item_index = player.player?.radio_item_index
+                val radio_item_index = player.controller?.radio_item_index
                 if (radio_item_index == index) {
                     Icon(Icons.Default.Radio, null, Modifier.size(20.dp))
                 }

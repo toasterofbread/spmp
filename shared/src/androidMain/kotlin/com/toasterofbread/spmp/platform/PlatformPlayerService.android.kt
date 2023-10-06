@@ -11,10 +11,16 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import androidx.core.os.bundleOf
 import androidx.media3.common.AudioAttributes
+import androidx.media3.common.Bundleable
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -53,6 +59,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
 import com.toasterofbread.spmp.resources.getStringTODO
+import com.toasterofbread.spmp.service.playercontroller.PlayerController
 import com.toasterofbread.spmp.shared.R
 import com.toasterofbread.spmp.youtubeapi.endpoint.SetSongLikedEndpoint
 import kotlinx.coroutines.CoroutineScope
@@ -60,12 +67,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.Serializable
 import java.io.IOException
 import java.util.concurrent.Executors
 import kotlin.math.roundToInt
-
-private const val COMMAND_SET_LIKE_TRUE = "com.toasterofbread.spmp.setliketrue"
-private const val COMMAND_SET_LIKE_NEUTRAL = "com.toasterofbread.spmp.setlikeneutral"
 
 private const val A13_MEDIA_NOTIFICATION_ASPECT = 2.9f / 5.7f
 
@@ -110,11 +115,40 @@ private fun formatMediaNotificationImage(
     )
 }
 
+fun PlayerServiceState.toBundle(): Bundle =
+    bundleOf(
+        "stop_after_current_song" to stop_after_current_song
+    )
+
+fun PlayerServiceState.Companion.fromBundle(bundle: Bundle): PlayerServiceState =
+    PlayerServiceState(
+        stop_after_current_song = bundle.getBoolean("stop_after_current_song")
+    )
+
 @UnstableApi
-class MediaPlayerServiceSession: MediaSessionService() {
+actual abstract class PlatformPlayerService: MediaSessionService() {
+    actual abstract fun savePersistentQueue()
+
+    private var _state: MutableState<PlayerServiceState> = mutableStateOf(PlayerServiceState())
+    actual var state: PlayerServiceState
+        get() = _state.value
+        set(value) {
+            if (value == _state.value) {
+                return
+            }
+            _state.value = value
+
+            media_session.setSessionExtras(value.toBundle())
+        }
+
+    actual val context: PlatformContext get() = _context
+    actual val controller: PlayerController get() = _controller
+
+    private lateinit var _context: PlatformContext
+    private lateinit var _controller: PlayerController
+
     private val coroutine_scope = CoroutineScope(Dispatchers.Main)
-    private lateinit var context: PlatformContext
-    private lateinit var player: ExoPlayer
+    private lateinit var player: Player
     private lateinit var media_session: MediaSession
 
     private var current_song: Song? = null
@@ -165,7 +199,7 @@ class MediaPlayerServiceSession: MediaSessionService() {
             if (!device.isSink) return false
             return device.type == AudioDeviceInfo.TYPE_WIRED_HEADSET ||
                     device.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
-                    device.type == AudioDeviceInfo.TYPE_USB_HEADSET
+                    (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && device.type == AudioDeviceInfo.TYPE_USB_HEADSET)
         }
 
         override fun onAudioDevicesAdded(addedDevices: Array<AudioDeviceInfo>) {
@@ -203,18 +237,23 @@ class MediaPlayerServiceSession: MediaSessionService() {
         }
     }
 
-
     companion object {
         // If there's a better way to provide this to MediaControllers, I'd like to know
         val audio_processor = FFTAudioProcessor()
     }
 
-    override fun onCreate() {
+    actual override fun onCreate() {
         super.onCreate()
 
-        context = PlatformContext(this, coroutine_scope).init()
+        _context = PlatformContext(this, coroutine_scope).init()
 
         initialiseSessionAndPlayer()
+
+        _controller = PlayerController()
+        _controller.init(context, player, _state) { session_command ->
+            val command = PlayerServiceCommand.fromIdOrNull(session_command.customAction) ?: return@init
+            onPlayerServiceCommand(command, session_command.customExtras)
+        }
 
         val audio_manager = getSystemService(AUDIO_SERVICE) as AudioManager?
         audio_manager?.registerAudioDeviceCallback(audio_device_callback, null)
@@ -226,7 +265,7 @@ class MediaPlayerServiceSession: MediaSessionService() {
         )
     }
 
-    override fun onDestroy() {
+    actual override fun onDestroy() {
         coroutine_scope.cancel()
         player.release()
         media_session.release()
@@ -262,10 +301,10 @@ class MediaPlayerServiceSession: MediaSessionService() {
                                 SongLikedStatus.DISLIKED -> getStringTODO("Remove dislike")
                             }
                         )
-                        .setSessionCommand(SessionCommand(
-                            if (liked == SongLikedStatus.NEUTRAL) COMMAND_SET_LIKE_TRUE else COMMAND_SET_LIKE_NEUTRAL,
-                            Bundle.EMPTY
-                        ))
+                        .setSessionCommand(
+                            if (liked == SongLikedStatus.NEUTRAL) PlayerServiceCommand.SetLikeTrue.getSessionCommand()
+                            else PlayerServiceCommand.SetLikeNeutral.getSessionCommand()
+                        )
                         .setIconResId(
                             when (liked) {
                                 SongLikedStatus.NEUTRAL -> R.drawable.ic_thumb_up_off
@@ -302,24 +341,24 @@ class MediaPlayerServiceSession: MediaSessionService() {
                 createDataSourceFactory(),
                 { arrayOf(MatroskaExtractor(), FragmentedMp4Extractor()) }
             )
-            .setLoadErrorHandlingPolicy(
-                object : LoadErrorHandlingPolicy {
-                    override fun getFallbackSelectionFor(
-                        fallbackOptions: LoadErrorHandlingPolicy.FallbackOptions,
-                        loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo,
-                    ): LoadErrorHandlingPolicy.FallbackSelection? {
-                        return null
-                    }
+                .setLoadErrorHandlingPolicy(
+                    object : LoadErrorHandlingPolicy {
+                        override fun getFallbackSelectionFor(
+                            fallbackOptions: LoadErrorHandlingPolicy.FallbackOptions,
+                            loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo,
+                        ): LoadErrorHandlingPolicy.FallbackSelection? {
+                            return null
+                        }
 
-                    override fun getRetryDelayMsFor(loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo): Long {
-                        return 1000
-                    }
+                        override fun getRetryDelayMsFor(loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo): Long {
+                            return 1000
+                        }
 
-                    override fun getMinimumLoadableRetryCount(dataType: Int): Int {
-                        return Int.MAX_VALUE
+                        override fun getMinimumLoadableRetryCount(dataType: Int): Int {
+                            return Int.MAX_VALUE
+                        }
                     }
-                }
-            )
+                )
         )
             .setAudioAttributes(
                 AudioAttributes.Builder()
@@ -330,11 +369,10 @@ class MediaPlayerServiceSession: MediaSessionService() {
             )
             .setUsePlatformDiagnostics(false)
             .build()
-            .apply {
-                addListener(player_listener)
-                playWhenReady = true
-                prepare()
-            }
+
+        player.addListener(player_listener)
+        player.playWhenReady = true
+        player.prepare()
 
         media_session = MediaSession.Builder(this, player)
             .setBitmapLoader(object : BitmapLoader {
@@ -400,8 +438,11 @@ class MediaPlayerServiceSession: MediaSessionService() {
                     val result = super.onConnect(session, controller)
                     val session_commands = result.availableSessionCommands
                         .buildUpon()
-                        .add(SessionCommand(COMMAND_SET_LIKE_TRUE, Bundle()))
-                        .add(SessionCommand(COMMAND_SET_LIKE_NEUTRAL, Bundle()))
+
+                    for (command in PlayerServiceCommand.values()) {
+                        session_commands.add(command.getSessionCommand())
+                    }
+
                     return MediaSession.ConnectionResult.accept(session_commands.build(), result.availablePlayerCommands)
                 }
 
@@ -409,32 +450,18 @@ class MediaPlayerServiceSession: MediaSessionService() {
                     session: MediaSession,
                     controller: MediaSession.ControllerInfo,
                     customCommand: SessionCommand,
-                    args: Bundle,
+                    args: Bundle
                 ): ListenableFuture<SessionResult> {
-                    val song = current_song
-                    if (song != null) {
-                        when (customCommand.customAction) {
-                            COMMAND_SET_LIKE_TRUE ->
-                                coroutine_scope.launch {
-                                    val endpoint: SetSongLikedEndpoint? = SpMp.context.ytapi.user_auth_state?.SetSongLiked
-                                    if (endpoint?.isImplemented() == true) {
-                                        song.updateLiked(SongLikedStatus.LIKED, endpoint, SpMp.context)
-                                    }
-                                }
-                            COMMAND_SET_LIKE_NEUTRAL ->
-                                coroutine_scope.launch {
-                                    val endpoint: SetSongLikedEndpoint? = SpMp.context.ytapi.user_auth_state?.SetSongLiked
-                                    if (endpoint?.isImplemented() == true) {
-                                        song.updateLiked(SongLikedStatus.NEUTRAL, endpoint, SpMp.context)
-                                    }
-                                }
-                        }
+                    val command: PlayerServiceCommand? = PlayerServiceCommand.fromIdOrNull(customCommand.customAction)
+                    if (command == null) {
+                        return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_BAD_VALUE))
                     }
-                    return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+
+                    val result: Bundle = onPlayerServiceCommand(command, args)
+                    return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS, result))
                 }
             })
             .build()
-
     }
 
     private fun createDataSourceFactory(): DataSource.Factory {
@@ -448,6 +475,35 @@ class MediaPlayerServiceSession: MediaSessionService() {
                 throw IOException(e)
             }
         }
+    }
+
+    private fun onPlayerServiceCommand(command: PlayerServiceCommand, args: Bundle): Bundle {
+        when (command) {
+            PlayerServiceCommand.SetLikeTrue, PlayerServiceCommand.SetLikeNeutral -> {
+                val song = current_song
+                if (song != null) {
+                    coroutine_scope.launch {
+                        val endpoint: SetSongLikedEndpoint? = SpMp.context.ytapi.user_auth_state?.SetSongLiked
+                        if (endpoint?.isImplemented() == true) {
+                            song.updateLiked(
+                                if (command == PlayerServiceCommand.SetLikeTrue) SongLikedStatus.LIKED
+                                else SongLikedStatus.NEUTRAL,
+                                endpoint,
+                                SpMp.context
+                            )
+                        }
+                    }
+                }
+            }
+            PlayerServiceCommand.TriggerPersistentQueueSave -> {
+                savePersistentQueue()
+            }
+            PlayerServiceCommand.SetStopAfterCurrentSong -> {
+                state = state.copy(stop_after_current_song = args.getBoolean("value"))
+            }
+        }
+
+        return Bundle.EMPTY
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {

@@ -4,12 +4,9 @@ import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
@@ -42,10 +39,10 @@ fun CurrentRadioIndicator(
 
     Row(modifier.animateContentSize()) {
 
-        val filters: List<List<RadioBuilderModifier>>? = player.player?.radio_filters
+        val filters: List<List<RadioBuilderModifier>>? = player.controller?.radio_filters
         var show_radio_info: Boolean by remember { mutableStateOf(false) }
-        val radio_item: MediaItem? = player.player?.radio_item.takeIf { item ->
-            item !is Song || player.player?.radio_item_index == null
+        val radio_item: MediaItem? = player.controller?.radio_item.takeIf { item ->
+            item !is Song || player.controller?.radio_item_index == null
         }
 
         LaunchedEffect(radio_item) {
@@ -129,7 +126,7 @@ private fun FiltersRow(
         horizontalArrangement = Arrangement.spacedBy(15.dp),
         contentPadding = content_padding
     ) {
-        val current_filter = player.player?.radio_current_filter
+        val current_filter = player.controller?.radio_current_filter
 
         itemsIndexed(listOf(null) + filters) { i, filter ->
             val index = if (filter == null) null else i - 1
@@ -138,8 +135,8 @@ private fun FiltersRow(
                 current_filter == index,
                 modifier = Modifier.height(32.dp),
                 onClick = {
-                    if (player.player?.radio_current_filter != index) {
-                        player.player?.radio_current_filter = index
+                    if (player.controller?.radio_current_filter != index) {
+                        player.controller?.radio_current_filter = index
                     }
                 },
                 label = {

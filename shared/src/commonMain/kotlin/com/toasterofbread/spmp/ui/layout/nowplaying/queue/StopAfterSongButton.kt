@@ -29,10 +29,10 @@ import com.toasterofbread.utils.modifier.background
 fun StopAfterSongButton(getBackgroundColour: () -> Color, modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
     val rotation by animateFloatAsState(
-        if (player.player?.stop_after_current_song == true) 180f else 0f
+        if (player.controller?.service_state?.stop_after_current_song == true) 180f else 0f
     )
 
-    Crossfade(player.player?.stop_after_current_song == true) { stopping ->
+    Crossfade(player.controller?.service_state?.stop_after_current_song == true) { stopping ->
         Box(
             modifier = modifier
                 .aspectRatio(1f)
@@ -41,7 +41,9 @@ fun StopAfterSongButton(getBackgroundColour: () -> Color, modifier: Modifier = M
                 .combinedClickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
-                    onClick = { player.player?.stop_after_current_song = !stopping },
+                    onClick = {
+                        player.controller?.setStopAfterCurrentSong(!stopping)
+                    },
                     onLongClick = {}
                 ),
             contentAlignment = Alignment.Center

@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.service.playerservice.PlayerService
+import com.toasterofbread.spmp.service.playercontroller.PlayerController
 import com.toasterofbread.utils.common.AnnotatedReadingTerm
 import com.toasterofbread.utils.common.setAlpha
 
@@ -51,7 +51,7 @@ fun LyricsSyncMenu(
     require(lyrics.synced)
 
     val player = LocalPlayerState.current
-    val service = player.player
+    val service = player.controller
 
     LaunchedEffect(line_index) {
         service?.seekTo(
@@ -111,7 +111,7 @@ fun LyricsSyncMenu(
 }
 
 @Composable
-private fun PlayerControls(player: PlayerService?, onSelected: () -> Unit) {
+private fun PlayerControls(player: PlayerController?, onSelected: () -> Unit) {
     val button_modifier = Modifier.size(40.dp)
 
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {

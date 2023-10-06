@@ -27,7 +27,7 @@ import com.toasterofbread.spmp.platform.BackHandler
 import com.toasterofbread.spmp.platform.composable.scrollWheelSwipeable
 import com.toasterofbread.spmp.platform.composeScope
 import com.toasterofbread.spmp.platform.vibrateShort
-import com.toasterofbread.spmp.service.playerservice.PlayerService
+import com.toasterofbread.spmp.service.playercontroller.PlayerController
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NowPlayingMainTab
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.QueueTab
@@ -140,12 +140,12 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
             val overscroll_clear_time: Float by Settings.KEY_MINI_PLAYER_OVERSCROLL_CLEAR_TIME.rememberMutableState()
             val overscroll_clear_mode: OverscrollClearMode by Settings.KEY_MINI_PLAYER_OVERSCROLL_CLEAR_MODE.rememberMutableEnumState()
 
-            LaunchedEffect(player.player, swipe_interactions.isNotEmpty(), overscroll_clear_enabled) {
+            LaunchedEffect(player.controller, swipe_interactions.isNotEmpty(), overscroll_clear_enabled) {
                 if (!overscroll_clear_enabled) {
                     return@LaunchedEffect
                 }
 
-                val service: PlayerService = player.player ?: return@LaunchedEffect
+                val service: PlayerController = player.controller ?: return@LaunchedEffect
                 val anchor: Float = swipe_anchors.keys.first()
                 val delta: Long = 50
                 val time_threshold: Float = overscroll_clear_time * 1000

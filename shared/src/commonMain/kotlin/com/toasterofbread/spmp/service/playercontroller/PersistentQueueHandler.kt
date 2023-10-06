@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.service.playerservice
+package com.toasterofbread.spmp.service.playercontroller
 
 import SpMp
 import com.toasterofbread.spmp.model.Settings
@@ -32,7 +32,7 @@ private data class PersistentQueueMetadata(val song_index: Int, val position_ms:
     }
 }
 
-internal class PersistentQueueHandler(val player: PlayerService, val context: PlatformContext) {
+internal class PersistentQueueHandler(val player: PlayerController, val context: PlatformContext) {
     private var persistent_queue_loaded: Boolean = false
     private val queue_lock = Mutex()
 

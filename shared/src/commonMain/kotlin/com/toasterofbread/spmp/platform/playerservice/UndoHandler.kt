@@ -18,6 +18,10 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: Platfor
     val redo_count: Int get() = action_list.size - undo_count
 
     internal class AddAction(val song: Song, val index: Int): UndoRedoAction {
+        init {
+            assert(index >= 0) { index.toString() }
+        }
+
         override fun redo(service: PlatformPlayerService) {
             service.addSong(song, index)
 //            listeners.forEach { it.onSongAdded(index, item.getSong()) }
@@ -28,6 +32,11 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: Platfor
         }
     }
     internal class MoveAction(val from: Int, val to: Int): UndoRedoAction {
+        init {
+            assert(from >= 0)
+            assert(to >= 0)
+        }
+
         override fun redo(service: PlatformPlayerService) {
             service.moveSong(from, to)
 //            listeners.forEach { it.onSongMoved(from, to) }
@@ -38,6 +47,10 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: Platfor
         }
     }
     internal class RemoveAction(val index: Int): UndoRedoAction {
+        init {
+            assert(index >= 0)
+        }
+
         private lateinit var song: Song
         override fun redo(service: PlatformPlayerService) {
             song = service.getSong(index)!!
@@ -171,6 +184,8 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: Platfor
                     action.undo(service)
                 }
             }
+
+            service.service_state
 //            listeners.forEach { it.onUndoStateChanged() }
         }
     }

@@ -115,7 +115,7 @@ class QueueTabItem(val song: Song, val key: Int) {
                     getTitle = { getLPMTitle(index) }
                 )
 
-                val radio_item_index = player.controller?.radio_item_index
+                val radio_item_index = player.controller?.radio_state?.item?.second
                 if (radio_item_index == index) {
                     Icon(Icons.Default.Radio, null, Modifier.size(20.dp))
                 }

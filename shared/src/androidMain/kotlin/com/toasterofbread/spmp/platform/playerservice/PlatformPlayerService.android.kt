@@ -1,4 +1,3 @@
-@file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 package com.toasterofbread.spmp.platform.playerservice
 
 import SpMp
@@ -17,10 +16,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import androidx.core.net.toUri
 import androidx.core.os.bundleOf
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.BitmapLoader
 import androidx.media3.common.util.UnstableApi
@@ -51,6 +52,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.toasterofbread.spmp.exovisualiser.FFTAudioProcessor
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.getMediaItemFromUid
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
@@ -59,8 +61,8 @@ import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
 import com.toasterofbread.spmp.platform.MediaPlayerRepeatMode
 import com.toasterofbread.spmp.platform.MediaPlayerState
 import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.PlayerServiceCommand
-import com.toasterofbread.spmp.platform.buildExoMediaItem
 import com.toasterofbread.spmp.platform.convertState
 import com.toasterofbread.spmp.platform.getSong
 import com.toasterofbread.spmp.platform.isConnectionMetered
@@ -74,6 +76,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.io.IOException
 import java.util.concurrent.Executors
 import kotlin.math.roundToInt
@@ -121,20 +126,30 @@ private fun formatMediaNotificationImage(
     )
 }
 
+private val polymorphic_json = Json { useArrayPolymorphism = true }
+
 fun PlayerServiceState.toBundle(): Bundle =
     bundleOf(
-        "stop_after_current_song" to stop_after_current_song
+        "stop_after_current_song" to stop_after_current_song,
+        "radio_state" to polymorphic_json.encodeToString(radio_state),
+        "undo_count" to undo_count,
+        "redo_count" to redo_count,
+        "active_queue_index" to active_queue_index,
+        "session_started" to session_started
     )
 
 fun PlayerServiceState.Companion.fromBundle(bundle: Bundle): PlayerServiceState =
     PlayerServiceState(
-        stop_after_current_song = bundle.getBoolean("stop_after_current_song")
+        stop_after_current_song = bundle.getBoolean("stop_after_current_song"),
+        radio_state = polymorphic_json.decodeFromString(bundle.getString("radio_state")!!),
+        undo_count = bundle.getInt("undo_count"),
+        redo_count = bundle.getInt("redo_count"),
+        active_queue_index = bundle.getInt("active_queue_index"),
+        session_started = bundle.getBoolean("session_started")
     )
 
 @UnstableApi
-actual abstract class PlatformPlayerService: MediaSessionService() {
-    actual abstract fun savePersistentQueue()
-
+actual class PlatformPlayerService: MediaSessionService() {
     private var _state: MutableState<PlayerServiceState> = mutableStateOf(PlayerServiceState())
     actual var service_state: PlayerServiceState
         get() = _state.value
@@ -240,68 +255,54 @@ actual abstract class PlatformPlayerService: MediaSessionService() {
         }
     }
 
-    actual open class Listener {
-        actual open fun onSongTransition(song: Song?, manual: Boolean) {}
-        actual open fun onStateChanged(state: MediaPlayerState) {}
-        actual open fun onPlayingChanged(is_playing: Boolean) {}
-        actual open fun onRepeatModeChanged(repeat_mode: MediaPlayerRepeatMode) {}
-        actual open fun onVolumeChanged(volume: Float) {}
-        actual open fun onDurationChanged(duration_ms: Long) {}
-        actual open fun onSeeked(position_ms: Long) {}
-        actual open fun onUndoStateChanged() {}
-
-        actual open fun onSongAdded(index: Int, song: Song) {}
-        actual open fun onSongRemoved(index: Int) {}
-        actual open fun onSongMoved(from: Int, to: Int) {}
-
-        actual open fun onEvents() {}
-
-        private val player_listener = object : Player.Listener {
-            var current_song: Song? = null
-            override fun onMediaItemTransition(item: MediaItem?, reason: Int) {
-                val song = item?.getSong()
-                if (song?.id == current_song?.id) {
-                    return
-                }
-                current_song = song
-                onSongTransition(song, reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK)
-            }
-            override fun onPlaybackStateChanged(state: Int) {
-                onStateChanged(convertState(state))
-            }
-            override fun onIsPlayingChanged(is_playing: Boolean) {
-                onPlayingChanged(is_playing)
-            }
-            override fun onRepeatModeChanged(repeat_mode: Int) {
-                onRepeatModeChanged(MediaPlayerRepeatMode.values()[repeat_mode])
-            }
-            override fun onVolumeChanged(volume: Float) {
-                this@Listener.onVolumeChanged(volume)
-            }
-            override fun onEvents(player: Player, events: Player.Events) {
-                onEvents()
-            }
-        }
-
-        internal fun addToPlayer(player: Player) {
-            player.addListener(player_listener)
-        }
-        internal fun removeFromPlayer(player: Player) {
-            player.removeListener(player_listener)
-        }
+    actual fun addListener(listener: PlayerListener) {
+        listener.addToPlayer(player)
+    }
+    actual fun removeListener(listener: PlayerListener) {
+        listener.removeFromPlayer(player)
     }
 
-    companion object {
-        // If there's a better way to provide this to MediaControllers, I'd like to know
+    // If there's a better way to provide information to MediaControllers, I'd like to know
+    actual companion object {
         val audio_processor = FFTAudioProcessor()
+
+        actual val instance: PlatformPlayerService get() = _instance!!
+
+        private val listeners: MutableList<PlayerListener> = mutableListOf()
+        private var _instance: PlatformPlayerService? = null
+            set(value) {
+                _instance?.also {
+                    for (listener in listeners) {
+                        it.removeListener(listener)
+                    }
+                }
+
+                field = value
+
+                value?.also {
+                    for (listener in listeners) {
+                        it.addListener(listener)
+                    }
+                }
+            }
+
+        actual fun addListener(listener: PlayerListener) {
+            listeners.add(listener)
+            _instance?.addListener(listener)
+        }
+        actual fun removeListener(listener: PlayerListener) {
+            listeners.remove(listener)
+            _instance?.removeListener(listener)
+        }
     }
 
     actual override fun onCreate() {
         super.onCreate()
+        _instance = this
 
         _context = PlatformContext(this, coroutine_scope).init()
-
         initialiseSessionAndPlayer()
+        _service_player = PlayerServicePlayer(this)
 
         val audio_manager = getSystemService(AUDIO_SERVICE) as AudioManager?
         audio_manager?.registerAudioDeviceCallback(audio_device_callback, null)
@@ -315,6 +316,7 @@ actual abstract class PlatformPlayerService: MediaSessionService() {
 
     actual override fun onDestroy() {
         coroutine_scope.cancel()
+        service_player.release()
         player.release()
         media_session.release()
 
@@ -499,7 +501,7 @@ actual abstract class PlatformPlayerService: MediaSessionService() {
                     customCommand: SessionCommand,
                     args: Bundle
                 ): ListenableFuture<SessionResult> {
-                    val command: PlayerServiceCommand? = PlayerServiceCommand.fromSessionCommand(customCommand)
+                    val command: PlayerServiceCommand? = PlayerServiceCommand.fromSessionCommand(customCommand, args)
                     if (command == null) {
                         return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_BAD_VALUE))
                     }
@@ -542,11 +544,58 @@ actual abstract class PlatformPlayerService: MediaSessionService() {
                 }
             }
             PlayerServiceCommand.SavePersistentQueue -> {
-                savePersistentQueue()
+                service_player.savePersistentQueue()
             }
             is PlayerServiceCommand.SetStopAfterCurrentSong -> {
                 service_state = service_state.copy(stop_after_current_song = command.value)
             }
+            is PlayerServiceCommand.UpdateActiveQueueIndex ->
+                service_player.updateActiveQueueIndex(command.delta)
+            is PlayerServiceCommand.SetActiveQueueIndex ->
+                service_player.setActiveQueueIndex(command.value)
+
+            is PlayerServiceCommand.CancelSession -> service_player.cancelSession()
+
+            is PlayerServiceCommand.ContinueRadio -> service_player.continueRadio(command.is_retry)
+            is PlayerServiceCommand.DismissRadioLoadError -> service_player.radio.instance.dismissRadioLoadError()
+            is PlayerServiceCommand.SetRadioFilter -> service_player.radio.setRadioFilter(command.filter_index)
+
+            is PlayerServiceCommand.StartRadio -> service_player.startRadioAtIndex(
+                command.index, command.item_uid?.let { getMediaItemFromUid(it) }, command.item_index, command.add_item, command.skip_first, command.shuffle, command.on_load_seek_index?.let { seek_index ->
+                    { success ->
+                        if (success) {
+                            withContext(Dispatchers.Main) {
+                                seekToSong(seek_index)
+                            }
+                        }
+                    }
+                }
+            )
+
+            is PlayerServiceCommand.AddSong -> service_player.addToQueue(SongRef(command.song_id), command.to, command.is_active_queue, command.start_radio)
+            is PlayerServiceCommand.AddMultipleSongs -> service_player.addMultipleToQueue(
+                command.song_ids.map { id ->
+                    SongRef(id)
+                },
+                command.index,
+                command.skip_first,
+                command.is_active_queue,
+                command.skip_existing,
+                command.clear
+            )
+
+            is PlayerServiceCommand.MoveSong -> service_player.moveSong(command.from, command.to)
+            is PlayerServiceCommand.RemoveSong -> service_player.removeFromQueue(command.from)
+            is PlayerServiceCommand.RemoveMultipleSongs -> service_player.removeMultipleFromQueue(command.indices)
+
+            is PlayerServiceCommand.ClearQueue -> service_player.clearQueue(command.from, command.keep_current, cancel_radio = command.cancel_radio)
+            is PlayerServiceCommand.ShuffleQueue -> service_player.shuffleQueue(command.start, command.end)
+            is PlayerServiceCommand.ShuffleQueueIndices -> service_player.shuffleQueueIndices(command.indices)
+
+            PlayerServiceCommand.Undo -> service_player.undo()
+            PlayerServiceCommand.Redo -> service_player.redo()
+            PlayerServiceCommand.UndoAll -> service_player.undoAll()
+            PlayerServiceCommand.RedoAll -> service_player.redoAll()
         }
 
         return Bundle.EMPTY
@@ -556,14 +605,15 @@ actual abstract class PlatformPlayerService: MediaSessionService() {
         return media_session
     }
 
-    actual val service_player: PlayerServicePlayer = PlayerServicePlayer(this)
+    private lateinit var _service_player: PlayerServicePlayer
+    actual val service_player: PlayerServicePlayer get() = _service_player
     actual val state: MediaPlayerState get() = convertState(player.playbackState)
     actual val is_playing: Boolean get() = player.isPlaying
     actual val song_count: Int get() = player.mediaItemCount
     actual val current_song_index: Int get() = player.currentMediaItemIndex
     actual val current_position_ms: Long get() = player.currentPosition
     actual val duration_ms: Long get() = player.duration
-    actual val radio: RadioInstance.RadioState get() = service_state.radio_state
+    actual val radio_state: RadioInstance.RadioState get() = service_state.radio_state
     actual var repeat_mode: MediaPlayerRepeatMode
         get() = MediaPlayerRepeatMode.values()[player.repeatMode]
         set(value) {
@@ -596,6 +646,7 @@ actual abstract class PlatformPlayerService: MediaSessionService() {
 
     actual open fun seekTo(position_ms: Long) {
         player.seekTo(position_ms)
+        listeners.forEach { it.onSeeked(position_ms) }
     }
 
     actual open fun seekToSong(index: Int) {
@@ -622,27 +673,46 @@ actual abstract class PlatformPlayerService: MediaSessionService() {
         return player.getMediaItemAt(index).getSong()
     }
 
-    actual fun addSong(song: Song) {
-        addSong(song, song_count)
-    }
-
     actual fun addSong(song: Song, index: Int) {
+        println("S ADD SONG $song $index ${listeners.toList()}")
         player.addMediaItem(index, song.buildExoMediaItem(context))
+        listeners.forEach { it.onSongAdded(index, song) }
+
+        service_state = service_state.copy(
+            session_started = true
+        )
     }
 
     actual fun moveSong(from: Int, to: Int) {
         player.moveMediaItem(from, to)
+        listeners.forEach { it.onSongMoved(from, to) }
     }
 
     actual fun removeSong(index: Int) {
         player.removeMediaItem(index)
-    }
-
-    actual fun addListener(listener: Listener) {
-        listener.addToPlayer(player)
-    }
-
-    actual fun removeListener(listener: Listener) {
-        listener.removeFromPlayer(player)
+        listeners.forEach { it.onSongRemoved(index) }
     }
 }
+
+@UnstableApi
+private fun Song.buildExoMediaItem(context: PlatformContext): MediaItem =
+    MediaItem.Builder()
+        .setRequestMetadata(MediaItem.RequestMetadata.Builder().setMediaUri(id.toUri()).build())
+        .setUri(id)
+        .setCustomCacheKey(id)
+        .setMediaMetadata(
+            MediaMetadata.Builder()
+                .apply {
+                    val db = context.database
+
+                    setArtworkUri(id.toUri())
+                    setTitle(getActiveTitle(db))
+                    setArtist(Artist.get(db)?.getActiveTitle(db))
+
+                    val album = Album.get(db)
+                    setAlbumTitle(album?.getActiveTitle(db))
+                    setAlbumArtist(album?.Artist?.get(db)?.getActiveTitle(db))
+                }
+                .build()
+        )
+        .build()

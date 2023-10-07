@@ -58,7 +58,21 @@ abstract class RadioInstance(
 
     private val coroutine_scope = CoroutineScope(Dispatchers.IO)
     private val lock = coroutine_scope
-    private var failed_load_retry: (suspend (Result<List<Song>>, Boolean) -> Unit)? by mutableStateOf(null)
+    private var failed_load_retry_callback: (suspend (Result<List<Song>>, Boolean) -> Unit)? by mutableStateOf(null)
+
+    fun dismissRadioLoadError() {
+        state = state.copy(
+            load_error = null
+        )
+        failed_load_retry_callback = null
+    }
+
+    @Serializable
+    data class RadioLoadError(
+        val message: String,
+        val stack_trace: String,
+        val can_retry: Boolean
+    )
 
     @Serializable
     data class RadioState(
@@ -69,7 +83,7 @@ abstract class RadioInstance(
         val current_filter: Int? = null,
         val shuffle: Boolean = false,
         val loading: Boolean = false,
-        val load_error: Pair<String, String>? = null
+        val load_error: RadioLoadError? = null
     ) {
         internal fun copyWithFilter(filter_index: Int?): RadioState =
             copy(
@@ -78,10 +92,10 @@ abstract class RadioInstance(
                 initial_songs_loaded = false
             )
 
-        internal fun copyWithLoadError(error: Throwable?): RadioState =
+        internal fun copyWithLoadError(error: Throwable?, can_retry: Boolean): RadioState =
             copy(
                 load_error = error?.let {
-                    Pair(it.message.toString(), it.stackTraceToString())
+                    RadioLoadError(it.message.toString(), it.stackTraceToString(), can_retry)
                 }
             )
 
@@ -184,6 +198,14 @@ abstract class RadioInstance(
         is_retry: Boolean = false,
         callback: suspend (result: Result<List<Song>>, is_retry: Boolean) -> Unit
     ) {
+        val use_callback: suspend (Result<List<Song>>, Boolean) -> Unit =
+            if (is_retry) {{ a, b ->
+                callback(a, b)
+                failed_load_retry_callback?.invoke(a, b)
+                failed_load_retry_callback = null
+            }}
+            else callback
+
         synchronized(lock) {
             coroutine_scope.launchSingle {
                 coroutineContext.job.invokeOnCompletion { cause ->
@@ -195,7 +217,7 @@ abstract class RadioInstance(
                 }
                 synchronized(lock) {
                     state = state.copy(loading = true)
-                    failed_load_retry = null
+                    failed_load_retry_callback = null
                 }
 
                 onStart?.invoke()
@@ -208,13 +230,13 @@ abstract class RadioInstance(
                     val initial_songs = getInitialSongs()
                     initial_songs.onFailure { error ->
                         synchronized(lock) {
-                            state = state.copyWithLoadError(error)
-                            failed_load_retry = if (can_retry) callback else null
+                            state = state.copyWithLoadError(error, can_retry)
+                            failed_load_retry_callback = if (can_retry) callback else null
                         }
                     }
 
                     val formatted = formatContinuationResult(initial_songs)
-                    callback(formatted, is_retry)
+                    use_callback(formatted, is_retry)
 
                     state = state.copy(initial_songs_loaded = true)
                     return@launchSingle
@@ -228,10 +250,10 @@ abstract class RadioInstance(
                     { it },
                     { error ->
                         synchronized(lock) {
-                            state = state.copyWithLoadError(error)
-                            failed_load_retry = if (can_retry) callback else null
+                            state = state.copyWithLoadError(error, can_retry)
+                            failed_load_retry_callback = if (can_retry) callback else null
                         }
-                        callback(result.cast(), is_retry)
+                        use_callback(result.cast(), is_retry)
                         return@launchSingle
                     }
                 )
@@ -243,49 +265,7 @@ abstract class RadioInstance(
                     state = state.copy(continuation = null)
                 }
 
-                callback(formatContinuationResult(Result.success(items.filterIsInstance<SongData>())), is_retry)
-            }
-        }
-    }
-
-    @Composable
-    fun LoadStatus(
-        modifier: Modifier = Modifier,
-        expanded_modifier: Modifier = Modifier,
-        disable_parent_scroll: Boolean = false
-    ) {
-        val context = LocalPlayerState.current.context
-
-        Box(modifier, contentAlignment = Alignment.Center) {
-            Crossfade(Pair(loading, state.load_error?.let { Pair(it, failed_load_retry) })) {
-                if (it.first) {
-                    SubtleLoadingIndicator()
-                }
-                else if (it.second != null) {
-                    val (error, callback) = it.second!!
-                    ErrorInfoDisplay(
-                        null,
-                        pair_error = error,
-                        expanded_content_modifier = expanded_modifier,
-                        disable_parent_scroll = disable_parent_scroll,
-                        onRetry =
-                            if (callback != null) {{
-                                loadContinuation(
-                                    context,
-                                    null,
-                                    can_retry = true,
-                                    is_retry = true,
-                                    callback = callback
-                                )
-                            }}
-                            else null,
-                        onDismiss = {
-                            synchronized(lock) {
-                                failed_load_retry = null
-                            }
-                        }
-                    )
-                }
+                use_callback(formatContinuationResult(Result.success(items.filterIsInstance<SongData>())), is_retry)
             }
         }
     }
@@ -375,6 +355,41 @@ abstract class RadioInstance(
 //                return Result.success(layout.items.filterIsInstance<SongData>())
 //            }
             else -> throw NotImplementedError(item::class.toString())
+        }
+    }
+}
+
+
+@Composable
+fun RadioInstance.RadioState.LoadStatus(
+    modifier: Modifier = Modifier,
+    expanded_modifier: Modifier = Modifier,
+    disable_parent_scroll: Boolean = false
+) {
+    val player = LocalPlayerState.current
+
+    Box(modifier, contentAlignment = Alignment.Center) {
+        Crossfade(Pair(loading, load_error)) {
+            if (it.first) {
+                SubtleLoadingIndicator()
+            }
+            else if (it.second != null) {
+                val (message, stack_trace, can_retry) = it.second!!
+                ErrorInfoDisplay(
+                    null,
+                    pair_error = Pair(message, stack_trace),
+                    expanded_content_modifier = expanded_modifier,
+                    disable_parent_scroll = disable_parent_scroll,
+                    onRetry =
+                        if (can_retry) {{
+                            player.controller?.continueRadio(is_retry = true)
+                        }}
+                        else null,
+                    onDismiss = {
+                        player.controller?.dismissRadioLoadError()
+                    }
+                )
+            }
         }
     }
 }

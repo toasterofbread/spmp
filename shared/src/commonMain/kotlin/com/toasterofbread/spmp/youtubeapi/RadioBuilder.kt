@@ -4,6 +4,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.getString
+import kotlinx.serialization.Serializable
 
 abstract class RadioBuilderEndpoint: YoutubeApi.Endpoint() {
     abstract suspend fun getRadioBuilderArtists(
@@ -21,10 +22,13 @@ data class RadioBuilderArtist(
     val thumbnail: MediaItemThumbnailProvider.Thumbnail
 )
 
-interface RadioBuilderModifier {
+
+@Serializable
+sealed interface RadioBuilderModifier {
     val string: String?
     fun getReadable(): String
 
+    @Serializable
     enum class Variety: RadioBuilderModifier {
         LOW, MEDIUM, HIGH;
         override val string: String? get() = when (this) {
@@ -39,6 +43,7 @@ interface RadioBuilderModifier {
         })
     }
 
+    @Serializable
     enum class SelectionType: RadioBuilderModifier {
         FAMILIAR, BLEND, DISCOVER;
         override val string: String? get() = when (this) {
@@ -53,6 +58,7 @@ interface RadioBuilderModifier {
         })
     }
 
+    @Serializable
     enum class FilterA: RadioBuilderModifier {
         POPULAR, HIDDEN, NEW;
         override val string: String? get() = when (this) {
@@ -67,6 +73,7 @@ interface RadioBuilderModifier {
         })
     }
 
+    @Serializable
     enum class FilterB: RadioBuilderModifier {
         PUMP_UP, CHILL, UPBEAT, DOWNBEAT, FOCUS;
         override val string: String? get() = when (this) {
@@ -77,15 +84,38 @@ interface RadioBuilderModifier {
             FOCUS -> "ma"
         }
         override fun getReadable(): String = getString(when (this) {
-            PUMP_UP -> "radio_builder_modifier_filter_pump_up" // 熱
-            CHILL -> "radio_builder_modifier_filter_chill" // 冷
-            UPBEAT -> "radio_builder_modifier_filter_upbeat" // 明るい
-            DOWNBEAT -> "radio_builder_modifier_filter_downbeat" // 重い
+            PUMP_UP -> "radio_builder_modifier_filter_pump_up"
+            CHILL -> "radio_builder_modifier_filter_chill"
+            UPBEAT -> "radio_builder_modifier_filter_upbeat"
+            DOWNBEAT -> "radio_builder_modifier_filter_downbeat"
             FOCUS -> "radio_builder_modifier_filter_focus"
         })
     }
 
+    fun serialise(): String =
+        when (this) {
+            is FilterA -> 'a'
+            is FilterB -> 'b'
+            is SelectionType -> 's'
+            is Variety -> 'v'
+        } + string.toString()
+
     companion object {
+        fun deserialise(serialised: String): RadioBuilderModifier {
+            val values = when (serialised.first()) {
+                'a' -> FilterA.values()
+                'b' -> FilterB.values()
+                's' -> SelectionType.values()
+                'v' -> Variety.values()
+                else -> throw NotImplementedError(serialised)
+            }
+
+            val string = serialised.substring(1)
+            return values.first {
+                it.string.toString() == string
+            }
+        }
+
         fun fromString(modifier: String): RadioBuilderModifier? {
             return when (modifier) {
                 "iY" -> SelectionType.FAMILIAR

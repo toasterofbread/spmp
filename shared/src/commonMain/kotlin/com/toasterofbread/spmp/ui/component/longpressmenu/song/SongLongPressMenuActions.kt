@@ -171,7 +171,7 @@ private fun LongPressMenuActionProvider.LPMActions(
         Icons.Default.Radio, getString("lpm_action_radio"),
         onClick = {
             withSong {
-                player.controller?.playSong(it)
+                player.controller?.startRadioAtIndex(0, it)
             }
         },
         onLongClick = queue_index?.let { index -> {
@@ -187,7 +187,7 @@ private fun LongPressMenuActionProvider.LPMActions(
         },
         onClick = { active_queue_index ->
             withSong {
-                player.controller?.addToQueue(
+                player.controller?.addSong(
                     it,
                     active_queue_index + 1,
                     is_active_queue = Settings.KEY_LPM_INCREMENT_PLAY_AFTER.get(),
@@ -197,7 +197,7 @@ private fun LongPressMenuActionProvider.LPMActions(
         },
         onLongClick = { active_queue_index ->
             withSong {
-                player.controller?.addToQueue(
+                player.controller?.addSong(
                     it,
                     active_queue_index + 1,
                     is_active_queue = Settings.KEY_LPM_INCREMENT_PLAY_AFTER.get(),

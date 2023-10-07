@@ -19,6 +19,9 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
+import com.toasterofbread.spmp.model.mediaitem.fromUid
+import com.toasterofbread.spmp.model.mediaitem.getMediaItemFromUid
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
@@ -39,11 +42,17 @@ fun CurrentRadioIndicator(
 
     Row(modifier.animateContentSize()) {
 
-        val filters: List<List<RadioBuilderModifier>>? = player.controller?.radio_filters
+        val filters: List<List<RadioBuilderModifier>>? = player.controller?.radio_state?.filters
         var show_radio_info: Boolean by remember { mutableStateOf(false) }
-        val radio_item: MediaItem? = player.controller?.radio_item.takeIf { item ->
-            item !is Song || player.controller?.radio_item_index == null
-        }
+
+        val radio_item: MediaItem? =
+            player.controller?.radio_state?.item
+                ?.takeIf { item ->
+                    MediaItemType.fromUid(item.first) != MediaItemType.SONG || item.second == null
+                }
+                ?.let { item ->
+                    getMediaItemFromUid(item.first)
+                }
 
         LaunchedEffect(radio_item) {
             if (radio_item == null) {
@@ -126,7 +135,7 @@ private fun FiltersRow(
         horizontalArrangement = Arrangement.spacedBy(15.dp),
         contentPadding = content_padding
     ) {
-        val current_filter = player.controller?.radio_current_filter
+        val current_filter = player.controller?.radio_state?.current_filter
 
         itemsIndexed(listOf(null) + filters) { i, filter ->
             val index = if (filter == null) null else i - 1
@@ -135,8 +144,8 @@ private fun FiltersRow(
                 current_filter == index,
                 modifier = Modifier.height(32.dp),
                 onClick = {
-                    if (player.controller?.radio_current_filter != index) {
-                        player.controller?.radio_current_filter = index
+                    if (player.controller?.radio_state?.current_filter != index) {
+                        player.controller?.setRadioFilter(index)
                     }
                 },
                 label = {

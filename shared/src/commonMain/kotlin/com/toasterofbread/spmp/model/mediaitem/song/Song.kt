@@ -89,7 +89,7 @@ interface Song: MediaItem.WithArtist {
 
     override val Artist: AltSetterProperty<ArtistRef?, Artist?>
         get() = object : PropertyImpl<ArtistRef?, Query<ArtistById>>(
-            { songQueries.artistById(id) }, { executeAsOne().artist?.let { ArtistRef(it) } }, { songQueries.updateArtistById(it?.id, id) }
+            { songQueries.artistById(id) }, { executeAsOneOrNull()?.artist?.let { ArtistRef(it) } }, { songQueries.updateArtistById(it?.id, id) }
         ), AltSetterProperty<ArtistRef?, Artist?> {
             override fun setAlt(value: Artist?, db: Database) {
                 db.songQueries.updateArtistById(value?.id, id)

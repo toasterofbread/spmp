@@ -38,7 +38,7 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
     private val queue_lock = Mutex()
 
     private fun getPersistentQueueMetadata(): PersistentQueueMetadata =
-        PersistentQueueMetadata(player.service.current_song_index, player.service.current_position_ms)
+        PersistentQueueMetadata(player.current_song_index, player.current_position_ms)
 
     suspend fun savePersistentQueue() {
         if (!persistent_queue_loaded || !Settings.KEY_PERSISTENT_QUEUE.get<Boolean>(context)) {
@@ -49,8 +49,8 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
         val metadata: PersistentQueueMetadata
 
         withContext(Dispatchers.Main) {
-            for (i in 0 until player.service.song_count) {
-                val song = player.service.getSong(i)
+            for (i in 0 until player.song_count) {
+                val song = player.getSong(i)
                 if (song != null) {
                     songs.add(song)
                 }
@@ -80,7 +80,7 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
     }
 
     suspend fun loadPersistentQueue() {
-        if (player.service.song_count != 0) {
+        if (player.song_count != 0) {
             persistent_queue_loaded = true
             return
         }
@@ -158,11 +158,11 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
                 SpMp.Log.info("loadPersistentQueue adding ${songs.size} songs to $metadata")
 
                 player.apply {
-                    if (player.service.song_count == 0) {
+                    if (player.song_count == 0) {
                         clearQueue(save = false)
                         addMultipleToQueue(songs, 0)
-                        player.service.seekToSong(metadata.song_index)
-                        player.service.seekTo(metadata.position_ms)
+                        player.seekToSong(metadata.song_index)
+                        player.seekTo(metadata.position_ms)
                     }
                 }
             }

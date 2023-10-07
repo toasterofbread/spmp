@@ -47,16 +47,13 @@ fun QueueButtonsRow(
 
         Button(
             onClick = {
-                player.controller?.undoableAction {
-                    if (multiselect_context.is_active) {
-                        for (item in multiselect_context.getSelectedItems().sortedByDescending { it.second!! }) {
-                            player.controller?.removeFromQueue(item.second!!)
-                        }
-                        multiselect_context.onActionPerformed()
-                    }
-                    else {
-                        player.controller?.clearQueue(keep_current = player.status.m_song_count > 1)
-                    }
+                if (multiselect_context.is_active) {
+                    val items = multiselect_context.getSelectedItems().sortedByDescending { it.second!! }
+                    player.controller?.removeMultipleSongs(items.map { it.second!! })
+                    multiselect_context.onActionPerformed()
+                }
+                else {
+                    player.controller?.clearQueue(keep_current = player.status.m_song_count > 1)
                 }
             },
             colors = ButtonDefaults.buttonColors(
@@ -72,23 +69,17 @@ fun QueueButtonsRow(
             Modifier.combinedClickable(
                 onClick = {
                     if (multiselect_context.is_active) {
-                        player.controller?.undoableAction {
-                            player.controller?.shuffleQueueIndices(multiselect_context.getSelectedItems().map { it.second!! })
-                        }
+                        player.controller?.shuffleQueueIndices(multiselect_context.getSelectedItems().map { it.second!! })
                         multiselect_context.onActionPerformed()
                     }
                     else {
-                        player.controller?.undoableAction {
-                            player.controller?.shuffleQueue()
-                        }
+                        player.controller?.shuffleQueue()
                     }
                 },
                 onLongClick = if (multiselect_context.is_active) null else ({
-                    player.controller?.undoableAction {
-                        if (!multiselect_context.is_active) {
-                            player.context.vibrateShort()
-                            player.controller?.shuffleQueue(start = 0)
-                        }
+                    if (!multiselect_context.is_active) {
+                        player.context.vibrateShort()
+                        player.controller?.shuffleQueue(start = 0)
                     }
                 })
             ),

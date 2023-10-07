@@ -5,12 +5,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import app.cash.sqldelight.Query
+import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.db.incrementPlayCount
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.MediaPlayerRepeatMode
 import com.toasterofbread.spmp.platform.MediaPlayerState
 import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.PlatformPreferences
+import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.service.playercontroller.DiscordStatusHandler
 import com.toasterofbread.spmp.service.playercontroller.PersistentQueueHandler
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
@@ -19,35 +23,33 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Timer
+import java.util.TimerTask
 import kotlin.random.Random
 import kotlin.random.nextInt
 
+private const val UPDATE_INTERVAL: Long = 5000 // ms
+//private const val VOL_NOTIF_SHOW_DURATION: Long = 1000
+private const val SONG_MARK_WATCHED_POSITION = 1000 // ms
+
 class PlayerServicePlayer(private val service: PlatformPlayerService) {
-    internal val radio: RadioHandler = object : RadioHandler(this, service.context) {
-        override fun onInstanceStateChanged(state: RadioInstance.RadioState) {
-            TODO()
-        }
-    }
-    private lateinit var persistent_queue: PersistentQueueHandler
-    private lateinit var discord_status: DiscordStatusHandler
     private val context: PlatformContext get() = service.context
-
-    var active_queue_index: Int by mutableIntStateOf(0)
-//
-//    val radio_loading: Boolean get() = radio.loading
-//    val radio_item: MediaItem? get() = radio.item?.first?.let { getMediaItemFromUid(it) }
-//    val radio_item_index: Int? get() = radio.item?.second
-//    val radio_filters: List<List<RadioBuilderModifier>>? get() = radio.filters
-//    var radio_current_filter: Int?
-//        get() = radio.current_filter
-//        set(value) {
-//            TODO()
-////            radio.setRadioFilter(value)
-//        }
-
     private val coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
 
+    internal val radio: RadioHandler = object : RadioHandler(this, context) {
+        override fun onInstanceStateChanged(state: RadioInstance.RadioState) {
+            service.service_state = service.service_state.copy(
+                radio_state = state
+            )
+        }
+    }
+    private val persistent_queue: PersistentQueueHandler = PersistentQueueHandler(this, context)
+    private val discord_status: DiscordStatusHandler = DiscordStatusHandler(this, context)
     private val undo_handler: UndoHandler = UndoHandler(this, service)
+    private var update_timer: Timer? = null
+
+    private var tracking_song_index = 0
+    private var song_marked_as_watched: Boolean = false
 
     val undo_count: Int get() = undo_handler.undo_count
     val redo_count: Int get() = undo_handler.redo_count
@@ -57,13 +59,143 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
     fun undo() = undo_handler.undo()
     fun undoAll() = undo_handler.undoAll()
 
+    private var stop_after_current_song: Boolean
+        get() = service.service_state.stop_after_current_song
+        set(value) {
+            if (value != stop_after_current_song) {
+                service.service_state = service.service_state.copy(
+                    stop_after_current_song = value
+                )
+            }
+        }
+
+    private var active_queue_index: Int
+        get() = service.service_state.active_queue_index
+        set(value) {
+            if (value != active_queue_index) {
+                service.service_state = service.service_state.copy(
+                    active_queue_index = value
+                )
+            }
+        }
+
+    private val prefs_listener = object : PlatformPreferences.Listener {
+        override fun onChanged(prefs: PlatformPreferences, key: String) {
+            when (key) {
+                Settings.KEY_DISCORD_ACCOUNT_TOKEN.name -> {
+                    discord_status.onDiscordAccountTokenChanged()
+                }
+//                Settings.KEY_ACC_VOL_INTERCEPT_NOTIFICATION.name -> {
+//                    vol_notif_enabled = Settings.KEY_ACC_VOL_INTERCEPT_NOTIFICATION.get(preferences = prefs)
+//                }
+            }
+        }
+    }
+
+    private val player_listener = object : PlayerListener() {
+        var current_song: Song? = null
+
+        val song_metadata_listener = Query.Listener {
+            discord_status.updateDiscordStatus(current_song)
+        }
+
+        override fun onSongTransition(song: Song?, manual: Boolean) {
+            if (manual && stop_after_current_song) {
+                stop_after_current_song = false
+            }
+
+            with(context.database) {
+                current_song?.also { current ->
+                    mediaItemQueries.titleById(current.id).removeListener(song_metadata_listener)
+                    songQueries.artistById(current.id).removeListener(song_metadata_listener)
+                }
+                current_song = song
+                current_song?.also { current ->
+                    mediaItemQueries.titleById(current.id).addListener(song_metadata_listener)
+                    songQueries.artistById(current.id).addListener(song_metadata_listener)
+                }
+            }
+
+            coroutine_scope.launch {
+                persistent_queue.savePersistentQueue()
+            }
+
+            if (current_song_index == tracking_song_index + 1) {
+                onSongEnded()
+            }
+            tracking_song_index = current_song_index
+            song_marked_as_watched = false
+
+            radio.checkRadioContinuation()
+            discord_status.updateDiscordStatus(song)
+
+            play()
+        }
+
+        override fun onSongMoved(from: Int, to: Int) {
+            radio.checkRadioContinuation()
+            radio.instance.onSongMoved(from, to)
+        }
+
+        override fun onSongRemoved(index: Int) {
+            radio.checkRadioContinuation()
+            radio.instance.onSongRemoved(index)
+        }
+
+        override fun onStateChanged(state: MediaPlayerState) {
+            if (state == MediaPlayerState.ENDED) {
+                onSongEnded()
+            }
+        }
+
+        override fun onSongAdded(index: Int, song: Song) {}
+    }
+
+    private fun onSongEnded() {
+        if (stop_after_current_song) {
+            pause()
+            stop_after_current_song = false
+        }
+    }
+
+    init {
+        service.addListener(player_listener)
+        context.getPrefs().addListener(prefs_listener)
+        discord_status.onDiscordAccountTokenChanged()
+
+        if (update_timer == null) {
+            update_timer = createUpdateTimer()
+        }
+    }
+
+    fun release() {
+        update_timer?.cancel()
+        update_timer = null
+
+        service.removeListener(player_listener)
+        context.getPrefs().removeListener(prefs_listener)
+        discord_status.release()
+    }
+
     fun updateActiveQueueIndex(delta: Int = 0) {
         if (delta != 0) {
-            active_queue_index = (active_queue_index + delta).coerceIn(service.current_song_index, service.song_count - 1)
+            setActiveQueueIndex(active_queue_index + delta)
         }
         else if (active_queue_index >= service.song_count) {
             active_queue_index = service.current_song_index
         }
+    }
+
+    fun setActiveQueueIndex(value: Int) {
+        active_queue_index = value.coerceIn(service.current_song_index, service.song_count - 1)
+    }
+
+    fun cancelSession() {
+        pause()
+        clearQueue()
+        service.service_state = service.service_state.copy(
+            session_started = false
+        )
     }
 
     fun playSong(song: Song, start_radio: Boolean = true, shuffle: Boolean = false, at_index: Int = 0) {
@@ -97,6 +229,7 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
         index: Int,
         item: MediaItem? = null,
         item_index: Int? = null,
+        add_item: Boolean = false,
         skip_first: Boolean = false,
         shuffle: Boolean = false,
         onLoad: (suspend (success: Boolean) -> Unit)? = null
@@ -108,17 +241,20 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
                 clearQueue(from = index, keep_current = false, save = false, cancel_radio = false)
 
                 val final_item = item ?: getSong(index)!!
-                val final_index = if (item != null) item_index else index
+                val final_index: Int? = if (item != null) item_index else index
 
                 if (final_item !is Song) {
                     coroutine_scope.launch {
                         final_item.incrementPlayCount(context)
                     }
                 }
+                else if (add_item) {
+                    addToQueue(final_item, index)
+                }
 
                 return@customUndoableAction radio.getRadioChangeUndoRedo(
-                    radio.instance.playMediaItem(final_item, final_index, shuffle),
-                    index,
+                    radio.instance.playMediaItem(final_item, if (add_item) index + 1 else index, shuffle),
+                    if (add_item) index + 1 else index,
                     furtherAction = { a: PlayerServicePlayer.() -> UndoRedoAction? ->
                         furtherAction {
                             a()
@@ -130,7 +266,7 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
         }
     }
 
-    fun continueRadio() {
+    fun continueRadio(is_retry: Boolean = false) {
         synchronized(radio) {
             if (radio.instance.loading) {
                 return
@@ -138,8 +274,13 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
 
             radio.instance.loadContinuation(
                 context,
-                can_retry = true
-            ) { result, is_retry ->
+                can_retry = true,
+                is_retry = is_retry
+            ) { result, _ ->
+                if (is_retry) {
+                    return@loadContinuation
+                }
+
                 result.onSuccess { songs ->
                     withContext(Dispatchers.Main) {
                         addMultipleToQueue(songs, song_count, false, skip_existing = true)
@@ -151,8 +292,7 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
 
     fun clearQueue(from: Int = 0, keep_current: Boolean = false, save: Boolean = true, cancel_radio: Boolean = true) {
         if (cancel_radio) {
-            TODO()
-//            radio.instance.cancelRadio()
+            radio.instance.cancelRadio()
         }
 
         undo_handler.undoableAction {
@@ -171,21 +311,22 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
         updateActiveQueueIndex()
     }
 
-    fun shuffleQueue(start: Int = -1, end: Int = song_count - 1) {
+    fun shuffleQueue(start: Int = 0, end: Int = -1) {
+        val shuffle_end = if (end < 0) song_count -1 else end
         val range: IntRange =
             if (start < 0) {
-                current_song_index + 1..end
-            } 
+                current_song_index + 1..shuffle_end
+            }
             else if (song_count - start <= 1) {
                 return
             }
             else {
-                start..end
+                start..shuffle_end
             }
         shuffleQueue(range)
     }
 
-    fun shuffleQueue(range: IntRange) {
+    private fun shuffleQueue(range: IntRange) {
         undo_handler.undoableAction {
             for (i in range) {
                 val swap = Random.nextInt(range)
@@ -228,10 +369,10 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
     fun addToQueue(song: Song, index: Int? = null, is_active_queue: Boolean = false, start_radio: Boolean = false, save: Boolean = true): Int {
         val add_to_index: Int
         if (index == null) {
-            add_to_index = song_count - 1
+            add_to_index = (song_count - 1).coerceAtLeast(0)
         }
         else {
-            add_to_index = if (index < song_count) index else song_count - 1
+            add_to_index = if (index < song_count) index else (song_count - 1).coerceAtLeast(0)
         }
 
         if (is_active_queue) {
@@ -244,13 +385,16 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
                 clearQueue(add_to_index + 1, save = false, cancel_radio = false)
 
                 synchronized(radio) {
-                    TODO()
-//                    return@customUndoableAction radio.getRadioChangeUndoRedo(
-//                        radio.instance.playMediaItem(song, add_to_index),
-//                        add_to_index + 1,
-//                        save = save,
-//                        furtherAction = furtherAction
-//                    )
+                    return@customUndoableAction radio.getRadioChangeUndoRedo(
+                        radio.instance.playMediaItem(song, add_to_index),
+                        add_to_index + 1,
+                        save = save,
+                        furtherAction = { a ->
+                            furtherAction {
+                                a()
+                            }
+                        }
+                    )
                 }
             }
             else if (save) {
@@ -269,7 +413,8 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
         skip_first: Boolean = false,
         save: Boolean = true,
         is_active_queue: Boolean = false,
-        skip_existing: Boolean = false
+        skip_existing: Boolean = false,
+        clear: Boolean = false
     ) {
         val to_add: List<Song> =
             if (!skip_existing) {
@@ -290,6 +435,10 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
         val index_offset = if (skip_first) -1 else 0
 
         undo_handler.undoableAction {
+            if (clear) {
+                clearQueue(save = false)
+            }
+
             for (song in to_add.withIndex()) {
                 if (skip_first && song.index == 0) {
                     continue
@@ -309,6 +458,12 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
         }
     }
 
+    fun moveSong(from: Int, to: Int) {
+        undo_handler.undoableAction {
+            performAction(UndoHandler.MoveAction(from, to))
+        }
+    }
+
     fun removeFromQueue(index: Int, save: Boolean = true): Song {
         val song = getSong(index)!!
 
@@ -322,18 +477,66 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
         return song
     }
 
-    fun seekBy(delta_ms: Long) {
-        seekTo(current_position_ms + delta_ms)
+    fun removeMultipleFromQueue(indices: List<Int>, save: Boolean = true) {
+        undo_handler.undoableAction {
+            for (index in indices) {
+                performAction(UndoHandler.RemoveAction(index))
+            }
+        }
+
+        if (save) {
+            savePersistentQueue()
+        }
     }
 
-    @Composable
-    fun RadioLoadStatus(modifier: Modifier, expanded_modifier: Modifier) {
-        radio.instance.LoadStatus(modifier, expanded_modifier)
+    fun seekBy(delta_ms: Long) {
+        seekTo(current_position_ms + delta_ms)
     }
 
     inline fun iterateSongs(action: (i: Int, song: Song) -> Unit) {
         for (i in 0 until song_count) {
             action(i, getSong(i)!!)
+        }
+    }
+
+    private fun createUpdateTimer(): Timer {
+        return Timer().apply {
+            scheduleAtFixedRate(
+                object : TimerTask() {
+                    override fun run() {
+                        coroutine_scope.launch(Dispatchers.Main) {
+                            savePersistentQueue()
+                            markWatched()
+                        }
+                    }
+
+                    suspend fun markWatched() = withContext(Dispatchers.Main) {
+                        if (
+                            !song_marked_as_watched
+                            && is_playing
+                            && current_position_ms >= SONG_MARK_WATCHED_POSITION
+                        ) {
+                            song_marked_as_watched = true
+
+                            val song = getSong() ?: return@withContext
+
+                            withContext(Dispatchers.IO) {
+                                song.incrementPlayCount(context)
+
+                                val mark_endpoint = context.ytapi.user_auth_state?.MarkSongAsWatched
+                                if (mark_endpoint?.isImplemented() == true && Settings.KEY_ADD_SONGS_TO_HISTORY.get(context)) {
+                                    val result = mark_endpoint.markSongAsWatched(song)
+                                    if (result.isFailure) {
+                                        SpMp.error_manager.onError("autoMarkSongAsWatched", result.exceptionOrNull()!!)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                0,
+                UPDATE_INTERVAL
+            )
         }
     }
 
@@ -383,5 +586,9 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
     fun getSong(): Song? = service.getSong()
     fun getSong(index: Int): Song? = service.getSong(index)
     
-    fun savePersistentQueue() = service.savePersistentQueue()
+    fun savePersistentQueue() {
+        coroutine_scope.launch {
+            persistent_queue.savePersistentQueue()
+        }
+    }
 }

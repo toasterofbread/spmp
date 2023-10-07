@@ -1,21 +1,20 @@
 package com.toasterofbread.spmp.model.mediaitem
 
-import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistRef
-import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
-import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 
 fun getMediaItemFromUid(uid: String): MediaItem {
     val id = uid.substring(1)
-    return when(uid.first()) {
-        's' -> SongRef(id)
-        'a' -> ArtistRef(id)
-        'p' -> RemotePlaylistRef(id)
-        'l' -> LocalPlaylistRef(id)
+    return MediaItemType.fromUid(uid).referenceFromId(id)
+}
+
+fun MediaItemType.Companion.fromUid(uid: String): MediaItemType =
+    when(uid.first()) {
+        's' -> MediaItemType.SONG
+        'a' -> MediaItemType.ARTIST
+        'p' -> MediaItemType.PLAYLIST_REM
+        'l' -> MediaItemType.PLAYLIST_LOC
         else -> throw NotImplementedError(uid)
     }
-}
 
 fun MediaItem.getUid(): String =
     when (getType()) {

@@ -21,9 +21,10 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.platform.MediaPlayerRepeatMode
 import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.platform.PlatformPlayerController
+import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
-import com.toasterofbread.spmp.service.playercontroller.PlayerController
+import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
+import com.toasterofbread.spmp.platform.PlatformPlayerController
 import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -35,7 +36,7 @@ import com.toasterofbread.utils.common.indexOfOrNull
 import java.net.URI
 import java.net.URISyntaxException
 
-class PlayerStatus internal constructor(private val state: PlayerState, private val player: PlayerController) {
+class PlayerStatus internal constructor(private val state: PlayerState, private val player: PlatformPlayerController) {
     fun getProgress(): Float = player.duration_ms.let { duration ->
         if (duration <= 0f) 0f
         else player.current_position_ms.toFloat() / duration
@@ -71,7 +72,7 @@ class PlayerStatus internal constructor(private val state: PlayerState, private 
         private set
 
     init {
-        player.addListener(object : PlatformPlayerController.Listener() {
+        PlatformPlayerService.addListener(object : PlayerListener() {
             init {
                 onEvents()
             }
@@ -89,6 +90,8 @@ class PlayerStatus internal constructor(private val state: PlayerState, private 
                 m_undo_count = player.undo_count
                 m_redo_count = player.redo_count
             }
+
+            override fun onSongAdded(index: Int, song: Song) {}
 
             override fun onEvents() {
                 m_duration_ms = player.duration_ms
@@ -124,8 +127,8 @@ open class PlayerState protected constructor(
         get() = upstream!!.active_queue_index
         set(value) { upstream!!.active_queue_index = value }
 
-    open val controller: PlayerController? get() = upstream!!.controller
-    open fun withPlayer(action: PlayerController.() -> Unit) {
+    open val controller: PlatformPlayerController? get() = upstream!!.controller
+    open fun withPlayer(action: PlatformPlayerController.() -> Unit) {
         upstream!!.withPlayer(action)
     }
 
@@ -134,7 +137,7 @@ open class PlayerState protected constructor(
 
     open val screen_size: DpSize get() = upstream!!.screen_size
 
-    open fun interactService(action: (player: PlayerController) -> Unit) { upstream!!.interactService(action) }
+    open fun interactService(action: (player: PlatformPlayerController) -> Unit) { upstream!!.interactService(action) }
     open fun isRunningAndFocused(): Boolean = upstream!!.isRunningAndFocused()
 
     val bottom_padding_dp: Dp

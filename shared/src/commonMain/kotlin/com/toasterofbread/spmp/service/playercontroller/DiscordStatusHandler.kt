@@ -61,7 +61,7 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
 
     @Synchronized
     fun updateDiscordStatus(song: Song?): Unit = with(context.database) {
-        val status_song: Song? = song ?: player.service.getSong()
+        val status_song: Song? = song ?: player.getSong()
         val song_title: String? = status_song?.getActiveTitle(context.database)
 
         if (status_song == current_status_song && song_title == current_status_title) {

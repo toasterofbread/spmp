@@ -7,4 +7,8 @@ import com.toasterofbread.utils.common.lazyAssert
 class SongRef(override val id: String): Song, MediaItemRef() {
     override fun toString(): String = "SongRef($id)"
     override val property_rememberer: PropertyRememberer = PropertyRememberer()
+
+    init {
+        lazyAssert { id.isNotBlank() }
+    }
 }

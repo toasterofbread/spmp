@@ -40,7 +40,7 @@ fun getPlayerStateMultiSelectContext(): MediaItemMultiSelectContext =
             Row(
                 Modifier.clickable {
                     player.withPlayer {
-                        addMultipleToQueue(
+                        addMultipleSongs(
                             multiselect.getUniqueSelectedItems().filterIsInstance<Song>(),
                             (active_queue_index + 1).coerceAtMost(player.status.m_song_count),
                             is_active_queue = true
@@ -110,7 +110,7 @@ private fun MultiSelectNextRowActions() {
                 onLongClick = {
                     player.context.vibrateShort()
                     player.withPlayer {
-                        active_queue_index = current_song_index
+                        setActiveQueueIndex(current_song_index)
                     }
                 }
             ),
@@ -129,7 +129,7 @@ private fun MultiSelectNextRowActions() {
                 onLongClick = {
                     player.context.vibrateShort()
                     player.withPlayer {
-                        active_queue_index = song_count - 1
+                        setActiveQueueIndex(song_count - 1)
                     }
                 }
             ),

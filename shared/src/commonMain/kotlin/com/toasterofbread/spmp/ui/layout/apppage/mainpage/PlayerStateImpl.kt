@@ -22,7 +22,6 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.PlatformPlayerController
-import com.toasterofbread.spmp.service.playercontroller.PlayerController
 import com.toasterofbread.spmp.ui.component.*
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenu
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
@@ -56,7 +55,7 @@ fun PlayerState.getMainPageItemSize(): DpSize {
 
 @OptIn(ExperimentalMaterialApi::class)
 class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, null, null) {
-    private var _player: PlayerController? by mutableStateOf(null)
+    private var _player: PlatformPlayerController? by mutableStateOf(null)
     override val session_started: Boolean get() = _player?.session_started == true
 
     override var screen_size: DpSize by mutableStateOf(DpSize.Zero)
@@ -119,7 +118,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
         service_connecting = true
         service_connection = PlatformPlayerController.connect(
             context,
-            PlayerController::class.java,
+            PlatformPlayerController::class.java,
             _player,
             { service ->
                 synchronized(service_connected_listeners) {
@@ -151,7 +150,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
         top_bar.release()
     }
 
-    override fun interactService(action: (player: PlayerController) -> Unit) {
+    override fun interactService(action: (player: PlatformPlayerController) -> Unit) {
         synchronized(service_connected_listeners) {
             _player?.also {
                 action(it)
@@ -261,12 +260,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
 
     override fun playMediaItem(item: MediaItem, shuffle: Boolean, at_index: Int) {
         withPlayer {
-            if (item is Song) {
-                playSong(item, start_radio = true, shuffle = shuffle, at_index = at_index)
-            }
-            else {
-                startRadioAtIndex(at_index, item, shuffle = shuffle)
-            }
+            startRadioAtIndex(at_index, item, shuffle = shuffle, add_item = true)
 
             if (np_swipe_state.value.targetValue == 0 && Settings.get(Settings.KEY_OPEN_NP_ON_SONG_PLAYED)) {
                 switchNowPlayingPage(1)
@@ -279,15 +273,9 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
             startRadioAtIndex(
                 0,
                 playlist,
-                onLoad =
+                on_load_seek_index =
                     if (from_index <= 0) null
-                    else { success ->
-                        if (success) {
-                            withContext(Dispatchers.Main) {
-                                seekToSong(from_index)
-                            }
-                        }
-                    }
+                    else from_index
             )
         }
     }
@@ -373,15 +361,15 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
 
     // PlayerServiceHost
 
-    override val controller: PlayerController? get() = _player
-    override fun withPlayer(action: PlayerController.() -> Unit) {
+    override val controller: PlatformPlayerController? get() = _player
+    override fun withPlayer(action: PlatformPlayerController.() -> Unit) {
         _player?.also { action(it) }
     }
 
     val service_connected: Boolean get() = _player != null
 
     private var service_connecting = false
-    private var service_connected_listeners = mutableListOf<(PlayerController) -> Unit>()
+    private var service_connected_listeners = mutableListOf<(PlatformPlayerController) -> Unit>()
     private lateinit var service_connection: Any
 
     override lateinit var status: PlayerStatus

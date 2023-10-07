@@ -304,7 +304,7 @@ class RadioInstance(
                 }
 
                 if (items == null) {
-                    state.continuation = continuation ?: MediaItemLayout.Continuation(item.id, MediaItemLayout.Continuation.Type.PLAYLIST_INITIAL)
+                    state.continuation = continuation ?: MediaItemLayout.Continuation(item.id, MediaItemLayout.Continuation.Type.PLAYLIST_INITIAL, 0)
                     return Result.success(emptyList())
                 }
 

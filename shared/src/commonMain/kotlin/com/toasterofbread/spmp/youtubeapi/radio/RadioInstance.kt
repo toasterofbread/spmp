@@ -294,7 +294,7 @@ class RadioInstance(val context: PlatformContext) {
 
                 if (items == null) {
                     state = state.copy(
-                        continuation = continuation ?: MediaItemLayout.Continuation(item.id, MediaItemLayout.Continuation.Type.PLAYLIST_INITIAL)
+                        continuation = continuation ?: MediaItemLayout.Continuation(item.id, MediaItemLayout.Continuation.Type.PLAYLIST_INITIAL, 0)
                     )
                     return Result.success(emptyList())
                 }

@@ -33,8 +33,10 @@ class YTMRadioBuilderEndpoint(override val api: YoutubeMusicApi): RadioBuilderEn
             return@withContext Result.failure(it)
         }
 
-        return@withContext Result.success(parsed.items.zip(parsed.mutations).map { artist ->
-            RadioBuilderArtist(artist.first.title, artist.second.token!!, selectThumbnail(artist.first.musicThumbnail.image.sources))
+        return@withContext Result.success(parsed.items.zip(parsed.mutations).mapNotNull { artist ->
+            artist.second.token?.let { token ->
+                RadioBuilderArtist(artist.first.title, token, selectThumbnail(artist.first.musicThumbnail.image.sources))
+            }
         })
     }
 

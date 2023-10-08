@@ -18,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -47,6 +48,7 @@ import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.*
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchFilter
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchResults
+import com.toasterofbread.spmp.youtubeapi.endpoint.SearchSuggestion
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchType
 import com.toasterofbread.utils.*
 import com.toasterofbread.utils.common.copy
@@ -291,7 +293,7 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
 
     @Composable
     private fun SearchSuggestion(
-        suggestion: String,
+        suggestion: SearchSuggestion,
         shape: Shape,
         modifier: Modifier = Modifier,
         onSelected: () -> Unit,
@@ -302,9 +304,15 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
                 .clip(shape)
                 .background(Theme.background)
                 .border(2.dp, Theme.accent, shape)
-                .padding(10.dp)
+                .padding(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Text(suggestion, softWrap = false, overflow = TextOverflow.Ellipsis)
+            Text(suggestion.text, Modifier.weight(1f, false), softWrap = false, overflow = TextOverflow.Ellipsis)
+
+            if (suggestion.is_from_history) {
+                Icon(Icons.Default.History, null, Modifier.alpha(0.75f))
+            }
         }
     }
 
@@ -326,7 +334,7 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
         }
 
         val show_suggestions: Boolean by Settings.KEY_SEARCH_SHOW_SUGGESTIONS.rememberMutableState()
-        var suggestions: List<String> by remember { mutableStateOf(emptyList()) }
+        var suggestions: List<SearchSuggestion> by remember { mutableStateOf(emptyList()) }
 
         LaunchedEffect(focus_state.value) {
             if (!focus_state.value) {
@@ -365,7 +373,7 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
 
         Column(modifier) {
             AnimatedVisibility(show_suggestions && suggestions.isNotEmpty()) {
-                var current_suggestions: List<String> by remember { mutableStateOf(suggestions) }
+                var current_suggestions: List<SearchSuggestion> by remember { mutableStateOf(suggestions) }
                 LaunchedEffect(suggestions) {
                     if (suggestions.isNotEmpty()) {
                         current_suggestions = suggestions
@@ -383,7 +391,7 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
                         for (suggestion in it) {
                             SearchSuggestion(suggestion, shape) {
                                 if (!search_in_progress) {
-                                    current_query = suggestion
+                                    current_query = suggestion.text
                                     current_suggestions = emptyList()
                                     performSearch()
                                 }

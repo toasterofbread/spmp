@@ -35,6 +35,7 @@ import com.toasterofbread.spmp.youtubeapi.endpoint.LoadSongEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.PlaylistContinuationEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchResults
+import com.toasterofbread.spmp.youtubeapi.endpoint.SearchSuggestion
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchSuggestionsEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.SongLyricsEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.SongRadioEndpoint
@@ -194,7 +195,7 @@ class UnimplementedYoutubeApi(
     }
     override val SearchSuggestions = object : SearchSuggestionsEndpoint() {
         override fun isImplemented(): Boolean = false
-        override suspend fun getSearchSuggestions(query: String): Result<List<String>> {
+        override suspend fun getSearchSuggestions(query: String): Result<List<SearchSuggestion>> {
             throw NotImplementedError()
         }
         override val api = this@UnimplementedYoutubeApi

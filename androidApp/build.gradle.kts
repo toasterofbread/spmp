@@ -70,7 +70,7 @@ android {
     }
 
     defaultConfig {
-        versionCode = 7
+        versionCode = 8
         versionName = getString("version_string")
 
         applicationId = "com.toasterofbread.spmp"

@@ -2,7 +2,7 @@
 <resources>
     <string name="language_name">English</string>
 
-    <string name="version_string" translatable="false">0.2.1</string>
+    <string name="version_string" translatable="false">0.2.2</string>
     <string name="app_name" translatable="false">SpMp</string>
     <string name="app_name_debug" translatable="false">SpMp (debug)</string>
     <string name="project_url" translatable="false">https://github.com/toasterofbread/spmp</string>

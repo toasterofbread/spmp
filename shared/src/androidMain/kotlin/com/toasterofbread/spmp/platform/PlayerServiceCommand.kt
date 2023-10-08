@@ -29,7 +29,6 @@ sealed class PlayerServiceCommand {
         val index: Int,
         val item_uid: String? = null,
         val item_index: Int? = null,
-        val add_item: Boolean = false,
         val skip_first: Boolean = false,
         val shuffle: Boolean = false,
         val on_load_seek_index: Int? = null

@@ -1,6 +1,8 @@
 package com.toasterofbread.spmp.platform
 
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.platform.playerservice.MediaPlayerRepeatMode
+import com.toasterofbread.spmp.platform.playerservice.MediaPlayerState
 
 expect abstract class PlayerListener() {
     open fun onSongTransition(song: Song?, manual: Boolean)

@@ -1,5 +1,8 @@
 package com.toasterofbread.spmp.platform.playerservice
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.utils.common.synchronizedBlock
 
@@ -12,7 +15,7 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: Platfor
     private var current_action: MutableList<UndoRedoAction>? = null
     private var current_action_is_further: Boolean = false
     private val action_list: MutableList<List<UndoRedoAction>> = mutableListOf()
-    private var action_head: Int = 0
+    private var action_head: Int by mutableIntStateOf(0)
 
     val undo_count: Int get() = action_head
     val redo_count: Int get() = action_list.size - undo_count
@@ -184,8 +187,6 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: Platfor
                     action.undo(service)
                 }
             }
-
-            service.service_state
 //            listeners.forEach { it.onUndoStateChanged() }
         }
     }

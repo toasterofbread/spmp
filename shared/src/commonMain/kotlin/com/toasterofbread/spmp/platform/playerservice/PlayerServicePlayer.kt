@@ -1,17 +1,14 @@
 package com.toasterofbread.spmp.platform.playerservice
 
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import app.cash.sqldelight.Query
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.db.incrementPlayCount
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.MediaPlayerRepeatMode
-import com.toasterofbread.spmp.platform.MediaPlayerState
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.platform.PlayerListener
@@ -36,13 +33,7 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
     private val context: PlatformContext get() = service.context
     private val coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
 
-    internal val radio: RadioHandler = object : RadioHandler(this, context) {
-        override fun onInstanceStateChanged(state: RadioInstance.RadioState) {
-            service.service_state = service.service_state.copy(
-                radio_state = state
-            )
-        }
-    }
+    internal val radio: RadioHandler = RadioHandler(this, context)
     private val persistent_queue: PersistentQueueHandler = PersistentQueueHandler(this, context)
     private val discord_status: DiscordStatusHandler = DiscordStatusHandler(this, context)
     private val undo_handler: UndoHandler = UndoHandler(this, service)
@@ -54,30 +45,14 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
     val undo_count: Int get() = undo_handler.undo_count
     val redo_count: Int get() = undo_handler.redo_count
 
+    var stop_after_current_song: Boolean by mutableStateOf(false)
+    var session_started: Boolean by mutableStateOf(false)
+    var active_queue_index: Int by mutableIntStateOf(0)
+
     fun redo() = undo_handler.redo()
     fun redoAll() = undo_handler.redoAll()
     fun undo() = undo_handler.undo()
     fun undoAll() = undo_handler.undoAll()
-
-    private var stop_after_current_song: Boolean
-        get() = service.service_state.stop_after_current_song
-        set(value) {
-            if (value != stop_after_current_song) {
-                service.service_state = service.service_state.copy(
-                    stop_after_current_song = value
-                )
-            }
-        }
-
-    private var active_queue_index: Int
-        get() = service.service_state.active_queue_index
-        set(value) {
-            if (value != active_queue_index) {
-                service.service_state = service.service_state.copy(
-                    active_queue_index = value
-                )
-            }
-        }
 
     private val prefs_listener = object : PlatformPreferences.Listener {
         override fun onChanged(prefs: PlatformPreferences, key: String) {
@@ -193,9 +168,7 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
     fun cancelSession() {
         pause()
         clearQueue()
-        service.service_state = service.service_state.copy(
-            session_started = false
-        )
+        session_started = false
     }
 
     fun playSong(song: Song, start_radio: Boolean = true, shuffle: Boolean = false, at_index: Int = 0) {
@@ -229,7 +202,6 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
         index: Int,
         item: MediaItem? = null,
         item_index: Int? = null,
-        add_item: Boolean = false,
         skip_first: Boolean = false,
         shuffle: Boolean = false,
         onLoad: (suspend (success: Boolean) -> Unit)? = null
@@ -241,20 +213,17 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
                 clearQueue(from = index, keep_current = false, save = false, cancel_radio = false)
 
                 val final_item = item ?: getSong(index)!!
-                val final_index: Int? = if (item != null) item_index else index
+                val final_index = if (item != null) item_index else index
 
                 if (final_item !is Song) {
                     coroutine_scope.launch {
                         final_item.incrementPlayCount(context)
                     }
                 }
-                else if (add_item) {
-                    addToQueue(final_item, index)
-                }
 
                 return@customUndoableAction radio.getRadioChangeUndoRedo(
-                    radio.instance.playMediaItem(final_item, if (add_item) index + 1 else index, shuffle),
-                    if (add_item) index + 1 else index,
+                    radio.instance.playMediaItem(final_item, final_index, shuffle),
+                    index,
                     furtherAction = { a: PlayerServicePlayer.() -> UndoRedoAction? ->
                         furtherAction {
                             a()
@@ -561,7 +530,7 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
     val duration_ms: Long get() = service.duration_ms
     val has_focus: Boolean get() = service.has_focus
 
-    val radio_state: RadioInstance.RadioState get() = service.radio_state
+    val radio_state: RadioInstance.RadioState get() = radio.instance.state
 
     var repeat_mode: MediaPlayerRepeatMode
         get() = service.repeat_mode

@@ -3,6 +3,10 @@ package com.toasterofbread.spmp.platform
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.platform.playerservice.MediaPlayerRepeatMode
+import com.toasterofbread.spmp.platform.playerservice.MediaPlayerState
+import com.toasterofbread.spmp.platform.playerservice.convertState
+import com.toasterofbread.spmp.platform.playerservice.getSong
 
 actual abstract class PlayerListener {
     actual open fun onSongTransition(song: Song?, manual: Boolean) {}

@@ -41,8 +41,8 @@ fun CurrentRadioIndicator(
     val horizontal_padding = 15.dp
 
     Row(modifier.animateContentSize()) {
-
         val filters: List<List<RadioBuilderModifier>>? = player.controller?.radio_state?.filters
+        println("RADIO FILTERS $filters ${player.controller} ${player.controller?.radio_state}")
         var show_radio_info: Boolean by remember { mutableStateOf(false) }
 
         val radio_item: MediaItem? =
@@ -145,7 +145,7 @@ private fun FiltersRow(
                 modifier = Modifier.height(32.dp),
                 onClick = {
                     if (player.controller?.radio_state?.current_filter != index) {
-                        player.controller?.setRadioFilter(index)
+                        player.controller?.service_player?.radio?.setRadioFilter(index)
                     }
                 },
                 label = {

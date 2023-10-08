@@ -1,29 +1,44 @@
 package com.toasterofbread.spmp.platform.playerservice
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.MediaPlayerRepeatMode
-import com.toasterofbread.spmp.platform.MediaPlayerState
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
 
-data class PlayerServiceState(
-    val stop_after_current_song: Boolean = false,
-    val radio_state: RadioInstance.RadioState = RadioInstance.RadioState(),
-    val undo_count: Int = 0,
-    val redo_count: Int = 0,
-    val active_queue_index: Int = 0,
-    val session_started: Boolean = false
-) {
-    companion object
+internal const val AUTO_DOWNLOAD_SOFT_TIMEOUT = 1500 // ms
+
+enum class MediaPlayerState {
+    IDLE,
+    BUFFERING,
+    READY,
+    ENDED
+}
+
+enum class MediaPlayerRepeatMode {
+    NONE,
+    ONE,
+    ALL
 }
 
 expect class PlatformPlayerService() {
     companion object {
-        val instance: PlatformPlayerService
+        val instance: PlatformPlayerService?
 
         fun addListener(listener: PlayerListener)
         fun removeListener(listener: PlayerListener)
+
+        inline fun <reified C: PlatformPlayerService> connect(
+            context: PlatformContext,
+            controller_class: Class<C>,
+            instance: C? = null,
+            crossinline onConnected: () -> Unit,
+            crossinline onCancelled: () -> Unit
+        ): Any
+
+        fun disconnect(context: PlatformContext, connection: Any)
     }
 
     val context: PlatformContext
@@ -64,5 +79,6 @@ expect class PlatformPlayerService() {
     fun addListener(listener: PlayerListener)
     fun removeListener(listener: PlayerListener)
 
-    var service_state: PlayerServiceState
+    @Composable
+    fun Visualiser(colour: Color, modifier: Modifier, opacity: Float)
 }

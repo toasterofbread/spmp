@@ -18,7 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.platform.MediaPlayerRepeatMode
+import com.toasterofbread.spmp.platform.playerservice.MediaPlayerRepeatMode
 import com.toasterofbread.utils.common.getContrasted
 import com.toasterofbread.utils.common.getInnerSquareSizeOfCircle
 import com.toasterofbread.utils.composable.crossOut

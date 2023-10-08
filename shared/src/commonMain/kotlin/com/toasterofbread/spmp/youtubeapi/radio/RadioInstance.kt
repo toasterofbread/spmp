@@ -35,26 +35,11 @@ import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.job
 import kotlinx.serialization.Serializable
 
-abstract class RadioInstance(
-    val context: PlatformContext
-) {
-    private var _state: RadioState by mutableStateOf(RadioState())
-
-    var state: RadioState
-        get() = _state
-        set(value) {
-            if (value == _state) {
-                return
-            }
-
-            _state = value
-            onStateChanged()
-        }
+class RadioInstance(val context: PlatformContext) {
+    var state: RadioState by mutableStateOf(RadioState())
 
     val active: Boolean get() = state.item != null
     val loading: Boolean get() = state.loading
-
-    abstract fun onStateChanged()
 
     private val coroutine_scope = CoroutineScope(Dispatchers.IO)
     private val lock = coroutine_scope
@@ -67,14 +52,12 @@ abstract class RadioInstance(
         failed_load_retry_callback = null
     }
 
-    @Serializable
     data class RadioLoadError(
         val message: String,
         val stack_trace: String,
         val can_retry: Boolean
     )
 
-    @Serializable
     data class RadioState(
         val item: Pair<String, Int?>? = null,
         val continuation: MediaItemLayout.Continuation? = null,
@@ -98,10 +81,6 @@ abstract class RadioInstance(
                     RadioLoadError(it.message.toString(), it.stackTraceToString(), can_retry)
                 }
             )
-
-        override fun toString(): String {
-            return "RadioState(item=$item, continuation=$continuation)"
-        }
     }
 
     fun playMediaItem(item: MediaItem, index: Int? = null, shuffle: Boolean = false): RadioState {
@@ -382,11 +361,11 @@ fun RadioInstance.RadioState.LoadStatus(
                     disable_parent_scroll = disable_parent_scroll,
                     onRetry =
                         if (can_retry) {{
-                            player.controller?.continueRadio(is_retry = true)
+                            player.controller?.service_player?.continueRadio(is_retry = true)
                         }}
                         else null,
                     onDismiss = {
-                        player.controller?.dismissRadioLoadError()
+                        player.controller?.service_player?.radio?.instance?.dismissRadioLoadError()
                     }
                 )
             }

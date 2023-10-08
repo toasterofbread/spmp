@@ -1,10 +1,8 @@
 package com.toasterofbread.spmp.service.playercontroller
 
 import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.platform.PlatformPlayerController
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
-import com.toasterofbread.spmp.platform.playerservice.UndoHandler
 import com.toasterofbread.spmp.platform.playerservice.UndoRedoAction
 import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
 import kotlinx.coroutines.Dispatchers
@@ -14,15 +12,8 @@ import kotlinx.coroutines.withContext
 // TODO Add setting
 private const val RADIO_MIN_LENGTH: Int = 10
 
-abstract class RadioHandler(val player: PlayerServicePlayer, val context: PlatformContext) {
-    val instance: RadioInstance = object : RadioInstance(context) {
-        override fun onStateChanged() {
-            onInstanceStateChanged(state)
-        }
-    }
-
-    abstract fun onInstanceStateChanged(state: RadioInstance.RadioState)
-
+class RadioHandler(val player: PlayerServicePlayer, val context: PlatformContext) {
+    val instance: RadioInstance = RadioInstance(context)
     fun getRadioChangeUndoRedo(
         previous_radio_state: RadioInstance.RadioState,
         continuation_index: Int,

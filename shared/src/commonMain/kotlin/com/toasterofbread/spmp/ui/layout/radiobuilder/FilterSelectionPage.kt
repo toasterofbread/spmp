@@ -95,7 +95,7 @@ fun FilterSelectionPage(
                 preview_loading = true
             }
             else if (preview_playlist?.id == radio_token) {
-                player.controller?.startRadioAtIndex(0, preview_playlist)
+                player.controller?.service_player?.startRadioAtIndex(0, preview_playlist)
                 return
             }
             else {
@@ -120,7 +120,7 @@ fun FilterSelectionPage(
                             }
                             else {
                                 withContext(Dispatchers.Main) {
-                                    player.controller?.startRadioAtIndex(0, playlist)
+                                    player.controller?.service_player?.startRadioAtIndex(0, playlist)
                                 }
                             }
                         }

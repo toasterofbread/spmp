@@ -43,7 +43,6 @@ import com.toasterofbread.spmp.model.NowPlayingQueueWaveBorderMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.PlayerListener
-import com.toasterofbread.spmp.platform.iterateSongs
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -56,7 +55,6 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.rememberTopBarShouldShowInQu
 import com.toasterofbread.spmp.youtubeapi.radio.LoadStatus
 import com.toasterofbread.utils.common.getContrasted
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
@@ -72,7 +70,7 @@ fun QueueTab(page_height: Dp, getTopBarHeight: () -> Dp, modifier: Modifier = Mo
     val multiselect_context: MediaItemMultiSelectContext = remember { MediaItemMultiSelectContext() }
 
     val song_items: SnapshotStateList<QueueTabItem> = remember { mutableStateListOf<QueueTabItem>().also { list ->
-        player.controller?.iterateSongs { _, song: Song ->
+        player.controller?.service_player?.iterateSongs { _, song: Song ->
             list.add(QueueTabItem(song, key_inc++))
         }
     } }

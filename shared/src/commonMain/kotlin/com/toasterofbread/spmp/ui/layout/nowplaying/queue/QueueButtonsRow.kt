@@ -49,11 +49,11 @@ fun QueueButtonsRow(
             onClick = {
                 if (multiselect_context.is_active) {
                     val items = multiselect_context.getSelectedItems().sortedByDescending { it.second!! }
-                    player.controller?.removeMultipleSongs(items.map { it.second!! })
+                    player.controller?.service_player?.removeMultipleFromQueue(items.map { it.second!! })
                     multiselect_context.onActionPerformed()
                 }
                 else {
-                    player.controller?.clearQueue(keep_current = player.status.m_song_count > 1)
+                    player.controller?.service_player?.clearQueue(keep_current = player.status.m_song_count > 1)
                 }
             },
             colors = ButtonDefaults.buttonColors(
@@ -69,17 +69,17 @@ fun QueueButtonsRow(
             Modifier.combinedClickable(
                 onClick = {
                     if (multiselect_context.is_active) {
-                        player.controller?.shuffleQueueIndices(multiselect_context.getSelectedItems().map { it.second!! })
+                        player.controller?.service_player?.shuffleQueueIndices(multiselect_context.getSelectedItems().map { it.second!! })
                         multiselect_context.onActionPerformed()
                     }
                     else {
-                        player.controller?.shuffleQueue()
+                        player.controller?.service_player?.shuffleQueue()
                     }
                 },
                 onLongClick = if (multiselect_context.is_active) null else ({
                     if (!multiselect_context.is_active) {
                         player.context.vibrateShort()
-                        player.controller?.shuffleQueue(start = 0)
+                        player.controller?.service_player?.shuffleQueue(start = 0)
                     }
                 })
             ),
@@ -118,11 +118,11 @@ fun QueueButtonsRow(
                 .combinedClickable(
                     enabled = player.status.m_undo_count != 0 || player.status.m_redo_count != 0,
                     onClick = {
-                        player.controller?.undo()
+                        player.controller?.service_player?.undo()
                         player.context.vibrateShort()
                     },
                     onLongClick = {
-                        player.controller?.redo()
+                        player.controller?.service_player?.redo()
                         player.context.vibrateShort()
                     }
                 )

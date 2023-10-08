@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import app.cash.sqldelight.Query
+import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.db.incrementPlayCount
@@ -134,6 +135,10 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
     }
 
     init {
+        if (ProjectBuildConfig.MUTE_PLAYER == true) {
+            service.volume = 0f
+        }
+
         service.addListener(player_listener)
         context.getPrefs().addListener(prefs_listener)
         discord_status.onDiscordAccountTokenChanged()

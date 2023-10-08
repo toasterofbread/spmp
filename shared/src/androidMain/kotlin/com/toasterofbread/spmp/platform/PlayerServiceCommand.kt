@@ -10,7 +10,7 @@ import com.toasterofbread.spmp.youtubeapi.fromJson
 
 sealed class PlayerServiceCommand {
     fun getSessionCommand(): SessionCommand =
-        SessionCommand("com.toasterofbread.spmp.${this::class.simpleName}", Bundle.EMPTY)
+        SessionCommand("com.toasterofbread.spmp.${this::class.simpleName}", bundleOf("data" to Gson().toJson(this)))
 
     fun sendCommand(controller: MediaController) {
         controller.sendCustomCommand(
@@ -99,7 +99,7 @@ sealed class PlayerServiceCommand {
             }
 
         fun fromSessionCommand(command: SessionCommand, args: Bundle): PlayerServiceCommand? {
-            val data = args.getString("data")!!
+            val data = args.getString("data") ?: command.customExtras.getString("data") ?: "{}"
 
             return when (command.customAction.substring(24)) {
                 "CancelSession" -> CancelSession

@@ -42,7 +42,6 @@ fun CurrentRadioIndicator(
 
     Row(modifier.animateContentSize()) {
         val filters: List<List<RadioBuilderModifier>>? = player.controller?.radio_state?.filters
-        println("RADIO FILTERS $filters ${player.controller} ${player.controller?.radio_state}")
         var show_radio_info: Boolean by remember { mutableStateOf(false) }
 
         val radio_item: MediaItem? =

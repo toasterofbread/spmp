@@ -338,13 +338,11 @@ class PlaylistPage(
                 }
             )
 
-            var top_bar_showing by remember { mutableStateOf(false) }
-            player.top_bar.MusicTopBar(
+            val top_bar_showing: Boolean = player.top_bar.MusicTopBar(
                 Settings.KEY_LYRICS_SHOW_IN_SEARCH,
                 Modifier.fillMaxWidth().zIndex(2f),
-                padding = content_padding.copy(bottom = 0.dp),
-                onShowingChanged = { top_bar_showing = it }
-            )
+                padding = content_padding.copy(bottom = 0.dp)
+            ).showing
 
             AnimatedVisibility(top_bar_showing, Modifier.zIndex(1f)) {
                 WaveBorder(

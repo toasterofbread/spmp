@@ -359,7 +359,12 @@ actual class PlatformPlayerService: MediaSessionService() {
                             }
                         )
                         .setSessionCommand(
-                            PlayerServiceCommand.SetLiked(liked).getSessionCommand()
+                            PlayerServiceCommand.SetLiked(
+                                when (liked) {
+                                    SongLikedStatus.NEUTRAL -> SongLikedStatus.LIKED
+                                    SongLikedStatus.LIKED, SongLikedStatus.DISLIKED -> SongLikedStatus.NEUTRAL
+                                }
+                            ).getSessionCommand()
                         )
                         .setIconResId(
                             when (liked) {

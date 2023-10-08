@@ -21,6 +21,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.toasterofbread.composesettings.ui.SettingsInterface
@@ -176,12 +177,12 @@ class SettingsAppPage(override val state: AppPageState): AppPage() {
             pill_menu.PillMenu()
 
             Column(Modifier.fillMaxSize().padding(content_padding.getHorizontal(PREFS_PAGE_EXTRA_PADDING_DP.dp))) {
-                val top_padding = player.top_bar.MusicTopBar(
+                val top_padding: Dp = player.top_bar.MusicTopBar(
                     Settings.KEY_LYRICS_SHOW_IN_SETTINGS,
                     Modifier.fillMaxWidth().zIndex(10f),
                     getBottomBorderColour = if (current_category == null) Theme.background_provider else null,
                     padding = PaddingValues(top = content_padding.calculateTopPadding())
-                )
+                ).top_padding
 
                 Crossfade(category_open || settings_interface.current_page.id!! != PrefsPageScreen.ROOT.ordinal) { open ->
                     if (!open) {

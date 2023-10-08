@@ -147,11 +147,11 @@ fun ArtistLayout(
                 Spacer(Modifier.height(player.context.getStatusBarHeightDp()))
             }
 
-            player.top_bar.MusicTopBar(
+            music_top_bar_showing = player.top_bar.MusicTopBar(
                 Settings.KEY_LYRICS_SHOW_IN_ARTIST,
                 Modifier.fillMaxWidth().zIndex(1f),
                 padding = content_padding.horizontal
-            ) { music_top_bar_showing = it }
+            ).showing
 
             AnimatedVisibility(multiselect_context?.is_active == true) {
                 multiselect_context?.InfoDisplay(Modifier.padding(top = 10.dp).padding(content_padding.horizontal))

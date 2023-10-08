@@ -171,7 +171,7 @@ private fun LongPressMenuActionProvider.LPMActions(
         Icons.Default.Radio, getString("lpm_action_radio"),
         onClick = {
             withSong {
-                player.controller?.service_player?.startRadioAtIndex(0, it)
+                player.controller?.service_player?.playSong(it)
             }
         },
         onLongClick = queue_index?.let { index -> {

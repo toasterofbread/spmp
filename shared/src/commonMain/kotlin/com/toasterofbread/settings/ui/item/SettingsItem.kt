@@ -161,9 +161,7 @@ class SettingsValueState<T: Any>(
 
     override fun reset() {
         _value = getValueConverter(defaultProvider(key) as T)!!
-        if (autosave) {
-            save()
-        }
+        save()
         onChanged?.invoke(_value!!)
     }
 

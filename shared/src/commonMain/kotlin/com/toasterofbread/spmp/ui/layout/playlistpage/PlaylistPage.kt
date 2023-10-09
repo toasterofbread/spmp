@@ -436,7 +436,17 @@ class PlaylistPage(
                             sorted_items,
                             loading && load_type != LoadType.REFRESH && sorted_items == null,
                             load_error,
-                            Modifier.fillMaxWidth().padding(top = 15.dp)
+                            Modifier.fillMaxWidth().padding(top = 15.dp),
+                            onRetry = 
+                                remote_playlist?.let { remote ->
+                                    {
+                                        load_type = LoadType.REFRESH
+                                        load_error = null
+                                        coroutine_scope.launch {
+                                            MediaItemLoader.loadRemotePlaylist(remote.getEmptyData(), player.context)
+                                        }
+                                    }
+                                }
                         )
                     }
                 }

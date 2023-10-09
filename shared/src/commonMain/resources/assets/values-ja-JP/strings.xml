@@ -415,6 +415,13 @@
     <string name="s_group_top_bar_lyrics">トップバーの歌詞</string>
     <string name="s_key_lyrics_top_bar_max_lines">最高テキスト行数</string>
     <string name="s_key_lyrics_top_bar_preapply_max_lines">最高行数の表示に必要な場所をあらかじめ取る</string>
+    <string name="s_key_lyrics_sync_delay">歌詞シンクの遅延</string>
+    <string name="s_sub_lyrics_sync_delay">歌詞のシンクを遅らせる秒数</string>
+    <string name="s_key_lyrics_sync_delay_topbar">トップバーの歌詞シンク遅延</string>
+    <string name="s_sub_lyrics_sync_delay_topbar">トップバーで表示する歌詞のみに足される遅延</string>
+    <string name="s_key_lyrics_sync_delay_bluetooth">Bluetooth 歌詞シンクの遅延</string>
+    <string name="s_sub_lyrics_sync_delay_bluetooth">Bluetooth で聴いてる時のみ足される遅延</string>
+
     <string name="s_key_top_bar_lyrics_show_furigana">ふりがなを表示</string>
     <string name="s_key_top_bar_lyrics_show_in_library">ライブラリで表示</string>
     <string name="s_key_top_bar_lyrics_show_in_radiobuilder">ラジオ作成画面で表示</string>

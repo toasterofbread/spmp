@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,11 +27,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import com.github.krottv.compose.sliders.DefaultThumb
 import com.github.krottv.compose.sliders.SliderValueHorizontal
 import com.toasterofbread.spmp.ui.layout.nowplaying.POSITION_UPDATE_INTERVAL_MS
@@ -66,7 +69,7 @@ fun SeekBar(seek: (Float) -> Unit) {
 
         Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
             Row(
-                Modifier.fillMaxWidth().height(10.dp).padding(horizontal = 7.dp),
+                Modifier.fillMaxWidth().padding(horizontal = 7.dp).zIndex(1f),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -103,9 +106,10 @@ private fun SeekBarTimeText(time: Long, colour: Color) {
         val seconds = time / 1000f
         Text(
             remember(seconds) { if (seconds < 0f) "" else formatElapsedTime(seconds.toLong()) },
-            fontSize = 10.sp,
+            fontSize = 12.sp,
             fontWeight = FontWeight.Light,
-            color = colour
+            color = colour,
+//            overflow = TextOverflow.Visible
         )
     }
 }

@@ -31,7 +31,6 @@ val DEBUG_KEY_NAMES = mapOf(
 
 val buildConfigDir: Provider<Directory> get() = project.layout.buildDirectory.dir("generated/buildconfig")
 
-
 fun GenerateBuildConfig.buildConfig(debug: Boolean) {
     val keys = Properties()
 
@@ -97,7 +96,7 @@ fun GenerateBuildConfig.buildConfig(debug: Boolean) {
 }
 
 val buildConfigDebug: TaskProvider<GenerateBuildConfig> = tasks.register("buildConfigDebug", GenerateBuildConfig::class.java) {
-    buildConfig(debug = true)
+    buildConfig(debug = false)
 }
 val buildConfigRelease: TaskProvider<GenerateBuildConfig> = tasks.register("buildConfigRelease", GenerateBuildConfig::class.java) {
     buildConfig(debug = false)
@@ -139,6 +138,7 @@ kotlin {
                 implementation("com.github.SvenWoltmann:color-thief-java:v1.1.2")
                 implementation("com.github.catppuccin:java:v1.0.0")
                 implementation("com.github.paramsen:noise:2.0.0")
+                implementation("org.kobjects.ktxml:core:0.2.3")
             }
             kotlin.srcDir(buildConfigDir)
         }

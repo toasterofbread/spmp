@@ -83,3 +83,13 @@
 -dontwarn javax.swing.text.BadLocationException
 -dontwarn javax.swing.tree.DefaultTreeSelectionModel
 -dontwarn javax.swing.tree.TreeModel
+
+# From proguard-android-optimize.txt
+
+-optimizations !code/simplification/arithmetic,!code/simplification/cast,!field/*,!class/merging/*
+-optimizationpasses 5
+-allowaccessmodification
+-dontpreverify
+-dontusemixedcaseclassnames
+-dontskipnonpubliclibraryclasses
+-verbose

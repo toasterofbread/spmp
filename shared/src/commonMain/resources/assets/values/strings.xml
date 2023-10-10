@@ -424,6 +424,13 @@
     <string name="s_group_top_bar_lyrics">Top bar lyrics</string>
     <string name="s_key_lyrics_top_bar_max_lines">Max lines</string>
     <string name="s_key_lyrics_top_bar_preapply_max_lines">Pre-allocate the space needed to display max lines</string>
+    <string name="s_key_lyrics_sync_delay">Lyrics sync delay</string>
+    <string name="s_sub_lyrics_sync_delay">A delay in seconds applied to lyrics sync</string>
+    <string name="s_key_lyrics_sync_delay_topbar">Top bar lyrics sync delay</string>
+    <string name="s_sub_lyrics_sync_delay_topbar">An additional delay applied only to lyrics in the top bar</string>
+    <string name="s_key_lyrics_sync_delay_bluetooth">Bluetooth lyrics sync delay</string>
+    <string name="s_sub_lyrics_sync_delay_bluetooth">An additional delay applied only while listening with Bluetooth audio</string>
+
     <string name="s_key_top_bar_lyrics_show_furigana">Show furigana</string>
     <string name="s_key_top_bar_lyrics_show_in_library">Show in library</string>
     <string name="s_key_top_bar_lyrics_show_in_radiobuilder">Show in the radio builder</string>

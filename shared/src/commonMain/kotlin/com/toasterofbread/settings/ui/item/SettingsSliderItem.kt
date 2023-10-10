@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -61,7 +62,6 @@ class SettingsSliderItem(
         else it.toString()
     }
 ): SettingsItem() {
-
     private var is_int: Boolean = false
     private var value_state by mutableStateOf(0f)
 
@@ -103,7 +103,6 @@ class SettingsSliderItem(
         value_state = state.get().toFloat()
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun GetItem(
         theme: Theme,
@@ -169,7 +168,7 @@ class SettingsSliderItem(
             )
         }
 
-        Column(Modifier.fillMaxWidth()) {
+        Column(Modifier.fillMaxWidth().padding(bottom = 10.dp)) {
             if (title != null) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     ItemTitleText(title, theme)

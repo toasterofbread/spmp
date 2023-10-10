@@ -2,12 +2,16 @@ package com.toasterofbread.spmp.model.mediaitem.song
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.IntOffset
 import app.cash.sqldelight.Query
 import com.toasterofbread.Database
+import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
@@ -30,6 +34,8 @@ import kotlinx.coroutines.withContext
 import mediaitem.AlbumById
 import mediaitem.song.ArtistById
 import java.net.URL
+
+private const val STATIC_LYRICS_SYNC_OFFSET: Long = 1000
 
 interface Song: MediaItem.WithArtist {
     override fun getType(): MediaItemType = MediaItemType.SONG
@@ -143,6 +149,24 @@ interface Song: MediaItem.WithArtist {
         get() = property_rememberer.rememberSingleQueryProperty(
         "Liked", { songQueries.likedById(id) }, { liked.toSongLikedStatus() }, { songQueries.updatelikedById(it.toLong(), id) }
     )
+
+    @Composable
+    fun getLyricsSyncOffset(database: Database, is_topbar: Boolean): State<Long> {
+        val internal_offset: Long? by LyricsSyncOffset.observe(database)
+        val settings_delay: Float by Settings.KEY_LYRICS_SYNC_DELAY.rememberMutableState()
+        val settings_delay_topbar: Float by Settings.KEY_LYRICS_SYNC_DELAY_TOPBAR.rememberMutableState()
+        val settings_delay_bt: Float by Settings.KEY_LYRICS_SYNC_DELAY_BLUETOOTH.rememberMutableState()
+
+        return remember { derivedStateOf {
+            val delay: Float =
+                if (is_topbar) settings_delay + settings_delay_topbar
+                else settings_delay
+
+            TODO("Check if using BT audio")
+
+            return@derivedStateOf (internal_offset ?: 0) - (delay * 1000L).toLong() + STATIC_LYRICS_SYNC_OFFSET
+        } }
+    }
 
     override val ThumbnailProvider: Property<MediaItemThumbnailProvider?>
         get() = object : Property<MediaItemThumbnailProvider?> {

@@ -29,7 +29,8 @@ fun PlaylistPage.PlaylistFooter(
     items: List<Pair<MediaItem, Int>>?,
     loading: Boolean,
     load_error: Throwable?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onRetry: (() -> Unit)?
 ) {
     val remote_playlist: RemotePlaylist? = playlist as? RemotePlaylist
     val continuation: MediaItemLayout.Continuation? = remote_playlist?.Continuation?.observe(player.database)?.value
@@ -49,7 +50,8 @@ fun PlaylistPage.PlaylistFooter(
                     Modifier.fillMaxWidth(),
                     expanded_content_modifier = Modifier.height(500.dp),
                     message = "Playlist load failed",
-                    onDismiss = null
+                    onDismiss = null,
+                    onRetry = onRetry
                 )
             }
             false -> {

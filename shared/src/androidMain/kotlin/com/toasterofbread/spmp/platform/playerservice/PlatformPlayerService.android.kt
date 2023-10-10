@@ -589,58 +589,6 @@ actual class PlatformPlayerService: MediaSessionService() {
                     }
                 }
             }
-            PlayerServiceCommand.SavePersistentQueue -> {
-                service_player.savePersistentQueue()
-            }
-            is PlayerServiceCommand.SetStopAfterCurrentSong -> {
-                service_player.stop_after_current_song = command.value
-            }
-            is PlayerServiceCommand.UpdateActiveQueueIndex ->
-                service_player.updateActiveQueueIndex(command.delta)
-            is PlayerServiceCommand.SetActiveQueueIndex ->
-                service_player.setActiveQueueIndex(command.value)
-
-            is PlayerServiceCommand.CancelSession -> service_player.cancelSession()
-
-            is PlayerServiceCommand.ContinueRadio -> service_player.continueRadio(command.is_retry)
-            is PlayerServiceCommand.DismissRadioLoadError -> service_player.radio.instance.dismissRadioLoadError()
-            is PlayerServiceCommand.SetRadioFilter -> service_player.radio.setRadioFilter(command.filter_index)
-
-            is PlayerServiceCommand.StartRadio -> service_player.startRadioAtIndex(
-                command.index, command.item_uid?.let { getMediaItemFromUid(it) }, command.item_index, command.skip_first, command.shuffle, command.on_load_seek_index?.let { seek_index ->
-                    { success ->
-                        if (success) {
-                            withContext(Dispatchers.Main) {
-                                seekToSong(seek_index)
-                            }
-                        }
-                    }
-                }
-            )
-
-            is PlayerServiceCommand.AddSong -> service_player.addToQueue(SongRef(command.song_id), command.to, command.is_active_queue, command.start_radio)
-            is PlayerServiceCommand.AddMultipleSongs -> service_player.addMultipleToQueue(
-                command.song_ids.map { id ->
-                    SongRef(id)
-                },
-                command.index,
-                command.skip_first,
-                command.is_active_queue,
-                command.skip_existing,
-                command.clear
-            )
-
-            is PlayerServiceCommand.MoveSong -> service_player.moveSong(command.from, command.to)
-            is PlayerServiceCommand.RemoveSong -> service_player.removeFromQueue(command.from)
-
-            is PlayerServiceCommand.ClearQueue -> service_player.clearQueue(command.from, command.keep_current, cancel_radio = command.cancel_radio)
-            is PlayerServiceCommand.ShuffleQueue -> service_player.shuffleQueue(command.start, command.end)
-            is PlayerServiceCommand.ShuffleQueueIndices -> service_player.shuffleQueueIndices(command.indices)
-
-            PlayerServiceCommand.Undo -> service_player.undo()
-            PlayerServiceCommand.Redo -> service_player.redo()
-            PlayerServiceCommand.UndoAll -> service_player.undoAll()
-            PlayerServiceCommand.RedoAll -> service_player.redoAll()
         }
 
         return Bundle.EMPTY

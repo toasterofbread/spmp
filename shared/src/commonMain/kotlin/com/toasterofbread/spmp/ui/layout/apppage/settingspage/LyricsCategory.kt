@@ -63,6 +63,24 @@ internal fun getLyricsCategory(): List<SettingsItem> {
             getString("s_key_lyrics_font_size"), null
         ),
 
+        SettingsSliderItem(
+            SettingsValueState(Settings.KEY_LYRICS_SYNC_DELAY.name),
+            getString("s_key_lyrics_sync_delay"), getString("s_sub_lyrics_sync_delay"),
+            range = -5f .. 5f
+        ),
+
+        SettingsSliderItem(
+            SettingsValueState(Settings.KEY_LYRICS_SYNC_DELAY_TOPBAR.name),
+            getString("s_key_lyrics_sync_delay_topbar"), getString("s_sub_lyrics_sync_delay_topbar"),
+            range = -5f .. 5f
+        ),
+
+        SettingsSliderItem(
+            SettingsValueState(Settings.KEY_LYRICS_SYNC_DELAY_BLUETOOTH.name),
+            getString("s_key_lyrics_sync_delay_bluetooth"), getString("s_sub_lyrics_sync_delay_bluetooth"),
+            range = -5f .. 5f
+        ),
+
         SettingsGroupItem(getString("s_group_top_bar_lyrics")),
 
         SettingsSliderItem(

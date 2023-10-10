@@ -62,7 +62,7 @@ fun CoreLyricsDisplay(
 ) {
     val player = LocalPlayerState.current
     val density = LocalDensity.current
-    val lyrics_sync_offset: Long? by song.LyricsSyncOffset.observe(player.database)
+    val lyrics_sync_offset: Long? by song.getLyricsSyncOffset(player.database, false)
 
     val screen_width = player.screen_size.width
     val size_px = with(LocalDensity.current) { ((screen_width - (NOW_PLAYING_MAIN_PADDING.dp * 2) - (15.dp * getExpansion() * 2)).value * 0.9.dp).toPx() }

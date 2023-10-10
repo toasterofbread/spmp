@@ -223,7 +223,7 @@ class MusicTopBar(val player: PlayerState) {
         val visualiser_width: Float by Settings.KEY_TOPBAR_VISUALISER_WIDTH.rememberMutableState()
         check(visualiser_width in 0f .. 1f)
 
-        val sync_offset_state: State<Long?>? = song?.LyricsSyncOffset?.observe(player.database)
+        val sync_offset_state: State<Long?>? = song?.getLyricsSyncOffset(player.database, true)
 
         val current_state by remember(lyrics) {
             derivedStateOf {
@@ -309,7 +309,7 @@ class MusicTopBar(val player: PlayerState) {
                                             lyrics = state,
                                             getTime = {
                                                 (player.player?.current_position_ms ?: 0) +
-                                                        (sync_offset_state?.value ?: 0)
+                                                    (sync_offset_state?.value ?: 0)
                                             },
                                             lyrics_linger = linger,
                                             show_furigana = show_furigana,

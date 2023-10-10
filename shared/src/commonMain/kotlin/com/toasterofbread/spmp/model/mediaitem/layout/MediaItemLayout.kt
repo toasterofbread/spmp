@@ -16,6 +16,7 @@ import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemList
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
+import kotlinx.serialization.Serializable
 
 fun getDefaultMediaItemPreviewSize(): DpSize = DpSize(100.dp, 120.dp)
 @Composable
@@ -75,19 +76,17 @@ data class MediaItemLayout(
         type!!.Layout(this, modifier, title_Modifier, multiselect_context, apply_filter)
     }
 
-    data class Continuation(var token: String, var type: Type, val param: Any? = null) {
+    @Serializable
+    data class Continuation(var token: String, var type: Type, val song_id: String? = null, val playlist_skip_amount: Int = 0) {
         enum class Type {
-            SONG, // param is the song's ID
-            PLAYLIST, // param unused
-            PLAYLIST_INITIAL // param is the amount of songs to omit from the beginning
+            SONG,
+            PLAYLIST,
+            PLAYLIST_INITIAL
         }
 
         init {
             if (type == Type.SONG) {
-                require(param is String)
-            }
-            else if (type == Type.PLAYLIST_INITIAL) {
-                require(param is Int)
+                require(song_id != null)
             }
         }
 
@@ -112,7 +111,7 @@ data class MediaItemLayout(
                 return Result.failure(EndpointNotImplementedException(radio_endpoint))
             }
 
-            val result = radio_endpoint.getSongRadio(param as String, token, filters)
+            val result = radio_endpoint.getSongRadio(song_id!!, token, filters)
             return result.fold(
                 { Result.success(Pair(it.items, it.continuation)) },
                 { Result.failure(it) }
@@ -126,7 +125,7 @@ data class MediaItemLayout(
                 return Result.failure(EndpointNotImplementedException(continuation_endpoint))
             }
 
-            return continuation_endpoint.getPlaylistContinuation(initial, token, if (initial) param as Int else 0)
+            return continuation_endpoint.getPlaylistContinuation(initial, token, if (initial) playlist_skip_amount else 0)
         }
     }
 

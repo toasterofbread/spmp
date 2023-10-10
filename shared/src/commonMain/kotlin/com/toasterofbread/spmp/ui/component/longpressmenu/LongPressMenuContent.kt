@@ -51,8 +51,6 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
-import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
-import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
@@ -62,7 +60,6 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLon
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.common.copy
-import com.toasterofbread.utils.common.launchSingle
 import com.toasterofbread.utils.common.setAlpha
 import com.toasterofbread.utils.common.thenIf
 import com.toasterofbread.utils.composable.AlignableCrossfade

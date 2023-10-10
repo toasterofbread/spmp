@@ -27,8 +27,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 
 class LongPressMenuActionProvider(
     val getContentColour: () -> Color,
@@ -47,13 +49,13 @@ class LongPressMenuActionProvider(
         onClick: (active_queue_index: Int) -> Unit,
         onLongClick: ((active_queue_index: Int) -> Unit)? = null
     ) {
-        val player = LocalPlayerState.current
-        val service = LocalPlayerState.current.player ?: return
+        val player: PlayerState = LocalPlayerState.current
+        val service: PlatformPlayerService = LocalPlayerState.current.controller ?: return
         
         var active_queue_item: Song? by remember { mutableStateOf(null) }
-        AnimatedVisibility(service.active_queue_index < player.status.m_song_count) {
-            if (service.active_queue_index < player.status.m_song_count) {
-                val current_song = service.getSong(service.active_queue_index)
+        AnimatedVisibility(service.service_player.active_queue_index < player.status.m_song_count) {
+            if (service.service_player.active_queue_index < player.status.m_song_count) {
+                val current_song = service.getSong(service.service_player.active_queue_index)
                 if (current_song?.id != active_queue_item?.id) {
                     active_queue_item = current_song
                 }
@@ -65,13 +67,13 @@ class LongPressMenuActionProvider(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    val distance = service.active_queue_index - service.current_song_index + 1
+                    val distance = service.service_player.active_queue_index - service.current_song_index + 1
                     ActionButton(
                         Icons.Filled.SubdirectoryArrowRight,
                         getText(distance),
                         fill_width = false,
-                        onClick = { onClick(service.active_queue_index) },
-                        onLongClick = onLongClick?.let { { it.invoke(service.active_queue_index) } }
+                        onClick = { onClick(service.service_player.active_queue_index) },
+                        onLongClick = onLongClick?.let { { it.invoke(service.service_player.active_queue_index) } }
                     )
 
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -86,11 +88,11 @@ class LongPressMenuActionProvider(
                                 remember { MutableInteractionSource() },
                                 rememberRipple(),
                                 onClick = {
-                                    service.updateActiveQueueIndex(-1)
+                                    service.service_player.updateActiveQueueIndex(-1)
                                 },
                                 onLongClick = {
                                     player.context.vibrateShort()
-                                    service.updateActiveQueueIndex(Int.MIN_VALUE)
+                                    service.service_player.updateActiveQueueIndex(Int.MIN_VALUE)
                                 }
                             ),
                             color = getAccentColour(),
@@ -104,11 +106,11 @@ class LongPressMenuActionProvider(
                                 remember { MutableInteractionSource() },
                                 rememberRipple(),
                                 onClick = {
-                                    service.updateActiveQueueIndex(1)
+                                    service.service_player.updateActiveQueueIndex(1)
                                 },
                                 onLongClick = {
                                     player.context.vibrateShort()
-                                    service.updateActiveQueueIndex(Int.MAX_VALUE)
+                                    service.service_player.updateActiveQueueIndex(Int.MAX_VALUE)
                                 }
                             ),
                             color = getAccentColour(),

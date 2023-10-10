@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.service.playerservice
+package com.toasterofbread.spmp.service.playercontroller
 
 import SpMp
 import com.toasterofbread.spmp.model.Settings
@@ -6,6 +6,7 @@ import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.job
@@ -32,7 +33,7 @@ private data class PersistentQueueMetadata(val song_index: Int, val position_ms:
     }
 }
 
-internal class PersistentQueueHandler(val player: PlayerService, val context: PlatformContext) {
+internal class PersistentQueueHandler(val player: PlayerServicePlayer, val context: PlatformContext) {
     private var persistent_queue_loaded: Boolean = false
     private val queue_lock = Mutex()
 
@@ -147,7 +148,8 @@ internal class PersistentQueueHandler(val player: PlayerService, val context: Pl
 
                 jobs.joinAll()
 
-            } finally {
+            }
+            finally {
                 queue_lock.unlock()
                 persistent_queue_loaded = true
             }
@@ -156,12 +158,11 @@ internal class PersistentQueueHandler(val player: PlayerService, val context: Pl
                 SpMp.Log.info("loadPersistentQueue adding ${songs.size} songs to $metadata")
 
                 player.apply {
-                    @Suppress("KotlinConstantConditions")
-                    if (song_count == 0) {
+                    if (player.song_count == 0) {
                         clearQueue(save = false)
                         addMultipleToQueue(songs, 0)
-                        seekToSong(metadata.song_index)
-                        seekTo(metadata.position_ms)
+                        player.seekToSong(metadata.song_index)
+                        player.seekTo(metadata.position_ms)
                     }
                 }
             }

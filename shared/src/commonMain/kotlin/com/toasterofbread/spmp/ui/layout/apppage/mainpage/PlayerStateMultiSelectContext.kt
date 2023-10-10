@@ -40,9 +40,9 @@ fun getPlayerStateMultiSelectContext(): MediaItemMultiSelectContext =
             Row(
                 Modifier.clickable {
                     player.withPlayer {
-                        addMultipleToQueue(
+                        service_player.addMultipleToQueue(
                             multiselect.getUniqueSelectedItems().filterIsInstance<Song>(),
-                            (active_queue_index + 1).coerceAtMost(player.status.m_song_count),
+                            (service_player.active_queue_index + 1).coerceAtMost(player.status.m_song_count),
                             is_active_queue = true
                         )
                     }
@@ -52,8 +52,8 @@ fun getPlayerStateMultiSelectContext(): MediaItemMultiSelectContext =
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(Icons.Default.SubdirectoryArrowRight, null)
-                player.player?.apply {
-                    val distance = active_queue_index - player.status.m_index + 1
+                player.controller?.apply {
+                    val distance = service_player.active_queue_index - player.status.m_index + 1
                     Text(
                         getString(if (distance == 1) "lpm_action_play_after_1_song" else "lpm_action_play_after_x_songs").replace(
                             "\$x",
@@ -78,9 +78,9 @@ private fun MultiSelectNextRowActions() {
 
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         val active_queue_item =
-            player.player?.run {
-                if (active_queue_index < song_count)
-                    getSong(active_queue_index)
+            player.controller?.run {
+                if (service_player.active_queue_index < song_count)
+                    getSong(service_player.active_queue_index)
                 else null
             }
 
@@ -105,12 +105,14 @@ private fun MultiSelectNextRowActions() {
                 remember { MutableInteractionSource() },
                 rememberRipple(),
                 onClick = {
-                    player.player?.updateActiveQueueIndex(-1)
+                    player.withPlayer {
+                        service_player.updateActiveQueueIndex(-1)
+                    }
                 },
                 onLongClick = {
                     player.context.vibrateShort()
                     player.withPlayer {
-                        active_queue_index = current_song_index
+                        service_player.setActiveQueueIndex(current_song_index)
                     }
                 }
             ),
@@ -124,12 +126,14 @@ private fun MultiSelectNextRowActions() {
                 remember { MutableInteractionSource() },
                 rememberRipple(),
                 onClick = {
-                    player.player?.updateActiveQueueIndex(1)
+                    player.withPlayer {
+                        service_player.updateActiveQueueIndex(1)
+                    }
                 },
                 onLongClick = {
                     player.context.vibrateShort()
                     player.withPlayer {
-                        active_queue_index = song_count - 1
+                        service_player.setActiveQueueIndex(song_count - 1)
                     }
                 }
             ),

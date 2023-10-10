@@ -37,6 +37,7 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.platform.composeScope
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
+import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NOW_PLAYING_MAIN_PADDING
 import com.toasterofbread.utils.common.setAlpha
 import com.toasterofbread.utils.common.thenIf
@@ -130,14 +131,11 @@ fun NowPlayingTopBar(modifier: Modifier = Modifier, onHeightChanged: (Dp) -> Uni
                 }
             }
 
-            player.top_bar.MusicTopBarWithVisualiser(
+            lyrics_showing = player.top_bar.MusicTopBarWithVisualiser(
                 Settings.INTERNAL_TOPBAR_MODE_NOWPLAYING,
                 Modifier.fillMaxSize().weight(1f),
-                song = song,
-                onShowingChanged = {
-                    lyrics_showing = it
-                }
-            )
+                song = song
+            ).showing
 
             composeScope {
                 IconButton(

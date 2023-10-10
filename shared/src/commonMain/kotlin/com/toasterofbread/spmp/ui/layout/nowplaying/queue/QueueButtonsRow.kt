@@ -47,15 +47,15 @@ fun QueueButtonsRow(
 
         Button(
             onClick = {
-                player.player?.undoableAction {
+                player.controller?.service_player?.undoableAction {
                     if (multiselect_context.is_active) {
                         for (item in multiselect_context.getSelectedItems().sortedByDescending { it.second!! }) {
-                            player.player?.removeFromQueue(item.second!!)
+                            removeFromQueue(item.second!!)
                         }
                         multiselect_context.onActionPerformed()
                     }
                     else {
-                        player.player?.clearQueue(keep_current = player.status.m_song_count > 1)
+                        clearQueue(keep_current = player.status.m_song_count > 1)
                     }
                 }
             },
@@ -71,24 +71,22 @@ fun QueueButtonsRow(
         Surface(
             Modifier.combinedClickable(
                 onClick = {
-                    if (multiselect_context.is_active) {
-                        player.player?.undoableAction {
-                            player.player?.shuffleQueueIndices(multiselect_context.getSelectedItems().map { it.second!! })
+                    player.controller?.service_player?.undoableAction {
+                        if (multiselect_context.is_active) {
+                            shuffleQueueIndices(multiselect_context.getSelectedItems().map { it.second!! })
+                            multiselect_context.onActionPerformed()
                         }
-                        multiselect_context.onActionPerformed()
-                    }
-                    else {
-                        player.player?.undoableAction {
-                            player.player?.shuffleQueue()
+                        else {
+                            shuffleQueue()
                         }
                     }
                 },
                 onLongClick = if (multiselect_context.is_active) null else ({
-                    player.player?.undoableAction {
-                        if (!multiselect_context.is_active) {
-                            player.context.vibrateShort()
-                            player.player?.shuffleQueue(start = 0)
+                    if (!multiselect_context.is_active) {
+                        player.controller?.service_player?.undoableAction {
+                            shuffleQueue(start = 0)
                         }
+                        player.context.vibrateShort()
                     }
                 })
             ),
@@ -127,11 +125,11 @@ fun QueueButtonsRow(
                 .combinedClickable(
                     enabled = player.status.m_undo_count != 0 || player.status.m_redo_count != 0,
                     onClick = {
-                        player.player?.undo()
+                        player.controller?.service_player?.undo()
                         player.context.vibrateShort()
                     },
                     onLongClick = {
-                        player.player?.redo()
+                        player.controller?.service_player?.redo()
                         player.context.vibrateShort()
                     }
                 )

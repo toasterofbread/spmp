@@ -157,6 +157,7 @@
     <string name="search_filter_videos">動画</string>
     <string name="search_entry_field_hint">検索</string>
     <string name="search_results_loading">ロード中</string>
+    <string name="search_suggested_correction_$x">もしかして「$x」？</string>
 
     <string name="lyrics_none_found">歌詞が見つかりませんでした</string>
     <string name="lyrics_no_more_results">以上</string>
@@ -467,6 +468,7 @@
 
     <string name="s_cat_other">その他</string>
 
+    <string name="s_key_search_show_suggestions">検索のサジェスチョンを表示</string>
     <string name="s_key_navbar_height_multiplier">ナビゲーションバーの高さの倍率</string>
     <string name="s_sub_navbar_height_multiplier">システムが正しい高さを報告しない場合、これで調節できます（アプリの再起動が必要です）</string>
 

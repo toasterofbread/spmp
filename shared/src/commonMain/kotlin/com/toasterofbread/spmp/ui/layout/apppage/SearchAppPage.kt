@@ -30,6 +30,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
+import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
@@ -332,6 +333,7 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
             }
         }
 
+        val show_suggestions: Boolean by Settings.KEY_SEARCH_SHOW_SUGGESTIONS.rememberMutableState()
         var suggestions: List<SearchSuggestion> by remember { mutableStateOf(emptyList()) }
 
         LaunchedEffect(focus_state.value) {
@@ -340,8 +342,13 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
             }
         }
 
-        LaunchedEffect(current_query, focus_state.value) {
+        LaunchedEffect(current_query, focus_state.value, show_suggestions) {
             if (search_in_progress || !focus_state.value) {
+                return@LaunchedEffect
+            }
+
+            if (!show_suggestions) {
+                suggestions = emptyList()
                 return@LaunchedEffect
             }
 
@@ -365,7 +372,7 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
         }
 
         Column(modifier) {
-            AnimatedVisibility(suggestions.isNotEmpty()) {
+            AnimatedVisibility(show_suggestions && suggestions.isNotEmpty()) {
                 var current_suggestions: List<SearchSuggestion> by remember { mutableStateOf(suggestions) }
                 LaunchedEffect(suggestions) {
                     if (suggestions.isNotEmpty()) {
@@ -489,26 +496,55 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
             }
         }
     }
-}
 
-@Composable
-private fun Results(results: SearchResults, padding: PaddingValues, multiselect_context: MediaItemMultiSelectContext) {
-    LazyColumn(
-        Modifier.fillMaxSize(),
-        contentPadding = padding,
-        verticalArrangement = Arrangement.spacedBy(25.dp)
-    ) {
-        if (results.suggested_correction != null) {
-            item {
-                // TODO
-                Text(results.suggested_correction)
+    @Composable
+    private fun Results(results: SearchResults, padding: PaddingValues, multiselect_context: MediaItemMultiSelectContext) {
+        LazyColumn(
+            Modifier.fillMaxSize(),
+            contentPadding = padding,
+            verticalArrangement = Arrangement.spacedBy(25.dp)
+        ) {
+            if (results.suggested_correction != null) {
+                item {
+                    SuggestedSearchCorrection(
+                        results.suggested_correction,
+                        Modifier.fillMaxWidth(),
+                        onSelected = {
+                            current_query = results.suggested_correction
+                            performSearch()
+                        },
+                        onDismissed = {
+                            current_results = results.copy(suggested_correction = null)
+                        }
+                    )
+                }
+            }
+
+            for (category in results.categories.withIndex()) {
+                val layout = category.value.first
+                item {
+                    (layout.type ?: MediaItemLayout.Type.LIST).Layout(layout, multiselect_context = multiselect_context)
+                }
             }
         }
+    }
 
-        for (category in results.categories.withIndex()) {
-            val layout = category.value.first
-            item {
-                (layout.type ?: MediaItemLayout.Type.LIST).Layout(layout, multiselect_context = multiselect_context)
+    @Composable
+    private fun SuggestedSearchCorrection(correction: String, modifier: Modifier = Modifier, onSelected: () -> Unit, onDismissed: () -> Unit) {
+        Row(
+            modifier
+                .border(2.dp, Theme.accent, CircleShape)
+                .clickable(onClick = onSelected)
+                .padding(horizontal = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                getString("search_suggested_correction_\$x").replace("\$x", correction),
+                Modifier.fillMaxWidth().weight(1f)
+            )
+
+            IconButton(onDismissed) {
+                Icon(Icons.Default.Close, null)
             }
         }
     }

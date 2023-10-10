@@ -28,8 +28,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.service.playerservice.PlayerService
 import com.toasterofbread.utils.common.AnnotatedReadingTerm
 import com.toasterofbread.utils.common.setAlpha
 
@@ -51,7 +51,7 @@ fun LyricsSyncMenu(
     require(lyrics.synced)
 
     val player = LocalPlayerState.current
-    val service = player.player
+    val service = player.controller
 
     LaunchedEffect(line_index) {
         service?.seekTo(
@@ -111,11 +111,11 @@ fun LyricsSyncMenu(
 }
 
 @Composable
-private fun PlayerControls(player: PlayerService?, onSelected: () -> Unit) {
+private fun PlayerControls(service: PlatformPlayerService?, onSelected: () -> Unit) {
     val button_modifier = Modifier.size(40.dp)
 
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-        IconButton({ player?.seekBy(-SONG_SEEK_MS) }) {
+        IconButton({ service?.service_player?.seekBy(-SONG_SEEK_MS) }) {
             Icon(Icons.Default.Replay5, null, button_modifier)
         }
 
@@ -123,7 +123,7 @@ private fun PlayerControls(player: PlayerService?, onSelected: () -> Unit) {
             Icon(Icons.Default.Done, null, button_modifier)
         }
 
-        IconButton({ player?.seekBy(SONG_SEEK_MS) }) {
+        IconButton({ service?.service_player?.seekBy(SONG_SEEK_MS) }) {
             Icon(Icons.Default.Forward5, null, button_modifier)
         }
     }

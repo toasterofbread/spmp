@@ -19,11 +19,11 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
-import com.toasterofbread.spmp.platform.MediaPlayerRepeatMode
-import com.toasterofbread.spmp.platform.MediaPlayerService
 import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
-import com.toasterofbread.spmp.service.playerservice.PlayerService
+import com.toasterofbread.spmp.platform.playerservice.MediaPlayerRepeatMode
+import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -35,7 +35,7 @@ import com.toasterofbread.utils.common.indexOfOrNull
 import java.net.URI
 import java.net.URISyntaxException
 
-class PlayerStatus internal constructor(private val player: PlayerService) {
+class PlayerStatus internal constructor(private val state: PlayerState, private val player: PlatformPlayerService) {
     fun getProgress(): Float = player.duration_ms.let { duration ->
         if (duration <= 0f) 0f
         else player.current_position_ms.toFloat() / duration
@@ -65,18 +65,18 @@ class PlayerStatus internal constructor(private val player: PlayerService) {
         private set
     var m_song_count: Int by mutableStateOf(player.song_count)
         private set
-    var m_undo_count: Int by mutableStateOf(player.undo_count)
+    var m_undo_count: Int by mutableStateOf(player.service_player.undo_count)
         private set
-    var m_redo_count: Int by mutableStateOf(player.redo_count)
+    var m_redo_count: Int by mutableStateOf(player.service_player.redo_count)
         private set
 
     init {
-        player.addListener(object : MediaPlayerService.Listener() {
+        PlatformPlayerService.addListener(object : PlayerListener() {
             init {
                 onEvents()
             }
 
-            override fun onSongTransition(song: Song?) {
+            override fun onSongTransition(song: Song?, manual: Boolean) {
                 m_song = song
             }
             override fun onPlayingChanged(is_playing: Boolean) {
@@ -86,9 +86,11 @@ class PlayerStatus internal constructor(private val player: PlayerService) {
                 m_repeat_mode = repeat_mode
             }
             override fun onUndoStateChanged() {
-                m_undo_count = player.undo_count
-                m_redo_count = player.redo_count
+                m_undo_count = player.service_player.undo_count
+                m_redo_count = player.service_player.redo_count
             }
+
+            override fun onSongAdded(index: Int, song: Song) {}
 
             override fun onEvents() {
                 m_duration_ms = player.duration_ms
@@ -96,8 +98,8 @@ class PlayerStatus internal constructor(private val player: PlayerService) {
                 m_volume = player.volume
                 m_song_count = player.song_count
 
-                if (m_index > player.active_queue_index) {
-                    player.active_queue_index = m_index
+                if (m_index > player.service_player.active_queue_index) {
+                    player.service_player.active_queue_index = m_index
                 }
             }
         })
@@ -121,8 +123,8 @@ open class PlayerState protected constructor(
     open val np_overlay_menu: MutableState<PlayerOverlayMenu?> get() = upstream!!.np_overlay_menu
     open val top_bar: MusicTopBar get() = upstream!!.top_bar
 
-    open val player: PlayerService? get() = upstream!!.player
-    open fun withPlayer(action: PlayerService.() -> Unit) {
+    open val controller: PlatformPlayerService? get() = upstream!!.controller
+    open fun withPlayer(action: PlatformPlayerService.() -> Unit) {
         upstream!!.withPlayer(action)
     }
 
@@ -131,7 +133,7 @@ open class PlayerState protected constructor(
 
     open val screen_size: DpSize get() = upstream!!.screen_size
 
-    open fun interactService(action: (player: PlayerService) -> Unit) { upstream!!.interactService(action) }
+    open fun interactService(action: (player: PlatformPlayerService) -> Unit) { upstream!!.interactService(action) }
     open fun isRunningAndFocused(): Boolean = upstream!!.isRunningAndFocused()
 
     val bottom_padding_dp: Dp

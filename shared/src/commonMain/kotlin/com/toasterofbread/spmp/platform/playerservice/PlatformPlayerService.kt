@@ -30,12 +30,12 @@ expect class PlatformPlayerService() {
         fun addListener(listener: PlayerListener)
         fun removeListener(listener: PlayerListener)
 
-        inline fun <reified C: PlatformPlayerService> connect(
+        fun connect(
             context: PlatformContext,
-            controller_class: Class<C>,
-            instance: C? = null,
-            crossinline onConnected: () -> Unit,
-            crossinline onCancelled: () -> Unit
+            controller_class: Class<PlatformPlayerService>,
+            instance: PlatformPlayerService? = null,
+            onConnected: () -> Unit,
+            onCancelled: () -> Unit
         ): Any
 
         fun disconnect(context: PlatformContext, connection: Any)

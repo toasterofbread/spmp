@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.graphics.Bitmap
 import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
@@ -13,6 +14,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.os.IBinder
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -78,7 +80,9 @@ import com.toasterofbread.spmp.youtubeapi.endpoint.SetSongLikedEndpoint
 import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -265,38 +269,59 @@ actual class PlatformPlayerService: MediaSessionService() {
             _instance?.removeListener(listener)
         }
 
-        actual inline fun <reified C: PlatformPlayerService> connect(
+        val service_connection = object : ServiceConnection {
+            override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+                TODO("Not yet implemented")
+            }
+
+            override fun onServiceDisconnected(name: ComponentName?) {
+                TODO("Not yet implemented")
+            }
+        }
+
+        actual fun connect(
             context: PlatformContext,
-            controller_class: Class<C>,
-            instance: C?,
-            crossinline onConnected: () -> Unit,
-            crossinline onCancelled: () -> Unit,
+            controller_class: Class<PlatformPlayerService>,
+            instance: PlatformPlayerService?,
+            onConnected: () -> Unit,
+            onCancelled: () -> Unit,
         ): Any {
             val ctx: Context = context.ctx.applicationContext
 
-            val controller_future: ListenableFuture<MediaController> =
-                MediaController.Builder(
-                    ctx,
-                    SessionToken(ctx, ComponentName(ctx, C::class.java))
-                ).buildAsync()
+            ctx.startForegroundService(Intent(ctx, PlatformPlayerService::class.java))
+            ctx.bindService(Intent(ctx, PlatformPlayerService::class.java), service_connection, Context.BIND_IMPORTANT)
 
-            controller_future.addListener(
-                {
-                    if (controller_future.isCancelled) {
-                        onCancelled()
-                        return@addListener
-                    }
+            GlobalScope.launch {
+                delay(500)
+                onConnected()
+            }
 
-                    onConnected()
-                },
-                MoreExecutors.directExecutor()
-            )
 
-            return controller_future
+            return Unit
+
+//            val controller_future: ListenableFuture<MediaController> =
+//                MediaController.Builder(
+//                    ctx,
+//                    SessionToken(ctx, ComponentName(ctx, C::class.java))
+//                ).buildAsync()
+//
+//            controller_future.addListener(
+//                {
+//                    if (controller_future.isCancelled) {
+//                        onCancelled()
+//                        return@addListener
+//                    }
+//
+//                    onConnected()
+//                },
+//                MoreExecutors.directExecutor()
+//            )
+//
+//            return controller_future
         }
 
         actual fun disconnect(context: PlatformContext, connection: Any) {
-            MediaController.releaseFuture(connection as ListenableFuture<MediaController>)
+//            MediaController.releaseFuture(connection as ListenableFuture<MediaController>)
         }
     }
 

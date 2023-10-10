@@ -117,11 +117,10 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
         service_connecting = true
         service_connection = PlatformPlayerService.connect(
             context,
-            PlatformPlayerService::class.java,
             _player,
             {
                 synchronized(service_connected_listeners) {
-                    _player = PlatformPlayerService.instance
+                    _player = it
                     status = PlayerStatus(this, _player!!)
                     service_connecting = false
 
@@ -143,7 +142,6 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
     }
 
     fun release() {
-        onStop()
         top_bar.release()
     }
 
@@ -371,7 +369,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
 
     // PlayerServiceHost
 
-    override val controller: PlatformPlayerService? get() = PlatformPlayerService.instance
+    override val controller: PlatformPlayerService? get() = _player
     override fun withPlayer(action: PlatformPlayerService.() -> Unit) {
         _player?.also { action(it) }
     }

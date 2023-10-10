@@ -162,7 +162,7 @@ interface Song: MediaItem.WithArtist {
                 if (is_topbar) settings_delay + settings_delay_topbar
                 else settings_delay
 
-            TODO("Check if using BT audio")
+//            TODO("Check if using BT audio")
 
             return@derivedStateOf (internal_offset ?: 0) - (delay * 1000L).toLong() + STATIC_LYRICS_SYNC_OFFSET
         } }

@@ -25,17 +25,14 @@ enum class MediaPlayerRepeatMode {
 
 expect class PlatformPlayerService() {
     companion object {
-        val instance: PlatformPlayerService?
-
         fun addListener(listener: PlayerListener)
         fun removeListener(listener: PlayerListener)
 
         fun connect(
             context: PlatformContext,
-            controller_class: Class<PlatformPlayerService>,
             instance: PlatformPlayerService? = null,
-            onConnected: () -> Unit,
-            onCancelled: () -> Unit
+            onConnected: (PlatformPlayerService) -> Unit,
+            onDisconnected: () -> Unit
         ): Any
 
         fun disconnect(context: PlatformContext, connection: Any)

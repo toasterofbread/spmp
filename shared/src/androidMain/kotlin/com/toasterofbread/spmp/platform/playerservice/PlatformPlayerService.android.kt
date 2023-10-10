@@ -11,6 +11,7 @@ import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.net.Uri
+import android.os.Binder
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -133,6 +134,8 @@ private fun formatMediaNotificationImage(
     )
 }
 
+private class PlayerBinder(val service: PlatformPlayerService): Binder()
+
 @androidx.annotation.OptIn(UnstableApi::class)
 actual class PlatformPlayerService: MediaSessionService() {
     actual val context: PlatformContext get() = _context
@@ -239,19 +242,17 @@ actual class PlatformPlayerService: MediaSessionService() {
     actual companion object {
         val audio_processor = FFTAudioProcessor()
 
-        actual val instance: PlatformPlayerService? get() = _instance
-
         private val listeners: MutableList<PlayerListener> = mutableListOf()
-        private var _instance: PlatformPlayerService? by mutableStateOf(null)
+        private var player_instance: PlatformPlayerService? by mutableStateOf(null)
 
         fun setInstance(value: PlatformPlayerService?) {
-            _instance?.also {
+            player_instance?.also {
                 for (listener in listeners) {
                     it.removeListener(listener)
                 }
             }
 
-            _instance = value
+            player_instance = value
 
             value?.also {
                 for (listener in listeners) {
@@ -262,73 +263,60 @@ actual class PlatformPlayerService: MediaSessionService() {
 
         actual fun addListener(listener: PlayerListener) {
             listeners.add(listener)
-            _instance?.addListener(listener)
+            player_instance?.addListener(listener)
         }
         actual fun removeListener(listener: PlayerListener) {
             listeners.remove(listener)
-            _instance?.removeListener(listener)
+            player_instance?.removeListener(listener)
         }
 
-        val service_connection = object : ServiceConnection {
-            override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-                TODO("Not yet implemented")
-            }
-
-            override fun onServiceDisconnected(name: ComponentName?) {
-                TODO("Not yet implemented")
-            }
-        }
+        private fun PlatformContext.getApplicationContext(): Context =
+            ctx.applicationContext
 
         actual fun connect(
             context: PlatformContext,
-            controller_class: Class<PlatformPlayerService>,
             instance: PlatformPlayerService?,
-            onConnected: () -> Unit,
-            onCancelled: () -> Unit,
+            onConnected: (PlatformPlayerService) -> Unit,
+            onDisconnected: () -> Unit,
         ): Any {
-            val ctx: Context = context.ctx.applicationContext
+            val ctx: Context = context.getApplicationContext()
 
-            ctx.startForegroundService(Intent(ctx, PlatformPlayerService::class.java))
-            ctx.bindService(Intent(ctx, PlatformPlayerService::class.java), service_connection, Context.BIND_IMPORTANT)
+            val service_connection = object : ServiceConnection {
+                override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+                    onConnected((service as PlayerBinder).service)
+                }
 
-            GlobalScope.launch {
-                delay(500)
-                onConnected()
+                override fun onServiceDisconnected(name: ComponentName?) {
+                    onDisconnected()
+                }
             }
 
+            ctx.startService(Intent(ctx, PlatformPlayerService::class.java))
+            ctx.bindService(Intent(ctx, PlatformPlayerService::class.java), service_connection, Context.BIND_AUTO_CREATE)
 
-            return Unit
-
-//            val controller_future: ListenableFuture<MediaController> =
-//                MediaController.Builder(
-//                    ctx,
-//                    SessionToken(ctx, ComponentName(ctx, C::class.java))
-//                ).buildAsync()
-//
-//            controller_future.addListener(
-//                {
-//                    if (controller_future.isCancelled) {
-//                        onCancelled()
-//                        return@addListener
-//                    }
-//
-//                    onConnected()
-//                },
-//                MoreExecutors.directExecutor()
-//            )
-//
-//            return controller_future
+            return service_connection
         }
 
         actual fun disconnect(context: PlatformContext, connection: Any) {
-//            MediaController.releaseFuture(connection as ListenableFuture<MediaController>)
+            context.getApplicationContext().unbindService(connection as ServiceConnection)
         }
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        super.onStartCommand(intent, flags, startId)
+        return START_NOT_STICKY
+    }
+
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
+        return media_session
+    }
+
+    override fun onBind(intent: Intent?): IBinder? {
+        return super.onBind(intent) ?: PlayerBinder(this)
     }
 
     actual override fun onCreate() {
         super.onCreate()
-
-        println("CREATE PLAYER SERVICE $instance")
 
         setInstance(this)
         _context = PlatformContext(this, coroutine_scope).init()
@@ -363,7 +351,7 @@ actual class PlatformPlayerService: MediaSessionService() {
         super.onTaskRemoved(intent)
 
         val intent_package_name: String = intent?.component?.packageName ?: return
-        if (intent_package_name == packageName && Settings.KEY_STOP_PLAYER_ON_APP_CLOSE.get(context)) {
+        if (intent_package_name == packageName && (Settings.KEY_STOP_PLAYER_ON_APP_CLOSE.get(context))) {
             stopSelf()
         }
     }
@@ -453,12 +441,24 @@ actual class PlatformPlayerService: MediaSessionService() {
                     .build(),
                 true
             )
+            .setWakeMode(C.WAKE_MODE_NETWORK)
             .setUsePlatformDiagnostics(false)
             .build()
 
         player.addListener(player_listener)
         player.playWhenReady = true
         player.prepare()
+
+        val controller_future: ListenableFuture<MediaController> =
+            MediaController.Builder(
+                this,
+                SessionToken(this, ComponentName(this, PlatformPlayerService::class.java))
+            ).buildAsync()
+
+        controller_future.addListener(
+            { controller_future.get() },
+            MoreExecutors.directExecutor()
+        )
 
         media_session = MediaSession.Builder(this, player)
             .setBitmapLoader(object : BitmapLoader {
@@ -636,10 +636,6 @@ actual class PlatformPlayerService: MediaSessionService() {
         }
 
         return Bundle.EMPTY
-    }
-
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
-        return media_session
     }
 
     private lateinit var _service_player: PlayerServicePlayer

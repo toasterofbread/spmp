@@ -30,7 +30,7 @@ private const val UPDATE_INTERVAL: Long = 5000 // ms
 //private const val VOL_NOTIF_SHOW_DURATION: Long = 1000
 private const val SONG_MARK_WATCHED_POSITION = 1000 // ms
 
-class PlayerServicePlayer(private val service: PlatformPlayerService) {
+abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
     private val context: PlatformContext get() = service.context
     private val coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
 
@@ -54,6 +54,8 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
     fun redoAll() = undo_handler.redoAll()
     fun undo() = undo_handler.undo()
     fun undoAll() = undo_handler.undoAll()
+
+    abstract fun onUndoStateChanged()
 
     private val prefs_listener = object : PlatformPreferences.Listener {
         override fun onChanged(prefs: PlatformPreferences, key: String) {
@@ -180,7 +182,7 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
         require(start_radio || !shuffle)
         require(at_index >= 0)
 
-        undo_handler.undoableAction {
+        undo_handler.undoableAction(song_count > 0) {
             if (at_index == 0 && song.id == service.getSong()?.id && start_radio) {
                 clearQueue(keep_current = true, save = false)
             }
@@ -213,7 +215,7 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
     ) {
         require(item_index == null || item != null)
 
-        undo_handler.customUndoableAction { furtherAction ->
+        undo_handler.customUndoableAction(null) { furtherAction ->
             synchronized(radio) {
                 clearQueue(from = index, keep_current = false, save = false, cancel_radio = false)
 
@@ -269,7 +271,7 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
             radio.instance.cancelRadio()
         }
 
-        undo_handler.undoableAction {
+        undo_handler.undoableAction(null) {
             for (i in song_count - 1 downTo from) {
                 if (keep_current && i == current_song_index) {
                     continue
@@ -301,7 +303,7 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
     }
 
     private fun shuffleQueue(range: IntRange) {
-        undo_handler.undoableAction {
+        undo_handler.undoableAction(null) {
             for (i in range) {
                 val swap = Random.nextInt(range)
                 swapQueuePositions(i, swap, false)
@@ -311,7 +313,7 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
     }
 
     fun shuffleQueueIndices(indices: List<Int>) {
-        undo_handler.undoableAction {
+        undo_handler.undoableAction(null) {
             for (i in indices.withIndex()) {
                 val swap_index = Random.nextInt(indices.size)
                 swapQueuePositions(i.value, indices[swap_index], false)
@@ -330,7 +332,7 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
 
         val offset_b = b + (if (b > a) -1 else 1)
 
-        undo_handler.undoableAction {
+        undo_handler.undoableAction(null) {
             performAction(UndoHandler.MoveAction(a, b))
             performAction(UndoHandler.MoveAction(offset_b, a))
         }
@@ -353,7 +355,7 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
             active_queue_index = add_to_index
         }
 
-        undo_handler.customUndoableAction { furtherAction ->
+        undo_handler.customUndoableAction(null) { furtherAction ->
             performAction(UndoHandler.AddAction(song, add_to_index))
             if (start_radio) {
                 clearQueue(add_to_index + 1, save = false, cancel_radio = false)
@@ -408,7 +410,7 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
 
         val index_offset = if (skip_first) -1 else 0
 
-        undo_handler.undoableAction {
+        undo_handler.undoableAction(null) {
             if (clear) {
                 clearQueue(save = false)
             }
@@ -433,7 +435,7 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
     }
 
     fun moveSong(from: Int, to: Int) {
-        undo_handler.undoableAction {
+        undo_handler.undoableAction(null) {
             performAction(UndoHandler.MoveAction(from, to))
         }
     }
@@ -441,26 +443,12 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
     fun removeFromQueue(index: Int, save: Boolean = true): Song {
         val song = getSong(index)!!
 
-        undo_handler.undoableAction {
-            performAction(UndoHandler.RemoveAction(index))
-        }
+        undo_handler.performAction(UndoHandler.RemoveAction(index))
 
         if (save) {
             savePersistentQueue()
         }
         return song
-    }
-
-    fun removeMultipleFromQueue(indices: List<Int>, save: Boolean = true) {
-        undo_handler.undoableAction {
-            for (index in indices) {
-                performAction(UndoHandler.RemoveAction(index))
-            }
-        }
-
-        if (save) {
-            savePersistentQueue()
-        }
     }
 
     fun seekBy(delta_ms: Long) {
@@ -515,6 +503,16 @@ class PlayerServicePlayer(private val service: PlatformPlayerService) {
     }
 
     // --- UndoHandler ---
+
+    fun undoableAction(action: PlayerServicePlayer.(furtherAction: (PlayerServicePlayer.() -> Unit) -> Unit) -> Unit) {
+        undo_handler.undoableAction { a ->
+            action { b ->
+                a {
+                    b()
+                }
+            }
+        }
+    }
 
     fun customUndoableAction(action: PlayerServicePlayer.(furtherAction: (PlayerServicePlayer.() -> UndoRedoAction?) -> Unit) -> UndoRedoAction?) =
         undo_handler.customUndoableAction { a: (UndoHandler.() -> UndoRedoAction?) -> Unit ->

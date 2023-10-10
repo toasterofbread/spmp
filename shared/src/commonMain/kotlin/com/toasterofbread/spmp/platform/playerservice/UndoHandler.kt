@@ -20,21 +20,21 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: Platfor
     val undo_count: Int get() = action_head
     val redo_count: Int get() = action_list.size - undo_count
 
-    internal class AddAction(val song: Song, val index: Int): UndoRedoAction {
+    internal data class AddAction(val song: Song, val index: Int): UndoRedoAction {
         init {
             assert(index >= 0) { index.toString() }
         }
 
         override fun redo(service: PlatformPlayerService) {
             service.addSong(song, index)
-//            listeners.forEach { it.onSongAdded(index, item.getSong()) }
+            service.service_player.onUndoStateChanged()
         }
         override fun undo(service: PlatformPlayerService) {
             service.removeSong(index)
-//            listeners.forEach { it.onSongRemoved(index) }
+            service.service_player.onUndoStateChanged()
         }
     }
-    internal class MoveAction(val from: Int, val to: Int): UndoRedoAction {
+    internal data class MoveAction(val from: Int, val to: Int): UndoRedoAction {
         init {
             assert(from >= 0)
             assert(to >= 0)
@@ -42,14 +42,14 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: Platfor
 
         override fun redo(service: PlatformPlayerService) {
             service.moveSong(from, to)
-//            listeners.forEach { it.onSongMoved(from, to) }
+            service.service_player.onUndoStateChanged()
         }
         override fun undo(service: PlatformPlayerService) {
             service.moveSong(to, from)
-//            listeners.forEach { it.onSongMoved(to, from) }
+            service.service_player.onUndoStateChanged()
         }
     }
-    internal class RemoveAction(val index: Int): UndoRedoAction {
+    internal data class RemoveAction(val index: Int): UndoRedoAction {
         init {
             assert(index >= 0)
         }
@@ -58,17 +58,17 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: Platfor
         override fun redo(service: PlatformPlayerService) {
             song = service.getSong(index)!!
             service.removeSong(index)
-//            listeners.forEach { it.onSongRemoved(index) }
+            service.service_player.onUndoStateChanged()
         }
 
         override fun undo(service: PlatformPlayerService) {
             service.addSong(song, index)
-//            listeners.forEach { it.onSongAdded(index, item.getSong()) }
+            service.service_player.onUndoStateChanged()
         }
     }
 
-    fun undoableAction(action: UndoHandler.(furtherAction: (UndoHandler.() -> Unit) -> Unit) -> Unit) {
-        customUndoableAction { furtherAction ->
+    fun undoableAction(enable: Boolean? = true, action: UndoHandler.(furtherAction: (UndoHandler.() -> Unit) -> Unit) -> Unit) {
+        customUndoableAction(enable) { furtherAction ->
             action {
                 furtherAction {
                     it()
@@ -79,22 +79,15 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: Platfor
         }
     }
 
-    private fun handleFurtherAction(current: MutableList<UndoRedoAction>, further: UndoHandler.() -> UndoRedoAction?) {
-        synchronized(action_list) {
-            current_action_is_further = true
-            current_action = current
+    // If enable is null, action will only be undoable if already in an enabled undo scope
+    fun customUndoableAction(enable: Boolean? = true, action: UndoHandler.(furtherAction: (UndoHandler.() -> UndoRedoAction?) -> Unit) -> UndoRedoAction?) {
+        println("customUndoableAction $enable $current_action")
 
-            val custom_action = further(this)
-            if (custom_action != null) {
-                performAction(custom_action)
-            }
-
-            current_action = null
-            current_action_is_further = false
+        if (enable == false || (enable == null && current_action == null)) {
+            action(this) { it() }
+            return
         }
-    }
 
-    fun customUndoableAction(action: UndoHandler.(furtherAction: (UndoHandler.() -> UndoRedoAction?) -> Unit) -> UndoRedoAction?) {
         current_action?.also { c_action ->
             val custom_action = action(this) { further ->
                 handleFurtherAction(c_action, further)
@@ -121,6 +114,21 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: Platfor
         }
     }
 
+    private fun handleFurtherAction(current: MutableList<UndoRedoAction>, further: UndoHandler.() -> UndoRedoAction?) {
+        synchronized(action_list) {
+            current_action_is_further = true
+            current_action = current
+
+            val custom_action = further(this)
+            if (custom_action != null) {
+                performAction(custom_action)
+            }
+
+            current_action = null
+            current_action_is_further = false
+        }
+    }
+
     private fun commitActionList(actions: List<UndoRedoAction>) {
         for (i in 0 until redo_count) {
             action_list.removeLast()
@@ -128,7 +136,7 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: Platfor
         action_list.add(actions)
         action_head++
 
-//        listeners.forEach { it.onUndoStateChanged() }
+        player.onUndoStateChanged()
     }
 
     fun performAction(action: UndoRedoAction) {
@@ -138,10 +146,6 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: Platfor
             val current = current_action
             if (current != null) {
                 current.add(action)
-            }
-            else if (!current_action_is_further) {
-                // If not being performed as part of an undoableAction, commit as a single aciton
-                commitActionList(listOf(action))
             }
         }
     }
@@ -154,6 +158,7 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: Platfor
             for (action in action_list[action_head++]) {
                 action.redo(service)
             }
+            player.onUndoStateChanged()
         }
     }
 
@@ -164,7 +169,7 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: Platfor
                     action.redo(service)
                 }
             }
-//            listeners.forEach { it.onUndoStateChanged() }
+            player.onUndoStateChanged()
         }
     }
 
@@ -176,7 +181,7 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: Platfor
             for (action in action_list[--action_head].asReversed()) {
                 action.undo(service)
             }
-//            listeners.forEach { it.onUndoStateChanged() }
+            player.onUndoStateChanged()
         }
     }
 
@@ -187,7 +192,7 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: Platfor
                     action.undo(service)
                 }
             }
-//            listeners.forEach { it.onUndoStateChanged() }
+            player.onUndoStateChanged()
         }
     }
 }

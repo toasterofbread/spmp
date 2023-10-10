@@ -57,6 +57,8 @@ expect class PlatformPlayerService() {
     var repeat_mode: MediaPlayerRepeatMode
     var volume: Float
 
+    fun isPlayingOverRemoteDevice(): Boolean
+
     fun play()
     fun pause()
     fun playPause()

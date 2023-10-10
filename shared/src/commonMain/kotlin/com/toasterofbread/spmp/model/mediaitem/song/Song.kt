@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem.song
 
+import LocalPlayerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
@@ -26,6 +27,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.crop
+import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.platform.toImageBitmap
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.toLyricsReference
@@ -152,17 +154,27 @@ interface Song: MediaItem.WithArtist {
 
     @Composable
     fun getLyricsSyncOffset(database: Database, is_topbar: Boolean): State<Long> {
+        val player: PlatformPlayerService = LocalPlayerState.current.controller ?: return mutableStateOf(0)
+
         val internal_offset: Long? by LyricsSyncOffset.observe(database)
         val settings_delay: Float by Settings.KEY_LYRICS_SYNC_DELAY.rememberMutableState()
         val settings_delay_topbar: Float by Settings.KEY_LYRICS_SYNC_DELAY_TOPBAR.rememberMutableState()
         val settings_delay_bt: Float by Settings.KEY_LYRICS_SYNC_DELAY_BLUETOOTH.rememberMutableState()
 
-        return remember { derivedStateOf {
-            val delay: Float =
-                if (is_topbar) settings_delay + settings_delay_topbar
-                else settings_delay
+        return remember(player, is_topbar) { derivedStateOf {
+            var delay: Float = settings_delay
 
-//            TODO("Check if using BT audio")
+            if (is_topbar) {
+                delay += settings_delay_topbar
+            }
+
+            // Ensure recomposition on value change, as device change is not observed directly
+            @Suppress("UNUSED_EXPRESSION")
+            settings_delay_bt
+
+            if (player.isPlayingOverRemoteDevice()) {
+                delay += settings_delay_bt
+            }
 
             return@derivedStateOf (internal_offset ?: 0) - (delay * 1000L).toLong() + STATIC_LYRICS_SYNC_OFFSET
         } }

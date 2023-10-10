@@ -153,7 +153,9 @@ fun QueueTab(page_height: Dp, getTopBarHeight: () -> Dp, modifier: Modifier = Mo
             }
 
             song_items.add(from, song_items.removeAt(to))
-            player.controller?.moveSong(from, to)
+            player.controller?.service_player?.undoableAction {
+                moveSong(from, to)
+            }
             playing_key = null
         }
     )

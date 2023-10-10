@@ -10,6 +10,7 @@ import android.graphics.Bitmap
 import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
+import android.media.MediaRouter
 import android.net.Uri
 import android.os.Binder
 import android.os.Build
@@ -81,9 +82,7 @@ import com.toasterofbread.spmp.youtubeapi.endpoint.SetSongLikedEndpoint
 import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -186,11 +185,15 @@ actual class PlatformPlayerService: MediaSessionService() {
 
     private val audio_device_callback = object : AudioDeviceCallback() {
         private fun isBluetoothAudio(device: AudioDeviceInfo): Boolean {
-            if (!device.isSink) return false
+            if (!device.isSink) {
+                return false
+            }
             return device.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP
         }
         private fun isWiredAudio(device: AudioDeviceInfo): Boolean {
-            if (!device.isSink) return false
+            if (!device.isSink) {
+                return false
+            }
             return device.type == AudioDeviceInfo.TYPE_WIRED_HEADSET ||
                     device.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
                     (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && device.type == AudioDeviceInfo.TYPE_USB_HEADSET)
@@ -322,7 +325,13 @@ actual class PlatformPlayerService: MediaSessionService() {
         _context = PlatformContext(this, coroutine_scope).init()
 
         initialiseSessionAndPlayer()
-        _service_player = PlayerServicePlayer(this)
+        _service_player = object : PlayerServicePlayer(this) {
+            override fun onUndoStateChanged() {
+                for (listener in listeners) {
+                    listener.onUndoStateChanged()
+                }
+            }
+        }
 
         val audio_manager = getSystemService(AUDIO_SERVICE) as AudioManager?
         audio_manager?.registerAudioDeviceCallback(audio_device_callback, null)
@@ -536,7 +545,7 @@ actual class PlatformPlayerService: MediaSessionService() {
                     session: MediaSession,
                     controller: MediaSession.ControllerInfo,
                     customCommand: SessionCommand,
-                    args: Bundle
+                    args: Bundle,
                 ): ListenableFuture<SessionResult> {
                     val command: PlayerServiceCommand? = PlayerServiceCommand.fromSessionCommand(customCommand, args)
                     if (command == null) {
@@ -623,7 +632,6 @@ actual class PlatformPlayerService: MediaSessionService() {
 
             is PlayerServiceCommand.MoveSong -> service_player.moveSong(command.from, command.to)
             is PlayerServiceCommand.RemoveSong -> service_player.removeFromQueue(command.from)
-            is PlayerServiceCommand.RemoveMultipleSongs -> service_player.removeMultipleFromQueue(command.indices)
 
             is PlayerServiceCommand.ClearQueue -> service_player.clearQueue(command.from, command.keep_current, cancel_radio = command.cancel_radio)
             is PlayerServiceCommand.ShuffleQueue -> service_player.shuffleQueue(command.start, command.end)
@@ -659,6 +667,18 @@ actual class PlatformPlayerService: MediaSessionService() {
         }
     actual val has_focus: Boolean
         get() = TODO()
+
+    actual fun isPlayingOverRemoteDevice(): Boolean {
+        val media_router: MediaRouter = (getSystemService(MEDIA_ROUTER_SERVICE) as MediaRouter?) ?: return false
+        val selected_route: MediaRouter.RouteInfo = media_router.getSelectedRoute(MediaRouter.ROUTE_TYPE_LIVE_AUDIO)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            return selected_route.deviceType == MediaRouter.RouteInfo.DEVICE_TYPE_BLUETOOTH
+        }
+        else {
+            return false
+        }
+    }
 
     actual fun play() {
         player.play()

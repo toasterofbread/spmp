@@ -45,7 +45,9 @@ fun LazyListScope.QueueItems(
                     },
                     multiselect_context
                 ) {
-                    player.controller?.removeSong(index)
+                    player.controller?.service_player?.undoableAction {
+                        removeFromQueue(index)
+                    }
                 }
             }
         }

@@ -50,7 +50,6 @@ sealed class PlayerServiceCommand {
 
     data class MoveSong(val from: Int, val to: Int): PlayerServiceCommand()
     data class RemoveSong(val from: Int): PlayerServiceCommand()
-    data class RemoveMultipleSongs(val indices: List<Int>): PlayerServiceCommand()
 
     data class ClearQueue(val from: Int = 0, val keep_current: Boolean = false, val cancel_radio: Boolean = true): PlayerServiceCommand()
     data class ShuffleQueue(val start: Int = 0, val end: Int = -1): PlayerServiceCommand()
@@ -81,7 +80,6 @@ sealed class PlayerServiceCommand {
                 AddMultipleSongs::class.simpleName,
                 MoveSong::class.simpleName,
                 RemoveSong::class.simpleName,
-                RemoveMultipleSongs::class.simpleName,
                 ClearQueue::class.simpleName,
                 ShuffleQueue::class.simpleName,
                 ShuffleQueueIndices::class.simpleName,
@@ -111,7 +109,6 @@ sealed class PlayerServiceCommand {
                 "AddMultipleSongs" -> Gson().fromJson<AddMultipleSongs>(data)
                 "MoveSong" -> Gson().fromJson<MoveSong>(data)
                 "RemoveSong" -> Gson().fromJson<RemoveSong>(data)
-                "RemoveMultipleSongs" -> Gson().fromJson<RemoveMultipleSongs>(data)
                 "ClearQueue" -> Gson().fromJson<ClearQueue>(data)
                 "ShuffleQueue" -> Gson().fromJson<ShuffleQueue>(data)
                 "ShuffleQueueIndices" -> Gson().fromJson<ShuffleQueueIndices>(data)

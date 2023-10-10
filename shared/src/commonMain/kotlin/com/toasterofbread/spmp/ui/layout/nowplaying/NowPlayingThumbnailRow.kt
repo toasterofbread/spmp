@@ -339,7 +339,7 @@ fun ThumbnailRow(
             val show_prev_button: Boolean by Settings.KEY_MINI_PLAYER_SHOW_PREV_BUTTON.rememberMutableState()
 
             if (show_prev_button) {
-                IconButton({ player.player?.seekToPrevious() }, player_button_modifier) {
+                IconButton({ player.controller?.seekToPrevious() }, player_button_modifier) {
                     Image(
                         Icons.Rounded.SkipPrevious,
                         null,
@@ -348,7 +348,7 @@ fun ThumbnailRow(
                 }
             }
 
-            IconButton({ player.player?.playPause() }, player_button_modifier) {
+            IconButton({ player.controller?.playPause() }, player_button_modifier) {
                 Image(
                     if (player.status.m_playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                     getString(if (player.status.m_playing) "media_pause" else "media_play"),
@@ -356,7 +356,7 @@ fun ThumbnailRow(
                 )
             }
 
-            IconButton({ player.player?.seekToNext() }, player_button_modifier) {
+            IconButton({ player.controller?.seekToNext() }, player_button_modifier) {
                 Image(
                     Icons.Rounded.SkipNext,
                     null,

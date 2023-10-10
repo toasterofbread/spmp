@@ -25,7 +25,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
@@ -38,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -57,7 +55,6 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.utils.common.getContrasted
 import com.toasterofbread.utils.common.launchSingle
 import com.toasterofbread.utils.common.setAlpha
-import com.toasterofbread.utils.common.thenIf
 import com.toasterofbread.utils.composable.AlignableCrossfade
 import com.toasterofbread.utils.composable.pauseableInfiniteRepeatableAnimation
 import kotlinx.coroutines.CoroutineScope
@@ -114,13 +111,12 @@ class MusicTopBar(val player: PlayerState) {
         can_show_visualiser: Boolean = false,
         hide_while_inactive: Boolean = true,
         alignment: Alignment = Alignment.Center,
-        padding: PaddingValues = PaddingValues(),
-        onShowingChanged: ((Boolean) -> Unit)? = null
-    ) {
+        padding: PaddingValues = PaddingValues()
+    ): MusicTopBarState {
         var target_mode: MusicTopBarMode by target_mode_key.rememberMutableEnumState()
         val show_toast = remember { mutableStateOf(false) }
 
-        MusicTopBar(
+        return MusicTopBar(
             { target_mode },
             true,
             can_show_visualiser,
@@ -173,8 +169,7 @@ class MusicTopBar(val player: PlayerState) {
             onClick = {
                 target_mode = target_mode.getNext(can_show_visualiser)
                 show_toast.value = true
-            },
-            onShowingChanged = onShowingChanged
+            }
         )
     }
 
@@ -184,9 +179,8 @@ class MusicTopBar(val player: PlayerState) {
         modifier: Modifier = Modifier,
         padding: PaddingValues = PaddingValues(),
         getBottomBorderOffset: ((height: Int) -> Int)? = null,
-        getBottomBorderColour: (() -> Color)? = null,
-        onShowingChanged: ((Boolean) -> Unit)? = null
-    ): Dp {
+        getBottomBorderColour: (() -> Color)? = null
+    ): MusicTopBarState {
         val can_show: Boolean by can_show_key.rememberMutableState()
         return MusicTopBar(
             { MusicTopBarMode.LYRICS },
@@ -196,10 +190,11 @@ class MusicTopBar(val player: PlayerState) {
             modifier = modifier,
             padding = padding,
             getBottomBorderOffset = getBottomBorderOffset,
-            getBottomBorderColour = getBottomBorderColour,
-            onShowingChanged = onShowingChanged
+            getBottomBorderColour = getBottomBorderColour
         )
     }
+
+    data class MusicTopBarState(val top_padding: Dp, val showing: Boolean)
 
     @Composable
     private fun MusicTopBar(
@@ -214,9 +209,8 @@ class MusicTopBar(val player: PlayerState) {
         innerContent: (@Composable (MusicTopBarMode) -> Unit)? = null,
         getBottomBorderOffset: ((height: Int) -> Int)? = null,
         getBottomBorderColour: (() -> Color)? = null,
-        onClick: (() -> Unit)? = null,
-        onShowingChanged: ((Boolean) -> Unit)? = null
-    ): Dp {
+        onClick: (() -> Unit)? = null
+    ): MusicTopBarState {
         val player = LocalPlayerState.current
         var mode_state: MusicTopBarMode by mutableStateOf(getTargetMode())
 
@@ -241,7 +235,6 @@ class MusicTopBar(val player: PlayerState) {
         }
 
         val show = !hide_while_inactive || isStateActive(current_state, can_show_visualiser)
-        onShowingChanged?.invoke(show)
 
         LaunchedEffect(song?.id) {
             if (song?.id == current_song?.id) {
@@ -308,7 +301,7 @@ class MusicTopBar(val player: PlayerState) {
                                         LyricsLineDisplay(
                                             lyrics = state,
                                             getTime = {
-                                                (player.player?.current_position_ms ?: 0) +
+                                                (player.controller?.current_position_ms ?: 0) +
                                                     (sync_offset_state?.value ?: 0)
                                             },
                                             lyrics_linger = linger,
@@ -322,7 +315,7 @@ class MusicTopBar(val player: PlayerState) {
                                         )
                                     }
                                     MusicTopBarMode.VISUALISER -> {
-                                        player.player?.Visualiser(
+                                        player.controller?.Visualiser(
                                             LocalContentColor.current,
                                             Modifier.fillMaxHeight().fillMaxWidth(visualiser_width).padding(vertical = 10.dp),
                                             opacity = 0.5f
@@ -346,7 +339,10 @@ class MusicTopBar(val player: PlayerState) {
             }
         }
 
-        return if (!show) padding.calculateTopPadding() else if (getBottomBorderColour != null) WAVE_BORDER_DEFAULT_HEIGHT.dp else 0.dp
+        return MusicTopBarState(
+            if (!show) padding.calculateTopPadding() else if (getBottomBorderColour != null) WAVE_BORDER_DEFAULT_HEIGHT.dp else 0.dp,
+            show
+        )
     }
 }
 

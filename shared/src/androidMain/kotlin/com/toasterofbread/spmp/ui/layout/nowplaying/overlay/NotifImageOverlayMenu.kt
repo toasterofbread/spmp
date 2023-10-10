@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.overlay
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Canvas
@@ -42,13 +41,12 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.getMediaNotificationImageMaxOffset
-import com.toasterofbread.spmp.platform.getMediaNotificationImageSize
+import com.toasterofbread.spmp.platform.playerservice.getMediaNotificationImageMaxOffset
+import com.toasterofbread.spmp.platform.playerservice.getMediaNotificationImageSize
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.common.launchSingle
 import kotlin.math.roundToInt
-import kotlin.math.roundToLong
 
 actual fun notifImagePlayerOverlayMenuButtonText(): String? = getString("song_notif_image_menu_open")
 

@@ -1,22 +1,37 @@
-package com.toasterofbread.spmp.platform
+package com.toasterofbread.spmp.platform.playerservice
 
 import SpMp
 import android.app.PendingIntent
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.graphics.Bitmap
 import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
+import android.media.MediaRouter
 import android.net.Uri
+import android.os.Binder
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.os.IBinder
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.BitmapLoader
 import androidx.media3.common.util.UnstableApi
@@ -36,36 +51,44 @@ import androidx.media3.extractor.mkv.MatroskaExtractor
 import androidx.media3.extractor.mp4.FragmentedMp4Extractor
 import androidx.media3.session.CommandButton
 import androidx.media3.session.DefaultMediaNotificationProvider
+import androidx.media3.session.MediaController
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
+import androidx.media3.session.SessionToken
 import app.cash.sqldelight.Query
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.toasterofbread.spmp.exovisualiser.ExoVisualizer
 import com.toasterofbread.spmp.exovisualiser.FFTAudioProcessor
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.getMediaItemFromUid
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
+import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.PlayerListener
+import com.toasterofbread.spmp.platform.PlayerServiceCommand
+import com.toasterofbread.spmp.platform.isConnectionMetered
+import com.toasterofbread.spmp.platform.processMediaDataSpec
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.shared.R
 import com.toasterofbread.spmp.youtubeapi.endpoint.SetSongLikedEndpoint
+import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.util.concurrent.Executors
 import kotlin.math.roundToInt
-
-private const val COMMAND_SET_LIKE_TRUE = "com.toasterofbread.spmp.setliketrue"
-private const val COMMAND_SET_LIKE_NEUTRAL = "com.toasterofbread.spmp.setlikeneutral"
 
 private const val A13_MEDIA_NOTIFICATION_ASPECT = 2.9f / 5.7f
 
@@ -110,11 +133,15 @@ private fun formatMediaNotificationImage(
     )
 }
 
-@UnstableApi
-class MediaPlayerServiceSession: MediaSessionService() {
+private class PlayerBinder(val service: PlatformPlayerService): Binder()
+
+@androidx.annotation.OptIn(UnstableApi::class)
+actual class PlatformPlayerService: MediaSessionService() {
+    actual val context: PlatformContext get() = _context
+    private lateinit var _context: PlatformContext
+
     private val coroutine_scope = CoroutineScope(Dispatchers.Main)
-    private lateinit var context: PlatformContext
-    private lateinit var player: ExoPlayer
+    private lateinit var player: Player
     private lateinit var media_session: MediaSession
 
     private var current_song: Song? = null
@@ -158,14 +185,18 @@ class MediaPlayerServiceSession: MediaSessionService() {
 
     private val audio_device_callback = object : AudioDeviceCallback() {
         private fun isBluetoothAudio(device: AudioDeviceInfo): Boolean {
-            if (!device.isSink) return false
+            if (!device.isSink) {
+                return false
+            }
             return device.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP
         }
         private fun isWiredAudio(device: AudioDeviceInfo): Boolean {
-            if (!device.isSink) return false
+            if (!device.isSink) {
+                return false
+            }
             return device.type == AudioDeviceInfo.TYPE_WIRED_HEADSET ||
                     device.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
-                    device.type == AudioDeviceInfo.TYPE_USB_HEADSET
+                    (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && device.type == AudioDeviceInfo.TYPE_USB_HEADSET)
         }
 
         override fun onAudioDevicesAdded(addedDevices: Array<AudioDeviceInfo>) {
@@ -203,18 +234,104 @@ class MediaPlayerServiceSession: MediaSessionService() {
         }
     }
 
-
-    companion object {
-        // If there's a better way to provide this to MediaControllers, I'd like to know
-        val audio_processor = FFTAudioProcessor()
+    actual fun addListener(listener: PlayerListener) {
+        listener.addToPlayer(player)
+    }
+    actual fun removeListener(listener: PlayerListener) {
+        listener.removeFromPlayer(player)
     }
 
-    override fun onCreate() {
+    // If there's a better way to provide information to MediaControllers, I'd like to know
+    actual companion object {
+        val audio_processor = FFTAudioProcessor()
+
+        private val listeners: MutableList<PlayerListener> = mutableListOf()
+        private var player_instance: PlatformPlayerService? by mutableStateOf(null)
+
+        fun setInstance(value: PlatformPlayerService?) {
+            player_instance?.also {
+                for (listener in listeners) {
+                    it.removeListener(listener)
+                }
+            }
+
+            player_instance = value
+
+            value?.also {
+                for (listener in listeners) {
+                    it.addListener(listener)
+                }
+            }
+        }
+
+        actual fun addListener(listener: PlayerListener) {
+            listeners.add(listener)
+            player_instance?.addListener(listener)
+        }
+        actual fun removeListener(listener: PlayerListener) {
+            listeners.remove(listener)
+            player_instance?.removeListener(listener)
+        }
+
+        private fun PlatformContext.getApplicationContext(): Context =
+            ctx.applicationContext
+
+        actual fun connect(
+            context: PlatformContext,
+            instance: PlatformPlayerService?,
+            onConnected: (PlatformPlayerService) -> Unit,
+            onDisconnected: () -> Unit,
+        ): Any {
+            val ctx: Context = context.getApplicationContext()
+
+            val service_connection = object : ServiceConnection {
+                override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+                    onConnected((service as PlayerBinder).service)
+                }
+
+                override fun onServiceDisconnected(name: ComponentName?) {
+                    onDisconnected()
+                }
+            }
+
+            ctx.startService(Intent(ctx, PlatformPlayerService::class.java))
+            ctx.bindService(Intent(ctx, PlatformPlayerService::class.java), service_connection, Context.BIND_AUTO_CREATE)
+
+            return service_connection
+        }
+
+        actual fun disconnect(context: PlatformContext, connection: Any) {
+            context.getApplicationContext().unbindService(connection as ServiceConnection)
+        }
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        super.onStartCommand(intent, flags, startId)
+        return START_NOT_STICKY
+    }
+
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
+        return media_session
+    }
+
+    override fun onBind(intent: Intent?): IBinder? {
+        return super.onBind(intent) ?: PlayerBinder(this)
+    }
+
+    actual override fun onCreate() {
         super.onCreate()
 
-        context = PlatformContext(this, coroutine_scope).init()
+        setInstance(this)
+        _context = PlatformContext(this, coroutine_scope).init()
 
         initialiseSessionAndPlayer()
+        _service_player = object : PlayerServicePlayer(this) {
+            override fun onUndoStateChanged() {
+                for (listener in listeners) {
+                    listener.onUndoStateChanged()
+                }
+            }
+        }
 
         val audio_manager = getSystemService(AUDIO_SERVICE) as AudioManager?
         audio_manager?.registerAudioDeviceCallback(audio_device_callback, null)
@@ -226,8 +343,9 @@ class MediaPlayerServiceSession: MediaSessionService() {
         )
     }
 
-    override fun onDestroy() {
+    actual override fun onDestroy() {
         coroutine_scope.cancel()
+        service_player.release()
         player.release()
         media_session.release()
 
@@ -242,7 +360,7 @@ class MediaPlayerServiceSession: MediaSessionService() {
         super.onTaskRemoved(intent)
 
         val intent_package_name: String = intent?.component?.packageName ?: return
-        if (intent_package_name == packageName && Settings.KEY_STOP_PLAYER_ON_APP_CLOSE.get(context)) {
+        if (intent_package_name == packageName && (Settings.KEY_STOP_PLAYER_ON_APP_CLOSE.get(context))) {
             stopSelf()
         }
     }
@@ -262,10 +380,14 @@ class MediaPlayerServiceSession: MediaSessionService() {
                                 SongLikedStatus.DISLIKED -> getStringTODO("Remove dislike")
                             }
                         )
-                        .setSessionCommand(SessionCommand(
-                            if (liked == SongLikedStatus.NEUTRAL) COMMAND_SET_LIKE_TRUE else COMMAND_SET_LIKE_NEUTRAL,
-                            Bundle.EMPTY
-                        ))
+                        .setSessionCommand(
+                            PlayerServiceCommand.SetLiked(
+                                when (liked) {
+                                    SongLikedStatus.NEUTRAL -> SongLikedStatus.LIKED
+                                    SongLikedStatus.LIKED, SongLikedStatus.DISLIKED -> SongLikedStatus.NEUTRAL
+                                }
+                            ).getSessionCommand()
+                        )
                         .setIconResId(
                             when (liked) {
                                 SongLikedStatus.NEUTRAL -> R.drawable.ic_thumb_up_off
@@ -302,24 +424,24 @@ class MediaPlayerServiceSession: MediaSessionService() {
                 createDataSourceFactory(),
                 { arrayOf(MatroskaExtractor(), FragmentedMp4Extractor()) }
             )
-            .setLoadErrorHandlingPolicy(
-                object : LoadErrorHandlingPolicy {
-                    override fun getFallbackSelectionFor(
-                        fallbackOptions: LoadErrorHandlingPolicy.FallbackOptions,
-                        loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo,
-                    ): LoadErrorHandlingPolicy.FallbackSelection? {
-                        return null
-                    }
+                .setLoadErrorHandlingPolicy(
+                    object : LoadErrorHandlingPolicy {
+                        override fun getFallbackSelectionFor(
+                            fallbackOptions: LoadErrorHandlingPolicy.FallbackOptions,
+                            loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo,
+                        ): LoadErrorHandlingPolicy.FallbackSelection? {
+                            return null
+                        }
 
-                    override fun getRetryDelayMsFor(loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo): Long {
-                        return 1000
-                    }
+                        override fun getRetryDelayMsFor(loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo): Long {
+                            return 1000
+                        }
 
-                    override fun getMinimumLoadableRetryCount(dataType: Int): Int {
-                        return Int.MAX_VALUE
+                        override fun getMinimumLoadableRetryCount(dataType: Int): Int {
+                            return Int.MAX_VALUE
+                        }
                     }
-                }
-            )
+                )
         )
             .setAudioAttributes(
                 AudioAttributes.Builder()
@@ -328,13 +450,24 @@ class MediaPlayerServiceSession: MediaSessionService() {
                     .build(),
                 true
             )
+            .setWakeMode(C.WAKE_MODE_NETWORK)
             .setUsePlatformDiagnostics(false)
             .build()
-            .apply {
-                addListener(player_listener)
-                playWhenReady = true
-                prepare()
-            }
+
+        player.addListener(player_listener)
+        player.playWhenReady = true
+        player.prepare()
+
+        val controller_future: ListenableFuture<MediaController> =
+            MediaController.Builder(
+                this,
+                SessionToken(this, ComponentName(this, PlatformPlayerService::class.java))
+            ).buildAsync()
+
+        controller_future.addListener(
+            { controller_future.get() },
+            MoreExecutors.directExecutor()
+        )
 
         media_session = MediaSession.Builder(this, player)
             .setBitmapLoader(object : BitmapLoader {
@@ -400,8 +533,11 @@ class MediaPlayerServiceSession: MediaSessionService() {
                     val result = super.onConnect(session, controller)
                     val session_commands = result.availableSessionCommands
                         .buildUpon()
-                        .add(SessionCommand(COMMAND_SET_LIKE_TRUE, Bundle()))
-                        .add(SessionCommand(COMMAND_SET_LIKE_NEUTRAL, Bundle()))
+
+                    for (command in PlayerServiceCommand.getBaseSessionCommands()) {
+                        session_commands.add(command)
+                    }
+
                     return MediaSession.ConnectionResult.accept(session_commands.build(), result.availablePlayerCommands)
                 }
 
@@ -411,30 +547,16 @@ class MediaPlayerServiceSession: MediaSessionService() {
                     customCommand: SessionCommand,
                     args: Bundle,
                 ): ListenableFuture<SessionResult> {
-                    val song = current_song
-                    if (song != null) {
-                        when (customCommand.customAction) {
-                            COMMAND_SET_LIKE_TRUE ->
-                                coroutine_scope.launch {
-                                    val endpoint: SetSongLikedEndpoint? = SpMp.context.ytapi.user_auth_state?.SetSongLiked
-                                    if (endpoint?.isImplemented() == true) {
-                                        song.updateLiked(SongLikedStatus.LIKED, endpoint, SpMp.context)
-                                    }
-                                }
-                            COMMAND_SET_LIKE_NEUTRAL ->
-                                coroutine_scope.launch {
-                                    val endpoint: SetSongLikedEndpoint? = SpMp.context.ytapi.user_auth_state?.SetSongLiked
-                                    if (endpoint?.isImplemented() == true) {
-                                        song.updateLiked(SongLikedStatus.NEUTRAL, endpoint, SpMp.context)
-                                    }
-                                }
-                        }
+                    val command: PlayerServiceCommand? = PlayerServiceCommand.fromSessionCommand(customCommand, args)
+                    if (command == null) {
+                        return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_BAD_VALUE))
                     }
-                    return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+
+                    val result: Bundle = onPlayerServiceCommand(command)
+                    return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS, result))
                 }
             })
             .build()
-
     }
 
     private fun createDataSourceFactory(): DataSource.Factory {
@@ -450,7 +572,160 @@ class MediaPlayerServiceSession: MediaSessionService() {
         }
     }
 
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
-        return media_session
+    private fun onPlayerServiceCommand(command: PlayerServiceCommand): Bundle {
+        when (command) {
+            is PlayerServiceCommand.SetLiked -> {
+                val song = current_song
+                if (song != null) {
+                    coroutine_scope.launch {
+                        val endpoint: SetSongLikedEndpoint? = SpMp.context.ytapi.user_auth_state?.SetSongLiked
+                        if (endpoint?.isImplemented() == true) {
+                            song.updateLiked(
+                                command.value,
+                                endpoint,
+                                SpMp.context
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        return Bundle.EMPTY
     }
+
+    private lateinit var _service_player: PlayerServicePlayer
+    actual val service_player: PlayerServicePlayer get() = _service_player
+    actual val state: MediaPlayerState get() = convertState(player.playbackState)
+    actual val is_playing: Boolean get() = player.isPlaying
+    actual val song_count: Int get() = player.mediaItemCount
+    actual val current_song_index: Int get() = player.currentMediaItemIndex
+    actual val current_position_ms: Long get() = player.currentPosition
+    actual val duration_ms: Long get() = player.duration
+    actual val radio_state: RadioInstance.RadioState get() = service_player.radio_state
+    actual var repeat_mode: MediaPlayerRepeatMode
+        get() = MediaPlayerRepeatMode.values()[player.repeatMode]
+        set(value) {
+            player.repeatMode = value.ordinal
+        }
+    actual var volume: Float
+        get() = player.volume
+        set(value) {
+            player.volume = value
+        }
+    actual val has_focus: Boolean
+        get() = TODO()
+
+    actual fun isPlayingOverRemoteDevice(): Boolean {
+        val media_router: MediaRouter = (getSystemService(MEDIA_ROUTER_SERVICE) as MediaRouter?) ?: return false
+        val selected_route: MediaRouter.RouteInfo = media_router.getSelectedRoute(MediaRouter.ROUTE_TYPE_LIVE_AUDIO)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            return selected_route.deviceType == MediaRouter.RouteInfo.DEVICE_TYPE_BLUETOOTH
+        }
+        else {
+            return false
+        }
+    }
+
+    actual fun play() {
+        player.play()
+    }
+
+    actual fun pause() {
+        player.pause()
+    }
+
+    actual fun playPause() {
+        if (player.isPlaying) {
+            player.pause()
+        }
+        else {
+            player.play()
+        }
+    }
+
+    actual fun seekTo(position_ms: Long) {
+        player.seekTo(position_ms)
+        listeners.forEach { it.onSeeked(position_ms) }
+    }
+
+    actual fun seekToSong(index: Int) {
+        player.seekTo(index, 0)
+    }
+
+    actual fun seekToNext() {
+        player.seekToNext()
+    }
+
+    actual fun seekToPrevious() {
+        player.seekToPrevious()
+    }
+
+    actual fun getSong(): Song? {
+        return player.currentMediaItem?.getSong()
+    }
+
+    actual fun getSong(index: Int): Song? {
+        if (index !in 0 until song_count) {
+            return null
+        }
+
+        return player.getMediaItemAt(index).getSong()
+    }
+
+    actual fun addSong(song: Song, index: Int) {
+        player.addMediaItem(index, song.buildExoMediaItem(context))
+        listeners.forEach { it.onSongAdded(index, song) }
+
+        service_player.session_started = true
+    }
+
+    actual fun moveSong(from: Int, to: Int) {
+        player.moveMediaItem(from, to)
+        listeners.forEach { it.onSongMoved(from, to) }
+    }
+
+    actual fun removeSong(index: Int) {
+        player.removeMediaItem(index)
+        listeners.forEach { it.onSongRemoved(index) }
+    }
+
+    @Composable
+    actual fun Visualiser(colour: Color, modifier: Modifier, opacity: Float) {
+        val visualiser = remember { ExoVisualizer(audio_processor) }
+        visualiser.Visualiser(colour, modifier, opacity)
+    }
+}
+
+@UnstableApi
+private fun Song.buildExoMediaItem(context: PlatformContext): MediaItem =
+    MediaItem.Builder()
+        .setRequestMetadata(MediaItem.RequestMetadata.Builder().setMediaUri(id.toUri()).build())
+        .setUri(id)
+        .setCustomCacheKey(id)
+        .setMediaMetadata(
+            MediaMetadata.Builder()
+                .apply {
+                    val db = context.database
+
+                    setArtworkUri(id.toUri())
+                    setTitle(getActiveTitle(db))
+                    setArtist(Artist.get(db)?.getActiveTitle(db))
+
+                    val album = Album.get(db)
+                    setAlbumTitle(album?.getActiveTitle(db))
+                    setAlbumArtist(album?.Artist?.get(db)?.getActiveTitle(db))
+                }
+                .build()
+        )
+        .build()
+
+
+fun convertState(exo_state: Int): MediaPlayerState {
+    return MediaPlayerState.values()[exo_state - 1]
+}
+
+fun MediaItem.getSong(): Song {
+    return SongRef(mediaMetadata.artworkUri.toString())
 }

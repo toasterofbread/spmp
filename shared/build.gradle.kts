@@ -110,7 +110,7 @@ tasks.all {
 }
 
 kotlin {
-    androidTarget()
+    android()
 
     jvm("desktop")
 

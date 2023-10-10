@@ -9,13 +9,13 @@ import kotlinx.coroutines.withContext
 import okhttp3.Request
 
 private data class PlayerLikeResponse(
-    val playerOverlays: PlayerOverlays
+    val playerOverlays: PlayerOverlays?
 ) {
-    val status: LikeButtonRenderer get() = playerOverlays.playerOverlayRenderer.actions.single().likeButtonRenderer
+    val status: LikeButtonRenderer? get() = playerOverlays?.playerOverlayRenderer?.actions?.single()?.likeButtonRenderer
 
-    class PlayerOverlays(val playerOverlayRenderer: PlayerOverlayRenderer)
-    data class PlayerOverlayRenderer(val actions: List<Action>)
-    data class Action(val likeButtonRenderer: LikeButtonRenderer)
+    class PlayerOverlays(val playerOverlayRenderer: PlayerOverlayRenderer?)
+    data class PlayerOverlayRenderer(val actions: List<Action>?)
+    data class Action(val likeButtonRenderer: LikeButtonRenderer?)
     data class LikeButtonRenderer(val likeStatus: String, val likesAllowed: Boolean)
 }
 
@@ -32,11 +32,15 @@ class YTMSongLikedEndpoint(override val auth: YoutubeMusicAuthInfo): SongLikedEn
             return@withContext Result.failure(it)
         }
 
-        return@withContext Result.success(when (data.status.likeStatus) {
+        if (data.status == null) {
+            return@withContext Result.failure(NullPointerException(song.toString()))
+        }
+
+        return@withContext Result.success(when (data.status!!.likeStatus) {
             "LIKE" -> SongLikedStatus.LIKED
             "DISLIKE" -> SongLikedStatus.DISLIKED
             "INDIFFERENT" -> SongLikedStatus.NEUTRAL
-            else -> throw NotImplementedError(data.status.likeStatus)
+            else -> throw NotImplementedError("$song (${data.status!!.likeStatus})")
         })
     }
 }

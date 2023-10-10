@@ -4,6 +4,7 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,11 +15,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.toasterofbread.composesettings.ui.SettingsInterface
@@ -174,12 +177,12 @@ class SettingsAppPage(override val state: AppPageState): AppPage() {
             pill_menu.PillMenu()
 
             Column(Modifier.fillMaxSize().padding(content_padding.getHorizontal(PREFS_PAGE_EXTRA_PADDING_DP.dp))) {
-                val top_padding = player.top_bar.MusicTopBar(
+                val top_padding: Dp = player.top_bar.MusicTopBar(
                     Settings.KEY_LYRICS_SHOW_IN_SETTINGS,
                     Modifier.fillMaxWidth().zIndex(10f),
                     getBottomBorderColour = if (current_category == null) Theme.background_provider else null,
                     padding = PaddingValues(top = content_padding.calculateTopPadding())
-                )
+                ).top_padding
 
                 Crossfade(category_open || settings_interface.current_page.id!! != PrefsPageScreen.ROOT.ordinal) { open ->
                     if (!open) {
@@ -262,9 +265,7 @@ class SettingsAppPage(override val state: AppPageState): AppPage() {
                     }
                     else {
                         BoxWithConstraints(
-                            Modifier
-                                .background(Theme.background_provider)
-                                .pointerInput(Unit) {}
+                            Modifier.pointerInput(Unit) {}
                         ) {
                             CompositionLocalProvider(LocalContentColor provides Theme.on_background) {
                                 settings_interface.Interface(

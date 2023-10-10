@@ -54,17 +54,13 @@ fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, co
 
     Column(modifier) {
         val top_padding: Dp = content_padding.calculateTopPadding()
-        var top_bar_showing: Boolean by remember { mutableStateOf(false) }
 
-        player.top_bar.MusicTopBar(
+        val top_bar_showing: Boolean = player.top_bar.MusicTopBar(
             Settings.KEY_LYRICS_SHOW_IN_VIEWMORE,
             Modifier.fillMaxWidth().zIndex(10f),
             getBottomBorderColour = Theme.background_provider,
-            padding = PaddingValues(top = top_padding),
-            onShowingChanged = { showing ->
-                top_bar_showing = showing
-            }
-        )
+            padding = PaddingValues(top = top_padding)
+        ).showing
 
         val list_top_padding by animateDpAsState(if (top_bar_showing) WAVE_BORDER_DEFAULT_HEIGHT.dp else top_padding)
         val list_padding = content_padding.copy(top = list_top_padding)

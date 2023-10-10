@@ -1,8 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.queue
 
 import LocalPlayerState
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -44,7 +42,8 @@ import com.toasterofbread.spmp.model.NowPlayingQueueRadioInfoPosition
 import com.toasterofbread.spmp.model.NowPlayingQueueWaveBorderMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.MediaPlayerService
+import com.toasterofbread.spmp.platform.PlayerListener
+import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
@@ -53,6 +52,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.LocalNowPlayingExpansion
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.rememberTopBarShouldShowInQueue
+import com.toasterofbread.spmp.youtubeapi.radio.LoadStatus
 import com.toasterofbread.utils.common.getContrasted
 import kotlinx.coroutines.delay
 import org.burnoutcrew.reorderable.ReorderableLazyListState
@@ -70,18 +70,23 @@ fun QueueTab(page_height: Dp, getTopBarHeight: () -> Dp, modifier: Modifier = Mo
     val multiselect_context: MediaItemMultiSelectContext = remember { MediaItemMultiSelectContext() }
 
     val song_items: SnapshotStateList<QueueTabItem> = remember { mutableStateListOf<QueueTabItem>().also { list ->
-        player.player?.iterateSongs { _, song: Song ->
+        player.controller?.service_player?.iterateSongs { _, song: Song ->
             list.add(QueueTabItem(song, key_inc++))
         }
     } }
 
     val queue_listener = remember {
-        object : MediaPlayerService.Listener() {
+        object : PlayerListener() {
             override fun onSongAdded(index: Int, song: Song) {
                 song_items.add(index, QueueTabItem(song, key_inc++))
             }
             override fun onSongRemoved(index: Int) {
-                song_items.removeAt(index)
+                try {
+                    song_items.removeAt(index)
+                }
+                catch (e: Throwable) {
+                    throw RuntimeException("$index ${song_items.toList()}", e)
+                }
             }
             override fun onSongMoved(from: Int, to: Int) {
                 if (from == to) {
@@ -118,9 +123,9 @@ fun QueueTab(page_height: Dp, getTopBarHeight: () -> Dp, modifier: Modifier = Mo
     }
 
     DisposableEffect(Unit) {
-        player.player?.addListener(queue_listener)
+        PlatformPlayerService.addListener(queue_listener)
         onDispose {
-            player.player?.removeListener(queue_listener)
+            PlatformPlayerService.removeListener(queue_listener)
         }
     }
 
@@ -148,7 +153,7 @@ fun QueueTab(page_height: Dp, getTopBarHeight: () -> Dp, modifier: Modifier = Mo
             }
 
             song_items.add(from, song_items.removeAt(to))
-            player.player?.undoableAction {
+            player.controller?.service_player?.undoableAction {
                 moveSong(from, to)
             }
             playing_key = null
@@ -200,7 +205,7 @@ fun QueueTab(page_height: Dp, getTopBarHeight: () -> Dp, modifier: Modifier = Mo
 
                 CompositionLocalProvider(
                     LocalPlayerState provides remember { player.copy(onClickedOverride = { song, index: Int? ->
-                        player.player?.seekToSong(index!!)
+                        player.controller?.seekToSong(index!!)
                     }) }
                 ) {
                     var list_position by remember { mutableStateOf(0.dp) }
@@ -237,7 +242,7 @@ fun QueueTab(page_height: Dp, getTopBarHeight: () -> Dp, modifier: Modifier = Mo
                         )
 
                         item {
-                            player.player?.RadioLoadStatus(
+                            player.controller?.radio_state?.LoadStatus(
                                 Modifier
                                     .heightIn(min = 50.dp)
                                     .padding(top = list_padding)
@@ -252,7 +257,7 @@ fun QueueTab(page_height: Dp, getTopBarHeight: () -> Dp, modifier: Modifier = Mo
                                 + list_position
                             )
 
-                            if (player.player?.radio_loading == true) {
+                            if (player.controller?.radio_state?.loading == true) {
                                 bottom_padding = page_height - bottom_padding
                             }
 

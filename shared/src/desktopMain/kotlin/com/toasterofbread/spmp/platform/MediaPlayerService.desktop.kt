@@ -17,7 +17,7 @@ import kotlin.concurrent.thread
 
 const val POLL_STATE_INTERVAL = 100L // ms
 
-actual open class MediaPlayerService actual constructor() : PlatformService() {
+actual open class PlatformPlayerController actual constructor() : PlatformService() {
     actual open class Listener actual constructor() {
         actual open fun onSongTransition(song: Song?) {}
         actual open fun onStateChanged(state: MediaPlayerState) {}

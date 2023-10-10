@@ -24,8 +24,8 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformPreferences
+import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.service.playerservice.PlayerService
 import com.toasterofbread.utils.common.Permissions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -142,7 +142,7 @@ actual class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner
                 override fun run() {
                     long_presssed = true
 
-                    val intent = Intent(PlayerService::class.java.canonicalName)
+                    val intent = Intent(PlatformPlayerService::class.java.canonicalName)
                     intent.putExtra("action", SERVICE_INTENT_ACTIONS.BUTTON_VOLUME.ordinal)
                     intent.putExtra("up", volume_up)
                     intent.putExtra("long", true)
@@ -158,7 +158,7 @@ actual class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner
             }
             current_long_press_task?.cancel()
 
-            val intent = Intent(PlayerService::class.java.canonicalName)
+            val intent = Intent(PlatformPlayerService::class.java.canonicalName)
             intent.putExtra("action", SERVICE_INTENT_ACTIONS.BUTTON_VOLUME.ordinal)
             intent.putExtra("up", volume_up)
             intent.putExtra("long", false)

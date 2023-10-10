@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.service.playerservice
+package com.toasterofbread.spmp.service.playercontroller
 
 import SpMp
 import com.toasterofbread.Database
@@ -8,6 +8,7 @@ import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrThrowHere
 import com.toasterofbread.utils.common.launchSingle
@@ -18,7 +19,7 @@ import kotlinx.coroutines.cancel
 private const val DISCORD_APPLICATION_ID = "1081929293979992134"
 private const val DISCORD_ASSET_ICON_PRIMARY = "1103702923852132372"
 
-internal class DiscordStatusHandler(val player: PlayerService, val context: PlatformContext) {
+internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context: PlatformContext) {
     private var discord_rpc: DiscordStatus? = null
     private val coroutine_scope = CoroutineScope(Dispatchers.Main)
 

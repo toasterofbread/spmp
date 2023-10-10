@@ -97,6 +97,10 @@ class YTMSearchEndpoint(override val api: YoutubeMusicApi): SearchEndpoint() {
             }
         }
 
+        if (correction_suggestion == null && query.trim().lowercase() == "recursion") {
+            correction_suggestion = "recursion"
+        }
+
         return@withContext Result.success(SearchResults(category_layouts, correction_suggestion))
     }
 }

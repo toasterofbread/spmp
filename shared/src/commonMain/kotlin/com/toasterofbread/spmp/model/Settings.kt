@@ -223,6 +223,7 @@ enum class Settings {
     KEY_YOUTUBEAPI_URL,
 
     // Other
+    KEY_SEARCH_SHOW_SUGGESTIONS,
     KEY_OPEN_NP_ON_SONG_PLAYED,
     KEY_MULTISELECT_CANCEL_ON_ACTION,
     KEY_MULTISELECT_CANCEL_WHEN_NONE_SELECTED, // TODO
@@ -426,6 +427,7 @@ enum class Settings {
                 KEY_YOUTUBEAPI_URL -> YoutubeApi.Type.DEFAULT.getDefaultUrl()
 
                 KEY_VOLUME_STEPS -> 50
+                KEY_SEARCH_SHOW_SUGGESTIONS -> true
                 KEY_OPEN_NP_ON_SONG_PLAYED -> true
                 KEY_MULTISELECT_CANCEL_ON_ACTION -> true
                 KEY_MULTISELECT_CANCEL_WHEN_NONE_SELECTED -> true

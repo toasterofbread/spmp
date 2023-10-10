@@ -6,7 +6,6 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -199,7 +198,7 @@ internal fun Controls(
                     enabled = player.status.m_has_previous,
                     size = 60.dp
                 ) {
-                    player.player?.seekToPrevious()
+                    player.controller?.seekToPrevious()
                 }
 
                 // Play / pause
@@ -208,7 +207,7 @@ internal fun Controls(
                     enabled = song != null,
                     size = 75.dp
                 ) {
-                    player.player?.playPause()
+                    player.controller?.playPause()
                 }
 
                 // Next
@@ -217,7 +216,7 @@ internal fun Controls(
                     enabled = player.status.m_has_next,
                     size = 60.dp
                 ) {
-                    player.player?.seekToNext()
+                    player.controller?.seekToNext()
                 }
             }
 
@@ -261,7 +260,7 @@ private fun VolumeSlider(colour: Color, modifier: Modifier = Modifier) {
     SliderValueHorizontal(
         value = player.status.m_volume,
         onValueChange = {
-            player.player?.volume = it
+            player.controller?.volume = it
         },
         thumbSizeInDp = DpSize(12.dp, 12.dp),
         track = { a, b, c, d, e -> DefaultTrack(a, b, c, d, e, colour.setAlpha(0.5f), colour) },

@@ -70,7 +70,7 @@ android {
     }
 
     defaultConfig {
-        versionCode = 7
+        versionCode = 8
         versionName = getString("version_string")
 
         applicationId = "com.toasterofbread.spmp"
@@ -92,7 +92,7 @@ android {
         getByName("release") {
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            proguardFiles("proguard-rules.pro")
             manifestPlaceholders["appAuthRedirectScheme"] = "com.toasterofbread.spmp"
             manifestPlaceholders["appName"] = getString("app_name")
             signingConfig = signingConfigs.getByName("main")

@@ -3,8 +3,8 @@ package com.toasterofbread.spmp.resources
 import SpMp
 import com.toasterofbread.spmp.platform.PlatformContext
 import kotlinx.coroutines.runBlocking
-import org.xmlpull.v1.XmlPullParser
-import org.xmlpull.v1.XmlPullParserFactory
+import org.kobjects.ktxml.api.EventType
+import org.kobjects.ktxml.mini.MiniXmlPullParser
 import java.io.InputStream
 import java.util.*
 import java.util.concurrent.locks.ReentrantLock
@@ -27,7 +27,7 @@ fun initResources(language: String, context: PlatformContext) {
             val strs = mutableMapOf<String, String>()
             val str_arrays = mutableMapOf<String, List<String>>()
 
-            suspend fun loadFile(path: String) {
+            fun loadFile(path: String) {
                 val stream: InputStream
                 try {
                     stream = context.openResourceFile(path)
@@ -39,33 +39,39 @@ fun initResources(language: String, context: PlatformContext) {
                     return
                 }
 
-                val parser = XmlPullParserFactory.newInstance().newPullParser()
-                parser.setInput(stream.reader())
+                println("Loading strings.xml at $path")
 
-                while (parser.eventType != XmlPullParser.END_DOCUMENT) {
-                    if (parser.eventType != XmlPullParser.START_TAG) {
+                val string: String = stream.reader().readText()
+                stream.close()
+
+                val parser = MiniXmlPullParser(string.iterator())
+
+                while (parser.eventType != EventType.END_DOCUMENT) {
+                    if (parser.eventType != EventType.START_TAG) {
                         parser.next()
                         continue
                     }
 
-                    val key = parser.getAttributeValue(null, "name")
-                    when (parser.name) {
-                        "string" -> {
-                            strs[key] = formatText(parser.nextText())
-                        }
-                        "string-array" -> {
-                            val array = mutableListOf<String>()
-
-                            parser.nextTag()
-                            while (parser.name == "item") {
-                                array.add(formatText(parser.nextText()))
-                                parser.nextTag()
+                    val key = parser.getAttributeValue("", "name")
+                    if (key != null) {
+                        when (parser.name) {
+                            "string" -> {
+                                strs[key] = formatText(parser.nextText())
                             }
+                            "string-array" -> {
+                                val array = mutableListOf<String>()
 
-                            str_arrays[key] = array
+                                parser.nextTag()
+                                while (parser.name == "item") {
+                                    array.add(formatText(parser.nextText()))
+                                    parser.nextTag()
+                                }
+
+                                str_arrays[key] = array
+                            }
+                            "resources" -> {}
+                            else -> throw NotImplementedError(parser.name)
                         }
-                        "resources" -> {}
-                        else -> throw NotImplementedError(parser.name)
                     }
 
                     parser.next()

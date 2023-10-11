@@ -66,9 +66,9 @@ actual fun WebViewLogin(
     }
 
     BackHandler(web_view?.canGoBack() == true) {
-        val wv = web_view ?: return@BackHandler
+        val web = web_view ?: return@BackHandler
 
-        val back_forward_list = wv.copyBackForwardList()
+        val back_forward_list = web.copyBackForwardList()
         if (back_forward_list.currentIndex > 0) {
             val previous_url = back_forward_list.getItemAtIndex(back_forward_list.currentIndex - 1).url
             if (previous_url == initial_url) {
@@ -77,7 +77,7 @@ actual fun WebViewLogin(
             }
         }
 
-        wv.goBack()
+        web.goBack()
     }
 
     var show_webview by remember { mutableStateOf(false) }

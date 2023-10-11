@@ -31,16 +31,23 @@ class YTMArtistWithParamsEndpoint(override val api: YoutubeMusicApi): ArtistWith
             return@withContext Result.failure(it)
         }
 
-        val rows = parse_result.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents
+        val row_content = parse_result.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents
             ?: emptyList()
 
-        return@withContext Result.success(
-            rows.map { row ->
+        val rows = api.database.transactionWithResult {
+            row_content.map { row ->
+                val items = row.getMediaItemsOrNull(hl).orEmpty()
+                for (item in items) {
+                    item.saveToDatabase(api.database)
+                }
+
                 ArtistWithParamsRow(
                     title = row.title?.text,
-                    items = row.getMediaItemsOrNull(hl).orEmpty()
+                    items = items
                 )
             }
-        )
+        }
+
+        return@withContext Result.success(rows)
     }
 }

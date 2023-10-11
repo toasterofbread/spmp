@@ -37,6 +37,7 @@ import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsRow
 import com.toasterofbread.utils.*
+import com.toasterofbread.utils.common.copy
 import com.toasterofbread.utils.composable.*
 import com.toasterofbread.utils.modifier.horizontal
 import kotlinx.coroutines.*
@@ -123,10 +124,11 @@ fun ArtistPage(
             items(browse_params_rows.orEmpty()) { row ->
                 MediaItemList(
                     row.items,
-                    content_modifier.padding(content_padding),
+                    content_modifier.padding(content_padding.copy(top = 0.dp)),
                     title = row.title?.let { title ->
                         RawLocalisedString(title)
-                    }
+                    },
+                    multiselect_context = multiselect_context ?: own_multiselect_context
                 )
             }
         }

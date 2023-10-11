@@ -44,6 +44,7 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
+import com.toasterofbread.spmp.ui.component.ERROR_INFO_DISPLAY_DEFAULT_EXPANDED_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
@@ -259,6 +260,10 @@ fun QueueTab(page_height: Dp, getTopBarHeight: () -> Dp, modifier: Modifier = Mo
 
                             if (player.controller?.radio_state?.loading == true) {
                                 bottom_padding = page_height - bottom_padding
+                            }
+
+                            if (player.controller?.radio_state?.load_error != null) {
+                                bottom_padding += 60.dp
                             }
 
                             Spacer(Modifier.height(bottom_padding))

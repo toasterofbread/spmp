@@ -201,7 +201,7 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
                             4 -> ActionButton(Icons.Default.HourglassEmpty) { special_mode = SpecialMode.ADJUST_SYNC }
                         }
                     },
-                    _background_colour = Theme.accent_provider,
+                    _background_colour = { theme.accent },
                     vertical = true
                 )
             }

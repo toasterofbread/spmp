@@ -46,17 +46,17 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.common.addUnique
 import com.toasterofbread.utils.common.getContrasted
 import com.toasterofbread.utils.common.thenIf
 import com.toasterofbread.utils.composable.NoRipple
+import com.toasterofbread.spmp.platform.PlatformContext
 
 class PillMenu(
     private val action_count: Int = 0,
     private val getAction: @Composable (Action.(i: Int, action_count: Int) -> Unit) = { _, _ -> },
     private val expand_state: MutableState<Boolean>? = null,
-    private val _background_colour: () -> Color = Theme.accent_provider,
+    private val _background_colour: PlatformContext.() -> Color = { theme.accent },
     top: Boolean = false,
     left: Boolean = false,
     vertical: Boolean = false,
@@ -64,7 +64,7 @@ class PillMenu(
     private val toggleButton: (@Composable Action.(modifier: Modifier) -> Unit)? = null,
     private val alongsideContent: (@Composable Action.() -> Unit)? = null,
     private val follow_player: Boolean = false,
-    private val modifier: Modifier = Modifier
+    private val modifier: Modifier = Modifier,
 ) {
     var top by mutableStateOf(top)
     var left by mutableStateOf(left)
@@ -161,7 +161,7 @@ class PillMenu(
         action_count: Int = this.action_count,
         getAction: @Composable (Action.(i: Int, action_count: Int) -> Unit) = this.getAction,
         expand_state: MutableState<Boolean>? = this.expand_state,
-        _background_colour: () -> Color = this._background_colour,
+        _background_colour: PlatformContext.() -> Color = this._background_colour,
         top: Boolean = this.top,
         left: Boolean = this.left,
         vertical: Boolean = this.vertical,
@@ -170,12 +170,14 @@ class PillMenu(
         alongsideContent: (@Composable Action.() -> Unit)? = this.alongsideContent,
         modifier: Modifier = this.modifier,
     ) {
+        val player = LocalPlayerState.current
+
         LaunchedEffect(Unit) {
-            background_colour.snapTo(_background_colour())
+            background_colour.snapTo(_background_colour(player.context))
         }
 
-        LaunchedEffect(background_colour_override, _background_colour()) {
-            background_colour.animateTo(background_colour_override ?: _background_colour())
+        LaunchedEffect(background_colour_override, _background_colour(player.context)) {
+            background_colour.animateTo(background_colour_override ?: _background_colour(player.context))
         }
 
         val params = remember(top, left, vertical, action_count, expand_state != null) {

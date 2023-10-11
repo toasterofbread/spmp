@@ -53,24 +53,24 @@ private const val OVERSCROLL_CLEAR_DISTANCE_THRESHOLD_DP = 5f
 
 internal fun PlayerState.getNPBackground(): Color {
     return when (np_theme_mode) {
-        ThemeMode.BACKGROUND -> Theme.accent
-        ThemeMode.ELEMENTS -> Theme.background
-        ThemeMode.NONE -> Theme.background
+        ThemeMode.BACKGROUND -> theme.accent
+        ThemeMode.ELEMENTS -> theme.background
+        ThemeMode.NONE -> theme.background
     }
 }
 
 internal fun PlayerState.getNPOnBackground(): Color {
     return when (np_theme_mode) {
-        ThemeMode.BACKGROUND -> Theme.on_accent
-        ThemeMode.ELEMENTS -> Theme.accent
-        ThemeMode.NONE -> Theme.on_background
+        ThemeMode.BACKGROUND -> theme.on_accent
+        ThemeMode.ELEMENTS -> theme.accent
+        ThemeMode.NONE -> theme.on_background
     }
 }
 
 internal fun PlayerState.getNPAltBackground(): Color {
     return when (np_theme_mode) {
         ThemeMode.BACKGROUND -> getNPBackground().amplifyPercent(-0.4f, opposite_percent = -0.2f)
-        else -> Theme.background
+        else -> theme.background
     }
 }
 
@@ -277,11 +277,11 @@ private fun StatusBarColourHandler(page_height: Dp) {
     val under_status_bar by remember { derivedStateOf { 1f - expansion.get() < status_bar_height_percent } }
 
     DisposableEffect(under_status_bar, background_colour) {
-        val colour = if (under_status_bar) background_colour else Theme.background
+        val colour = if (under_status_bar) background_colour else player.theme.background
         player.context.setStatusBarColour(colour)
 
         onDispose {
-            player.context.setStatusBarColour(Theme.background)
+            player.context.setStatusBarColour(player.theme.background)
         }
     }
 

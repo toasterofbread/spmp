@@ -53,6 +53,8 @@ internal fun getDevelopmentCategory(): List<SettingsItem> {
 
 @Composable
 private fun UnlocalisedStringList(strings: List<UnlocalisedString>) {
+    val player = LocalPlayerState.current
+
     val strings_by_type: Map<String, List<UnlocalisedString>> = remember(strings) {
         mutableMapOf<String, MutableList<UnlocalisedString>>().also { map ->
             for (string in strings) {
@@ -63,8 +65,8 @@ private fun UnlocalisedStringList(strings: List<UnlocalisedString>) {
     }
 
     Column {
-        SettingsItem.ItemTitleText(getString("s_key_unlocalised_strings"), Theme)
-        SettingsItem.ItemText(getString("s_sub_unlocalised_strings"), Theme)
+        SettingsItem.ItemTitleText(getString("s_key_unlocalised_strings"), player.theme)
+        SettingsItem.ItemText(getString("s_sub_unlocalised_strings"), player.theme)
 
         Spacer(Modifier.height(20.dp))
 
@@ -72,8 +74,8 @@ private fun UnlocalisedStringList(strings: List<UnlocalisedString>) {
             ElevatedCard(
                 Modifier.fillMaxWidth(),
                 colors = CardDefaults.elevatedCardColors(
-                    containerColor = Theme.accent.blendWith(Theme.background, 0.1f),
-                    contentColor = Theme.on_background
+                    containerColor = player.theme.accent.blendWith(player.theme.background, 0.1f),
+                    contentColor = player.theme.on_background
                 )
             ) {
                 Column(Modifier.padding(10.dp)) {

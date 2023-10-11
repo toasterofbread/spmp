@@ -51,6 +51,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
@@ -91,9 +92,9 @@ fun ArtistLayout(
     content: LazyListScope.(accent_colour: Color?, show_info: MutableState<Boolean>, Modifier) -> Unit
 ) {
     val player = LocalPlayerState.current
-    val db = player.database
+    val density = LocalDensity.current
 
-    val thumbnail_provider: MediaItemThumbnailProvider? by artist.ThumbnailProvider.observe(db)
+    val thumbnail_provider: MediaItemThumbnailProvider? by artist.ThumbnailProvider.observe(player.database)
     val thumbnail_load_state = MediaItemThumbnailLoader.rememberItemState(artist)
 
     LaunchedEffect(thumbnail_provider) {
@@ -114,7 +115,7 @@ fun ArtistLayout(
     val main_column_state = rememberLazyListState()
     val show_info = remember { mutableStateOf(false) }
 
-    val background_modifier = Modifier.background(Theme.background_provider)
+    val background_modifier = Modifier.background(player.theme.background_provider)
     val gradient_size = 0.35f
     var accent_colour: Color? by remember { mutableStateOf(null) }
 
@@ -126,18 +127,20 @@ fun ArtistLayout(
     var music_top_bar_showing by remember { mutableStateOf(false) }
     val top_bar_alpha by animateFloatAsState(if (!top_bar_over_image || music_top_bar_showing || multiselect_context?.is_active == true) 1f else 0f)
 
-    fun Density.getBackgroundColour(): Color =
-        Theme.background.setAlpha(
+    fun Theme.getBackgroundColour(): Color = with(density) {
+        background.setAlpha(
             if (!top_bar_over_image || main_column_state.firstVisibleItemIndex > 0) top_bar_alpha
             else (0.5f + ((main_column_state.firstVisibleItemScrollOffset / screen_width.toPx()) * 0.5f)) * top_bar_alpha
         )
+    }
+
 
     @Composable
     fun TopBar() {
         Column(
             Modifier
                 .drawScopeBackground {
-                    getBackgroundColour()
+                    player.theme.getBackgroundColour()
                 }
                 .pointerInput(Unit) {}
                 .zIndex(1f)
@@ -177,7 +180,7 @@ fun ArtistLayout(
             Crossfade(thumbnail_load_state.loaded_images.values.firstOrNull()?.get()) { thumbnail ->
                 if (thumbnail != null) {
                     if (accent_colour == null) {
-                        accent_colour = Theme.makeVibrant(thumbnail.getThemeColour() ?: Theme.accent)
+                        accent_colour = player.theme.makeVibrant(thumbnail.getThemeColour() ?: player.theme.accent)
                     }
 
                     Image(
@@ -198,7 +201,7 @@ fun ArtistLayout(
                             .aspectRatio(1f)
                             .brushBackground {
                                 Brush.verticalGradient(
-                                    0f to Theme.background,
+                                    0f to player.theme.background,
                                     gradient_size to Color.Transparent
                                 )
                             }
@@ -232,7 +235,7 @@ fun ArtistLayout(
                                 .brushBackground {
                                     Brush.verticalGradient(
                                         1f - gradient_size to Color.Transparent,
-                                        1f to Theme.background
+                                        1f to player.theme.background
                                     )
                                 },
                             contentAlignment = Alignment.BottomCenter
@@ -272,8 +275,8 @@ fun ArtistLayout(
                                                 Icon(icon, null, tint = accent_colour ?: Color.Unspecified)
                                             },
                                             colors = AssistChipDefaults.assistChipColors(
-                                                containerColor = Theme.background,
-                                                labelColor = Theme.on_background,
+                                                containerColor = player.theme.background,
+                                                labelColor = player.theme.on_background,
                                                 leadingIconContentColor = accent_colour ?: Color.Unspecified
                                             )
                                         )
@@ -289,7 +292,7 @@ fun ArtistLayout(
                                     ) {
                                         player.context.shareText(
                                             artist.getURL(player.context),
-                                            artist.getActiveTitle(db) ?: ""
+                                            artist.getActiveTitle(player.database) ?: ""
                                         )
                                     }
                                 }

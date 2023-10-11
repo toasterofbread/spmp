@@ -175,7 +175,7 @@ fun FilterSelectionPage(
                     }
                     else if (loading) {
                         Box(Modifier.fillMaxSize().padding(content_padding), contentAlignment = Alignment.Center) {
-                            SubtleLoadingIndicator { Theme.on_background }
+                            SubtleLoadingIndicator { player.theme.on_background }
                         }
                     }
                     else {
@@ -218,13 +218,13 @@ fun FilterSelectionPage(
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     val icon_button_colours = IconButtonDefaults.iconButtonColors(
-                        containerColor = Theme.accent,
-                        contentColor = Theme.on_accent
+                        containerColor = player.theme.accent,
+                        contentColor = player.theme.on_accent
                     )
                     ShapedIconButton({ loadRadio(false) }, colours = icon_button_colours) {
                         Crossfade(is_loading) { loading ->
                             if (loading) {
-                                SubtleLoadingIndicator(getColour = { Theme.on_accent })
+                                SubtleLoadingIndicator(getColour = { player.theme.on_accent })
                             }
                             else {
                                 Icon(Icons.Filled.PlayArrow, null)

@@ -58,7 +58,7 @@ fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, co
         val top_bar_showing: Boolean = player.top_bar.MusicTopBar(
             Settings.KEY_LYRICS_SHOW_IN_VIEWMORE,
             Modifier.fillMaxWidth().zIndex(10f),
-            getBottomBorderColour = Theme.background_provider,
+            getBottomBorderColour = player.theme.background_provider,
             padding = PaddingValues(top = top_padding)
         ).showing
 

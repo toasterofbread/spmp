@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.radiobuilder
 
+import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
@@ -32,6 +33,8 @@ import kotlin.math.ceil
 
 @Composable
 internal fun SelectionTypeRow(state: MutableState<RadioBuilderModifier.SelectionType>) {
+    val player = LocalPlayerState.current
+
     Row(
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -57,7 +60,7 @@ internal fun SelectionTypeRow(state: MutableState<RadioBuilderModifier.Selection
                     }
                 }
 
-                RecordArc(size.value.dp, arc_angle.value, offset.value, Theme.vibrant_accent)
+                RecordArc(size.value.dp, arc_angle.value, offset.value, player.theme.vibrant_accent)
             }
         }
 
@@ -95,7 +98,7 @@ internal fun SelectionTypeRow(state: MutableState<RadioBuilderModifier.Selection
 //                    horizontalAlignment = Alignment.CenterHorizontally,
 //                    verticalArrangement = Arrangement.spacedBy(15.dp)
 //                ) {
-//                    RadioSelectionTypeAnimation(type, animate, colour = if (state.value == type) Theme.vibrant_accent else Theme.on_background)
+//                    RadioSelectionTypeAnimation(type, animate, colour = if (state.value == type) player.theme.vibrant_accent else player.theme.on_background)
 //                    Text(text)
 //                }
 //            }
@@ -163,6 +166,8 @@ internal fun MultiSelectRow(
     columns: Int = amount,
     shape: Shape = RoundedCornerShape(12.dp)
 ) {
+    val player = LocalPlayerState.current
+
     val rows = if (columns <= 0) 1 else ceil(amount / columns.toDouble()).toInt()
     for (row in 0 until rows) {
         Row(
@@ -184,8 +189,8 @@ internal fun MultiSelectRow(
                                         { if (nullable) onSelected(null) },
                                         Modifier.fillMaxWidth(),
                                         colors = ButtonDefaults.buttonColors(
-                                            containerColor = Theme.accent,
-                                            contentColor = Theme.on_accent
+                                            containerColor = player.theme.accent,
+                                            contentColor = player.theme.on_accent
                                         ),
                                         contentPadding = button_padding,
                                         shape = shape
@@ -198,7 +203,7 @@ internal fun MultiSelectRow(
                                         { onSelected(i) },
                                         Modifier.fillMaxWidth(),
                                         colors = ButtonDefaults.outlinedButtonColors(
-                                            contentColor = Theme.on_background
+                                            contentColor = player.theme.on_background
                                         ),
                                         contentPadding = button_padding,
                                         shape = shape

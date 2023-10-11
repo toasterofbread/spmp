@@ -58,6 +58,7 @@ import com.anggrayudi.storage.media.MediaFile
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
+import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.utils.common.isDark
 import com.toasterofbread.utils.common.isDebugBuild
@@ -410,6 +411,7 @@ actual class PlatformContext(
     actual val database = createDatabase()
     actual val download_manager = PlayerDownloadManager(this)
     actual val ytapi: YoutubeApi
+    actual val theme: Theme by lazy { Theme(this) }
 
     init {
         val prefs = getPrefs()

@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.artistpage
 
+import LocalPlayerState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -23,9 +24,10 @@ import com.toasterofbread.utils.common.setAlpha
 import com.toasterofbread.utils.composable.LinkifyText
 import com.toasterofbread.utils.composable.NoRipple
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DescriptionCard(description_text: String, getBackgroundColour: () -> Color, getAccentColour: () -> Color?, toggleInfo: () -> Unit) {
+    val player = LocalPlayerState.current
+
     var expanded by remember { mutableStateOf(false) }
     var can_expand by remember { mutableStateOf(false) }
     val small_text_height = 200.dp
@@ -36,7 +38,7 @@ fun DescriptionCard(description_text: String, getBackgroundColour: () -> Color, 
             .fillMaxWidth()
             .animateContentSize(),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = Theme.on_background.setAlpha(0.05f)
+            containerColor = player.theme.on_background.setAlpha(0.05f)
         )
     ) {
         Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
@@ -51,7 +53,7 @@ fun DescriptionCard(description_text: String, getBackgroundColour: () -> Color, 
                     },
                     colors = AssistChipDefaults.assistChipColors(
                         containerColor = getBackgroundColour(),
-                        labelColor = Theme.on_background,
+                        labelColor = player.theme.on_background,
                         leadingIconContentColor = getAccentColour() ?: Color.Unspecified
                     )
                 )
@@ -79,8 +81,8 @@ fun DescriptionCard(description_text: String, getBackgroundColour: () -> Color, 
                     .then(
                         if (expanded) Modifier else Modifier.height(200.dp)
                     ),
-                Theme.on_background.setAlpha(0.8f),
-                Theme.on_background,
+                player.theme.on_background.setAlpha(0.8f),
+                player.theme.on_background,
                 MaterialTheme.typography.bodyMedium
             )
         }

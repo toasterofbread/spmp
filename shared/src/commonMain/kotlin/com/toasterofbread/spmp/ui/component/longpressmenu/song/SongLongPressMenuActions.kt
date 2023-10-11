@@ -102,8 +102,8 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
                 )
 
                 val button_colours = IconButtonDefaults.iconButtonColors(
-                    containerColor = Theme.accent,
-                    contentColor = Theme.on_accent
+                    containerColor = player.theme.accent,
+                    contentColor = player.theme.on_accent
                 )
 
                 Row(
@@ -126,8 +126,8 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
                             }
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Theme.accent,
-                            contentColor = Theme.on_accent
+                            containerColor = player.theme.accent,
+                            contentColor = player.theme.on_accent
                         )
                     ) {
                         Text(getString("playlist_create"))

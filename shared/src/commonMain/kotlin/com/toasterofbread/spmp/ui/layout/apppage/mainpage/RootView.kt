@@ -31,7 +31,7 @@ fun RootView(player: PlayerStateImpl) {
     Column(
         Modifier
             .fillMaxSize()
-            .background(Theme.background_provider)
+            .background(player.theme.background_provider)
     ) {
         player.HomePage()
         player.NowPlaying()

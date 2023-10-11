@@ -32,6 +32,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
+import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.common.indexOfOrNull
 import java.net.URI
 import java.net.URISyntaxException
@@ -127,6 +128,7 @@ open class PlayerState protected constructor(
     private val upstream: PlayerState? = null
 ) {
     val database: Database get() = context.database
+    val theme: Theme get() = context.theme
     open val context: PlatformContext get() = upstream!!.context
 
     open val app_page_state: AppPageState get() = upstream!!.app_page_state

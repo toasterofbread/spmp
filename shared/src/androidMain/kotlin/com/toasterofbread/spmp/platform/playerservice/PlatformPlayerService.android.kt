@@ -202,8 +202,8 @@ actual class PlatformPlayerService: MediaSessionService() {
                 return
             }
 
-            val resume_on_bt: Boolean = Settings.KEY_RESUME_ON_BT_CONNECT.get()
-            val resume_on_wired: Boolean = Settings.KEY_RESUME_ON_WIRED_CONNECT.get()
+            val resume_on_bt: Boolean = Settings.KEY_RESUME_ON_BT_CONNECT.get(context)
+            val resume_on_wired: Boolean = Settings.KEY_RESUME_ON_WIRED_CONNECT.get(context)
 
             for (device in addedDevices) {
                 if ((resume_on_bt && isBluetoothAudio(device)) || (resume_on_wired && isWiredAudio(device))) {
@@ -218,8 +218,8 @@ actual class PlatformPlayerService: MediaSessionService() {
                 return
             }
 
-            val pause_on_bt: Boolean = Settings.KEY_PAUSE_ON_BT_DISCONNECT.get()
-            val pause_on_wired: Boolean = Settings.KEY_PAUSE_ON_WIRED_DISCONNECT.get()
+            val pause_on_bt: Boolean = Settings.KEY_PAUSE_ON_BT_DISCONNECT.get(context)
+            val pause_on_wired: Boolean = Settings.KEY_PAUSE_ON_WIRED_DISCONNECT.get(context)
 
             for (device in removedDevices) {
                 if ((pause_on_bt && isBluetoothAudio(device)) || (pause_on_wired && isWiredAudio(device))) {

@@ -211,10 +211,10 @@ class MediaItemMultiSelectContext(
 
         val selected_playlists = remember { mutableStateListOf<Playlist>() }
         val button_colours = IconButtonDefaults.iconButtonColors(
-            containerColor = Theme.accent,
-            disabledContainerColor = Theme.accent,
-            contentColor = Theme.on_accent,
-            disabledContentColor = Theme.on_accent.setAlpha(0.5f)
+            containerColor = player.theme.accent,
+            disabledContainerColor = player.theme.accent,
+            contentColor = player.theme.on_accent,
+            disabledContentColor = player.theme.on_accent.setAlpha(0.5f)
         )
 
         fun onPlaylistsSelected() {
@@ -254,8 +254,8 @@ class MediaItemMultiSelectContext(
                             }
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Theme.accent,
-                            contentColor = Theme.on_accent
+                            containerColor = player.theme.accent,
+                            contentColor = player.theme.on_accent
                         )
                     ) {
                         Text(getString("playlist_create"))
@@ -274,7 +274,7 @@ class MediaItemMultiSelectContext(
                 Text(getString("song_add_to_playlist"), style = MaterialTheme.typography.headlineSmall)
             },
             text = {
-//                CompositionLocalProvider(LocalContentColor provides Theme.accent) {
+//                CompositionLocalProvider(LocalContentColor provides context.theme.accent) {
                     PlaylistSelectMenu(selected_playlists, player.context.ytapi.user_auth_state, Modifier.height(300.dp))
 //                }
             }

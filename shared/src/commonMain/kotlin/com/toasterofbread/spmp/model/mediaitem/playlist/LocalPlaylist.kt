@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem.playlist
 
+import LocalPlayerState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlaylistPlay
@@ -66,7 +67,8 @@ suspend fun Playlist.downloadAsLocalPlaylist(context: PlatformContext, replace: 
 
 @Composable
 fun LocalPlaylist.LocalPlaylistDefaultThumbnail(modifier: Modifier = Modifier) {
-    Box(modifier.background(Theme.accent_provider), contentAlignment = Alignment.Center) {
-        Icon(Icons.Default.PlaylistPlay, null, tint = Theme.on_accent)
+    val player = LocalPlayerState.current
+    Box(modifier.background(player.theme.accent_provider), contentAlignment = Alignment.Center) {
+        Icon(Icons.Default.PlaylistPlay, null, tint = player.theme.on_accent)
     }
 }

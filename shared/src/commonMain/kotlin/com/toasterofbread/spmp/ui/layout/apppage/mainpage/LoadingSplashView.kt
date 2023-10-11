@@ -75,17 +75,17 @@ fun LoadingSplashView(modifier: Modifier = Modifier) {
             }
             SplashMode.WARNING -> {
                 Column(
-                    Modifier.fillMaxSize().background(Theme.background),
+                    Modifier.fillMaxSize().background(player.theme.background),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically)
                 ) {
-                    CompositionLocalProvider(LocalContentColor provides Theme.on_background) {
+                    CompositionLocalProvider(LocalContentColor provides player.theme.on_background) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            Icon(Icons.Default.Warning, null, tint = Theme.on_background)
-                            Text(getString("error_player_service_not_connected"), color = Theme.on_background)
+                            Icon(Icons.Default.Warning, null, tint = player.theme.on_background)
+                            Text(getString("error_player_service_not_connected"), color = player.theme.on_background)
                         }
 
                         if (player.context.canOpenUrl()) {
@@ -94,8 +94,8 @@ fun LoadingSplashView(modifier: Modifier = Modifier) {
                                     player.context.openUrl(getString("report_issue_url"))
                                 },
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = Theme.accent,
-                                    contentColor = Theme.on_accent
+                                    containerColor = player.theme.accent,
+                                    contentColor = player.theme.on_accent
                                 )
                             ) {
                                 Text(getString("report_error"))

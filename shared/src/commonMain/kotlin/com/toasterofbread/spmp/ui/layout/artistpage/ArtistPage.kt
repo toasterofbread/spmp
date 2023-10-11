@@ -205,7 +205,7 @@ fun ArtistPage(
                     val artist_description: String? by artist.Description.observe(player.database)
                     artist_description?.also { description ->
                         if (description.isNotBlank()) {
-                            DescriptionCard(description, { Theme.background }, { accent_colour }) { show_info.value = !show_info.value }
+                            DescriptionCard(description, { player.theme.background }, { accent_colour }) { show_info.value = !show_info.value }
                         }
                     }
                 }

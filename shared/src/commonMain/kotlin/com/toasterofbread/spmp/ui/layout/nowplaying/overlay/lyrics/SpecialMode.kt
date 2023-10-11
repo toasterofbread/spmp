@@ -39,12 +39,14 @@ internal enum class SpecialMode {
 
 @Composable
 internal fun SpecialModeMenu(special_mode: SpecialMode?, song: Song, setMode: (SpecialMode?) -> Unit) {
+    val player = LocalPlayerState.current
+
     Crossfade(
         special_mode,
         Modifier
             .fillMaxWidth()
             .padding(15.dp)
-            .background(RoundedCornerShape(16.dp), Theme.accent_provider)
+            .background(RoundedCornerShape(16.dp), player.theme.accent_provider)
             .padding(horizontal = 10.dp)
     ) { mode ->
         val button_width = 40.dp
@@ -53,7 +55,7 @@ internal fun SpecialModeMenu(special_mode: SpecialMode?, song: Song, setMode: (S
             Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            CompositionLocalProvider(LocalContentColor provides Theme.on_accent) {
+            CompositionLocalProvider(LocalContentColor provides player.theme.on_accent) {
                 when (mode) {
                     SpecialMode.ADJUST_SYNC -> {
                         var sync_offset: Long? by song.LyricsSyncOffset.observe(LocalPlayerState.current.database)
@@ -101,7 +103,7 @@ internal fun SpecialModeMenu(special_mode: SpecialMode?, song: Song, setMode: (S
                         WidthShrinkText(
                             getString("lyrics_sync_long_press_line"),
                             Modifier.fillMaxWidth().weight(1f),
-                            style = LocalTextStyle.current.copy(color = Theme.on_accent)
+                            style = LocalTextStyle.current.copy(color = player.theme.on_accent)
                         )
                     }
 

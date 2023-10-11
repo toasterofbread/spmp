@@ -80,8 +80,8 @@ class MainActivity : ComponentActivity() {
             else null
 
         setContent {
-            context.setStatusBarColour(Theme.background)
-            context.setNavigationBarColour(Theme.background)
+            context.setStatusBarColour(context.theme.background)
+            context.setNavigationBarColour(context.theme.background)
 
             SpMp.App(open_uri?.toString())
         }

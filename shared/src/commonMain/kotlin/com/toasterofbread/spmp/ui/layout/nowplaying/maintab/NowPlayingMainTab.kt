@@ -55,7 +55,7 @@ fun ColumnScope.NowPlayingMainTab(onTopBarHeightChanged: (Dp) -> Unit, modifier:
 
     fun setThemeColour(value: Color?, custom: Boolean) {
         theme_colour = value
-        Theme.currentThumbnnailColourChanged(theme_colour)
+        player.theme.currentThumbnnailColourChanged(theme_colour)
 
         if (custom) {
             current_song?.ThemeColour?.set(theme_colour, player.database)

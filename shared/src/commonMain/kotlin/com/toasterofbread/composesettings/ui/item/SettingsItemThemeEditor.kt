@@ -215,7 +215,7 @@ private fun getEditPage(
         ) {
             val player = LocalPlayerState.current
             val ui_theme = settings_interface.theme
-            var previewing by remember { mutableStateOf(Theme.preview_active) }
+            var previewing by remember { mutableStateOf(player.theme.preview_active) }
 
             val icon_button_colours = IconButtonDefaults.iconButtonColors(
                 containerColor = ui_theme.vibrant_accent,
@@ -287,10 +287,10 @@ private fun getEditPage(
 
             OnChangedEffect(previewing) {
                 if (previewing) {
-                    Theme.setPreviewThemeData(StaticThemeData(name, background, on_background, accent))
+                    player.theme.setPreviewThemeData(StaticThemeData(name, background, on_background, accent))
                 }
                 else {
-                    Theme.setPreviewThemeData(null)
+                    player.theme.setPreviewThemeData(null)
                 }
             }
 
@@ -324,8 +324,8 @@ private fun getEditPage(
                 )
 
                 fun updatePreview() {
-                    if (Theme.preview_active) {
-                        Theme.setPreviewThemeData(StaticThemeData(
+                    if (player.theme.preview_active) {
+                        player.theme.setPreviewThemeData(StaticThemeData(
                             "",
                             background,
                             on_background,
@@ -377,7 +377,7 @@ private fun getEditPage(
 
         override fun onClosed() {
             super.onClosed()
-            Theme.setPreviewThemeData(null)
+            settings_interface.theme.setPreviewThemeData(null)
 
             if (pill_extra != null) {
                 settings_interface.pill_menu?.removeExtraAction(pill_extra!!)

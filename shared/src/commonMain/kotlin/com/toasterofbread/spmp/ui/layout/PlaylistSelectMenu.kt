@@ -101,6 +101,8 @@ fun PlaylistSelectMenu(
 
 @Composable
 private fun PlaylistItem(selected: SnapshotStateList<Playlist>, playlist: Playlist) {
+    val player = LocalPlayerState.current
+
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
         Checkbox(
             selected.contains(playlist),
@@ -114,8 +116,8 @@ private fun PlaylistItem(selected: SnapshotStateList<Playlist>, playlist: Playli
             },
             colors = CheckboxDefaults.colors(
                 uncheckedColor = LocalContentColor.current,
-                checkedColor = Theme.accent,
-                checkmarkColor = Theme.on_accent
+                checkedColor = player.theme.accent,
+                checkmarkColor = player.theme.on_accent
             )
         )
         MediaItemPreviewLong(playlist)

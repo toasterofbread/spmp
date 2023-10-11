@@ -33,7 +33,7 @@ import com.catppuccin.Palette as Catppuccin
 
 const val VIBRANT_ACCENT_CONTRAST: Float = 0.2f
 
-object Theme: ThemeData {
+class Theme(private val context: PlatformContext): ThemeData {
     val preview_active: Boolean get() = preview_theme_data != null
     override val name: String get() = getCurrentTheme().name
 
@@ -95,7 +95,7 @@ object Theme: ThemeData {
     fun getThemeCount(): Int = loaded_themes.size
 
     @Composable
-    fun Update(context: PlatformContext) {
+    fun Update() {
         DisposableEffect(Unit) {
             val prefs = context.getPrefs()
             prefs.addListener(prefs_listener)
@@ -232,7 +232,7 @@ object Theme: ThemeData {
     }
 
     private fun loadThemes(): List<ThemeData> {
-        val themes = Settings.getJsonArray<String>(Settings.KEY_THEMES, gson)
+        val themes = Settings.getJsonArray<String>(Settings.KEY_THEMES, gson, context.getPrefs())
         if (themes.isEmpty()) {
             return default_themes
         }

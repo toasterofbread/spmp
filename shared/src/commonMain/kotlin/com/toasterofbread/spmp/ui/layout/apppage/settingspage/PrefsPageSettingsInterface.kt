@@ -55,7 +55,7 @@ internal fun getPrefsPageSettingsInterface(
         PrefsPageCategory.FEED to lazy { getFeedCategory() },
         PrefsPageCategory.PLAYER to lazy { getPlayerCategory() },
         PrefsPageCategory.LIBRARY to lazy { getLibraryCategory() },
-        PrefsPageCategory.THEME to lazy { getThemeCategory(Theme) },
+        PrefsPageCategory.THEME to lazy { getThemeCategory(SpMp.context.theme) },
         PrefsPageCategory.LYRICS to lazy { getLyricsCategory() },
         PrefsPageCategory.DOWNLOAD to lazy { getDownloadCategory() },
         PrefsPageCategory.DISCORD_STATUS to lazy { getDiscordStatusGroup(discord_auth) },
@@ -64,7 +64,7 @@ internal fun getPrefsPageSettingsInterface(
     )
 
     settings_interface = SettingsInterface(
-        { Theme },
+        { SpMp.context.theme },
         PrefsPageScreen.ROOT.ordinal,
         Settings.prefs,
         Settings.Companion::provideDefault,

@@ -89,12 +89,13 @@ fun ErrorInfoDisplay(
 ) {
     var expanded: Boolean by remember { mutableStateOf(start_expanded) }
     val shape = RoundedCornerShape(20.dp)
+    val player = LocalPlayerState.current
 
-    CompositionLocalProvider(LocalContentColor provides Theme.background) {
+    CompositionLocalProvider(LocalContentColor provides player.theme.background) {
         Column(
             modifier
                 .animateContentSize()
-                .background(shape, Theme.accent_provider)
+                .background(shape, player.theme.accent_provider)
                 .padding(horizontal = 10.dp),
             verticalArrangement = Arrangement.Center
         ) {
@@ -115,20 +116,20 @@ fun ErrorInfoDisplay(
                     Icon(
                         if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                         null,
-                        tint = Theme.on_accent
+                        tint = player.theme.on_accent
                     )
                 }
 
                 WidthShrinkText(
                     message ?: pair_error?.second ?: error!!::class.java.simpleName,
                     modifier = Modifier.fillMaxWidth().weight(1f),
-                    style = LocalTextStyle.current.copy(color = Theme.on_accent),
+                    style = LocalTextStyle.current.copy(color = player.theme.on_accent),
                     max_lines = 2
                 )
 
                 val button_colours = ButtonDefaults.buttonColors(
-                    containerColor = Theme.background,
-                    contentColor = Theme.on_background
+                    containerColor = player.theme.background,
+                    contentColor = player.theme.on_background
                 )
 
                 if (onExtraButtonPressed != null) {
@@ -156,8 +157,8 @@ fun ErrorInfoDisplay(
                         onDismiss,
                         shape = shape,
                         colours = IconButtonDefaults.iconButtonColors(
-                            containerColor = Theme.background,
-                            contentColor = Theme.on_background
+                            containerColor = player.theme.background,
+                            contentColor = player.theme.on_background
                         )
                     ) {
                         Icon(Icons.Default.Close, null)
@@ -188,7 +189,7 @@ private fun LongTextDisplay(text: String, wrap_text: Boolean, modifier: Modifier
             SelectionContainer {
                 Text(
                     segment,
-                    color = Theme.on_background,
+                    color = player.theme.on_background,
                     softWrap = wrap_text
                 )
             }
@@ -225,8 +226,8 @@ private fun ExpandedContent(
     var text_to_show: String? by remember { mutableStateOf(null) }
     var wrap_text by remember { mutableStateOf(false) }
     val button_colours = ButtonDefaults.buttonColors(
-        containerColor = Theme.accent,
-        contentColor = Theme.on_accent
+        containerColor = player.theme.accent,
+        contentColor = player.theme.on_accent
     )
 
     Box(
@@ -234,10 +235,10 @@ private fun ExpandedContent(
             .fillMaxWidth()
             .clip(shape)
             .padding(bottom = 10.dp)
-            .background(Theme.background_provider)
+            .background(player.theme.background_provider)
             .padding(10.dp)
     ) {
-        CompositionLocalProvider(LocalContentColor provides Theme.on_background) {
+        CompositionLocalProvider(LocalContentColor provides player.theme.on_background) {
             Column(
                 Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -245,7 +246,7 @@ private fun ExpandedContent(
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
                         getString("wrap_text_switch_label"),
-                        color = Theme.on_background
+                        color = player.theme.on_background
                     )
                     Switch(wrap_text, { wrap_text = !wrap_text }, Modifier.padding(end = 10.dp))
 
@@ -265,7 +266,7 @@ private fun ExpandedContent(
                         colors = button_colours,
                         contentPadding = PaddingValues(0.dp),
                     ) {
-                        WidthShrinkText(getString("upload_to_paste_dot_ee"), alignment = TextAlign.Center, style = LocalTextStyle.current.copy(color = Theme.on_accent))
+                        WidthShrinkText(getString("upload_to_paste_dot_ee"), alignment = TextAlign.Center, style = LocalTextStyle.current.copy(color = player.theme.on_accent))
                     }
                 }
 

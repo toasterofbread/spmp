@@ -125,8 +125,8 @@ object SpMp {
 
     @Composable
     fun App(open_uri: String? = null) {
-        Theme.ApplicationTheme(context, getFontFamily(context) ?: FontFamily.Default) {
-            Theme.Update(context)
+        context.theme.ApplicationTheme(context, getFontFamily(context) ?: FontFamily.Default) {
+            context.theme.Update()
 
             LaunchedEffect(open_uri) {
                 if (open_uri != null) {
@@ -141,7 +141,7 @@ object SpMp {
                     RootView(player_state)
                     LoadingSplashView(Modifier.fillMaxSize())
                 }
-                error_manager.Indicator(Theme.accent_provider)
+                error_manager.Indicator(context.theme.accent_provider)
             }
         }
     }

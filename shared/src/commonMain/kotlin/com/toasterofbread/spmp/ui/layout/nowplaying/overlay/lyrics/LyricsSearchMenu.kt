@@ -78,8 +78,8 @@ fun LyricsSearchMenu(
     val song_title: String? by song.observeActiveTitle()
     val song_artist_title: String? by song.Artist.observePropertyActiveTitle()
 
-    val on_accent = Theme.on_accent
-    val accent = Theme.accent
+    val on_accent = player.theme.on_accent
+    val accent = player.theme.accent
 
     val load_lock = remember { Object() }
     var loading by remember { mutableStateOf(false) }
@@ -193,7 +193,7 @@ fun LyricsSearchMenu(
                     var source_selector_open: Boolean by remember { mutableStateOf(false) }
                     Row(
                         Modifier
-                            .background(Theme.accent, CircleShape)
+                            .background(player.theme.accent, CircleShape)
                             .padding(10.dp)
                             .clickable { source_selector_open = !source_selector_open },
                         verticalAlignment = Alignment.CenterVertically
@@ -218,7 +218,7 @@ fun LyricsSearchMenu(
                                     LyricsSource.fromIdx(source_idx).getReadable()
                                 }
                             },
-                            selected_border_colour = Theme.vibrant_accent
+                            selected_border_colour = player.theme.vibrant_accent
                         ) { source_idx ->
                             selected_source = LyricsSource.fromIdx(source_idx)
                             source_selector_open = false
@@ -296,7 +296,7 @@ fun LyricsSearchMenu(
                 ) {
                     CircularProgressIndicator(
                         Modifier.requiredSize(22.dp),
-                        color = Theme.accent,
+                        color = player.theme.accent,
                         strokeWidth = 3.dp
                     )
                 }
@@ -309,7 +309,7 @@ fun LyricsSearchMenu(
                         .fillMaxWidth()
                         .weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Theme.accent,
+                        containerColor = player.theme.accent,
                         contentColor = on_accent
                     )
                 ) {
@@ -327,7 +327,7 @@ fun LyricsSearchMenu(
                             edit_page_open = true
                         }
                     },
-                    Modifier.background(Theme.accent, CircleShape).requiredSize(40.dp),
+                    Modifier.background(player.theme.accent, CircleShape).requiredSize(40.dp),
                 ) {
                     Crossfade(
                         // Loading

@@ -1,5 +1,6 @@
 package com.toasterofbread.utils.composable
 
+import LocalPlayerState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -35,7 +36,7 @@ fun PartialBorderBox(
     border_shape: Shape = RoundedCornerShape(16.dp),
     border_width: Dp = 1.dp,
     border_colour: Color = LocalContentColor.current,
-    background_colour: Color = Theme.background,
+    background_colour: Color = LocalPlayerState.current.theme.background,
     content: @Composable BoxScope.() -> Unit
 ) {
     val density = LocalDensity.current

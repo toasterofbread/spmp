@@ -135,7 +135,7 @@ class PlaylistPage(
     }
 
     fun getAccentColour(): Color =
-        accent_colour ?: Theme.accent
+        accent_colour ?: player.theme.accent
 
     fun beginEdit() {
         edited_title = playlist.getActiveTitle(player.database) ?: ""
@@ -412,7 +412,7 @@ class PlaylistPage(
                         list_state.listState,
                         if (top_bar_showing) 0.dp else top_padding,
                         Modifier.zIndex(1f).padding(bottom = 5.dp),
-                        Theme.background_provider
+                        player.theme.background_provider
                     ) {
                         PlaylistInteractionBar(
                             sorted_items,

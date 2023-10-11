@@ -37,6 +37,8 @@ fun TitleBar(
     font_size: TextUnit? = null,
     multiselect_context: MediaItemMultiSelectContext? = null
 ) {
+    val player = LocalPlayerState.current
+
     AnimatedVisibility(shouldShowTitleBar(title, subtitle, view_more), modifier) {
         val title_string: String? = remember { title?.getString() }
         val subtitle_string: String? = remember { subtitle?.getString() }
@@ -50,7 +52,7 @@ fun TitleBar(
         ) {
             Column(verticalArrangement = Arrangement.Center, modifier = Modifier.weight(1f)) {
                 if (subtitle_string != null) {
-                    WidthShrinkText(subtitle_string, style = MaterialTheme.typography.titleSmall.copy(color = Theme.on_background))
+                    WidthShrinkText(subtitle_string, style = MaterialTheme.typography.titleSmall.copy(color = player.theme.on_background))
                 }
 
                 if (title_string != null) {
@@ -59,7 +61,7 @@ fun TitleBar(
                         modifier = Modifier.fillMaxWidth(),
                         style = MaterialTheme.typography.headlineMedium.let { style ->
                             style.copy(
-                                color = Theme.on_background,
+                                color = player.theme.on_background,
                                 fontSize = font_size ?: style.fontSize
                             )
                         }
@@ -69,7 +71,6 @@ fun TitleBar(
 
             Row {
                 view_more?.also { view_more ->
-                    val player = LocalPlayerState.current
                     IconButton({ view_more.execute(player, title) }) {
                         Icon(Icons.Default.MoreHoriz, null)
                     }

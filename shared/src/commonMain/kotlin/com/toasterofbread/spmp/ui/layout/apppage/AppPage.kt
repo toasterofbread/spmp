@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.apppage
 
+import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ColumnScope
@@ -57,6 +58,8 @@ abstract class AppPage {
         spacing: Dp = 10.dp,
         chipContent: @Composable (Int) -> Unit
     ) {
+        val player = LocalPlayerState.current
+
         LazyRow(
             modifier,
             horizontalArrangement = Arrangement.spacedBy(spacing),
@@ -70,7 +73,7 @@ abstract class AppPage {
                             onChipSelected(index)
                         },
                         { chipContent(index) },
-                        colors = with(Theme) {
+                        colors = with(player.theme) {
                             FilterChipDefaults.elevatedFilterChipColors(
                                 containerColor = background,
                                 labelColor = on_background,
@@ -79,7 +82,7 @@ abstract class AppPage {
                             )
                         },
                         border = FilterChipDefaults.filterChipBorder(
-                            borderColor = Theme.on_background
+                            borderColor = player.theme.on_background
                         )
                     )
                 }

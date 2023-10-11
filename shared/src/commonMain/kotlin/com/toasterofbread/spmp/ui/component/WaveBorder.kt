@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.component
 
+import LocalPlayerState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
@@ -25,7 +26,7 @@ const val WAVE_BORDER_DEFAULT_HEIGHT: Float = 20f
 @Composable
 fun WaveBorder(
     modifier: Modifier = Modifier,
-    getColour: DrawScope.() -> Color = { Theme.background },
+    getColour: Theme.() -> Color = { background },
     height: Dp = WAVE_BORDER_DEFAULT_HEIGHT.dp,
     getOffset: ((height: Int) -> Int)? = null,
     waves: Int = 3,
@@ -33,6 +34,8 @@ fun WaveBorder(
     border_thickness: Dp = 0.dp,
     border_colour: Color = LocalContentColor.current,
 ) {
+    val player = LocalPlayerState.current
+
     Canvas(
         modifier
             .fillMaxWidth()
@@ -44,7 +47,7 @@ fun WaveBorder(
             }
     ) {
         val path = Path()
-        val colour = getColour()
+        val colour = getColour(player.theme)
 
         // Above equilibrium (cut out from rect)
         wavePath(path, -1, height.toPx(), waves, getWaveOffset)

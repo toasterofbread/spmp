@@ -113,7 +113,7 @@ fun LongPressMenu(
             enter = slideInVertically(spring()) { it / 2 },
             exit = slideOutVertically(spring()) { it / 2 }
         ) {
-            var accent_colour: Color? = data.item.rememberThemeColour()?.contrastAgainst(Theme.background)
+            var accent_colour: Color? = data.item.rememberThemeColour()?.contrastAgainst(player.theme.background)
 
             DisposableEffect(Unit) {
                 val theme_colour = data.item.ThemeColour.get(player.database)
@@ -121,7 +121,7 @@ fun LongPressMenu(
                     accent_colour = theme_colour
                 }
 
-                player.onNavigationBarTargetColourChanged(Theme.background, true)
+                player.onNavigationBarTargetColourChanged(player.theme.background, true)
                 onDispose {
                     player.onNavigationBarTargetColourChanged(null, true)
                 }

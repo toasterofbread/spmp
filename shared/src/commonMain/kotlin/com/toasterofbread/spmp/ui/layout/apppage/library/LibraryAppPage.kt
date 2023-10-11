@@ -197,7 +197,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
                                             Icon(tab.value.getIcon(), null, Modifier.requiredSizeIn(minWidth = 20.dp, minHeight = 20.dp))
                                         }
                                     },
-                                    colors = with(Theme) {
+                                    colors = with(player.theme) {
                                         FilterChipDefaults.elevatedFilterChipColors(
                                             containerColor = background,
                                             labelColor = on_background,
@@ -206,7 +206,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
                                         )
                                     },
                                     border = FilterChipDefaults.filterChipBorder(
-                                        borderColor = Theme.on_background
+                                        borderColor = player.theme.on_background
                                     )
                                 )
                             }

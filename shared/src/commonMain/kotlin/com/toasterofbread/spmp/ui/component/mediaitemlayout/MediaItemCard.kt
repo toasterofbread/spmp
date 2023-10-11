@@ -161,14 +161,14 @@ fun MediaItemCard(
             Column(
                 Modifier
                     .fillMaxSize()
-                    .background(accent_colour ?: Theme.accent, shape)
+                    .background(accent_colour ?: player.theme.accent, shape)
                     .padding(horizontal = 15.dp, vertical = 5.dp),
                 verticalArrangement = Arrangement.SpaceEvenly
             ) {
                 val item_title: String? by item.observeActiveTitle()
                 Text(
                     item_title ?: "",
-                    style = LocalTextStyle.current.copy(color = (accent_colour ?: Theme.accent).getContrasted()),
+                    style = LocalTextStyle.current.copy(color = (accent_colour ?: player.theme.accent).getContrasted()),
                     softWrap = false,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -176,7 +176,7 @@ fun MediaItemCard(
                 if (item is MediaItem.WithArtist) {
                     val item_artist: Artist? by item.Artist.observe(player.database)
                     item_artist?.also { artist ->
-                        MediaItemPreviewLong(artist, contentColour = { (accent_colour ?: Theme.accent).getContrasted() })
+                        MediaItemPreviewLong(artist, contentColour = { (accent_colour ?: player.theme.accent).getContrasted() })
                     }
                 }
             }
@@ -192,8 +192,8 @@ fun MediaItemCard(
                 Modifier.fillMaxWidth(),
                 shape = shape,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = accent_colour ?: Theme.vibrant_accent,
-                    contentColor = (accent_colour ?: Theme.vibrant_accent).getContrasted()
+                    containerColor = accent_colour ?: player.theme.vibrant_accent,
+                    contentColor = (accent_colour ?: player.theme.vibrant_accent).getContrasted()
                 )
             ) {
                 Text(

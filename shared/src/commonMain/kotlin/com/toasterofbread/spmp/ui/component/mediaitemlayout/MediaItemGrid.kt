@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.component.mediaitemlayout
 
+import LocalPlayerState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -86,6 +87,7 @@ fun MediaItemGrid(
     multiselect_context: MediaItemMultiSelectContext? = null,
     startContent: (LazyGridScope.() -> Unit)? = null
 ) {
+    val player = LocalPlayerState.current
     val filtered_items = items.rememberFilteredItems(apply_filter)
 
     val row_count = (rows ?: if (filtered_items.size <= 3) 1 else 2) * (if (alt_style) 2 else 1)
@@ -123,16 +125,16 @@ fun MediaItemGrid(
                     )
 
                     if (alt_style) {
-                        MediaItemPreviewLong(item, preview_modifier, contentColour = Theme.on_background_provider, multiselect_context = multiselect_context, show_download_indicator = show_download_indicators)
+                        MediaItemPreviewLong(item, preview_modifier, contentColour = player.theme.on_background_provider, multiselect_context = multiselect_context, show_download_indicator = show_download_indicators)
                     }
                     else {
-                        MediaItemPreviewSquare(item, preview_modifier, contentColour = Theme.on_background_provider, multiselect_context = multiselect_context, max_text_rows = square_item_max_text_rows, show_download_indicator = show_download_indicators)
+                        MediaItemPreviewSquare(item, preview_modifier, contentColour = player.theme.on_background_provider, multiselect_context = multiselect_context, max_text_rows = square_item_max_text_rows, show_download_indicator = show_download_indicators)
                     }
                 }
             }
 
             if (multiselect_context != null && !shouldShowTitleBar(title, subtitle)) {
-                Box(Modifier.background(CircleShape, Theme.background_provider), contentAlignment = Alignment.Center) {
+                Box(Modifier.background(CircleShape, player.theme.background_provider), contentAlignment = Alignment.Center) {
                     multiselect_context.CollectionToggleButton(filtered_items)
                 }
             }

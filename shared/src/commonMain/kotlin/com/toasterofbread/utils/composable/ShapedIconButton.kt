@@ -2,6 +2,7 @@
 
 package com.toasterofbread.utils.composable
 
+import LocalPlayerState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -33,9 +34,9 @@ fun ShapedIconButton(
     enabled: Boolean = true,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     colours: IconButtonColors = IconButtonDefaults.iconButtonColors(
-        containerColor = Theme.accent,
-        contentColor = Theme.on_accent,
-        disabledContainerColor = Theme.accent.setAlpha(0.5f)
+        containerColor = LocalPlayerState.current.theme.accent,
+        contentColor = LocalPlayerState.current.theme.on_accent,
+        disabledContainerColor = LocalPlayerState.current.theme.accent.setAlpha(0.5f)
     ),
     onLongClick: (() -> Unit)? = null,
     content: @Composable () -> Unit,

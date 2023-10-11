@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.platform
 
+import LocalPlayerState
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.os.Build
@@ -43,8 +44,9 @@ actual fun WebViewLogin(
     loading_message: String?,
     onRequestIntercepted: (WebViewRequest, openUrl: (String) -> Unit, getCookie: (String) -> String) -> Unit
 ) {
+    val player = LocalPlayerState.current
     var web_view: WebView? by remember { mutableStateOf(null) }
-    val is_dark by remember { derivedStateOf { Theme.background.isDark() } }
+    val is_dark by remember { derivedStateOf { player.theme.background.isDark() } }
 
     var requested_url: String? by remember { mutableStateOf(null) }
     OnChangedEffect(requested_url) {

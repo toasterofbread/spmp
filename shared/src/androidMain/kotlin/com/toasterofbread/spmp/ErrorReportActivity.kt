@@ -80,7 +80,7 @@ class ErrorReportActivity : ComponentActivity() {
                 }
 
                 if (context != null) {
-                    Theme.ApplicationTheme(context) {
+                    context.theme.ApplicationTheme(context) {
                         ErrorDisplay(message, stack_trace, logcat, error_text)
                     }
                 }

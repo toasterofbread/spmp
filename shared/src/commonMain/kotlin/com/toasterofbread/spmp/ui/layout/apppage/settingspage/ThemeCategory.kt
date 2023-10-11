@@ -11,19 +11,19 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.ui.theme.ThemeData
 
-internal fun getThemeCategory(theme_manager: Theme): List<SettingsItem> {
+internal fun getThemeCategory(theme: Theme): List<SettingsItem> {
     return listOf(
         SettingsItemThemeSelector(
             SettingsValueState(Settings.KEY_CURRENT_THEME.name),
             getString("s_key_current_theme"), null,
             getString("s_theme_editor_title"),
-            { theme_manager.getThemeCount() },
-            { theme_manager.getThemes()[it] },
+            { theme.getThemeCount() },
+            { theme.getThemes()[it] },
             { index: Int, edited_theme: ThemeData ->
-                theme_manager.updateTheme(index, edited_theme)
+                theme.updateTheme(index, edited_theme)
             },
-            { theme_manager.addTheme(Theme.getCurrentTheme().toStaticThemeData(getString("theme_title_new")), it) },
-            { theme_manager.removeTheme(it) }
+            { theme.addTheme(theme.getCurrentTheme().toStaticThemeData(getString("theme_title_new")), it) },
+            { theme.removeTheme(it) }
         ),
 
         SettingsMultipleChoiceItem(

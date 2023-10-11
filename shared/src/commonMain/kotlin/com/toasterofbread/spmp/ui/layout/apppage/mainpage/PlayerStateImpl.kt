@@ -342,7 +342,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
             navigateBack()
         }
 
-        CompositionLocalProvider(LocalContentColor provides Theme.on_background) {
+        CompositionLocalProvider(LocalContentColor provides context.theme.on_background) {
             MainPageDisplay()
         }
     }

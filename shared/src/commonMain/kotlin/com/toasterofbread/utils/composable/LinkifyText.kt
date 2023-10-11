@@ -1,5 +1,6 @@
 package com.toasterofbread.utils.composable
 
+import LocalPlayerState
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
@@ -27,7 +28,7 @@ fun LinkifyText(
     text: String,
     modifier: Modifier = Modifier,
     colour: Color = LocalContentColor.current,
-    highlight_colour: Color = Theme.accent,
+    highlight_colour: Color = LocalPlayerState.current.theme.accent,
     style: TextStyle = LocalTextStyle.current,
     font_size: TextUnit = TextUnit.Unspecified
 ) {

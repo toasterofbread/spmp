@@ -180,7 +180,7 @@ class SettingsAppPage(override val state: AppPageState): AppPage() {
                 val top_padding: Dp = player.top_bar.MusicTopBar(
                     Settings.KEY_LYRICS_SHOW_IN_SETTINGS,
                     Modifier.fillMaxWidth().zIndex(10f),
-                    getBottomBorderColour = if (current_category == null) Theme.background_provider else null,
+                    getBottomBorderColour = if (current_category == null) player.theme.background_provider else null,
                     padding = PaddingValues(top = content_padding.calculateTopPadding())
                 ).top_padding
 
@@ -233,7 +233,7 @@ class SettingsAppPage(override val state: AppPageState): AppPage() {
                             item {
                                 val item = rememberYtmAuthItem(ytm_auth, true)
                                 item.GetItem(
-                                    Theme,
+                                    player.theme,
                                     settings_interface::openPageById,
                                     settings_interface::openPage
                                 )
@@ -244,8 +244,8 @@ class SettingsAppPage(override val state: AppPageState): AppPage() {
                                     onClick = { current_category = category },
                                     modifier = Modifier.fillMaxWidth(),
                                     colors = CardDefaults.elevatedCardColors(
-                                        containerColor = Theme.accent.blendWith(Theme.background, 0.05f),
-                                        contentColor = Theme.on_background
+                                        containerColor = player.theme.accent.blendWith(player.theme.background, 0.05f),
+                                        contentColor = player.theme.on_background
                                     )
                                 ) {
                                     Row(
@@ -267,7 +267,7 @@ class SettingsAppPage(override val state: AppPageState): AppPage() {
                         BoxWithConstraints(
                             Modifier.pointerInput(Unit) {}
                         ) {
-                            CompositionLocalProvider(LocalContentColor provides Theme.on_background) {
+                            CompositionLocalProvider(LocalContentColor provides player.theme.on_background) {
                                 settings_interface.Interface(
                                     Modifier.fillMaxSize(),
                                     content_padding = PaddingValues(top = top_padding, bottom = content_padding.calculateBottomPadding())

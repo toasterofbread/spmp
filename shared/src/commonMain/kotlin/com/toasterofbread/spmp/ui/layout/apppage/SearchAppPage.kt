@@ -226,7 +226,7 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
                             Modifier.fillMaxSize().padding(padding),
                             contentAlignment = Alignment.Center
                         ) {
-                            SubtleLoadingIndicator(getColour = { Theme.on_background }, message = getString("search_results_loading"))
+                            SubtleLoadingIndicator(getColour = { context.theme.on_background }, message = getString("search_results_loading"))
                         }
                     }
                 }
@@ -302,8 +302,8 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
             modifier
                 .clickable(onClick = onSelected)
                 .clip(shape)
-                .background(Theme.background)
-                .border(2.dp, Theme.accent, shape)
+                .background(context.theme.background)
+                .border(2.dp, context.theme.accent, shape)
                 .padding(10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -415,7 +415,7 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
                     singleLine = true,
                     textStyle = LocalTextStyle.current.copy(
                         fontSize = SEARCH_FIELD_FONT_SIZE,
-                        color = Theme.on_accent
+                        color = context.theme.on_accent
                     ),
                     modifier = Modifier
                         .height(SEARCH_BAR_HEIGHT_DP.dp)
@@ -428,7 +428,7 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
                         Row(
                             Modifier
                                 .background(
-                                    Theme.accent,
+                                    context.theme.accent,
                                     shape
                                 )
                                 .padding(horizontal = 10.dp)
@@ -442,7 +442,7 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
 
                                 // Query hint
                                 if (current_query.isEmpty()) {
-                                    Text(getString("search_entry_field_hint"), fontSize = SEARCH_FIELD_FONT_SIZE, color = Theme.on_accent)
+                                    Text(getString("search_entry_field_hint"), fontSize = SEARCH_FIELD_FONT_SIZE, color = context.theme.on_accent)
                                 }
 
                                 // Text input
@@ -451,7 +451,7 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
 
                             // Clear field button
                             IconButton(onClick = { current_query = "" }, Modifier.fillMaxWidth()) {
-                                Icon(Icons.Filled.Clear, null, Modifier, Theme.on_accent)
+                                Icon(Icons.Filled.Clear, null, Modifier, context.theme.on_accent)
                             }
 
                             // Search button / search indicator
@@ -487,8 +487,8 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
                         .fillMaxHeight()
                         .aspectRatio(1f),
                     colours = IconButtonDefaults.iconButtonColors(
-                        containerColor = Theme.accent,
-                        contentColor = Theme.on_accent
+                        containerColor = context.theme.accent,
+                        contentColor = context.theme.on_accent
                     )
                 ) {
                     Icon(Icons.Filled.Search, null)
@@ -533,7 +533,7 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
     private fun SuggestedSearchCorrection(correction: String, modifier: Modifier = Modifier, onSelected: () -> Unit, onDismissed: () -> Unit) {
         Row(
             modifier
-                .border(2.dp, Theme.accent, CircleShape)
+                .border(2.dp, context.theme.accent, CircleShape)
                 .clickable(onClick = onSelected)
                 .padding(horizontal = 10.dp),
             verticalAlignment = Alignment.CenterVertically

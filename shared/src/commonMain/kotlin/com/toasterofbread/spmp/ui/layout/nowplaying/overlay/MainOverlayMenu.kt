@@ -110,11 +110,11 @@ class MainPlayerOverlayMenu(
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            val button_colour = Theme.on_accent
+            val button_colour = player.theme.on_accent
             val button_size = 42.dp
             val button_modifier = Modifier
                 .background(
-                    Theme.accent,
+                    player.theme.accent,
                     CircleShape
                 )
                 .size(button_size)
@@ -245,7 +245,7 @@ class MainPlayerOverlayMenu(
                                     Modifier
                                         .size(10.dp)
                                         .offset(offset, offset)
-                                        .background(button_colour, CircleShape), tint = Theme.accent)
+                                        .background(button_colour, CircleShape), tint = player.theme.accent)
                             }
                         }
                     }

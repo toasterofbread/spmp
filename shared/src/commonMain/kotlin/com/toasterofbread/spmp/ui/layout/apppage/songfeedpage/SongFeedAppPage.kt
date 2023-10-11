@@ -334,7 +334,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
                                         }
                                         else if (requestContinuation != null) {
                                             IconButton({ requestContinuation() }) {
-                                                Icon(Icons.Filled.KeyboardDoubleArrowDown, null, tint = Theme.on_background)
+                                                Icon(Icons.Filled.KeyboardDoubleArrowDown, null, tint = player.theme.on_background)
                                             }
                                         }
                                     }

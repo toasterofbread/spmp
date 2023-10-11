@@ -106,9 +106,9 @@ internal fun ColumnScope.LongPressMenuActions(data: LongPressMenuData, getAccent
     // Data-provided actions
     data.Actions(
         LongPressMenuActionProvider(
-            Theme.on_background_provider,
+            player.theme.on_background_provider,
             getAccentColour,
-            Theme.background_provider,
+            player.theme.background_provider,
             onAction
         ),
         MENU_ITEM_SPACING.dp

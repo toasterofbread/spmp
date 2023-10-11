@@ -63,6 +63,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.multiselect_context.MultiSelectSelectedItemActions
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
@@ -76,8 +77,7 @@ import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 
 class MediaItemMultiSelectContext(
-    val nextRowSelectedItemActions: (@Composable ColumnScope.(MediaItemMultiSelectContext) -> Unit)? = null,
-    val selectedItemActions: (@Composable RowScope.(MediaItemMultiSelectContext) -> Unit)? = null
+    val additionalSelectedItemActions: (@Composable RowScope.(MediaItemMultiSelectContext) -> Unit)? = null
 ) {
     private val selected_items: MutableList<Pair<MediaItem, Int?>> = mutableStateListOf()
     var is_active: Boolean by mutableStateOf(false)
@@ -187,7 +187,9 @@ class MediaItemMultiSelectContext(
                 GeneralSelectedItemActions()
 
                 AnimatedVisibility(selected_items.isNotEmpty()) {
-                    selectedItemActions?.invoke(this@Row, this@MediaItemMultiSelectContext)
+                    Row {
+                        MultiSelectSelectedItemActions(this@MediaItemMultiSelectContext, additionalSelectedItemActions)
+                    }
                 }
                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
@@ -199,7 +201,7 @@ class MediaItemMultiSelectContext(
                 }
             }
 
-            nextRowSelectedItemActions?.invoke(this, this@MediaItemMultiSelectContext)
+            MultiSelectNextRowActions(this@MediaItemMultiSelectContext)
         }
     }
 
@@ -349,7 +351,7 @@ class MediaItemMultiSelectContext(
         AnimatedVisibility(all_are_editable_playlists && selected_items.isNotEmpty()) {
             IconButton({
                 coroutine_scope.launch {
-                   getUniqueSelectedItems().mapNotNull { playlist ->
+                    getUniqueSelectedItems().mapNotNull { playlist ->
                         if (playlist !is Playlist) null
                         else launch {
                             val editor = playlist.getEditorOrNull(player.context).getOrNull()

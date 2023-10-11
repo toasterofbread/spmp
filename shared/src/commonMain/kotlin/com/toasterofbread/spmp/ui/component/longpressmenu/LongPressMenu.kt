@@ -23,6 +23,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,9 +34,11 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.db.rememberThemeColour
 import com.toasterofbread.spmp.platform.getNavigationBarHeightDp
+import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.common.contrastAgainst
+import com.toasterofbread.utils.common.launchSingle
 import kotlinx.coroutines.delay
 
 private const val MENU_OPEN_ANIM_MS: Int = 150
@@ -58,15 +61,22 @@ fun LongPressMenu(
 ) {
     val player = LocalPlayerState.current
 
+    val coroutine_scope = rememberCoroutineScope()
     var close_requested by remember { mutableStateOf(false) }
     var show_dialog by remember { mutableStateOf(showing) }
     var show_content by remember{ mutableStateOf(false) }
 
-    suspend fun closePopup() {
-        show_content = false
-        delay(MENU_OPEN_ANIM_MS.toLong())
-        show_dialog = false
-        onDismissRequest()
+    fun closePopup() {
+        coroutine_scope.launchSingle {
+            show_content = false
+            delay(MENU_OPEN_ANIM_MS.toLong())
+            show_dialog = false
+            onDismissRequest()
+        }
+    }
+
+    BackHandler(show_content) {
+        closePopup()
     }
 
     LaunchedEffect(showing, close_requested) {

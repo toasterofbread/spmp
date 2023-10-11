@@ -24,7 +24,13 @@ enum class AccentColourSource {
     THEME, THUMBNAIL
 }
 enum class NowPlayingQueueRadioInfoPosition {
-    TOP_BAR, ABOVE_ITEMS
+    TOP_BAR, ABOVE_ITEMS;
+
+    fun getReadable(): String = 
+        when (this) {
+            TOP_BAR -> getString("s_option_np_queue_radio_info_top_bar")
+            ABOVE_ITEMS -> getString("s_option_np_queue_radio_info_above_items")
+        }
 }
 enum class MusicTopBarMode {
     VISUALISER, LYRICS;
@@ -179,7 +185,7 @@ enum class Settings {
     KEY_MINI_PLAYER_OVERSCROLL_CLEAR_ENABLED,
     KEY_MINI_PLAYER_OVERSCROLL_CLEAR_TIME,
     KEY_MINI_PLAYER_OVERSCROLL_CLEAR_MODE,
-    KEY_NP_QUEUE_RADIO_INFO_POSITION, // TODO prefs item
+    KEY_NP_QUEUE_RADIO_INFO_POSITION,
     KEY_NP_QUEUE_WAVE_BORDER_MODE,
     KEY_RESUME_ON_BT_CONNECT,
     KEY_PAUSE_ON_BT_DISCONNECT,

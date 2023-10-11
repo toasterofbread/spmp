@@ -106,23 +106,16 @@ fun ArtistPage(
                 load_error?.also { error ->
                     ErrorInfoDisplay(
                         error,
-                        content_modifier,
-                        onDismiss = { load_error = null }
+                        content_modifier.padding(content_padding),
+                        onDismiss = null
                     )
                 }
             }
         }
-        else if (loading) {
+        else if (loading || (browse_params != null && browse_params_rows == null) || (browse_params == null && item_layouts == null)) {
             item {
                 Box(content_modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                     SubtleLoadingIndicator()
-                }
-            }
-        }
-        else if ((browse_params != null && browse_params_rows == null) || (browse_params == null && item_layouts == null)) {
-            item {
-                Box(content_modifier.fillMaxSize().padding(content_padding), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = accent_colour ?: Color.Unspecified)
                 }
             }
         }

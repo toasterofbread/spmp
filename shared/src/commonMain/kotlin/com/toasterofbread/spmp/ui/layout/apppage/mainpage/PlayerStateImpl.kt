@@ -22,6 +22,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
+import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
 import com.toasterofbread.spmp.ui.component.*
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenu
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
@@ -83,7 +84,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
 
     override val app_page_state = AppPageState(context)
     override val bottom_padding: Float get() = bottom_padding_anim.value
-    override val main_multiselect_context: MediaItemMultiSelectContext = getPlayerStateMultiSelectContext()
+    override val main_multiselect_context: MediaItemMultiSelectContext = MediaItemMultiSelectContext()
     override var np_theme_mode: ThemeMode by mutableStateOf(Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE, context.getPrefs()))
     override val np_overlay_menu: MutableState<PlayerOverlayMenu?> = mutableStateOf(null)
     override val top_bar: MusicTopBar = MusicTopBar(this)
@@ -258,10 +259,10 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
     override fun playMediaItem(item: MediaItem, shuffle: Boolean, at_index: Int) {
         withPlayer {
             if (item is Song) {
-                service_player.playSong(item, start_radio = true, shuffle = shuffle, at_index = at_index)
+                playSong(item, start_radio = true, shuffle = shuffle, at_index = at_index)
             }
             else {
-                service_player.startRadioAtIndex(at_index, item, shuffle = shuffle)
+                startRadioAtIndex(at_index, item, shuffle = shuffle)
             }
 
             if (np_swipe_state.value.targetValue == 0 && Settings.get(Settings.KEY_OPEN_NP_ON_SONG_PLAYED)) {
@@ -272,7 +273,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
 
     override fun playPlaylist(playlist: Playlist, from_index: Int) {
         withPlayer {
-            service_player.startRadioAtIndex(
+            startRadioAtIndex(
                 0,
                 playlist,
                 onLoad =
@@ -370,9 +371,6 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
     // PlayerServiceHost
 
     override val controller: PlatformPlayerService? get() = _player
-    override fun withPlayer(action: PlatformPlayerService.() -> Unit) {
-        _player?.also { action(it) }
-    }
 
     val service_connected: Boolean get() = _player != null
 

@@ -6,6 +6,7 @@ import com.toasterofbread.composesettings.ui.item.SettingsMultipleChoiceItem
 import com.toasterofbread.composesettings.ui.item.SettingsSliderItem
 import com.toasterofbread.composesettings.ui.item.SettingsToggleItem
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
+import com.toasterofbread.spmp.model.NowPlayingQueueRadioInfoPosition
 import com.toasterofbread.spmp.model.NowPlayingQueueWaveBorderMode
 import com.toasterofbread.spmp.model.OverscrollClearMode
 import com.toasterofbread.spmp.model.Settings
@@ -73,6 +74,16 @@ internal fun getPlayerCategory(): List<SettingsItem> {
                     NowPlayingQueueWaveBorderMode.NONE -> getString("s_option_wave_border_mode_none")
                     NowPlayingQueueWaveBorderMode.LINE -> getString("s_option_wave_border_mode_line")
                 }
+            }
+        ),
+
+        SettingsMultipleChoiceItem(
+            SettingsValueState(Settings.KEY_NP_QUEUE_RADIO_INFO_POSITION.name),
+            getString("s_key_np_queue_radio_info_position"), null,
+            NowPlayingQueueRadioInfoPosition.values().size,
+            false,
+            { index ->
+                NowPlayingQueueRadioInfoPosition.values()[index].getReadable()
             }
         ),
 

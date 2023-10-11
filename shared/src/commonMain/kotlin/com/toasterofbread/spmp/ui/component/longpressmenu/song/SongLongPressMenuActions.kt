@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -87,6 +88,7 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
             Column(
                 Modifier
                     .border(1.dp, LocalContentColor.current, RoundedCornerShape(16.dp))
+                    .padding(10.dp)
                     .fillMaxWidth()
                     .then(
                         height?.let { Modifier.height(it) } ?: Modifier
@@ -104,7 +106,10 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
                     contentColor = Theme.on_accent
                 )
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically, 
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
                     ShapedIconButton({ adding_to_playlist = false }, colours = button_colours) {
                         Icon(Icons.Default.Close, null)
                     }

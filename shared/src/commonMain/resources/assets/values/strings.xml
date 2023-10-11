@@ -365,6 +365,10 @@
     <string name="s_option_wave_border_mode_scroll">Animate on queue scroll</string>
     <string name="s_option_wave_border_mode_none">No animation</string>
     <string name="s_option_wave_border_mode_line">Line border</string>
+    
+    <string name="s_key_np_queue_radio_info_position">Queue radio info position</string>
+    <string name="s_option_np_queue_radio_info_top_bar">Button bar</string>
+    <string name="s_option_np_queue_radio_info_above_items">Above queue items</string>
 
     <string name="s_key_resume_on_bt_connect">Resume when Bluetooth device connected</string>
     <string name="s_sub_resume_on_bt_connect">If playback was paused by device disconnection, playback will resume when a Bluetooth audio device is connected</string>

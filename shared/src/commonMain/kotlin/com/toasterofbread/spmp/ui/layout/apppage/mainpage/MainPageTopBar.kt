@@ -6,10 +6,12 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -31,10 +33,10 @@ import com.toasterofbread.spmp.ui.layout.radiobuilder.RADIO_BUILDER_ICON_WIDTH_D
 import com.toasterofbread.spmp.ui.layout.radiobuilder.RadioBuilderIcon
 
 @Composable
-fun MainPageTopBar(modifier: Modifier = Modifier) {
+fun MainPageTopBar(content_padding: PaddingValues, modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
 
-    Column(modifier) {
+    Column(modifier.padding(content_padding)) {
         Row(Modifier.height(IntrinsicSize.Min), verticalAlignment = Alignment.CenterVertically) {
             Crossfade(player.app_page == player.app_page_state.Library) { library_open ->
                 if (library_open) {

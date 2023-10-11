@@ -21,11 +21,12 @@ fun LazyListScope.QueueItems(
     multiselect_context: MediaItemMultiSelectContext,
     player: PlayerState,
     getPlayingKey: () -> Int?,
-    setPlayingKey: (Int?) -> Unit
+    setPlayingKey: (Int?) -> Unit,
+    item_modifier: Modifier = Modifier
 ) {
     items(song_items.size, { song_items[it].key }) { index ->
         val item = song_items[index]
-        ReorderableItem(queue_list_state, key = item.key) { is_dragging ->
+        ReorderableItem(queue_list_state, item.key, item_modifier) { is_dragging ->
             LaunchedEffect(is_dragging) {
                 if (is_dragging) {
                     player.context.vibrateShort()

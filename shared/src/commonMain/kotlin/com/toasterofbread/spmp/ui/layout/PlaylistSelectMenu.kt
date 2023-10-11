@@ -87,7 +87,7 @@ fun PlaylistSelectMenu(
             modifier,
             swipe_enabled = auth_state?.AccountPlaylists?.isImplemented() == true
         ) {
-            LazyColumn(Modifier.fillMaxSize()) {
+            LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 items(local_playlists) { playlist ->
                     PlaylistItem(selected, playlist)
                 }

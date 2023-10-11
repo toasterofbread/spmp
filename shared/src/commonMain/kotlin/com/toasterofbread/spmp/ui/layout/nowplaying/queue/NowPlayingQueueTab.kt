@@ -66,7 +66,7 @@ fun QueueTab(page_height: Dp, getTopBarHeight: () -> Dp, modifier: Modifier = Mo
     val density = LocalDensity.current
 
     var key_inc by remember { mutableStateOf(0) }
-    val radio_info_position: NowPlayingQueueRadioInfoPosition = Settings.getEnum(Settings.KEY_NP_QUEUE_RADIO_INFO_POSITION)
+    val radio_info_position: NowPlayingQueueRadioInfoPosition by Settings.KEY_NP_QUEUE_RADIO_INFO_POSITION.rememberMutableEnumState()
     val multiselect_context: MediaItemMultiSelectContext = remember { MediaItemMultiSelectContext() }
 
     val song_items: SnapshotStateList<QueueTabItem> = remember { mutableStateListOf<QueueTabItem>().also { list ->
@@ -220,7 +220,6 @@ fun QueueTab(page_height: Dp, getTopBarHeight: () -> Dp, modifier: Modifier = Mo
                         contentPadding = PaddingValues(top = top_padding),
                         modifier = Modifier
                             .reorderable(queue_list_state)
-                            .padding(horizontal = list_padding)
                             .onPlaced { coords ->
                                 list_position = with(density) { coords.positionInParent().y.toDp() }
                             },
@@ -228,7 +227,7 @@ fun QueueTab(page_height: Dp, getTopBarHeight: () -> Dp, modifier: Modifier = Mo
                     ) {
                         if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) {
                             item {
-                                CurrentRadioIndicator(getBackgroundColour, multiselect_context)
+                                CurrentRadioIndicator(getBackgroundColour, multiselect_context, Modifier.padding(bottom = 15.dp))
                             }
                         }
 
@@ -238,14 +237,15 @@ fun QueueTab(page_height: Dp, getTopBarHeight: () -> Dp, modifier: Modifier = Mo
                             multiselect_context,
                             player,
                             { playing_key },
-                            { playing_key = it }
+                            { playing_key = it },
+                            Modifier.padding(horizontal = list_padding)
                         )
 
                         item {
                             player.controller?.radio_state?.LoadStatus(
                                 Modifier
                                     .heightIn(min = 50.dp)
-                                    .padding(top = list_padding)
+                                    .padding(top = list_padding, start = list_padding, end = list_padding)
                                     .fillMaxWidth(),
                                 expanded_modifier = Modifier.height(page_height / 2)
                             )

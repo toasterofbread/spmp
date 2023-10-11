@@ -174,7 +174,7 @@ private fun onSongClicked(songs: List<Song>, player: PlayerState, song: Song, in
         val song_index = minOf(ADD_BEFORE, index)
         assert(add_songs[song_index] == song)
 
-        service_player.addMultipleToQueue(add_songs, clear = true)
+        addMultipleToQueue(add_songs, clear = true)
         seekToSong(song_index)
     }
 }

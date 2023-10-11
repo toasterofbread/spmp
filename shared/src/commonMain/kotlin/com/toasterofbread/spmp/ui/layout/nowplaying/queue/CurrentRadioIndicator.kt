@@ -111,8 +111,7 @@ fun CurrentRadioIndicator(
                         FiltersRow(
                             state as List<List<RadioBuilderModifier>>,
                             getAccentColour,
-                            Modifier.padding(bottom = 5.dp),
-                            PaddingValues(horizontal = horizontal_padding)
+                            content_padding = PaddingValues(horizontal = horizontal_padding)
                         )
                 }
             }

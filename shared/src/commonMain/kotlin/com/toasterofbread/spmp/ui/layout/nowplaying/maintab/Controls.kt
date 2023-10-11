@@ -64,6 +64,9 @@ import com.toasterofbread.utils.common.getValue
 import com.toasterofbread.utils.common.setAlpha
 import com.toasterofbread.utils.composable.Marquee
 
+private const val TITLE_FONT_SIZE_SP: Float = 22f
+private const val ARTIST_FONT_SIZE_SP: Float = 14f
+
 @Composable
 internal fun Controls(
     song: Song?,
@@ -140,12 +143,12 @@ internal fun Controls(
                 Marquee(Modifier.fillMaxWidth()) {
                     Text(
                         song_title ?: "",
-                        fontSize = 20.sp,
+                        fontSize = TITLE_FONT_SIZE_SP.sp,
                         color = player.getNPOnBackground(),
                         textAlign = TextAlign.Center,
                         maxLines = 1,
                         softWrap = false,
-                        // TODO Using ellipsis makes this go weird, no clue why
+                        // Using ellipsis makes this go weird, no clue why
                         overflow = TextOverflow.Clip,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -160,7 +163,7 @@ internal fun Controls(
 
                 Text(
                     song_artist_title ?: "",
-                    fontSize = 12.sp,
+                    fontSize = ARTIST_FONT_SIZE_SP.sp,
                     color = player.getNPOnBackground(),
                     textAlign = TextAlign.Center,
                     maxLines = 1,

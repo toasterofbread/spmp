@@ -24,6 +24,7 @@ import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
 import com.toasterofbread.spmp.platform.playerservice.MediaPlayerRepeatMode
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
+import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
 import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -124,8 +125,8 @@ open class PlayerState protected constructor(
     open val top_bar: MusicTopBar get() = upstream!!.top_bar
 
     open val controller: PlatformPlayerService? get() = upstream!!.controller
-    open fun withPlayer(action: PlatformPlayerService.() -> Unit) {
-        upstream!!.withPlayer(action)
+    inline fun withPlayer(action: PlayerServicePlayer.() -> Unit) {
+        controller?.service_player?.also(action)
     }
 
     open val status: PlayerStatus get() = upstream!!.status

@@ -26,7 +26,7 @@ fun MainPageDisplay() {
             val status_bar_height = player.context.getStatusBarHeightDp()
 
             if (page.showTopBar()) {
-                MainPageTopBar(Modifier.padding(top = status_bar_height).zIndex(1f))
+                MainPageTopBar(PaddingValues(horizontal = horizontal_padding), Modifier.padding(top = status_bar_height).zIndex(1f))
             }
 
             with(page) {

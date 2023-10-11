@@ -356,6 +356,10 @@
     <string name="s_option_wave_border_mode_none">アニメーションなし</string>
     <string name="s_option_wave_border_mode_line">線型ボーダー</string>
 
+    <string name="s_key_np_queue_radio_info_position">曲キューラジオ情報の位置</string>
+    <string name="s_option_np_queue_radio_info_top_bar">ボタンバー</string>
+    <string name="s_option_np_queue_radio_info_above_items">曲の上</string>
+
     <string name="s_key_resume_on_bt_connect">Bluetoothデバイス接続時に再生を再開</string>
     <string name="s_sub_resume_on_bt_connect">デバイスの切断によって再生が停止された場合、Bluetoothオーディオデバイスが接続されると再生が再開されます</string>
     <string name="s_key_pause_on_bt_disconnect">Bluetoothデバイス切断時に再生を一時停止</string>

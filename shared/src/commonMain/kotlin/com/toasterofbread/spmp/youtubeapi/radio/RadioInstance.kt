@@ -220,7 +220,13 @@ class RadioInstance(val context: PlatformContext) {
                     return@launchSingle
                 }
 
-                val result = state.continuation!!.loadContinuation(
+                val continuation: MediaItemLayout.Continuation? = state.continuation
+                if (continuation == null) {
+                    use_callback(Result.failure(NullPointerException("State continuation is null")), is_retry)
+                    return@launchSingle
+                }
+
+                val result = continuation.loadContinuation(
                     context,
                     state.current_filter?.let { state.filters?.get(it) } ?: emptyList()
                 )
@@ -237,7 +243,7 @@ class RadioInstance(val context: PlatformContext) {
                 )
 
                 if (cont != null) {
-                    state.continuation!!.update(cont)
+                    state.continuation?.update(cont)
                 }
                 else {
                     state = state.copy(continuation = null)
@@ -268,7 +274,10 @@ class RadioInstance(val context: PlatformContext) {
         )
 
     private suspend fun getInitialSongs(): Result<List<Song>> {
-        when (val item = getMediaItemFromUid(state.item!!.first)) {
+        val item_uid: String = state.item?.first
+            ?: return Result.failure(NullPointerException("State item is null"))
+
+        when (val item = getMediaItemFromUid(item_uid)) {
             is Song -> {
                 val result = context.ytapi.SongRadio.getSongRadio(item.id, null, state.current_filter?.let { state.filters?.get(it) } ?: emptyList())
                 return result.fold(
@@ -352,7 +361,7 @@ fun RadioInstance.RadioState.LoadStatus(
                 SubtleLoadingIndicator()
             }
             else if (it.second != null) {
-                val (message, stack_trace, can_retry) = it.second!!
+                val (message, stack_trace, can_retry) = it.second ?: return@Crossfade
                 ErrorInfoDisplay(
                     null,
                     pair_error = Pair(message, stack_trace),

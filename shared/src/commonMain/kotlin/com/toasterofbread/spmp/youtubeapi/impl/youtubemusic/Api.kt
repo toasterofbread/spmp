@@ -40,46 +40,46 @@ class DataParseException(cause: Throwable? = null, message: String? = null, priv
             getResponseStream: (Response) -> Reader = { it.getReader(api) },
             keys_to_remove: List<String> = YOUTUBE_JSON_DATA_KEYS_TO_REMOVE
         ) = DataParseException(
-            cause,
-            message
-        ) {
-            runCatching {
-                val json_object: JsonObject = withContext(Dispatchers.IO) {
-                    val stream = getResponseStream(api.performRequest(request).getOrThrow())
-                    stream.use { reader ->
-                        api.gson.toJsonTree(api.gson.fromJson<Map<String, Any?>>(reader)).asJsonObject
-                    }
-                }
-
-                // Remove unneeded keys from JSON object
-                val items: MutableList<JsonObject> = mutableListOf(json_object)
-
-                while (items.isNotEmpty()) {
-                    val obj = items.removeLast()
-
-                    for (key in keys_to_remove) {
-                        obj.remove(key)
-                    }
-
-                    for (key in obj.keySet()) {
-                        val value: JsonElement = obj.get(key)
-
-                        if (value.isJsonObject) {
-                            items.add(value.asJsonObject)
-                        } else if (value.isJsonArray) {
-                            items.addAll(
-                                value.asJsonArray.mapNotNull { item ->
-                                    if (item.isJsonObject) item.asJsonObject
-                                    else null
-                                }
-                            )
+                cause,
+                message
+            ) {
+                runCatching {
+                    val json_object: JsonObject = withContext(Dispatchers.IO) {
+                        val stream = getResponseStream(api.performRequest(request).getOrThrow())
+                        stream.use { reader ->
+                            api.gson.toJsonTree(api.gson.fromJson<Map<String, Any?>>(reader)).asJsonObject
                         }
                     }
-                }
 
-                api.gson.toJson(json_object)
+                    // Remove unneeded keys from JSON object
+                    val items: MutableList<JsonObject> = mutableListOf(json_object)
+
+                    while (items.isNotEmpty()) {
+                        val obj = items.removeLast()
+
+                        for (key in keys_to_remove) {
+                            obj.remove(key)
+                        }
+
+                        for (key in obj.keySet()) {
+                            val value: JsonElement = obj.get(key)
+
+                            if (value.isJsonObject) {
+                                items.add(value.asJsonObject)
+                            } else if (value.isJsonArray) {
+                                items.addAll(
+                                    value.asJsonArray.mapNotNull { item ->
+                                        if (item.isJsonObject) item.asJsonObject
+                                        else null
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    api.gson.toJson(json_object)
+                }
             }
-        }
     }
 }
 

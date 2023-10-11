@@ -271,8 +271,8 @@ actual class PlatformPlayerService: MediaSessionService() {
             player_instance?.removeListener(listener)
         }
 
-        private fun PlatformContext.getApplicationContext(): Context =
-            ctx.applicationContext
+        private fun PlatformContext.getAndroidContext(): Context =
+            ctx
 
         actual fun connect(
             context: PlatformContext,
@@ -280,7 +280,7 @@ actual class PlatformPlayerService: MediaSessionService() {
             onConnected: (PlatformPlayerService) -> Unit,
             onDisconnected: () -> Unit,
         ): Any {
-            val ctx: Context = context.getApplicationContext()
+            val ctx: Context = context.getAndroidContext()
 
             val service_connection = object : ServiceConnection {
                 override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -299,7 +299,7 @@ actual class PlatformPlayerService: MediaSessionService() {
         }
 
         actual fun disconnect(context: PlatformContext, connection: Any) {
-            context.getApplicationContext().unbindService(connection as ServiceConnection)
+            context.getAndroidContext().unbindService(connection as ServiceConnection)
         }
     }
 
@@ -319,10 +319,9 @@ actual class PlatformPlayerService: MediaSessionService() {
     actual override fun onCreate() {
         super.onCreate()
 
-        setInstance(this)
+        initialiseSessionAndPlayer()
         _context = PlatformContext(this, coroutine_scope).init()
 
-        initialiseSessionAndPlayer()
         _service_player = object : PlayerServicePlayer(this) {
             override fun onUndoStateChanged() {
                 for (listener in listeners) {
@@ -339,6 +338,8 @@ actual class PlatformPlayerService: MediaSessionService() {
                 setSmallIcon(R.drawable.ic_spmp)
             }
         )
+
+        setInstance(this)
     }
 
     actual override fun onDestroy() {

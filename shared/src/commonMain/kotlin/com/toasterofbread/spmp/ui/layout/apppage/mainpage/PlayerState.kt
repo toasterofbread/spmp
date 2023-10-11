@@ -36,39 +36,51 @@ import com.toasterofbread.utils.common.indexOfOrNull
 import java.net.URI
 import java.net.URISyntaxException
 
-class PlayerStatus internal constructor(private val state: PlayerState, private val player: PlatformPlayerService) {
-    fun getProgress(): Float = player.duration_ms.let { duration ->
-        if (duration <= 0f) 0f
-        else player.current_position_ms.toFloat() / duration
+class PlayerStatus internal constructor() {
+    private var player: PlatformPlayerService? = null
+
+    internal fun setPlayer(new_player: PlatformPlayerService) {
+        player = new_player
     }
 
-    fun getPositionMillis(): Long = player.current_position_ms
+    fun getProgress(): Float {
+        val p = player ?: return 0f
 
-    private val _song_state = mutableStateOf(player.getSong())
+        val duration = p.duration_ms
+        if (duration <= 0f) {
+            return 0f
+        }
+
+        return p.current_position_ms.toFloat() / duration
+    }
+
+    fun getPositionMillis(): Long = player?.current_position_ms ?: 0
+
+    private val _song_state: MutableState<Song?> = mutableStateOf(player?.getSong())
     val song_state: State<Song?> get() = _song_state
 
-    var m_playing: Boolean by mutableStateOf(player.is_playing)
+    var m_playing: Boolean by mutableStateOf(player?.is_playing ?: false)
         private set
-    var m_duration_ms: Long by mutableStateOf(player.duration_ms)
+    var m_duration_ms: Long by mutableStateOf(player?.duration_ms ?: -1)
         private set
     var m_song: Song? by _song_state
         private set
-    var m_index: Int by mutableStateOf(player.current_song_index)
+    var m_index: Int by mutableStateOf(player?.current_song_index ?: -1)
         private set
-    var m_repeat_mode: MediaPlayerRepeatMode by mutableStateOf(player.repeat_mode)
+    var m_repeat_mode: MediaPlayerRepeatMode by mutableStateOf(player?.repeat_mode ?: MediaPlayerRepeatMode.NONE)
         private set
     // TODO
     var m_has_next: Boolean by mutableStateOf(true)
         private set
     var m_has_previous: Boolean by mutableStateOf(true)
         private set
-    var m_volume: Float by mutableStateOf(player.volume)
+    var m_volume: Float by mutableStateOf(player?.volume ?: -1f)
         private set
-    var m_song_count: Int by mutableStateOf(player.song_count)
+    var m_song_count: Int by mutableStateOf(player?.song_count ?: -1)
         private set
-    var m_undo_count: Int by mutableStateOf(player.service_player.undo_count)
+    var m_undo_count: Int by mutableStateOf(player?.service_player?.undo_count ?: -1)
         private set
-    var m_redo_count: Int by mutableStateOf(player.service_player.redo_count)
+    var m_redo_count: Int by mutableStateOf(player?.service_player?.redo_count ?: -1)
         private set
 
     init {
@@ -87,20 +99,22 @@ class PlayerStatus internal constructor(private val state: PlayerState, private 
                 m_repeat_mode = repeat_mode
             }
             override fun onUndoStateChanged() {
-                m_undo_count = player.service_player.undo_count
-                m_redo_count = player.service_player.redo_count
+                m_undo_count = player?.service_player?.undo_count ?: -1
+                m_redo_count = player?.service_player?.redo_count ?: -1
             }
 
             override fun onSongAdded(index: Int, song: Song) {}
 
             override fun onEvents() {
-                m_duration_ms = player.duration_ms
-                m_index = player.current_song_index
-                m_volume = player.volume
-                m_song_count = player.song_count
+                m_duration_ms = player?.duration_ms ?: -1
+                m_index = player?.current_song_index ?: -1
+                m_volume = player?.volume ?: -1f
+                m_song_count = player?.song_count ?: -1
 
-                if (m_index > player.service_player.active_queue_index) {
-                    player.service_player.active_queue_index = m_index
+                player?.also { p ->
+                    if (m_index > p.service_player.active_queue_index) {
+                        p.service_player.active_queue_index = m_index
+                    }
                 }
             }
         })
@@ -125,9 +139,9 @@ open class PlayerState protected constructor(
     open val top_bar: MusicTopBar get() = upstream!!.top_bar
 
     open val controller: PlatformPlayerService? get() = upstream!!.controller
-    inline fun withPlayer(action: PlayerServicePlayer.() -> Unit) {
-        controller?.service_player?.also(action)
-    }
+    open fun withPlayer(action: PlayerServicePlayer.() -> Unit): Unit = upstream!!.withPlayer(action)
+    @Composable
+    open fun withPlayerComposable(action: @Composable PlayerServicePlayer.() -> Unit): Unit = upstream!!.withPlayerComposable(action)
 
     open val status: PlayerStatus get() = upstream!!.status
     open val session_started: Boolean get() = upstream!!.session_started

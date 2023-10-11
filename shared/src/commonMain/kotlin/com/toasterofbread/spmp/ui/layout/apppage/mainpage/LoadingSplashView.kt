@@ -43,21 +43,9 @@ private enum class SplashMode {
 }
 
 @Composable
-fun LoadingSplashView(service_connected: Boolean, modifier: Modifier = Modifier) {
-    var splash_mode: SplashMode? by remember { mutableStateOf(if (!service_connected) SplashMode.SPLASH else null) }
+fun LoadingSplashView(modifier: Modifier = Modifier) {
+    var splash_mode: SplashMode? by remember { mutableStateOf(null) }
     val player = LocalPlayerState.current
-
-    LaunchedEffect(service_connected) {
-        if (service_connected) {
-            splash_mode = null
-        }
-        else {
-            delay(WARNING_DELAY)
-            if (player.context.isAppInForeground()) {
-                splash_mode = SplashMode.WARNING
-            }
-        }
-    }
 
     Crossfade(splash_mode, modifier) { mode ->
         when (mode) {

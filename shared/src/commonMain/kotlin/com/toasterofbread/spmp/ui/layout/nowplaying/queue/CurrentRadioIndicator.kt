@@ -32,7 +32,7 @@ import com.toasterofbread.utils.common.setAlpha
 import com.toasterofbread.utils.modifier.background
 
 @Composable
-fun CurrentRadioIndicator(
+internal fun CurrentRadioIndicator(
     getAccentColour: () -> Color,
     multiselect_context: MediaItemMultiSelectContext,
     modifier: Modifier = Modifier
@@ -40,79 +40,80 @@ fun CurrentRadioIndicator(
     val player = LocalPlayerState.current
     val horizontal_padding = 15.dp
 
-    Row(modifier.animateContentSize()) {
-        val filters: List<List<RadioBuilderModifier>>? = player.controller?.radio_state?.filters
-        var show_radio_info: Boolean by remember { mutableStateOf(false) }
-
-        val radio_item: MediaItem? =
-            player.controller?.radio_state?.item
-                ?.takeIf { item ->
-                    MediaItemType.fromUid(item.first) != MediaItemType.SONG || item.second == null
-                }
-                ?.let { item ->
-                    getMediaItemFromUid(item.first)
-                }
-
-        LaunchedEffect(radio_item) {
-            if (radio_item == null) {
-                show_radio_info = false
+    val filters: List<List<RadioBuilderModifier>>? = player.controller?.radio_state?.filters
+    var show_radio_info: Boolean by remember { mutableStateOf(false) }
+    val radio_item: MediaItem? =
+        player.controller?.radio_state?.item
+            ?.takeIf { item ->
+                MediaItemType.fromUid(item.first) != MediaItemType.SONG || item.second == null
             }
-        }
+            ?.let { item ->
+                getMediaItemFromUid(item.first)
+            }
 
-        AnimatedVisibility(radio_item != null && filters != null) {
-            IconButton(
-                { show_radio_info = !show_radio_info },
-                Modifier.padding(start = horizontal_padding)
-            ) {
-                Box {
-                    Icon(Icons.Default.Radio, null)
-                    val content_colour = LocalContentColor.current
-                    Icon(
-                        Icons.Default.Info, null,
-                        Modifier
-                            .align(Alignment.BottomEnd)
-                            .offset(5.dp, 5.dp)
-                            .size(18.dp)
-                            // Fill gap in info icon
-                            .drawBehind {
-                                drawCircle(content_colour, size.width / 4)
-                            },
-                        tint = getAccentColour()
-                    )
+    LaunchedEffect(radio_item) {
+        if (radio_item == null) {
+            show_radio_info = false
+        }
+    }
+
+    if (filters != null || radio_item != null) {
+        Row(modifier.animateContentSize()) {
+            AnimatedVisibility(radio_item != null && filters != null) {
+                IconButton(
+                    { show_radio_info = !show_radio_info },
+                    Modifier.padding(start = horizontal_padding)
+                ) {
+                    Box {
+                        Icon(Icons.Default.Radio, null)
+                        val content_colour = LocalContentColor.current
+                        Icon(
+                            Icons.Default.Info, null,
+                            Modifier
+                                .align(Alignment.BottomEnd)
+                                .offset(5.dp, 5.dp)
+                                .size(18.dp)
+                                // Fill gap in info icon
+                                .drawBehind {
+                                    drawCircle(content_colour, size.width / 4)
+                                },
+                            tint = getAccentColour()
+                        )
+                    }
                 }
             }
-        }
 
-        Crossfade(
-            if (show_radio_info) radio_item 
-            else if (multiselect_context.is_active) true 
-            else filters ?: radio_item,
-            Modifier.fillMaxWidth()
-        ) { state ->
-            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                when (state) {
-                    is MediaItem ->
-                        Box(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = horizontal_padding)
-                                .background(RoundedCornerShape(45), getAccentColour)
-                                .padding(horizontal = 10.dp, vertical = 7.dp)
-                        ) {
-                            MediaItemPreviewLong(state, Modifier.height(35.dp))
-                        }
-                    true ->
-                        multiselect_context.InfoDisplay(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = horizontal_padding)
-                        )
-                    is List<*> -> 
-                        FiltersRow(
-                            state as List<List<RadioBuilderModifier>>,
-                            getAccentColour,
-                            content_padding = PaddingValues(horizontal = horizontal_padding)
-                        )
+            Crossfade(
+                if (show_radio_info) radio_item
+                else if (multiselect_context.is_active) true
+                else filters ?: radio_item,
+                Modifier.fillMaxWidth()
+            ) { state ->
+                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    when (state) {
+                        is MediaItem ->
+                            Box(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = horizontal_padding)
+                                    .background(RoundedCornerShape(45), getAccentColour)
+                                    .padding(horizontal = 10.dp, vertical = 7.dp)
+                            ) {
+                                MediaItemPreviewLong(state, Modifier.height(35.dp))
+                            }
+                        true ->
+                            multiselect_context.InfoDisplay(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = horizontal_padding)
+                            )
+                        is List<*> ->
+                            FiltersRow(
+                                state as List<List<RadioBuilderModifier>>,
+                                getAccentColour,
+                                content_padding = PaddingValues(horizontal = horizontal_padding)
+                            )
+                    }
                 }
             }
         }

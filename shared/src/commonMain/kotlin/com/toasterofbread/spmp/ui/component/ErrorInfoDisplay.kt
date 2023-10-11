@@ -51,7 +51,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.google.gson.Gson
 import com.toasterofbread.spmp.ProjectBuildConfig
-import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.fromJson
@@ -72,13 +71,15 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 
+const val ERROR_INFO_DISPLAY_DEFAULT_EXPANDED_HEIGHT_DP: Float = 500f
+
 @Composable
 fun ErrorInfoDisplay(
     error: Throwable?,
     modifier: Modifier = Modifier,
     message: String? = null,
     pair_error: Pair<String, String>? = null,
-    expanded_content_modifier: Modifier = Modifier.height(500.dp),
+    expanded_content_modifier: Modifier = Modifier.height(ERROR_INFO_DISPLAY_DEFAULT_EXPANDED_HEIGHT_DP.dp),
     disable_parent_scroll: Boolean = true,
     start_expanded: Boolean = false,
     extraButtonContent: (@Composable () -> Unit)? = null,

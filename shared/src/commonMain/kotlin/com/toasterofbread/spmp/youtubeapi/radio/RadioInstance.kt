@@ -33,7 +33,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.job
-import kotlinx.serialization.Serializable
 
 class RadioInstance(val context: PlatformContext) {
     var state: RadioState by mutableStateOf(RadioState())

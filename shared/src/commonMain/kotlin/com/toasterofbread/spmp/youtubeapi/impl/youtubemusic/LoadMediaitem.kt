@@ -235,7 +235,6 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                     val view_more = row.value.getNavigationEndpoint()?.getViewMore(item)
                     if (view_more is MediaItemViewMore) {
                         val view_more_item = view_more.media_item as MediaItemData
-                        view_more_item.title = layout_title?.getString()
                         if (view_more_item is MediaItem.DataWithArtist) {
                             view_more_item.artist = item
                         }

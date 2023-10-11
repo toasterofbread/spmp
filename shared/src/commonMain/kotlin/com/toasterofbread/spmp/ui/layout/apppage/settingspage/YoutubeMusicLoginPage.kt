@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.composesettings.ui.SettingsPage
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
+import com.toasterofbread.spmp.platform.BackHandler
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.youtubeapi.composable.LoginPage
@@ -55,7 +56,11 @@ internal fun getYoutubeMusicLoginPage(
             goBack: () -> Unit
         ) {
             var login_error: Throwable? by remember { mutableStateOf(null) }
-            
+
+            BackHandler {
+                settings_interface.goBack()
+            }
+
             Crossfade(login_error) { error ->
                 if (error == null) {
                     login_page.LoginPage(Modifier.fillMaxSize(), confirm_param, content_padding) { result ->

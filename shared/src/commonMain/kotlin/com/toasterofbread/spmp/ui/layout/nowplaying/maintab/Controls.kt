@@ -64,7 +64,7 @@ import com.toasterofbread.utils.common.getValue
 import com.toasterofbread.utils.common.setAlpha
 import com.toasterofbread.utils.composable.Marquee
 
-private const val TITLE_FONT_SIZE_SP: Float = 22f
+private const val TITLE_FONT_SIZE_SP: Float = 21f
 private const val ARTIST_FONT_SIZE_SP: Float = 14f
 
 @Composable

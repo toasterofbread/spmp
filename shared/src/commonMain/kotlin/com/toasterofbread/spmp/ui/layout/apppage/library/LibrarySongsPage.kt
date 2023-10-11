@@ -48,7 +48,7 @@ class LibrarySongsPage(context: PlatformContext): LibrarySubPage(context) {
         val player = LocalPlayerState.current
         val downloads: List<PlayerDownloadManager.DownloadStatus> = rememberSongDownloads()
 
-        var sorted_songs: List<Song> by remember { mutableStateOf(emptyList()) }
+        var sorted_downloads: List<PlayerDownloadManager.DownloadStatus> by remember { mutableStateOf(emptyList()) }
 
         with(library_page) {
             LaunchedEffect(downloads, search_filter, sort_type, reverse_sort) {
@@ -60,18 +60,18 @@ class LibrarySongsPage(context: PlatformContext): LibrarySubPage(context) {
                         return@mapNotNull null
                     }
 
-                    return@mapNotNull download.song
+                    return@mapNotNull download
                 }
 
-                sorted_songs = sort_type.sortItems(filtered, player.database, reverse_sort)
+                sorted_downloads = sort_type.sortItems(filtered, player.database, reverse_sort) { it.song }
             }
         }
 
         CompositionLocalProvider(LocalPlayerState provides remember { player.copy(onClickedOverride = { item, index ->
-            onSongClicked(sorted_songs, player, item as Song, index!!)
+            onSongClicked(sorted_downloads, player, item as Song, index!!)
         }) }) {
             Column(modifier) {
-                EmptyListCrossfade(sorted_songs) { current_songs ->
+                EmptyListCrossfade(sorted_downloads) { current_songs ->
                     LazyColumn(
                         Modifier.fillMaxSize(),
                         contentPadding = content_padding,
@@ -92,17 +92,17 @@ class LibrarySongsPage(context: PlatformContext): LibrarySubPage(context) {
                                 InfoRow(current_songs, Modifier.fillMaxWidth())
                             }
 
-                            itemsIndexed(current_songs, { _, item -> item.id }) { index, song ->
+                            itemsIndexed(current_songs, { _, item -> item.id }) { index, download ->
                                 MediaItemPreviewLong(
-                                    song,
+                                    download.song,
                                     multiselect_context = multiselect_context,
                                     multiselect_key = index,
                                     show_type = false,
                                     show_play_count = true,
                                     show_download_indicator = false,
                                     getExtraInfo = {
-                                        val duration_string = remember(song.id) {
-                                            song.Duration.get(player.database)?.let { duration ->
+                                        val duration_string = remember(download.song.id) {
+                                            download.song.Duration.get(player.database)?.let { duration ->
                                                 durationToString(duration, true)
                                             }
                                         }
@@ -120,19 +120,19 @@ class LibrarySongsPage(context: PlatformContext): LibrarySubPage(context) {
 }
 
 @Composable
-private fun InfoRow(songs: List<Song>, modifier: Modifier = Modifier) {
-    if (songs.isEmpty()) {
+private fun InfoRow(downloads: List<PlayerDownloadManager.DownloadStatus>, modifier: Modifier = Modifier) {
+    if (downloads.isEmpty()) {
         return
     }
 
     val player = LocalPlayerState.current
 
     var total_duration_string: String? by remember { mutableStateOf(null) }
-    LaunchedEffect(songs) {
+    LaunchedEffect(downloads) {
         total_duration_string = null
 
-        val duration = songs.sumOf {
-            it.Duration.get(player.database) ?: 0
+        val duration = downloads.sumOf {
+            it.song.Duration.get(player.database) ?: 0
         }
         if (duration == 0L) {
             return@LaunchedEffect
@@ -142,7 +142,7 @@ private fun InfoRow(songs: List<Song>, modifier: Modifier = Modifier) {
     }
 
     Row(modifier) {
-        Text(getString("library_\$x_songs").replace("\$x", songs.size.toString()))
+        Text(getString("library_\$x_songs").replace("\$x", downloads.size.toString()))
 
         Spacer(Modifier.fillMaxWidth().weight(1f))
 
@@ -152,14 +152,13 @@ private fun InfoRow(songs: List<Song>, modifier: Modifier = Modifier) {
     }
 }
 
-private fun onSongClicked(songs: List<Song>, player: PlayerState, song: Song, index: Int) {
+private fun onSongClicked(downloads: List<PlayerDownloadManager.DownloadStatus>, player: PlayerState, song: Song, index: Int) {
     player.withPlayer {
-        // TODO Config
-        val ADD_BEFORE = 2
-        val ADD_AFTER = 7
+        val ADD_BEFORE = 0
+        val ADD_AFTER = 9
 
-        val add_songs = songs
-            .mapIndexedNotNull { song_index, song ->
+        val add_songs = downloads
+            .mapIndexedNotNull { song_index, download ->
                 if (song_index < index && index - song_index > ADD_BEFORE) {
                     return@mapIndexedNotNull null
                 }
@@ -168,7 +167,7 @@ private fun onSongClicked(songs: List<Song>, player: PlayerState, song: Song, in
                     return@mapIndexedNotNull null
                 }
 
-                song
+                download.song
             }
 
         val song_index = minOf(ADD_BEFORE, index)

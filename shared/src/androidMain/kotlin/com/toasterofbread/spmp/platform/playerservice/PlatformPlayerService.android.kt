@@ -65,7 +65,6 @@ import com.toasterofbread.spmp.exovisualiser.ExoVisualizer
 import com.toasterofbread.spmp.exovisualiser.FFTAudioProcessor
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.getMediaItemFromUid
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
@@ -85,7 +84,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.util.concurrent.Executors
 import kotlin.math.roundToInt
@@ -359,9 +357,15 @@ actual class PlatformPlayerService: MediaSessionService() {
     override fun onTaskRemoved(intent: Intent?) {
         super.onTaskRemoved(intent)
 
-        val intent_package_name: String = intent?.component?.packageName ?: return
-        if (intent_package_name == packageName && (Settings.KEY_STOP_PLAYER_ON_APP_CLOSE.get(context))) {
+        if (
+            !player.isPlaying
+            || (
+                Settings.KEY_STOP_PLAYER_ON_APP_CLOSE.get(context)
+                && intent?.component?.packageName == packageName
+            )
+        ) {
             stopSelf()
+            onDestroy()
         }
     }
 

@@ -38,7 +38,7 @@ internal fun RowScope.MultiSelectSelectedItemActions(multiselect_context: MediaI
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(Icons.Default.SubdirectoryArrowRight, null)
-        player.withPlayer {
+        player.withPlayerComposable {
             val distance = active_queue_index - player.status.m_index + 1
             Text(
                 getString(if (distance == 1) "lpm_action_play_after_1_song" else "lpm_action_play_after_x_songs").replace(

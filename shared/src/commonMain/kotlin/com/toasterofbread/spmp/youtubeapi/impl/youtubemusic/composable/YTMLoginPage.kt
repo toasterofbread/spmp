@@ -162,9 +162,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
                     Modifier.fillMaxSize(),
                     loading_message = getString("youtube_login_load_message"),
                     shouldShowPage = { !it.startsWith(api.api_url) },
-                    onClosed = {
-                        onFinished(null)
-                    }
+                    onClosed = { onFinished(null) }
                 ) { request, openUrl, getCookie ->
                     synchronized(lock) {
                         if (finished) {

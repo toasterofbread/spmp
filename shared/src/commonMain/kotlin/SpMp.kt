@@ -138,10 +138,8 @@ object SpMp {
 
             Surface(modifier = Modifier.fillMaxSize()) {
                 CompositionLocalProvider(LocalPlayerState provides player_state) {
-                    if (player_state.service_connected) {
-                        RootView(player_state)
-                    }
-                    LoadingSplashView(player_state.service_connected, Modifier.fillMaxSize())
+                    RootView(player_state)
+                    LoadingSplashView(Modifier.fillMaxSize())
                 }
                 error_manager.Indicator(Theme.accent_provider)
             }

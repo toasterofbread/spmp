@@ -255,8 +255,8 @@ private fun ExpandedContent(
                         {
                             coroutine_scope.launch {
                                 text_to_show = uploadErrorToPasteEe(
-                                    error?.message ?: pair_error!!.first,
-                                    error?.stackTraceToString() ?: pair_error!!.second,
+                                    (error?.message ?: pair_error?.first).toString(),
+                                    (error?.stackTraceToString() ?: pair_error?.second).toString(),
                                     ProjectBuildConfig.PASTE_EE_TOKEN,
                                     error = error
                                 ).getOrElse { it.toString() }

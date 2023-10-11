@@ -149,6 +149,10 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
         if (update_timer == null) {
             update_timer = createUpdateTimer()
         }
+
+        coroutine_scope.launch {
+            persistent_queue.loadPersistentQueue()
+        }
     }
 
     fun release() {

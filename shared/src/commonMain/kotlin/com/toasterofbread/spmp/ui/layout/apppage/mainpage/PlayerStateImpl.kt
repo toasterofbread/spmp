@@ -110,34 +110,13 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
     fun onStart() {
         SpMp.addLowMemoryListener(low_memory_listener)
         context.getPrefs().addListener(prefs_listener)
-
-        if (service_connecting) {
-            return
-        }
-
-        service_connecting = true
-        service_connection = PlatformPlayerService.connect(
-            context,
-            _player,
-            {
-                synchronized(service_connected_listeners) {
-                    _player = it
-                    status = PlayerStatus(this, _player!!)
-                    service_connecting = false
-
-                    service_connected_listeners.forEach { it.invoke() }
-                    service_connected_listeners.clear()
-                }
-            }
-        ) {
-            service_connecting = false
-        }
-
         top_bar.reconnect()
     }
 
     fun onStop() {
-        PlatformPlayerService.disconnect(context, service_connection)
+        service_connection?.also {
+            PlatformPlayerService.disconnect(context, it)
+        }
         SpMp.removeLowMemoryListener(low_memory_listener)
         context.getPrefs().removeListener(prefs_listener)
     }
@@ -371,15 +350,69 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
     // PlayerServiceHost
 
     override val controller: PlatformPlayerService? get() = _player
+    override fun withPlayer(action: PlayerServicePlayer.() -> Unit) {
+        _player?.also {
+            action(it.service_player)
+            return
+        }
+
+        connectService {
+            action(it.service_player)
+        }
+    }
+
+    @Composable
+    override fun withPlayerComposable(action: @Composable PlayerServicePlayer.() -> Unit) {
+        connectService(null)
+        _player?.service_player?.also {
+            action(it)
+        }
+    }
 
     val service_connected: Boolean get() = _player != null
 
     private var service_connecting = false
-    private var service_connected_listeners = mutableListOf<() -> Unit>()
-    private lateinit var service_connection: Any
+    private var service_connected_listeners = mutableListOf<(PlatformPlayerService) -> Unit>()
+    private var service_connection: Any? = null
 
-    override lateinit var status: PlayerStatus
-        private set
+    private fun connectService(onConnected: ((PlatformPlayerService) -> Unit)?) {
+        synchronized(service_connected_listeners) {
+            if (service_connecting) {
+                if (onConnected != null) {
+                    service_connected_listeners.add(onConnected)
+                }
+                return
+            }
+
+            _player?.also { service ->
+                onConnected?.invoke(service)
+                return
+            }
+
+            service_connecting = true
+            service_connection = PlatformPlayerService.connect(
+                context,
+                _player,
+                { service ->
+                    synchronized(service_connected_listeners) {
+                        _player = service
+                        status.setPlayer(service)
+                        service_connecting = false
+
+                        onConnected?.invoke(service)
+                        for (listener in service_connected_listeners) {
+                            listener.invoke(service)
+                        }
+                        service_connected_listeners.clear()
+                    }
+                }
+            ) {
+                service_connecting = false
+            }
+        }
+    }
+
+    override val status: PlayerStatus = PlayerStatus()
 
     override fun isRunningAndFocused(): Boolean {
         return controller?.has_focus == true

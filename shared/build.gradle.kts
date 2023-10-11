@@ -39,12 +39,18 @@ fun GenerateBuildConfig.buildConfig(debug: Boolean) {
             keys.clear()
             keys.load(FileInputStream(file))
 
+            val include = keys["INCLUDE_KEYS"] != "false"
+
             for (key in key_names) {
+                if (key == "INCLUDE_KEYS") {
+                    continue
+                }
+
                 fields_to_generate.add(
                     Triple(
                         key,
                         getType(key),
-                        if (debug_only && !debug) null.toString()
+                        if (!include || (debug_only && !debug)) null.toString()
                         else keys[key].toString()
                     )
                 )
@@ -96,7 +102,7 @@ fun GenerateBuildConfig.buildConfig(debug: Boolean) {
 }
 
 val buildConfigDebug: TaskProvider<GenerateBuildConfig> = tasks.register("buildConfigDebug", GenerateBuildConfig::class.java) {
-    buildConfig(debug = false)
+    buildConfig(debug = true)
 }
 val buildConfigRelease: TaskProvider<GenerateBuildConfig> = tasks.register("buildConfigRelease", GenerateBuildConfig::class.java) {
     buildConfig(debug = false)

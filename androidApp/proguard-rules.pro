@@ -32,6 +32,9 @@
 # F-Droid
 -dontwarn org.slf4j.impl.StaticLoggerBinder
 
+# Kuromoji
+-keep class com.atilika.kuromoji.** { *; }
+
 # ???
 -dontwarn java.awt.AWTEvent
 -dontwarn java.awt.Component

@@ -120,7 +120,7 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
                         {
                             coroutine_scope.launch {
                                 val playlist =
-                                    MediaItemLibrary.createLocalPlaylist(player.context).getOrReport("SongLongPressMenuActionsCreateLocalPlaylist")
+                                    MediaItemLibrary.createLocalPlaylist(player.context).getOrReport(player.context, "SongLongPressMenuActionsCreateLocalPlaylist")
                                         ?: return@launch
                                 selected_playlists.add(playlist)
                             }

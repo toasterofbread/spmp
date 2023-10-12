@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying
 
+import LocalNowPlayingExpansion
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
@@ -37,7 +38,6 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.platform.composeScope
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
-import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NOW_PLAYING_MAIN_PADDING
 import com.toasterofbread.utils.common.setAlpha
 import com.toasterofbread.utils.common.thenIf

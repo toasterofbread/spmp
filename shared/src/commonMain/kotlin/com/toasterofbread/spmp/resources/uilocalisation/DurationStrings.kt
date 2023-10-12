@@ -8,7 +8,7 @@ import java.time.Duration
 
 private const val HOUR_MS: Long = 3600000L
 
-fun durationToString(duration_ms: Long, short: Boolean = false, hl: String = SpMp.ui_language): String {
+fun durationToString(duration_ms: Long, hl: String, short: Boolean = false): String {
     if (short) {
         return DurationFormatUtils.formatDuration(
             duration_ms,

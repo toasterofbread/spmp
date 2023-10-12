@@ -1,8 +1,8 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 
-import SpMp
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
+import com.toasterofbread.spmp.platform.getDataLanguage
 import com.toasterofbread.spmp.youtubeapi.endpoint.LoadSongEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.processDefaultResponse
@@ -21,7 +21,7 @@ private data class PlayerData(
 
 class YTMLoadSongEndpoint(override val api: YoutubeMusicApi): LoadSongEndpoint() {
     override suspend fun loadSong(song_data: SongData): Result<SongData> = withContext(Dispatchers.IO) {
-        val hl = SpMp.data_language
+        val hl = api.context.getDataLanguage()
         var request: Request = Request.Builder()
             .endpointUrl("/youtubei/v1/next")
             .addAuthApiHeaders()

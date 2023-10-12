@@ -5,6 +5,7 @@ import com.toasterofbread.spmp.resources.uilocalisation.YoutubeLocalisedString
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.ChipCloudRendererHeader
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMGetHomeFeedEndpoint
 import com.toasterofbread.spmp.youtubeapi.radio.YoutubeiNextResponse
+import com.toasterofbread.spmp.platform.PlatformContext
 
 data class YoutubeiBrowseResponse(
     val contents: Contents?,
@@ -20,10 +21,10 @@ data class YoutubeiBrowseResponse(
         else contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents ?: emptyList()
     }
 
-    fun getHeaderChips(): List<FilterChip>? =
+    fun getHeaderChips(context: PlatformContext): List<FilterChip>? =
         contents?.singleColumnBrowseResultsRenderer?.tabs?.first()?.tabRenderer?.content?.sectionListRenderer?.header?.chipCloudRenderer?.chips?.map {
             FilterChip(
-                YoutubeLocalisedString.Type.FILTER_CHIP.createFromKey(it.chipCloudChipRenderer.text!!.first_text),
+                YoutubeLocalisedString.Type.FILTER_CHIP.createFromKey(it.chipCloudChipRenderer.text!!.first_text, context),
                 it.chipCloudChipRenderer.navigationEndpoint.browseEndpoint!!.params!!
             )
         }

@@ -4,6 +4,7 @@ import SpMp
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
+import com.toasterofbread.spmp.platform.getDataLanguage
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.SongRelatedContentEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.RelatedGroup
@@ -46,7 +47,7 @@ class YTMSongRelatedContentEndpoint(override val api: YoutubeMusicApi): SongRela
             return@withContext Result.failure(RuntimeException("Song has no related_browse_id"))
         }
 
-        val hl = SpMp.data_language
+        val hl = api.context.getDataLanguage()
         val request = Request.Builder()
             .endpointUrl("/youtubei/v1/browse")
             .addAuthApiHeaders()

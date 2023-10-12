@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
+import LocalPlayerState
 import androidx.compose.runtime.remember
 import com.toasterofbread.composesettings.ui.item.SettingsGroupItem
 import com.toasterofbread.composesettings.ui.item.SettingsItem
@@ -55,8 +56,9 @@ internal fun getFeedCategory(): List<SettingsItem> {
             getString("s_key_hidden_feed_rows"), getString("s_sub_hidden_feed_rows"),
             getString("s_hidden_feed_rows_dialog_title"),
             itemToText = {
+                val player = LocalPlayerState.current
                 remember(it) {
-                    LocalisedString.deserialise(it).getString()
+                    LocalisedString.deserialise(it).getString(player.context)
                 }
             },
             textToItem = {

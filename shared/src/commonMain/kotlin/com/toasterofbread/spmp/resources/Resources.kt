@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.resources
 
 import SpMp
 import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.getUiLanguage
 import kotlinx.coroutines.runBlocking
 import org.kobjects.ktxml.api.EventType
 import org.kobjects.ktxml.mini.MiniXmlPullParser
@@ -122,7 +123,7 @@ fun getStringArray(key: String): List<String> = string_arrays[key] ?: throw NotI
 fun getStringSafe(key: String, context: PlatformContext): String {
     resource_load_lock.withLock {
         if (_strings == null) {
-            initResources(SpMp.getUiLanguage(context), context)
+            initResources(context.getUiLanguage(), context)
         }
         return strings[key] ?: throw NotImplementedError(key)
     }
@@ -131,7 +132,7 @@ fun getStringSafe(key: String, context: PlatformContext): String {
 fun getStringArraySafe(key: String, context: PlatformContext): List<String> {
     resource_load_lock.withLock {
         if (_string_arrays == null) {
-            initResources(SpMp.getUiLanguage(context), context)
+            initResources(context.getUiLanguage(), context)
         }
         return string_arrays[key] ?: throw NotImplementedError(key)
     }

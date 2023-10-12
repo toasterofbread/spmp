@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getLongPressMenuData
@@ -50,7 +51,7 @@ internal fun PlaylistPage.PlaylistItems(
                         remember(item_duration) {
                             listOfNotNull(
                                 item_duration?.let { duration ->
-                                    durationToString(duration, true, hl = SpMp.ui_language)
+                                    durationToString(duration, player.context.getUiLanguage(), true)
                                 }
                             )
                         }

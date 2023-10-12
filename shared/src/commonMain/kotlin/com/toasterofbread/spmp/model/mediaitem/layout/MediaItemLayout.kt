@@ -16,7 +16,6 @@ import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemList
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
-import kotlinx.serialization.Serializable
 
 fun getDefaultMediaItemPreviewSize(): DpSize = DpSize(100.dp, 120.dp)
 @Composable
@@ -32,11 +31,6 @@ data class MediaItemLayout(
     var view_more: ViewMore? = null,
     val continuation: Continuation? = null
 ) {
-    init {
-        title?.getString()
-        subtitle?.getString()
-    }
-
     enum class Type {
         GRID,
         GRID_ALT,
@@ -76,7 +70,6 @@ data class MediaItemLayout(
         type!!.Layout(this, modifier, title_Modifier, multiselect_context, apply_filter)
     }
 
-    @Serializable
     data class Continuation(var token: String, var type: Type, val song_id: String? = null, val playlist_skip_amount: Int = 0) {
         enum class Type {
             SONG,

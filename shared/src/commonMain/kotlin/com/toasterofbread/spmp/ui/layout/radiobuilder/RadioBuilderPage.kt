@@ -31,6 +31,7 @@ import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.WaveBorder
@@ -112,8 +113,9 @@ fun RadioBuilderPage(
     
                     if (selected == null) {
                         if (artists_result?.isFailure == true) {
-                            // TODO
-                            SpMp.ErrorDisplay(artists_result?.exceptionOrNull())
+                            artists_result?.exceptionOrNull()?.also {
+                                ErrorInfoDisplay(it) { artists_result = null }
+                            }
                         }
                         else {
                             RadioArtistSelector(artists_result?.getOrNull(), pill_menu, Modifier.fillMaxSize()) { selected ->

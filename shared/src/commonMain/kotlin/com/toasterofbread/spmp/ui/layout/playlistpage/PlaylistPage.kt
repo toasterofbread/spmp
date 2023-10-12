@@ -223,7 +223,7 @@ class PlaylistPage(
         else {
             coroutine_scope.launch {
                 reordering = false
-                editor.applyChanges().getOrReport("PlaylistPageItemReorder")
+                editor.applyChanges().getOrReport(player.context, "PlaylistPageItemReorder")
             }
         }
     }

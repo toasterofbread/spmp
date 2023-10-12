@@ -38,7 +38,6 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.getAdjustedKeyboardHeight
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
-import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.common.init
 import com.toasterofbread.utils.composable.OnChangedEffect
 import kotlinx.coroutines.*
@@ -111,17 +110,23 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
         SpMp.addLowMemoryListener(low_memory_listener)
         context.getPrefs().addListener(prefs_listener)
         top_bar.reconnect()
+
+        if (PlatformPlayerService.isServiceRunning(context)) {
+            connectService(null)
+        }
     }
 
     fun onStop() {
-        service_connection?.also {
-            PlatformPlayerService.disconnect(context, it)
-        }
         SpMp.removeLowMemoryListener(low_memory_listener)
         context.getPrefs().removeListener(prefs_listener)
     }
 
     fun release() {
+        service_connection?.also {
+            PlatformPlayerService.disconnect(context, it)
+        }
+        service_connection = null
+        _player = null
         top_bar.release()
     }
 

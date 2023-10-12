@@ -6,6 +6,31 @@ import com.toasterofbread.spmp.youtubeapi.endpoint.SetSongLikedEndpoint
 
 enum class SongLikedStatus {
     NEUTRAL, LIKED, DISLIKED;
+
+    fun interface Listener {
+        fun onSongLikedStatusChanged(song: Song, liked_status: SongLikedStatus)
+    }
+
+    companion object {
+        private val listeners: MutableList<Listener> = mutableListOf()
+
+        fun addListener(listener: Listener) {
+            synchronized(listeners) {
+                listeners.add(listener)
+            }
+        }
+        fun removeListener(listener: Listener) {
+            synchronized(listeners) {
+                listeners.remove(listener)
+            }
+        }
+
+        fun onSongLikedStatusChanged(song: Song, liked_status: SongLikedStatus) {
+            for (listener in listeners) {
+                listener.onSongLikedStatusChanged(song, liked_status)
+            }
+        }
+    }
 }
 
 fun Long?.toSongLikedStatus(): SongLikedStatus? =
@@ -30,9 +55,10 @@ suspend fun Song.updateLiked(liked: SongLikedStatus, endpoint: SetSongLikedEndpo
     }
 
     Liked.set(liked, context.database)
+    SongLikedStatus.onSongLikedStatusChanged(this, liked)
 
     return endpoint.setSongLiked(this, liked).onSuccess {
         Liked.set(liked, context.database)
+        SongLikedStatus.onSongLikedStatusChanged(this, liked)
     }
 }
-

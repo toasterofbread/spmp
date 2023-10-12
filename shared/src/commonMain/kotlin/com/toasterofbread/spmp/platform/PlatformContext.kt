@@ -10,6 +10,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.Database
+import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
@@ -18,6 +19,7 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.Locale
 
 private const val MIN_PORTRAIT_RATIO: Float = 1f / 1.2f
 
@@ -142,3 +144,9 @@ fun PlayerState.getDefaultPaddingValues(): PaddingValues = PaddingValues(horizon
 fun PlatformContext.getNavigationBarHeightDp(): Dp = with(LocalDensity.current) {
     getNavigationBarHeight().toDp()
 }
+
+fun PlatformContext.getUiLanguage(): String =
+    Settings.KEY_LANG_UI.get<String>(getPrefs()).ifEmpty { Locale.getDefault().toLanguageTag() }
+
+fun PlatformContext.getDataLanguage(): String =
+    Settings.KEY_LANG_DATA.get<String>(getPrefs()).ifEmpty { Locale.getDefault().toLanguageTag() }

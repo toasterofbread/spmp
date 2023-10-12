@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.apppage
 
+import LocalNowPlayingExpansion
 import LocalPlayerState
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
@@ -43,8 +44,6 @@ import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.nowplaying.LocalNowPlayingExpansion
-import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.*
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchFilter
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchResults

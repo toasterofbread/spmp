@@ -13,11 +13,13 @@ import com.toasterofbread.composesettings.ui.SettingsInterface
 import com.toasterofbread.composesettings.ui.SettingsPageWithItems
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.platform.getUiLanguage
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.Languages
 import com.toasterofbread.spmp.ui.component.PillMenu
-import com.toasterofbread.spmp.ui.theme.Theme
 
 internal fun getPrefsPageSettingsInterface(
+    context: PlatformContext,
     pill_menu: PillMenu,
     ytm_auth: SettingsValueState<Set<String>>,
     getCategory: () -> PrefsPageCategory?,
@@ -50,12 +52,12 @@ internal fun getPrefsPageSettingsInterface(
         SettingsValueState<String>(Settings.KEY_DISCORD_ACCOUNT_TOKEN.name).init(Settings.prefs, Settings.Companion::provideDefault)
 
     val categories = mapOf(
-        PrefsPageCategory.GENERAL to lazy { getGeneralCategory(SpMp.ui_language, Languages.loadAvailableLanugages(SpMp.context)) },
+        PrefsPageCategory.GENERAL to lazy { getGeneralCategory(context.getUiLanguage(), Languages.loadAvailableLanugages(context)) },
         PrefsPageCategory.FILTER to lazy { getFilterCategory() },
         PrefsPageCategory.FEED to lazy { getFeedCategory() },
         PrefsPageCategory.PLAYER to lazy { getPlayerCategory() },
         PrefsPageCategory.LIBRARY to lazy { getLibraryCategory() },
-        PrefsPageCategory.THEME to lazy { getThemeCategory(SpMp.context.theme) },
+        PrefsPageCategory.THEME to lazy { getThemeCategory(context.theme) },
         PrefsPageCategory.LYRICS to lazy { getLyricsCategory() },
         PrefsPageCategory.DOWNLOAD to lazy { getDownloadCategory() },
         PrefsPageCategory.DISCORD_STATUS to lazy { getDiscordStatusGroup(discord_auth) },
@@ -64,8 +66,9 @@ internal fun getPrefsPageSettingsInterface(
     )
 
     settings_interface = SettingsInterface(
-        { SpMp.context.theme },
+        { context.theme },
         PrefsPageScreen.ROOT.ordinal,
+        context,
         Settings.prefs,
         Settings.Companion::provideDefault,
         pill_menu,

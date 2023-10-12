@@ -42,6 +42,18 @@ class PlayerStatus internal constructor() {
 
     internal fun setPlayer(new_player: PlatformPlayerService) {
         player = new_player
+
+        m_playing = playing
+        m_duration_ms = duration_ms
+        m_song = song
+        m_index = index
+        m_repeat_mode = repeat_mode
+        m_has_next = has_next
+        m_has_previous = has_previous
+        m_volume = volume
+        m_song_count = song_count
+        m_undo_count = undo_count
+        m_redo_count = redo_count
     }
 
     fun getProgress(): Float {
@@ -60,28 +72,40 @@ class PlayerStatus internal constructor() {
     private val _song_state: MutableState<Song?> = mutableStateOf(player?.getSong())
     val song_state: State<Song?> get() = _song_state
 
-    var m_playing: Boolean by mutableStateOf(player?.is_playing ?: false)
+    val playing: Boolean get() = player?.is_playing ?: false
+    val duration_ms: Long get() = player?.duration_ms ?: -1
+    val song: Song? get() = player?.getSong()
+    val index: Int get() = player?.current_song_index ?: -1
+    val repeat_mode: MediaPlayerRepeatMode get() = player?.repeat_mode ?: MediaPlayerRepeatMode.NONE
+    val has_next: Boolean get() = true
+    val has_previous: Boolean get() = true
+    val volume: Float get() = player?.volume ?: -1f
+    val song_count: Int get() = player?.song_count ?: -1
+    val undo_count: Int get() = player?.service_player?.undo_count ?: -1
+    val redo_count: Int get() = player?.service_player?.redo_count ?: -1
+
+    var m_playing: Boolean by mutableStateOf(playing)
         private set
-    var m_duration_ms: Long by mutableStateOf(player?.duration_ms ?: -1)
+    var m_duration_ms: Long by mutableStateOf(duration_ms)
         private set
     var m_song: Song? by _song_state
         private set
-    var m_index: Int by mutableStateOf(player?.current_song_index ?: -1)
+    var m_index: Int by mutableStateOf(index)
         private set
-    var m_repeat_mode: MediaPlayerRepeatMode by mutableStateOf(player?.repeat_mode ?: MediaPlayerRepeatMode.NONE)
+    var m_repeat_mode: MediaPlayerRepeatMode by mutableStateOf(repeat_mode)
         private set
     // TODO
-    var m_has_next: Boolean by mutableStateOf(true)
+    var m_has_next: Boolean by mutableStateOf(has_next)
         private set
-    var m_has_previous: Boolean by mutableStateOf(true)
+    var m_has_previous: Boolean by mutableStateOf(has_previous)
         private set
-    var m_volume: Float by mutableStateOf(player?.volume ?: -1f)
+    var m_volume: Float by mutableStateOf(volume)
         private set
-    var m_song_count: Int by mutableStateOf(player?.song_count ?: -1)
+    var m_song_count: Int by mutableStateOf(song_count)
         private set
-    var m_undo_count: Int by mutableStateOf(player?.service_player?.undo_count ?: -1)
+    var m_undo_count: Int by mutableStateOf(undo_count)
         private set
-    var m_redo_count: Int by mutableStateOf(player?.service_player?.redo_count ?: -1)
+    var m_redo_count: Int by mutableStateOf(redo_count)
         private set
 
     init {
@@ -100,17 +124,17 @@ class PlayerStatus internal constructor() {
                 m_repeat_mode = repeat_mode
             }
             override fun onUndoStateChanged() {
-                m_undo_count = player?.service_player?.undo_count ?: -1
-                m_redo_count = player?.service_player?.redo_count ?: -1
+                m_undo_count = undo_count
+                m_redo_count = redo_count
             }
 
             override fun onSongAdded(index: Int, song: Song) {}
 
             override fun onEvents() {
-                m_duration_ms = player?.duration_ms ?: -1
-                m_index = player?.current_song_index ?: -1
-                m_volume = player?.volume ?: -1f
-                m_song_count = player?.song_count ?: -1
+                m_duration_ms = duration_ms
+                m_index = index
+                m_volume = volume
+                m_song_count = song_count
 
                 player?.also { p ->
                     if (m_index > p.service_player.active_queue_index) {

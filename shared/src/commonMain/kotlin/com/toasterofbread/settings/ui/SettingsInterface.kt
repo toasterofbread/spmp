@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -18,6 +17,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.platform.PlatformPreferences
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_DEFAULT_HEIGHT
 import com.toasterofbread.spmp.ui.theme.Theme
@@ -26,6 +26,7 @@ import com.toasterofbread.utils.common.copy
 class SettingsInterface(
     val themeProvider: () -> Theme,
     private val root_page: Int,
+    val context: PlatformContext,
     val prefs: PlatformPreferences,
     val default_provider: (String) -> Any,
     val pill_menu: PillMenu? = null,

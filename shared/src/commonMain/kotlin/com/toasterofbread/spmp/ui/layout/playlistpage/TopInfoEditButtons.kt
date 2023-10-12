@@ -76,7 +76,7 @@ internal fun PlaylistPage.PlaylistTopInfoEditButtons(modifier: Modifier = Modifi
                                 conversion_in_progress = true
 
                                 val uploaded_playlist: Playlist? = playlist.uploadAsAccountPlaylist(auth_state)
-                                    .getOrReport("ConvertPlaylistToAccountPlaylist")
+                                    .getOrReport(player.context, "ConvertPlaylistToAccountPlaylist")
 
                                 if (uploaded_playlist != null) {
                                     player.openMediaItem(uploaded_playlist, replace_current = true)
@@ -98,7 +98,7 @@ internal fun PlaylistPage.PlaylistTopInfoEditButtons(modifier: Modifier = Modifi
                         conversion_in_progress = true
 
                         val local_playlist: LocalPlaylistData? = playlist.downloadAsLocalPlaylist(player.context)
-                            .getOrReport("ConvertPlaylistToLocalPlaylist")
+                            .getOrReport(player.context, "ConvertPlaylistToLocalPlaylist")
 
                         if (local_playlist != null) {
                             player.openMediaItem(local_playlist, replace_current = true)

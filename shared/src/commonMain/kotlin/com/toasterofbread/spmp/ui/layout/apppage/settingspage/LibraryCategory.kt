@@ -10,6 +10,7 @@ import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import com.toasterofbread.settings.ui.item.SettingsFileItem
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
+import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
 import java.net.URI
@@ -32,7 +33,7 @@ internal fun getLibraryCategory(): List<SettingsItem> {
                         split_path.first().removePrefix("/tree/")
                     }
                     else {
-                        val storage = split_path.first().split('/').last().capitalize(Locale(SpMp.ui_language))
+                        val storage = split_path.first().split('/').last().capitalize(Locale(player.context.getUiLanguage()))
                         "($storage) ~/${split_path.last()}"
                     }
                 }

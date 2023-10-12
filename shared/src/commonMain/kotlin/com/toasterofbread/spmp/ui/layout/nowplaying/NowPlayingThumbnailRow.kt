@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying
 
+import LocalNowPlayingExpansion
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
@@ -63,11 +64,11 @@ import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.OVERLAY_MENU_ANIMATION_DURATION
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.MainPlayerOverlayMenu
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.NotifImagePlayerOverlayMenu
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PaletteSelectorPlayerOverlayMenu
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.RelatedContentPlayerOverlayMenu
-import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.NotifImagePlayerOverlayMenu
-import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PaletteSelectorPlayerOverlayMenu
 import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 import com.toasterofbread.utils.common.getInnerSquareSizeOfCircle
 import com.toasterofbread.utils.common.getValue

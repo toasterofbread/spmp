@@ -185,6 +185,8 @@ private val DiscordMeResponseSaver: Saver<DiscordMeResponse?, Any> = run {
 
 @Composable
 fun DiscordAccountPreview(account_token: String, modifier: Modifier = Modifier) {
+    val player = LocalPlayerState.current
+
     var account_info: DiscordMeResponse? by rememberSaveable(stateSaver = DiscordMeResponseSaver) { mutableStateOf(DiscordMeResponse.EMPTY) }
     var started by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
@@ -194,7 +196,7 @@ fun DiscordAccountPreview(account_token: String, modifier: Modifier = Modifier) 
             account_info = DiscordMeResponse.EMPTY
             loading = true
             started = true
-            account_info = getDiscordAccountInfo(account_token).getOrReport("DiscordAccountPreview") ?: DiscordMeResponse.EMPTY
+            account_info = getDiscordAccountInfo(account_token).getOrReport(player.context, "DiscordAccountPreview") ?: DiscordMeResponse.EMPTY
         }
         loading = false
     }

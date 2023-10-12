@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -69,7 +70,7 @@ fun SeekBar(seek: (Float) -> Unit) {
 
         Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
             Row(
-                Modifier.fillMaxWidth().padding(horizontal = 7.dp).zIndex(1f),
+                Modifier.fillMaxWidth().padding(horizontal = 7.dp).zIndex(1f).requiredHeight(12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -98,9 +99,9 @@ fun SeekBar(seek: (Float) -> Unit) {
 }
 
 @Composable
-private fun SeekBarTimeText(time: Long, colour: Color) {
+private fun SeekBarTimeText(time: Long, colour: Color, modifier: Modifier = Modifier) {
     if (time < 0) {
-        SubtleLoadingIndicator()
+        SubtleLoadingIndicator(modifier)
     }
     else {
         val seconds = time / 1000f
@@ -109,7 +110,7 @@ private fun SeekBarTimeText(time: Long, colour: Color) {
             fontSize = 12.sp,
             fontWeight = FontWeight.Light,
             color = colour,
-//            overflow = TextOverflow.Visible
+            modifier = modifier
         )
     }
 }

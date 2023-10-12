@@ -153,7 +153,7 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                 if (item is Artist) {
                     val subscriber_count: Int = item.SubscriberCount.observe(player.database).value ?: 0
                     if (subscriber_count > 0) {
-                        Text(subscriber_count.toReadableSubscriberCount(), style = MaterialTheme.typography.labelLarge )
+                        Text(subscriber_count.toReadableSubscriberCount(player.context), style = MaterialTheme.typography.labelLarge )
                     }
                 }
 

@@ -248,7 +248,7 @@ class MediaItemMultiSelectContext(
                     Button(
                         {
                             coroutine_scope.launch {
-                                val playlist = MediaItemLibrary.createLocalPlaylist(player.context).getOrReport("MultiSelectContextCreateLocalPlaylist")
+                                val playlist = MediaItemLibrary.createLocalPlaylist(player.context).getOrReport(player.context, "MultiSelectContextCreateLocalPlaylist")
                                     ?: return@launch
                                 selected_playlists.add(playlist)
                             }
@@ -355,7 +355,7 @@ class MediaItemMultiSelectContext(
                         if (playlist !is Playlist) null
                         else launch {
                             val editor = playlist.getEditorOrNull(player.context).getOrNull()
-                            editor?.deletePlaylist()?.getOrReport("deletePlaylist")
+                            editor?.deletePlaylist()?.getOrReport(player.context, "deletePlaylist")
                         }
                     }.joinAll()
                     onActionPerformed()

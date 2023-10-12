@@ -26,7 +26,7 @@ import java.util.TimerTask
 import kotlin.random.Random
 import kotlin.random.nextInt
 
-private const val UPDATE_INTERVAL: Long = 5000 // ms
+private const val UPDATE_INTERVAL: Long = 30000 // ms
 //private const val VOL_NOTIF_SHOW_DURATION: Long = 1000
 private const val SONG_MARK_WATCHED_POSITION = 1000 // ms
 
@@ -493,8 +493,8 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
                                 val mark_endpoint = context.ytapi.user_auth_state?.MarkSongAsWatched
                                 if (mark_endpoint?.isImplemented() == true && Settings.KEY_ADD_SONGS_TO_HISTORY.get(context)) {
                                     val result = mark_endpoint.markSongAsWatched(song)
-                                    if (result.isFailure) {
-                                        SpMp.error_manager.onError("autoMarkSongAsWatched", result.exceptionOrNull()!!)
+                                    result.onFailure {
+                                        context.sendNotification(it)
                                     }
                                 }
                             }

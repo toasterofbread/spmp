@@ -273,7 +273,7 @@ enum class Settings {
         mutableSettingsEnumState(this, preferences)
 
     companion object {
-        val prefs: PlatformPreferences get() = SpMp.context.getPrefs()
+        val prefs: PlatformPreferences get() = SpMp.prefs
 
         fun <T> set(enum_key: Settings, value: T?, preferences: PlatformPreferences = prefs) {
             preferences.edit {

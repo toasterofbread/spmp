@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 import SpMp
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
+import com.toasterofbread.spmp.platform.getDataLanguage
 import com.toasterofbread.spmp.youtubeapi.endpoint.PlaylistContinuationEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import com.toasterofbread.spmp.youtubeapi.model.YoutubeiBrowseResponse
@@ -30,7 +31,7 @@ class YTMPlaylistContinuationEndpoint(override val api: YoutubeMusicApi): Playli
             ))
         }
 
-        val hl = SpMp.data_language
+        val hl = api.context.getDataLanguage()
         val request = Request.Builder()
             .endpointUrl("/youtubei/v1/browse?ctoken=$token&continuation=$token&type=next")
             .addAuthApiHeaders()

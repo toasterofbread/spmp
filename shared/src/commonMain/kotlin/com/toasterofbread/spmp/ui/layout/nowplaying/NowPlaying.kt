@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying
 
+import LocalNowPlayingExpansion
 import LocalPlayerState
 import SpMp
 import androidx.compose.animation.AnimatedVisibility
@@ -77,16 +78,14 @@ internal fun PlayerState.getNPAltBackground(): Color {
 internal fun PlayerState.getNPAltOnBackground(): Color =
     getNPBackground().amplifyPercent(-0.4f, opposite_percent = -0.1f)
 
-val LocalNowPlayingExpansion: ProvidableCompositionLocal<NowPlayingExpansionState> = staticCompositionLocalOf { SpMp.player_state.expansion_state }
-
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>) {
     LocalNowPlayingExpansion.current.init()
 
-    val player = LocalPlayerState.current
-    val expansion = LocalNowPlayingExpansion.current
-    val density = LocalDensity.current
+    val player: PlayerState = LocalPlayerState.current
+    val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
+    val density: Density = LocalDensity.current
 
     val swipe_interaction_source = remember { MutableInteractionSource() }
     val swipe_interactions: MutableList<Interaction> = remember { mutableStateListOf() }
@@ -108,155 +107,153 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
         }
     }
 
-    CompositionLocalProvider(LocalNowPlayingExpansion provides SpMp.player_state.expansion_state) {
-        expansion.init()
+    expansion.init()
 
-        AnimatedVisibility(
-            player.session_started,
-            exit = slideOutVertically(),
-            enter = slideInVertically()
-        ) {
-            val bottom_padding = player.nowPlayingBottomPadding()
-            val default_gradient_depth: Float by Settings.KEY_NOWPLAYING_DEFAULT_GRADIENT_DEPTH.rememberMutableState()
+    AnimatedVisibility(
+        player.session_started,
+        exit = slideOutVertically(),
+        enter = slideInVertically()
+    ) {
+        val bottom_padding = player.nowPlayingBottomPadding()
+        val default_gradient_depth: Float by Settings.KEY_NOWPLAYING_DEFAULT_GRADIENT_DEPTH.rememberMutableState()
 
-            val half_screen_height = player.screen_size.height * 0.5f
-            val page_height: Dp = (
-                player.screen_size.height
-                - bottom_padding
-                - player.context.getStatusBarHeightDp()
-            )
+        val half_screen_height = player.screen_size.height * 0.5f
+        val page_height: Dp = (
+            player.screen_size.height
+            - bottom_padding
+            - player.context.getStatusBarHeightDp()
+        )
 
-            val is_shut by remember { derivedStateOf { swipe_state.targetValue == 0 } }
+        val is_shut by remember { derivedStateOf { swipe_state.targetValue == 0 } }
 
-            var switch_to_page: Int by remember { mutableStateOf(-1) }
-            OnChangedEffect(switch_to_page) {
-                if (switch_to_page >= 0) {
-                    swipe_state.animateTo(switch_to_page)
-                    switch_to_page = -1
-                }
+        var switch_to_page: Int by remember { mutableStateOf(-1) }
+        OnChangedEffect(switch_to_page) {
+            if (switch_to_page >= 0) {
+                swipe_state.animateTo(switch_to_page)
+                switch_to_page = -1
+            }
+        }
+
+        val overscroll_clear_enabled: Boolean by Settings.KEY_MINI_PLAYER_OVERSCROLL_CLEAR_ENABLED.rememberMutableState()
+        val overscroll_clear_time: Float by Settings.KEY_MINI_PLAYER_OVERSCROLL_CLEAR_TIME.rememberMutableState()
+        val overscroll_clear_mode: OverscrollClearMode by Settings.KEY_MINI_PLAYER_OVERSCROLL_CLEAR_MODE.rememberMutableEnumState()
+
+        LaunchedEffect(player.controller, swipe_interactions.isNotEmpty(), overscroll_clear_enabled) {
+            if (!overscroll_clear_enabled) {
+                return@LaunchedEffect
             }
 
-            val overscroll_clear_enabled: Boolean by Settings.KEY_MINI_PLAYER_OVERSCROLL_CLEAR_ENABLED.rememberMutableState()
-            val overscroll_clear_time: Float by Settings.KEY_MINI_PLAYER_OVERSCROLL_CLEAR_TIME.rememberMutableState()
-            val overscroll_clear_mode: OverscrollClearMode by Settings.KEY_MINI_PLAYER_OVERSCROLL_CLEAR_MODE.rememberMutableEnumState()
+            val service: PlatformPlayerService = player.controller ?: return@LaunchedEffect
+            val anchor: Float = swipe_anchors.keys.first()
+            val delta: Long = 50
+            val time_threshold: Float = overscroll_clear_time * 1000
 
-            LaunchedEffect(player.controller, swipe_interactions.isNotEmpty(), overscroll_clear_enabled) {
-                if (!overscroll_clear_enabled) {
-                    return@LaunchedEffect
+            var time_below_threshold: Long = 0
+            var triggered: Boolean = false
+
+            player_alpha = 1f
+
+            while (swipe_interactions.isNotEmpty()) {
+                delay(delta)
+
+                if (service.song_count == 0 && overscroll_clear_mode == OverscrollClearMode.NONE_IF_QUEUE_EMPTY) {
+                    continue
                 }
 
-                val service: PlatformPlayerService = player.controller ?: return@LaunchedEffect
-                val anchor: Float = swipe_anchors.keys.first()
-                val delta: Long = 50
-                val time_threshold: Float = overscroll_clear_time * 1000
+                if (time_threshold == 0f) {
+                    player_alpha = 1f
+                }
+                else {
+                    player_alpha = 1f - (time_below_threshold / time_threshold).coerceIn(0f, 1f)
+                }
 
-                var time_below_threshold: Long = 0
-                var triggered: Boolean = false
-
-                player_alpha = 1f
-
-                while (swipe_interactions.isNotEmpty()) {
-                    delay(delta)
-
-                    if (service.song_count == 0 && overscroll_clear_mode == OverscrollClearMode.NONE_IF_QUEUE_EMPTY) {
-                        continue
-                    }
-
-                    if (time_threshold == 0f) {
-                        player_alpha = 1f
-                    }
-                    else {
-                        player_alpha = 1f - (time_below_threshold / time_threshold).coerceIn(0f, 1f)
-                    }
-
-                    val offset: Dp = with(density) { (swipe_state.offset.value - anchor).toDp() }
-                    if (offset < -OVERSCROLL_CLEAR_DISTANCE_THRESHOLD_DP.dp) {
-                        if (!triggered && time_below_threshold >= time_threshold) {
-                            if (
-                                overscroll_clear_mode == OverscrollClearMode.ALWAYS_HIDE
-                                || (overscroll_clear_mode == OverscrollClearMode.HIDE_IF_QUEUE_EMPTY && service.song_count == 0)
-                            ) {
-                                service.service_player.cancelSession()
-                            }
-
-                            if (service.song_count > 0) {
-                                service.service_player.clearQueue()
-                            }
-
-                            player.context.vibrateShort()
-
-                            triggered = true
+                val offset: Dp = with(density) { (swipe_state.offset.value - anchor).toDp() }
+                if (offset < -OVERSCROLL_CLEAR_DISTANCE_THRESHOLD_DP.dp) {
+                    if (!triggered && time_below_threshold >= time_threshold) {
+                        if (
+                            overscroll_clear_mode == OverscrollClearMode.ALWAYS_HIDE
+                            || (overscroll_clear_mode == OverscrollClearMode.HIDE_IF_QUEUE_EMPTY && service.song_count == 0)
+                        ) {
+                            service.service_player.cancelSession()
                         }
 
-                        time_below_threshold += delta
+                        if (service.song_count > 0) {
+                            service.service_player.clearQueue()
+                        }
+
+                        player.context.vibrateShort()
+
+                        triggered = true
                     }
-                    else {
-                        time_below_threshold = 0
-                        triggered = false
-                    }
+
+                    time_below_threshold += delta
+                }
+                else {
+                    time_below_threshold = 0
+                    triggered = false
                 }
             }
+        }
 
-            val song_gradient_depth: Float? =
-                player.status.m_song?.PlayerGradientDepth?.observe(player.database)?.value
+        val song_gradient_depth: Float? =
+            player.status.m_song?.PlayerGradientDepth?.observe(player.database)?.value
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .requiredHeight((player.screen_size.height * (NOW_PLAYING_VERTICAL_PAGE_COUNT + 1)))
-                    .offset {
-                        IntOffset(
-                            0,
-                            with(density) {
-                                ((half_screen_height * NOW_PLAYING_VERTICAL_PAGE_COUNT) - swipe_state.offset.value.dp - bottom_padding).roundToPx()
-                            }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .requiredHeight((player.screen_size.height * (NOW_PLAYING_VERTICAL_PAGE_COUNT + 1)))
+                .offset {
+                    IntOffset(
+                        0,
+                        with(density) {
+                            ((half_screen_height * NOW_PLAYING_VERTICAL_PAGE_COUNT) - swipe_state.offset.value.dp - bottom_padding).roundToPx()
+                        }
+                    )
+                }
+                .scrollWheelSwipeable(
+                    state = swipe_state,
+                    anchors = swipe_anchors,
+                    thresholds = { _, _ -> FractionalThreshold(0.2f) },
+                    orientation = Orientation.Vertical,
+                    reverse_direction = true,
+                    interaction_source = swipe_interaction_source
+                )
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) {
+                    if (is_shut) {
+                        switch_to_page = if (swipe_state.targetValue == 0) 1 else 0
+                    }
+                }
+                .graphicsLayer {
+                    alpha = player_alpha
+                }
+                .brushBackground {
+                    with(density) {
+                        val screen_height_px = page_height.toPx()
+                        val v_offset = (expansion.get() - 1f).coerceAtLeast(0f) * screen_height_px
+
+                        val gradient_depth = 1f - (song_gradient_depth ?: default_gradient_depth)
+                        check(gradient_depth in 0f .. 1f)
+
+                        Brush.verticalGradient(
+                            listOf(player.getNPBackground(), player.getNPAltBackground()),
+                            startY = v_offset + (page_height.toPx() * GRADIENT_TOP_START_RATIO),
+                            endY = v_offset - GRADIENT_BOTTOM_PADDING_DP.dp.toPx() + (
+                                screen_height_px * (1.2f + (gradient_depth * 2f))
+                            )
                         )
                     }
-                    .scrollWheelSwipeable(
-                        state = swipe_state,
-                        anchors = swipe_anchors,
-                        thresholds = { _, _ -> FractionalThreshold(0.2f) },
-                        orientation = Orientation.Vertical,
-                        reverse_direction = true,
-                        interaction_source = swipe_interaction_source
-                    )
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) {
-                        if (is_shut) {
-                            switch_to_page = if (swipe_state.targetValue == 0) 1 else 0
-                        }
-                    }
-                    .graphicsLayer {
-                        alpha = player_alpha
-                    }
-                    .brushBackground {
-                        with(density) {
-                            val screen_height_px = page_height.toPx()
-                            val v_offset = (expansion.get() - 1f).coerceAtLeast(0f) * screen_height_px
-
-                            val gradient_depth = 1f - (song_gradient_depth ?: default_gradient_depth)
-                            check(gradient_depth in 0f .. 1f)
-
-                            Brush.verticalGradient(
-                                listOf(player.getNPBackground(), player.getNPAltBackground()),
-                                startY = v_offset + (page_height.toPx() * GRADIENT_TOP_START_RATIO),
-                                endY = v_offset - GRADIENT_BOTTOM_PADDING_DP.dp.toPx() + (
-                                    screen_height_px * (1.2f + (gradient_depth * 2f))
-                                )
-                            )
-                        }
-                    }
-            ) {
-                BackHandler({ !is_shut }) {
-                    switch_to_page = swipe_state.targetValue - 1
                 }
+        ) {
+            BackHandler({ !is_shut }) {
+                switch_to_page = swipe_state.targetValue - 1
+            }
 
-                CompositionLocalProvider(LocalContentColor provides player.getNPOnBackground()) {
-                    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-                        NowPlayingCardContent(page_height)
-                    }
+            CompositionLocalProvider(LocalContentColor provides player.getNPOnBackground()) {
+                Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    NowPlayingCardContent(page_height)
                 }
             }
         }

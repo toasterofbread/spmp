@@ -6,7 +6,6 @@ import com.toasterofbread.spmp.model.mediaitem.getMediaItemFromUid
 import com.toasterofbread.spmp.model.mediaitem.getUid
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException
 
 sealed interface ViewMore {
     fun execute(player: PlayerState, title: LocalisedString?)
@@ -90,7 +89,7 @@ data class MediaItemViewMore(
             media_item ?: browse_media_item,
             true,
             browse_params = browse_params?.let { params ->
-                BrowseParamsData(browse_media_item.id, params, title?.getString() ?: "")
+                BrowseParamsData(browse_media_item.id, params, title?.getString(player.context) ?: "")
             }
         )
     }
@@ -104,7 +103,7 @@ data class ListPageBrowseIdViewMore(
     override fun execute(player: PlayerState, title: LocalisedString?) {
         player.openMediaItem(
             ArtistRef(item_id),
-            browse_params = BrowseParamsData(list_page_browse_id, browse_params, title?.getString() ?: "")
+            browse_params = BrowseParamsData(list_page_browse_id, browse_params, title?.getString(player.context) ?: "")
         )
     }
 }
@@ -113,6 +112,6 @@ data class PlainViewMore(
     val browse_id: String
 ): ViewMore {
     override fun execute(player: PlayerState, title: LocalisedString?) {
-        player.openViewMorePage(browse_id, title?.getString())
+        player.openViewMorePage(browse_id, title?.getString(player.context))
     }
 }

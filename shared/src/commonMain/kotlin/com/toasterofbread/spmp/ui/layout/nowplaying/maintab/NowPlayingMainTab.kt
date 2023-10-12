@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.maintab
 
+import LocalNowPlayingExpansion
 import LocalPlayerState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -26,10 +27,8 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.composeScope
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
-import com.toasterofbread.spmp.ui.layout.nowplaying.LocalNowPlayingExpansion
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThumbnailRow
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
-import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.common.getThemeColour
 import kotlinx.coroutines.delay
 import kotlin.math.absoluteValue

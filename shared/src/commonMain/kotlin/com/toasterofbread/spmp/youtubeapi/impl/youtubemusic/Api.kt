@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic
 import SpMp
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.fromJson
@@ -130,13 +131,14 @@ fun <T> Result<T>.getOrThrowHere(): T =
         { throw Exception(it) }
     )
 
-fun <T> Result<T>.getOrReport(error_key: String): T? {
+// TODO remove
+fun <T> Result<T>.getOrReport(context: PlatformContext, error_key: String): T? {
     return fold(
         {
             it
         },
         {
-            SpMp.error_manager.onError(error_key, it)
+            context.sendNotification(it)
             null
         }
     )

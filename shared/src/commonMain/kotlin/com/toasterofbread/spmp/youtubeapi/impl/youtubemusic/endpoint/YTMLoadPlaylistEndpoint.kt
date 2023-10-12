@@ -7,6 +7,7 @@ import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
+import com.toasterofbread.spmp.platform.getDataLanguage
 import com.toasterofbread.spmp.youtubeapi.endpoint.LoadPlaylistEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
@@ -58,7 +59,7 @@ class YTMLoadPlaylistEndpoint(override val api: YoutubeMusicApi): LoadPlaylistEn
             ) "VL${playlist_data.id}"
             else playlist_data.id
 
-        val hl = SpMp.data_language
+        val hl = api.context.getDataLanguage()
         val request: Request = Request.Builder()
             .endpointUrl("/youtubei/v1/browse")
             .addAuthApiHeaders()

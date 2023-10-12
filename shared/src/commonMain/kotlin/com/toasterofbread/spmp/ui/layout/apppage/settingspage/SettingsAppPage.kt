@@ -116,7 +116,7 @@ class SettingsAppPage(override val state: AppPageState): AppPage() {
             Settings.KEY_YTM_AUTH.name
         ).init(Settings.prefs, Settings.Companion::provideDefault)
     private val settings_interface: SettingsInterface =
-        getPrefsPageSettingsInterface(pill_menu, ytm_auth, { current_category }, { current_category = null })
+        getPrefsPageSettingsInterface(state.context, pill_menu, ytm_auth, { current_category }, { current_category = null })
 
     override fun onBackNavigation(): Boolean {
         if (current_category != null) {

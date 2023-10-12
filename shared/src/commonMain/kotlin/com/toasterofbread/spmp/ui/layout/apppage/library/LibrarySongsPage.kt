@@ -26,6 +26,7 @@ import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
+import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.platform.rememberSongDownloads
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
@@ -103,7 +104,7 @@ class LibrarySongsPage(context: PlatformContext): LibrarySubPage(context) {
                                     getExtraInfo = {
                                         val duration_string = remember(download.song.id) {
                                             download.song.Duration.get(player.database)?.let { duration ->
-                                                durationToString(duration, true)
+                                                durationToString(duration, player.context.getUiLanguage(), true)
                                             }
                                         }
 
@@ -138,7 +139,7 @@ private fun InfoRow(downloads: List<PlayerDownloadManager.DownloadStatus>, modif
             return@LaunchedEffect
         }
 
-        total_duration_string = durationToString(duration)
+        total_duration_string = durationToString(duration, hl = player.context.getUiLanguage())
     }
 
     Row(modifier) {

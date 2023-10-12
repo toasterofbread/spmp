@@ -24,7 +24,6 @@ import com.toasterofbread.spmp.model.mediaitem.layout.ViewMore
 import com.toasterofbread.spmp.model.mediaitem.layout.shouldShowTitleBar
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.WidthShrinkText
 
 @Composable
@@ -40,8 +39,8 @@ fun TitleBar(
     val player = LocalPlayerState.current
 
     AnimatedVisibility(shouldShowTitleBar(title, subtitle, view_more), modifier) {
-        val title_string: String? = remember { title?.getString() }
-        val subtitle_string: String? = remember { subtitle?.getString() }
+        val title_string: String? = remember { title?.getString(player.context) }
+        val subtitle_string: String? = remember { subtitle?.getString(player.context) }
 
         Row(
             Modifier

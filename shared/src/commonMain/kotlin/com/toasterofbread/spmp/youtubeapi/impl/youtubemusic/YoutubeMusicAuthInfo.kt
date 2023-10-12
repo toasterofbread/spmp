@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic
 import SpMp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.platform.getDataLanguage
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.endpoint.GenericFeedViewMorePageEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMAccountPlaylistAddSongsEndpoint
@@ -54,7 +55,7 @@ class YoutubeMusicAuthInfo private constructor(
 
 class YTMGenericFeedViewMorePageEndpoint(override val api: YoutubeApi): GenericFeedViewMorePageEndpoint() {
     override suspend fun getGenericFeedViewMorePage(browse_id: String): Result<List<MediaItem>> = withContext(Dispatchers.IO) {
-        val hl = SpMp.data_language
+        val hl = api.context.getDataLanguage()
         val request = Request.Builder()
             .endpointUrl("/youtubei/v1/browse")
             .addAuthApiHeaders()

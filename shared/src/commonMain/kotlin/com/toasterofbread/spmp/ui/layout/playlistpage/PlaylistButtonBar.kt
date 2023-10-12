@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
+import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
 import com.toasterofbread.utils.composable.WidthShrinkText
@@ -93,8 +94,8 @@ private fun PlaylistPage.PlaylistInfoText(items: List<MediaItem>?, modifier: Mod
                         if (duration == null) ""
                         else durationToString(
                             duration,
-                            short = true,
-                            hl = SpMp.ui_language
+                            player.context.getUiLanguage(),
+                            short = true
                         ) + " • "
                     }
 

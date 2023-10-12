@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 import SpMp
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
+import com.toasterofbread.spmp.platform.getDataLanguage
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.endpoint.AccountPlaylistsEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.CreateAccountPlaylistEndpoint
@@ -17,7 +18,7 @@ import okhttp3.Request
 class YTMAccountPlaylistsEndpoint(override val auth: YoutubeMusicAuthInfo): AccountPlaylistsEndpoint() {
     override suspend fun getAccountPlaylists(): Result<List<RemotePlaylistData>> {
         val result: Result<List<RemotePlaylistData>> = withContext(Dispatchers.IO) {
-            val hl = SpMp.data_language
+            val hl = api.context.getDataLanguage()
             val request = Request.Builder()
                 .endpointUrl("/youtubei/v1/browse")
                 .addAuthApiHeaders()

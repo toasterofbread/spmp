@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
@@ -68,7 +69,7 @@ class QueueTabItem(val song: Song, val key: Int) {
             (
                 if (index < playing_index) getString("lpm_song_played_\$x_ago")
                 else getString("lpm_song_playing_in_\$x")
-            ).replace("\$x", durationToString(delta, true))
+            ).replace("\$x", durationToString(delta, player.context.getUiLanguage(), true))
         }
     }
 

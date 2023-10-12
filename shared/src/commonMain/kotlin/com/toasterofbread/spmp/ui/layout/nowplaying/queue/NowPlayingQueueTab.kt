@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.queue
 
+import LocalNowPlayingExpansion
 import LocalPlayerState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
@@ -44,12 +45,10 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
-import com.toasterofbread.spmp.ui.component.ERROR_INFO_DISPLAY_DEFAULT_EXPANDED_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
-import com.toasterofbread.spmp.ui.layout.nowplaying.LocalNowPlayingExpansion
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.rememberTopBarShouldShowInQueue
@@ -168,8 +167,9 @@ fun QueueTab(page_height: Dp, getTopBarHeight: () -> Dp, modifier: Modifier = Mo
 
     val expanded by remember { derivedStateOf { expansion.get() > 1f } }
     LaunchedEffect(expanded) {
-        if (expanded) {
-            queue_list_state.listState.scrollToItem(player.status.m_index)
+        val index = player.status.m_index
+        if (expanded && index >= 0) {
+            queue_list_state.listState.scrollToItem(index)
         }
     }
 

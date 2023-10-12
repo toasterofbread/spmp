@@ -56,7 +56,6 @@ import com.toasterofbread.spmp.ui.layout.PinnedItemsRow
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.FeedLoadState
-import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
 import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedLoadResult
@@ -137,7 +136,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
                             },
                             Modifier.fillMaxWidth()
                         ) { index ->
-                            Text(chips[index].text.getString())
+                            Text(chips[index].text.getString(player.context))
                         }
                     }
                 }
@@ -258,7 +257,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
                         Text(getString("prompt_confirm_action"))
                     },
                     text = {
-                        Text(getString("prompt_hide_feed_rows_with_\$title").replace("\$title", layout.title.getString()))
+                        Text(getString("prompt_hide_feed_rows_with_\$title").replace("\$title", layout.title.getString(player.context)))
                     }
                 )
             }
@@ -295,10 +294,10 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
                             }
 
                             if (layout.title != null) {
-                                val title: String = layout.title.getString()
+                                val title: String = layout.title.getString(player.context)
                                 if (
                                     hidden_rows.any { row_title ->
-                                        LocalisedString.deserialise(row_title).getString() == title
+                                        LocalisedString.deserialise(row_title).getString(player.context) == title
                                     }
                                 ) {
                                     return@items

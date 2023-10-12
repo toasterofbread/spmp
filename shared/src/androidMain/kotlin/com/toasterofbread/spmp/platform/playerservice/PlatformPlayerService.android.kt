@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.platform.playerservice
 
 import SpMp
+import android.app.ActivityManager
 import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
@@ -57,7 +58,6 @@ import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
 import androidx.media3.session.SessionToken
-import app.cash.sqldelight.Query
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
@@ -146,25 +146,18 @@ actual class PlatformPlayerService: MediaSessionService() {
     private var paused_by_device_disconnect: Boolean = false
     private var device_connection_changed_playing_status: Boolean = false
 
-    private val player_listener = object : Player.Listener {
-        val song_liked_listener = Query.Listener {
-            updatePlayerCustomActions()
+    private val song_liked_listener = SongLikedStatus.Listener { song, liked_status ->
+        println("SONG LIKED CHANGED $song $liked_status")
+        if (song == current_song) {
+            updatePlayerCustomActions(liked_status)
         }
+    }
 
+    private val player_listener = object : Player.Listener {
         override fun onMediaItemTransition(media_item: MediaItem?, reason: Int) {
             val song = media_item?.getSong()
             if (song?.id == current_song?.id) {
                 return
-            }
-
-            // Listeners don't seem to work between database instances
-            with(SpMp.context.database.songQueries) {
-                current_song?.also {
-                    likedById(it.id).removeListener(song_liked_listener)
-                }
-                song?.also {
-                    likedById(it.id).addListener(song_liked_listener)
-                }
             }
 
             current_song = song
@@ -301,6 +294,16 @@ actual class PlatformPlayerService: MediaSessionService() {
         actual fun disconnect(context: PlatformContext, connection: Any) {
             context.getAndroidContext().unbindService(connection as ServiceConnection)
         }
+
+        actual fun isServiceRunning(context: PlatformContext): Boolean {
+            val manager: ActivityManager = context.ctx.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+            for (service in manager.getRunningServices(Int.MAX_VALUE)) {
+                if (service.service.className == PlatformPlayerService::class.java.name) {
+                    return true
+                }
+            }
+            return false
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -339,6 +342,8 @@ actual class PlatformPlayerService: MediaSessionService() {
             }
         )
 
+        SongLikedStatus.addListener(song_liked_listener)
+
         setInstance(this)
     }
 
@@ -347,6 +352,7 @@ actual class PlatformPlayerService: MediaSessionService() {
         service_player.release()
         player.release()
         media_session.release()
+        SongLikedStatus.removeListener(song_liked_listener)
 
         val audio_manager = getSystemService(AUDIO_SERVICE) as AudioManager?
         audio_manager?.unregisterAudioDeviceCallback(audio_device_callback)
@@ -370,11 +376,11 @@ actual class PlatformPlayerService: MediaSessionService() {
         }
     }
 
-    private fun updatePlayerCustomActions() {
+    private fun updatePlayerCustomActions(song_liked: SongLikedStatus? = null) {
         coroutine_scope.launch(Dispatchers.Main) {
             val actions: MutableList<CommandButton> = mutableListOf()
 
-            val liked: SongLikedStatus? = current_song?.Liked?.get(context.database)
+            val liked: SongLikedStatus? = song_liked ?: current_song?.Liked?.get(context.database)
             if (liked != null) {
                 actions.add(
                     CommandButton.Builder()
@@ -583,12 +589,12 @@ actual class PlatformPlayerService: MediaSessionService() {
                 val song = current_song
                 if (song != null) {
                     coroutine_scope.launch {
-                        val endpoint: SetSongLikedEndpoint? = SpMp.context.ytapi.user_auth_state?.SetSongLiked
+                        val endpoint: SetSongLikedEndpoint? = context.ytapi.user_auth_state?.SetSongLiked
                         if (endpoint?.isImplemented() == true) {
                             song.updateLiked(
                                 command.value,
                                 endpoint,
-                                SpMp.context
+                                context
                             )
                         }
                     }

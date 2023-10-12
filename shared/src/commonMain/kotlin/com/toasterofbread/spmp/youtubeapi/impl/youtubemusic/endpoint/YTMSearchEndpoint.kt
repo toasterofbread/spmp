@@ -8,6 +8,7 @@ import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
+import com.toasterofbread.spmp.platform.getDataLanguage
 import com.toasterofbread.spmp.resources.uilocalisation.YoutubeLocalisedString
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchFilter
@@ -23,7 +24,7 @@ import okhttp3.Request
 
 class YTMSearchEndpoint(override val api: YoutubeMusicApi): SearchEndpoint() {
     override suspend fun searchMusic(query: String, params: String?): Result<SearchResults> = withContext(Dispatchers.IO) {
-        val hl = SpMp.data_language
+        val hl = api.context.getDataLanguage()
         val request = Request.Builder()
             .endpointUrl("/youtubei/v1/search")
             .addAuthApiHeaders()
@@ -59,7 +60,7 @@ class YTMSearchEndpoint(override val api: YoutubeMusicApi): SearchEndpoint() {
                 category_layouts.add(Pair(
                     MediaItemLayout(
                         mutableListOf(card.getMediaItem()),
-                        YoutubeLocalisedString.Type.SEARCH_PAGE.createFromKey(card.header.musicCardShelfHeaderBasicRenderer!!.title!!.first_text),
+                        YoutubeLocalisedString.Type.SEARCH_PAGE.createFromKey(card.header.musicCardShelfHeaderBasicRenderer!!.title!!.first_text, api.context),
                         null,
                         type = MediaItemLayout.Type.CARD
                     ),
@@ -73,7 +74,7 @@ class YTMSearchEndpoint(override val api: YoutubeMusicApi): SearchEndpoint() {
             val search_params = if (category.index == 0) null else chips[category.index - 1].chipCloudChipRenderer.navigationEndpoint.searchEndpoint!!.params
 
             category_layouts.add(Pair(
-                MediaItemLayout(items, YoutubeLocalisedString.Type.SEARCH_PAGE.createFromKey(shelf.title!!.first_text), null),
+                MediaItemLayout(items, YoutubeLocalisedString.Type.SEARCH_PAGE.createFromKey(shelf.title!!.first_text, api.context), null),
                 search_params?.let {
                     val item = items.firstOrNull() ?: return@let null
                     SearchFilter(when (item) {

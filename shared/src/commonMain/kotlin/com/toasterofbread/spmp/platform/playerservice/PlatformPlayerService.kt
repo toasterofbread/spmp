@@ -25,6 +25,8 @@ enum class MediaPlayerRepeatMode {
 
 expect class PlatformPlayerService() {
     companion object {
+        fun isServiceRunning(context: PlatformContext): Boolean
+
         fun addListener(listener: PlayerListener)
         fun removeListener(listener: PlayerListener)
 

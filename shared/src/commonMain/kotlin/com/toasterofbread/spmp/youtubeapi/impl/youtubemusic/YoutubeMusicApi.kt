@@ -11,6 +11,8 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformPreferences
+import com.toasterofbread.spmp.platform.getDataLanguage
+import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.getStringArraySafe
 import com.toasterofbread.spmp.resources.getStringSafe
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
@@ -119,7 +121,7 @@ data class YoutubeMusicApi(
         val context_substitutor = StringSubstitutor(
             mapOf(
                 "user_agent" to getUserAgent(),
-                "hl" to SpMp.getDataLanguage(context)
+                "hl" to context.getDataLanguage()
             ),
             "\${", "}"
         )
@@ -140,7 +142,7 @@ data class YoutubeMusicApi(
             StringSubstitutor(
                 mapOf(
                     "user_agent" to getUserAgent(),
-                    "hl" to SpMp.getUiLanguage(context)
+                    "hl" to context.getUiLanguage()
                 ),
                 "\${", "}"
             ).replace(getStringSafe("ytm_context", context)).reader(),

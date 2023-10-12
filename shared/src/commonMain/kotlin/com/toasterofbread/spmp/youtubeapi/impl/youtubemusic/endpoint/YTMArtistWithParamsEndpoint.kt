@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 
 import SpMp
 import com.toasterofbread.spmp.model.mediaitem.layout.BrowseParamsData
+import com.toasterofbread.spmp.platform.getDataLanguage
 import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsRow
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
@@ -14,7 +15,7 @@ class YTMArtistWithParamsEndpoint(override val api: YoutubeMusicApi): ArtistWith
     override suspend fun loadArtistWithParams(
         browse_params: BrowseParamsData
     ): Result<List<ArtistWithParamsRow>> = withContext(Dispatchers.IO) {
-        val hl = SpMp.data_language
+        val hl = api.context.getDataLanguage()
         val request = Request.Builder()
             .endpointUrl("/youtubei/v1/browse")
             .addAuthApiHeaders()

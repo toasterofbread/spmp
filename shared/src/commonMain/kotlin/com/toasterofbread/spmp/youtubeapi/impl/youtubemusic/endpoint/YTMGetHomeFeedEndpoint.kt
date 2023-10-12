@@ -7,6 +7,7 @@ import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemViewMore
 import com.toasterofbread.spmp.model.mediaitem.layout.PlainViewMore
 import com.toasterofbread.spmp.model.mediaitem.layout.ViewMore
+import com.toasterofbread.spmp.platform.getDataLanguage
 import com.toasterofbread.spmp.resources.uilocalisation.AppLocalisedString
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.resources.uilocalisation.RawLocalisedString
@@ -34,7 +35,7 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
         params: String?,
         continuation: String?
     ): Result<HomeFeedLoadResult> {
-        val hl = SpMp.data_language
+        val hl = api.context.getDataLanguage()
         var last_request: Request? = null
 
         suspend fun performRequest(ctoken: String?): Result<YoutubeiBrowseResponse> = withContext(Dispatchers.IO) {
@@ -64,7 +65,7 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
 
         try {
             var data = performRequest(continuation).getOrThrow()
-            val header_chips = data.getHeaderChips()
+            val header_chips = data.getHeaderChips(api.context)
 
             val rows: MutableList<MediaItemLayout> = processRows(data.getShelves(continuation != null), hl).toMutableList()
 
@@ -128,8 +129,8 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
                     val browse_endpoint = header.title?.runs?.first()?.navigationEndpoint?.browseEndpoint
                     if (browse_endpoint == null) {
                         add(
-                            YoutubeLocalisedString.Type.HOME_FEED.createFromKey(header.title!!.first_text),
-                            header.subtitle?.first_text?.let { YoutubeLocalisedString.Type.HOME_FEED.createFromKey(it) }
+                            YoutubeLocalisedString.Type.HOME_FEED.createFromKey(header.title!!.first_text, api.context),
+                            header.subtitle?.first_text?.let { YoutubeLocalisedString.Type.HOME_FEED.createFromKey(it, api.context) }
                         )
                         continue
                     }
@@ -165,7 +166,7 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
 
                         add(
                             RawLocalisedString(header.title.first_text),
-                            header.subtitle?.first_text?.let { YoutubeLocalisedString.Type.HOME_FEED.createFromKey(it) },
+                            header.subtitle?.first_text?.let { YoutubeLocalisedString.Type.HOME_FEED.createFromKey(it, api.context) },
                             view_more = MediaItemViewMore(media_item, null)
                         )
                     }

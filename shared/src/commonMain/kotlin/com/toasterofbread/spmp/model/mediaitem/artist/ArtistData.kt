@@ -24,9 +24,9 @@ class ArtistData(
 
     override val property_rememberer: PropertyRememberer = PropertyRememberer()
 
-    override fun saveToDatabase(db: Database, apply_to_item: MediaItem, uncertain: Boolean) {
+    override fun saveToDatabase(db: Database, apply_to_item: MediaItem, uncertain: Boolean, subitems_uncertain: Boolean) {
         db.transaction { with(apply_to_item as Artist) {
-            super.saveToDatabase(db, apply_to_item, uncertain)
+            super.saveToDatabase(db, apply_to_item, uncertain, subitems_uncertain)
 
             layouts?.also { layouts ->
                 if (uncertain && Layouts.get(db).isNullOrEmpty() && Loaded.get(db)) {

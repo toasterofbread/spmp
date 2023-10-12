@@ -9,8 +9,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,6 +25,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CommentsDisabled
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
@@ -52,6 +56,7 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.LargeDropdownMenu
+import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
@@ -190,38 +195,81 @@ fun LyricsSearchMenu(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    var source_selector_open: Boolean by remember { mutableStateOf(false) }
-                    Row(
-                        Modifier
-                            .background(player.theme.accent, CircleShape)
-                            .padding(10.dp)
-                            .clickable { source_selector_open = !source_selector_open },
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(Icons.Default.ArrowDropDown, null, tint = on_accent)
+                    Row(Modifier.height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        var source_selector_open: Boolean by remember { mutableStateOf(false) }
+                        Row(
+                            Modifier
+                                .background(player.theme.accent, CircleShape)
+                                .fillMaxWidth()
+                                .weight(1f)
+                                .padding(10.dp)
+                                .clickable { source_selector_open = !source_selector_open },
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.ArrowDropDown, null, tint = on_accent)
 
-                        Text(
-                            remember(selected_source) {
-                                getString("lyrics_search_on_\$source")
-                                    .replace("\$source", selected_source.getReadable())
+                            Text(
+                                remember(selected_source) {
+                                    getString("lyrics_search_on_\$source")
+                                        .replace("\$source", selected_source.getReadable())
+                                },
+                                color = on_accent
+                            )
+
+                            LargeDropdownMenu(
+                                source_selector_open,
+                                { source_selector_open = false },
+                                LyricsSource.SOURCE_AMOUNT,
+                                selected_source.source_index,
+                                { source_idx ->
+                                    remember(source_idx) {
+                                        LyricsSource.fromIdx(source_idx).getReadable()
+                                    }
+                                },
+                                selected_border_colour = player.theme.vibrant_accent
+                            ) { source_idx ->
+                                selected_source = LyricsSource.fromIdx(source_idx)
+                                source_selector_open = false
+                            }
+                        }
+
+                        var confirming_no_lyrics: Boolean by remember { mutableStateOf(false) }
+                        IconButton(
+                            {
+                                confirming_no_lyrics = !confirming_no_lyrics
                             },
-                            color = on_accent
-                        )
+                            Modifier.background(player.theme.accent, CircleShape).fillMaxHeight().aspectRatio(1f),
+                        ) {
+                            Icon(
+                                Icons.Default.CommentsDisabled,
+                                null,
+                                tint = on_accent
+                            )
+                        }
 
-                        LargeDropdownMenu(
-                            source_selector_open,
-                            { source_selector_open = false },
-                            LyricsSource.SOURCE_AMOUNT,
-                            selected_source.source_index,
-                            { source_idx ->
-                                remember(source_idx) {
-                                    LyricsSource.fromIdx(source_idx).getReadable()
+                        if (confirming_no_lyrics) {
+                            PlatformAlertDialog(
+                                onDismissRequest = { confirming_no_lyrics = false },
+                                confirmButton = {
+                                    Button({ song.Lyrics.set(LyricsReference.NONE, player.database) }) {
+                                        Text(getString("action_confirm_action"))
+                                    }
+                                },
+                                dismissButton = {
+                                    Button({ confirming_no_lyrics = false }) {
+                                        Text(getString("action_cancel"))
+                                    }
+                                },
+                                title = {
+                                    Text(getString("prompt_confirm_action"))
+                                },
+                                text = {
+                                    Text(getString("lyrics_no_lyrics_set_confirmation_title"))
+                                },
+                                icon = {
+                                    Icon(Icons.Default.CommentsDisabled, null)
                                 }
-                            },
-                            selected_border_colour = player.theme.vibrant_accent
-                        ) { source_idx ->
-                            selected_source = LyricsSource.fromIdx(source_idx)
-                            source_selector_open = false
+                            )
                         }
                     }
 
@@ -237,7 +285,7 @@ fun LyricsSearchMenu(
                                 focus.clearFocus()
                             }),
                             trailingIcon = {
-                                IconButton({ state.value = TextFieldValue() }) {
+                                IconButton({ state.value = TextFieldValue() }, enabled = selected_source.supportsLyricsBySearching()) {
                                     Icon(Icons.Default.Close, null)
                                 }
                             },

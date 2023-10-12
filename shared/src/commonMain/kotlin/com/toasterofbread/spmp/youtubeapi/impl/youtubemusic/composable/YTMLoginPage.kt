@@ -70,6 +70,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
         onFinished: (Result<YoutubeApi.UserAuthState>?) -> Unit
     ) {
         val player = LocalPlayerState.current
+        val coroutine_scope = rememberCoroutineScope()
         val manual = confirm_param == true
 
         var channel_not_created_error: YoutubeChannelNotCreatedException? by remember { mutableStateOf(null) }
@@ -233,15 +234,17 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
                                 response.close()
                             }
 
-                            val auth_result = completeLogin(headers_builder.build())
-                            auth_result.onFailure { error ->
-                                if (error is YoutubeChannelNotCreatedException) {
-                                    channel_not_created_error = error
-                                    return@synchronized
+                            coroutine_scope.launch {
+                                val auth_result = completeLogin(headers_builder.build())
+                                auth_result.onFailure { error ->
+                                    if (error is YoutubeChannelNotCreatedException) {
+                                        channel_not_created_error = error
+                                        return@launch
+                                    }
                                 }
-                            }
 
-                            onFinished(auth_result)
+                                onFinished(auth_result)
+                            }
                         }
                     }
                 }
@@ -320,7 +323,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
         return cookie_string
     }
 
-    private fun completeLoginWithAccount(headers: Headers, account: AccountSwitcherEndpoint.AccountItem): Result<YoutubeMusicAuthInfo> {
+    private suspend fun completeLoginWithAccount(headers: Headers, account: AccountSwitcherEndpoint.AccountItem): Result<YoutubeMusicAuthInfo> {
         val account_headers: Headers
 
         if (!account.isSelected) {
@@ -377,7 +380,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
         return completeLogin(account_headers)
     }
 
-    private fun completeLogin(headers: Headers): Result<YoutubeMusicAuthInfo> {
+    private suspend fun completeLogin(headers: Headers): Result<YoutubeMusicAuthInfo> {
         with(api) {
             val account_request = Request.Builder()
                 .endpointUrl("/youtubei/v1/account/account_menu")

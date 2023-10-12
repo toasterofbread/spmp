@@ -35,13 +35,13 @@ class RemotePlaylistData(id: String): PlaylistData(id), RemotePlaylist {
         saveToDatabase(context.database)
     }
 
-    override fun saveToDatabase(db: Database, apply_to_item: MediaItem, uncertain: Boolean) {
+    override fun saveToDatabase(db: Database, apply_to_item: MediaItem, uncertain: Boolean, subitems_uncertain: Boolean) {
         db.transaction { with(apply_to_item as RemotePlaylist) {
-            super.saveToDatabase(db, apply_to_item, uncertain)
+            super.saveToDatabase(db, apply_to_item, uncertain, subitems_uncertain)
 
             items?.also { items ->
                 for (item in items) {
-                    item.saveToDatabase(db)
+                    item.saveToDatabase(db, uncertain = subitems_uncertain)
                 }
                 Items.overwriteItems(items, db)
             }

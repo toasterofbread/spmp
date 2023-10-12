@@ -15,16 +15,16 @@ fun getSongTargetStreamQuality(): SongAudioQuality =
 fun getSongTargetDownloadQuality(): SongAudioQuality =
     Settings.getEnum(Settings.KEY_DOWNLOAD_AUDIO_QUALITY)
 
-fun getSongFormatByQuality(song_id: String, quality: SongAudioQuality, context: PlatformContext): Result<YoutubeVideoFormat> =
+suspend fun getSongFormatByQuality(song_id: String, quality: SongAudioQuality, context: PlatformContext): Result<YoutubeVideoFormat> =
     getAudioFormats(song_id, context).fold(
         { Result.success(it.getByQuality(quality)) },
         { Result.failure(it) }
     )
 
-fun getSongStreamFormat(song_id: String, context: PlatformContext): Result<YoutubeVideoFormat> =
+suspend fun getSongStreamFormat(song_id: String, context: PlatformContext): Result<YoutubeVideoFormat> =
     getSongFormatByQuality(song_id, getSongTargetStreamQuality(), context)
 
-private fun getAudioFormats(song_id: String, context: PlatformContext): Result<List<YoutubeVideoFormat>> {
+private suspend fun getAudioFormats(song_id: String, context: PlatformContext): Result<List<YoutubeVideoFormat>> {
     val result = context.ytapi.VideoFormats.getVideoFormats(song_id) { it.audio_only }
 
     val formats = result.fold(

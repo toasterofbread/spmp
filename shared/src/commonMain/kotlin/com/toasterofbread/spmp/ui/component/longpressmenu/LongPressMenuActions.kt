@@ -28,7 +28,6 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.longpressmenu.artist.ArtistLongPressMenuInfo
 import com.toasterofbread.spmp.ui.component.longpressmenu.playlist.PlaylistLongPressMenuInfo
 import com.toasterofbread.spmp.ui.component.longpressmenu.song.SongLongPressMenuInfo
-import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.common.isDebugBuild
 import com.toasterofbread.utils.composable.WidthShrinkText
 

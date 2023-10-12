@@ -36,7 +36,7 @@ abstract class MediaItemData: MediaItem {
         custom_title = value
     }
 
-    open fun saveToDatabase(db: Database, apply_to_item: MediaItem = this, uncertain: Boolean = false) {
+    open fun saveToDatabase(db: Database, apply_to_item: MediaItem = this, uncertain: Boolean = false, subitems_uncertain: Boolean = uncertain) {
         db.transaction { with(apply_to_item) {
             createDbEntry(db)
 

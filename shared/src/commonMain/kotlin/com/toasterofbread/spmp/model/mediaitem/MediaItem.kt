@@ -67,7 +67,9 @@ interface MediaItem: MediaItemHolder {
     suspend fun loadData(context: PlatformContext, populate_data: Boolean = true, force: Boolean = false): Result<MediaItemData> {
         val data = getEmptyData()
         if (!force && Loaded.get(context.database)) {
-            populateData(data, context.database)
+            if (populate_data) {
+                populateData(data, context.database)
+            }
             return Result.success(data)
         }
         return MediaItemLoader.loadUnknown(data, context)
@@ -144,13 +146,13 @@ interface MediaItem: MediaItemHolder {
                 "artist" to artist
             )
 
-        override fun saveToDatabase(db: Database, apply_to_item: MediaItem, uncertain: Boolean) {
+        override fun saveToDatabase(db: Database, apply_to_item: MediaItem, uncertain: Boolean, subitems_uncertain: Boolean) {
             db.transaction { with(apply_to_item as WithArtist) {
-                super.saveToDatabase(db, apply_to_item, uncertain)
+                super.saveToDatabase(db, apply_to_item, uncertain, subitems_uncertain)
 
                 val artist_data = artist
                 if (artist_data is ArtistData) {
-                    artist_data.saveToDatabase(db, uncertain = uncertain)
+                    artist_data.saveToDatabase(db, uncertain = subitems_uncertain)
                 }
                 else if (artist_data != null) {
                     artist_data.createDbEntry(db)

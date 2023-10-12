@@ -15,11 +15,13 @@ import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.getUid
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
@@ -34,6 +36,7 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.modifier.background
 
@@ -87,8 +90,8 @@ fun MediaItemGrid(
     multiselect_context: MediaItemMultiSelectContext? = null,
     startContent: (LazyGridScope.() -> Unit)? = null
 ) {
-    val player = LocalPlayerState.current
-    val filtered_items = items.rememberFilteredItems(apply_filter)
+    val player: PlayerState = LocalPlayerState.current
+    val filtered_items: List<MediaItem> by items.rememberFilteredItems(apply_filter)
 
     val row_count = (rows ?: if (filtered_items.size <= 3) 1 else 2) * (if (alt_style) 2 else 1)
     val item_spacing = Arrangement.spacedBy(if (alt_style) 7.dp else 15.dp)

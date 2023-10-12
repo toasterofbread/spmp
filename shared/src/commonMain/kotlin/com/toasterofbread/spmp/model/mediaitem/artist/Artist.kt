@@ -48,7 +48,7 @@ sealed interface Artist: MediaItem {
             clearItems = { from_index ->
                 artistLayoutQueries.clearLayouts(id, from_index)
             },
-            prerequisite = null
+            prerequisite = Loaded
         )
     val SubscriberCount: Property<Int?>
         get() = property_rememberer.rememberSingleQueryProperty(

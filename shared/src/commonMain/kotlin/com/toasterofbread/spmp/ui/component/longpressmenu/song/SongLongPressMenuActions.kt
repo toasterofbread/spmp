@@ -80,7 +80,8 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
             ) {
                 LPMActions(item, withSong, queue_index) { adding_to_playlist = true }
             }
-        } else {
+        } 
+        else {
             BackHandler {
                 adding_to_playlist = false
             }
@@ -176,12 +177,16 @@ private fun LongPressMenuActionProvider.LPMActions(
         Icons.Default.Radio, getString("lpm_action_radio"),
         onClick = {
             withSong {
-                player.controller?.service_player?.playSong(it)
+                player.withPlayer {
+                    playSong(it)
+                }
             }
         },
         onLongClick = queue_index?.let { index -> {
             withSong {
-                player.controller?.service_player?.startRadioAtIndex(index + 1, it, index, skip_first = true)
+                player.withPlayer {
+                    startRadioAtIndex(index + 1, it, index, skip_first = true)
+                }
             }
         }}
     )
@@ -192,22 +197,26 @@ private fun LongPressMenuActionProvider.LPMActions(
         },
         onClick = { active_queue_index ->
             withSong {
-                player.controller?.service_player?.addToQueue(
-                    it,
-                    active_queue_index + 1,
-                    is_active_queue = Settings.KEY_LPM_INCREMENT_PLAY_AFTER.get(),
-                    start_radio = false
-                )
+                player.withPlayer {
+                    addToQueue(
+                        it,
+                        active_queue_index + 1,
+                        is_active_queue = Settings.KEY_LPM_INCREMENT_PLAY_AFTER.get(),
+                        start_radio = false
+                    )
+                }
             }
         },
         onLongClick = { active_queue_index ->
             withSong {
-                player.controller?.service_player?.addToQueue(
-                    it,
-                    active_queue_index + 1,
-                    is_active_queue = Settings.KEY_LPM_INCREMENT_PLAY_AFTER.get(),
-                    start_radio = true
-                )
+                player.withPlayer {
+                    addToQueue(
+                        it,
+                        active_queue_index + 1,
+                        is_active_queue = Settings.KEY_LPM_INCREMENT_PLAY_AFTER.get(),
+                        start_radio = true
+                    )
+                }
             }
         }
     )

@@ -334,12 +334,13 @@ class PlayerDownloadService: PlatformServiceImpl() {
                         continue
                     }
 
-                    result = try {
-                        performDownload(download)
-                    }
-                    catch (e: Exception) {
-                        Result.failure(e)
-                    }
+                    result =
+                        try {
+                            performDownload(download)
+                        }
+                        catch (e: Exception) {
+                            Result.failure(e)
+                        }
                 }
 
                 synchronized(downloads) {
@@ -384,7 +385,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
         }
     }
 
-    private fun performDownload(download: Download): Result<PlatformFile?> {
+    private suspend fun performDownload(download: Download): Result<PlatformFile?> {
         val format = getSongFormatByQuality(download.song.id, download.quality, context).fold(
             { it },
             { return Result.failure(it) }

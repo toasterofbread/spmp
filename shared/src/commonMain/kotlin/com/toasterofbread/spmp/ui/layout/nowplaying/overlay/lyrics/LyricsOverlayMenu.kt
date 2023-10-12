@@ -88,7 +88,7 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
         val scroll_state = rememberLazyListState()
         val pill_menu = remember { PillMenu(expand_state = mutableStateOf(false)) }
 
-        val lyrics_state = remember(getSong().id) { SongLyricsLoader.getItemState(getSong(), player.context) }
+        val lyrics_state: SongLyricsLoader.ItemState = remember(getSong().id) { SongLyricsLoader.getItemState(getSong(), player.context) }
         var show_furigana: Boolean by remember { mutableStateOf(Settings.KEY_LYRICS_DEFAULT_FURIGANA.get()) }
 
         var submenu: Submenu? by remember { mutableStateOf(null) }
@@ -206,24 +206,31 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
                 )
             }
 
-            Crossfade(Triple(submenu, getSong(), lyrics_state.lyrics ?: lyrics_state.loading), Modifier.fillMaxSize()) { state ->
+            Crossfade(
+                Triple(
+                    submenu,
+                    getSong(),
+                    lyrics_state.lyrics ?: if (lyrics_state.loading) true else if (lyrics_state.is_none) null else false
+                ),
+                Modifier.fillMaxSize()
+            ) { state ->
                 val (current_submenu, song, l) = state
                 val lyrics: SongLyrics? = if (l is SongLyrics) l else null
-                val loading: Boolean = l == true
+                val loading: Boolean? = if (l is SongLyrics) false else (l as Boolean?)
 
                 if (current_submenu == Submenu.SEARCH) {
                     LyricsSearchMenu(song, Modifier.fillMaxSize()) { changed ->
                         submenu = null
                         if (changed) {
                             coroutine_scope.launchSingle {
-                                val result = SongLyricsLoader.loadBySong(getSong(), player.context)
-                                result.onFailure { error ->
+                                val result: Result<SongLyrics>? = SongLyricsLoader.loadBySong(getSong(), player.context)
+                                result?.onFailure { error ->
                                     // TODO
                                     player.context.sendToast(error.toString())
                                 }
                             }
                         }
-                        else if (!loading && lyrics == null) {
+                        else if (loading == false && lyrics == null) {
                             openMenu(null)
                         }
                     }
@@ -277,9 +284,14 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
                         }
                     }
                 }
-                else if (loading) {
+                else if (loading == true) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         SubtleLoadingIndicator(message = getString("lyrics_loading"))
+                    }
+                }
+                else if (loading == null) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(getString("lyrics_no_lyrics_set_for_song"), style = MaterialTheme.typography.bodyLarge)
                     }
                 }
             }

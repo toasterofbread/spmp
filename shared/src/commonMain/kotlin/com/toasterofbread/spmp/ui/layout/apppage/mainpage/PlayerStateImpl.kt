@@ -410,10 +410,11 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
                         }
                         service_connected_listeners.clear()
                     }
+                },
+                {
+                    service_connecting = false
                 }
-            ) {
-                service_connecting = false
-            }
+            )
         }
     }
 

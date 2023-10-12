@@ -89,6 +89,7 @@ fun ArtistLayout(
     show_top_bar: Boolean = true,
     loading: Boolean = false,
     onReload: (() -> Unit)? = null,
+    getAllSelectableItems: (() -> List<Pair<MediaItem, Int?>>)? = null,
     content: LazyListScope.(accent_colour: Color?, show_info: MutableState<Boolean>, Modifier) -> Unit
 ) {
     val player = LocalPlayerState.current

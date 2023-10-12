@@ -1,6 +1,9 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
+import com.toasterofbread.spmp.model.mediaitem.song.SongRef
+import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
 import com.toasterofbread.spmp.youtubeapi.endpoint.SongRadioEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
@@ -9,6 +12,7 @@ import com.toasterofbread.spmp.youtubeapi.radio.YoutubeiNextResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
+import java.io.IOException
 
 private const val RADIO_ID_PREFIX = "RDAMVM"
 private const val MODIFIED_RADIO_ID_PREFIX = "RDAT"
@@ -19,14 +23,48 @@ class YTMSongRadioEndpoint(override val api: YoutubeMusicApi): SongRadioEndpoint
         continuation: String?,
         filters: List<RadioBuilderModifier>
     ): Result<RadioData> = withContext(Dispatchers.IO) {
+        for (filter in filters) {
+            if (filter !is RadioBuilderModifier.Internal) {
+                continue
+            }
+
+            when (filter) {
+                RadioBuilderModifier.Internal.ARTIST -> {
+                    val song: SongRef = SongRef(video_id)
+                    var artist: ArtistRef? = song.Artist.get(api.database)
+
+                    if (artist == null) {
+                        song.loadData(api.context, populate_data = false).onFailure {
+                            return@withContext Result.failure(IOException(it))
+                        }
+                        artist = song.Artist.get(api.database)
+
+                        if (artist == null) {
+                            return@withContext Result.failure(NullPointerException("$song artist is null"))
+                        }
+                    }
+
+                    val endpoint = api.ArtistRadio
+                    if (!endpoint.isImplemented()) {
+                        return@withContext Result.failure(EndpointNotImplementedException(endpoint))
+                    }
+
+                    endpoint.getArtistRadio(artist, null).fold(
+                        { return@withContext Result.success(RadioData(it.items, it.continuation, null)) },
+                        { return@withContext Result.failure(it) }
+                    )
+                }
+            }
+        }
+
         val request = Request.Builder()
             .endpointUrl("/youtubei/v1/next")
             .addAuthApiHeaders()
             .postWithBody(
-                mapOf(
+                mutableMapOf(
                     "enablePersistentPlaylistPanel" to true,
                     "tunerSettingValue" to "AUTOMIX_SETTING_NORMAL",
-                    "playlistId" to videoIdToRadio(video_id, filters),
+                    "playlistId" to videoIdToRadio(video_id, filters.filter { it !is RadioBuilderModifier.Internal }),
                     "watchEndpointMusicSupportedConfigs" to mapOf(
                         "watchEndpointMusicConfig" to mapOf(
                             "hasPersistentPlaylistPanel" to true,
@@ -34,9 +72,11 @@ class YTMSongRadioEndpoint(override val api: YoutubeMusicApi): SongRadioEndpoint
                         )
                     ),
                     "isAudioOnly" to true
-                ).let {
-                    if (continuation == null) it
-                    else it + mapOf("continuation" to continuation)
+                )
+                .also {
+                    if (continuation != null) {
+                        it["continuation"] = continuation
+                    }
                 }
             )
             .build()

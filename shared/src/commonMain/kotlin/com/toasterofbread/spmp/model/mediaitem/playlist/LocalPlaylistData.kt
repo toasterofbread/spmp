@@ -71,7 +71,7 @@ class LocalPlaylistData(id: String): PlaylistData(id), LocalPlaylist {
         saveToFile(file, context)
     }
 
-    override fun saveToDatabase(db: Database, apply_to_item: MediaItem, uncertain: Boolean) {
+    override fun saveToDatabase(db: Database, apply_to_item: MediaItem, uncertain: Boolean, subitems_uncertain: Boolean) {
         throw UnsupportedOperationException()
     }
     override suspend fun loadData(context: PlatformContext, populate_data: Boolean, force: Boolean): Result<LocalPlaylistData> {

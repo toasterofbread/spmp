@@ -63,7 +63,7 @@ data class MediaItemAppPage(
                 previous_item = previous_item?.item,
                 content_padding = content_padding,
                 browse_params = browse_params?.let { params ->
-                    Pair(params, player.context.ytapi.ArtistsWithParams)
+                    Pair(params, player.context.ytapi.ArtistWithParams)
                 }
             )
             is Song -> SongRelatedPage(

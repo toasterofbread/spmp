@@ -17,10 +17,12 @@ import com.toasterofbread.spmp.resources.getStringArraySafe
 import com.toasterofbread.spmp.resources.getStringSafe
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi.PostBodyContext
+import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistRadioEndpoint
 import com.toasterofbread.spmp.youtubeapi.executeResult
 import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpoint
 import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpointType
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.composable.YTMLoginPage
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMArtistRadioEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMSearchEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMArtistWithParamsEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMCreateYoutubeChannelEndpoint
@@ -49,8 +51,10 @@ import okhttp3.Response
 import org.apache.commons.text.StringSubstitutor
 import java.io.Reader
 import java.time.Duration
+import java.util.concurrent.locks.ReentrantLock
 import java.util.logging.Level
 import java.util.logging.Logger
+import kotlin.concurrent.withLock
 
 internal val PLAIN_HEADERS = listOf("accept-language", "user-agent", "accept-encoding", "content-encoding", "origin")
 
@@ -87,24 +91,32 @@ data class YoutubeMusicApi(
         }
     }
 
+    private fun buildHeaders() {
+        val headers_builder = Headers.Builder()
+
+        val headers = getStringArraySafe("ytm_headers", context)
+        var i = 0
+        while (i < headers.size) {
+            val key = headers[i++]
+            val value = headers[i++]
+            headers_builder.add(key, value)
+        }
+
+        headers_builder["origin"] = api_url
+        headers_builder["user-agent"] = getUserAgent()
+
+        youtubei_headers = headers_builder.build()
+    }
+
     override suspend fun init() {
+        if (initialised) {
+            return
+        }
+
         coroutineScope {
             launch(Dispatchers.Default) {
                 launch {
-                    val headers_builder = Headers.Builder()
-
-                    val headers = getStringArraySafe("ytm_headers", context)
-                    var i = 0
-                    while (i < headers.size) {
-                        val key = headers[i++]
-                        val value = headers[i++]
-                        headers_builder.add(key, value)
-                    }
-
-                    headers_builder["origin"] = api_url
-                    headers_builder["user-agent"] = getUserAgent()
-
-                    youtubei_headers = headers_builder.build()
+                    buildHeaders()
                 }
                 launch {
                     context.getPrefs().addListener(prefs_change_listener)
@@ -152,16 +164,20 @@ data class YoutubeMusicApi(
 
     fun getUserAgent(): String = getStringSafe("ytm_user_agent", context)
 
-    override fun PostBodyContext.getContextPostBody(): JsonObject =
-        when (this) {
+    override suspend fun PostBodyContext.getContextPostBody(): JsonObject {
+        init()
+        return when (this) {
             PostBodyContext.BASE -> youtubei_context
             PostBodyContext.ANDROID_MUSIC -> youtubei_context_android_music
             PostBodyContext.ANDROID -> youtubei_context_android
             PostBodyContext.MOBILE -> youtubei_context_mobile
             PostBodyContext.UI_LANGUAGE -> youtube_context_ui_language
         }
+    }
 
     override suspend fun Request.Builder.addAuthlessApiHeaders(include: List<String>?): Request.Builder {
+        init()
+
         if (!include.isNullOrEmpty()) {
             for (header_key in include) {
                 val value = youtubei_headers[header_key] ?: continue
@@ -182,7 +198,7 @@ data class YoutubeMusicApi(
         return url("$api_url$endpoint${joiner}prettyPrint=false")
     }
 
-    override fun Request.Builder.postWithBody(body: Map<String, Any?>?, context: PostBodyContext): Request.Builder {
+    override suspend fun Request.Builder.postWithBody(body: Map<String, Any?>?, context: PostBodyContext): Request.Builder {
         val final_body: JsonObject = context.getContextPostBody().deepCopy()
 
         for (entry in body ?: emptyMap()) {
@@ -243,7 +259,8 @@ data class YoutubeMusicApi(
     override val GenericFeedViewMorePage = YTMGenericFeedViewMorePageEndpoint(this)
     override val SongRadio = YTMSongRadioEndpoint(this)
 
-    override val ArtistsWithParams = YTMArtistWithParamsEndpoint(this)
+    override val ArtistWithParams = YTMArtistWithParamsEndpoint(this)
+    override val ArtistRadio: ArtistRadioEndpoint = YTMArtistRadioEndpoint(this)
 
     override val PlaylistContinuation = YTMPlaylistContinuationEndpoint(this)
 

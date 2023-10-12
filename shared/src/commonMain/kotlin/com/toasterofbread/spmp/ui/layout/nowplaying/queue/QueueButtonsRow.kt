@@ -15,6 +15,7 @@ import androidx.compose.material3.tokens.FilledButtonTokens
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.platform.vibrateShort
@@ -69,27 +70,29 @@ fun QueueButtonsRow(
         }
 
         Surface(
-            Modifier.combinedClickable(
-                onClick = {
-                    player.controller?.service_player?.undoableAction {
-                        if (multiselect_context.is_active) {
-                            shuffleQueueIndices(multiselect_context.getSelectedItems().map { it.second!! })
-                            multiselect_context.onActionPerformed()
-                        }
-                        else {
-                            shuffleQueue()
-                        }
-                    }
-                },
-                onLongClick = if (multiselect_context.is_active) null else ({
-                    if (!multiselect_context.is_active) {
+            Modifier
+                .clip(FilledButtonTokens.ContainerShape.toShape())
+                .combinedClickable(
+                    onClick = {
                         player.controller?.service_player?.undoableAction {
-                            shuffleQueue(start = 0)
+                            if (multiselect_context.is_active) {
+                                shuffleQueueIndices(multiselect_context.getSelectedItems().map { it.second!! })
+                                multiselect_context.onActionPerformed()
+                            }
+                            else {
+                                shuffleQueue()
+                            }
                         }
-                        player.context.vibrateShort()
-                    }
-                })
-            ),
+                    },
+                    onLongClick = if (multiselect_context.is_active) null else ({
+                        if (!multiselect_context.is_active) {
+                            player.controller?.service_player?.undoableAction {
+                                shuffleQueue(start = 0)
+                            }
+                            player.context.vibrateShort()
+                        }
+                    })
+                ),
             color = background_colour,
             shape = FilledButtonTokens.ContainerShape.toShape(),
             border = multiselect_context.getActiveHintBorder()
@@ -105,7 +108,6 @@ fun QueueButtonsRow(
             ) {
                 Text(
                     text = getString("queue_shuffle"),
-//                                color = background_colour.getContrasted(),
                     style = MaterialTheme.typography.labelLarge
                 )
             }
@@ -122,6 +124,7 @@ fun QueueButtonsRow(
                     undo_background,
                     CircleShape
                 )
+                .clip(CircleShape)
                 .combinedClickable(
                     enabled = player.status.m_undo_count != 0 || player.status.m_redo_count != 0,
                     onClick = {

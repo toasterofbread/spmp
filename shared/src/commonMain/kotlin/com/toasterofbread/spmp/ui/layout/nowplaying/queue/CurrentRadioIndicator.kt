@@ -4,6 +4,7 @@ import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -22,7 +23,6 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.fromUid
 import com.toasterofbread.spmp.model.mediaitem.getMediaItemFromUid
-import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -122,6 +122,25 @@ internal fun CurrentRadioIndicator(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+private fun RadioFilterChip(selected: Boolean, getAccentColour: () -> Color, onClick: () -> Unit, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    FilterChip(
+        selected,
+        modifier = modifier.height(32.dp),
+        onClick = onClick,
+        label = content,
+        colors = FilterChipDefaults.filterChipColors(
+            labelColor = LocalContentColor.current,
+            selectedContainerColor = getAccentColour(),
+            selectedLabelColor = getAccentColour().getContrasted()
+        ),
+        border = FilterChipDefaults.filterChipBorder(
+            borderColor = LocalContentColor.current.setAlpha(0.25f),
+            selectedBorderColor = Color.Transparent
+        )
+    )
+}
+
+@Composable
 private fun FiltersRow(
     filters: List<List<RadioBuilderModifier>>,
     getAccentColour: () -> Color,
@@ -136,33 +155,40 @@ private fun FiltersRow(
     ) {
         val current_filter = player.controller?.radio_state?.current_filter
 
+        item {
+            RadioFilterChip(
+                current_filter == -1,
+                getAccentColour,
+                onClick = {
+                    player.withPlayer {
+                        radio.setRadioFilter(-1)
+                    }
+                },
+                modifier = Modifier.width(48.dp)
+            ) {
+                Icon(MediaItemType.ARTIST.getIcon(), null, Modifier.offset(x = (-4).dp))
+            }
+        }
+
         itemsIndexed(listOf(null) + filters) { i, filter ->
             val index = if (filter == null) null else i - 1
 
-            FilterChip(
+            RadioFilterChip(
                 current_filter == index,
-                modifier = Modifier.height(32.dp),
+                getAccentColour,
                 onClick = {
-                    if (player.controller?.radio_state?.current_filter != index) {
-                        player.controller?.service_player?.radio?.setRadioFilter(index)
+                    player.withPlayer {
+                        if (radio.instance.state.current_filter != index) {
+                            radio.setRadioFilter(index)
+                        }
                     }
-                },
-                label = {
-                    Text(
-                        filter?.joinToString("|") { it.getReadable() }
-                            ?: getString("radio_filter_all")
-                    )
-                },
-                colors = FilterChipDefaults.filterChipColors(
-                    labelColor = LocalContentColor.current,
-                    selectedContainerColor = getAccentColour(),
-                    selectedLabelColor = getAccentColour().getContrasted()
-                ),
-                border = FilterChipDefaults.filterChipBorder(
-                    borderColor = LocalContentColor.current.setAlpha(0.25f),
-                    selectedBorderColor = Color.Transparent
+                }
+            ) {
+                Text(
+                    filter?.joinToString("|") { it.getReadable() }
+                        ?: getString("radio_filter_all")
                 )
-            )
+            }
         }
     }
 }

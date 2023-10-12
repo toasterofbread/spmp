@@ -182,8 +182,8 @@ interface Song: MediaItem.WithArtist {
 
     override val ThumbnailProvider: Property<MediaItemThumbnailProvider?>
         get() = object : Property<MediaItemThumbnailProvider?> {
-            override fun get(db: Database): MediaItemThumbnailProvider =
-                SongThumbnailProvider(id)
+            private val provider = SongThumbnailProvider(id)
+            override fun get(db: Database): MediaItemThumbnailProvider = provider
 
             override fun set(value: MediaItemThumbnailProvider?, db: Database) {}
 

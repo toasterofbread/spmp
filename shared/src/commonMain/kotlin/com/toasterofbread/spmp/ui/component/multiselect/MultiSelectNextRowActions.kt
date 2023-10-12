@@ -25,6 +25,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
@@ -71,7 +72,7 @@ internal fun ColumnScope.MultiSelectNextRowActions(multiselect_context: MediaIte
                             active_queue_index = current_song_index
                         }
                     }
-                ),
+                ).clip(CircleShape),
                 shape = CircleShape
             ) {
                 Icon(Icons.Default.Remove, null)
@@ -90,7 +91,7 @@ internal fun ColumnScope.MultiSelectNextRowActions(multiselect_context: MediaIte
                             active_queue_index = song_count - 1
                         }
                     }
-                ),
+                ).clip(CircleShape),
                 shape = CircleShape
             ) {
                 Icon(Icons.Filled.Add, null)

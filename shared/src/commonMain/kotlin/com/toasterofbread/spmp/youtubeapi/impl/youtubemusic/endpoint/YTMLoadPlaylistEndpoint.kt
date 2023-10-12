@@ -93,7 +93,8 @@ class YTMLoadPlaylistEndpoint(override val api: YoutubeMusicApi): LoadPlaylistEn
 
         playlist_data.saveToDatabase(
             api.database,
-            uncertain = playlist_data.playlist_type != PlaylistType.PLAYLIST
+            uncertain = playlist_data.playlist_type != PlaylistType.PLAYLIST,
+            subitems_uncertain = true
         )
 
         return@withContext Result.success(playlist_data)

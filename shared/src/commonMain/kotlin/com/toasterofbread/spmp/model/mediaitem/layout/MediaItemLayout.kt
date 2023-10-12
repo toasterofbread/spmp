@@ -120,6 +120,10 @@ data class MediaItemLayout(
 
             return continuation_endpoint.getPlaylistContinuation(initial, token, if (initial) playlist_skip_amount else 0)
         }
+
+        private suspend fun loadArtistContinuation(context: PlatformContext): Result<Pair<List<MediaItemData>, String?>> {
+            TODO()
+        }
     }
 
     @Composable

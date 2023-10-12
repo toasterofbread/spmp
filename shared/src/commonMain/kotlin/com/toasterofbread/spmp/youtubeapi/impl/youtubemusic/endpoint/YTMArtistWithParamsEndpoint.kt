@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 
 import SpMp
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.layout.BrowseParamsData
 import com.toasterofbread.spmp.platform.getDataLanguage
 import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsEndpoint
@@ -37,9 +38,9 @@ class YTMArtistWithParamsEndpoint(override val api: YoutubeMusicApi): ArtistWith
 
         val rows = api.database.transactionWithResult {
             row_content.map { row ->
-                val items = row.getMediaItemsOrNull(hl).orEmpty()
+                val items: List<MediaItemData> = row.getMediaItemsOrNull(hl).orEmpty()
                 for (item in items) {
-                    item.saveToDatabase(api.database)
+                    item.saveToDatabase(api.database, subitems_uncertain = true)
                 }
 
                 ArtistWithParamsRow(

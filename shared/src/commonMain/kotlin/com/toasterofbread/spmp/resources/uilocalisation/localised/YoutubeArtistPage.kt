@@ -9,7 +9,7 @@ fun getYoutubeArtistPageLocalisations(languages: UILanguages): YoutubeUILocalisa
                 en to "Songs",
                 ja to "曲",
                 es to "Canciónes" ,
-                id = YoutubeUILocalisation.StringID.ARTIST_ROW_OTHER
+                id = YoutubeUILocalisation.StringID.ARTIST_ROW_SONGS
             )
             add(
                 en to "Albums",
@@ -21,7 +21,7 @@ fun getYoutubeArtistPageLocalisations(languages: UILanguages): YoutubeUILocalisa
                 en to "Videos",
                 ja to "動画",
                 es to "Videos" ,
-                id = YoutubeUILocalisation.StringID.ARTIST_ROW_OTHER
+                id = YoutubeUILocalisation.StringID.ARTIST_ROW_VIDEOS
             )
             add(
                 en to "Singles",

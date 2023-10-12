@@ -86,6 +86,15 @@ fun ArtistPage(
         )
     }
 
+    val getAllSelectableItems =
+        if (browse_params == null) null
+        else {{
+            val row = browse_params_rows?.firstOrNull()
+            row?.items?.mapIndexed { index, item ->
+                Pair(item, index)
+            } ?: emptyList()
+        }}
+
     ArtistLayout(
         artist,
         modifier,
@@ -100,7 +109,8 @@ fun ArtistPage(
             coroutine_scope.launch {
                 MediaItemLoader.loadArtist(artist.getEmptyData(), player.context)
             }
-        }
+        },
+        getAllSelectableItems = getAllSelectableItems
     ) { accent_colour, show_info, content_modifier ->
         if (load_error != null) {
             item {
@@ -121,15 +131,19 @@ fun ArtistPage(
             }
         }
         else if (browse_params != null) {
-            items(browse_params_rows.orEmpty()) { row ->
-                MediaItemList(
-                    row.items,
-                    content_modifier.padding(content_padding.copy(top = 0.dp)),
-                    title = row.title?.let { title ->
-                        RawLocalisedString(title)
-                    },
-                    multiselect_context = multiselect_context ?: own_multiselect_context
-                )
+            val row = browse_params_rows?.firstOrNull()
+            if (row != null) {
+                item {
+                    MediaItemList(
+                        row.items,
+                        content_modifier.padding(content_padding.copy(top = 0.dp)),
+                        title = row.title?.let { title ->
+                            RawLocalisedString(title)
+                        },
+                        multiselect_context = multiselect_context ?: own_multiselect_context,
+                        play_as_list = true
+                    )
+                }
             }
         }
         else if (single_layout != null) {

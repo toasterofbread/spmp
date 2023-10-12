@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -28,6 +29,7 @@ import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.RadioButtonChecked
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -61,6 +63,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.getEditorOrNull
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.isPlaylistEditable
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.multiselect_context.MultiSelectSelectedItemActions
@@ -137,20 +140,25 @@ class MediaItemMultiSelectContext(
         onSelectedItemsChanged()
     }
 
-    fun setItemSelected(item: MediaItem, selected: Boolean, key: Int? = null) {
+    fun setItemSelected(item: MediaItem, selected: Boolean, key: Int? = null): Boolean {
         if (selected) {
             if (!is_active) {
                 setActive(true)
             }
 
             if (selected_items.any { it.first == item && it.second == key }) {
-                return
+                return false
             }
             selected_items.add(Pair(item, key))
             onSelectedItemsChanged()
+            return true
         }
         else if (selected_items.removeIf { it.first == item && it.second == key }) {
             onSelectedItemsChanged()
+            return true
+        }
+        else {
+            return false
         }
     }
 
@@ -167,7 +175,7 @@ class MediaItemMultiSelectContext(
     }
 
     @Composable
-    fun InfoDisplay(modifier: Modifier = Modifier) {
+    fun InfoDisplay(modifier: Modifier = Modifier, getAllSelectableItems: (() -> List<Pair<MediaItem, Int?>>)? = null) {
         DisposableEffect(Unit) {
             onDispose {
                 if (!is_active) {
@@ -176,11 +184,35 @@ class MediaItemMultiSelectContext(
             }
         }
 
+        BackHandler(is_active) {
+            setActive(false)
+        }
+
         Column(modifier.fillMaxWidth().animateContentSize()) {
-            Text(
-                getString("multiselect_x_items_selected").replace("\$x", selected_items.size.toString()), 
-                style = MaterialTheme.typography.labelLarge
-            )
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(
+                    getString("multiselect_x_items_selected").replace("\$x", selected_items.size.toString()), 
+                    style = MaterialTheme.typography.labelLarge
+                )
+
+                getAllSelectableItems?.also { getSelectable ->
+                    IconButton({ 
+                        var changed = false
+                        for (item in getSelectable()) {
+                            if (setItemSelected(item.first, true, item.second)) {
+                                changed = true
+                            }
+                        }
+
+                        if (!changed) {
+                            selected_items.clear()
+                        }
+                    }) {
+                        Icon(Icons.Default.SelectAll, null)
+                    }
+                }
+            }
+
             Divider(Modifier.padding(top = 5.dp), color = LocalContentColor.current, thickness = hint_path_thickness)
 
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {

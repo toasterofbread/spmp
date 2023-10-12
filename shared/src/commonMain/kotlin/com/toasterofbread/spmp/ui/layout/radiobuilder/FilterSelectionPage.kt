@@ -38,7 +38,6 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderArtist
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.InvalidRadioException
@@ -95,7 +94,9 @@ fun FilterSelectionPage(
                 preview_loading = true
             }
             else if (preview_playlist?.id == radio_token) {
-                player.controller?.service_player?.startRadioAtIndex(0, preview_playlist)
+                player.withPlayer {
+                    startRadioAtIndex(0, preview_playlist)
+                }
                 return
             }
             else {
@@ -120,7 +121,9 @@ fun FilterSelectionPage(
                             }
                             else {
                                 withContext(Dispatchers.Main) {
-                                    player.controller?.service_player?.startRadioAtIndex(0, playlist)
+                                    player.withPlayer {
+                                        startRadioAtIndex(0, playlist)
+                                    }
                                 }
                             }
                         }

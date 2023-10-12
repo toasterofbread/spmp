@@ -265,7 +265,7 @@ actual class PlatformPlayerService: MediaSessionService() {
         }
 
         private fun PlatformContext.getAndroidContext(): Context =
-            ctx
+            ctx.applicationContext
 
         actual fun connect(
             context: PlatformContext,
@@ -575,7 +575,9 @@ actual class PlatformPlayerService: MediaSessionService() {
             DefaultDataSource.Factory(this).createDataSource()
         }) { data_spec: DataSpec ->
             try {
-                return@Factory processMediaDataSpec(data_spec, context, isConnectionMetered())
+                return@Factory runBlocking {
+                    processMediaDataSpec(data_spec, context, isConnectionMetered())
+                }
             }
             catch (e: Throwable) {
                 throw IOException(e)

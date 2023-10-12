@@ -10,6 +10,7 @@ import com.toasterofbread.spmp.youtubeapi.composable.LoginPage
 import com.toasterofbread.spmp.youtubeapi.endpoint.AccountPlaylistAddSongsEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.AccountPlaylistEditorEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.AccountPlaylistsEndpoint
+import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistRadioEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.CreateAccountPlaylistEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.CreateYoutubeChannelEndpoint
@@ -118,7 +119,7 @@ interface YoutubeApi {
         MOBILE,
         UI_LANGUAGE
     }
-    fun PostBodyContext.getContextPostBody(): JsonObject
+    suspend fun PostBodyContext.getContextPostBody(): JsonObject
 
     fun Request.Builder.endpointUrl(
         endpoint: String,
@@ -138,7 +139,7 @@ interface YoutubeApi {
         return addAuthlessApiHeaders(include)
     }
 
-    fun Request.Builder.postWithBody(
+    suspend fun Request.Builder.postWithBody(
         body: Map<String, Any?>? = null,
         context: PostBodyContext = PostBodyContext.BASE,
     ): Request.Builder
@@ -151,6 +152,7 @@ interface YoutubeApi {
             this::class.java.typeName.split('.', limit = 4).lastOrNull()
             ?: this::class.java.typeName
         fun getNotImplementedMessage(): String = "Implementable not implemented:\n${getIdentifier()}"
+        fun <T: Implementable> T.implementedOrNull(): T? = if (isImplemented()) this else null
     }
 
     abstract class Endpoint: Implementable {
@@ -172,7 +174,7 @@ interface YoutubeApi {
                 addAuthlessApiHeaders(include)
             }
 
-        fun Request.Builder.postWithBody(body: Map<String, Any?>? = null, context: PostBodyContext = PostBodyContext.BASE): Request.Builder =
+        suspend fun Request.Builder.postWithBody(body: Map<String, Any?>? = null, context: PostBodyContext = PostBodyContext.BASE): Request.Builder =
             with (api) {
                 postWithBody(body, context)
             }
@@ -222,7 +224,8 @@ interface YoutubeApi {
     val SongRadio: SongRadioEndpoint
 
     // --- Artists ---
-    val ArtistsWithParams: ArtistWithParamsEndpoint
+    val ArtistWithParams: ArtistWithParamsEndpoint
+    val ArtistRadio: ArtistRadioEndpoint
 
     // --- Playlists ---
     val PlaylistContinuation: PlaylistContinuationEndpoint

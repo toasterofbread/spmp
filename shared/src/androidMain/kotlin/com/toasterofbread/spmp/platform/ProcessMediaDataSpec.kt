@@ -14,7 +14,7 @@ import java.io.IOException
 import java.time.Duration
 
 @UnstableApi
-internal fun processMediaDataSpec(data_spec: DataSpec, context: PlatformContext, metered: Boolean): DataSpec {
+internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: PlatformContext, metered: Boolean): DataSpec {
     val song = SongRef(data_spec.uri.toString())
 
     val download_manager = context.download_manager

@@ -40,9 +40,9 @@ class SongData(
         lazyAssert { id.isNotBlank() }
     }
 
-    override fun saveToDatabase(db: Database, apply_to_item: MediaItem, uncertain: Boolean) {
+    override fun saveToDatabase(db: Database, apply_to_item: MediaItem, uncertain: Boolean, subitems_uncertain: Boolean) {
         db.transaction { with(apply_to_item as Song) {
-            super.saveToDatabase(db, apply_to_item, uncertain)
+            super.saveToDatabase(db, apply_to_item, uncertain, subitems_uncertain)
 
             album?.also { album ->
                 if (album is RemotePlaylistData) {

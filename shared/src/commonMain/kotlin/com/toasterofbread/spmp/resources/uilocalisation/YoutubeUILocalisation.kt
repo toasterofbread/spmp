@@ -10,6 +10,8 @@ import com.toasterofbread.spmp.resources.uilocalisation.localised.getYoutubeSear
 class YoutubeUILocalisation(languages: UILanguages) {
     enum class StringID {
         ARTIST_ROW_SINGLES,
+        ARTIST_ROW_SONGS,
+        ARTIST_ROW_VIDEOS,
         ARTIST_ROW_OTHER
     }
 

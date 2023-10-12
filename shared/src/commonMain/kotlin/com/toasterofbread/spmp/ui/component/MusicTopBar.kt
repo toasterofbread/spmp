@@ -80,12 +80,16 @@ class MusicTopBar(val player: PlayerState) {
 
         lyrics = null
 
+        if (reference?.isNone() == true) {
+            return@Listener
+        }
+
         coroutine_scope.launchSingle {
-            val result =
+            val result: Result<SongLyrics>? =
                 if (reference != null) SongLyricsLoader.loadByLyrics(reference, player.context)
                 else SongLyricsLoader.loadBySong(song, player.context)
 
-            result.onSuccess {
+            result?.onSuccess {
                 lyrics = it
             }
         }
@@ -257,7 +261,7 @@ class MusicTopBar(val player: PlayerState) {
                     else {
                         coroutine_scope.launchSingle {
                             val result = SongLyricsLoader.loadBySong(song, player.context)
-                            result.onSuccess {
+                            result?.onSuccess {
                                 lyrics = it
                             }
                         }

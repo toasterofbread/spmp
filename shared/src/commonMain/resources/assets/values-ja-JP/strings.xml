@@ -166,6 +166,8 @@
     <string name="lyrics_source_cannot_search">この歌詞源で検索はできません</string>
     <string name="lyrics_sync_long_press_line">シンクに使う行を長押ししてください</string>
     <string name="lyrics_sync_press_button_when_line_begins">この行が始まったらボタンを押して下さい</string>
+    <string name="lyrics_no_lyrics_set_confirmation_title">この曲の歌詞を無効にしますか？</string>
+    <string name="lyrics_no_lyrics_set_for_song">この曲の歌詞は無効にされています</string>
 
     <string name="lyrics_info_key_source">源</string>
     <string name="lyrics_info_key_id">ID</string>

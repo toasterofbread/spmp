@@ -67,6 +67,13 @@ class RadioInstance(val context: PlatformContext) {
         val loading: Boolean = false,
         val load_error: RadioLoadError? = null
     ) {
+        fun getCurrentFilters(): List<RadioBuilderModifier> {
+            return current_filter?.let { filter ->
+                if (filter == -1) listOf(RadioBuilderModifier.Internal.ARTIST)
+                else filters?.get(filter)
+            } ?: emptyList()
+        }
+
         internal fun copyWithFilter(filter_index: Int?): RadioState =
             copy(
                 current_filter = filter_index,
@@ -228,7 +235,7 @@ class RadioInstance(val context: PlatformContext) {
 
                 val result = continuation.loadContinuation(
                     context,
-                    state.current_filter?.let { state.filters?.get(it) } ?: emptyList()
+                    state.getCurrentFilters()
                 )
                 val (items, cont) = result.fold(
                     { it },
@@ -260,7 +267,7 @@ class RadioInstance(val context: PlatformContext) {
                 val filtered = context.database.transactionWithResult {
                     songs.filter { song ->
                         if (song is MediaItemData) {
-                            song.saveToDatabase(context.database)
+                            song.saveToDatabase(context.database, subitems_uncertain = true)
                         }
                         !isMediaItemHidden(song, context.database)
                     }
@@ -279,7 +286,11 @@ class RadioInstance(val context: PlatformContext) {
 
         when (val item = getMediaItemFromUid(item_uid)) {
             is Song -> {
-                val result = context.ytapi.SongRadio.getSongRadio(item.id, null, state.current_filter?.let { state.filters?.get(it) } ?: emptyList())
+                val result = context.ytapi.SongRadio.getSongRadio(
+                    item.id,
+                    null,
+                    state.getCurrentFilters()
+                )
                 return result.fold(
                     { data ->
                         state = state.copy(

@@ -19,7 +19,7 @@ internal data class YoutubeFormatsResponse(
     data class PlayabilityStatus(val status: String)
 }
 
-internal fun YoutubeApi.Endpoint.buildVideoFormatsRequest(id: String): Request {
+internal suspend fun YoutubeApi.Endpoint.buildVideoFormatsRequest(id: String): Request {
     return Request.Builder()
         .endpointUrl("/youtubei/v1/player")
         .postWithBody(

@@ -9,7 +9,13 @@ import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.getStringTODO
 import mediaitem.LyricsById
 
-data class LyricsReference(val source_index: Int, val id: String)
+data class LyricsReference(val source_index: Int, val id: String) {
+    fun isNone(): Boolean = source_index < 0
+
+    companion object {
+        val NONE: LyricsReference = LyricsReference(-1, "")
+    }
+}
 
 fun LyricsById?.toLyricsReference(): LyricsReference? =
     if (this?.lyrics_source != null && lyrics_id != null) LyricsReference(lyrics_source.toInt(), lyrics_id)
@@ -46,6 +52,8 @@ sealed class LyricsSource(val source_index: Int) {
         val SOURCE_AMOUNT: Int get() = lyrics_sources.size
 
         fun fromIdx(source_idx: Int): LyricsSource {
+            require(source_idx >= 0)
+
             val creator = lyrics_sources[source_idx]
             return creator.invoke(source_idx)
         }
@@ -138,6 +146,8 @@ sealed class LyricsSource(val source_index: Int) {
 }
 
 suspend fun loadLyrics(reference: LyricsReference, context: PlatformContext): Result<SongLyrics> {
+    require(!reference.isNone())
+
     val source = LyricsSource.fromIdx(reference.source_index)
     return source.getLyrics(reference.id, context)
 }

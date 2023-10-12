@@ -23,6 +23,7 @@ import com.toasterofbread.spmp.youtubeapi.SongRelatedContentEndpoint
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.YoutubeVideoFormat
 import com.toasterofbread.spmp.youtubeapi.composable.LoginPage
+import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistRadioEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsRow
 import com.toasterofbread.spmp.youtubeapi.endpoint.CreateYoutubeChannelEndpoint
@@ -54,7 +55,7 @@ class UnimplementedYoutubeApi(
 
     override suspend fun init() {}
 
-    override fun YoutubeApi.PostBodyContext.getContextPostBody(): JsonObject {
+    override suspend fun YoutubeApi.PostBodyContext.getContextPostBody(): JsonObject {
         throw NotImplementedError()
     }
 
@@ -66,7 +67,7 @@ class UnimplementedYoutubeApi(
         throw NotImplementedError()
     }
 
-    override fun Request.Builder.postWithBody(body: Map<String, Any?>?, context: YoutubeApi.PostBodyContext): Request.Builder {
+    override suspend fun Request.Builder.postWithBody(body: Map<String, Any?>?, context: YoutubeApi.PostBodyContext): Request.Builder {
         throw NotImplementedError()
     }
 
@@ -146,7 +147,7 @@ class UnimplementedYoutubeApi(
     }
     override val VideoFormats = object : VideoFormatsEndpoint() {
         override fun isImplemented(): Boolean = false
-        override fun getVideoFormats(id: String, filter: ((YoutubeVideoFormat) -> Boolean)?): Result<List<YoutubeVideoFormat>> {
+        override suspend fun getVideoFormats(id: String, filter: ((YoutubeVideoFormat) -> Boolean)?): Result<List<YoutubeVideoFormat>> {
             throw NotImplementedError()
         }
         override val api = this@UnimplementedYoutubeApi
@@ -172,12 +173,18 @@ class UnimplementedYoutubeApi(
         }
         override val api = this@UnimplementedYoutubeApi
     }
-    override val ArtistsWithParams = object : ArtistWithParamsEndpoint() {
+    override val ArtistWithParams = object : ArtistWithParamsEndpoint() {
         override fun isImplemented(): Boolean = false
         override suspend fun loadArtistWithParams(browse_params: BrowseParamsData): Result<List<ArtistWithParamsRow>> {
             throw NotImplementedError()
         }
         override val api = this@UnimplementedYoutubeApi
+    }
+    override val ArtistRadio: ArtistRadioEndpoint = object : ArtistRadioEndpoint() {
+        override suspend fun getArtistRadio(artist: Artist, continuation: String?): Result<RadioData> {
+            throw NotImplementedError()
+        }
+        override val api: YoutubeApi = this@UnimplementedYoutubeApi
     }
     override val PlaylistContinuation = object : PlaylistContinuationEndpoint() {
         override fun isImplemented(): Boolean = false

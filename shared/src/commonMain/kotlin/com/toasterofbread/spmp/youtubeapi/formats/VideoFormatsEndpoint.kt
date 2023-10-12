@@ -26,5 +26,5 @@ enum class VideoFormatsEndpointType {
 }
 
 abstract class VideoFormatsEndpoint: YoutubeApi.Endpoint() {
-    abstract fun getVideoFormats(id: String, filter: ((YoutubeVideoFormat) -> Boolean)? = null): Result<List<YoutubeVideoFormat>>
+    abstract suspend fun getVideoFormats(id: String, filter: ((YoutubeVideoFormat) -> Boolean)? = null): Result<List<YoutubeVideoFormat>>
 }

@@ -6,6 +6,7 @@ import com.toasterofbread.spmp.model.mediaitem.getMediaItemFromUid
 import com.toasterofbread.spmp.model.mediaitem.getUid
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.platform.PlatformContext
 
 sealed interface ViewMore {
     fun execute(player: PlayerState, title: LocalisedString?)
@@ -103,9 +104,12 @@ data class ListPageBrowseIdViewMore(
     override fun execute(player: PlayerState, title: LocalisedString?) {
         player.openMediaItem(
             ArtistRef(item_id),
-            browse_params = BrowseParamsData(list_page_browse_id, browse_params, title?.getString(player.context) ?: "")
+            browse_params = getBrowseParamsData(title, player.context)
         )
     }
+
+    fun getBrowseParamsData(title: LocalisedString?, context: PlatformContext): BrowseParamsData =
+        BrowseParamsData(list_page_browse_id, browse_params, title?.getString(context) ?: "")
 }
 
 data class PlainViewMore(

@@ -42,10 +42,11 @@ fun loadLyricsOnSongChange(song: Song?, context: PlatformContext, load_lyrics: B
 
             if (load_lyrics) {
                 coroutine_scope.launchSingle {
-                    val result =
+                    val result: Result<SongLyrics>? =
                         if (reference != null) SongLyricsLoader.loadByLyrics(reference, context)
                         else SongLyricsLoader.loadBySong(song, context)
-                    result.onSuccess {
+
+                    result?.onSuccess {
                         lyrics = it
                     }
                 }
@@ -69,8 +70,8 @@ fun loadLyricsOnSongChange(song: Song?, context: PlatformContext, load_lyrics: B
                     }
                     else if (load_lyrics) {
                         coroutine_scope.launchSingle {
-                            val result = SongLyricsLoader.loadBySong(song, context)
-                            result.onSuccess {
+                            val result: Result<SongLyrics>? = SongLyricsLoader.loadBySong(song, context)
+                            result?.onSuccess {
                                 lyrics = it
                             }
                         }

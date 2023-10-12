@@ -1,10 +1,10 @@
 package com.toasterofbread.spmp.youtubeapi
 
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.getString
-import kotlinx.serialization.Serializable
 
 abstract class RadioBuilderEndpoint: YoutubeApi.Endpoint() {
     abstract suspend fun getRadioBuilderArtists(
@@ -22,13 +22,17 @@ data class RadioBuilderArtist(
     val thumbnail: MediaItemThumbnailProvider.Thumbnail
 )
 
-
-@Serializable
 sealed interface RadioBuilderModifier {
     val string: String?
     fun getReadable(): String
 
-    @Serializable
+    enum class Internal: RadioBuilderModifier {
+        ARTIST;
+
+        override val string: String? get() = throw IllegalStateException()
+        override fun getReadable(): String = throw IllegalStateException()
+    }
+
     enum class Variety: RadioBuilderModifier {
         LOW, MEDIUM, HIGH;
         override val string: String? get() = when (this) {
@@ -43,7 +47,6 @@ sealed interface RadioBuilderModifier {
         })
     }
 
-    @Serializable
     enum class SelectionType: RadioBuilderModifier {
         FAMILIAR, BLEND, DISCOVER;
         override val string: String? get() = when (this) {
@@ -58,7 +61,6 @@ sealed interface RadioBuilderModifier {
         })
     }
 
-    @Serializable
     enum class FilterA: RadioBuilderModifier {
         POPULAR, HIDDEN, NEW;
         override val string: String? get() = when (this) {
@@ -73,7 +75,6 @@ sealed interface RadioBuilderModifier {
         })
     }
 
-    @Serializable
     enum class FilterB: RadioBuilderModifier {
         PUMP_UP, CHILL, UPBEAT, DOWNBEAT, FOCUS;
         override val string: String? get() = when (this) {
@@ -92,30 +93,7 @@ sealed interface RadioBuilderModifier {
         })
     }
 
-    fun serialise(): String =
-        when (this) {
-            is FilterA -> 'a'
-            is FilterB -> 'b'
-            is SelectionType -> 's'
-            is Variety -> 'v'
-        } + string.toString()
-
     companion object {
-        fun deserialise(serialised: String): RadioBuilderModifier {
-            val values = when (serialised.first()) {
-                'a' -> FilterA.values()
-                'b' -> FilterB.values()
-                's' -> SelectionType.values()
-                'v' -> Variety.values()
-                else -> throw NotImplementedError(serialised)
-            }
-
-            val string = serialised.substring(1)
-            return values.first {
-                it.string.toString() == string
-            }
-        }
-
         fun fromString(modifier: String): RadioBuilderModifier? {
             return when (modifier) {
                 "iY" -> SelectionType.FAMILIAR

@@ -24,9 +24,12 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
     suspend fun loadBySong(
         song: Song,
         context: PlatformContext
-    ): Result<SongLyrics> {
+    ): Result<SongLyrics>? {
         val lyrics_reference: LyricsReference? = song.Lyrics.get(context.database)
         if (lyrics_reference != null) {
+            if (lyrics_reference.isNone()) {
+                return null
+            }
             return loadByLyrics(lyrics_reference, context)
         }
 
@@ -43,6 +46,8 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
     }
 
     suspend fun loadByLyrics(lyrics_reference: LyricsReference, context: PlatformContext): Result<SongLyrics> {
+        require(!lyrics_reference.isNone())
+
         val loaded = loaded_by_reference[lyrics_reference]?.get()
         if (loaded != null) {
             return Result.success(loaded)
@@ -64,6 +69,7 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
         val song_id: String
         val lyrics: SongLyrics?
         val loading: Boolean
+        val is_none: Boolean
     }
 
     fun getItemState(song: Song, context: PlatformContext): ItemState =
@@ -80,6 +86,8 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
                 get() = loaded_by_reference[song_lyrics_reference.value]?.get()
             override val loading: Boolean
                 get() = loading_by_id.containsKey(song_id) || loading_by_reference.containsKey(song_lyrics_reference.value)
+            override val is_none: Boolean
+                get() = song_lyrics_reference.value?.isNone() == true
 
             override fun toString(): String =
                 "LyricsItemState(id=$song_id, loading=$loading, lyrics=${lyrics?.reference})"

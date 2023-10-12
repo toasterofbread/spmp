@@ -1,0 +1,101 @@
+name: Bug report
+description: Create a bug report to help us improve
+labels: [ Bug ]
+body:
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      description: Please complete all tasks before submitting a report.
+      options:
+        - label: I am able to reproduce the bug with the [latest debug version](https://github.com/toasterofbread/spmp/actions/workflows/android.yml).
+          required: true
+        - label: I've checked that there is no open or closed issue about this bug.
+          required: true
+        - label: This issue contains only one bug.
+          required: true
+        - label: The title of this issue accurately describes the bug.
+          required: true
+
+  - type: textarea
+    id: reproduce-steps
+    attributes:
+      label: Steps to reproduce
+      description: What did you do for the bug to occur?
+      placeholder: |
+        Example:
+          1. Log in to YouTube
+          2. Go to '...'
+          3. Click on '....'
+          4. Error is displayed
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      placeholder: |
+        Example:
+          ... should happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual behavior
+      placeholder: |
+        Example:
+          ... happened instead
+    validations:
+      required: true
+
+  - type: textarea
+    id: media
+    attributes:
+      label: Screenshots / recordings
+      description: |
+        Screenshots or recordings showing the issue.
+
+        You can upload them directly in the text box.
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: |
+        Please provide any logs or stack traces displayed by the app. If your issue involves a crash but no logs were displayed, then please find the logs using Logcat or a similar tool. 
+        
+        Without this information, the developer may unable to resolve the issue.
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: SpMp version
+      description: |
+        The version(s) or commit hash(es) of SpMp that the issue can be found on.
+      placeholder: |
+        Example: "0.2.1"
+    validations:
+      required: true
+
+  - type: input
+    id: android-version
+    attributes:
+      label: Android version
+      description: |
+        If using a custom rom, please also include the name and version of the rom.
+      placeholder: |
+        Example: "Android 9"
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-information
+    attributes:
+      label: Additional information
+      placeholder: |
+        Additional details and attachments.

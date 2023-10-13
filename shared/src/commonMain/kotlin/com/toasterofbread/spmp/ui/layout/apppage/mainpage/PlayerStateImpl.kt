@@ -23,6 +23,7 @@ import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
+import com.toasterofbread.spmp.service.playercontroller.PersistentQueueHandler
 import com.toasterofbread.spmp.ui.component.*
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenu
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
@@ -106,6 +107,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
         }
     }
 
+    private val coroutine_scope = CoroutineScope(Job())
     fun onStart() {
         SpMp.addLowMemoryListener(low_memory_listener)
         context.getPrefs().addListener(prefs_listener)
@@ -113,6 +115,13 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
 
         if (PlatformPlayerService.isServiceRunning(context)) {
             connectService(null)
+        }
+        else {
+            coroutine_scope.launch {
+                if (PersistentQueueHandler.isPopulatedQueueSaved(context)) {
+                    connectService(null)
+                }
+            }
         }
     }
 

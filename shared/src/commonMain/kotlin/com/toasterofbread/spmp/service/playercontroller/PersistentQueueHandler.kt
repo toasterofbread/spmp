@@ -19,17 +19,36 @@ import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.FileNotFoundException
+import java.io.IOException
 
 private const val PERSISTENT_QUEUE_FILENAME: String = "persistent_queue"
 
 private data class PersistentQueueMetadata(val song_index: Int, val position_ms: Long) {
     fun serialise(): String = "$song_index,$position_ms"
-
     companion object {
         fun deserialise(data: String): PersistentQueueMetadata {
             val split = data.split(",")
             return PersistentQueueMetadata(split[0].toInt(), split[1].toLong())
         }
+    }
+}
+
+private suspend fun getSavedQueue(context: PlatformContext): Pair<List<SongData>, PersistentQueueMetadata> = withContext(Dispatchers.IO) {
+    val reader: BufferedReader = context.openFileInput(PERSISTENT_QUEUE_FILENAME).bufferedReader()
+    reader.use {
+        val songs: MutableList<SongData> = mutableListOf()
+        val metadata: PersistentQueueMetadata = PersistentQueueMetadata.deserialise(
+            reader.readLine() ?: throw IOException("Empty file")
+        )
+
+        var line: String? = reader.readLine()
+        while (line != null) {
+            val song = SongData(line)
+            songs.add(song)
+            line = reader.readLine()
+        }
+
+        return@withContext Pair(songs, metadata)
     }
 }
 
@@ -70,7 +89,7 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
                             writer.newLine()
                         }
 
-                        SpMp.Log.info("savePersistentQueue saved ${songs.size} songs with data $metadata")
+                        SpMp.Log.info("savePersistentQueue: Saved ${songs.size} songs with data $metadata")
                     }
                 }
 
@@ -80,55 +99,46 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
     }
 
     suspend fun loadPersistentQueue() {
-        if (player.song_count != 0) {
+        if (player.song_count > 0) {
+            SpMp.Log.info("loadPersistentQueue: Skipping, queue already populated")
             persistent_queue_loaded = true
             return
         }
 
         withContext(Dispatchers.IO) {
             if (!Settings.KEY_PERSISTENT_QUEUE.get<Boolean>(context)) {
+                SpMp.Log.info("loadPersistentQueue: Skipping, feature disabled")
                 context.deleteFile(PERSISTENT_QUEUE_FILENAME)
                 return@withContext
             }
 
             if (!queue_lock.tryLock()) {
-                persistent_queue_loaded = true
+                SpMp.Log.info("loadPersistentQueue: Skipping, lock already acquired")
                 return@withContext
             }
 
-            val songs: MutableList<Song>
+            val songs: List<Song>
             val metadata: PersistentQueueMetadata
 
             try {
                 if (persistent_queue_loaded) {
+                    SpMp.Log.info("loadPersistentQueue: Skipping, queue already loaded")
                     return@withContext
                 }
 
-                val reader: BufferedReader
-                try {
-                    reader = context.openFileInput(PERSISTENT_QUEUE_FILENAME).bufferedReader()
-                } catch (_: FileNotFoundException) {
-                    SpMp.Log.info("loadPersistentQueue no file found")
-                    persistent_queue_loaded = true
+                val queue = getSavedQueue(context)
+                songs = queue.first
+                metadata = queue.second
+
+                if (songs.isEmpty()) {
+                    SpMp.Log.info("loadPersistentQueue: Saved queue is empty")
                     return@withContext
                 }
 
-                coroutineContext.job.invokeOnCompletion {
-                    reader.close()
-                }
-
-                metadata = PersistentQueueMetadata.deserialise(reader.readLine() ?: return@withContext)
-
-                songs = mutableListOf()
                 val request_limit = Semaphore(10)
                 val jobs: MutableList<Job> = mutableListOf()
 
-                var line: String? = reader.readLine()
-
-                while (line != null) {
-                    val song = SongData(line)
-                    songs.add(song)
-
+                for (song in songs) {
                     if (!song.Loaded.get(context.database)) {
                         jobs.add(
                             launch {
@@ -138,16 +148,18 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
                             }
                         )
                     }
-
-                    line = reader.readLine()
-                }
-
-                if (songs.isEmpty()) {
-                    return@withContext
                 }
 
                 jobs.joinAll()
-
+            }
+            catch (_: FileNotFoundException) {
+                SpMp.Log.info("loadPersistentQueue: No file found")
+                persistent_queue_loaded = true
+                return@withContext
+            }
+            catch (e: Throwable) {
+                SpMp.Log.info("loadPersistentQueue: Failed with $e")
+                throw RuntimeException(e)
             }
             finally {
                 queue_lock.unlock()
@@ -155,7 +167,7 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
             }
 
             withContext(Dispatchers.Main) {
-                SpMp.Log.info("loadPersistentQueue adding ${songs.size} songs to $metadata")
+                SpMp.Log.info("loadPersistentQueue: Adding ${songs.size} songs to $metadata")
 
                 player.apply {
                     if (player.song_count == 0) {
@@ -165,6 +177,18 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
                         player.seekTo(metadata.position_ms)
                     }
                 }
+            }
+        }
+    }
+
+    companion object {
+        suspend fun isPopulatedQueueSaved(context: PlatformContext): Boolean {
+            try {
+                val queue = getSavedQueue(context)
+                return queue.first.isNotEmpty()
+            }
+            catch (_: Throwable) {
+                return false
             }
         }
     }

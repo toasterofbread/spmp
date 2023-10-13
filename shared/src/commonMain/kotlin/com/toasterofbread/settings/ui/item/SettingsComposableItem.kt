@@ -11,7 +11,7 @@ class SettingsComposableItem(val composable: @Composable Theme.() -> Unit): Sett
     override fun resetValues() {}
 
     @Composable
-    override fun GetItem(theme: Theme, openPage: (Int, Any?) -> Unit, openCustomPage: (SettingsPage) -> Unit) {
+    override fun Item(theme: Theme, openPage: (Int, Any?) -> Unit, openCustomPage: (SettingsPage) -> Unit) {
         composable(theme)
     }
 }

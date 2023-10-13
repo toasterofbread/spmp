@@ -81,7 +81,7 @@ class SettingsFileItem(
     private val coroutine_scope = CoroutineScope(Job())
 
     @Composable
-    override fun GetItem(theme: Theme, openPage: (Int, Any?) -> Unit, openCustomPage: (SettingsPage) -> Unit) {
+    override fun Item(theme: Theme, openPage: (Int, Any?) -> Unit, openCustomPage: (SettingsPage) -> Unit) {
         val player = LocalPlayerState.current
 
         var action_in_progress: Boolean by remember { mutableStateOf(false) }

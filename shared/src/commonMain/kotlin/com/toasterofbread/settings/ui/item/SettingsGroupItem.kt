@@ -14,7 +14,7 @@ class SettingsGroupItem(var title: String?): SettingsItem() {
     override fun resetValues() {}
 
     @Composable
-    override fun GetItem(
+    override fun Item(
         theme: Theme,
         openPage: (Int, Any?) -> Unit,
         openCustomPage: (SettingsPage) -> Unit

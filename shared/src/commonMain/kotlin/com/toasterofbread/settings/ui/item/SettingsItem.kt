@@ -39,7 +39,7 @@ abstract class SettingsItem {
     abstract fun resetValues()
 
     @Composable
-    abstract fun GetItem(
+    abstract fun Item(
         theme: Theme,
         openPage: (Int, Any?) -> Unit,
         openCustomPage: (SettingsPage) -> Unit

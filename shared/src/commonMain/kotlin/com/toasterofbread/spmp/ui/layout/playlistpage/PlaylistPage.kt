@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.playlistpage
 
+import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.clickable
@@ -21,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +50,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.getEditorOrNull
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.composable.SwipeRefresh
 import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_DEFAULT_HEIGHT
@@ -373,81 +376,106 @@ class PlaylistPage(
                 swipe_enabled = !loading,
                 modifier = Modifier.fillMaxSize()
             ) {
-                LazyColumn(
-                    state = list_state.listState,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.reorderable(list_state),
-                    contentPadding = content_padding.copy(top = top_padding)
-                ) {
-                    previous_item?.item?.also { prev ->
-                        item {
-                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                IconButton(close) {
-                                    Icon(Icons.Default.KeyboardArrowLeft, null)
+                CompositionLocalProvider(LocalPlayerState provides remember {
+                    player.copy(
+                        onClickedOverride = { item, multiselect_key ->
+                            if (multiselect_key != null) {
+                                if (sort_type == MediaItemSortType.NATIVE && current_filter == null) {
+                                    player.playPlaylist(playlist, multiselect_key)
+                                    player.onPlayActionOccurred()
                                 }
-
-                                Spacer(Modifier.fillMaxWidth().weight(1f))
-
-                                val previous_item_title: String? by prev.observeActiveTitle()
-                                previous_item_title?.also { Text(it) }
-
-                                Spacer(Modifier.fillMaxWidth().weight(1f))
-
-                                IconButton({ player.showLongPressMenu(prev) }) {
-                                    Icon(Icons.Default.MoreVert, null)
-                                }
-                            }
-                        }
-                    }
-
-                    item {
-                        PlaylistTopInfo(sorted_items)
-                    }
-
-                    item {
-                        PlaylistButtonBar(Modifier.fillMaxWidth())
-                    }
-
-                    stickyHeaderWithTopPadding(
-                        list_state.listState,
-                        if (top_bar_showing) 0.dp else top_padding,
-                        Modifier.zIndex(1f).padding(bottom = 5.dp),
-                        player.theme.background_provider
-                    ) {
-                        PlaylistInteractionBar(
-                            sorted_items,
-                            loading = loading && load_type != LoadType.CONTINUE && sorted_items != null,
-                            list_state = list_state.listState,
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .clickable(remember { MutableInteractionSource() }, indication = null) {}
-                        )
-                    }
-
-                    PlaylistItems(
-                        this,
-                        list_state,
-                        sorted_items
-                    )
-
-                    item {
-                        PlaylistFooter(
-                            sorted_items,
-                            loading && load_type != LoadType.REFRESH && sorted_items == null,
-                            load_error,
-                            Modifier.fillMaxWidth().padding(top = 15.dp),
-                            onRetry = 
-                                remote_playlist?.let { remote ->
-                                    {
-                                        load_type = LoadType.REFRESH
-                                        load_error = null
-                                        coroutine_scope.launch {
-                                            MediaItemLoader.loadRemotePlaylist(remote.getEmptyData(), player.context)
+                                else {
+                                    sorted_items?.also { items ->
+                                        player.withPlayer {
+                                            addMultipleToQueue(items.mapNotNull { it.first as? Song }, clear = true)
+                                            seekToSong(multiselect_key)
+                                            player.onPlayActionOccurred()
                                         }
                                     }
                                 }
+                            }
+                            else {
+                                player.onMediaItemClicked(item)
+                            }
+                        }
+                    )
+                }) {
+                    LazyColumn(
+                        state = list_state.listState,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.reorderable(list_state),
+                        contentPadding = content_padding.copy(top = top_padding)
+                    ) {
+                        previous_item?.item?.also { prev ->
+                            item {
+                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                    IconButton(close) {
+                                        Icon(Icons.Default.KeyboardArrowLeft, null)
+                                    }
+
+                                    Spacer(Modifier.fillMaxWidth().weight(1f))
+
+                                    val previous_item_title: String? by prev.observeActiveTitle()
+                                    previous_item_title?.also { Text(it) }
+
+                                    Spacer(Modifier.fillMaxWidth().weight(1f))
+
+                                    IconButton({ player.showLongPressMenu(prev) }) {
+                                        Icon(Icons.Default.MoreVert, null)
+                                    }
+                                }
+                            }
+                        }
+
+                        item {
+                            PlaylistTopInfo(sorted_items)
+                        }
+
+                        item {
+                            PlaylistButtonBar(Modifier.fillMaxWidth())
+                        }
+
+                        stickyHeaderWithTopPadding(
+                            list_state.listState,
+                            if (top_bar_showing) 0.dp else top_padding,
+                            Modifier.zIndex(1f).padding(bottom = 5.dp),
+                            player.theme.background_provider
+                        ) {
+                            PlaylistInteractionBar(
+                                sorted_items,
+                                loading = loading && load_type != LoadType.CONTINUE && sorted_items != null,
+                                list_state = list_state.listState,
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .clickable(remember { MutableInteractionSource() }, indication = null) {}
+                            )
+                        }
+
+                        PlaylistItems(
+                            this,
+                            list_state,
+                            sorted_items
                         )
+
+                        item {
+                            PlaylistFooter(
+                                sorted_items,
+                                loading && load_type != LoadType.REFRESH && sorted_items == null,
+                                load_error,
+                                Modifier.fillMaxWidth().padding(top = 15.dp),
+                                onRetry = 
+                                    remote_playlist?.let { remote ->
+                                        {
+                                            load_type = LoadType.REFRESH
+                                            load_error = null
+                                            coroutine_scope.launch {
+                                                MediaItemLoader.loadRemotePlaylist(remote.getEmptyData(), player.context)
+                                            }
+                                        }
+                                    }
+                            )
+                        }
                     }
                 }
             }

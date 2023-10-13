@@ -123,12 +123,6 @@ internal fun getGeneralCategory(language: String, available_languages: List<Lang
         ),
 
         SettingsToggleItem(
-            SettingsValueState(Settings.KEY_ADD_SONGS_TO_HISTORY.name),
-            getString("s_key_add_songs_to_history"),
-            getString("s_sub_add_songs_to_history")
-        ),
-
-        SettingsToggleItem(
             SettingsValueState(Settings.KEY_TREAT_SINGLES_AS_SONG.name),
             getString("s_key_treat_singles_as_song"),
             getString("s_sub_treat_singles_as_song")

@@ -215,6 +215,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
     override fun onMediaItemClicked(item: MediaItem, multiselect_key: Int?) {
         if (item is Song) {
             playMediaItem(item)
+            onPlayActionOccurred()
         }
         else {
             openMediaItem(item)
@@ -240,6 +241,12 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
         expansion_state.scrollTo(1)
     }
 
+    override fun onPlayActionOccurred() {
+        if (np_swipe_state.value.targetValue == 0 && Settings.get(Settings.KEY_OPEN_NP_ON_SONG_PLAYED)) {
+            switchNowPlayingPage(1)
+        }
+    }
+
     override fun playMediaItem(item: MediaItem, shuffle: Boolean, at_index: Int) {
         withPlayer {
             if (item is Song) {
@@ -247,10 +254,6 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
             }
             else {
                 startRadioAtIndex(at_index, item, shuffle = shuffle)
-            }
-
-            if (np_swipe_state.value.targetValue == 0 && Settings.get(Settings.KEY_OPEN_NP_ON_SONG_PLAYED)) {
-                switchNowPlayingPage(1)
             }
         }
     }

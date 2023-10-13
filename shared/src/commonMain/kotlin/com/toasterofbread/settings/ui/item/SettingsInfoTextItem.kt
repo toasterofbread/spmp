@@ -12,7 +12,7 @@ class SettingsItemInfoText(val text: String): SettingsItem() {
     override fun resetValues() {}
 
     @Composable
-    override fun GetItem(theme: Theme, openPage: (Int, Any?) -> Unit, openCustomPage: (SettingsPage) -> Unit) {
+    override fun Item(theme: Theme, openPage: (Int, Any?) -> Unit, openCustomPage: (SettingsPage) -> Unit) {
         Text(text)
     }
 }

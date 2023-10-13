@@ -2,6 +2,13 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import LocalPlayerState
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -12,6 +19,7 @@ import com.toasterofbread.composesettings.ui.item.BasicSettingsValueState
 import com.toasterofbread.composesettings.ui.item.SettingsComposableItem
 import com.toasterofbread.composesettings.ui.item.SettingsItem
 import com.toasterofbread.composesettings.ui.item.SettingsLargeToggleItem
+import com.toasterofbread.composesettings.ui.item.SettingsToggleItem
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
@@ -21,6 +29,7 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLon
 import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
+import com.toasterofbread.utils.composable.ShapedIconButton
 
 @Composable
 fun rememberYtmAuthItem(ytm_auth: SettingsValueState<Set<String>>, initialise: Boolean = false): SettingsItem {
@@ -51,7 +60,7 @@ fun rememberYtmAuthItem(ytm_auth: SettingsValueState<Set<String>>, initialise: B
                 override fun getDefault(defaultProvider: (String) -> Any): Boolean =
                     defaultProvider(Settings.KEY_YTM_AUTH.name) is YoutubeMusicAuthInfo
             },
-            enabled_content = { modifier ->
+            enabledContent = { modifier ->
                 val data = YoutubeApi.UserAuthState.unpackSetData(ytm_auth.get(), player.context)
                 if (data.first != null) {
                     own_channel = data.first
@@ -61,6 +70,7 @@ fun rememberYtmAuthItem(ytm_auth: SettingsValueState<Set<String>>, initialise: B
                     MediaItemPreviewLong(channel, modifier, show_type = false)
                 }
             },
+            extra_items = getYoutubeAccountCategory(),
             disabled_text = getString("auth_not_signed_in"),
             enable_button = getString("auth_sign_in"),
             disable_button = getString("auth_sign_out"),
@@ -70,9 +80,38 @@ fun rememberYtmAuthItem(ytm_auth: SettingsValueState<Set<String>>, initialise: B
                     openPage(PrefsPageScreen.YOUTUBE_MUSIC_LOGIN.ordinal, param)
                 }
             },
-            infoDialog = { dismiss, _ ->
-                login_page.LoginConfirmationDialog(true) {
-                    dismiss()
+            infoButton = { enabled, show_extra_state ->
+                var show_extra: Boolean by show_extra_state
+                var show_info_dialog: Boolean by remember(enabled) { mutableStateOf(false) }
+
+                if (show_info_dialog) {
+                    login_page.LoginConfirmationDialog(true) {
+                        show_info_dialog = false
+                    }
+                }
+
+                ShapedIconButton(
+                    {
+                        if (enabled) {
+                            show_extra = !show_extra
+                        }
+                        else {
+                            show_info_dialog = !show_info_dialog
+                        }
+                    },
+                    shape = CircleShape,
+                    colours = IconButtonDefaults.iconButtonColors(
+                        containerColor = if (enabled) player.theme.background else player.theme.vibrant_accent,
+                        contentColor = if (enabled) player.theme.on_background else player.theme.on_accent
+                    ),
+                    indication = null
+                ) {
+                    Icon(
+                        if (!enabled) Icons.Default.Info
+                        else if (show_extra) Icons.Default.Close
+                        else Icons.Default.Settings,
+                        null
+                    )
                 }
             }
         ) { target, setEnabled, _, openPage ->

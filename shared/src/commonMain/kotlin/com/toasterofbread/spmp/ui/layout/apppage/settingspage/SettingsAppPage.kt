@@ -4,7 +4,6 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -15,7 +14,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -30,15 +28,12 @@ import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.*
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
-import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.common.blendWith
-import com.toasterofbread.utils.modifier.background
 import com.toasterofbread.utils.modifier.getHorizontal
 import org.jetbrains.compose.resources.*
 
@@ -232,7 +227,7 @@ class SettingsAppPage(override val state: AppPageState): AppPage() {
 
                             item {
                                 val item = rememberYtmAuthItem(ytm_auth, true)
-                                item.GetItem(
+                                item.Item(
                                     player.theme,
                                     settings_interface::openPageById,
                                     settings_interface::openPage

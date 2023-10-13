@@ -80,14 +80,14 @@ fun QueueButtonsRow(
                                 multiselect_context.onActionPerformed()
                             }
                             else {
-                                shuffleQueue()
+                                shuffleQueue(start = current_song_index + 1)
                             }
                         }
                     },
                     onLongClick = if (multiselect_context.is_active) null else ({
                         if (!multiselect_context.is_active) {
                             player.controller?.service_player?.undoableAction {
-                                shuffleQueue(start = 0)
+                                shuffleQueue()
                             }
                             player.context.vibrateShort()
                         }

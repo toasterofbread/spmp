@@ -1,12 +1,11 @@
 package com.toasterofbread.spmp.ui.layout.playlistpage
 
-import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Reorder
 import androidx.compose.material3.Icon
@@ -29,8 +28,8 @@ internal fun PlaylistPage.PlaylistItems(
     list_state: ReorderableLazyListState,
     sorted_items: List<Pair<MediaItem, Int>>?
 ) {
-    list_scope.items(sorted_items ?: emptyList(), key = { it.second }) {
-        val (item, index) = it
+    list_scope.itemsIndexed(sorted_items ?: emptyList(), key = { _, item -> item.second }) { i, data ->
+        val (item, index) = data
         check(item is Song)
 
         val long_press_menu_data = remember(item, index) {
@@ -44,7 +43,7 @@ internal fun PlaylistPage.PlaylistItems(
                     Modifier.fillMaxWidth().weight(1f),
                     long_press_menu_data = long_press_menu_data,
                     title_lines = 2,
-                    show_artist = false,
+                    show_artist = true,
                     show_type = false,
                     getExtraInfo = {
                         val item_duration: Long? by item.Duration.observe(player.database)
@@ -55,7 +54,8 @@ internal fun PlaylistPage.PlaylistItems(
                                 }
                             )
                         }
-                    }
+                    },
+                    multiselect_key = i
                 )
 
                 AnimatedVisibility(reordering) {

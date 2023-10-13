@@ -37,8 +37,10 @@ class WebResourceRequestReader(private val request: WebResourceRequest): WebView
 
 private fun clearStorage() {
     WebStorage.getInstance().deleteAllData()
-    CookieManager.getInstance().removeAllCookies(null)
-    CookieManager.getInstance().flush()
+    CookieManager.getInstance().apply {
+        removeAllCookies(null)
+        flush()
+    }
 }
 
 @SuppressLint("SetJavaScriptEnabled")

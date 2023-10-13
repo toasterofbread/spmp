@@ -35,7 +35,10 @@ import java.util.logging.Logger
 expect fun getPlatformName(): String
 
 val LocalPlayerState: ProvidableCompositionLocal<PlayerState> = staticCompositionLocalOf { SpMp.player_state }
-val LocalNowPlayingExpansion: ProvidableCompositionLocal<NowPlayingExpansionState> = staticCompositionLocalOf { SpMp.player_state.expansion_state }
+object LocalNowPlayingExpansion {
+    val current: NowPlayingExpansionState
+        @Composable get() = LocalPlayerState.current.expansion_state
+}
 
 object SpMp {
     val Log: Logger = Logger.getLogger(SpMp::class.java.name)

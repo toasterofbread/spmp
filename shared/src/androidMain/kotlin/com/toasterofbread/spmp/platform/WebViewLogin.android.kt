@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.viewinterop.AndroidView
 import com.toasterofbread.spmp.platform.composable.BackHandler
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
@@ -34,6 +35,12 @@ class WebResourceRequestReader(private val request: WebResourceRequest): WebView
         get() = request.requestHeaders
 }
 
+private fun clearStorage() {
+    WebStorage.getInstance().deleteAllData()
+    CookieManager.getInstance().removeAllCookies(null)
+    CookieManager.getInstance().flush()
+}
+
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 actual fun WebViewLogin(
@@ -44,9 +51,9 @@ actual fun WebViewLogin(
     loading_message: String?,
     onRequestIntercepted: (WebViewRequest, openUrl: (String) -> Unit, getCookie: (String) -> String) -> Unit
 ) {
-    val player = LocalPlayerState.current
+    val player: PlayerState = LocalPlayerState.current
     var web_view: WebView? by remember { mutableStateOf(null) }
-    val is_dark by remember { derivedStateOf { player.theme.background.isDark() } }
+    val is_dark: Boolean by remember { derivedStateOf { player.theme.background.isDark() } }
 
     var requested_url: String? by remember { mutableStateOf(null) }
     OnChangedEffect(requested_url) {
@@ -67,14 +74,21 @@ actual fun WebViewLogin(
         }
     }
 
+    DisposableEffect(Unit) {
+        onDispose {
+            clearStorage()
+        }
+    }
+
     BackHandler(web_view?.canGoBack() == true) {
-        val web = web_view ?: return@BackHandler
+        val web: WebView = web_view ?: return@BackHandler
 
         val back_forward_list = web.copyBackForwardList()
         if (back_forward_list.currentIndex > 0) {
             val previous_url = back_forward_list.getItemAtIndex(back_forward_list.currentIndex - 1).url
             if (previous_url == initial_url) {
                 onClosed()
+                clearStorage()
                 return@BackHandler
             }
         }
@@ -95,7 +109,7 @@ actual fun WebViewLogin(
             },
             factory = { context ->
                 WebView(context).apply {
-                    WebStorage.getInstance().deleteAllData()
+                    clearStorage()
 
                     settings.javaScriptEnabled = true
                     settings.domStorageEnabled = true

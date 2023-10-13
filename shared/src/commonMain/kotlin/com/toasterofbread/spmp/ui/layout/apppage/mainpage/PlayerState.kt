@@ -30,6 +30,7 @@ import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
+import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.spmp.ui.theme.Theme
@@ -154,6 +155,8 @@ open class PlayerState protected constructor(
     val database: Database get() = context.database
     val theme: Theme get() = context.theme
     open val context: PlatformContext get() = upstream!!.context
+
+    open val expansion_state: NowPlayingExpansionState get() = upstream!!.expansion_state
 
     open val app_page_state: AppPageState get() = upstream!!.app_page_state
     val app_page: AppPage get() = app_page_state.current_page

@@ -135,7 +135,6 @@ fun ArtistLayout(
         )
     }
 
-
     @Composable
     fun TopBar() {
         Column(
@@ -158,7 +157,7 @@ fun ArtistLayout(
             ).showing
 
             AnimatedVisibility(multiselect_context?.is_active == true) {
-                multiselect_context?.InfoDisplay(Modifier.padding(top = 10.dp).padding(content_padding.horizontal))
+                multiselect_context?.InfoDisplay(Modifier.padding(top = 10.dp).padding(content_padding.horizontal), getAllSelectableItems)
             }
 
             AnimatedVisibility(showing) {

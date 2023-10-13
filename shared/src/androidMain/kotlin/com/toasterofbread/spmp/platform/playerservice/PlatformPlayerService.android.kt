@@ -365,7 +365,7 @@ actual class PlatformPlayerService: MediaSessionService() {
         super.onTaskRemoved(intent)
 
         if (
-            !player.isPlaying
+            (!player.isPlaying && convertState(player.playbackState) != MediaPlayerState.BUFFERING)
             || (
                 Settings.KEY_STOP_PLAYER_ON_APP_CLOSE.get(context)
                 && intent?.component?.packageName == packageName

@@ -79,7 +79,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
     private val np_swipe_state: MutableState<SwipeableState<Int>> = mutableStateOf(SwipeableState(0))
     private var np_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
 
-    val expansion_state = NowPlayingExpansionState(np_swipe_state)
+    override val expansion_state = NowPlayingExpansionState(np_swipe_state)
 
     override val app_page_state = AppPageState(context)
     override val bottom_padding: Float get() = bottom_padding_anim.value

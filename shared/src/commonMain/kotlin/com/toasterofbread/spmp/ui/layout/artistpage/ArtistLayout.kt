@@ -96,7 +96,7 @@ fun ArtistLayout(
     val density = LocalDensity.current
 
     val thumbnail_provider: MediaItemThumbnailProvider? by artist.ThumbnailProvider.observe(player.database)
-    val thumbnail_load_state = MediaItemThumbnailLoader.rememberItemState(artist)
+    val thumbnail_load_state: MediaItemThumbnailLoader.ItemState = MediaItemThumbnailLoader.rememberItemState(artist)
 
     LaunchedEffect(thumbnail_provider) {
         thumbnail_provider?.also { provider ->
@@ -176,8 +176,10 @@ fun ArtistLayout(
                 TopBar()
             }
 
+            val th = thumbnail_load_state.getHighestQuality()
+
             // Thumbnail
-            Crossfade(thumbnail_load_state.loaded_images.values.firstOrNull()?.get()) { thumbnail ->
+            Crossfade(th) { thumbnail ->
                 if (thumbnail != null) {
                     if (accent_colour == null) {
                         accent_colour = player.theme.makeVibrant(thumbnail.getThemeColour() ?: player.theme.accent)

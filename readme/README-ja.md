@@ -1,4 +1,9 @@
-[To the English README](../README.md)
+<p>
+    <a href="../README.md">To the English README</a>
+    <a href="https://discord.gg/B4uY4FkkJ3"><img src="https://img.shields.io/discord/1133321339495788625?style=for-the-badge&logo=discord&label=Discord&color=4f58d6" align="right"></a>
+</p>
+
+<br>
 
 ###
 <img align="left" width="140" src="../androidApp/src/main/ic_launcher-playstore.png">
@@ -10,8 +15,7 @@
 # SpMp
 言語とメタデータのカスタマイズに特化した YouTube Music のアプリ。Jetpack ComposeとKotlinを使って主にAndroid向けに開発されています。
 
-<a href="https://discord.gg/B4uY4FkkJ3"><img src="https://img.shields.io/discord/1133321339495788625?style=for-the-badge&logo=discord&label=Discord&color=4f58d6"></a>
-
+<br>
 <br>
 
 ## 開発状態
@@ -21,7 +25,7 @@ Compose Multiplatformでのデスクトップ上サポートは[計画](https://
 
 <br>
 
-<img align="right" width="20%" src="screenshot_1.png">
+<img align="right" width="20%" src="../metadata/en-US/images/phoneScreenshots/0.png">
 
 ## 機能
 - 曲、アーティスト、またはプレイリストのタイトルを編集
@@ -40,23 +44,23 @@ Compose Multiplatformでのデスクトップ上サポートは[計画](https://
 <details open>
     <summary><h2>スクリーンショット</h2></summary>
     <p align="center">
-        <img src="../metadata/en-US/images/phoneScreenshots/5.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="../metadata/en-US/images/phoneScreenshots/2.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="../metadata/en-US/images/phoneScreenshots/4.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="../metadata/en-US/images/phoneScreenshots/7.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="../metadata/en-US/images/phoneScreenshots/8.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="../metadata/en-US/images/phoneScreenshots/1.png" style="max-height:70vh;object-fit:contain;" width="25%">
     </p>
 </details>
 
 <details closed>
     <summary><h2>他のスクリーンショット</h2></summary>
     <p align="center">
-        <img src="../metadata/en-US/images/phoneScreenshots/7.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="../metadata/en-US/images/phoneScreenshots/10.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="../metadata/en-US/images/phoneScreenshots/8.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="../metadata/en-US/images/phoneScreenshots/9.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="../metadata/en-US/images/phoneScreenshots/2.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="../metadata/en-US/images/phoneScreenshots/4.png" style="max-height:70vh;object-fit:contain;" width="25%">
     </p>
     <p align="center">
-        <img src="../metadata/en-US/images/phoneScreenshots/6.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="../metadata/en-US/images/phoneScreenshots/9.png" style="max-height:70vh;object-fit:contain;" width="25%">
         <img src="../metadata/en-US/images/phoneScreenshots/3.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="../metadata/en-US/images/phoneScreenshots/5.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="../metadata/en-US/images/phoneScreenshots/6.png" style="max-height:70vh;object-fit:contain;" width="25%">
     </p>
 </details>
 

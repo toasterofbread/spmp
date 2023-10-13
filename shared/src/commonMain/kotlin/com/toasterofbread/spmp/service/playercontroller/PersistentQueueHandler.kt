@@ -175,6 +175,7 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
                         addMultipleToQueue(songs, 0)
                         player.seekToSong(metadata.song_index)
                         player.seekTo(metadata.position_ms)
+                        player.pause()
                     }
                 }
             }

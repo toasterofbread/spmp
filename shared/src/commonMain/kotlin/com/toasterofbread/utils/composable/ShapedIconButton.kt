@@ -4,6 +4,7 @@ package com.toasterofbread.utils.composable
 
 import LocalPlayerState
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Indication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -38,8 +39,12 @@ fun ShapedIconButton(
         contentColor = LocalPlayerState.current.theme.on_accent,
         disabledContainerColor = LocalPlayerState.current.theme.accent.setAlpha(0.5f)
     ),
+    indication: Indication? = rememberRipple(
+        bounded = false,
+        radius = IconButtonTokens.StateLayerSize / 2
+    ),
     onLongClick: (() -> Unit)? = null,
-    content: @Composable () -> Unit,
+    content: @Composable () -> Unit
 ) {
     Box(
         modifier =
@@ -52,10 +57,7 @@ fun ShapedIconButton(
                 enabled = enabled,
                 role = Role.Button,
                 interactionSource = interactionSource,
-                indication = rememberRipple(
-                    bounded = false,
-                    radius = IconButtonTokens.StateLayerSize / 2
-                )
+                indication = indication
             ),
         contentAlignment = Alignment.Center
     ) {

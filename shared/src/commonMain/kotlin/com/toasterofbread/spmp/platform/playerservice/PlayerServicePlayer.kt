@@ -293,12 +293,11 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
     }
 
     fun shuffleQueue(start: Int = 0, end: Int = -1) {
+        require(start >= 0)
+
         val shuffle_end = if (end < 0) song_count -1 else end
         val range: IntRange =
-            if (start < 0) {
-                current_song_index + 1..shuffle_end
-            }
-            else if (song_count - start <= 1) {
+            if (song_count - start <= 1) {
                 return
             }
             else {

@@ -47,7 +47,7 @@ class SettingsToggleItem(
     }
 
     @Composable
-    override fun GetItem(
+    override fun Item(
         theme: Theme,
         openPage: (Int, Any?) -> Unit,
         openCustomPage: (SettingsPage) -> Unit

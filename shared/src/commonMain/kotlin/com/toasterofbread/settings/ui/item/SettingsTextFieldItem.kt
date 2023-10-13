@@ -33,7 +33,7 @@ class SettingsTextFieldItem(
     }
 
     @Composable
-    override fun GetItem(theme: Theme, openPage: (Int, Any?) -> Unit, openCustomPage: (SettingsPage) -> Unit) {
+    override fun Item(theme: Theme, openPage: (Int, Any?) -> Unit, openCustomPage: (SettingsPage) -> Unit) {
         Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(5.dp)) {
             ItemTitleText(title, theme)
             ItemText(subtitle, theme)

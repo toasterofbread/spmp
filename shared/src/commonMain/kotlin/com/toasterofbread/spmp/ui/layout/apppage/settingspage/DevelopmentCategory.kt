@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import LocalPlayerState
 import SpMp
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -64,7 +65,7 @@ private fun UnlocalisedStringList(strings: List<UnlocalisedString>) {
         }
     }
 
-    Column {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         SettingsItem.ItemTitleText(getString("s_key_unlocalised_strings"), player.theme)
         SettingsItem.ItemText(getString("s_sub_unlocalised_strings"), player.theme)
 

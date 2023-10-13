@@ -1,4 +1,9 @@
-[日本語のREADMEへ](readme/README-ja.md)
+<p>
+    <a href="readme/README-ja.md">日本語のREADMEへ</a>
+    <a href="https://discord.gg/B4uY4FkkJ3"><img src="https://img.shields.io/discord/1133321339495788625?style=for-the-badge&logo=discord&label=Discord&color=4f58d6" align="right"></a>
+</p>
+
+<br>
 
 ###
 <img align="left" width="140" src="androidApp/src/main/ic_launcher-playstore.png">
@@ -10,8 +15,7 @@
 # SpMp
 A YouTube Music client with a focus on language and metadata customisation, built for Android using Jetpack Compose and Kotlin.
 
-<a href="https://discord.gg/B4uY4FkkJ3"><img src="https://img.shields.io/discord/1133321339495788625?style=for-the-badge&logo=discord&label=Discord&color=4f58d6"></a>
-
+<br>
 <br>
 
 ## Development status
@@ -21,7 +25,7 @@ Support for Compose Multiplatform on desktop is [planned](https://github.com/toa
 
 <br>
 
-<img align="right" width="20%" src="metadata/en-US/images/phoneScreenshots/1.png">
+<img align="right" width="20%" src="metadata/en-US/images/phoneScreenshots/0.png">
 
 # Features
 - Edit song, artist, and playlist titles
@@ -40,23 +44,23 @@ Support for Compose Multiplatform on desktop is [planned](https://github.com/toa
 <details open>
     <summary><h2>Screenshots</h2></summary>
     <p align="center">
-        <img src="metadata/en-US/images/phoneScreenshots/5.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="metadata/en-US/images/phoneScreenshots/2.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="metadata/en-US/images/phoneScreenshots/4.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="metadata/en-US/images/phoneScreenshots/7.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="metadata/en-US/images/phoneScreenshots/8.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="metadata/en-US/images/phoneScreenshots/1.png" style="max-height:70vh;object-fit:contain;" width="25%">
     </p>
 </details>
 
 <details closed>
     <summary><h2>More Screenshots</h2></summary>
     <p align="center">
-        <img src="metadata/en-US/images/phoneScreenshots/6.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="metadata/en-US/images/phoneScreenshots/10.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="metadata/en-US/images/phoneScreenshots/8.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="metadata/en-US/images/phoneScreenshots/9.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="metadata/en-US/images/phoneScreenshots/2.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="metadata/en-US/images/phoneScreenshots/4.png" style="max-height:70vh;object-fit:contain;" width="25%">
     </p>
     <p align="center">
-        <img src="metadata/en-US/images/phoneScreenshots/7.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="metadata/en-US/images/phoneScreenshots/9.png" style="max-height:70vh;object-fit:contain;" width="25%">
         <img src="metadata/en-US/images/phoneScreenshots/3.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="metadata/en-US/images/phoneScreenshots/5.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="metadata/en-US/images/phoneScreenshots/6.png" style="max-height:70vh;object-fit:contain;" width="25%">
     </p>
 </details>
 

@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.composable.PlatformDialog
 import com.toasterofbread.utils.common.thenIf
+import com.toasterofbread.utils.composable.WidthShrinkText
 
 @Composable
 fun LargeDropdownMenu(
@@ -65,7 +66,7 @@ fun LargeDropdownMenu(
                                 }
                                 .padding(8.dp)
                         ) {
-                            Text(
+                            WidthShrinkText(
                                 text = getItem(index),
                                 style = MaterialTheme.typography.titleSmall
                             )

@@ -137,6 +137,9 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
     interface ItemState {
         val loaded_images: Map<MediaItemThumbnailProvider.Quality, WeakReference<ImageBitmap>>
         val loading_images: List<MediaItemThumbnailProvider.Quality>
+
+        fun getHighestQuality(): ImageBitmap? =
+            loaded_images.maxByOrNull { it.key.ordinal }?.value?.get()
     }
 
     @Composable

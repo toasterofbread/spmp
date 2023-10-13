@@ -35,7 +35,7 @@ class ArtistData(
 
                 Layouts.overwriteItems(layouts, db)
                 for (layout in layouts) {
-                    layout.saveToDatabase(db)
+                    layout.saveToDatabase(db, uncertain = subitems_uncertain)
                 }
             }
 

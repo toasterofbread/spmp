@@ -15,8 +15,6 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
-import com.toasterofbread.spmp.platform.getDataLanguage
-import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.resources.uilocalisation.YoutubeLocalisedString
 import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeDurationString
 import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeSubscribersString
@@ -71,15 +69,13 @@ suspend fun processSong(song: SongData, response_body: Reader, api: YoutubeApi):
 suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: String, api: YoutubeApi): Result<Unit> {
     return withContext(Dispatchers.IO) {
         val response_reader: Reader = response.getReader(api)
-        return@withContext response_reader.use {
+        return@withContext response_reader.use { reader ->
             if (item is SongData) {
                 return@use processSong(item, response_reader, api)
             }
 
             val parse_result: Result<YoutubeiBrowseResponse> = runCatching {
-                response_reader.use {
-                    api.gson.fromJson(it)
-                }
+                api.gson.fromJson(reader)
             }
 
             val parsed: YoutubeiBrowseResponse = parse_result.fold(

@@ -27,21 +27,21 @@ data class ArtistLayoutData(
     var view_more: ViewMore? = null,
     var playlist: RemotePlaylist? = null
 ): ArtistLayout {
-    fun saveToDatabase(db: Database) {
+    fun saveToDatabase(db: Database, uncertain: Boolean = false, subitems_uncertain: Boolean = uncertain) {
         db.transaction {
             items?.also { items ->
                 Items.clearItems(db, 0)
                 for (item in items) {
-                    item.saveToDatabase(db)
+                    item.saveToDatabase(db, uncertain = subitems_uncertain)
                     Items.addItem(item, null, db)
                 }
             }
 
-            Title.setNotNull(title, db)
-            Subtitle.setNotNull(subtitle, db)
-            Type.setNotNull(type, db)
-            ViewMore.setNotNull(view_more, db)
-            Playlist.setNotNull(playlist, db)
+            Title.setNotNull(title, db, uncertain)
+            Subtitle.setNotNull(subtitle, db, uncertain)
+            Type.setNotNull(type, db, uncertain)
+            ViewMore.setNotNull(view_more, db, uncertain)
+            Playlist.setNotNull(playlist, db, uncertain)
         }
     }
 }

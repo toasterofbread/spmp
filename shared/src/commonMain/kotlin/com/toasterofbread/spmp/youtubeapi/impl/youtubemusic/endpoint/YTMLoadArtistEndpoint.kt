@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 
-import SpMp
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
 import com.toasterofbread.spmp.platform.getDataLanguage
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
@@ -37,7 +36,7 @@ class YTMLoadArtistEndpoint(override val api: YoutubeMusicApi): LoadArtistEndpoi
         }
 
         artist_data.loaded = true
-        artist_data.saveToDatabase(api.database)
+        artist_data.saveToDatabase(api.database, subitems_uncertain = true)
 
         return@withContext Result.success(artist_data)
     }

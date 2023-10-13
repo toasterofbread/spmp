@@ -43,6 +43,7 @@ abstract class MediaItemData: MediaItem {
             if (loaded) {
                 Loaded.set(true, db)
             }
+
             Title.setNotNull(title, db, uncertain)
             CustomTitle.setNotNull(custom_title, db, uncertain)
             Description.setNotNull(description, db, uncertain)

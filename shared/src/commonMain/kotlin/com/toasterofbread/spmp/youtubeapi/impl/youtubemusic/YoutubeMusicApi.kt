@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic
 
-import SpMp
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -40,21 +39,20 @@ import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMYoutubeC
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import okhttp3.Headers
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.Request
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import org.apache.commons.text.StringSubstitutor
 import java.io.Reader
 import java.time.Duration
-import java.util.concurrent.locks.ReentrantLock
 import java.util.logging.Level
 import java.util.logging.Logger
-import kotlin.concurrent.withLock
 
 internal val PLAIN_HEADERS = listOf("accept-language", "user-agent", "accept-encoding", "content-encoding", "origin")
 
@@ -108,25 +106,29 @@ data class YoutubeMusicApi(
         youtubei_headers = headers_builder.build()
     }
 
+    private val init_lock = Mutex()
     override suspend fun init() {
-        if (initialised) {
-            return
-        }
+        init_lock.withLock {
+            if (initialised) {
+                return
+            }
 
-        coroutineScope {
-            launch(Dispatchers.Default) {
-                launch {
-                    buildHeaders()
-                }
-                launch {
-                    context.getPrefs().addListener(prefs_change_listener)
-                }
-                launch {
-                    updateYtmContext()
+            coroutineScope {
+                launch(Dispatchers.Default) {
+                    launch {
+                        buildHeaders()
+                    }
+                    launch {
+                        context.getPrefs().addListener(prefs_change_listener)
+                    }
+                    launch {
+                        updateYtmContext()
+                    }
                 }
             }
+
+            initialised = true
         }
-        initialised = true
     }
 
     private fun updateYtmContext() {

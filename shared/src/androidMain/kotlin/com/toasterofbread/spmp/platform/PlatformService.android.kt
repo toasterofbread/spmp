@@ -43,7 +43,7 @@ actual open class PlatformServiceImpl: Service(), PlatformService {
 
 actual fun startPlatformService(
     context: PlatformContext,
-    cls: Class<out PlatformService>,
+    cls: Class<out PlatformServiceImpl>,
     onConnected: ((binder: PlatformBinder?) -> Unit)?,
     onDisconnected: (() -> Unit)?
 ): Any {

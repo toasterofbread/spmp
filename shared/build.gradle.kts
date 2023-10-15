@@ -26,7 +26,8 @@ val DEBUG_KEY_NAMES = mapOf(
     "DISCORD_STATUS_TEXT_TEXT_C_OVERRIDE" to "String",
     "DISCORD_STATUS_TEXT_BUTTON_SONG_OVERRIDE" to "String",
     "DISCORD_STATUS_TEXT_BUTTON_PROJECT_OVERRIDE" to "String",
-    "MUTE_PLAYER" to "Boolean"
+    "MUTE_PLAYER" to "Boolean",
+    "DISABLE_PERSISTENT_QUEUE" to "Boolean"
 )
 
 val buildConfigDir: Provider<Directory> get() = project.layout.buildDirectory.dir("generated/buildconfig")
@@ -110,7 +111,7 @@ val buildConfigRelease: TaskProvider<GenerateBuildConfig> = tasks.register("buil
 
 tasks.all {
     when (name) {
-        "preDebugBuild" -> dependsOn(buildConfigDebug)
+        "preDebugBuild", "compileKotlinDesktop" -> dependsOn(buildConfigDebug)
         "preReleaseBuild" -> dependsOn(buildConfigRelease)
     }
 }
@@ -181,9 +182,9 @@ kotlin {
         val desktopMain by getting {
             dependencies {
                 implementation(compose.desktop.common)
-//                implementation("com.github.bluemods:kxml2:4dae70b2a995e72f842eca0c778792ce90d6cfc7")
                 implementation("org.zeromq:jeromq:0.5.3")
                 implementation("com.github.ltttttttttttt:load-the-image:1.0.5")
+                implementation("app.cash.sqldelight:sqlite-driver:2.0.0-rc02")
             }
         }
     }

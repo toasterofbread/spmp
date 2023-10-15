@@ -17,7 +17,7 @@ interface PlatformService {
     fun removeMessageReceiver(receiver: (Any?) -> Unit)
 }
 
-expect class PlatformServiceImpl: PlatformService {
+expect open class PlatformServiceImpl: PlatformService {
     override val context: PlatformContext
 
     override fun onCreate()
@@ -32,10 +32,9 @@ expect class PlatformServiceImpl: PlatformService {
     override fun removeMessageReceiver(receiver: (Any?) -> Unit)
 }
 
-
 expect fun startPlatformService(
     context: PlatformContext,
-    cls: Class<out PlatformService>,
+    cls: Class<out PlatformServiceImpl>,
     onConnected: ((binder: PlatformBinder?) -> Unit)? = null,
     onDisconnected: (() -> Unit)? = null
 ): Any // Service connection

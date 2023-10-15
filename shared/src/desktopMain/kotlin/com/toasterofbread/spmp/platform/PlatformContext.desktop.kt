@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.platform
 
 import SpMp
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -9,12 +10,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.platform.Font
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.service.playercontroller.PlatformPlayerController
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.spmp.youtubeapi.YoutubeApi
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.jetbrains.skiko.OS
 import org.jetbrains.skiko.hostOs
 import java.awt.Desktop
@@ -24,14 +29,37 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
+import java.io.OutputStream
 import java.net.URI
+import java.nio.file.FileSystem
+import java.nio.file.FileSystemNotFoundException
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import kotlin.io.path.name
 
 private fun getHomeDir(): File = File(System.getProperty("user.home"))
+private var instantiated: Boolean = false
 
-actual open class PlatformContext {
+actual open class PlatformContext() {
+    actual val database = createDatabase()
+    actual val download_manager = PlayerDownloadManager(this)
+    actual val ytapi: YoutubeApi
+    actual val theme: Theme by lazy { Theme(this) }
+
+    init {
+        check(!instantiated)
+        instantiated = true
+
+        val prefs = getPrefs()
+        val youtubeapi_type: YoutubeApi.Type = Settings.KEY_YOUTUBEAPI_TYPE.getEnum(prefs)
+        ytapi = youtubeapi_type.instantiate(this, Settings.KEY_YOUTUBEAPI_URL.get(prefs))
+    }
+
+    suspend fun init(): PlatformContext {
+        ytapi.init()
+        return this
+    }
+
     actual fun getPrefs(): PlatformPreferences = PlatformPreferences.getInstance(this)
 
     actual fun getFilesDir(): File {
@@ -108,21 +136,30 @@ actual open class PlatformContext {
 
     actual fun openResourceFile(path: String): InputStream {
         val resource_path = getResourceDir().resolve(path).path
-        return PlatformPlayerController::class.java.getResourceAsStream(resource_path)!!
+        return PlatformPlayerService::class.java.getResourceAsStream(resource_path)!!
     }
 
+    @Suppress("NewApi")
     actual fun listResourceFiles(path: String): List<String>? {
-        val resource_path = getResourceDir().resolve(path).path
-        val resource = PlatformPlayerController::class.java.getResource(resource_path)!!
+        val resource_path: String = getResourceDir().resolve(path).path
 
-        val file_system = FileSystems.newFileSystem(resource.toURI(), emptyMap<String, Any>())
+        val resource = PlatformPlayerService::class.java.getResource(resource_path)!!
+
+        val file_system: FileSystem =
+            try {
+                FileSystems.getFileSystem(resource.toURI())
+            }
+            catch (_: FileSystemNotFoundException) {
+                FileSystems.newFileSystem(resource.toURI(), emptyMap<String, Any>())
+            }
+
         return Files.list(file_system.getPath(resource_path)).toList().map { it.name }
     }
 
     actual fun loadFontFromFile(path: String): Font {
         val resource_path = getResourceDir().resolve(path).path
 
-        val stream = PlatformPlayerController::class.java.getResourceAsStream(resource_path)!!
+        val stream = PlatformPlayerService::class.java.getResourceAsStream(resource_path)!!
         val bytes = stream.readBytes()
         stream.close()
 
@@ -139,17 +176,101 @@ actual open class PlatformContext {
     }
 
     @Composable
-    actual fun getScreenHeight(): Dp {
-        return with (LocalDensity.current) { screen_size!!.height.toDp() }
-    }
-
-    @Composable
-    actual fun getScreenWidth(): Dp {
-        return with (LocalDensity.current) { screen_size!!.width.toDp() }
-    }
-
-    @Composable
     actual fun CopyShareButtons(name: String?, getText: () -> String) {
         // TODO
+    }
+
+    actual fun promptForUserDirectory(persist: Boolean, callback: (uri: String?) -> Unit) {
+        TODO()
+    }
+
+    actual fun getUserDirectoryFile(uri: String): PlatformFile {
+        TODO("Not yet implemented")
+    }
+
+    actual fun getNavigationBarHeight(): Int = 0
+
+    actual fun setNavigationBarColour(colour: Color?) {}
+
+    actual fun isDisplayingAboveNavigationBar(): Boolean = false
+
+    @Composable
+    actual fun getImeInsets(): WindowInsets? = null
+
+    @Composable
+    actual fun getSystemInsets(): WindowInsets? = null
+
+    actual fun deleteFile(name: String): Boolean {
+        TODO("Not yet implemented")
+    }
+}
+
+actual class PlatformFile {
+    actual val uri: String
+        get() = TODO("Not yet implemented")
+    actual val name: String
+        get() = TODO("Not yet implemented")
+    actual val path: String
+        get() = TODO("Not yet implemented")
+    actual val absolute_path: String
+        get() = TODO("Not yet implemented")
+    actual val exists: Boolean
+        get() = TODO("Not yet implemented")
+    actual val is_directory: Boolean
+        get() = TODO("Not yet implemented")
+    actual val is_file: Boolean
+        get() = TODO("Not yet implemented")
+
+    actual fun getRelativePath(relative_to: PlatformFile): String {
+        TODO("Not yet implemented")
+    }
+
+    actual fun inputStream(): InputStream {
+        TODO("Not yet implemented")
+    }
+
+    actual fun outputStream(append: Boolean): OutputStream {
+        TODO("Not yet implemented")
+    }
+
+    actual fun listFiles(): List<PlatformFile>? {
+        TODO("Not yet implemented")
+    }
+
+    actual fun resolve(relative_path: String): PlatformFile {
+        TODO("Not yet implemented")
+    }
+
+    actual fun getSibling(sibling_name: String): PlatformFile {
+        TODO("Not yet implemented")
+    }
+
+    actual fun delete(): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    actual fun createFile(): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    actual fun mkdirs(): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    actual fun renameTo(new_name: String): PlatformFile {
+        TODO("Not yet implemented")
+    }
+
+    actual fun moveDirContentTo(destination: PlatformFile): Result<PlatformFile> {
+        TODO("Not yet implemented")
+    }
+
+    actual companion object {
+        actual fun fromFile(
+            file: File,
+            context: PlatformContext,
+        ): PlatformFile {
+            TODO("Not yet implemented")
+        }
     }
 }

@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.platform
 
 import com.google.gson.Gson
+import com.toasterofbread.spmp.youtubeapi.fromJson
 import java.io.File
 
 actual class PlatformPreferences private constructor(private val context: PlatformContext) {
@@ -37,7 +38,7 @@ actual class PlatformPreferences private constructor(private val context: Platfo
         }
         
         val stream = file.inputStream()
-        data = Gson().parse(stream)!!
+        data = Gson().fromJson(stream.reader())!!
         stream.close()
     }
     private fun saveData() {
@@ -45,7 +46,7 @@ actual class PlatformPreferences private constructor(private val context: Platfo
         file.createNewFile()
         
         val stream = file.outputStream().writer()
-        stream.write(Gson().toJsonString(data))
+        stream.write(Gson().toJson(data))
         stream.flush()
         stream.close()
     }

@@ -83,7 +83,7 @@ class MainActivity : ComponentActivity() {
             context.setStatusBarColour(context.theme.background)
             context.setNavigationBarColour(context.theme.background)
 
-            SpMp.App(open_uri?.toString())
+            SpMp.App(open_uri = open_uri?.toString())
         }
     }
 

@@ -2,6 +2,7 @@ package com.toasterofbread.utils.composable
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 
 @Composable
-expect fun rememberKeyboardOpen(): State<Boolean>
+actual fun rememberKeyboardOpen(): State<Boolean> = mutableStateOf(false)

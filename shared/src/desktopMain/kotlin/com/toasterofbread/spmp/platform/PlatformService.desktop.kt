@@ -1,12 +1,8 @@
 package com.toasterofbread.spmp.platform
 
-actual open class PlatformService: PlatformContext() {
-    actual abstract class PlatformBinder actual constructor()
-    actual abstract class MessageReceiver actual constructor() {
-        actual abstract fun onReceive(data: Map<String, Any?>)
-    }
 
-    private class ServiceConnection(val service: PlatformService)
+actual open class PlatformServiceImpl: PlatformService {
+    private class ServiceConnection(val service: PlatformServiceImpl)
     private val connections: MutableList<ServiceConnection> = mutableListOf()
     private fun getConnection(): ServiceConnection {
         val conn = ServiceConnection(this)
@@ -19,36 +15,29 @@ actual open class PlatformService: PlatformContext() {
         return connections.isEmpty()
     }
 
-    actual val context: PlatformContext
-        get() = this
-
-    actual open fun onCreate() {}
-    actual open fun onDestroy() {}
-    actual open fun onBind(): PlatformBinder? = null
-
-    actual fun broadcast(data: Map<String, Any?>) {
-        TODO()
+    private fun init(context: PlatformContext) {
+        _context = context
     }
 
-    actual fun addMessageReceiver(receiver: MessageReceiver) {
-        TODO()
-    }
+    private lateinit var _context: PlatformContext
+    actual override val context: PlatformContext get() = _context
 
-    actual fun removeMessageReceiver(receiver: MessageReceiver) {
-        TODO()
-    }
+    actual override fun onCreate() {}
+    actual override fun onDestroy() {}
+    actual override fun onBind(): PlatformBinder? = null
 
-    actual companion object {
-        private val service_instances: MutableMap<Class<out PlatformService>, PlatformService> = mutableMapOf()
+    companion object {
+        private val service_instances: MutableMap<Class<out PlatformServiceImpl>, PlatformServiceImpl> = mutableMapOf()
 
-        actual fun startService(
+        internal fun startService(
             context: PlatformContext,
-            cls: Class<out PlatformService>,
+            cls: Class<out PlatformServiceImpl>,
             onConnected: ((binder: PlatformBinder?) -> Unit)?,
             onDisconnected: (() -> Unit)?
         ): Any {
-            val service = service_instances.getOrPut(cls) {
+            val service: PlatformServiceImpl = service_instances.getOrPut(cls) {
                 cls.getDeclaredConstructor().newInstance().also {
+                    it.init(context)
                     it.onCreate()
                 }
             }
@@ -59,11 +48,40 @@ actual open class PlatformService: PlatformContext() {
             return service.getConnection()
         }
 
-        actual fun unbindService(context: PlatformContext, connection: Any) {
+        internal fun unbindService(context: PlatformContext, connection: Any) {
             require(connection is ServiceConnection)
             if (connection.service.removeConnection(connection)) {
                 connection.service.onDestroy()
             }
         }
     }
+
+    actual override fun sendMessageOut(data: Any?) {
+        TODO()
+    }
+
+    actual override fun onMessage(data: Any?) {
+        TODO()
+    }
+
+    actual override fun addMessageReceiver(receiver: (Any?) -> Unit) {
+        TODO()
+    }
+
+    actual override fun removeMessageReceiver(receiver: (Any?) -> Unit) {
+        TODO()
+    }
+}
+
+actual fun startPlatformService(
+    context: PlatformContext,
+    cls: Class<out PlatformServiceImpl>,
+    onConnected: ((binder: PlatformBinder?) -> Unit)?,
+    onDisconnected: (() -> Unit)?,
+): Any {
+    return PlatformServiceImpl.startService(context, cls, onConnected, onDisconnected)
+}
+
+actual fun unbindPlatformService(context: PlatformContext, connection: Any) {
+    return PlatformServiceImpl.unbindService(context, connection)
 }

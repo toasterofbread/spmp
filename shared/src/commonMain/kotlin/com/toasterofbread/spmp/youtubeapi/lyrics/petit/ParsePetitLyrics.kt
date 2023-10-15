@@ -5,50 +5,49 @@ import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.youtubeapi.lyrics.createTokeniser
 import com.toasterofbread.spmp.youtubeapi.lyrics.mergeAndFuriganiseTerms
-import org.xmlpull.v1.XmlPullParser
-import org.xmlpull.v1.XmlPullParserFactory
+import org.kobjects.ktxml.api.EventType
+import org.kobjects.ktxml.mini.MiniXmlPullParser
 
 internal fun parseTimedLyrics(data: String): Result<List<List<SongLyrics.Term>>> {
-    val parser = XmlPullParserFactory.newInstance().newPullParser()
-    parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false)
-    parser.setInput(data.reader())
+    val parser = MiniXmlPullParser(data.iterator())
     parser.nextTag()
 
     fun skip() {
-        if (parser.eventType != XmlPullParser.START_TAG) {
+        if (parser.eventType != EventType.START_TAG) {
             throw IllegalStateException()
         }
         var depth = 1
         while (depth != 0) {
             when (parser.next()) {
-                XmlPullParser.END_TAG -> depth--
-                XmlPullParser.START_TAG -> depth++
+                EventType.END_TAG -> depth--
+                EventType.START_TAG -> depth++
+                else -> {}
             }
         }
     }
 
     fun readText(tag: String): String {
-        parser.require(XmlPullParser.START_TAG, null, tag)
+        parser.require(EventType.START_TAG, null, tag)
 
         var result = ""
-        if (parser.next() == XmlPullParser.TEXT) {
+        if (parser.next() == EventType.TEXT) {
             result = parser.text
             parser.nextTag()
         }
 
-        parser.require(XmlPullParser.END_TAG, null, tag)
+        parser.require(EventType.END_TAG, null, tag)
         return result
     }
 
     fun parseTerm(line_index: Int): SongLyrics.Term? {
-        parser.require(XmlPullParser.START_TAG, null, "word")
+        parser.require(EventType.START_TAG, null, "word")
 
         var text: String? = null
         var start: Long? = null
         var end: Long? = null
 
-        while (parser.next() != XmlPullParser.END_TAG) {
-            if (parser.eventType != XmlPullParser.START_TAG) {
+        while (parser.next() != EventType.END_TAG) {
+            if (parser.eventType != EventType.START_TAG) {
                 continue
             }
 
@@ -60,7 +59,7 @@ internal fun parseTimedLyrics(data: String): Result<List<List<SongLyrics.Term>>>
             }
         }
 
-        parser.require(XmlPullParser.END_TAG, null, "word")
+        parser.require(EventType.END_TAG, null, "word")
 
         if (text!!.isEmpty()) {
             return null
@@ -72,14 +71,14 @@ internal fun parseTimedLyrics(data: String): Result<List<List<SongLyrics.Term>>>
     val tokeniser: Tokenizer = createTokeniser()
 
     fun parseLine(index: Int): List<SongLyrics.Term> {
-        parser.require(XmlPullParser.START_TAG, null, "line")
+        parser.require(EventType.START_TAG, null, "line")
 
         var line_start: Long? = null
         var line_end: Long? = null
 
         val terms: MutableList<SongLyrics.Term> = mutableListOf()
-        while (parser.next() != XmlPullParser.END_TAG) {
-            if (parser.eventType != XmlPullParser.START_TAG) {
+        while (parser.next() != EventType.END_TAG) {
+            if (parser.eventType != EventType.START_TAG) {
                 continue
             }
 
@@ -114,15 +113,15 @@ internal fun parseTimedLyrics(data: String): Result<List<List<SongLyrics.Term>>>
             }
         }
 
-        parser.require(XmlPullParser.END_TAG, null, "line")
+        parser.require(EventType.END_TAG, null, "line")
         return mergeAndFuriganiseTerms(tokeniser, terms)
     }
 
     val ret: MutableList<List<SongLyrics.Term>> = mutableListOf()
 
-    parser.require(XmlPullParser.START_TAG, null, "wsy")
-    while (parser.next() != XmlPullParser.END_TAG) {
-        if (parser.eventType != XmlPullParser.START_TAG) {
+    parser.require(EventType.START_TAG, null, "wsy")
+    while (parser.next() != EventType.END_TAG) {
+        if (parser.eventType != EventType.START_TAG) {
             continue
         }
 

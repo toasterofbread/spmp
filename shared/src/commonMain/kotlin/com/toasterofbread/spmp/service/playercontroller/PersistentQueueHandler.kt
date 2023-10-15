@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.service.playercontroller
 
 import SpMp
+import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
@@ -60,7 +61,7 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
         PersistentQueueMetadata(player.current_song_index, player.current_position_ms)
 
     suspend fun savePersistentQueue() {
-        if (!persistent_queue_loaded || !Settings.KEY_PERSISTENT_QUEUE.get<Boolean>(context)) {
+        if (!persistent_queue_loaded || !Settings.KEY_PERSISTENT_QUEUE.get<Boolean>(context) || ProjectBuildConfig.DISABLE_PERSISTENT_QUEUE == true) {
             return
         }
 
@@ -99,6 +100,10 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
     }
 
     suspend fun loadPersistentQueue() {
+        if (ProjectBuildConfig.DISABLE_PERSISTENT_QUEUE == true) {
+            return
+        }
+
         if (player.song_count > 0) {
             SpMp.Log.info("loadPersistentQueue: Skipping, queue already populated")
             persistent_queue_loaded = true

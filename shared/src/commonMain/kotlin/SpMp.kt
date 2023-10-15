@@ -15,6 +15,7 @@ import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlatformPreferences
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.resources.getStringOrNull
 import com.toasterofbread.spmp.resources.initResources
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.resources.uilocalisation.UnlocalisedStringCollector
@@ -82,7 +83,7 @@ object SpMp {
     }
 
     @Composable
-    fun App(open_uri: String? = null) {
+    fun App(modifier: Modifier = Modifier, open_uri: String? = null) {
         context.theme.ApplicationTheme(context, getFontFamily(context) ?: FontFamily.Default) {
             context.theme.Update()
 
@@ -94,7 +95,7 @@ object SpMp {
                 }
             }
 
-            Surface(modifier = Modifier.fillMaxSize()) {
+            Surface(modifier = modifier.fillMaxSize()) {
                 CompositionLocalProvider(LocalPlayerState provides player_state) {
                     RootView(player_state)
                     LoadingSplashView(Modifier.fillMaxSize())
@@ -125,7 +126,7 @@ object SpMp {
         return FontFamily(context.loadFontFromFile("font/$font_path"))
     }
 
-    val app_name: String get() = getString("app_name")
+    val app_name: String get() = getStringOrNull("app_name") ?: "spmp"
 
     val unlocalised_string_collector: UnlocalisedStringCollector? = UnlocalisedStringCollector()
 

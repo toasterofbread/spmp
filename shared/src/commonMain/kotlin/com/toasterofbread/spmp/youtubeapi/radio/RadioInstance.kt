@@ -25,6 +25,7 @@ import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrThrowHere
 import com.toasterofbread.utils.common.launchSingle
 import com.toasterofbread.utils.common.synchronizedBlock
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
@@ -212,7 +213,7 @@ class RadioInstance(val context: PlatformContext) {
                         return@launchSingle
                     }
 
-                    val initial_songs = getInitialSongs()
+                    val initial_songs: Result<List<Song>> = getInitialSongs()
                     initial_songs.onFailure { error ->
                         synchronized(lock) {
                             state = state.copyWithLoadError(error, can_retry)

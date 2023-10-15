@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.platform
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asSkiaBitmap
 import androidx.compose.ui.graphics.toAwtImage
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import de.androidpit.colorthief.ColorThief
@@ -15,7 +16,9 @@ actual fun ByteArray.toImageBitmap(): ImageBitmap =
     Image.makeFromEncoded(this).toComposeImageBitmap()
 
 actual fun ImageBitmap.toByteArray(): ByteArray {
-    TODO()
+    val stream = ByteArrayOutputStream()
+    ImageIO.write(this.toAwtImage(), "PNG", stream)
+    return stream.toByteArray()
 }
 
 actual fun ImageBitmap.crop(x: Int, y: Int, width: Int, height: Int): ImageBitmap =
@@ -24,7 +27,17 @@ actual fun ImageBitmap.crop(x: Int, y: Int, width: Int, height: Int): ImageBitma
 actual fun ImageBitmap.getPixel(x: Int, y: Int): Color =
     Color(toAwtImage().getRGB(x, y))
 
-fun ImageBitmap.toScaledBufferedImage(width: Int, height: Int): BufferedImage = toAwtImage().getScaledInstance(50, 50, 0) as BufferedImage
+fun ImageBitmap.toScaledBufferedImage(width: Int, height: Int): BufferedImage {
+    val scaled: java.awt.Image = toAwtImage().getScaledInstance(width, height, 0)
+
+    val buffered: BufferedImage = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
+    buffered.createGraphics().apply {
+        drawImage(scaled, 0, 0, null)
+        dispose()
+    }
+
+    return buffered
+}
 
 actual fun ImageBitmap.scale(width: Int, height: Int): ImageBitmap {
     val scaled = toScaledBufferedImage(width, height)

@@ -8,7 +8,9 @@ import com.toasterofbread.utils.common.synchronizedBlock
 
 interface UndoRedoAction {
     fun undo(service: PlatformPlayerService)
-    fun redo(service: PlatformPlayerService)
+    fun redo(service: PlatformPlayerService) {
+        println("Performing action: $this")
+    }
 }
 
 internal class UndoHandler(val player: PlayerServicePlayer, val service: PlatformPlayerService) {
@@ -26,6 +28,7 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: Platfor
         }
 
         override fun redo(service: PlatformPlayerService) {
+            super.redo(service)
             service.addSong(song, index)
             service.service_player.onUndoStateChanged()
         }
@@ -41,6 +44,7 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: Platfor
         }
 
         override fun redo(service: PlatformPlayerService) {
+            super.redo(service)
             service.moveSong(from, to)
             service.service_player.onUndoStateChanged()
         }
@@ -56,6 +60,7 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: Platfor
 
         private lateinit var song: Song
         override fun redo(service: PlatformPlayerService) {
+            super.redo(service)
             song = service.getSong(index)!!
             service.removeSong(index)
             service.service_player.onUndoStateChanged()
@@ -82,7 +87,7 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: Platfor
     // If enable is null, action will only be undoable if already in an enabled undo scope
     fun customUndoableAction(enable: Boolean? = true, action: UndoHandler.(furtherAction: (UndoHandler.() -> UndoRedoAction?) -> Unit) -> UndoRedoAction?) {
         if (enable == false || (enable == null && current_action == null)) {
-            action(this) { it() }
+            action(this) { it() }?.redo(service)
             return
         }
 

@@ -8,14 +8,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerButton
 import com.toasterofbread.utils.common.thenIf
+import com.toasterofbread.utils.common.thenWithNotNull
 
 @OptIn(ExperimentalFoundationApi::class)
-@Composable
 actual fun Modifier.platformClickable(enabled: Boolean, onClick: (() -> Unit)?, onAltClick: (() -> Unit)?, indication: Indication?): Modifier =
-    this.thenIf(onClick != null) { onClick(onClick = onClick!!) }
-        .thenIf(onAltClick != null) {
+    this
+        .thenWithNotNull(onClick) {
+            onClick(onClick = it)
+        }
+        .thenWithNotNull(onAltClick) {
             onClick(
                 matcher = PointerMatcher.mouse(PointerButton.Secondary),
-                onClick = onAltClick!!
+                onClick = it
             )
         }

@@ -1,8 +1,8 @@
 package com.toasterofbread.spmp.resources
 
 import com.toasterofbread.spmp.platform.PlatformContext
-import org.xmlpull.v1.XmlPullParser
-import org.xmlpull.v1.XmlPullParserFactory
+import org.kobjects.ktxml.api.EventType
+import org.kobjects.ktxml.mini.MiniXmlPullParser
 import java.io.InputStream
 import java.util.MissingResourceException
 
@@ -25,16 +25,18 @@ object Languages {
                 return@iterateValuesDirectories false
             }
 
-            val parser = XmlPullParserFactory.newInstance().newPullParser()
-            parser.setInput(stream.reader())
+            val string = stream.reader().readText()
+            stream.close()
 
-            while (parser.eventType != XmlPullParser.END_DOCUMENT) {
-                if (parser.eventType != XmlPullParser.START_TAG) {
+            val parser = MiniXmlPullParser(string.iterator())
+
+            while (parser.eventType != EventType.END_DOCUMENT) {
+                if (parser.eventType != EventType.START_TAG) {
                     parser.next()
                     continue
                 }
 
-                val key = parser.getAttributeValue(null, "name")
+                val key = parser.getAttributeValue("", "name")
                 if (parser.name == "string" && key == "language_name") {
                     languages.add(LanguageInfo(language ?: DEFAULT_LANGUAGE, parser.nextText()))
                     break

@@ -456,7 +456,7 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
     }
 
     fun seekBy(delta_ms: Long) {
-        seekTo(current_position_ms + delta_ms)
+        seekTo((current_position_ms + delta_ms).coerceIn(0, duration_ms))
     }
 
     inline fun iterateSongs(action: (i: Int, song: Song) -> Unit) {

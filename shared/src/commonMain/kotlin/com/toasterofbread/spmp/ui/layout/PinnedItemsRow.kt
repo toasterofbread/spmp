@@ -33,7 +33,7 @@ fun PinnedItemsRow(
         MediaItemGrid(
             pinned_items,
             modifier,
-            rows = 1,
+            rows = Pair(1, 1),
             startContent = {
                 item {
                     Column(

@@ -41,6 +41,7 @@ object SongFeedCache {
                     row.index.toLong(),
                     now,
                     if (row.index + 1 == layouts.size) continuation_token else null,
+                    row.value.type?.ordinal?.toLong(),
                     title?.serialise(),
                     view_more?.first,
                     view_more?.second
@@ -101,6 +102,7 @@ object SongFeedCache {
                             LocalisedString.deserialise(it)
                         },
                         null,
+                        row.layout_type?.let { MediaItemLayout.Type.values()[it.toInt()] },
                         view_more = row.view_more_type?.let { view_more_type ->
                             ViewMoreType.values()[view_more_type.toInt()].getViewMore(row.view_more_data!!)
                         }

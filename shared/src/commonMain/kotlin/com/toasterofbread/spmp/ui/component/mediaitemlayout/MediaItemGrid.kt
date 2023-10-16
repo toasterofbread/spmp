@@ -1,11 +1,15 @@
 package com.toasterofbread.spmp.ui.component.mediaitemlayout
 
 import LocalPlayerState
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
@@ -14,10 +18,18 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,7 +49,6 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLon
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.modifier.background
 
 @Composable
@@ -45,7 +56,7 @@ fun MediaItemGrid(
     layout: MediaItemLayout,
     modifier: Modifier = Modifier,
     title_modifier: Modifier = Modifier,
-    rows: Int? = null,
+    rows: Pair<Int, Int>? = null,
     alt_style: Boolean = false,
     apply_filter: Boolean = false,
     multiselect_context: MediaItemMultiSelectContext? = null,
@@ -78,7 +89,7 @@ fun MediaItemGrid(
     items: List<MediaItemHolder>,
     modifier: Modifier = Modifier,
     title_modifier: Modifier = Modifier,
-    rows: Int? = null,
+    rows: Pair<Int, Int>? = null,
     title: LocalisedString? = null,
     subtitle: LocalisedString? = null,
     view_more: ViewMore? = null,
@@ -93,35 +104,64 @@ fun MediaItemGrid(
     val player: PlayerState = LocalPlayerState.current
     val filtered_items: List<MediaItem> by items.rememberFilteredItems(apply_filter)
 
-    val row_count = (rows ?: if (filtered_items.size <= 3) 1 else 2) * (if (alt_style) 2 else 1)
+    val row_count: Int = rows?.first ?: ((if (filtered_items.size <= 3) 1 else 2) * (if (alt_style) 2 else 1))
+    val expanded_row_count: Int = rows?.second ?: row_count
+
     val item_spacing = Arrangement.spacedBy(if (alt_style) 7.dp else 15.dp)
     val item_size =
         if (alt_style) DpSize(0.dp, MEDIA_ITEM_PREVIEW_LONG_HEIGHT_DP.dp)
         else itemSizeProvider() + DpSize(0.dp, getMediaItemPreviewSquareAdditionalHeight(square_item_max_text_rows, MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP.sp))
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        TitleBar(
-            items,
-            title,
-            subtitle,
-            title_modifier,
-            view_more = view_more,
-            multiselect_context = multiselect_context
-        )
+        var expanded: Boolean by remember { mutableStateOf(false) }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            if (expanded_row_count > row_count) {
+                Box(
+                    Modifier
+                        .size(30.dp)
+                        .clip(CircleShape)
+                        .clickable(
+                        ) { expanded = !expanded },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Crossfade(expanded) {
+                        Icon(
+                            if (it) Icons.Default.KeyboardArrowUp
+                            else Icons.Default.KeyboardArrowDown,
+                            null
+                        )
+                    }
+                }
+            }
 
-        BoxWithConstraints(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+            TitleBar(
+                items,
+                title,
+                subtitle,
+                title_modifier,
+                view_more = view_more,
+                multiselect_context = multiselect_context
+            )
+        }
+
+        BoxWithConstraints(Modifier.fillMaxWidth().animateContentSize(), contentAlignment = Alignment.CenterEnd) {
+            val current_rows: Int = if (expanded) expanded_row_count else row_count
+
             LazyHorizontalGrid(
-                rows = GridCells.Fixed(row_count),
+                rows = GridCells.Fixed(current_rows),
                 modifier = Modifier
-                    .height(item_size.height * row_count + item_spacing.spacing * (row_count - 1))
+                    .height(item_size.height * current_rows + item_spacing.spacing * (current_rows - 1))
                     .fillMaxWidth(),
                 horizontalArrangement = item_spacing,
                 verticalArrangement = item_spacing
             ) {
                 startContent?.invoke(this)
 
-                items(filtered_items.size, { filtered_items[it].item?.getUid() ?: "" }) { i ->
-                    val item = filtered_items[i].item ?: return@items
+                items(filtered_items.size, { filtered_items[it].item.getUid() }) { i ->
+                    val item = filtered_items[i].item
                     val preview_modifier = Modifier.animateItemPlacement().then(
                         if (alt_style) Modifier.width(maxWidth * 0.9f)
                         else Modifier.size(item_size)

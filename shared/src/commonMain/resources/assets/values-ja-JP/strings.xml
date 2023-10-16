@@ -308,6 +308,10 @@
     <string name="s_key_feed_show_song_download_indicators">曲のダウンロード状態を表示する</string>
     <string name="s_key_feed_initial_rows">最初のフィード行数</string>
     <string name="s_key_feed_square_preview_text_lines">四角形アイテムの最高テキスト行数</string>
+    <string name="s_key_feed_grid_row_count">グリッドの行数</string>
+    <string name="s_key_feed_grid_row_count_expanded">拡大されたグリッドの行数</string>
+    <string name="s_key_feed_alt_grid_row_count">別類グリッドの行数</string>
+    <string name="s_key_feed_alt_grid_row_count_expanded">拡大された別類グリッドの行数</string>
     <string name="s_sub_feed_initial_rows">自動的にロードするフィード行の最小数</string>
     <string name="s_key_feed_show_radios">フィードにラジオを表示する</string>
     <string name="s_key_hidden_feed_rows">隠された行</string>

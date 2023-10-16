@@ -46,6 +46,42 @@ internal fun getFeedCategory(): List<SettingsItem> {
             range = 1f..5f
         ),
 
+        SettingsSliderItem(
+            SettingsValueState<Int>(Settings.KEY_FEED_GRID_ROW_COUNT.name),
+            getString("s_key_feed_grid_row_count"),
+            null,
+            "1",
+            "10",
+            range = 1f..10f
+        ),
+
+        SettingsSliderItem(
+            SettingsValueState<Int>(Settings.KEY_FEED_GRID_ROW_COUNT_EXPANDED.name),
+            getString("s_key_feed_grid_row_count_expanded"),
+            null,
+            "1",
+            "10",
+            range = 1f..10f
+        ),
+
+        SettingsSliderItem(
+            SettingsValueState<Int>(Settings.KEY_FEED_ALT_GRID_ROW_COUNT.name),
+            getString("s_key_feed_alt_grid_row_count"),
+            null,
+            "1",
+            "10",
+            range = 1f..10f
+        ),
+
+        SettingsSliderItem(
+            SettingsValueState<Int>(Settings.KEY_FEED_ALT_GRID_ROW_COUNT_EXPANDED.name),
+            getString("s_key_feed_alt_grid_row_count_expanded"),
+            null,
+            "1",
+            "10",
+            range = 1f..10f
+        ),
+
         SettingsToggleItem(
             SettingsValueState(Settings.KEY_FEED_SHOW_RADIOS.name),
             getString("s_key_feed_show_radios"), null

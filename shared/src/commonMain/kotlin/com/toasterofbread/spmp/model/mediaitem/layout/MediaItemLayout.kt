@@ -47,12 +47,13 @@ data class MediaItemLayout(
             multiselect_context: MediaItemMultiSelectContext? = null,
             apply_filter: Boolean = false,
             square_item_max_text_rows: Int? = null,
-            show_download_indicators: Boolean = true
+            show_download_indicators: Boolean = true,
+            grid_rows: Pair<Int, Int>? = null
         ) {
             when (this) {
-                GRID -> MediaItemGrid(layout, modifier, title_modifier, multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators)
-                GRID_ALT -> MediaItemGrid(layout, modifier, title_modifier, alt_style = true, multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators)
-                ROW -> MediaItemGrid(layout, modifier, title_modifier, 1, multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators)
+                GRID -> MediaItemGrid(layout, modifier, title_modifier, grid_rows, multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators)
+                GRID_ALT -> MediaItemGrid(layout, modifier, title_modifier, grid_rows, alt_style = true, multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators)
+                ROW -> MediaItemGrid(layout, modifier, title_modifier, Pair(1, 1), multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators)
                 LIST -> MediaItemList(layout, modifier, title_modifier, false, multiselect_context = multiselect_context, apply_filter = apply_filter, show_download_indicators = show_download_indicators)
                 NUMBERED_LIST -> MediaItemList(layout, modifier, title_modifier, true, multiselect_context = multiselect_context, apply_filter = apply_filter, show_download_indicators = show_download_indicators)
                 CARD -> com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemCard(

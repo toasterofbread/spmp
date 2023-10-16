@@ -19,5 +19,5 @@ expect fun WebViewLogin(
     onClosed: () -> Unit,
     shouldShowPage: (url: String) -> Boolean,
     loading_message: String? = null,
-    onRequestIntercepted: (WebViewRequest, openUrl: (String) -> Unit, getCookie: (String) -> String) -> Unit
+    onRequestIntercepted: suspend (WebViewRequest, openUrl: (String) -> Unit, getCookie: (String) -> String) -> Unit
 )

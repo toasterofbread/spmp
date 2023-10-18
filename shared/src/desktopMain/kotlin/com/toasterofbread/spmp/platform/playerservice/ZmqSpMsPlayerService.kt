@@ -60,7 +60,9 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
     protected var current_song_time: Long = -1
 
     protected fun sendRequest(action: String, vararg params: Any) {
-        queued_messages.add(Pair(action, params.asList()))
+        synchronized(queued_messages) {
+            queued_messages.add(Pair(action, params.asList()))
+        }
     }
 
     protected fun updateIsPlaying(playing: Boolean) {
@@ -281,18 +283,20 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
         }
 
         val reply = ZMsg()
-        if (queued_messages.isEmpty()) {
-            reply.add(byteArrayOf())
-        }
-        else {
-            for (message in queued_messages) {
-                reply.add(message.first)
-                reply.add(Gson().toJson(message.second))
+        synchronized(queued_messages) {
+            if (queued_messages.isEmpty()) {
+                reply.add(byteArrayOf())
             }
-        }
-        reply.send(socket!!)
+            else {
+                for (message in queued_messages) {
+                    reply.add(message.first)
+                    reply.add(Gson().toJson(message.second))
+                }
+            }
+            reply.send(socket!!)
 
-        queued_messages.clear()
+            queued_messages.clear()
+        }
     }
 
     private fun ZMQ.Socket.recvMsg(timeout_ms: Long?): ZMsg? {

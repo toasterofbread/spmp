@@ -6,6 +6,9 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
+import com.toasterofbread.spmp.model.mediaitem.song.SongData
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 actual class PlayerDownloadManager actual constructor(val context: PlatformContext) {
     private var service: PlayerDownloadService? = null
@@ -35,6 +38,8 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
         val file: PlatformFile?
     ) {
         actual enum class Status { IDLE, PAUSED, DOWNLOADING, CANCELLED, ALREADY_FINISHED, FINISHED }
+
+        actual fun isCompleted(): Boolean = progress >= 1f
     }
 
     actual open class DownloadStatusListener {
@@ -55,6 +60,15 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
         }
     }
 
+    private fun forEachDownloadStatusListener(action: (DownloadStatusListener) -> Unit) {
+        synchronized(download_status_listeners) {
+            val iterator = download_status_listeners.iterator()
+            while (iterator.hasNext()) {
+                action(iterator.next())
+            }
+        }
+    }
+
     private fun onResultIntentReceived(result: PlayerDownloadMessage) {
         val data = result.data
         val status: DownloadStatus = data["status"] as DownloadStatus
@@ -70,28 +84,20 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
             PlayerDownloadService.IntentAction.START_DOWNLOAD -> {
                 (data["result"] as Result<PlatformFile?>).fold(
                     {
-                        synchronized(download_status_listeners) {
-                            download_status_listeners.forEach { it.onDownloadChanged(status) }
-                        }
+                        forEachDownloadStatusListener { it.onDownloadChanged(status) }
                     },
                     { error ->
                         context.sendNotification(error)
-                        synchronized(download_status_listeners) {
-                            download_status_listeners.forEach { it.onDownloadRemoved(status.id) }
-                        }
+                        forEachDownloadStatusListener { it.onDownloadRemoved(status.id) }
                     }
                 )
             }
             PlayerDownloadService.IntentAction.STATUS_CHANGED -> {
                 if (data["started"] as Boolean) {
-                    synchronized(download_status_listeners) {
-                        download_status_listeners.forEach { it.onDownloadAdded(status) }
-                    }
+                    forEachDownloadStatusListener { it.onDownloadAdded(status) }
                 }
                 else {
-                    synchronized(download_status_listeners) {
-                        download_status_listeners.forEach { it.onDownloadChanged(status) }
-                    }
+                    forEachDownloadStatusListener { it.onDownloadChanged(status) }
                 }
             }
             else -> {}
@@ -115,47 +121,21 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
         startService({ action(it) })
     }
 
-    actual fun getDownload(song: Song, callback: (DownloadStatus?) -> Unit) {
+    actual suspend fun getDownload(song: Song): DownloadStatus? = withContext(Dispatchers.IO) {
         service?.apply {
-            getDownloadStatus(song)?.also {
-                callback(it)
-                return
+            val service_status: DownloadStatus? = getDownloadStatus(song)
+            if (service_status != null) {
+                return@withContext service_status
             }
         }
+
+        val original_title: String? = song.Title.get(context.database)
 
         for (file in getDownloadDir(context).listFiles() ?: emptyList()) {
             val data = PlayerDownloadService.getFilenameData(file.name)
-            if (data.id == song.id) {
-                callback(DownloadStatus(
-                    song = SongRef(data.id),
-                    status = if (data.downloading) DownloadStatus.Status.IDLE else DownloadStatus.Status.FINISHED,
-                    quality = null,
-                    progress = if (data.downloading) -1f else 1f,
-                    id = file.name,
-                    file = file
-                ))
-                return
-            }
-        }
-
-        callback(null)
-    }
-
-    actual fun getDownloads(callback: (List<DownloadStatus>) -> Unit) {
-        val current_downloads: List<DownloadStatus> = service?.run {
-            getAllDownloadsStatus()
-        } ?: emptyList()
-
-        val files = getDownloadDir(context).listFiles() ?: emptyList()
-        callback(
-            current_downloads + files.mapNotNull { file ->
-                if (current_downloads.any { it.file == file }) {
-                    return@mapNotNull null
-                }
-
-                val data = PlayerDownloadService.getFilenameData(file.name)
-                DownloadStatus(
-                    song = SongRef(data.id),
+            if (data.id_or_title == song.id || data.id_or_title == original_title) {
+                return@withContext DownloadStatus(
+                    song = song,
                     status = if (data.downloading) DownloadStatus.Status.IDLE else DownloadStatus.Status.FINISHED,
                     quality = null,
                     progress = if (data.downloading) -1f else 1f,
@@ -163,7 +143,44 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
                     file = file
                 )
             }
-        )
+        }
+
+        return@withContext null
+    }
+
+    actual suspend fun getDownloads(): List<DownloadStatus> = withContext(Dispatchers.IO) {
+        val current_downloads: List<DownloadStatus> = service?.run {
+            getAllDownloadsStatus()
+        } ?: emptyList()
+
+        val files: List<PlatformFile> = getDownloadDir(context).listFiles() ?: emptyList()
+        return@withContext current_downloads + files.mapNotNull { file ->
+            if (current_downloads.any { it.file?.matches(file) == true }) {
+                return@mapNotNull null
+            }
+
+            val data = PlayerDownloadService.getFilenameData(file.name)
+            
+            val song: Song
+            if (Song.isSongIdRegistered(context, data.id_or_title)) {
+                song = SongRef(data.id_or_title)
+            }
+            else {
+                song = SongData(data.id_or_title).apply {
+                    title = data.id_or_title
+                    saveToDatabase(context.database)
+                }
+            }
+
+            DownloadStatus(
+                song = song,
+                status = if (data.downloading) DownloadStatus.Status.IDLE else DownloadStatus.Status.FINISHED,
+                quality = null,
+                progress = if (data.downloading) -1f else 1f,
+                id = file.name,
+                file = file
+            )
+        }
     }
 
     @Synchronized
@@ -243,6 +260,12 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
         )
     }
 
+    actual suspend fun deleteSongLocalAudioFile(song: Song) = withContext(Dispatchers.IO) {
+        val download: DownloadStatus = getDownload(song) ?: return@withContext
+        download.file?.delete()
+        forEachDownloadStatusListener { it.onDownloadRemoved(download.id) }
+    }
+
     actual fun release() {
         if (service_connection != null) {
             unbindPlatformService(context, service_connection!!)
@@ -260,7 +283,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
 actual fun Song.getLocalAudioFile(context: PlatformContext, allow_partial: Boolean): PlatformFile? {
     val files = PlayerDownloadManager.getDownloadDir(context).listFiles() ?: return null
     for (file in files) {
-        val status: Boolean? = PlayerDownloadService.fileMatchesDownload(file.name, id)
+        val status: Boolean? = PlayerDownloadService.fileMatchesDownload(file.name, this)
         if (status == true || (allow_partial && status == false)) {
             return file
         }

@@ -191,6 +191,12 @@ interface Song: MediaItem.WithArtist {
             override fun observe(db: Database): MutableState<MediaItemThumbnailProvider?> =
                 remember(this) { mutableStateOf(get(db)) }
         }
+
+    companion object {
+        fun isSongIdRegistered(context: PlatformContext, id: String): Boolean {
+            return context.database.songQueries.countById(id).executeAsOne() > 0
+        }
+    }
 }
 
 private data class SongThumbnailProvider(val id: String): MediaItemThumbnailProvider {

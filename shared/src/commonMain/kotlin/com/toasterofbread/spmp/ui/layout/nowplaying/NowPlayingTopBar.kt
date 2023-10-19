@@ -38,7 +38,6 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.platform.composeScope
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
-import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NOW_PLAYING_MAIN_PADDING
 import com.toasterofbread.utils.common.setAlpha
 import com.toasterofbread.utils.common.thenIf
 
@@ -71,82 +70,84 @@ private fun getMaxHeight(show_in_queue: Boolean): State<Dp> {
     )
 }
 
-@Composable
-fun NowPlayingTopBar(modifier: Modifier = Modifier, onHeightChanged: (Dp) -> Unit = {}) {
-    val player = LocalPlayerState.current
-    val expansion = LocalNowPlayingExpansion.current
-    val density = LocalDensity.current
+class NowPlayingTopBar {
+    var height: Dp by mutableStateOf(40.dp)
+        private set
 
-    val show_in_queue by rememberTopBarShouldShowInQueue(expansion.top_bar_mode.value)
-    var lyrics_showing: Boolean by remember { mutableStateOf(false) }
+    @Composable
+    fun NowPlayingTopBar(modifier: Modifier = Modifier) {
+        val player = LocalPlayerState.current
+        val expansion = LocalNowPlayingExpansion.current
+        val density = LocalDensity.current
 
-    val top_bar_height by remember { derivedStateOf {
-        if (!show_in_queue || expansion.getBounded() < 1f) expansion.getAppearing() else 1f
-    } }
+        val show_in_queue by rememberTopBarShouldShowInQueue(expansion.top_bar_mode.value)
+        var lyrics_showing: Boolean by remember { mutableStateOf(false) }
 
-    val max_height by getMaxHeight(show_in_queue)
-    val alpha by remember { derivedStateOf { if (!show_in_queue || expansion.getBounded() < 1f) 1f - expansion.getDisappearing() else 1f } }
-    val hide_content by remember { derivedStateOf { alpha <= 0f } }
+        val top_bar_height by remember { derivedStateOf {
+            if (!show_in_queue || expansion.getBounded() < 1f) expansion.getAppearing() else 1f
+        } }
 
-    var bar_height: Dp by remember { mutableStateOf(40.dp) }
+        val max_height by getMaxHeight(show_in_queue)
+        val alpha by remember { derivedStateOf { if (!show_in_queue || expansion.getBounded() < 1f) 1f - expansion.getDisappearing() else 1f } }
+        val hide_content by remember { derivedStateOf { alpha <= 0f } }
 
-    Crossfade(
-        player.status.m_song,
-        modifier
-            .fillMaxWidth()
-            .heightIn(max = if (lyrics_showing) Dp.Infinity else minOf(40.dp * top_bar_height, max_height))
-            .thenIf(hide_content) {
-                requiredHeight(bar_height * top_bar_height)
+        Crossfade(
+            player.status.m_song,
+            modifier
+                .fillMaxWidth()
+                .heightIn(max = if (lyrics_showing) Dp.Infinity else minOf(40.dp * top_bar_height, max_height))
+                .thenIf(hide_content) {
+                    requiredHeight(height * top_bar_height)
+                }
+                .height(IntrinsicSize.Min)
+                .padding(horizontal = NOW_PLAYING_MAIN_PADDING.dp)
+                .graphicsLayer { this@graphicsLayer.alpha = alpha }
+        ) { song ->
+            if (hide_content || song == null) {
+                return@Crossfade
             }
-            .height(IntrinsicSize.Min)
-            .padding(horizontal = NOW_PLAYING_MAIN_PADDING.dp)
-            .graphicsLayer { this@graphicsLayer.alpha = alpha }
-    ) { song ->
-        if (hide_content || song == null) {
-            return@Crossfade
-        }
 
-        Row(
-            Modifier.fillMaxSize().onSizeChanged {
-                bar_height = with(density) { it.height.toDp() }
-                onHeightChanged(bar_height)
-            },
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            val buttons_alpha by remember { derivedStateOf { (2f - expansion.getBounded()).coerceIn(0f, 1f) } }
+            Row(
+                Modifier.fillMaxSize().onSizeChanged {
+                    height = with(density) { it.height.toDp() }
+                },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val buttons_alpha by remember { derivedStateOf { (2f - expansion.getBounded()).coerceIn(0f, 1f) } }
 
-            composeScope {
-                Box(Modifier.width(40.dp * buttons_alpha)) {
-                    val auth_state = player.context.ytapi.user_auth_state
-                    if (auth_state != null) {
-                        LikeDislikeButton(
-                            song,
-                            auth_state,
-                            Modifier.fillMaxSize().graphicsLayer { this@graphicsLayer.alpha = buttons_alpha },
-                            { 1f - expansion.getDisappearing() > 0f },
-                            { player.getNPOnBackground().setAlpha(0.5f) }
-                        )
+                composeScope {
+                    Box(Modifier.width(40.dp * buttons_alpha)) {
+                        val auth_state = player.context.ytapi.user_auth_state
+                        if (auth_state != null) {
+                            LikeDislikeButton(
+                                song,
+                                auth_state,
+                                Modifier.fillMaxSize().graphicsLayer { this@graphicsLayer.alpha = buttons_alpha },
+                                { 1f - expansion.getDisappearing() > 0f },
+                                { player.getNPOnBackground().setAlpha(0.5f) }
+                            )
+                        }
                     }
                 }
-            }
 
-            lyrics_showing = player.top_bar.MusicTopBarWithVisualiser(
-                Settings.INTERNAL_TOPBAR_MODE_NOWPLAYING,
-                Modifier.fillMaxSize().weight(1f),
-                song = song
-            ).showing
+                lyrics_showing = player.top_bar.MusicTopBarWithVisualiser(
+                    Settings.INTERNAL_TOPBAR_MODE_NOWPLAYING,
+                    Modifier.fillMaxSize().weight(1f),
+                    song = song
+                ).showing
 
-            composeScope {
-                IconButton(
-                    {
-                        if (1f - expansion.getDisappearing() > 0f) {
-                            player.onMediaItemLongClicked(song, player.status.m_index)
-                        }
-                    },
-                    Modifier.graphicsLayer { this@graphicsLayer.alpha = buttons_alpha }.width(40.dp * buttons_alpha)
-                ) {
-                    Icon(Icons.Filled.MoreHoriz, null, tint = player.getNPOnBackground().setAlpha(0.5f))
+                composeScope {
+                    IconButton(
+                        {
+                            if (1f - expansion.getDisappearing() > 0f) {
+                                player.onMediaItemLongClicked(song, player.status.m_index)
+                            }
+                        },
+                        Modifier.graphicsLayer { this@graphicsLayer.alpha = buttons_alpha }.width(40.dp * buttons_alpha)
+                    ) {
+                        Icon(Icons.Filled.MoreHoriz, null, tint = player.getNPOnBackground().setAlpha(0.5f))
+                    }
                 }
             }
         }

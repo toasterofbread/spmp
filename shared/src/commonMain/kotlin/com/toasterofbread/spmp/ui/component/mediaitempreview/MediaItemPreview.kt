@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -48,6 +47,7 @@ import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.utils.common.getValue
 import com.toasterofbread.utils.common.setAlpha
 
 const val MEDIA_ITEM_PREVIEW_LONG_HEIGHT_DP: Float = 50f
@@ -139,12 +139,11 @@ fun MediaItemPreviewSquare(
                 textAlign = TextAlign.Center
             )
 
-            val download_status: PlayerDownloadManager.DownloadStatus? =
-                if (show_download_indicator) (item as? Song)?.rememberDownloadStatus() else null
+            val download_status: PlayerDownloadManager.DownloadStatus? by (item as? Song)?.rememberDownloadStatus()
 
-            if (download_status != null) {
+            if (show_download_indicator && download_status != null) {
                 Icon(
-                    if (download_status.progress == 1f) Icons.Default.DownloadDone
+                    if (download_status?.isCompleted() == true) Icons.Default.DownloadDone
                     else Icons.Default.Downloading,
                     null,
                     Modifier.alpha(0.5f).size(13.dp)
@@ -221,10 +220,9 @@ fun MediaItemPreviewLong(
 
             val artist_title: String? = if (show_artist) (item as? MediaItem.WithArtist)?.Artist?.observePropertyActiveTitle()?.value else null
             val extra_info = getExtraInfo?.invoke() ?: emptyList()
-            val download_status: PlayerDownloadManager.DownloadStatus? =
-                if (show_download_indicator) (item as? Song)?.rememberDownloadStatus() else null
+            val download_status: PlayerDownloadManager.DownloadStatus? by (item as? Song)?.rememberDownloadStatus()
 
-            if (download_status != null || show_play_count || show_type || extra_info.isNotEmpty() || artist_title != null) {
+            if ((show_download_indicator && download_status != null) || show_play_count || show_type || extra_info.isNotEmpty() || artist_title != null) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -240,10 +238,10 @@ fun MediaItemPreviewLong(
                         InfoText(text, contentColour)
                     }
 
-                    if (download_status != null) {
+                    if (show_download_indicator && download_status != null) {
                         text_displayed = true
                         Icon(
-                            if (download_status.progress == 1f) Icons.Default.DownloadDone
+                            if (download_status?.isCompleted() == true) Icons.Default.DownloadDone
                             else Icons.Default.Downloading,
                             null,
                             Modifier.alpha(0.5f).size(13.dp)

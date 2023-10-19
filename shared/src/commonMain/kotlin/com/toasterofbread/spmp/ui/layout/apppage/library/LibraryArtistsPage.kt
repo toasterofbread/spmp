@@ -54,7 +54,7 @@ class LibraryArtistsPage(context: PlatformContext): LibrarySubPage(context) {
     ) {
         val player = LocalPlayerState.current
 
-        val downloads: List<PlayerDownloadManager.DownloadStatus> = rememberSongDownloads()
+        val downloads: List<PlayerDownloadManager.DownloadStatus> by rememberSongDownloads()
         var sorted_artists: List<Pair<ArtistRef, Int>> by remember { mutableStateOf(emptyList()) }
 
         with(library_page) {

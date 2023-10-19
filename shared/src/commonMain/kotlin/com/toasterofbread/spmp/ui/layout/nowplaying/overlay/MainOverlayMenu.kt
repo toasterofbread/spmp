@@ -68,9 +68,7 @@ class MainPlayerOverlayMenu(
             download_progress.snapTo(0f)
             download_progress_target = 0f
 
-            download_manager.getDownload(song) {
-                download_status = it
-            }
+            download_status = download_manager.getDownload(song)
         }
 
         DisposableEffect(Unit) {
@@ -95,9 +93,7 @@ class MainPlayerOverlayMenu(
         LaunchedEffect(Unit) {
             while (true) {
                 if (download_status?.status == DownloadStatus.Status.DOWNLOADING || download_status?.status == DownloadStatus.Status.PAUSED) {
-                    download_manager.getDownload(getSong()) {
-                        download_progress_target = it!!.progress
-                    }
+                    download_progress_target = download_manager.getDownload(getSong())!!.progress
                 }
                 delay(1500)
             }

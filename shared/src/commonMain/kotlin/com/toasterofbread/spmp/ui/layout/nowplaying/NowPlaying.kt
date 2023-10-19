@@ -2,7 +2,6 @@ package com.toasterofbread.spmp.ui.layout.nowplaying
 
 import LocalNowPlayingExpansion
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -27,12 +26,11 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.BackHandler
 import com.toasterofbread.spmp.platform.composable.scrollWheelSwipeable
 import com.toasterofbread.spmp.platform.composeScope
+import com.toasterofbread.spmp.platform.isPortrait
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NowPlayingMainTab
-import com.toasterofbread.spmp.ui.layout.nowplaying.queue.QueueTab
-import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.*
 import com.toasterofbread.utils.common.amplifyPercent
 import com.toasterofbread.utils.common.setAlpha
@@ -43,8 +41,8 @@ import kotlinx.coroutines.delay
 
 enum class ThemeMode { BACKGROUND, ELEMENTS, NONE }
 
-private enum class NowPlayingVerticalPage { MAIN, QUEUE }
-val NOW_PLAYING_VERTICAL_PAGE_COUNT = NowPlayingVerticalPage.values().size
+fun getNowPlayingVerticalPageCount(player: PlayerState): Int =
+    NowPlayingPage.ALL.count { it.shouldShow(player) }
 
 const val EXPANDED_THRESHOLD = 0.1f
 const val POSITION_UPDATE_INTERVAL_MS: Long = 100
@@ -201,12 +199,12 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .requiredHeight((player.screen_size.height * (NOW_PLAYING_VERTICAL_PAGE_COUNT + 1)))
+                .requiredHeight((player.screen_size.height * (getNowPlayingVerticalPageCount(player) + 1)))
                 .offset {
                     IntOffset(
                         0,
                         with(density) {
-                            ((half_screen_height * NOW_PLAYING_VERTICAL_PAGE_COUNT) - swipe_state.offset.value.dp - bottom_padding).roundToPx()
+                            ((half_screen_height * getNowPlayingVerticalPageCount(player)) - swipe_state.offset.value.dp - bottom_padding).roundToPx()
                         }
                     )
                 }
@@ -299,7 +297,8 @@ private fun NowPlayingCardContent(page_height: Dp, modifier: Modifier = Modifier
     StatusBarColourHandler(page_height)
     MinimisedProgressBar()
 
-    var top_bar_height by remember { mutableStateOf(0.dp) }
+    val pages: List<NowPlayingPage> = NowPlayingPage.ALL.filter { it.shouldShow(player) }
+    val top_bar = remember { NowPlayingTopBar() }
 
     Column(modifier.fillMaxHeight(), verticalArrangement = Arrangement.Top) {
         Column(
@@ -307,11 +306,23 @@ private fun NowPlayingCardContent(page_height: Dp, modifier: Modifier = Modifier
             modifier = Modifier.requiredSize(player.screen_size)
         ) {
             composeScope {
-                Spacer(
-                    Modifier.height(
-                        player.context.getStatusBarHeightDp() * expansion.get().coerceIn(0f, 1f)
-                    )
-                )
+                val spacer_height: Dp
+                if (player.isPortrait()) {
+                    spacer_height = lerp(MINIMISED_NOW_PLAYING_V_PADDING_DP.dp, player.context.getStatusBarHeightDp(), expansion.get().coerceIn(0f, 1f))
+                }
+                else {
+                    val max_height: Dp = player.context.getStatusBarHeightDp() - 2.dp
+                    val proportion: Float = (max_height + 5.dp) / player.screen_size.height
+
+                    val exp: Float = expansion.get().coerceIn(0f, 1f)
+                    val proportion_exp: Float =
+                        if (exp > proportion) ((exp - 1 + proportion) / proportion)
+                        else 0f
+
+                    spacer_height = (max_height * proportion_exp).coerceAtLeast(MINIMISED_NOW_PLAYING_V_PADDING_DP.dp)
+                }
+
+                Spacer(Modifier.height(spacer_height))
             }
 
             val screen_height = player.screen_size.height - player.nowPlayingBottomPadding()
@@ -323,7 +334,7 @@ private fun NowPlayingCardContent(page_height: Dp, modifier: Modifier = Modifier
                         if (bounded > 1f)
                             (
                                 -(screen_height)
-                                * ((NOW_PLAYING_VERTICAL_PAGE_COUNT * 0.5f) - bounded)
+                                * ((getNowPlayingVerticalPageCount(player) * 0.5f) - bounded)
                             ).roundToPx()
                         else 0
                     )
@@ -338,26 +349,17 @@ private fun NowPlayingCardContent(page_height: Dp, modifier: Modifier = Modifier
                     }
                 )
             }) {
-                NowPlayingMainTab(
-                    onTopBarHeightChanged = { top_bar_height = it },
-                    modifier = Modifier.fillMaxWidth().requiredHeight(page_height).offset(offsetProvider)
-                )
+                pages.firstOrNull()?.Page(page_height, top_bar, Modifier.fillMaxWidth().requiredHeight(page_height).offset(offsetProvider))
             }
 
             composeScope {
-                Spacer(
-                    Modifier.height(
-                        player.nowPlayingBottomPadding()
-                    )
-                )
+                Spacer(Modifier.height(player.nowPlayingBottomPadding()))
             }
         }
 
-        QueueTab(
-            page_height,
-            { top_bar_height },
-            Modifier.offset(0.dp, -player.nowPlayingBottomPadding())
-        )
+        for (i in 1 until pages.size) {
+            pages[i].Page(page_height, top_bar, Modifier.offset(0.dp, -player.nowPlayingBottomPadding()))
+        }
     }
 }
 

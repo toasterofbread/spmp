@@ -8,17 +8,19 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -60,20 +62,23 @@ import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.model.mediaitem.db.setPinned
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.library.createLocalPlaylist
+import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.getEditorOrNull
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.isPlaylistEditable
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
+import com.toasterofbread.spmp.platform.PlayerDownloadManager
+import com.toasterofbread.spmp.platform.rememberSongDownloads
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.multiselect_context.MultiSelectSelectedItemActions
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
-import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
 import com.toasterofbread.utils.common.getContrasted
 import com.toasterofbread.utils.common.lazyAssert
 import com.toasterofbread.utils.common.setAlpha
+import com.toasterofbread.utils.composable.ScrollabilityIndicatorRow
 import com.toasterofbread.utils.composable.ShapedIconButton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
@@ -223,21 +228,24 @@ class MediaItemMultiSelectContext(
 
             Divider(Modifier.padding(top = 5.dp), color = LocalContentColor.current, thickness = hint_path_thickness)
 
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                GeneralSelectedItemActions()
+            val scroll_state = rememberScrollState()
+            ScrollabilityIndicatorRow(scroll_state, Modifier.fillMaxWidth()) {
+                Row(Modifier.fillMaxWidth().horizontalScroll(scroll_state), verticalAlignment = Alignment.CenterVertically) {
+                    GeneralSelectedItemActions()
 
-                AnimatedVisibility(selected_items.isNotEmpty()) {
-                    Row {
-                        MultiSelectSelectedItemActions(this@MediaItemMultiSelectContext, additionalSelectedItemActions)
+                    AnimatedVisibility(selected_items.isNotEmpty()) {
+                        Row(Modifier.fillMaxHeight(), verticalAlignment = Alignment.CenterVertically) {
+                            MultiSelectSelectedItemActions(this@MediaItemMultiSelectContext, additionalSelectedItemActions)
+                        }
                     }
-                }
-                Spacer(Modifier.fillMaxWidth().weight(1f))
+                    Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                IconButton({ selected_items.clear() }) {
-                    Icon(Icons.Default.Refresh, null)
-                }
-                IconButton({ setActive(false) }) {
-                    Icon(Icons.Default.Close, null)
+                    IconButton({ selected_items.clear() }) {
+                        Icon(Icons.Default.Refresh, null)
+                    }
+                    IconButton({ setActive(false) }) {
+                        Icon(Icons.Default.Close, null)
+                    }
                 }
             }
 
@@ -325,21 +333,51 @@ class MediaItemMultiSelectContext(
     private fun RowScope.GeneralSelectedItemActions() {
         val player = LocalPlayerState.current
         val coroutine_scope = rememberCoroutineScope()
+        val downloads: List<PlayerDownloadManager.DownloadStatus> by rememberSongDownloads()
 
-        val all_are_pinned =
+        val all_are_pinned: Boolean =
             if (selected_items.isEmpty()) false
             else selected_items.all { item ->
                 item.first.observePinnedToHome().value
             }
 
-        val any_are_songs by remember { derivedStateOf {
+        val any_are_songs: Boolean by remember { derivedStateOf {
             selected_items.any { it.first is Song }
         } }
 
-        val all_are_editable_playlists by remember { derivedStateOf {
+        val all_are_editable_playlists: Boolean by remember { derivedStateOf {
             selected_items.isNotEmpty()
-            && selected_items.all {
-                it.first is Playlist && (it.first as Playlist).isPlaylistEditable(player.context)
+            && selected_items.all { item ->
+                item.first is Playlist && (item.first as Playlist).isPlaylistEditable(player.context)
+            }
+        } }
+
+        val all_are_deletable by remember { derivedStateOf {
+            if (all_are_editable_playlists) {
+                return@derivedStateOf true
+            }
+
+            return@derivedStateOf (
+                selected_items.isNotEmpty()
+                && selected_items.all { item ->
+                    when (item.first) {
+                        is LocalPlaylist -> true
+                        is Playlist -> (item.first as Playlist).isPlaylistEditable(player.context)
+                        is Song -> downloads.firstOrNull { it.song.id == item.first.id }?.isCompleted() == true
+                        else -> false
+                    }
+                }
+            )
+        } }
+
+        val any_are_downloadable by remember { derivedStateOf {
+            selected_items.any { item ->
+                if (item.first !is Song) {
+                    return@any false
+                }
+
+                val download: PlayerDownloadManager.DownloadStatus? = downloads.firstOrNull { it.song.id == item.first.id }
+                return@any download?.isCompleted() != true
             }
         } }
 
@@ -365,7 +403,7 @@ class MediaItemMultiSelectContext(
         }
 
         // Download
-        AnimatedVisibility(any_are_songs && selected_items.isNotEmpty()) {
+        AnimatedVisibility(any_are_downloadable) {
             IconButton({
                 for (item in getUniqueSelectedItems()) {
                     if (item is Song) {
@@ -379,7 +417,7 @@ class MediaItemMultiSelectContext(
         }
 
         // Add to playlist
-        AnimatedVisibility(any_are_songs && selected_items.isNotEmpty()) {
+        AnimatedVisibility(any_are_songs) {
             IconButton({
                 adding_to_playlist = getUniqueSelectedItems().filterIsInstance<Song>()
             }) {
@@ -387,16 +425,23 @@ class MediaItemMultiSelectContext(
             }
         }
 
-        // Delete playlist
-        AnimatedVisibility(all_are_editable_playlists && selected_items.isNotEmpty()) {
+        // Delete playlist / local song
+        AnimatedVisibility(all_are_deletable) {
             IconButton({
                 coroutine_scope.launch {
-                    getUniqueSelectedItems().mapNotNull { playlist ->
-                        if (playlist !is Playlist) null
-                        else launch {
-                            val editor = playlist.getEditorOrNull(player.context).getOrNull()
-                            editor?.deletePlaylist()?.getOrReport(player.context, "deletePlaylist")
+                    getUniqueSelectedItems().mapNotNull { item ->
+                        if (item is Playlist) {
+                            launch {
+                                val editor = item.getEditorOrNull(player.context).getOrNull()
+                                editor?.deletePlaylist()?.getOrReport(player.context, "deletePlaylist")
+                            }
                         }
+                        else if (item is Song) {
+                            launch {
+                                player.context.download_manager.deleteSongLocalAudioFile(item)
+                            }
+                        }
+                        else null
                     }.joinAll()
                     onActionPerformed()
                 }

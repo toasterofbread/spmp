@@ -50,6 +50,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.Settings
@@ -73,6 +74,7 @@ import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 import com.toasterofbread.utils.common.getInnerSquareSizeOfCircle
 import com.toasterofbread.utils.common.getValue
 import com.toasterofbread.utils.common.setAlpha
+import com.toasterofbread.utils.common.thenIf
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.modifier.background
 import com.toasterofbread.utils.modifier.disableParentScroll
@@ -96,24 +98,25 @@ private fun handleColourPick(image: ImageBitmap, image_size: IntSize, tap_offset
 @Composable
 fun ThumbnailRow(
     modifier: Modifier = Modifier,
+    horizontal_arrangement: Arrangement.Horizontal,
     onThumbnailLoaded: (Song?, ImageBitmap?) -> Unit,
     setThemeColour: (Color?) -> Unit,
-    getSeekState: () -> Float
+    getSeekState: () -> Float,
+    disable_parent_scroll_while_menu_open: Boolean = true
 ) {
     val player = LocalPlayerState.current
-    val db = player.context.database
     val expansion = LocalNowPlayingExpansion.current
     val current_song = player.status.m_song
 
     val song_title: String? by current_song?.observeActiveTitle()
     val song_artist_title: String? by current_song?.Artist?.observePropertyActiveTitle()
 
-    val thumbnail_rounding: Int? = current_song?.ThumbnailRounding?.observe(db)?.value
+    val thumbnail_rounding: Int? = current_song?.ThumbnailRounding?.observe(player.context.database)?.value
 
-    var overlay_menu by player.np_overlay_menu
+    var overlay_menu: PlayerOverlayMenu? by player.np_overlay_menu
     var current_thumb_image: ImageBitmap? by remember { mutableStateOf(null) }
-    val thumbnail_shape = RoundedCornerShape(thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING)
-    var image_size by remember { mutableStateOf(IntSize(1, 1)) }
+    val thumbnail_shape: RoundedCornerShape = RoundedCornerShape(thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING)
+    var image_size: IntSize by remember { mutableStateOf(IntSize(1, 1)) }
 
     var colourpick_callback by remember { mutableStateOf<((Color?) -> Unit)?>(null) }
     LaunchedEffect(overlay_menu) {
@@ -135,7 +138,7 @@ fun ThumbnailRow(
     Row(
         modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceEvenly
+        horizontalArrangement = horizontal_arrangement
     ) {
         var opened by remember { mutableStateOf(false) }
         val expanded by remember { derivedStateOf {
@@ -247,7 +250,9 @@ fun ThumbnailRow(
 
                 Box(
                     Modifier
-                        .disableParentScroll(child_does_not_scroll = true)
+                        .thenIf(disable_parent_scroll_while_menu_open) {
+                            disableParentScroll(child_does_not_scroll = true)
+                        }
                         .pointerInput(Unit) {
                             detectTapGestures(
                                 onTap = { offset ->
@@ -309,7 +314,8 @@ fun ThumbnailRow(
 
         Row(
             Modifier
-                .fillMaxWidth(1f - expansion.getAbsolute())
+//                .fillMaxWidth(1f - expansion.getAbsolute())
+                .fillMaxWidth()
                 .scale(
                     minOf(1f, if (expansion.getAbsolute() < 0.5f) 1f else (1f - ((expansion.getAbsolute() - 0.5f) * 2f))),
                     1f

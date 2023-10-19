@@ -28,6 +28,7 @@ CREATE TABLE Song (
     FOREIGN KEY (id) REFERENCES MediaItem(id)
 );
 
+countById: SELECT COUNT(*) FROM Song WHERE id == :id;
 byHidden: SELECT Song.id FROM Song, MediaItem WHERE MediaItem.id == Song.id AND MediaItem.hidden == :hidden;
 
 insertById {

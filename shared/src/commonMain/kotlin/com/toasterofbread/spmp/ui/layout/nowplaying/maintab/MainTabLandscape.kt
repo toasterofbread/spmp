@@ -8,15 +8,18 @@ import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.IconButton
@@ -60,6 +63,8 @@ import com.toasterofbread.utils.common.launchSingle
 import com.toasterofbread.utils.common.setAlpha
 import kotlin.math.absoluteValue
 
+private const val CONTROLS_MAX_HEIGHT_DP: Float = 400f
+
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 internal fun NowPlayingMainTabPage.NowPlayingMainTabLandscape(page_height: Dp, top_bar: NowPlayingTopBar, modifier: Modifier = Modifier) {
@@ -68,7 +73,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLandscape(page_height: Dp, t
     val current_song: Song? by player.status.song_state
 
     val proportion: Float = player.context.getStatusBarHeightDp() / player.screen_size.height
-    val proportion_exp: Float = expansion.get().coerceIn(0f, 1f) * (1f - proportion)
+    val proportion_exp: Float = (expansion.get().coerceIn(0f, 1f) * (1f - proportion)).coerceAtLeast(0f)
 
     val horizontal_padding: Dp = getHorizontalPadding()
     val top_padding: Dp = getTopPadding()
@@ -89,14 +94,20 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLandscape(page_height: Dp, t
                 bottom = lerp(0.dp, bottom_padding, proportion_exp),
                 top = lerp(0.dp, top_padding, proportion_exp)
             ),
-        verticalAlignment = Alignment.Top
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.spacedBy(5.dp)
     ) {
         val extra_width: Dp = (player.screen_size.width / 2) - page_height
 
-        Box(
+        val thumbnail_rounding: Int? = current_song?.ThumbnailRounding?.observe(player.context.database)?.value
+        val thumbnail_shape: Shape = RoundedCornerShape(thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING)
+
+        BoxWithConstraints(
             Modifier
                 .fillMaxWidth(0.5f + 0.5f * (1f - absolute_expansion))
-                .padding(start = (extra_width / 2) * absolute_expansion)
+                .padding(start = ((extra_width / 2) * absolute_expansion).coerceAtLeast(0.dp))
+                .height(height),
+            contentAlignment = Alignment.Center
         ) {
             val queue_swipe_modifier = Modifier.swipeable(
                 queue_swipe_state,
@@ -116,9 +127,11 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLandscape(page_height: Dp, t
                 queue_swipe_state.snapTo(0)
             }
 
+            val thumb_size = minOf(height, maxWidth)
+
             composeScope {
                 ThumbnailRow(
-                    queue_swipe_modifier.height(height),
+                    queue_swipe_modifier.height(thumb_size),
                     horizontal_arrangement = Arrangement.Start,
                     onThumbnailLoaded = { song, image ->
                         onThumbnailLoaded(song, image)
@@ -131,9 +144,6 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLandscape(page_height: Dp, t
                 )
             }
 
-            val thumbnail_rounding: Int? = current_song?.ThumbnailRounding?.observe(player.context.database)?.value
-            val thumbnail_shape: Shape = RoundedCornerShape(thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING)
-
             BackHandler({ queue_swipe_state.targetValue == 1 }) {
                 queue_swipe_coroutine_scope.launchSingle {
                     queue_swipe_state.animateTo(0)
@@ -141,87 +151,93 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLandscape(page_height: Dp, t
             }
 
             val overscroll_padding: Dp = 200.dp
-            QueueTab(
-                height + overscroll_padding,
-                top_bar,
-                Modifier
-                    .aspectRatio(1f)
-                    .clip(thumbnail_shape)
-                    .padding(top = 10.dp)
-                    .offset {
-                        IntOffset(
-                            0,
-                            (height - page_height + (overscroll_padding / 2) + queue_swipe_state.offset.value.dp).roundToPx()
-                        )
-                    }
-                    .then(queue_swipe_modifier),
-                inline = true,
-                shape = thumbnail_shape
-            )
-        }
-
-        Column(Modifier.fillMaxSize()) {
-            top_bar.NowPlayingTopBar()
-
-            val controls_visible by remember { derivedStateOf { expansion.getAbsolute() > 0.0f } }
-            Box(
-                Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .graphicsLayer {
-                        alpha = 1f - (1f - expansion.getBounded()).absoluteValue
-                    }
-                    .padding(horizontal = horizontal_padding)
-            ) {
-                if (controls_visible) {
-                    Controls(
-                        current_song,
-                        {
-                            player.withPlayer {
-                                seekTo((duration_ms * it).toLong())
-                            }
-                            seek_state = it
-                        },
-                        Modifier.fillMaxSize(),
-                        disable_text_marquees = absolute_expansion < 1f,
-                        vertical_arrangement = Arrangement.SpaceEvenly,
-                        font_size_multiplier = 1.2f,
-                        button_row_arrangement = Arrangement.spacedBy(5.dp, Alignment.Start),
-                        text_align = TextAlign.Start
-                    )
-                }
-
-                Row(
-                    Modifier.fillMaxWidth().align(Alignment.BottomEnd),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    var show_volume_slider: Boolean by remember { mutableStateOf(false) }
-                    val bottom_row_colour = player.getNPOnBackground().setAlpha(0.5f)
-
-                    Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.CenterEnd) {
-                        this@Row.AnimatedVisibility(
-                            show_volume_slider,
-                            enter = expandHorizontally(),
-                            exit = shrinkHorizontally()
-                        ) {
-                            VolumeSlider(bottom_row_colour, reverse = true)
-                        }
-                    }
-
-                    IconButton({ show_volume_slider = !show_volume_slider }) {
-                        Icon(Icons.Default.VolumeUp, null, tint = bottom_row_colour)
-                    }
-
-                    IconButton({
-                        queue_swipe_coroutine_scope.launchSingle {
-                            queue_swipe_state.animateTo(
-                                if (queue_swipe_state.targetValue == 0) 1
-                                else 0
+            Box(Modifier.requiredSize(thumb_size).clip(thumbnail_shape)) {
+                QueueTab(
+                    thumb_size + overscroll_padding,
+                    top_bar,
+                    Modifier
+                        .width(thumb_size)
+                        .graphicsLayer { alpha = (absolute_expansion * 2f).coerceAtMost(1f) }
+                        .offset {
+                            IntOffset(
+                                0,
+                                ((overscroll_padding / 2) + queue_swipe_state.offset.value.dp).roundToPx()
                             )
                         }
-                    }) {
-                        Icon(Icons.Default.QueueMusic, null, tint = bottom_row_colour)
+                        .clip(thumbnail_shape)
+                        .then(queue_swipe_modifier),
+                    inline = true,
+                    shape = thumbnail_shape,
+                    padding = PaddingValues(top = 10.dp)
+                )
+            }
+        }
+
+        BoxWithConstraints(Modifier.fillMaxSize()) {
+            Column(Modifier.fillMaxWidth().height(minOf(maxWidth, maxHeight))) {
+                top_bar.NowPlayingTopBar()
+
+                val controls_visible by remember { derivedStateOf { expansion.getAbsolute() > 0.0f } }
+                Box(
+                    Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .graphicsLayer {
+                            alpha = 1f - (1f - expansion.getBounded()).absoluteValue
+                        }
+                        .padding(horizontal = horizontal_padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (controls_visible) {
+                        Controls(
+                            current_song,
+                            {
+                                player.withPlayer {
+                                    seekTo((duration_ms * it).toLong())
+                                }
+                                seek_state = it
+                            },
+                            Modifier.fillMaxWidth().height(CONTROLS_MAX_HEIGHT_DP.dp),
+                            disable_text_marquees = absolute_expansion < 1f,
+                            vertical_arrangement = Arrangement.SpaceEvenly,
+                            font_size_multiplier = 1.2f,
+                            button_row_arrangement = Arrangement.spacedBy(5.dp, Alignment.Start),
+                            text_align = TextAlign.Start
+                        )
+                    }
+
+                    Row(
+                        Modifier.fillMaxWidth().align(Alignment.BottomEnd),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        var show_volume_slider: Boolean by remember { mutableStateOf(false) }
+                        val bottom_row_colour = player.getNPOnBackground().setAlpha(0.5f)
+
+                        Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.CenterEnd) {
+                            this@Row.AnimatedVisibility(
+                                show_volume_slider,
+                                enter = expandHorizontally(),
+                                exit = shrinkHorizontally()
+                            ) {
+                                VolumeSlider(bottom_row_colour, reverse = true)
+                            }
+                        }
+
+                        IconButton({ show_volume_slider = !show_volume_slider }) {
+                            Icon(Icons.Default.VolumeUp, null, tint = bottom_row_colour)
+                        }
+
+                        IconButton({
+                            queue_swipe_coroutine_scope.launchSingle {
+                                queue_swipe_state.animateTo(
+                                    if (queue_swipe_state.targetValue == 0) 1
+                                    else 0
+                                )
+                            }
+                        }) {
+                            Icon(Icons.Default.QueueMusic, null, tint = bottom_row_colour)
+                        }
                     }
                 }
             }

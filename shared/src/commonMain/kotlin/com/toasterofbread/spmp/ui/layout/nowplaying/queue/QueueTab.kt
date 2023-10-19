@@ -48,7 +48,6 @@ import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
@@ -70,6 +69,7 @@ internal fun QueueTab(
     modifier: Modifier = Modifier,
     inline: Boolean = false,
     shape: Shape = RoundedCornerShape(QUEUE_CORNER_RADIUS_DP.dp),
+    padding: PaddingValues = PaddingValues()
 ) {
     val player = LocalPlayerState.current
     val expansion = LocalNowPlayingExpansion.current
@@ -200,6 +200,7 @@ internal fun QueueTab(
                     )
                 }
                 .background(queue_background_colour, shape)
+                .padding(padding)
                 .clip(shape)
         ) {
             val list_padding = 10.dp

@@ -8,15 +8,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.unit.Density
 import com.toasterofbread.spmp.model.MusicTopBarMode
 import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterialApi::class)
-class NowPlayingExpansionState(swipe_state: State<SwipeableState<Int>>) {
+class NowPlayingExpansionState(val player: PlayerState, swipe_state: State<SwipeableState<Int>>) {
     private val swipe_state by swipe_state
     private var switch_to_page: Int by mutableStateOf(-1)
 
     val top_bar_mode: MutableState<MusicTopBarMode> = mutableStateOf(MusicTopBarMode.default)
-    val page_range: IntRange get() = 0 .. NOW_PLAYING_VERTICAL_PAGE_COUNT
+    
+    private fun getPageRange(): IntRange =
+        0 .. getNowPlayingVerticalPageCount(player)
 
     @Composable
     fun init() {
@@ -29,11 +32,11 @@ class NowPlayingExpansionState(swipe_state: State<SwipeableState<Int>>) {
     }
 
     fun scroll(pages: Int) {
-        switch_to_page = (swipe_state.targetValue + pages).coerceIn(page_range)
+        switch_to_page = (swipe_state.targetValue + pages).coerceIn(getPageRange())
     }
 
     fun scrollTo(page: Int) {
-        require(page in page_range)
+        require(page in getPageRange())
         switch_to_page = page
     }
 
@@ -42,7 +45,7 @@ class NowPlayingExpansionState(swipe_state: State<SwipeableState<Int>>) {
     }
 
     fun getPage(): Int {
-        return get().roundToInt().coerceIn(page_range)
+        return get().roundToInt().coerceIn(getPageRange())
     }
 
     fun get(): Float {
@@ -50,7 +53,9 @@ class NowPlayingExpansionState(swipe_state: State<SwipeableState<Int>>) {
         if (anchors.isEmpty()) {
             return 0f
         }
-        assert(anchors.size == NOW_PLAYING_VERTICAL_PAGE_COUNT + 1)
+//        assert(anchors.size == getNowPlayingVerticalPageCount(player) + 1) {
+//            "${anchors.size} == ${getNowPlayingVerticalPageCount(player)} + 1"
+//        }
 
         val offset: Float = swipe_state.offset.value
 
@@ -60,7 +65,7 @@ class NowPlayingExpansionState(swipe_state: State<SwipeableState<Int>>) {
 
         for (anchor in anchors) {
             if (offset < anchor.key) {
-                low_index = (anchor.value - 1).coerceAtLeast(page_range.first)
+                low_index = (anchor.value - 1).coerceAtLeast(getPageRange().first)
                 low = anchors.entries.firstOrNull { it.value == low_index }?.key ?: return low_index.toFloat()
                 high = anchor.key
                 break
@@ -68,7 +73,7 @@ class NowPlayingExpansionState(swipe_state: State<SwipeableState<Int>>) {
         }
 
         if (low_index == null) {
-            low_index = page_range.last
+            low_index = getPageRange().last
             low = anchors.entries.firstOrNull { it.value == low_index }?.key ?: return low_index.toFloat()
             high = low
         }
@@ -82,7 +87,12 @@ class NowPlayingExpansionState(swipe_state: State<SwipeableState<Int>>) {
             progress = 0f
         }
         else if (offset >= high) {
-            progress = 1f
+            if (low_index >= anchors.size) {
+                progress = 1f
+            }
+            else {
+                progress = 0f
+            }
         }
         else {
             progress = (offset - low) / (high - low)
@@ -91,7 +101,7 @@ class NowPlayingExpansionState(swipe_state: State<SwipeableState<Int>>) {
         return low_index + progress
     }
 
-    fun getBounded(): Float = get().coerceIn(page_range.first.toFloat(), page_range.last.toFloat())
+    fun getBounded(): Float = get().coerceIn(getPageRange().first.toFloat(), getPageRange().last.toFloat())
     fun getAbsolute(): Float {
         val bounded = getBounded()
         if (bounded <= 1f) {

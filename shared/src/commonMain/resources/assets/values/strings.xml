@@ -211,6 +211,7 @@
     <string name="lpm_action_play_after_1_song">Play after next song</string>
     <string name="lpm_action_play_after_x_songs">Play after $x songs</string>
     <string name="lpm_action_download">Download</string>
+    <string name="lpm_action_delete_local_song_file">Delete local file</string>
     <string name="lpm_action_go_to_artist">Go to artist</string>
     <string name="lpm_action_song_related">Show related content</string>
     <string name="lpm_action_print_info">Print info</string>
@@ -318,6 +319,10 @@
     <string name="s_key_feed_show_song_download_indicators">Show song download indicators</string>
     <string name="s_key_feed_initial_rows">Initial feed rows</string>
     <string name="s_key_feed_square_preview_text_lines">Square item max text rows</string>
+    <string name="s_key_feed_grid_row_count">Default grid row count</string>
+    <string name="s_key_feed_grid_row_count_expanded">Expanded grid row count</string>
+    <string name="s_key_feed_alt_grid_row_count">Default alt grid row count</string>
+    <string name="s_key_feed_alt_grid_row_count_expanded">Expanded alt grid row count</string>
     <string name="s_sub_feed_initial_rows">Minimum amount of feed rows to load automatically</string>
     <string name="s_key_feed_show_radios">Show radio items in feed</string>
     <string name="s_key_hidden_feed_rows">Hidden rows</string>

@@ -175,6 +175,11 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
         val square_item_max_text_rows: Int by Settings.KEY_FEED_SQUARE_PREVIEW_TEXT_LINES.rememberMutableState()
         val show_download_indicators: Boolean by Settings.KEY_FEED_SHOW_SONG_DOWNLOAD_INDICATORS.rememberMutableState()
 
+        val grid_rows: Int by Settings.KEY_FEED_GRID_ROW_COUNT.rememberMutableState()
+        val grid_rows_expanded: Int by Settings.KEY_FEED_GRID_ROW_COUNT_EXPANDED.rememberMutableState()
+        val alt_grid_rows: Int by Settings.KEY_FEED_ALT_GRID_ROW_COUNT.rememberMutableState()
+        val alt_grid_rows_expanded: Int by Settings.KEY_FEED_ALT_GRID_ROW_COUNT_EXPANDED.rememberMutableState()
+
         LaunchedEffect(Unit) {
             if (layouts.isNullOrEmpty()) {
                 coroutine_scope.launchSingle {
@@ -305,6 +310,10 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
                             }
 
                             val type = layout.type ?: MediaItemLayout.Type.GRID
+
+                            val rows: Int = if (type == MediaItemLayout.Type.GRID_ALT) alt_grid_rows else grid_rows
+                            val expanded_rows: Int = if (type == MediaItemLayout.Type.GRID_ALT) alt_grid_rows_expanded else grid_rows_expanded
+
                             type.Layout(
                                 layout,
                                 Modifier.padding(top = 20.dp),
@@ -318,7 +327,8 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
                                 multiselect_context = player.main_multiselect_context,
                                 apply_filter = true,
                                 square_item_max_text_rows = square_item_max_text_rows,
-                                show_download_indicators = show_download_indicators
+                                show_download_indicators = show_download_indicators,
+                                grid_rows = Pair(rows, expanded_rows)
                             )
                         }
 

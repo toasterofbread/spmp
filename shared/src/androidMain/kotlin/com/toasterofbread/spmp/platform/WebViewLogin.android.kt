@@ -21,6 +21,7 @@ import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.common.isDark
+import kotlinx.coroutines.runBlocking
 
 actual fun isWebViewLoginSupported(): Boolean = true
 
@@ -51,7 +52,7 @@ actual fun WebViewLogin(
     onClosed: () -> Unit,
     shouldShowPage: (url: String) -> Boolean,
     loading_message: String?,
-    onRequestIntercepted: (WebViewRequest, openUrl: (String) -> Unit, getCookie: (String) -> String) -> Unit
+    onRequestIntercepted: suspend (WebViewRequest, openUrl: (String) -> Unit, getCookie: (String) -> String) -> Unit
 ) {
     val player: PlayerState = LocalPlayerState.current
     var web_view: WebView? by remember { mutableStateOf(null) }
@@ -147,15 +148,17 @@ actual fun WebViewLogin(
                             view: WebView,
                             request: WebResourceRequest
                         ): WebResourceResponse? {
-                            onRequestIntercepted(
-                                WebResourceRequestReader(request),
-                                {
-                                    requested_url = it
-                                },
-                                { url ->
-                                    CookieManager.getInstance().getCookie(url)
-                                }
-                            )
+                            runBlocking {
+                                onRequestIntercepted(
+                                    WebResourceRequestReader(request),
+                                    {
+                                        requested_url = it
+                                    },
+                                    { url ->
+                                        CookieManager.getInstance().getCookie(url)
+                                    }
+                                )
+                            }
                             return null
                         }
                     }

@@ -35,7 +35,7 @@ removeById {
 
 clearOwners: UPDATE Playlist SET owner = NULL;
 
-countByid: SELECT COUNT(*) FROM Playlist WHERE id == :id;
+countById: SELECT COUNT(*) FROM Playlist WHERE id == :id;
 
 getLargestIdByType:
 SELECT MAX(id)

@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
-import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
@@ -33,6 +32,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
@@ -49,18 +49,28 @@ import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
+import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.rememberTopBarShouldShowInQueue
 import com.toasterofbread.spmp.youtubeapi.radio.LoadStatus
 import com.toasterofbread.utils.common.getContrasted
+import com.toasterofbread.utils.common.thenIf
 import kotlinx.coroutines.delay
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 
+private const val QUEUE_CORNER_RADIUS_DP: Float = 25f
+
 @Composable
-fun QueueTab(page_height: Dp, getTopBarHeight: () -> Dp, modifier: Modifier = Modifier) {
+internal fun QueueTab(
+    page_height: Dp,
+    top_bar: NowPlayingTopBar,
+    modifier: Modifier = Modifier,
+    inline: Boolean = false,
+    shape: Shape = RoundedCornerShape(QUEUE_CORNER_RADIUS_DP.dp),
+) {
     val player = LocalPlayerState.current
     val expansion = LocalNowPlayingExpansion.current
     val density = LocalDensity.current
@@ -132,8 +142,6 @@ fun QueueTab(page_height: Dp, getTopBarHeight: () -> Dp, modifier: Modifier = Mo
     val getBackgroundColour = { player.getNPBackground() }
     val queue_background_colour = player.getNPAltOnBackground()
 
-    val shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp)
-
     val items_above_queue = if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) 1 else 0
     val queue_list_state = rememberReorderableLazyListState(
         onMove = { base_from, base_to ->
@@ -162,7 +170,7 @@ fun QueueTab(page_height: Dp, getTopBarHeight: () -> Dp, modifier: Modifier = Mo
 
     val show_top_bar by rememberTopBarShouldShowInQueue(expansion.top_bar_mode.value)
     val top_bar_height by animateDpAsState(
-        if (show_top_bar) getTopBarHeight() else 0.dp
+        if (show_top_bar) top_bar.height else 0.dp
     )
 
     val expanded by remember { derivedStateOf { expansion.get() > 1f } }
@@ -176,16 +184,21 @@ fun QueueTab(page_height: Dp, getTopBarHeight: () -> Dp, modifier: Modifier = Mo
     CompositionLocalProvider(LocalContentColor provides queue_background_colour.getContrasted()) {
         Box(
             modifier
-                // Add extra height for overscroll
-                .requiredHeight(page_height + 200.dp)
-                .requiredWidth(player.screen_size.width)
-                .padding(
-                    top =
-                        player.context.getStatusBarHeightDp()
-                        + top_bar_height
-                        + MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
-                        - MINIMISED_NOW_PLAYING_V_PADDING_DP.dp
-                )
+                .thenIf(
+                    !inline,
+                    elseAction = {
+                        requiredHeight(page_height)
+                    }
+                ) {
+                    // Add extra height for overscroll
+                    requiredHeight(page_height + 200.dp)
+                    .padding(
+                        top =
+                            player.context.getStatusBarHeightDp()
+                            + top_bar_height
+                            + MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
+                    )
+                }
                 .background(queue_background_colour, shape)
                 .clip(shape)
         ) {
@@ -252,21 +265,23 @@ fun QueueTab(page_height: Dp, getTopBarHeight: () -> Dp, modifier: Modifier = Mo
                             )
                         }
 
-                        item {
-                            var bottom_padding: Dp = (
-                                MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
-                                + list_position
-                            )
+                        if (!inline) {
+                            item {
+                                var bottom_padding: Dp = (
+                                        MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
+                                                + list_position
+                                        )
 
-                            if (player.controller?.radio_state?.loading == true) {
-                                bottom_padding = page_height - bottom_padding
+                                if (player.controller?.radio_state?.loading == true) {
+                                    bottom_padding = page_height - bottom_padding
+                                }
+
+                                if (player.controller?.radio_state?.load_error != null) {
+                                    bottom_padding += 60.dp
+                                }
+
+                                Spacer(Modifier.height(bottom_padding))
                             }
-
-                            if (player.controller?.radio_state?.load_error != null) {
-                                bottom_padding += 60.dp
-                            }
-
-                            Spacer(Modifier.height(bottom_padding))
                         }
                     }
                 }

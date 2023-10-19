@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Person
@@ -49,18 +50,20 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.composable.BackHandler
+import com.toasterofbread.spmp.platform.rememberDownloadStatus
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuActionProvider
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
+import com.toasterofbread.utils.common.getValue
 import com.toasterofbread.utils.composable.ShapedIconButton
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 
 @Composable
 fun LongPressMenuActionProvider.SongLongPressMenuActions(
-    item: MediaItem,
+    item: MediaItem, // Might be a playlist
     spacing: Dp,
     queue_index: Int?,
     withSong: (suspend (Song) -> Unit) -> Unit,
@@ -172,6 +175,8 @@ private fun LongPressMenuActionProvider.LPMActions(
     openPlaylistInterface: () -> Unit
 ) {
     val player = LocalPlayerState.current
+    val download: PlayerDownloadManager.DownloadStatus? by (item as? Song)?.rememberDownloadStatus()
+    val coroutine_scope = rememberCoroutineScope()
 
     ActionButton(
         Icons.Default.Radio, getString("lpm_action_radio"),
@@ -223,22 +228,38 @@ private fun LongPressMenuActionProvider.LPMActions(
 
     ActionButton(Icons.Default.PlaylistAdd, getString("song_add_to_playlist"), onClick = openPlaylistInterface, onAction = {})
 
-    ActionButton(Icons.Default.Download, getString("lpm_action_download"), onClick = {
-        withSong {
-            player.context.download_manager.startDownload(it.id) { status: PlayerDownloadManager.DownloadStatus ->
-                when (status.status) {
-                    PlayerDownloadManager.DownloadStatus.Status.FINISHED -> player.context.sendToast(getString("notif_download_finished"))
-                    PlayerDownloadManager.DownloadStatus.Status.ALREADY_FINISHED -> player.context.sendToast(getString("notif_download_already_finished"))
-                    PlayerDownloadManager.DownloadStatus.Status.CANCELLED -> player.context.sendToast(getString("notif_download_cancelled"))
+    if (download != null) {
+        if (download?.isCompleted() == true) {
+            ActionButton(
+                Icons.Default.Delete,
+                getString("lpm_action_delete_local_song_file"),
+                onClick = {
+                    val song = download?.song ?: return@ActionButton
+                    coroutine_scope.launch {
+                        player.context.download_manager.deleteSongLocalAudioFile(song)
+                    }
+                }
+            )
+        }
+    }
+    else {
+        ActionButton(Icons.Default.Download, getString("lpm_action_download"), onClick = {
+            withSong {
+                player.context.download_manager.startDownload(it.id) { status: PlayerDownloadManager.DownloadStatus ->
+                    when (status.status) {
+                        PlayerDownloadManager.DownloadStatus.Status.FINISHED -> player.context.sendToast(getString("notif_download_finished"))
+                        PlayerDownloadManager.DownloadStatus.Status.ALREADY_FINISHED -> player.context.sendToast(getString("notif_download_already_finished"))
+                        PlayerDownloadManager.DownloadStatus.Status.CANCELLED -> player.context.sendToast(getString("notif_download_cancelled"))
 
-                    // IDLE, DOWNLOADING, PAUSED
-                    else -> {
-                        player.context.sendToast(getString("notif_download_already_downloading"))
+                        // IDLE, DOWNLOADING, PAUSED
+                        else -> {
+                            player.context.sendToast(getString("notif_download_already_downloading"))
+                        }
                     }
                 }
             }
-        }
-    })
+        })
+    }
 
     if (item is MediaItem.WithArtist) {
         val item_artist: Artist? by item.Artist.observe(player.database)

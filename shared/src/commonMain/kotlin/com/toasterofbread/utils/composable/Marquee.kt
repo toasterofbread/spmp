@@ -21,10 +21,11 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.utils.common.thenIf
 import kotlin.math.roundToInt
 
 @Composable
-fun Marquee(modifier: Modifier = Modifier, arrangement: Arrangement.Horizontal = Arrangement.Start, content: @Composable () -> Unit) {
+fun Marquee(modifier: Modifier = Modifier, arrangement: Arrangement.Horizontal = Arrangement.Start, disable: Boolean = false, content: @Composable () -> Unit) {
     MeasureUnconstrainedView(content) { content_width: Int, _ ->
         val scroll_state = rememberScrollState()
 
@@ -66,8 +67,10 @@ fun Marquee(modifier: Modifier = Modifier, arrangement: Arrangement.Horizontal =
         ) {
             Row(
                 Modifier
-                    .requiredWidth(with(density) { container_width.toDp() - scroll_value })
-                    .offset { IntOffset((scroll_value / 2).toPx().roundToInt(), 0) },
+                    .thenIf(!disable) {
+                        requiredWidth(with(density) { container_width.toDp() - scroll_value })
+                        .offset { IntOffset((scroll_value / 2).toPx().roundToInt(), 0) }
+                    },
                 horizontalArrangement = arrangement
             ) {
                 content()

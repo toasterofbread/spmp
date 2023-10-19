@@ -47,7 +47,7 @@ class LibrarySongsPage(context: PlatformContext): LibrarySubPage(context) {
         modifier: Modifier
     ) {
         val player = LocalPlayerState.current
-        val downloads: List<PlayerDownloadManager.DownloadStatus> = rememberSongDownloads()
+        val downloads: List<PlayerDownloadManager.DownloadStatus> by rememberSongDownloads()
 
         var sorted_downloads: List<PlayerDownloadManager.DownloadStatus> by remember { mutableStateOf(emptyList()) }
 

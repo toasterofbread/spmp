@@ -20,8 +20,8 @@ import androidx.core.content.PermissionChecker
 import androidx.core.graphics.drawable.IconCompat
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
+import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.song.getSongFormatByQuality
 import com.toasterofbread.spmp.platform.PlatformBinder
 import com.toasterofbread.spmp.platform.PlatformContext
@@ -31,8 +31,10 @@ import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.toasterofbread.spmp.platform.getLocalAudioFile
 import com.toasterofbread.spmp.resources.getString
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.net.ConnectException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -56,7 +58,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
         var file: PlatformFile? = song.getLocalAudioFile(context, allow_partial = true)
 
         var status: DownloadStatus.Status =
-            if (file?.let { fileMatchesDownload(it.name, song.id)} == true) DownloadStatus.Status.ALREADY_FINISHED
+            if (file?.let { fileMatchesDownload(it.name, song)} == true) DownloadStatus.Status.ALREADY_FINISHED
             else DownloadStatus.Status.IDLE
             set(value) {
                 if (field != value) {
@@ -92,7 +94,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
         }
 
         fun generatePath(extension: String, in_progress: Boolean): String {
-            return getDownloadPath(song.id, quality, extension, in_progress)
+            return getDownloadPath(song, quality, extension, in_progress)
         }
 
         fun broadcastResult(result: Result<PlatformFile?>?, instance: Int) {
@@ -152,7 +154,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
     }
     
     data class FilenameData(
-        val id: String,
+        val id_or_title: String,
         val extension: String,
         val downloading: Boolean
     )
@@ -172,15 +174,15 @@ class PlayerDownloadService: PlatformServiceImpl() {
 
         // Filename format: id.quality.mediatype(.part)
         // Return values: true = match, false = match (partial file), null = no match
-        fun fileMatchesDownload(filename: String, id: String): Boolean? {
-            if (!filename.startsWith("$id.")) {
+        fun fileMatchesDownload(filename: String, song: Song): Boolean? {
+            if (!filename.startsWith("${song.id}.")) {
                 return null
             }
             return !filename.endsWith(FILE_DOWNLOADING_SUFFIX)
         }
 
-        fun getDownloadPath(id: String, quality: SongAudioQuality, extension: String, in_progress: Boolean): String {
-            return "$id.$extension${ if (in_progress) FILE_DOWNLOADING_SUFFIX else ""}"
+        fun getDownloadPath(song: Song, quality: SongAudioQuality, extension: String, in_progress: Boolean): String {
+            return "${song.id}.$extension${ if (in_progress) FILE_DOWNLOADING_SUFFIX else ""}"
         }
     }
 
@@ -344,7 +346,8 @@ class PlayerDownloadService: PlatformServiceImpl() {
                 }
 
                 synchronized(downloads) {
-                    downloads.removeIf { it.song.id == download.song.id }
+                    downloads.removeAll { it.song.id == download.song.id }
+
                     if (downloads.isEmpty()) {
                         cancelled = download.cancelled
                         stopForeground(false)
@@ -385,10 +388,10 @@ class PlayerDownloadService: PlatformServiceImpl() {
         }
     }
 
-    private suspend fun performDownload(download: Download): Result<PlatformFile?> {
+    private suspend fun performDownload(download: Download): Result<PlatformFile?> = withContext(Dispatchers.IO) {
         val format = getSongFormatByQuality(download.song.id, download.quality, context).fold(
             { it },
-            { return Result.failure(it) }
+            { return@withContext Result.failure(it) }
         )
 
         val connection = URL(format.url).openConnection() as HttpURLConnection
@@ -399,11 +402,11 @@ class PlayerDownloadService: PlatformServiceImpl() {
             connection.connect()
         }
         catch (e: Throwable) {
-            return Result.failure(RuntimeException(connection.url.toString(), e))
+            return@withContext Result.failure(RuntimeException(connection.url.toString(), e))
         }
 
         if (connection.responseCode != 200 && connection.responseCode != 206) {
-            return Result.failure(ConnectException(
+            return@withContext Result.failure(ConnectException(
                 "${download.song.id}: Server returned code ${connection.responseCode} ${connection.responseMessage}"
             ))
         }
@@ -415,7 +418,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
             val extension = when (connection.contentType) {
                 "audio/webm" -> "webm"
                 "audio/mp4" -> "mp4"
-                else -> return Result.failure(NotImplementedError(connection.contentType))
+                else -> return@withContext Result.failure(NotImplementedError(connection.contentType))
             }
             file = download_dir.resolve(download.generatePath(extension, true))
         }
@@ -433,7 +436,12 @@ class PlayerDownloadService: PlatformServiceImpl() {
             download.status = status
         }
 
-        download.total_size = connection.contentLengthLong + download.downloaded
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            download.total_size = connection.contentLengthLong + download.downloaded
+        }
+        else {
+            download.total_size = connection.contentLength + download.downloaded
+        }
         download.status = DownloadStatus.Status.DOWNLOADING
 
         while (true) {
@@ -445,11 +453,11 @@ class PlayerDownloadService: PlatformServiceImpl() {
             synchronized(executor) {
                 if (stopping || download.cancelled) {
                     close(DownloadStatus.Status.CANCELLED)
-                    return Result.success(null)
+                    return@withContext Result.success(null)
                 }
                 if (paused) {
                     close(DownloadStatus.Status.PAUSED)
-                    return Result.success(null)
+                    return@withContext Result.success(null)
                 }
             }
 
@@ -472,7 +480,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
         download.file = renamed
         download.status = DownloadStatus.Status.FINISHED
 
-        return Result.success(download.file)
+        return@withContext Result.success(download.file)
     }
 
     private fun getNotificationText(): String {
@@ -616,7 +624,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
         )
 
         return NotificationCompat.Builder(this, getNotificationChannel())
-            .setSmallIcon(android.R.drawable.stat_sys_download)
+            .setSmallIcon(R.drawable.stat_sys_download)
             .setContentIntent(content_intent)
             .setOnlyAlertOnce(true)
             .setOngoing(true)

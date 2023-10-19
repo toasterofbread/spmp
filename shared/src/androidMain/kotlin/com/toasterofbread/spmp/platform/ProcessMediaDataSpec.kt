@@ -30,41 +30,40 @@ internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: Platform
     ) {
         var done = false
         runBlocking {
-            download_manager.getDownload(song) { initial_status ->
-                when (initial_status?.status) {
-                    PlayerDownloadManager.DownloadStatus.Status.IDLE, PlayerDownloadManager.DownloadStatus.Status.CANCELLED, PlayerDownloadManager.DownloadStatus.Status.PAUSED, null -> {
-                        download_manager.startDownload(song.id, true) { status ->
-                            local_file = status.file
+            val initial_status = download_manager.getDownload(song)
+            when (initial_status?.status) {
+                PlayerDownloadManager.DownloadStatus.Status.IDLE, PlayerDownloadManager.DownloadStatus.Status.CANCELLED, PlayerDownloadManager.DownloadStatus.Status.PAUSED, null -> {
+                    download_manager.startDownload(song.id, true) { status ->
+                        local_file = status.file
+                        done = true
+                    }
+                }
+                PlayerDownloadManager.DownloadStatus.Status.ALREADY_FINISHED, PlayerDownloadManager.DownloadStatus.Status.FINISHED -> throw IllegalStateException()
+                else -> {}
+            }
+
+            val listener = object : PlayerDownloadManager.DownloadStatusListener() {
+                override fun onDownloadChanged(status: PlayerDownloadManager.DownloadStatus) {
+                    if (status.song.id != song.id) {
+                        return
+                    }
+
+                    when (status.status) {
+                        PlayerDownloadManager.DownloadStatus.Status.IDLE, PlayerDownloadManager.DownloadStatus.Status.DOWNLOADING -> return
+                        PlayerDownloadManager.DownloadStatus.Status.PAUSED -> throw IllegalStateException()
+                        PlayerDownloadManager.DownloadStatus.Status.CANCELLED -> {
+                            done = true
+                        }
+                        PlayerDownloadManager.DownloadStatus.Status.FINISHED, PlayerDownloadManager.DownloadStatus.Status.ALREADY_FINISHED -> {
+                            local_file = song.getLocalAudioFile(context)
                             done = true
                         }
                     }
-                    PlayerDownloadManager.DownloadStatus.Status.ALREADY_FINISHED, PlayerDownloadManager.DownloadStatus.Status.FINISHED -> throw IllegalStateException()
-                    else -> {}
+
+                    download_manager.removeDownloadStatusListener(this)
                 }
-
-                val listener = object : PlayerDownloadManager.DownloadStatusListener() {
-                    override fun onDownloadChanged(status: PlayerDownloadManager.DownloadStatus) {
-                        if (status.song.id != song.id) {
-                            return
-                        }
-
-                        when (status.status) {
-                            PlayerDownloadManager.DownloadStatus.Status.IDLE, PlayerDownloadManager.DownloadStatus.Status.DOWNLOADING -> return
-                            PlayerDownloadManager.DownloadStatus.Status.PAUSED -> throw IllegalStateException()
-                            PlayerDownloadManager.DownloadStatus.Status.CANCELLED -> {
-                                done = true
-                            }
-                            PlayerDownloadManager.DownloadStatus.Status.FINISHED, PlayerDownloadManager.DownloadStatus.Status.ALREADY_FINISHED -> {
-                                local_file = song.getLocalAudioFile(context)
-                                done = true
-                            }
-                        }
-
-                        download_manager.removeDownloadStatusListener(this)
-                    }
-                }
-                download_manager.addDownloadStatusListener(listener)
             }
+            download_manager.addDownloadStatusListener(listener)
 
             var elapsed = 0
             while (!done && elapsed < AUTO_DOWNLOAD_SOFT_TIMEOUT) {

@@ -110,6 +110,8 @@ expect class PlatformFile {
 //    fun delete()
     fun moveDirContentTo(destination: PlatformFile): Result<PlatformFile>
 
+    fun matches(other: PlatformFile): Boolean
+
     companion object {
         fun fromFile(file: File, context: PlatformContext): PlatformFile
     }
@@ -119,12 +121,10 @@ fun PlatformContext.vibrateShort() {
     vibrate(0.01)
 }
 
-@Composable
 fun PlayerState.isPortrait(): Boolean {
     return (screen_size.width / screen_size.height) <= MIN_PORTRAIT_RATIO
 }
 
-@Composable
 fun PlayerState.isScreenLarge(): Boolean {
     if (screen_size.width < 900.dp) {
         return false

@@ -182,7 +182,6 @@ actual class PlatformFile(
     actual val is_file: Boolean
         get() = file?.isFile == true
 
-
     actual fun getRelativePath(relative_to: PlatformFile): String {
         require(relative_to.is_directory)
 
@@ -387,6 +386,10 @@ actual class PlatformFile(
         }
 
         return Result.success(destination)
+    }
+
+    actual fun matches(other: PlatformFile): Boolean {
+        return document_uri.clean_path == other.document_uri.clean_path
     }
 
     override fun toString(): String =

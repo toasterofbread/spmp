@@ -35,7 +35,7 @@ fun LocalArtistPage(
     multiselect_context: MediaItemMultiSelectContext? = null
 ) {
     val player = LocalPlayerState.current
-    val downloads = rememberSongDownloads()
+    val downloads by rememberSongDownloads()
     var songs: List<Song> by remember { mutableStateOf(emptyList()) }
 
     LaunchedEffect(artist, downloads) {

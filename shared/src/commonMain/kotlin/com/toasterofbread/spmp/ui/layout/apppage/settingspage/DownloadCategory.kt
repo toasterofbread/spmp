@@ -32,6 +32,11 @@ internal fun getDownloadCategory(): List<SettingsItem> {
             max_label = "10"
         ),
 
+        SettingsToggleItem(
+            SettingsValueState(Settings.KEY_AUTO_DOWNLOAD_ON_METERED.name),
+            getString("s_key_auto_download_on_metered"), null
+        ),
+
         SettingsDropdownItem(
             SettingsValueState(Settings.KEY_STREAM_AUDIO_QUALITY.name),
             getString("s_key_stream_audio_quality"), getString("s_sub_stream_audio_quality"), 3

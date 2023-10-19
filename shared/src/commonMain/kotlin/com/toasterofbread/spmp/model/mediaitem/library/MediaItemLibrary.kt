@@ -26,6 +26,9 @@ object MediaItemLibrary {
     fun getLocalSongsDir(context: PlatformContext): PlatformFile =
         getLibraryDir(context).resolve("songs")
 
+    fun getLocalLyricsDir(context: PlatformContext): PlatformFile =
+        getLibraryDir(context).resolve("lyrics")
+
     fun getLocalPlaylistsDir(context: PlatformContext): PlatformFile =
         getLibraryDir(context).resolve("playlists")
 

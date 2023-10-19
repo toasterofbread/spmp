@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.apppage.mainpage
 
+import LocalPlayerState
 import SpMp
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
@@ -33,7 +34,7 @@ import com.toasterofbread.spmp.ui.layout.*
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.MediaItemAppPage
-import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_VERTICAL_PAGE_COUNT
+import com.toasterofbread.spmp.ui.layout.nowplaying.getNowPlayingVerticalPageCount
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.getAdjustedKeyboardHeight
@@ -80,7 +81,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
     private val np_swipe_state: MutableState<SwipeableState<Int>> = mutableStateOf(SwipeableState(0))
     private var np_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
 
-    override val expansion_state = NowPlayingExpansionState(np_swipe_state)
+    override val expansion_state = NowPlayingExpansionState(this, np_swipe_state)
 
     override val app_page_state = AppPageState(context)
     override val bottom_padding: Float get() = bottom_padding_anim.value
@@ -305,6 +306,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
 
     @Composable
     fun NowPlaying() {
+        val player = LocalPlayerState.current
         val density = LocalDensity.current
         val bottom_padding = density.getNpBottomPadding(WindowInsets.ime)
 
@@ -312,11 +314,13 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
             bottom_padding_anim.animateTo(bottom_padding.toFloat())
         }
 
-        LaunchedEffect(screen_size.height, bottom_padding) {
+        val vertical_page_count = getNowPlayingVerticalPageCount(player)
+
+        LaunchedEffect(screen_size.height, bottom_padding, vertical_page_count) {
             val half_screen_height: Float = screen_size.height.value * 0.5f
 
             with(density) {
-                np_swipe_anchors = (0..NOW_PLAYING_VERTICAL_PAGE_COUNT)
+                np_swipe_anchors = (0..vertical_page_count)
                     .associateBy { anchor ->
                         if (anchor == 0) MINIMISED_NOW_PLAYING_HEIGHT_DP.toFloat() - half_screen_height
                         else ((screen_size.height - bottom_padding.toDp()).value * anchor) - half_screen_height

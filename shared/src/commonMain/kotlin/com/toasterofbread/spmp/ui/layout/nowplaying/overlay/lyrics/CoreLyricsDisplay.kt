@@ -6,6 +6,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -41,7 +42,7 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.composable.platformClickable
-import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NOW_PLAYING_MAIN_PADDING
+import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING
 import com.toasterofbread.utils.common.AnnotatedReadingTerm
 import com.toasterofbread.utils.common.calculateReadingsAnnotatedString
 import com.toasterofbread.utils.common.setAlpha
@@ -64,8 +65,8 @@ fun CoreLyricsDisplay(
     val density = LocalDensity.current
     val lyrics_sync_offset: Long? by song.getLyricsSyncOffset(player.database, false)
 
-    val screen_width = player.screen_size.width
-    val size_px = with(LocalDensity.current) { ((screen_width - (NOW_PLAYING_MAIN_PADDING.dp * 2) - (15.dp * getExpansion() * 2)).value * 0.9.dp).toPx() }
+    var area_size: Dp by remember { mutableStateOf(0.dp) }
+    val size_px = with(LocalDensity.current) { ((area_size - (NOW_PLAYING_MAIN_PADDING.dp * 2) - (15.dp * getExpansion() * 2)).value * 0.9.dp).toPx() }
     val line_height = with (LocalDensity.current) { 20.sp.toPx() }
     val line_spacing = with (LocalDensity.current) { 25.dp.toPx() }
 
@@ -77,8 +78,6 @@ fun CoreLyricsDisplay(
 
     val terms = remember(lyrics) { lyrics.getReadingTerms() }
     var current_range: IntRange? by remember { mutableStateOf(null) }
-
-    var list_width: Dp by remember { mutableStateOf(0.dp) }
 
     fun getScrollOffset(follow_offset: Float = Settings.KEY_LYRICS_FOLLOW_OFFSET.get()): Int =
         (padding_height - static_scroll_offset - size_px * follow_offset).toInt()
@@ -125,7 +124,7 @@ fun CoreLyricsDisplay(
                 c,
                 index,
                 modifier.thenIf(!is_reading) {
-                    width(list_width)
+                    width(area_size)
                 },
                 f,
                 onTextLayout = { result ->
@@ -195,7 +194,7 @@ fun CoreLyricsDisplay(
                     .fillMaxSize()
                     .padding(horizontal = 20.dp)
                     .onSizeChanged {
-                        list_width = with(density) { it.width.toDp() }
+                        area_size = with(density) { it.height.toDp() }
                     },
                 state = scroll_state,
                 horizontalAlignment = when (Settings.get<Int>(Settings.KEY_LYRICS_TEXT_ALIGNMENT)) {

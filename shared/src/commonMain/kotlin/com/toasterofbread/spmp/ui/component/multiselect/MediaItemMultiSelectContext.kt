@@ -12,6 +12,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -229,7 +230,7 @@ class MediaItemMultiSelectContext(
             Divider(Modifier.padding(top = 5.dp), color = LocalContentColor.current, thickness = hint_path_thickness)
 
             val scroll_state = rememberScrollState()
-            ScrollabilityIndicatorRow(scroll_state, Modifier.fillMaxWidth()) {
+            ScrollabilityIndicatorRow(scroll_state, Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
                 Row(Modifier.fillMaxWidth().horizontalScroll(scroll_state), verticalAlignment = Alignment.CenterVertically) {
                     GeneralSelectedItemActions()
 

@@ -14,15 +14,18 @@ import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.library.createLocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter.saveToFile
 import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.spmp.platform.PlatformFile
 import com.toasterofbread.utils.modifier.background
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 sealed interface LocalPlaylist: Playlist {
+    fun getLocalPlaylistFile(context: PlatformContext): PlatformFile =
+        MediaItemLibrary.getLocalPlaylistFile(this, context)
+
     override fun getType(): MediaItemType = MediaItemType.PLAYLIST_LOC
     override fun getURL(context: PlatformContext): String =
-        "file://" + MediaItemLibrary.getLocalPlaylistFile(this, context).absolute_path
+        "file://" + getLocalPlaylistFile(context).absolute_path
     override fun getEmptyData(): LocalPlaylistData = LocalPlaylistData(id)
 
     override suspend fun loadData(context: PlatformContext, populate_data: Boolean, force: Boolean): Result<LocalPlaylistData>

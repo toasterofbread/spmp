@@ -2,7 +2,8 @@ CREATE TABLE PinnedItem (
     id TEXT NOT NULL,
     type INTEGER NOT NULL,
 
-    FOREIGN KEY (id) REFERENCES MediaItem(id),
+--  Local playlists do not have DB entries
+--  FOREIGN KEY (id) REFERENCES MediaItem(id),
 
     PRIMARY KEY (id, type)
 );

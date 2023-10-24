@@ -26,9 +26,10 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider.Quality
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
-import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistDefaultThumbnail
+import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistRef
+import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.utils.common.launchSingle
 import com.toasterofbread.utils.composable.OnChangedEffect
@@ -71,6 +72,8 @@ fun MediaItem.Thumbnail(
     getContentColour: (() -> Color)? = null,
     onLoaded: ((ImageBitmap?) -> Unit)? = null
 ) {
+    require(this !is LocalPlaylistRef) { "LocalPlaylistRef must be loaded and passed as a LocalPlaylistData" }
+
     val player = LocalPlayerState.current
     var loading by remember { mutableStateOf(true) }
     val coroutine_scope = rememberCoroutineScope()

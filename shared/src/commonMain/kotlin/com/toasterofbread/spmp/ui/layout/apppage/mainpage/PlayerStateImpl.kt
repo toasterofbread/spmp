@@ -81,7 +81,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
     private val np_swipe_state: MutableState<SwipeableState<Int>> = mutableStateOf(SwipeableState(0))
     private var np_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
 
-    override val expansion_state = NowPlayingExpansionState(this, np_swipe_state)
+    override val expansion = NowPlayingExpansionState(this, np_swipe_state)
 
     override val app_page_state = AppPageState(context)
     override val bottom_padding: Float get() = bottom_padding_anim.value
@@ -248,7 +248,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
 
     override fun openNowPlayingPlayerOverlayMenu(menu: PlayerOverlayMenu?) {
         np_overlay_menu.value = menu
-        expansion_state.scrollTo(1)
+        expansion.scrollTo(1)
     }
 
     override fun onPlayActionOccurred() {

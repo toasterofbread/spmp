@@ -75,9 +75,8 @@ class NowPlayingTopBar {
         private set
 
     @Composable
-    fun NowPlayingTopBar(modifier: Modifier = Modifier) {
+    fun NowPlayingTopBar(modifier: Modifier = Modifier, expansion: ExpansionState = LocalNowPlayingExpansion.current) {
         val player = LocalPlayerState.current
-        val expansion = LocalNowPlayingExpansion.current
         val density = LocalDensity.current
 
         val show_in_queue by rememberTopBarShouldShowInQueue(expansion.top_bar_mode.value)

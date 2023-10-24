@@ -156,7 +156,7 @@ open class PlayerState protected constructor(
     val theme: Theme get() = context.theme
     open val context: PlatformContext get() = upstream!!.context
 
-    open val expansion_state: NowPlayingExpansionState get() = upstream!!.expansion_state
+    open val expansion: NowPlayingExpansionState get() = upstream!!.expansion
 
     open val app_page_state: AppPageState get() = upstream!!.app_page_state
     val app_page: AppPage get() = app_page_state.current_page

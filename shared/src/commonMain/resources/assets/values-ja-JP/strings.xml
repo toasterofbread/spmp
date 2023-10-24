@@ -582,6 +582,9 @@
     <string name="auth_sign_in">ログイン</string>
     <string name="auth_sign_out">ログアウト</string>
 
+    <string name="info_using_release_$x">リリース「$x」を使用中</string>
+    <string name="info_using_non_release_commit_$x">リリースではないコミット「$x」を使用中</string>
+
     <string name="warning_ytm_login">今からアプリ内で YouTube Music のログインページに移動します。&#xA;&#xA;ログインを終えたら、セッションクッキーを取って、保存し、オススメフィードやチャンネル登録などの YouTube Music への API リクエストのみに使います。&#xA;&#xA;よろしいですか？</string>
     <string name="info_ytm_login">アプリ内で YouTube Music のログインページに移動します。&#xA;&#xA;ログインを終えたら、セッションクッキーを取って、保存し、オススメフィードやチャンネル登録などの YouTube Music への API リクエストのみに使います。</string>
     <string name="warning_discord_login">今からアプリ内で Discord のログインページに移動します。&#xA;&#xA;ログインを終えたら、ユーザトーケンを取って、保存し、ステータスを変えるための Discord への API リクエストのみに使います。&#xA;&#xA;詳しくは https://github.com/dead8309/Kizzy をご覧ください。&#xA;&#xA;よろしいですか？</string>

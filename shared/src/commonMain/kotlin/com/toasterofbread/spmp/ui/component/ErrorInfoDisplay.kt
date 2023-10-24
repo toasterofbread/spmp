@@ -360,6 +360,7 @@ suspend fun uploadErrorToPasteEe(
     logs: String? = null,
 ): Result<String> = withContext(Dispatchers.IO) {
     val sections = mutableListOf(
+        mapOf("name" to "VERSION", "contents" to "Commit: '${ProjectBuildConfig.GIT_COMMIT_HASH}' | Tag: '${ProjectBuildConfig.GIT_TAG}'"),
         mapOf("name" to "MESSAGE", "contents" to message),
         mapOf("name" to "STACKTRACE", "contents" to stack_trace),
     )

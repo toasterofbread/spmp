@@ -284,7 +284,7 @@
     <string name="settings_value_not_int">Value is not an integer</string>
     <string name="settings_value_not_float">Value is not a float</string>
 
-    <string name="s_page_preferences">Preferences</string>
+    <string name="s_page_preferences">Settings</string>
 
     <string name="s_cat_general">General</string>
     <string name="s_key_interface_lang">Interface language</string>
@@ -591,6 +591,9 @@
     <string name="auth_not_signed_in">Not signed in</string>
     <string name="auth_sign_in">Sign in</string>
     <string name="auth_sign_out">Sign out</string>
+
+    <string name="info_using_release_$x">Using release $x</string>
+    <string name="info_using_non_release_commit_$x">Using non-release commit $x</string>
 
     <string name="warning_ytm_login">You will be directed to an in-app webview in order to log into YouTube Music.&#xA;&#xA;Once logged in, your session cookie will be extracted, stored, and used only for API requests to YouTube Music such as getting your recommended feed and subscribing to artists.&#xA;&#xA;Continue?</string>
     <string name="info_ytm_login">You will be directed to an in-app webview in order to log into YouTube Music.&#xA;&#xA;Once logged in, your session cookie will be extracted, stored, and used only for API requests to YouTube Music such as getting your recommended feed and subscribing to artists.</string>

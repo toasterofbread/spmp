@@ -37,7 +37,7 @@ expect fun getPlatformName(): String
 val LocalPlayerState: ProvidableCompositionLocal<PlayerState> = staticCompositionLocalOf { SpMp.player_state }
 object LocalNowPlayingExpansion {
     val current: NowPlayingExpansionState
-        @Composable get() = LocalPlayerState.current.expansion_state
+        @Composable get() = LocalPlayerState.current.expansion
 }
 
 object SpMp {

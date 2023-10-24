@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -110,6 +111,11 @@ fun LargeDropdownMenuItem(
 @Composable
 fun composeScope(block: @Composable () -> Unit) {
     block()
+}
+
+@Composable
+fun <A, B, C, D> composeScope(p1: A, p2: B, p3: C, p4: D, block: @Composable (A, B, C, D) -> Unit) {
+    block(p1, p2, p3, p4)
 }
 
 @Composable

@@ -34,6 +34,9 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.composeScope
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
+import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.bottom_padding
+import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.horizontal_padding
+import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.top_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThumbnailRow
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
@@ -54,14 +57,13 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(top_bar: NowPlaying
     Column(
         modifier = modifier
             .padding(
-                top = lerp(0.dp, getTopPadding(), expansion.get().coerceIn(0f, 1f)),
+                top = lerp(0.dp, top_padding, expansion.get().coerceIn(0f, 1f)),
             ),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         top_bar.NowPlayingTopBar()
 
         val screen_width = player.screen_size.width
-        val horizontal_padding = getHorizontalPadding()
 
         composeScope {
             ThumbnailRow(
@@ -91,7 +93,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(top_bar: NowPlaying
                     .weight(1f)
                     .padding(
                         top = 30.dp,
-                        bottom = getBottomPadding(),
+                        bottom = bottom_padding,
                         start = horizontal_padding,
                         end = horizontal_padding
                     )

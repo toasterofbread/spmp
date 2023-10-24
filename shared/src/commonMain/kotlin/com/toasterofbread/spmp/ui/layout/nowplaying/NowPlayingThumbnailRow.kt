@@ -102,7 +102,8 @@ fun ThumbnailRow(
     onThumbnailLoaded: (Song?, ImageBitmap?) -> Unit,
     setThemeColour: (Color?) -> Unit,
     getSeekState: () -> Float,
-    disable_parent_scroll_while_menu_open: Boolean = true
+    disable_parent_scroll_while_menu_open: Boolean = true,
+    overlayContent: (@Composable () -> Unit)? = null
 ) {
     val player = LocalPlayerState.current
     val expansion = LocalNowPlayingExpansion.current
@@ -136,7 +137,7 @@ fun ThumbnailRow(
     }
 
     Row(
-        modifier,
+        modifier.clip(thumbnail_shape),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = horizontal_arrangement
     ) {
@@ -310,6 +311,8 @@ fun ThumbnailRow(
                     }
                 }
             }
+
+            overlayContent?.invoke()
         }
 
         Row(

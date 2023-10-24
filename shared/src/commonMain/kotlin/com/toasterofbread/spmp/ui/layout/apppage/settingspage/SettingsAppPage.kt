@@ -14,16 +14,21 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.toasterofbread.composesettings.ui.SettingsInterface
 import com.toasterofbread.composesettings.ui.item.*
+import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.vibrateShort
@@ -255,6 +260,28 @@ class SettingsAppPage(override val state: AppPageState): AppPage() {
                                         }
                                     }
                                 }
+                            }
+
+                            item {
+                                val version_string: String = "v${getString("version_string")}"
+                                val on_release_commit: Boolean = ProjectBuildConfig.GIT_TAG == version_string
+
+                                Text(
+                                    if (on_release_commit) {
+                                        getString("info_using_release_\$x")
+                                            .replace("\$x", version_string)
+                                    }
+                                    else {
+                                        getString("info_using_non_release_commit_\$x")
+                                            .replace("\$x", ProjectBuildConfig.GIT_COMMIT_HASH?.take(7).toString())
+                                    },
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 10.dp)
+                                        .alpha(0.5f),
+                                    fontSize = 12.sp,
+                                    textAlign = TextAlign.Center
+                                )
                             }
                         }
                     }

@@ -41,40 +41,47 @@ class DataParseException(cause: Throwable? = null, message: String? = null, priv
             message
         ) {
             runCatching {
-                val json_object: JsonObject = withContext(Dispatchers.IO) {
+                val json_string: String = withContext(Dispatchers.IO) {
                     val stream = getResponseStream(api.performRequest(request).getOrThrow())
-                    stream.use { reader ->
-                        api.gson.toJsonTree(api.gson.fromJson<Map<String, Any?>>(reader)).asJsonObject
+                    stream.use {
+                        it.readText()
                     }
                 }
 
-                // Remove unneeded keys from JSON object
-                val items: MutableList<JsonObject> = mutableListOf(json_object)
+                try {
+                    val json_object = api.gson.toJsonTree(api.gson.fromJson<Map<String, Any?>>(json_string)).asJsonObject
 
-                while (items.isNotEmpty()) {
-                    val obj = items.removeLast()
+                    // Remove unneeded keys from JSON object
+                    val items: MutableList<JsonObject> = mutableListOf(json_object)
 
-                    for (key in keys_to_remove) {
-                        obj.remove(key)
-                    }
+                    while (items.isNotEmpty()) {
+                        val obj = items.removeLast()
 
-                    for (key in obj.keySet()) {
-                        val value: JsonElement = obj.get(key)
+                        for (key in keys_to_remove) {
+                            obj.remove(key)
+                        }
 
-                        if (value.isJsonObject) {
-                            items.add(value.asJsonObject)
-                        } else if (value.isJsonArray) {
-                            items.addAll(
-                                value.asJsonArray.mapNotNull { item ->
-                                    if (item.isJsonObject) item.asJsonObject
-                                    else null
-                                }
-                            )
+                        for (key in obj.keySet()) {
+                            val value: JsonElement = obj.get(key)
+
+                            if (value.isJsonObject) {
+                                items.add(value.asJsonObject)
+                            } else if (value.isJsonArray) {
+                                items.addAll(
+                                    value.asJsonArray.mapNotNull { item ->
+                                        if (item.isJsonObject) item.asJsonObject
+                                        else null
+                                    }
+                                )
+                            }
                         }
                     }
-                }
 
-                api.gson.toJson(json_object)
+                    return@runCatching api.gson.toJson(json_object)
+                }
+                catch (_: Throwable) {
+                    return@runCatching json_string
+                }
             }
         }
     }

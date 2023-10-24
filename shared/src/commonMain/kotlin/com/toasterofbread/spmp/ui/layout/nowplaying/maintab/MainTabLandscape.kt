@@ -231,7 +231,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLandscape(page_height: Dp, t
                                 text_align = TextAlign.Start
                             )
                         }
-//
+
                         Row(
                             Modifier.fillMaxWidth().align(Alignment.BottomEnd),
                             horizontalArrangement = Arrangement.End,

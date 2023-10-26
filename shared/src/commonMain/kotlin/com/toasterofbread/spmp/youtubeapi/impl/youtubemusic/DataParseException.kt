@@ -9,15 +9,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 import okhttp3.Response
-import java.io.PrintStream
-import java.io.PrintWriter
+import okio.Buffer
 import java.io.Reader
 
 private val YOUTUBE_JSON_DATA_KEYS_TO_REMOVE = listOf("responseContext", "trackingParams", "clickTrackingParams", "serializedShareEntity", "serializedContextData", "loggingContext")
+private val REQUEST_HEADERS_TO_REMOVE = listOf("Authorization", "cookie")
 
-class DataParseException(cause: Throwable? = null, message: String? = null, private val causeDataProvider: suspend () -> Result<String>): RuntimeException(message, cause) {
+class DataParseException(cause: Throwable? = null, private val cause_request: Request?, message: String? = null, private val causeDataProvider: suspend () -> Result<String>): RuntimeException(message, cause) {
     private var cause_data: String? = null
-    suspend fun getCauseData(): Result<String> {
+    suspend fun getCauseResponseData(): Result<String> {
         val data = cause_data
         if (data != null) {
             return Result.success(data)
@@ -26,6 +26,38 @@ class DataParseException(cause: Throwable? = null, message: String? = null, priv
         val result = causeDataProvider()
         cause_data = result.getOrNull()
         return result
+    }
+
+    fun getCauseRequestUrl(): String? {
+        return cause_request?.url?.toString()
+    }
+
+    fun getCauseRequestData(): String? {
+        if (cause_request?.body == null) {
+            return null
+        }
+
+        val buffer = Buffer()
+        cause_request.body!!.writeTo(buffer)
+        return buffer.readUtf8()
+    }
+
+    fun getCauseRequestHeaders(): String? {
+        if (cause_request == null) {
+            return null
+        }
+
+        val headers = cause_request.headers.toMutableList()
+
+        val i = headers.iterator()
+        while (i.hasNext()) {
+            val header = i.next()
+            if (REQUEST_HEADERS_TO_REMOVE.any { it.lowercase() == header.first.lowercase() }) {
+                i.remove()
+            }
+        }
+
+        return headers.toString()
     }
 
     companion object {
@@ -38,6 +70,7 @@ class DataParseException(cause: Throwable? = null, message: String? = null, priv
             keys_to_remove: List<String> = YOUTUBE_JSON_DATA_KEYS_TO_REMOVE
         ) = DataParseException(
             cause,
+            request,
             message
         ) {
             runCatching {

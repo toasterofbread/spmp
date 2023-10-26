@@ -53,6 +53,7 @@ import com.google.gson.Gson
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.fromJson
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
 import com.toasterofbread.toastercomposetools.utils.common.thenIf
 import com.toasterofbread.toastercomposetools.utils.composable.ShapedIconButton
@@ -276,7 +277,7 @@ private fun ExpandedContent(
                     }
                 }
 
-                Crossfade(text_to_show ?: current_error?.stackTraceToString() ?: pair_error!!.second!!) { text ->
+                Crossfade(text_to_show ?: current_error?.stackTraceToString() ?: pair_error!!.second) { text ->
                     LongTextDisplay(
                         text,
                         wrap_text,
@@ -291,7 +292,7 @@ private fun ExpandedContent(
                 val extra_button_text =
                     if (text_to_show != null) getString("action_cancel")
                     else when (current_error) {
-                        is com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException -> getString("error_info_display_show_json_data")
+                        is DataParseException -> getString("error_info_display_show_json_data")
                         else -> null
                     }
 
@@ -309,7 +310,7 @@ private fun ExpandedContent(
                             }
                             else {
                                 when (val error = current_error) {
-                                    is com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException -> {
+                                    is DataParseException -> {
                                         coroutine_scope.launch {
                                             coroutineContext.job.invokeOnCompletion {
                                                 cause_data_loading = false
@@ -317,7 +318,7 @@ private fun ExpandedContent(
 
                                             cause_data_loading = true
 
-                                            error.getCauseData().fold(
+                                            error.getCauseResponseData().fold(
                                                 { text_to_show = it },
                                                 { current_error = it }
                                             )
@@ -363,16 +364,20 @@ suspend fun uploadErrorToPasteEe(
     val sections = mutableListOf(
         mapOf("name" to "VERSION", "contents" to "Commit: '${ProjectBuildConfig.GIT_COMMIT_HASH}' | Tag: '${ProjectBuildConfig.GIT_TAG}'"),
         mapOf("name" to "MESSAGE", "contents" to message),
-        mapOf("name" to "STACKTRACE", "contents" to stack_trace),
+        mapOf("name" to "STACKTRACE", "contents" to stack_trace)
     )
 
-    if (error is com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException) {
-        val cause_data_result = error.getCauseData()
+    if (error is DataParseException) {
+        sections.add(mapOf("name" to "REQUEST_URL", "contents" to error.getCauseRequestUrl().toString()))
+        sections.add(mapOf("name" to "REQUEST_DATA", "contents" to error.getCauseRequestData().toString()))
+        sections.add(mapOf("name" to "REQUEST_HEADERS", "contents" to error.getCauseRequestHeaders().toString()))
+
+        val cause_data_result = error.getCauseResponseData()
         val cause_data = cause_data_result.getOrNull() ?: return@withContext cause_data_result.cast()
 
         sections.add(
             mapOf(
-                "name" to "DATA",
+                "name" to "RESPONSE_DATA",
                 "contents" to cause_data.ifBlank { null.toString() }
             )
         )

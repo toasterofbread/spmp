@@ -54,6 +54,8 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
 
             last_request = request
 
+            return@withContext Result.failure(DataParseException.ofYoutubeJsonRequest(request, api))
+
             val result = api.performRequest(request)
             val parsed: YoutubeiBrowseResponse = result.parseJsonResponse {
                 return@withContext Result.failure(it)

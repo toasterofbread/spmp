@@ -18,12 +18,12 @@
 -keep class * implements com.google.gson.JsonSerializer
 -keep class * implements com.google.gson.JsonDeserializer
 -keepclassmembers,allowobfuscation class * {
-  @com.google.gson.annotations.SerializedName <fields>;
+    @com.google.gson.annotations.SerializedName <fields>;
 }
 -keep,allowobfuscation,allowshrinking class com.google.gson.reflect.TypeToken
 -keep,allowobfuscation,allowshrinking class * extends com.google.gson.reflect.TypeToken
 
-# OkHttp platform used only on JVM and when Conscrypt and other security providers are available.
+# OkHttp platform used only on JVM and when Conscrypt and other security providers are available
 -dontwarn okhttp3.internal.platform.**
 -dontwarn org.conscrypt.**
 -dontwarn org.bouncycastle.**
@@ -34,6 +34,20 @@
 
 # Kuromoji
 -keep class com.atilika.kuromoji.** { *; }
+
+
+# From proguard-android-optimize.txt
+
+-optimizations !code/simplification/arithmetic,!code/simplification/cast,!field/*,!class/merging/*
+-optimizationpasses 5
+-allowaccessmodification
+-dontpreverify
+-dontusemixedcaseclassnames
+-dontskipnonpubliclibraryclasses
+-verbose
+-keepclassmembers class * implements android.os.Parcelable {
+    public static final ** CREATOR;
+}
 
 # ???
 -dontwarn java.awt.AWTEvent
@@ -86,13 +100,3 @@
 -dontwarn javax.swing.text.BadLocationException
 -dontwarn javax.swing.tree.DefaultTreeSelectionModel
 -dontwarn javax.swing.tree.TreeModel
-
-# From proguard-android-optimize.txt
-
--optimizations !code/simplification/arithmetic,!code/simplification/cast,!field/*,!class/merging/*
--optimizationpasses 5
--allowaccessmodification
--dontpreverify
--dontusemixedcaseclassnames
--dontskipnonpubliclibraryclasses
--verbose

@@ -419,7 +419,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
                     }
                     catch (e: Throwable) {
                         return@withContext Result.failure(
-                            DataParseException(cause = e) {
+                            DataParseException(e, account_request) {
                                 runCatching {
                                     api.performRequest(account_request).getOrThrow().body!!.string()
                                 }

@@ -116,7 +116,8 @@ private class AccountPlaylistEditor(playlist: RemotePlaylist, val auth: YoutubeM
                 return data
             }
             is Action.Remove -> {
-                check(playlist is RemotePlaylistData && playlist.item_set_ids != null)
+                check(playlist is RemotePlaylistData) { "$playlist is not a remote playlist" }
+                checkNotNull(playlist.item_set_ids) { "$playlist item set IDs have not been loaded" }
 
                 playlist.Items.removeItem(action.index, context.database)
 

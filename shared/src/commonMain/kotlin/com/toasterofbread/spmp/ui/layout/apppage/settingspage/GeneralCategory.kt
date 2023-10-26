@@ -1,17 +1,17 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
-import com.toasterofbread.composesettings.ui.item.SettingsComposableItem
-import com.toasterofbread.composesettings.ui.item.SettingsDropdownItem
-import com.toasterofbread.composesettings.ui.item.SettingsGroupItem
-import com.toasterofbread.composesettings.ui.item.SettingsItem
-import com.toasterofbread.composesettings.ui.item.SettingsSliderItem
-import com.toasterofbread.composesettings.ui.item.SettingsToggleItem
-import com.toasterofbread.composesettings.ui.item.SettingsValueState
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsComposableItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsDropdownItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsGroupItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsSliderItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsToggleItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.FontMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.Languages
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.utils.composable.WidthShrinkText
+import com.toasterofbread.toastercomposetools.utils.composable.WidthShrinkText
 
 // TODO Allow setting to any language
 fun getLanguageDropdownItem(
@@ -95,7 +95,7 @@ internal fun getGeneralCategory(language: String, available_languages: List<Lang
             FontMode.values()[index].getReadable(language)
         },
 
-        SettingsSliderItem(
+        AppSliderItem(
             SettingsValueState<Int>(Settings.KEY_VOLUME_STEPS.name),
             getString("s_key_vol_steps"),
             getString("s_sub_vol_steps"),

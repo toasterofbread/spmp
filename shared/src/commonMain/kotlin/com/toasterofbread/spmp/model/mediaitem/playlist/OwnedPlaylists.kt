@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.observeAsState
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
@@ -13,7 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 @Composable
-fun rememberOwnedPlaylists(owner: Artist, context: PlatformContext): List<RemotePlaylistRef> {
+fun rememberOwnedPlaylists(owner: Artist, context: AppContext): List<RemotePlaylistRef> {
     return context.database.playlistQueries.byOwner(owner.id)
         .observeAsState(
             {

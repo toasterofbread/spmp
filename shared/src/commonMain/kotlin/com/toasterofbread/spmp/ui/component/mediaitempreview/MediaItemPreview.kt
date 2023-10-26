@@ -45,7 +45,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.rememberDownloadStatus
 import com.toasterofbread.spmp.resources.getString
@@ -53,8 +53,7 @@ import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.utils.common.getValue
-import com.toasterofbread.utils.common.setAlpha
+import com.toasterofbread.toastercomposetools.utils.common.getValue
 
 const val MEDIA_ITEM_PREVIEW_LONG_HEIGHT_DP: Float = 50f
 const val MEDIA_ITEM_PREVIEW_SQUARE_FONT_SIZE_SP: Float = 12f
@@ -76,7 +75,7 @@ fun MediaItem.getLongPressMenuData(
 
 @Composable
 private fun MediaItem.loadIfLocalPlaylist(): MediaItem? {
-    val context: PlatformContext = LocalPlayerState.current.context
+    val context: AppContext = LocalPlayerState.current.context
     val state: MutableState<MediaItem?> = remember { mutableStateOf(if (this !is LocalPlaylistRef) this else null) }
 
     LaunchedEffect(this) {
@@ -145,7 +144,7 @@ fun MediaItemPreviewSquare(
                         .size(25.dp)
                         .align(Alignment.BottomEnd)
                         .padding(2.dp)
-                        .background(Color.Black.setAlpha(0.5f), CircleShape)
+                        .background(Color.Black.copy(alpha = 0.5f), CircleShape)
                         .padding(2.dp)
                 )
             }

@@ -31,7 +31,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
-import com.toasterofbread.utils.composable.WidthShrinkText
+import com.toasterofbread.toastercomposetools.utils.composable.WidthShrinkText
 
 @Composable
 internal fun PlaylistPage.PlaylistButtonBar(modifier: Modifier = Modifier) {

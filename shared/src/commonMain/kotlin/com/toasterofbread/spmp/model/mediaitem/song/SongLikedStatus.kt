@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem.song
 
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 import com.toasterofbread.spmp.youtubeapi.endpoint.SetSongLikedEndpoint
 
@@ -49,7 +49,7 @@ fun SongLikedStatus?.toLong(): Long? =
         null -> null
     }
 
-suspend fun Song.updateLiked(liked: SongLikedStatus, endpoint: SetSongLikedEndpoint, context: PlatformContext): Result<Unit> {
+suspend fun Song.updateLiked(liked: SongLikedStatus, endpoint: SetSongLikedEndpoint, context: AppContext): Result<Unit> {
     if (!endpoint.isImplemented()) {
         return Result.failure(EndpointNotImplementedException(endpoint))
     }

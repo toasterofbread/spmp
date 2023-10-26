@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.apppage.library
 
 import LocalPlayerState
+import SpMp.isDebugBuild
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -38,17 +39,17 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.playlist.createOwnedPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.rememberOwnedPlaylists
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.endpoint.CreateAccountPlaylistEndpoint
-import com.toasterofbread.utils.composable.LoadActionIconButton
-import com.toasterofbread.utils.composable.spanItem
+import com.toasterofbread.toastercomposetools.utils.composable.LoadActionIconButton
+import com.toasterofbread.toastercomposetools.utils.composable.spanItem
 
-internal class LibraryPlaylistsPage(context: PlatformContext): LibrarySubPage(context) {
+internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =
         MediaItemType.PLAYLIST_REM.getIcon()
 
@@ -86,7 +87,7 @@ internal class LibraryPlaylistsPage(context: PlatformContext): LibrarySubPage(co
         ) {
             load_error?.also { error ->
                 spanItem {
-                    ErrorInfoDisplay(error, Modifier.fillMaxWidth()) {
+                    ErrorInfoDisplay(error, isDebugBuild(), Modifier.fillMaxWidth()) {
                         load_error = null
                     }
                 }

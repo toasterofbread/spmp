@@ -3,9 +3,9 @@ package com.toasterofbread.spmp.model.mediaitem.loader
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
-import com.toasterofbread.spmp.model.SongLyrics
+import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
 import com.toasterofbread.spmp.youtubeapi.lyrics.loadLyrics
@@ -23,7 +23,7 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
 
     suspend fun loadBySong(
         song: Song,
-        context: PlatformContext
+        context: AppContext
     ): Result<SongLyrics>? {
         val lyrics_reference: LyricsReference? = song.Lyrics.get(context.database)
         if (lyrics_reference != null) {
@@ -45,7 +45,7 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
         }
     }
 
-    suspend fun loadByLyrics(lyrics_reference: LyricsReference, context: PlatformContext): Result<SongLyrics> {
+    suspend fun loadByLyrics(lyrics_reference: LyricsReference, context: AppContext): Result<SongLyrics> {
         require(!lyrics_reference.isNone())
 
         val loaded = loaded_by_reference[lyrics_reference]?.get()
@@ -72,7 +72,7 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
         val is_none: Boolean
     }
 
-    fun getItemState(song: Song, context: PlatformContext): ItemState =
+    fun getItemState(song: Song, context: AppContext): ItemState =
         object : ItemState {
             private val song_lyrics_reference: MutableState<LyricsReference?> = mutableStateOf(song.Lyrics.get(context.database))
             init {

@@ -119,7 +119,7 @@ tasks.all {
 }
 
 kotlin {
-    android()
+    androidTarget()
 
     jvm("desktop")
 
@@ -137,9 +137,10 @@ kotlin {
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
 
+                implementation(project(":ToasterComposeTools:lib"))
+
                 implementation("com.squareup.okhttp3:okhttp:4.10.0")
                 implementation("com.google.code.gson:gson:2.10.1")
-                implementation("com.godaddy.android.colorpicker:compose-color-picker:0.7.0")
                 implementation("org.apache.commons:commons-text:1.10.0")
                 implementation("com.atilika.kuromoji:kuromoji-ipadic:0.9.0")
                 implementation("org.jsoup:jsoup:1.16.1")
@@ -166,12 +167,10 @@ kotlin {
                 implementation("com.google.accompanist:accompanist-pager:0.21.2-beta")
                 implementation("com.google.accompanist:accompanist-pager-indicators:0.21.2-beta")
                 implementation("com.google.accompanist:accompanist-systemuicontroller:0.21.2-beta")
-                implementation("com.google.accompanist:accompanist-swiperefresh:0.21.2-beta")
                 implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
                 implementation("androidx.palette:palette:1.0.0")
                 //noinspection GradleDependency
                 implementation("com.github.andob:android-awt:1.0.0")
-                implementation("io.coil-kt:coil-compose:2.3.0")
                 implementation("com.github.toasterofbread:KizzyRPC:84e79614b4")
                 implementation("app.cash.sqldelight:android-driver:2.0.0-rc02")
                 implementation("com.anggrayudi:storage:1.5.5")

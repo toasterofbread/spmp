@@ -5,7 +5,7 @@ import com.google.gson.JsonObject
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.composable.LoginPage
 import com.toasterofbread.spmp.youtubeapi.endpoint.AccountPlaylistAddSongsEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.AccountPlaylistEditorEndpoint
@@ -82,7 +82,7 @@ fun <T: YoutubeApi.Implementable> T.implementedOrNull(): T? =
     else null
 
 interface YoutubeApi {
-    val context: PlatformContext
+    val context: AppContext
 
     val database: Database get() = context.database
     val gson: Gson get() = Gson()
@@ -99,7 +99,7 @@ interface YoutubeApi {
                 UNIMPLEMENTED_FOR_TESTING -> ""
             }
 
-        fun instantiate(context: PlatformContext, api_url: String): YoutubeApi =
+        fun instantiate(context: AppContext, api_url: String): YoutubeApi =
             when(this) {
                 YOUTUBE_MUSIC -> YoutubeMusicApi(context, api_url)
                 UNIMPLEMENTED_FOR_TESTING -> UnimplementedYoutubeApi(context)
@@ -270,7 +270,7 @@ interface YoutubeApi {
                 return set
             }
 
-            fun unpackSetData(set: Set<String>, context: PlatformContext): Pair<Artist?, Headers> {
+            fun unpackSetData(set: Set<String>, context: AppContext): Pair<Artist?, Headers> {
                 var artist: Artist? = null
                 val headers_builder = Headers.Builder()
 

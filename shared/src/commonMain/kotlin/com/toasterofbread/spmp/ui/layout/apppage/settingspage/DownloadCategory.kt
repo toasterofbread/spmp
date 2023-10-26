@@ -1,10 +1,10 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
-import com.toasterofbread.composesettings.ui.item.SettingsDropdownItem
-import com.toasterofbread.composesettings.ui.item.SettingsItem
-import com.toasterofbread.composesettings.ui.item.SettingsSliderItem
-import com.toasterofbread.composesettings.ui.item.SettingsToggleItem
-import com.toasterofbread.composesettings.ui.item.SettingsValueState
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsDropdownItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsSliderItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsToggleItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.resources.getString
@@ -24,7 +24,7 @@ internal fun getDownloadCategory(): List<SettingsItem> {
             getString("s_key_auto_download_enabled"), null
         ),
 
-        SettingsSliderItem(
+        AppSliderItem(
             SettingsValueState<Int>(Settings.KEY_AUTO_DOWNLOAD_THRESHOLD.name),
             getString("s_key_auto_download_threshold"), getString("s_sub_auto_download_threshold"),
             range = 1f..10f,

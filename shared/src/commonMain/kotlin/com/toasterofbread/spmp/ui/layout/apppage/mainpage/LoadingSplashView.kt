@@ -33,8 +33,8 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.common.bitmapResource
+import com.toasterofbread.toastercomposetools.settings.ui.Theme
+import com.toasterofbread.toastercomposetools.utils.common.bitmapResource
 import kotlinx.coroutines.delay
 
 private const val WARNING_DELAY: Long = 5000L

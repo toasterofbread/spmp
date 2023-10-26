@@ -39,8 +39,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.times
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.BackHandler
-import com.toasterofbread.spmp.platform.composeScope
+import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
+import com.toasterofbread.toastercomposetools.platform.composable.composeScope
 import com.toasterofbread.spmp.platform.isPortrait
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
@@ -50,9 +50,9 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThumbnailRow
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.QueueTab
-import com.toasterofbread.utils.common.getThemeColour
-import com.toasterofbread.utils.common.launchSingle
-import com.toasterofbread.utils.modifier.recomposeHighlighter
+import com.toasterofbread.toastercomposetools.utils.common.getThemeColour
+import com.toasterofbread.toastercomposetools.utils.common.launchSingle
+import com.toasterofbread.toastercomposetools.utils.modifier.recomposeHighlighter
 import kotlinx.coroutines.delay
 
 private const val ACCENT_CLEAR_WAIT_TIME_MS: Long = 1000

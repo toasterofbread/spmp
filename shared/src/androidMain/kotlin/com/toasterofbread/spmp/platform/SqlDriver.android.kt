@@ -5,7 +5,7 @@ import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.toasterofbread.Database
 
-actual fun PlatformContext.getSqlDriver(): SqlDriver =
+actual fun AppContext.getSqlDriver(): SqlDriver =
     AndroidSqliteDriver(
         Database.Schema,
         ctx,

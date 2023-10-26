@@ -36,8 +36,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.google.gson.Gson
 import com.toasterofbread.spmp.platform.WebViewLogin
-import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
-import com.toasterofbread.spmp.platform.composable.rememberImagePainter
+import com.toasterofbread.toastercomposetools.platform.composable.PlatformAlertDialog
+import com.toasterofbread.toastercomposetools.platform.composable.rememberImagePainter
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.executeResult
@@ -45,8 +45,8 @@ import com.toasterofbread.spmp.youtubeapi.fromJson
 import com.toasterofbread.spmp.youtubeapi.fromMap
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
-import com.toasterofbread.utils.composable.LinkifyText
-import com.toasterofbread.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.toastercomposetools.utils.composable.LinkifyText
+import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -73,7 +73,7 @@ fun DiscordLoginConfirmation(info_only: Boolean = false, onFinished: (manual: Bo
         title = if (info_only) null else ({ Text(getString("prompt_confirm_action")) }),
         text = {
             Column {
-                LinkifyText(getString(if (info_only) "info_discord_login" else "warning_discord_login"))
+                LinkifyText(getString(if (info_only) "info_discord_login" else "warning_discord_login"), LocalPlayerState.current.theme.accent)
                 if (!info_only) {
                     FilledTonalButton({ onFinished(true) }, Modifier.fillMaxWidth().padding(top = 5.dp).offset(y = 20.dp)) {
                         Text(getString("action_login_manually"))

@@ -20,26 +20,25 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import com.toasterofbread.composesettings.ui.SettingsInterface
-import com.toasterofbread.composesettings.ui.item.*
+import com.toasterofbread.toastercomposetools.settings.ui.SettingsInterface
+import com.toasterofbread.toastercomposetools.settings.ui.item.*
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.*
-import com.toasterofbread.spmp.platform.composable.platformClickable
-import com.toasterofbread.spmp.platform.vibrateShort
+import com.toasterofbread.toastercomposetools.platform.composable.platformClickable
+import com.toasterofbread.toastercomposetools.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.*
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
-import com.toasterofbread.utils.common.blendWith
-import com.toasterofbread.utils.modifier.getHorizontal
+import com.toasterofbread.toastercomposetools.utils.common.blendWith
+import com.toasterofbread.toastercomposetools.utils.modifier.getHorizontal
 import org.jetbrains.compose.resources.*
 
 private const val PREFS_PAGE_EXTRA_PADDING_DP: Float = 10f
@@ -108,7 +107,7 @@ enum class PrefsPageCategory {
     }
 }
 
-class SettingsAppPage(override val state: AppPageState): AppPage() {
+class SettingsAppPage(override val state: AppPageState, footer_modifier: Modifier): AppPage() {
     private var current_category: PrefsPageCategory? by mutableStateOf(null)
     private val pill_menu: PillMenu = PillMenu(follow_player = true)
     private val ytm_auth: SettingsValueState<Set<String>> =
@@ -116,7 +115,7 @@ class SettingsAppPage(override val state: AppPageState): AppPage() {
             Settings.KEY_YTM_AUTH.name
         ).init(Settings.prefs, Settings.Companion::provideDefault)
     private val settings_interface: SettingsInterface =
-        getPrefsPageSettingsInterface(state.context, pill_menu, ytm_auth, { current_category }, { current_category = null })
+        getPrefsPageSettingsInterface(state, pill_menu, ytm_auth, footer_modifier, { current_category }, { current_category = null })
 
     override fun onBackNavigation(): Boolean {
         if (current_category != null) {
@@ -142,7 +141,7 @@ class SettingsAppPage(override val state: AppPageState): AppPage() {
             show_reset_confirmation,
             {
                 if (category_open) {
-                    settings_interface.current_page.resetKeys(player.context)
+                    settings_interface.current_page.resetKeys()
                 }
                 else {
                     TODO("Reset keys in all categories (w/ different confirmation text)")
@@ -233,7 +232,7 @@ class SettingsAppPage(override val state: AppPageState): AppPage() {
                             item {
                                 val item = rememberYtmAuthItem(ytm_auth, true)
                                 item.Item(
-                                    player.theme,
+                                    settings_interface,
                                     settings_interface::openPageById,
                                     settings_interface::openPage
                                 )

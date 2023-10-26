@@ -1,4 +1,4 @@
-package com.toasterofbread.utils.common
+package com.toasterofbread.toastercomposetools.utils.common
 
 actual fun log(message: Any?) {
     println(message)

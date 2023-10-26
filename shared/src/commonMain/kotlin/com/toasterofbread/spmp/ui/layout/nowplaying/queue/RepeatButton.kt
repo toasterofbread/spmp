@@ -19,10 +19,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.platform.playerservice.MediaPlayerRepeatMode
-import com.toasterofbread.utils.common.getContrasted
-import com.toasterofbread.utils.common.getInnerSquareSizeOfCircle
-import com.toasterofbread.utils.composable.crossOut
-import com.toasterofbread.utils.modifier.background
+import com.toasterofbread.toastercomposetools.utils.common.getContrasted
+import com.toasterofbread.toastercomposetools.utils.common.getInnerSquareSizeOfCircle
+import com.toasterofbread.toastercomposetools.utils.composable.crossOut
+import com.toasterofbread.toastercomposetools.utils.modifier.background
 import kotlin.math.roundToInt
 
 @Composable

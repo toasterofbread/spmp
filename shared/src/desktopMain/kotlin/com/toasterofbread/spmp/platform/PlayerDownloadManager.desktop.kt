@@ -3,7 +3,7 @@ package com.toasterofbread.spmp.platform
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 
-actual class PlayerDownloadManager actual constructor(context: PlatformContext) {
+actual class PlayerDownloadManager actual constructor(context: AppContext) {
     actual class DownloadStatus {
         actual val song: Song
             get() = TODO("Not yet implemented")

@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.ui.layout.apppage
 
 import LocalNowPlayingExpansion
 import LocalPlayerState
+import SpMp.isDebugBuild
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -31,15 +32,14 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
+import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
 import com.toasterofbread.spmp.model.mediaitem.layout.LambdaViewMore
-import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
-import com.toasterofbread.spmp.platform.BackHandler
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
@@ -49,13 +49,14 @@ import com.toasterofbread.spmp.youtubeapi.endpoint.SearchFilter
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchResults
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchSuggestion
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchType
-import com.toasterofbread.utils.*
-import com.toasterofbread.utils.common.copy
-import com.toasterofbread.utils.common.launchSingle
-import com.toasterofbread.utils.composable.AlignableCrossfade
-import com.toasterofbread.utils.composable.ShapedIconButton
-import com.toasterofbread.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.utils.composable.rememberKeyboardOpen
+import com.toasterofbread.toastercomposetools.utils.*
+import com.toasterofbread.toastercomposetools.utils.common.copy
+import com.toasterofbread.toastercomposetools.utils.common.launchSingle
+import com.toasterofbread.toastercomposetools.utils.composable.AlignableCrossfade
+import com.toasterofbread.toastercomposetools.utils.composable.ShapedIconButton
+import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.toastercomposetools.platform.composable.rememberKeyboardOpen
+import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
@@ -67,7 +68,7 @@ private const val SEARCH_BAR_V_PADDING_DP = 15f
 private const val SEARCH_SUGGESTIONS_LOAD_DELAY_MS: Long = 200
 private const val SEARCH_MAX_SUGGESTIONS: Int = 5
 
-class SearchAppPage(override val state: AppPageState, val context: PlatformContext): AppPage() {
+class SearchAppPage(override val state: AppPageState, val context: AppContext): AppPage() {
     private val coroutine_scope = CoroutineScope(Job())
     private val search_lock = Object()
     private val search_endpoint = context.ytapi.Search
@@ -212,6 +213,7 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
                         ) {
                             ErrorInfoDisplay(
                                 results,
+                                isDebugBuild(),
                                 Modifier.fillMaxWidth(),
                                 onDismiss = { error = null },
                                 onRetry = {
@@ -482,13 +484,13 @@ class SearchAppPage(override val state: AppPageState, val context: PlatformConte
 
                 ShapedIconButton(
                     { performSearch() },
-                    Modifier
-                        .fillMaxHeight()
-                        .aspectRatio(1f),
-                    colours = IconButtonDefaults.iconButtonColors(
+                    IconButtonDefaults.iconButtonColors(
                         containerColor = context.theme.accent,
                         contentColor = context.theme.on_accent
-                    )
+                    ),
+                    Modifier
+                        .fillMaxHeight()
+                        .aspectRatio(1f)
                 ) {
                     Icon(Icons.Filled.Search, null)
                 }

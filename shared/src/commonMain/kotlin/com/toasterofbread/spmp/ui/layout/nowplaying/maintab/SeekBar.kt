@@ -36,9 +36,9 @@ import com.github.krottv.compose.sliders.SliderValueHorizontal
 import com.toasterofbread.spmp.ui.layout.nowplaying.POSITION_UPDATE_INTERVAL_MS
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
-import com.toasterofbread.utils.common.formatElapsedTime
-import com.toasterofbread.utils.composable.RecomposeOnInterval
-import com.toasterofbread.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.toastercomposetools.utils.common.formatElapsedTime
+import com.toasterofbread.toastercomposetools.utils.composable.RecomposeOnInterval
+import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
 
 @Composable
 fun SeekBar(seek: (Float) -> Unit) {

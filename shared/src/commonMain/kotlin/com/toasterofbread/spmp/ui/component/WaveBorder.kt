@@ -17,7 +17,7 @@ import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.toastercomposetools.settings.ui.Theme
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 

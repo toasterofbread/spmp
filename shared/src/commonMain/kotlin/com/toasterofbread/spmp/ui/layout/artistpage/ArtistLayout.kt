@@ -62,20 +62,19 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
-import com.toasterofbread.spmp.platform.composable.SwipeRefresh
+import com.toasterofbread.toastercomposetools.platform.composable.SwipeRefresh
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.common.getContrasted
-import com.toasterofbread.utils.common.getThemeColour
-import com.toasterofbread.utils.common.setAlpha
-import com.toasterofbread.utils.composable.ShapedIconButton
-import com.toasterofbread.utils.modifier.background
-import com.toasterofbread.utils.modifier.brushBackground
-import com.toasterofbread.utils.modifier.drawScopeBackground
-import com.toasterofbread.utils.modifier.horizontal
+import com.toasterofbread.toastercomposetools.settings.ui.Theme
+import com.toasterofbread.toastercomposetools.utils.common.getContrasted
+import com.toasterofbread.toastercomposetools.utils.common.getThemeColour
+import com.toasterofbread.toastercomposetools.utils.composable.ShapedIconButton
+import com.toasterofbread.toastercomposetools.utils.modifier.background
+import com.toasterofbread.toastercomposetools.utils.modifier.brushBackground
+import com.toasterofbread.toastercomposetools.utils.modifier.drawScopeBackground
+import com.toasterofbread.toastercomposetools.utils.modifier.horizontal
 
 private const val ARTIST_IMAGE_SCROLL_MODIFIER = 0.25f
 
@@ -129,7 +128,7 @@ fun ArtistLayout(
     val top_bar_alpha by animateFloatAsState(if (!top_bar_over_image || music_top_bar_showing || multiselect_context?.is_active == true) 1f else 0f)
 
     fun Theme.getBackgroundColour(): Color = with(density) {
-        background.setAlpha(
+        background.copy(alpha = 
             if (!top_bar_over_image || main_column_state.firstVisibleItemIndex > 0) top_bar_alpha
             else (0.5f + ((main_column_state.firstVisibleItemScrollOffset / screen_width.toPx()) * 0.5f)) * top_bar_alpha
         )
@@ -320,11 +319,11 @@ fun ArtistLayout(
                             Box(Modifier.requiredHeight(filter_bar_height)) {
                                 ShapedIconButton(
                                     { player.playMediaItem(artist) },
-                                    Modifier.requiredSize(play_button_size),
-                                    colours = IconButtonDefaults.iconButtonColors(
+                                    IconButtonDefaults.iconButtonColors(
                                         containerColor = accent_colour ?: LocalContentColor.current,
                                         contentColor = (accent_colour ?: LocalContentColor.current).getContrasted()
-                                    )
+                                    ),
+                                    Modifier.requiredSize(play_button_size)
                                 ) {
                                     Icon(Icons.Default.PlayArrow, null)
                                 }

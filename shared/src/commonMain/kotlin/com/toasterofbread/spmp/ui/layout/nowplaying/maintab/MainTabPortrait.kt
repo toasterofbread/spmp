@@ -31,7 +31,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.composeScope
+import com.toasterofbread.toastercomposetools.platform.composable.composeScope
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.bottom_padding
@@ -40,7 +40,6 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.top
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThumbnailRow
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
-import com.toasterofbread.utils.common.setAlpha
 import kotlin.math.absoluteValue
 
 internal const val MINIMISED_NOW_PLAYING_HORIZ_PADDING: Float = 10f
@@ -119,7 +118,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(top_bar: NowPlaying
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    val bottom_row_colour = player.getNPOnBackground().setAlpha(0.5f)
+                    val bottom_row_colour = player.getNPOnBackground().copy(alpha = 0.5f)
                     var show_volume_slider by remember { mutableStateOf(false) }
 
                     IconButton({ show_volume_slider = !show_volume_slider }) {

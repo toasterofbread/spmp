@@ -22,11 +22,11 @@ import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.platform.PlatformPreferences
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.toastercomposetools.platform.PlatformPreferences
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.utils.common.Permissions
+import com.toasterofbread.toastercomposetools.utils.common.Permissions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -42,7 +42,7 @@ import android.provider.Settings as AndroidSettings
 enum class SERVICE_INTENT_ACTIONS { BUTTON_VOLUME }
 
 actual class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner {
-    private lateinit var context: PlatformContext
+    private lateinit var context: AppContext
     private val coroutine_scope = CoroutineScope(Job())
 
     private lateinit var volume_intercept_mode: PlayerAccessibilityServiceVolumeInterceptMode
@@ -84,7 +84,7 @@ actual class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner
     override fun onCreate() {
         super.onCreate()
         instance = WeakReference(this)
-        context = PlatformContext(this, coroutine_scope).init()
+        context = AppContext(this, coroutine_scope).init()
 
         lifecycle_registry = LifecycleRegistry(this)
         lifecycle_registry.currentState = Lifecycle.State.CREATED
@@ -183,7 +183,7 @@ actual class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner
 
         actual fun isSupported(): Boolean = true
 
-        actual fun addEnabledListener(listener: (Boolean) -> Unit, context: PlatformContext) {
+        actual fun addEnabledListener(listener: (Boolean) -> Unit, context: AppContext) {
             val observer: ContentObserver = object : ContentObserver(Handler(context.ctx.mainLooper)) {
                 override fun onChange(selfChange: Boolean) {
                     super.onChange(selfChange)
@@ -197,17 +197,17 @@ actual class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner
             enabled_listeners[listener] = observer
         }
 
-        actual fun removeEnabledListener(listener: (Boolean) -> Unit, context: PlatformContext) {
+        actual fun removeEnabledListener(listener: (Boolean) -> Unit, context: AppContext) {
             val observer = enabled_listeners.remove(listener) ?: return
             context.ctx.contentResolver.unregisterContentObserver(observer)
         }
 
-        actual fun isEnabled(context: PlatformContext): Boolean {
+        actual fun isEnabled(context: AppContext): Boolean {
             val enabled_services = AndroidSettings.Secure.getString(context.ctx.contentResolver, AndroidSettings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
             return enabled_services?.contains("${context.ctx.packageName}/${PlayerAccessibilityService::class.java.canonicalName}") == true
         }
 
-        actual fun enableInteractive(context: PlatformContext) {
+        actual fun enableInteractive(context: AppContext) {
             val dialog = AlertDialog.Builder(context.ctx)
             dialog.setCancelable(true)
             dialog.setTitle(getString("acc_ser_enable_dialog_title"))
@@ -222,7 +222,7 @@ actual class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner
             dialog.create().show()
         }
 
-        actual fun enable(context: PlatformContext, root: Boolean) {
+        actual fun enable(context: AppContext, root: Boolean) {
             if (!root) {
                 val intent = Intent(AndroidSettings.ACTION_ACCESSIBILITY_SETTINGS)
                 intent.addFlags(
@@ -274,14 +274,14 @@ actual class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner
             }
         }
 
-        actual fun isSettingsPermissionGranted(context: PlatformContext): Boolean =
+        actual fun isSettingsPermissionGranted(context: AppContext): Boolean =
             Permissions.hasPermission(Manifest.permission.WRITE_SECURE_SETTINGS, context.ctx)
 
         actual fun requestRootPermission(callback: (granted: Boolean) -> Unit) =
             Permissions.requestRootPermission(callback)
 
-        actual fun isOverlayPermissionGranted(context: PlatformContext): Boolean = android.provider.Settings.canDrawOverlays(context.ctx)
-        actual fun requestOverlayPermission(context: PlatformContext, callback: (success: Boolean) -> Unit) {
+        actual fun isOverlayPermissionGranted(context: AppContext): Boolean = android.provider.Settings.canDrawOverlays(context.ctx)
+        actual fun requestOverlayPermission(context: AppContext, callback: (success: Boolean) -> Unit) {
             Permissions.requestPermission(Manifest.permission.SYSTEM_ALERT_WINDOW, context.ctx) { result, error ->
                 callback(result == Permissions.GrantError.OK)
             }

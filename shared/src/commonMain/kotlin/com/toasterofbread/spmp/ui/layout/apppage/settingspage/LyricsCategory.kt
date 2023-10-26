@@ -1,11 +1,11 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
-import com.toasterofbread.composesettings.ui.item.SettingsDropdownItem
-import com.toasterofbread.composesettings.ui.item.SettingsGroupItem
-import com.toasterofbread.composesettings.ui.item.SettingsItem
-import com.toasterofbread.composesettings.ui.item.SettingsSliderItem
-import com.toasterofbread.composesettings.ui.item.SettingsToggleItem
-import com.toasterofbread.composesettings.ui.item.SettingsValueState
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsDropdownItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsGroupItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsSliderItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsToggleItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
@@ -25,7 +25,7 @@ internal fun getLyricsCategory(): List<SettingsItem> {
             getString("s_key_lyrics_follow_enabled"), getString("s_sub_lyrics_follow_enabled")
         ),
 
-        SettingsSliderItem(
+        AppSliderItem(
             SettingsValueState(Settings.KEY_LYRICS_FOLLOW_OFFSET.name),
             getString("s_key_lyrics_follow_offset"), getString("s_sub_lyrics_follow_offset"),
             getString("s_option_lyrics_follow_offset_top"), getString("s_option_lyrics_follow_offset_bottom"), steps = 5,
@@ -58,24 +58,24 @@ internal fun getLyricsCategory(): List<SettingsItem> {
             getString("s_key_lyrics_enable_word_sync"), getString("s_sub_lyrics_enable_word_sync")
         ),
 
-        SettingsSliderItem(
+        AppSliderItem(
             SettingsValueState(Settings.KEY_LYRICS_FONT_SIZE.name),
             getString("s_key_lyrics_font_size"), null
         ),
 
-        SettingsSliderItem(
+        AppSliderItem(
             SettingsValueState(Settings.KEY_LYRICS_SYNC_DELAY.name),
             getString("s_key_lyrics_sync_delay"), getString("s_sub_lyrics_sync_delay"),
             range = -5f .. 5f
         ),
 
-        SettingsSliderItem(
+        AppSliderItem(
             SettingsValueState(Settings.KEY_LYRICS_SYNC_DELAY_TOPBAR.name),
             getString("s_key_lyrics_sync_delay_topbar"), getString("s_sub_lyrics_sync_delay_topbar"),
             range = -5f .. 5f
         ),
 
-        SettingsSliderItem(
+        AppSliderItem(
             SettingsValueState(Settings.KEY_LYRICS_SYNC_DELAY_BLUETOOTH.name),
             getString("s_key_lyrics_sync_delay_bluetooth"), getString("s_sub_lyrics_sync_delay_bluetooth"),
             range = -5f .. 5f
@@ -83,7 +83,7 @@ internal fun getLyricsCategory(): List<SettingsItem> {
 
         SettingsGroupItem(getString("s_group_top_bar_lyrics")),
 
-        SettingsSliderItem(
+        AppSliderItem(
             SettingsValueState<Int>(Settings.KEY_LYRICS_TOP_BAR_MAX_LINES.name),
             getString("s_key_lyrics_top_bar_max_lines"), null,
             range = 1f .. 10f

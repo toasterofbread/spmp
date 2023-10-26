@@ -36,10 +36,9 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.MusicTopBarMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
-import com.toasterofbread.spmp.platform.composeScope
+import com.toasterofbread.toastercomposetools.platform.composable.composeScope
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
-import com.toasterofbread.utils.common.setAlpha
-import com.toasterofbread.utils.common.thenIf
+import com.toasterofbread.toastercomposetools.utils.common.thenIf
 
 @Composable
 fun rememberTopBarShouldShowInQueue(mode: MusicTopBarMode): State<Boolean> {
@@ -124,7 +123,7 @@ class NowPlayingTopBar {
                                 auth_state,
                                 Modifier.fillMaxSize().graphicsLayer { this@graphicsLayer.alpha = buttons_alpha },
                                 { 1f - expansion.getDisappearing() > 0f },
-                                { player.getNPOnBackground().setAlpha(0.5f) }
+                                { player.getNPOnBackground().copy(alpha = 0.5f) }
                             )
                         }
                     }
@@ -145,7 +144,7 @@ class NowPlayingTopBar {
                         },
                         Modifier.graphicsLayer { this@graphicsLayer.alpha = buttons_alpha }.width(40.dp * buttons_alpha)
                     ) {
-                        Icon(Icons.Filled.MoreHoriz, null, tint = player.getNPOnBackground().setAlpha(0.5f))
+                        Icon(Icons.Filled.MoreHoriz, null, tint = player.getNPOnBackground().copy(alpha = 0.5f))
                     }
                 }
             }

@@ -7,7 +7,7 @@ import androidx.compose.material.SwipeableState
 import androidx.compose.runtime.*
 import androidx.compose.ui.unit.Density
 import com.toasterofbread.spmp.model.MusicTopBarMode
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import kotlin.math.roundToInt
 
@@ -150,7 +150,7 @@ class NowPlayingExpansionState(val player: PlayerState, swipe_state: State<Swipe
     }
 }
 
-fun WindowInsets.getAdjustedKeyboardHeight(density: Density, context: PlatformContext): Int {
+fun WindowInsets.getAdjustedKeyboardHeight(density: Density, context: AppContext): Int {
     val bottom: Int = getBottom(density)
     if (bottom > 0) {
         val navbar_height: Int = context.getNavigationBarHeight()

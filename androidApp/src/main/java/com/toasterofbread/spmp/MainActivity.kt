@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp
 
 import SpMp
+import SpMp.isDebugBuild
 import android.content.ComponentCallbacks2
 import android.content.Intent
 import android.net.Uri
@@ -13,10 +14,8 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.view.WindowCompat
-import com.toasterofbread.spmp.platform.ApplicationContext
-import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.common.isDebugBuild
+import com.toasterofbread.toastercomposetools.platform.ApplicationContext
+import com.toasterofbread.spmp.platform.AppContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -27,7 +26,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        PlatformContext.main_activity = MainActivity::class.java
+        AppContext.main_activity = MainActivity::class.java
 
         Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
             if (
@@ -54,7 +53,7 @@ class MainActivity : ComponentActivity() {
             )
         }
 
-        val context = PlatformContext(this, coroutine_scope, ApplicationContext(this))
+        val context = AppContext(this, coroutine_scope, ApplicationContext(this))
         SpMp.init(context)
         context.init()
 

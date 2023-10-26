@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout
 
 import LocalPlayerState
+import SpMp.isDebugBuild
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -35,10 +36,10 @@ import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_DEFAULT_HEIGHT
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.common.copy
-import com.toasterofbread.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.utils.composable.spanItem
+import com.toasterofbread.toastercomposetools.settings.ui.Theme
+import com.toasterofbread.toastercomposetools.utils.common.copy
+import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.toastercomposetools.utils.composable.spanItem
 import kotlin.math.absoluteValue
 
 @Composable
@@ -102,7 +103,7 @@ fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, co
 
             },
             { error ->
-                ErrorInfoDisplay(error, Modifier.fillMaxWidth().padding(list_padding), onDismiss = null)
+                ErrorInfoDisplay(error, isDebugBuild(), Modifier.fillMaxWidth().padding(list_padding), onDismiss = null)
             }
         ) ?: Box(Modifier.fillMaxSize().weight(1f), contentAlignment = Alignment.Center) {
             SubtleLoadingIndicator()

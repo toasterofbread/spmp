@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.platform
 
-actual open class PlatformService: PlatformContext() {
+actual open class PlatformService: AppContext() {
     actual abstract class PlatformBinder actual constructor()
     actual abstract class MessageReceiver actual constructor() {
         actual abstract fun onReceive(data: Map<String, Any?>)
@@ -19,7 +19,7 @@ actual open class PlatformService: PlatformContext() {
         return connections.isEmpty()
     }
 
-    actual val context: PlatformContext
+    actual val context: AppContext
         get() = this
 
     actual open fun onCreate() {}
@@ -42,7 +42,7 @@ actual open class PlatformService: PlatformContext() {
         private val service_instances: MutableMap<Class<out PlatformService>, PlatformService> = mutableMapOf()
 
         actual fun startService(
-            context: PlatformContext,
+            context: AppContext,
             cls: Class<out PlatformService>,
             onConnected: ((binder: PlatformBinder?) -> Unit)?,
             onDisconnected: (() -> Unit)?
@@ -59,7 +59,7 @@ actual open class PlatformService: PlatformContext() {
             return service.getConnection()
         }
 
-        actual fun unbindService(context: PlatformContext, connection: Any) {
+        actual fun unbindService(context: AppContext, connection: Any) {
             require(connection is ServiceConnection)
             if (connection.service.removeConnection(connection)) {
                 connection.service.onDestroy()

@@ -8,8 +8,8 @@ import com.google.gson.JsonParser
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.platform.PlatformPreferences
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.toastercomposetools.platform.PlatformPreferences
 import com.toasterofbread.spmp.platform.getDataLanguage
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.getStringArraySafe
@@ -59,7 +59,7 @@ internal val PLAIN_HEADERS = listOf("accept-language", "user-agent", "accept-enc
 class RelatedGroup(val title: String, val items: List<MediaItem>?, val description: String?)
 
 data class YoutubeMusicApi(
-    override val context: PlatformContext,
+    override val context: AppContext,
     val api_url: String = YoutubeApi.Type.YOUTUBE_MUSIC.getDefaultUrl(),
 ): YoutubeApi {
     init {

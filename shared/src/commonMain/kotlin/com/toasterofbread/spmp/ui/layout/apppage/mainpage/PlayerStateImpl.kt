@@ -21,7 +21,7 @@ import com.toasterofbread.spmp.model.mediaitem.layout.BrowseParamsData
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.*
-import com.toasterofbread.spmp.platform.composable.BackHandler
+import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
 import com.toasterofbread.spmp.service.playercontroller.PersistentQueueHandler
@@ -40,8 +40,9 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.getAdjustedKeyboardHeight
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
-import com.toasterofbread.utils.common.init
-import com.toasterofbread.utils.composable.OnChangedEffect
+import com.toasterofbread.toastercomposetools.utils.common.init
+import com.toasterofbread.toastercomposetools.utils.composable.OnChangedEffect
+import com.toasterofbread.toastercomposetools.platform.PlatformPreferences
 import kotlinx.coroutines.*
 
 enum class FeedLoadState { PREINIT, NONE, LOADING, CONTINUING }
@@ -56,7 +57,7 @@ fun PlayerState.getMainPageItemSize(): DpSize {
 }
 
 @OptIn(ExperimentalMaterialApi::class)
-class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, null, null) {
+class PlayerStateImpl(override val context: AppContext): PlayerState(null, null, null) {
     private var _player: PlatformPlayerService? by mutableStateOf(null)
     override val session_started: Boolean get() = _player?.service_player?.session_started == true
 
@@ -83,7 +84,7 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
 
     override val expansion = NowPlayingExpansionState(this, np_swipe_state)
 
-    override val app_page_state = AppPageState(context)
+    override val app_page_state = AppPageState(this)
     override val bottom_padding: Float get() = bottom_padding_anim.value
     override val main_multiselect_context: MediaItemMultiSelectContext = MediaItemMultiSelectContext()
     override var np_theme_mode: ThemeMode by mutableStateOf(Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE, context.getPrefs()))
@@ -159,22 +160,19 @@ class PlayerStateImpl(override val context: PlatformContext): PlayerState(null, 
 
     @Composable
     override fun nowPlayingTopOffset(base: Modifier): Modifier {
-        val density = LocalDensity.current
         val keyboard_insets = WindowInsets.ime
         val screen_height: Dp = screen_size.height
 
         return base.offset {
-            with (density) {
-                val bottom_padding = getNpBottomPadding(keyboard_insets)
-                val swipe_offset: Dp =
-                    if (session_started) -np_swipe_state.value.offset.value.dp - (screen_height * 0.5f)
-                    else 0.dp
+            val bottom_padding = getNpBottomPadding(keyboard_insets)
+            val swipe_offset: Dp =
+                if (session_started) -np_swipe_state.value.offset.value.dp - (screen_height * 0.5f)
+                else 0.dp
 
-                IntOffset(
-                    0,
-                    swipe_offset.toPx().toInt() - bottom_padding
-                )
-            }
+            IntOffset(
+                0,
+                swipe_offset.toPx().toInt() - bottom_padding
+            )
         }
     }
 

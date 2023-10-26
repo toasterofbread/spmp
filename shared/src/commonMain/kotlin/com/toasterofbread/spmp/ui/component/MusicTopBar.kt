@@ -42,21 +42,20 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import app.cash.sqldelight.Query
+import com.toasterofbread.toastercomposetools.platform.composable.composeScope
 import com.toasterofbread.spmp.model.MusicTopBarMode
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.SongLyrics
+import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.composable.platformClickable
-import com.toasterofbread.spmp.platform.composeScope
+import com.toasterofbread.toastercomposetools.platform.composable.platformClickable
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
-import com.toasterofbread.utils.common.getContrasted
-import com.toasterofbread.utils.common.launchSingle
-import com.toasterofbread.utils.common.setAlpha
-import com.toasterofbread.utils.composable.AlignableCrossfade
-import com.toasterofbread.utils.composable.pauseableInfiniteRepeatableAnimation
+import com.toasterofbread.toastercomposetools.utils.common.getContrasted
+import com.toasterofbread.toastercomposetools.utils.common.launchSingle
+import com.toasterofbread.toastercomposetools.utils.composable.AlignableCrossfade
+import com.toasterofbread.toastercomposetools.utils.composable.pauseableInfiniteRepeatableAnimation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -362,7 +361,7 @@ private fun TopBarEmptyContent() {
         }
     )
 
-    val colour = LocalContentColor.current.setAlpha(0.15f)
+    val colour = LocalContentColor.current.copy(alpha = 0.15f)
     val stroke_width = with(LocalDensity.current) { 3.dp.toPx() }
 
     Canvas(

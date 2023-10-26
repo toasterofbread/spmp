@@ -20,21 +20,21 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composesettings.ui.SettingsPage
-import com.toasterofbread.composesettings.ui.SettingsPageWithItems
-import com.toasterofbread.composesettings.ui.item.SettingsComposableItem
-import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.platform.getNavigationBarHeightDp
+import com.toasterofbread.toastercomposetools.settings.ui.SettingsPage
+import com.toasterofbread.toastercomposetools.settings.ui.SettingsPageWithItems
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsComposableItem
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.toastercomposetools.platform.getNavigationBarHeightDp
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.utils.common.roundTo
-import com.toasterofbread.utils.composable.RecomposeOnInterval
+import com.toasterofbread.toastercomposetools.utils.common.roundTo
+import com.toasterofbread.toastercomposetools.utils.composable.RecomposeOnInterval
 
 @Composable
 private fun SizeIndicator(
     label: String,
     show_indicator: Boolean = true,
     show_percent_of_screen: Boolean = false,
-    getHeight: @Composable Density.(PlatformContext) -> Any?,
+    getHeight: @Composable Density.(AppContext) -> Any?,
 ) {
     val player = LocalPlayerState.current
     val density = LocalDensity.current

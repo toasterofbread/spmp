@@ -18,12 +18,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.platform.vibrateShort
+import com.toasterofbread.toastercomposetools.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
-import com.toasterofbread.utils.common.getContrasted
-import com.toasterofbread.utils.common.setAlpha
+import com.toasterofbread.toastercomposetools.utils.common.getContrasted
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -115,7 +114,7 @@ fun QueueButtonsRow(
 
         val undo_background = animateColorAsState(
             if (player.status.m_undo_count != 0) LocalContentColor.current
-            else LocalContentColor.current.setAlpha(0.3f)
+            else LocalContentColor.current.copy(alpha = 0.3f)
         ).value
 
         Box(

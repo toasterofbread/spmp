@@ -12,15 +12,15 @@ import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter.saveToFile
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
-import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.platform.PlatformFile
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.toastercomposetools.platform.PlatformFile
 import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import java.io.IOException
 
-abstract class PlaylistEditor(open val playlist: Playlist, val context: PlatformContext) {
+abstract class PlaylistEditor(open val playlist: Playlist, val context: AppContext) {
     protected sealed class Action(val changes_items: Boolean = false) {
         data class SetTitle(val title: String): Action()
         data class SetImage(val image_url: String?): Action()
@@ -115,7 +115,7 @@ abstract class PlaylistEditor(open val playlist: Playlist, val context: Platform
     protected abstract suspend fun performDeletion(): Result<Unit>
 
     companion object {
-        suspend fun Playlist.getEditorOrNull(context: PlatformContext): Result<PlaylistEditor?> = withContext(Dispatchers.IO) {
+        suspend fun Playlist.getEditorOrNull(context: AppContext): Result<PlaylistEditor?> = withContext(Dispatchers.IO) {
             val playlist = this@getEditorOrNull
 
             if (!isPlaylistEditable(context)) {
@@ -144,7 +144,7 @@ abstract class PlaylistEditor(open val playlist: Playlist, val context: Platform
         }
 
         @Composable
-        fun Playlist.rememberEditorOrNull(context: PlatformContext, onFailure: ((Throwable) -> Unit)? = null): State<PlaylistEditor?> {
+        fun Playlist.rememberEditorOrNull(context: AppContext, onFailure: ((Throwable) -> Unit)? = null): State<PlaylistEditor?> {
             val editor_state: MutableState<PlaylistEditor?> = remember(this) { mutableStateOf(null) }
             LaunchedEffect(this) {
                 editor_state.value = getEditorOrNull(context).fold(
@@ -158,7 +158,7 @@ abstract class PlaylistEditor(open val playlist: Playlist, val context: Platform
             return editor_state
         }
 
-        fun Playlist.isPlaylistEditable(context: PlatformContext): Boolean {
+        fun Playlist.isPlaylistEditable(context: AppContext): Boolean {
             when (this) {
                 is LocalPlaylist -> {
                     return true
@@ -175,7 +175,7 @@ abstract class PlaylistEditor(open val playlist: Playlist, val context: Platform
     }
 }
 
-class LocalPlaylistEditor(override val playlist: LocalPlaylist, context: PlatformContext): PlaylistEditor(playlist, context) {
+class LocalPlaylistEditor(override val playlist: LocalPlaylist, context: AppContext): PlaylistEditor(playlist, context) {
     override suspend fun performAndCommitActions(actions: List<Action>): Result<Unit> {
         if (actions.isEmpty()) {
             return Result.success(Unit)

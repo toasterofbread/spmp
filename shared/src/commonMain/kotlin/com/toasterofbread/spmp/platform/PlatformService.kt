@@ -3,7 +3,7 @@ package com.toasterofbread.spmp.platform
 expect abstract class PlatformBinder()
 
 interface PlatformService {
-    val context: PlatformContext
+    val context: AppContext
 
     fun onCreate()
     fun onDestroy()
@@ -18,7 +18,7 @@ interface PlatformService {
 }
 
 expect class PlatformServiceImpl: PlatformService {
-    override val context: PlatformContext
+    override val context: AppContext
 
     override fun onCreate()
     override fun onDestroy()
@@ -34,10 +34,10 @@ expect class PlatformServiceImpl: PlatformService {
 
 
 expect fun startPlatformService(
-    context: PlatformContext,
+    context: AppContext,
     cls: Class<out PlatformService>,
     onConnected: ((binder: PlatformBinder?) -> Unit)? = null,
     onDisconnected: (() -> Unit)? = null
 ): Any // Service connection
 
-expect fun unbindPlatformService(context: PlatformContext, connection: Any)
+expect fun unbindPlatformService(context: AppContext, connection: Any)

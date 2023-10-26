@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.platform
 
 import android.os.Build
+import com.toasterofbread.toastercomposetools.platform.PlatformFile
 import com.toasterofbread.spmp.PlayerDownloadService
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
@@ -10,7 +11,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-actual class PlayerDownloadManager actual constructor(val context: PlatformContext) {
+actual class PlayerDownloadManager actual constructor(val context: AppContext) {
     private var service: PlayerDownloadService? = null
     private var service_connecting = false
     private var service_connection: Any? = null
@@ -274,13 +275,13 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
     }
 
     companion object {
-        fun getDownloadDir(context: PlatformContext): PlatformFile {
+        fun getDownloadDir(context: AppContext): PlatformFile {
             return MediaItemLibrary.getLocalSongsDir(context)
         }
     }
 }
 
-actual fun Song.getLocalAudioFile(context: PlatformContext, allow_partial: Boolean): PlatformFile? {
+actual fun Song.getLocalAudioFile(context: AppContext, allow_partial: Boolean): PlatformFile? {
     val files = PlayerDownloadManager.getDownloadDir(context).listFiles() ?: return null
     for (file in files) {
         val status: Boolean? = PlayerDownloadService.fileMatchesDownload(file.name, this)

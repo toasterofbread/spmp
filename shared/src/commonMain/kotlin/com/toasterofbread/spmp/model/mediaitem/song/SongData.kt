@@ -9,7 +9,7 @@ import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
-import com.toasterofbread.utils.common.lazyAssert
+import com.toasterofbread.toastercomposetools.utils.common.lazyAssert
 
 class SongData(
     override var id: String,

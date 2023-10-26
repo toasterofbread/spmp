@@ -5,7 +5,7 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -33,7 +33,7 @@ private data class PersistentQueueMetadata(val song_index: Int, val position_ms:
     }
 }
 
-private suspend fun getSavedQueue(context: PlatformContext): Pair<List<SongData>, PersistentQueueMetadata> = withContext(Dispatchers.IO) {
+private suspend fun getSavedQueue(context: AppContext): Pair<List<SongData>, PersistentQueueMetadata> = withContext(Dispatchers.IO) {
     val reader: BufferedReader = context.openFileInput(PERSISTENT_QUEUE_FILENAME).bufferedReader()
     reader.use {
         val songs: MutableList<SongData> = mutableListOf()
@@ -52,7 +52,7 @@ private suspend fun getSavedQueue(context: PlatformContext): Pair<List<SongData>
     }
 }
 
-internal class PersistentQueueHandler(val player: PlayerServicePlayer, val context: PlatformContext) {
+internal class PersistentQueueHandler(val player: PlayerServicePlayer, val context: AppContext) {
     private var persistent_queue_loaded: Boolean = false
     private val queue_lock = Mutex()
 
@@ -183,7 +183,7 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
     }
 
     companion object {
-        suspend fun isPopulatedQueueSaved(context: PlatformContext): Boolean {
+        suspend fun isPopulatedQueueSaved(context: AppContext): Boolean {
             try {
                 val queue = getSavedQueue(context)
                 return queue.first.isNotEmpty()

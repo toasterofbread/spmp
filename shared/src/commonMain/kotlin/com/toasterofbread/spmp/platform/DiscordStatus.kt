@@ -4,7 +4,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 
 expect class DiscordStatus(
-    context: PlatformContext,
+    context: AppContext,
     account_token: String? = null
 ) {
 

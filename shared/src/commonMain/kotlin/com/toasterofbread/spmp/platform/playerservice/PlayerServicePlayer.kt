@@ -10,8 +10,8 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.db.incrementPlayCount
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.platform.PlatformPreferences
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.toastercomposetools.platform.PlatformPreferences
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.service.playercontroller.DiscordStatusHandler
 import com.toasterofbread.spmp.service.playercontroller.PersistentQueueHandler
@@ -32,7 +32,7 @@ private const val SONG_MARK_WATCHED_POSITION = 1000 // ms
 
 @Suppress("LeakingThis")
 abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
-    private val context: PlatformContext get() = service.context
+    private val context: AppContext get() = service.context
     private val coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
 
     internal val radio: RadioHandler = RadioHandler(this, context)

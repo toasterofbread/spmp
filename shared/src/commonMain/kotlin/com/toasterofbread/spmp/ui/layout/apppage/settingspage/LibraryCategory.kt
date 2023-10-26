@@ -1,21 +1,21 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
-import com.toasterofbread.composesettings.ui.item.SettingsItem
-import com.toasterofbread.composesettings.ui.item.SettingsToggleItem
-import com.toasterofbread.composesettings.ui.item.SettingsValueState
-import com.toasterofbread.settings.ui.item.SettingsFileItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsFileItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsToggleItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.platform.getUiLanguage
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
 import java.net.URI
 
-internal fun getLibraryCategory(): List<SettingsItem> {
+internal fun getLibraryCategory(context: AppContext): List<SettingsItem> {
     return listOf(
         SettingsFileItem(
             SettingsValueState(Settings.KEY_LIBRARY_PATH.name),
@@ -38,7 +38,7 @@ internal fun getLibraryCategory(): List<SettingsItem> {
                     }
                 }
             },
-            { context, setValue, showDialog ->
+            { setValue, showDialog ->
                 context.promptForUserDirectory(true) { path ->
                     val old_location = MediaItemLibrary.getLibraryDir(context, Settings.KEY_LIBRARY_PATH.get())
                     val new_location = MediaItemLibrary.getLibraryDir(context, path ?: "")

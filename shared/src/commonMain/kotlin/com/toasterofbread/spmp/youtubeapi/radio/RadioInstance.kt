@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.youtubeapi.radio
 
 import LocalPlayerState
+import SpMp.isDebugBuild
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
@@ -21,20 +22,20 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
-import com.toasterofbread.utils.common.launchSingle
-import com.toasterofbread.utils.common.synchronizedBlock
-import com.toasterofbread.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.toastercomposetools.utils.common.launchSingle
+import com.toasterofbread.toastercomposetools.utils.common.synchronizedBlock
+import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.job
 
-class RadioInstance(val context: PlatformContext) {
+class RadioInstance(val context: AppContext) {
     var state: RadioState by mutableStateOf(RadioState())
 
     val active: Boolean get() = state.item != null
@@ -177,7 +178,7 @@ class RadioInstance(val context: PlatformContext) {
     }
 
     fun loadContinuation(
-        context: PlatformContext,
+        context: AppContext,
         onStart: (suspend () -> Unit)? = null,
         can_retry: Boolean = false,
         is_retry: Boolean = false,
@@ -375,6 +376,7 @@ fun RadioInstance.RadioState.LoadStatus(
                 val (message, stack_trace, can_retry) = it.second ?: return@Crossfade
                 ErrorInfoDisplay(
                     null,
+                    isDebugBuild(),
                     pair_error = Pair(message, stack_trace),
                     expanded_content_modifier = expanded_modifier,
                     disable_parent_scroll = disable_parent_scroll,

@@ -19,7 +19,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 import java.util.concurrent.locks.ReentrantLock
 
@@ -33,7 +33,7 @@ internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
     private val loading_remote_playlists: MutableMap<String, LoadJob<Result<RemotePlaylistData>>> = mutableMapOf()
     private val loading_local_playlists: MutableMap<String, LoadJob<Result<LocalPlaylistData>>> = mutableMapOf()
 
-    suspend fun <ItemType: MediaItemData> loadUnknown(item: ItemType, context: PlatformContext): Result<ItemType> =
+    suspend fun <ItemType: MediaItemData> loadUnknown(item: ItemType, context: AppContext): Result<ItemType> =
         when (item) {
             is SongData -> loadSong(item, context) as Result<ItemType>
             is ArtistData -> loadArtist(item, context) as Result<ItemType>
@@ -42,16 +42,16 @@ internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
             else -> throw NotImplementedError(item::class.toString())
         }
 
-    suspend fun loadSong(song: SongData, context: PlatformContext): Result<SongData> {
+    suspend fun loadSong(song: SongData, context: AppContext): Result<SongData> {
         return loadItem(song, loading_songs, song_lock, context)
     }
-    suspend fun loadArtist(artist: ArtistData, context: PlatformContext): Result<ArtistData> {
+    suspend fun loadArtist(artist: ArtistData, context: AppContext): Result<ArtistData> {
         return loadItem(artist, loading_artists, artist_lock, context)
     }
-    suspend fun loadRemotePlaylist(playlist: RemotePlaylistData, context: PlatformContext, continuation: MediaItemLayout.Continuation? = null): Result<RemotePlaylistData> {
+    suspend fun loadRemotePlaylist(playlist: RemotePlaylistData, context: AppContext, continuation: MediaItemLayout.Continuation? = null): Result<RemotePlaylistData> {
         return loadItem(playlist, loading_remote_playlists, playlist_lock, context, continuation)
     }
-    suspend fun loadLocalPlaylist(playlist: LocalPlaylistData, context: PlatformContext): Result<LocalPlaylistData> {
+    suspend fun loadLocalPlaylist(playlist: LocalPlaylistData, context: AppContext): Result<LocalPlaylistData> {
         return loadItem(playlist, loading_local_playlists, playlist_lock, context)
     }
 
@@ -73,7 +73,7 @@ internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
         item: ItemType,
         loading_items: MutableMap<String, LoadJob<Result<ItemType>>>,
         lock: ReentrantLock,
-        context: PlatformContext,
+        context: AppContext,
         continuation: MediaItemLayout.Continuation? = null
     ): Result<ItemType> {
         val result = performSafeLoad(
@@ -128,7 +128,7 @@ internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
 
 @Composable
 fun MediaItem.loadDataOnChange(
-    context: PlatformContext,
+    context: AppContext,
     load: Boolean = true,
     force: Boolean = false,
     onLoadSucceeded: ((MediaItemData) -> Unit)? = null,

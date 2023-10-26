@@ -24,7 +24,7 @@ import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter.saveToFile
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 
 class LocalPlaylistData(id: String): PlaylistData(id), LocalPlaylist {
     var play_count: Int = 0
@@ -66,7 +66,7 @@ class LocalPlaylistData(id: String): PlaylistData(id), LocalPlaylist {
         throw UnsupportedOperationException()
     }
 
-    override suspend fun savePlaylist(context: PlatformContext) {
+    override suspend fun savePlaylist(context: AppContext) {
         val file = MediaItemLibrary.getLocalPlaylistFile(this, context)
         saveToFile(file, context)
     }
@@ -74,7 +74,7 @@ class LocalPlaylistData(id: String): PlaylistData(id), LocalPlaylist {
     override fun saveToDatabase(db: Database, apply_to_item: MediaItem, uncertain: Boolean, subitems_uncertain: Boolean) {
         throw UnsupportedOperationException()
     }
-    override suspend fun loadData(context: PlatformContext, populate_data: Boolean, force: Boolean): Result<LocalPlaylistData> {
+    override suspend fun loadData(context: AppContext, populate_data: Boolean, force: Boolean): Result<LocalPlaylistData> {
         return Result.success(this)
     }
 

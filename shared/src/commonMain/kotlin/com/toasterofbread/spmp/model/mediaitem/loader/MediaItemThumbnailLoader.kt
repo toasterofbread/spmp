@@ -11,10 +11,10 @@ import androidx.compose.ui.graphics.ImageBitmap
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.toByteArray
 import com.toasterofbread.spmp.platform.toImageBitmap
-import com.toasterofbread.utils.common.addUnique
+import com.toasterofbread.toastercomposetools.utils.common.addUnique
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -40,7 +40,7 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
     suspend fun loadItemThumbnail(
         item: MediaItem,
         quality: MediaItemThumbnailProvider.Quality,
-        context: PlatformContext
+        context: AppContext
     ): Result<ImageBitmap> {
         val thumbnail_provider = item.ThumbnailProvider.get(context.database)
         if (thumbnail_provider == null) {
@@ -53,7 +53,7 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
         item: MediaItem,
         thumbnail_provider: MediaItemThumbnailProvider,
         quality: MediaItemThumbnailProvider.Quality,
-        context: PlatformContext,
+        context: AppContext,
         disable_cache_read: Boolean = false,
         disable_cache_write: Boolean = false
     ): Result<ImageBitmap> {
@@ -89,7 +89,7 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
         }
     }
 
-    suspend fun invalidateCache(item: MediaItem, context: PlatformContext) = withContext(Dispatchers.IO) {
+    suspend fun invalidateCache(item: MediaItem, context: AppContext) = withContext(Dispatchers.IO) {
         for (quality in MediaItemThumbnailProvider.Quality.values()) {
             val file = getCacheFile(item, quality, context)
             file.delete()
@@ -102,14 +102,14 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
         }
     }
 
-    private fun getCacheFile(item: MediaItem, quality: MediaItemThumbnailProvider.Quality, context: PlatformContext): File =
+    private fun getCacheFile(item: MediaItem, quality: MediaItemThumbnailProvider.Quality, context: AppContext): File =
         context.getCacheDir().resolve("thumbnails/${item.id}.${quality.ordinal}.png")
 
     private suspend fun performLoad(
         item: MediaItem,
         quality: MediaItemThumbnailProvider.Quality,
         thumbnail_url: String,
-        context: PlatformContext,
+        context: AppContext,
         disable_cache_read: Boolean = false,
         disable_cache_write: Boolean = false
     ): Result<ImageBitmap> = withContext(Dispatchers.IO) {

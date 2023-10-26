@@ -1,4 +1,4 @@
-package com.toasterofbread.utils.common
+package com.toasterofbread.toastercomposetools.utils.common
 
 import android.Manifest
 import android.app.AlertDialog
@@ -9,7 +9,7 @@ import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import com.toasterofbread.spmp.platform.getAppName
+import com.toasterofbread.toastercomposetools.platform.getAppName
 import kotlin.concurrent.thread
 
 class Permissions {

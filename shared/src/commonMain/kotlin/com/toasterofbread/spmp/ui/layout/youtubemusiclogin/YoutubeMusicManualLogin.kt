@@ -9,7 +9,7 @@ import com.toasterofbread.spmp.resources.getStringArray
 import com.toasterofbread.spmp.ui.layout.ManualLoginPage
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
-import com.toasterofbread.utils.common.indexOfOrNull
+import com.toasterofbread.toastercomposetools.utils.common.indexOfOrNull
 import kotlinx.coroutines.launch
 import okhttp3.Headers
 

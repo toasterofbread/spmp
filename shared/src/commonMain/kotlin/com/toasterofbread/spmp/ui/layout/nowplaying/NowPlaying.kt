@@ -23,20 +23,19 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import com.toasterofbread.spmp.model.OverscrollClearMode
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.platform.BackHandler
-import com.toasterofbread.spmp.platform.composable.scrollWheelSwipeable
-import com.toasterofbread.spmp.platform.composeScope
+import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
+import com.toasterofbread.toastercomposetools.platform.composable.scrollWheelSwipeable
+import com.toasterofbread.toastercomposetools.platform.composable.composeScope
 import com.toasterofbread.spmp.platform.isPortrait
-import com.toasterofbread.spmp.platform.vibrateShort
+import com.toasterofbread.toastercomposetools.platform.vibrateShort
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.utils.*
-import com.toasterofbread.utils.common.amplifyPercent
-import com.toasterofbread.utils.common.setAlpha
-import com.toasterofbread.utils.composable.OnChangedEffect
-import com.toasterofbread.utils.composable.RecomposeOnInterval
-import com.toasterofbread.utils.modifier.brushBackground
+import com.toasterofbread.toastercomposetools.utils.*
+import com.toasterofbread.toastercomposetools.utils.common.amplifyPercent
+import com.toasterofbread.toastercomposetools.utils.composable.OnChangedEffect
+import com.toasterofbread.toastercomposetools.utils.composable.RecomposeOnInterval
+import com.toasterofbread.toastercomposetools.utils.modifier.brushBackground
 import kotlinx.coroutines.delay
 
 enum class ThemeMode { BACKGROUND, ELEMENTS, NONE }
@@ -374,7 +373,7 @@ fun MinimisedProgressBar(modifier: Modifier = Modifier) {
         LinearProgressIndicator(
             progress = player.status.getProgress(),
             color = player.getNPOnBackground(),
-            trackColor = player.getNPOnBackground().setAlpha(0.5f),
+            trackColor = player.getNPOnBackground().copy(alpha = 0.5f),
             modifier = modifier
                 .requiredHeight(2.dp)
                 .fillMaxWidth()

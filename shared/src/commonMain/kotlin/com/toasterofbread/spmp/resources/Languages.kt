@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.resources
 
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import java.io.InputStream
@@ -11,7 +11,7 @@ private const val DEFAULT_LANGUAGE = "en-GB"
 object Languages {
     data class LanguageInfo(val code: String, val readable_name: String)
 
-    fun loadAvailableLanugages(context: PlatformContext): List<LanguageInfo> {
+    fun loadAvailableLanugages(context: AppContext): List<LanguageInfo> {
         val languages: MutableList<LanguageInfo> = mutableListOf()
 
         iterateValuesDirectories(context) { language, path ->

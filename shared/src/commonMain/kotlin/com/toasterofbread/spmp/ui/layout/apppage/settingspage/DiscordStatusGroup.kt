@@ -31,23 +31,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composesettings.ui.item.BasicSettingsValueState
-import com.toasterofbread.composesettings.ui.item.SettingsComposableItem
-import com.toasterofbread.composesettings.ui.item.SettingsGroupItem
-import com.toasterofbread.composesettings.ui.item.SettingsItem
-import com.toasterofbread.composesettings.ui.item.SettingsItemInfoText
-import com.toasterofbread.composesettings.ui.item.SettingsLargeToggleItem
-import com.toasterofbread.composesettings.ui.item.SettingsTextFieldItem
-import com.toasterofbread.composesettings.ui.item.SettingsToggleItem
-import com.toasterofbread.composesettings.ui.item.SettingsValueState
+import com.toasterofbread.toastercomposetools.settings.ui.item.BasicSettingsValueState
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsComposableItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsGroupItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsItemInfoText
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsLargeToggleItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsTextFieldItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsToggleItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.DiscordStatus
-import com.toasterofbread.spmp.platform.PlatformPreferences
+import com.toasterofbread.toastercomposetools.platform.PlatformPreferences
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.DiscordAccountPreview
 import com.toasterofbread.spmp.ui.layout.DiscordLoginConfirmation
-import com.toasterofbread.utils.composable.LinkifyText
-import com.toasterofbread.utils.composable.ShapedIconButton
+import com.toasterofbread.toastercomposetools.utils.composable.LinkifyText
+import com.toasterofbread.toastercomposetools.utils.composable.ShapedIconButton
 
 internal fun getDiscordStatusGroup(discord_auth: SettingsValueState<String>): List<SettingsItem> {
     if (!DiscordStatus.isSupported()) {
@@ -72,7 +72,7 @@ internal fun getDiscordStatusGroup(discord_auth: SettingsValueState<String>): Li
                     Column(Modifier.fillMaxSize().padding(15.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                         Icon(Icons.Default.Warning, null, tint = Color.Red)
 
-                        LinkifyText(getString("warning_discord_kizzy"), colour = on_background, style = MaterialTheme.typography.bodyMedium)
+                        LinkifyText(getString("warning_discord_kizzy"), accent, colour = on_background, style = MaterialTheme.typography.bodyMedium)
 
                         Button(
                             { accepted = true },

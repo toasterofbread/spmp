@@ -55,11 +55,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.platform.composable.platformClickable
-import com.toasterofbread.spmp.platform.vibrateShort
+import com.toasterofbread.toastercomposetools.platform.composable.platformClickable
+import com.toasterofbread.toastercomposetools.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.Thumbnail
-import com.toasterofbread.utils.common.getContrasted
+import com.toasterofbread.toastercomposetools.utils.common.getContrasted
 
 private const val PLAYLIST_IMAGE_MIN_HEIGHT_DP: Float = 120f
 

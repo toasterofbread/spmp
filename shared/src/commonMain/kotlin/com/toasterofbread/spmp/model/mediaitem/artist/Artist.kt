@@ -10,7 +10,7 @@ import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.db.fromNullableSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.db.toNullableSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 
 class ArtistRef(override val id: String): Artist, MediaItemRef() {
     override fun toString(): String = "ArtistRef($id)"
@@ -19,7 +19,7 @@ class ArtistRef(override val id: String): Artist, MediaItemRef() {
 
 sealed interface Artist: MediaItem {
     override fun getType(): MediaItemType = MediaItemType.ARTIST
-    override fun getURL(context: PlatformContext): String = "https://music.youtube.com/channel/$id"
+    override fun getURL(context: AppContext): String = "https://music.youtube.com/channel/$id"
 
     val SubscribeChannelId: Property<String?>
         get() = property_rememberer.rememberSingleQueryProperty(
@@ -80,7 +80,7 @@ sealed interface Artist: MediaItem {
         }
         data.subscriber_count = SubscriberCount.get(db)
     }
-    override suspend fun loadData(context: PlatformContext, populate_data: Boolean, force: Boolean): Result<ArtistData> {
+    override suspend fun loadData(context: AppContext, populate_data: Boolean, force: Boolean): Result<ArtistData> {
         return super.loadData(context, populate_data, force) as Result<ArtistData>
     }
 

@@ -29,9 +29,9 @@ import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
-import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.toastercomposetools.settings.ui.Theme
 import com.toasterofbread.spmp.youtubeapi.implementedOrNull
-import com.toasterofbread.utils.composable.OnChangedEffect
+import com.toasterofbread.toastercomposetools.utils.composable.OnChangedEffect
 import kotlinx.coroutines.delay
 
 class MainPlayerOverlayMenu(

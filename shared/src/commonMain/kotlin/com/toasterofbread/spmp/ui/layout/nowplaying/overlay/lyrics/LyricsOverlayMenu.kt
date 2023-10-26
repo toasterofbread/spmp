@@ -53,20 +53,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.SongLyrics
+import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.composable.BackHandler
-import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
+import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
+import com.toasterofbread.toastercomposetools.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
-import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
-import com.toasterofbread.utils.common.AnnotatedReadingTerm
-import com.toasterofbread.utils.common.launchSingle
-import com.toasterofbread.utils.common.setAlpha
-import com.toasterofbread.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.spmp.ui.component.AnnotatedReadingTerm
+import com.toasterofbread.toastercomposetools.utils.common.launchSingle
+import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
 
 private enum class Submenu {
     SEARCH, SYNC
@@ -142,7 +140,7 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
                             else {
                                 @Composable
                                 fun Item(title: String, text: String) {
-                                    val faint_colour = LocalContentColor.current.setAlpha(0.75f)
+                                    val faint_colour = LocalContentColor.current.copy(alpha = 0.75f)
                                     Column(Modifier.fillMaxWidth().border(1.dp, faint_colour, RoundedCornerShape(16.dp)).padding(10.dp)) {
                                         Text(title, style = MaterialTheme.typography.bodySmall, color = faint_colour)
                                         Spacer(Modifier.height(5.dp))

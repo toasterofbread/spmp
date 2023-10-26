@@ -54,13 +54,12 @@ import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.fromJson
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
-import com.toasterofbread.utils.common.isDebugBuild
-import com.toasterofbread.utils.common.thenIf
-import com.toasterofbread.utils.composable.ShapedIconButton
-import com.toasterofbread.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.utils.composable.WidthShrinkText
-import com.toasterofbread.utils.modifier.background
-import com.toasterofbread.utils.modifier.disableParentScroll
+import com.toasterofbread.toastercomposetools.utils.common.thenIf
+import com.toasterofbread.toastercomposetools.utils.composable.ShapedIconButton
+import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.toastercomposetools.utils.composable.WidthShrinkText
+import com.toasterofbread.toastercomposetools.utils.modifier.background
+import com.toasterofbread.toastercomposetools.utils.modifier.disableParentScroll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
@@ -75,6 +74,7 @@ const val ERROR_INFO_DISPLAY_DEFAULT_EXPANDED_HEIGHT_DP: Float = 500f
 @Composable
 fun ErrorInfoDisplay(
     error: Throwable?,
+    show_throw_button: Boolean,
     modifier: Modifier = Modifier,
     message: String? = null,
     pair_error: Pair<String, String>? = null,
@@ -170,7 +170,7 @@ fun ErrorInfoDisplay(
                 enter = expandVertically(),
                 exit = shrinkVertically()
             ) {
-                ExpandedContent(error, pair_error, shape, disable_parent_scroll, expanded_content_modifier)
+                ExpandedContent(error, pair_error, shape, disable_parent_scroll, show_throw_button, expanded_content_modifier)
             }
         }
     }
@@ -217,6 +217,7 @@ private fun ExpandedContent(
     pair_error: Pair<String, String>?,
     shape: Shape,
     disable_parent_scroll: Boolean,
+    show_throw_button: Boolean,
     modifier: Modifier = Modifier
 ) {
     val coroutine_scope = rememberCoroutineScope()
@@ -339,7 +340,7 @@ private fun ExpandedContent(
                     }
                 }
 
-                if (isDebugBuild() && current_error != null) {
+                if (show_throw_button && current_error != null) {
                     Button(
                         { current_error?.also { throw it } },
                         colors = button_colours

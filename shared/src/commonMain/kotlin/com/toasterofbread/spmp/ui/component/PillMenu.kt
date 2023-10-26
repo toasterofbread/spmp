@@ -46,17 +46,17 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.toasterofbread.utils.common.addUnique
-import com.toasterofbread.utils.common.getContrasted
-import com.toasterofbread.utils.common.thenIf
-import com.toasterofbread.utils.composable.NoRipple
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.toastercomposetools.utils.common.addUnique
+import com.toasterofbread.toastercomposetools.utils.common.getContrasted
+import com.toasterofbread.toastercomposetools.utils.common.thenIf
+import com.toasterofbread.toastercomposetools.utils.composable.NoRipple
+import com.toasterofbread.spmp.platform.AppContext
 
 class PillMenu(
     private val action_count: Int = 0,
     private val getAction: @Composable (Action.(i: Int, action_count: Int) -> Unit) = { _, _ -> },
     private val expand_state: MutableState<Boolean>? = null,
-    private val _background_colour: PlatformContext.() -> Color = { theme.accent },
+    private val _background_colour: AppContext.() -> Color = { theme.accent },
     top: Boolean = false,
     left: Boolean = false,
     vertical: Boolean = false,
@@ -161,7 +161,7 @@ class PillMenu(
         action_count: Int = this.action_count,
         getAction: @Composable (Action.(i: Int, action_count: Int) -> Unit) = this.getAction,
         expand_state: MutableState<Boolean>? = this.expand_state,
-        _background_colour: PlatformContext.() -> Color = this._background_colour,
+        _background_colour: AppContext.() -> Color = this._background_colour,
         top: Boolean = this.top,
         left: Boolean = this.left,
         vertical: Boolean = this.vertical,

@@ -7,7 +7,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 
@@ -28,7 +28,7 @@ sealed interface RemotePlaylist: Playlist {
     override fun getType(): MediaItemType = MediaItemType.PLAYLIST_REM
 
     override fun getHolder(): PlaylistHolder = PlaylistHolder(this)
-    override fun getURL(context: PlatformContext): String = "https://music.youtube.com/playlist?list=$id"
+    override fun getURL(context: AppContext): String = "https://music.youtube.com/playlist?list=$id"
     override fun getEmptyData(): RemotePlaylistData
 
     override fun populateData(data: MediaItemData, db: Database) {
@@ -39,11 +39,11 @@ sealed interface RemotePlaylist: Playlist {
         }
     }
 
-    override suspend fun loadData(context: PlatformContext, populate_data: Boolean, force: Boolean): Result<RemotePlaylistData> {
+    override suspend fun loadData(context: AppContext, populate_data: Boolean, force: Boolean): Result<RemotePlaylistData> {
         return super.loadData(context, populate_data, force) as Result<RemotePlaylistData>
     }
 
-    override suspend fun setSortType(sort_type: MediaItemSortType?, context: PlatformContext): Result<Unit> {
+    override suspend fun setSortType(sort_type: MediaItemSortType?, context: AppContext): Result<Unit> {
         SortType.set(sort_type, context.database)
         return Result.success(Unit)
     }

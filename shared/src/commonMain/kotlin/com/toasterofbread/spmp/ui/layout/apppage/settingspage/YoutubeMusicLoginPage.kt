@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import LocalPlayerState
+import SpMp.isDebugBuild
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,10 +17,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.toasterofbread.composesettings.ui.SettingsPage
-import com.toasterofbread.composesettings.ui.item.SettingsValueState
-import com.toasterofbread.spmp.platform.BackHandler
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.toastercomposetools.settings.ui.SettingsPage
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsValueState
+import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.youtubeapi.composable.LoginPage
 
@@ -46,7 +47,7 @@ internal fun getYoutubeMusicLoginPage(
             get() = login_page.getIcon(confirm_param)
 
         @Composable
-        override fun TitleBar(is_root: Boolean, modifier: Modifier) {}
+        override fun TitleBar(is_root: Boolean, modifier: Modifier, titleFooter: @Composable (() -> Unit)?) {}
 
         @Composable
         override fun PageView(
@@ -79,6 +80,7 @@ internal fun getYoutubeMusicLoginPage(
                     Box(Modifier.fillMaxSize().padding(content_padding), contentAlignment = Alignment.Center) {
                         ErrorInfoDisplay(
                             error,
+                            isDebugBuild(),
                             Modifier.fillMaxWidth(),
                             expanded_content_modifier = Modifier.fillMaxHeight(),
                             start_expanded = true,
@@ -89,7 +91,7 @@ internal fun getYoutubeMusicLoginPage(
             }
         }
 
-        override suspend fun resetKeys(context: PlatformContext) {
+        override suspend fun resetKeys() {
             ytm_auth.reset()
         }
     }

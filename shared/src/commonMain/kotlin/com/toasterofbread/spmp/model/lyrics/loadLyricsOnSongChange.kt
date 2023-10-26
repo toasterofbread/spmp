@@ -1,4 +1,4 @@
-package com.toasterofbread.utils.composable
+package com.toasterofbread.spmp.model.lyrics
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -8,14 +8,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import app.cash.sqldelight.Query
-import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.utils.common.launchSingle
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.toastercomposetools.utils.common.launchSingle
 
 @Composable
-fun loadLyricsOnSongChange(song: Song?, context: PlatformContext, load_lyrics: Boolean = true): SongLyrics? {
+fun loadLyricsOnSongChange(song: Song?, context: AppContext, load_lyrics: Boolean = true): SongLyrics? {
     val db = context.database
     val coroutine_scope = rememberCoroutineScope()
     var current_song: Song? by remember { mutableStateOf(null) }

@@ -1,14 +1,14 @@
 package com.toasterofbread.spmp.youtubeapi.lyrics
 
 import androidx.compose.ui.graphics.Color
-import com.toasterofbread.spmp.model.SongLyrics
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.model.lyrics.SongLyrics
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.executeResult
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
 import com.toasterofbread.spmp.youtubeapi.lyrics.petit.parseTimedLyrics
 import com.toasterofbread.spmp.youtubeapi.lyrics.petit.searchPetitLyrics
-import com.toasterofbread.utils.common.substringBetween
+import com.toasterofbread.toastercomposetools.utils.common.substringBetween
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -29,7 +29,7 @@ internal class PetitLyricsSource(source_idx: Int): LyricsSource(source_idx) {
     override fun getReadable(): String = getString("lyrics_source_petit")
     override fun getColour(): Color = Color(0xFFBD0A0F)
     
-    override suspend fun getLyrics(lyrics_id: String, context: PlatformContext): Result<SongLyrics> {
+    override suspend fun getLyrics(lyrics_id: String, context: AppContext): Result<SongLyrics> {
         var exception: Throwable? = null
 
         for (sync_type in SongLyrics.SyncType.byPriority()) {

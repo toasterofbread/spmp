@@ -10,8 +10,8 @@ import com.google.gson.Gson
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
-import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.platform.PlatformPreferences
+import com.toasterofbread.toastercomposetools.platform.PlatformPreferences
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
@@ -258,7 +258,7 @@ enum class Settings {
         return Settings.get(this, preferences)
     }
 
-    fun <T> get(context: PlatformContext): T {
+    fun <T> get(context: AppContext): T {
         return Settings.get(this, context.getPrefs())
     }
 

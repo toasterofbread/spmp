@@ -19,10 +19,9 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.common.setAlpha
-import com.toasterofbread.utils.composable.LinkifyText
-import com.toasterofbread.utils.composable.NoRipple
+import com.toasterofbread.toastercomposetools.settings.ui.Theme
+import com.toasterofbread.toastercomposetools.utils.composable.LinkifyText
+import com.toasterofbread.toastercomposetools.utils.composable.NoRipple
 
 @Composable
 fun DescriptionCard(description_text: String, getBackgroundColour: () -> Color, getAccentColour: () -> Color?, toggleInfo: () -> Unit) {
@@ -38,7 +37,7 @@ fun DescriptionCard(description_text: String, getBackgroundColour: () -> Color, 
             .fillMaxWidth()
             .animateContentSize(),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = player.theme.on_background.setAlpha(0.05f)
+            containerColor = player.theme.on_background.copy(alpha = 0.05f)
         )
     ) {
         Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
@@ -71,7 +70,7 @@ fun DescriptionCard(description_text: String, getBackgroundColour: () -> Color, 
 
             LinkifyText(
                 description_text,
-                Modifier
+                modifier = Modifier
                     .onSizeChanged { size ->
                         if (size.height == small_text_height_px) {
                             can_expand = true
@@ -81,9 +80,9 @@ fun DescriptionCard(description_text: String, getBackgroundColour: () -> Color, 
                     .then(
                         if (expanded) Modifier else Modifier.height(200.dp)
                     ),
-                player.theme.on_background.setAlpha(0.8f),
-                player.theme.on_background,
-                MaterialTheme.typography.bodyMedium
+                colour = player.theme.on_background.copy(alpha = 0.8f),
+                highlight_colour = player.theme.on_background,
+                style = MaterialTheme.typography.bodyMedium
             )
         }
     }

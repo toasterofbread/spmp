@@ -6,13 +6,13 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
+import com.toasterofbread.toastercomposetools.platform.PlatformFile
 
-expect class PlayerDownloadManager(context: PlatformContext) {
+expect class PlayerDownloadManager(context: AppContext) {
     class DownloadStatus {
         val song: Song
         val status: Status
@@ -127,4 +127,4 @@ fun rememberSongDownloads(): State<List<PlayerDownloadManager.DownloadStatus>> {
     return download_state
 }
 
-expect fun Song.getLocalAudioFile(context: PlatformContext, allow_partial: Boolean = false): PlatformFile?
+expect fun Song.getLocalAudioFile(context: AppContext, allow_partial: Boolean = false): PlatformFile?

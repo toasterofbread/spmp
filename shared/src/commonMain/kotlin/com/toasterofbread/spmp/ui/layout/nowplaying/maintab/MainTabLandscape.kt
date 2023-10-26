@@ -47,8 +47,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.times
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.platform.BackHandler
-import com.toasterofbread.spmp.platform.composeScope
+import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
+import com.toasterofbread.toastercomposetools.platform.composable.composeScope
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
 import com.toasterofbread.spmp.ui.layout.nowplaying.ExpansionState
@@ -60,8 +60,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.ThumbnailRow
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.QueueTab
-import com.toasterofbread.utils.common.launchSingle
-import com.toasterofbread.utils.common.setAlpha
+import com.toasterofbread.toastercomposetools.utils.common.launchSingle
 import kotlin.math.absoluteValue
 
 private const val CONTROLS_MAX_HEIGHT_DP: Float = 400f
@@ -242,7 +241,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLandscape(page_height: Dp, t
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 var show_volume_slider: Boolean by remember { mutableStateOf(false) }
-                                val bottom_row_colour = player.getNPOnBackground().setAlpha(0.5f)
+                                val bottom_row_colour = player.getNPOnBackground().copy(alpha = 0.5f)
 
                                 Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.CenterEnd) {
                                     this@Row.AnimatedVisibility(

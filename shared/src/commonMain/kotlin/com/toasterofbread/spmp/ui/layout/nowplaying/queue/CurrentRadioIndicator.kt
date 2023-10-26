@@ -27,9 +27,8 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
-import com.toasterofbread.utils.common.getContrasted
-import com.toasterofbread.utils.common.setAlpha
-import com.toasterofbread.utils.modifier.background
+import com.toasterofbread.toastercomposetools.utils.common.getContrasted
+import com.toasterofbread.toastercomposetools.utils.modifier.background
 
 @Composable
 internal fun CurrentRadioIndicator(
@@ -134,7 +133,7 @@ private fun RadioFilterChip(selected: Boolean, getAccentColour: () -> Color, onC
             selectedLabelColor = getAccentColour().getContrasted()
         ),
         border = FilterChipDefaults.filterChipBorder(
-            borderColor = LocalContentColor.current.setAlpha(0.25f),
+            borderColor = LocalContentColor.current.copy(alpha = 0.25f),
             selectedBorderColor = Color.Transparent
         )
     )

@@ -15,7 +15,7 @@ import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderArtist
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderEndpoint
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
@@ -50,7 +50,7 @@ import okhttp3.Response
 import java.io.Reader
 
 class UnimplementedYoutubeApi(
-    override val context: PlatformContext
+    override val context: AppContext
 ): YoutubeApi {
 
     override suspend fun init() {}
@@ -215,7 +215,7 @@ class UnimplementedYoutubeApi(
         override fun buildRadioToken(artists: Set<RadioBuilderArtist>, modifiers: Set<RadioBuilderModifier?>): String {
             throw NotImplementedError()
         }
-        override suspend fun getBuiltRadio(radio_token: String, context: PlatformContext): Result<RemotePlaylistData?> {
+        override suspend fun getBuiltRadio(radio_token: String, context: AppContext): Result<RemotePlaylistData?> {
             throw NotImplementedError()
         }
         override val api = this@UnimplementedYoutubeApi

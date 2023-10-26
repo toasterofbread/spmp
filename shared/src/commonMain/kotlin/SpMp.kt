@@ -11,8 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import com.toasterofbread.spmp.model.FontMode
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.platform.PlatformPreferences
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.toastercomposetools.platform.PlatformPreferences
+import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.initResources
@@ -41,9 +42,10 @@ object LocalNowPlayingExpansion {
 }
 
 object SpMp {
+    fun isDebugBuild(): Boolean = ProjectBuildConfig.IS_DEBUG
     val Log: Logger = Logger.getLogger(SpMp::class.java.name)
 
-    private lateinit var context: PlatformContext
+    private lateinit var context: AppContext
     private lateinit var player_state: PlayerStateImpl
 
     val prefs: PlatformPreferences get() = context.getPrefs()
@@ -54,7 +56,7 @@ object SpMp {
     private val low_memory_listeners: MutableList<() -> Unit> = mutableListOf()
     private val coroutine_scope = CoroutineScope(Dispatchers.Main)
 
-    fun init(context: PlatformContext) {
+    fun init(context: AppContext) {
         this.context = context
 
         coroutine_scope.launch {
@@ -119,7 +121,7 @@ object SpMp {
         context.sendToast(exception.toString())
     }
 
-    private fun getFontFamily(context: PlatformContext): FontFamily? {
+    private fun getFontFamily(context: AppContext): FontFamily? {
         val font_mode: FontMode = Settings.KEY_FONT.getEnum(context.getPrefs())
         val font_path: String = font_mode.getFontFilePath(context.getUiLanguage()) ?: return null
         return FontFamily(context.loadFontFromFile("font/$font_path"))

@@ -14,13 +14,13 @@ import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter.saveToFile
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.Duration
 import java.time.LocalDate
 
-suspend fun MediaItem.incrementPlayCount(context: PlatformContext, by: Int = 1): Result<Unit> = withContext(Dispatchers.IO) {
+suspend fun MediaItem.incrementPlayCount(context: AppContext, by: Int = 1): Result<Unit> = withContext(Dispatchers.IO) {
     require(by >= 1)
 
     try {
@@ -72,7 +72,7 @@ fun MediaItem.getPlayCount(db: Database, range: Duration? = null): Int {
 }
 
 @Composable
-fun MediaItem.observePlayCount(context: PlatformContext, range: Duration? = null): Int? {
+fun MediaItem.observePlayCount(context: AppContext, range: Duration? = null): Int? {
     val db = context.database
     var play_count_state: Int? by remember { mutableStateOf(null) }
 

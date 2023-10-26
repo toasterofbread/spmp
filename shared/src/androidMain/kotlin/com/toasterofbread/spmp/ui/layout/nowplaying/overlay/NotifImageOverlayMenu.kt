@@ -40,12 +40,12 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.toastercomposetools.utils.common.launchSingle
+import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.playerservice.getMediaNotificationImageMaxOffset
 import com.toasterofbread.spmp.platform.playerservice.getMediaNotificationImageSize
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.utils.common.launchSingle
 import kotlin.math.roundToInt
 
 actual fun notifImagePlayerOverlayMenuButtonText(): String? = getString("song_notif_image_menu_open")

@@ -1,21 +1,34 @@
 package com.toasterofbread.spmp.ui.layout.apppage
 
+import LocalPlayerState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.toasterofbread.spmp.platform.PlatformContext
+import androidx.compose.ui.Modifier
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.library.LibraryAppPage
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.SettingsAppPage
 import com.toasterofbread.spmp.ui.layout.apppage.songfeedpage.SongFeedAppPage
 
-class AppPageState(val context: PlatformContext) {
+class AppPageState(val player: PlayerState) {
     val SongFeed = SongFeedAppPage(this)
     val Library = LibraryAppPage(this)
     val Search = SearchAppPage(this, context)
-    val Settings by lazy { SettingsAppPage(this) }
     val RadioBuilder = RadioBuilderAppPage(this)
 
+    private var settings: SettingsAppPage? = null
+    val Settings: SettingsAppPage
+        @Composable get() {
+            if (settings == null) {
+                settings = SettingsAppPage(this, LocalPlayerState.current.nowPlayingTopOffset(Modifier))
+            }
+            return settings!!
+        }
+
     val Default: AppPage = SongFeed
+    val context: AppContext get() = player.context
 
     var current_page by mutableStateOf(Default)
 

@@ -33,12 +33,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.db.rememberThemeColour
-import com.toasterofbread.spmp.platform.getNavigationBarHeightDp
-import com.toasterofbread.spmp.platform.composable.BackHandler
+import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
+import com.toasterofbread.toastercomposetools.platform.getNavigationBarHeightDp
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
-import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.common.contrastAgainst
-import com.toasterofbread.utils.common.launchSingle
+import com.toasterofbread.toastercomposetools.utils.common.contrastAgainst
+import com.toasterofbread.toastercomposetools.utils.common.launchSingle
 import kotlinx.coroutines.delay
 
 private const val MENU_OPEN_ANIM_MS: Int = 150

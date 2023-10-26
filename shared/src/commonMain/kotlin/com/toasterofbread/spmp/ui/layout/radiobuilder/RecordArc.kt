@@ -13,7 +13,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
-import com.toasterofbread.utils.common.setAlpha
 
 @Composable
 internal fun RecordArc(size: Dp, arc_angle: Float, offset: Float = 0f, colour: Color, anim: Animatable<Float, AnimationVector1D>? = null) {
@@ -24,7 +23,7 @@ internal fun RecordArc(size: Dp, arc_angle: Float, offset: Float = 0f, colour: C
             .size(size)
             .drawBehind {
                 drawArc(
-                    colour.setAlpha(0.5f),
+                    colour.copy(alpha = 0.5f),
                     (arc_angle * -0.5f) + o + ((anim?.value ?: 0f) * direction) + offset,
                     arc_angle,
                     false,

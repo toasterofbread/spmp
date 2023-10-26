@@ -5,7 +5,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemRef
 import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer
 import com.toasterofbread.spmp.model.mediaitem.UnsupportedPropertyRememberer
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 
 class LocalPlaylistRef(override val id: String): LocalPlaylist, MediaItemRef() {
     override fun toString(): String = "LocalPlaylistRef($id)"
@@ -14,7 +14,7 @@ class LocalPlaylistRef(override val id: String): LocalPlaylist, MediaItemRef() {
         throw IllegalStateException(id)
     }
 
-    override suspend fun loadData(context: PlatformContext, populate_data: Boolean, force: Boolean): Result<LocalPlaylistData> {
+    override suspend fun loadData(context: AppContext, populate_data: Boolean, force: Boolean): Result<LocalPlaylistData> {
         return runCatching {
             val file = MediaItemLibrary.getLocalPlaylistFile(this, context)
             PlaylistFileConverter.loadFromFile(file, context)!!

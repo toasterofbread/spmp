@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.service.playercontroller
 
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
 import com.toasterofbread.spmp.platform.playerservice.UndoRedoAction
@@ -12,7 +12,7 @@ import kotlinx.coroutines.withContext
 // TODO Add setting
 private const val RADIO_MIN_LENGTH: Int = 10
 
-class RadioHandler(val player: PlayerServicePlayer, val context: PlatformContext) {
+class RadioHandler(val player: PlayerServicePlayer, val context: AppContext) {
     val instance: RadioInstance = RadioInstance(context)
     fun getRadioChangeUndoRedo(
         previous_radio_state: RadioInstance.RadioState,

@@ -1,9 +1,9 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
-import com.toasterofbread.composesettings.ui.item.SettingsItem
-import com.toasterofbread.composesettings.ui.item.SettingsStringSetItem
-import com.toasterofbread.composesettings.ui.item.SettingsToggleItem
-import com.toasterofbread.composesettings.ui.item.SettingsValueState
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsStringSetItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsToggleItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString
 
@@ -29,7 +29,7 @@ internal fun getFilterCategory(): List<SettingsItem> {
             getString("s_key_filter_apply_to_artist_items"), null
         ),
 
-        SettingsStringSetItem(
+        AppStringSetItem(
             SettingsValueState(Settings.KEY_FILTER_TITLE_KEYWORDS.name),
             getString("s_key_filter_title_keywords"), getString("s_sub_filter_title_keywords"),
             getString("s_filter_title_keywords_dialog_title")

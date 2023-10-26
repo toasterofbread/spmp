@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
 
@@ -25,22 +25,22 @@ enum class MediaPlayerRepeatMode {
 
 expect class PlatformPlayerService() {
     companion object {
-        fun isServiceRunning(context: PlatformContext): Boolean
+        fun isServiceRunning(context: AppContext): Boolean
 
         fun addListener(listener: PlayerListener)
         fun removeListener(listener: PlayerListener)
 
         fun connect(
-            context: PlatformContext,
+            context: AppContext,
             instance: PlatformPlayerService? = null,
             onConnected: (PlatformPlayerService) -> Unit,
             onDisconnected: () -> Unit
         ): Any
 
-        fun disconnect(context: PlatformContext, connection: Any)
+        fun disconnect(context: AppContext, connection: Any)
     }
 
-    val context: PlatformContext
+    val context: AppContext
     val service_player: PlayerServicePlayer
 
     fun onCreate()

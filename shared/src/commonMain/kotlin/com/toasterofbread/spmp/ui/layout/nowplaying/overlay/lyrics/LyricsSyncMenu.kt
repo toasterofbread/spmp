@@ -26,12 +26,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.spmp.model.SongLyrics
+import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.utils.common.AnnotatedReadingTerm
-import com.toasterofbread.utils.common.setAlpha
+import com.toasterofbread.spmp.ui.component.AnnotatedReadingTerm
 
 private const val SONG_SEEK_MS = 5000L
 private val SYNC_MENU_LYRICS_SHOW_RANGE = -3 .. 0
@@ -85,7 +84,7 @@ fun LyricsSyncMenu(
 
                 CompositionLocalProvider(
                     LocalContentColor provides LocalContentColor.current
-                        .setAlpha(if (line_offset == 0) 0f else 0.1f)
+                        .copy(alpha = if (line_offset == 0) 0f else 0.1f)
                 ) {
                     Text(
                         line.annotated_string,

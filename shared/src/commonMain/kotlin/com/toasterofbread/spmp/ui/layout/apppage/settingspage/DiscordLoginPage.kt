@@ -6,9 +6,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.toasterofbread.composesettings.ui.SettingsPage
-import com.toasterofbread.composesettings.ui.item.SettingsValueState
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.toastercomposetools.settings.ui.SettingsPage
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsValueState
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.DiscordLogin
 
@@ -56,7 +56,7 @@ internal fun getDiscordLoginPage(discord_auth: SettingsValueState<String>, manua
             }
         }
 
-        override suspend fun resetKeys(context: PlatformContext) {
+        override suspend fun resetKeys() {
             discord_auth.reset()
         }
     }

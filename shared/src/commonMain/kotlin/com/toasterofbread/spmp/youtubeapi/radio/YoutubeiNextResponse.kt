@@ -8,7 +8,7 @@ import com.toasterofbread.spmp.model.mediaitem.db.loadMediaItemValue
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.model.BrowseEndpoint
 import com.toasterofbread.spmp.youtubeapi.model.MusicThumbnailRenderer
 import com.toasterofbread.spmp.youtubeapi.model.NavigationEndpoint
@@ -68,7 +68,7 @@ data class YoutubeiNextResponse(
         val menu: Menu,
         val thumbnail: MusicThumbnailRenderer.Thumbnail
     ) {
-        suspend fun getArtist(host_item: Song, context: PlatformContext): Result<ArtistData?> {
+        suspend fun getArtist(host_item: Song, context: AppContext): Result<ArtistData?> {
             // Get artist ID directly
             for (run in longBylineText.runs!! + title.runs!!) {
                 val page_type = run.browse_endpoint_type?.let { type ->

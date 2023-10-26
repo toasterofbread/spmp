@@ -5,13 +5,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import kotlinx.coroutines.delay
 
 private const val SCREEN_SIZE_UPDATE_INTERVAL: Long = 100
 
 fun main() = application {
-    val context = PlatformContext()
+    val context = AppContext()
     SpMp.init(context)
 
     Window(

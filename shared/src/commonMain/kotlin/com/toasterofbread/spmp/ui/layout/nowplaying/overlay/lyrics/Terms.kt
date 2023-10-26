@@ -2,9 +2,9 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.overlay.lyrics
 
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.SongLyrics
-import com.toasterofbread.utils.common.AnnotatedReadingTerm
-import com.toasterofbread.utils.common.ReadingTextData
+import com.toasterofbread.spmp.model.lyrics.SongLyrics
+import com.toasterofbread.spmp.ui.component.AnnotatedReadingTerm
+import com.toasterofbread.spmp.ui.component.ReadingTextData
 
 internal fun List<ReadingTextData>.getTermRangeOfTime(lyrics: SongLyrics, time: Long): Pair<IntRange?, Long> {
     require(lyrics.synced)

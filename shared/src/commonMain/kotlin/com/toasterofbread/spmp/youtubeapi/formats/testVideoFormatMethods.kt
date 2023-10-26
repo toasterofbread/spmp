@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.youtubeapi.formats
 
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.YoutubeVideoFormat
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import kotlinx.coroutines.Dispatchers
@@ -8,7 +8,7 @@ import kotlinx.coroutines.withContext
 
 suspend fun testVideoFormatMethods(
     ids: List<String>,
-    context: PlatformContext,
+    context: AppContext,
     filter: ((YoutubeVideoFormat) -> Boolean)? = null,
 ) = withContext(Dispatchers.IO) {
     val api = YoutubeMusicApi(context)

@@ -6,7 +6,7 @@ import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 
 class RemotePlaylistData(id: String): PlaylistData(id), RemotePlaylist {
     var continuation: MediaItemLayout.Continuation? = null
@@ -31,7 +31,7 @@ class RemotePlaylistData(id: String): PlaylistData(id), RemotePlaylist {
         data.browse_params = browse_params
     }
 
-    override suspend fun savePlaylist(context: PlatformContext) {
+    override suspend fun savePlaylist(context: AppContext) {
         saveToDatabase(context.database)
     }
 

@@ -1,15 +1,15 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
-import com.toasterofbread.composesettings.ui.item.SettingsItem
-import com.toasterofbread.composesettings.ui.item.SettingsItemThemeSelector
-import com.toasterofbread.composesettings.ui.item.SettingsMultipleChoiceItem
-import com.toasterofbread.composesettings.ui.item.SettingsSliderItem
-import com.toasterofbread.composesettings.ui.item.SettingsValueState
+import com.toasterofbread.toastercomposetools.settings.ui.Theme
+import com.toasterofbread.toastercomposetools.settings.ui.ThemeData
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsMultipleChoiceItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsSliderItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsValueState
+import com.toasterofbread.settings.ui.item.SettingsItemThemeSelector
 import com.toasterofbread.spmp.model.AccentColourSource
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.spmp.ui.theme.ThemeData
 
 internal fun getThemeCategory(theme: Theme): List<SettingsItem> {
     return listOf(
@@ -49,7 +49,7 @@ internal fun getThemeCategory(theme: Theme): List<SettingsItem> {
             }
         },
 
-        SettingsSliderItem(
+        AppSliderItem(
             SettingsValueState(Settings.KEY_NOWPLAYING_DEFAULT_GRADIENT_DEPTH.name),
             getString("s_key_np_default_gradient_depth"), null
         )

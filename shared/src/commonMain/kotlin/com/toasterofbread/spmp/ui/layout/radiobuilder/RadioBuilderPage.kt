@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.ui.layout.radiobuilder
 
 import LocalPlayerState
 import SpMp
+import SpMp.isDebugBuild
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,7 +30,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.platform.composable.BackHandler
+import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.MusicTopBar
@@ -114,7 +115,7 @@ fun RadioBuilderPage(
                     if (selected == null) {
                         if (artists_result?.isFailure == true) {
                             artists_result?.exceptionOrNull()?.also {
-                                ErrorInfoDisplay(it) { artists_result = null }
+                                ErrorInfoDisplay(it, isDebugBuild()) { artists_result = null }
                             }
                         }
                         else {

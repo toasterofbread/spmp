@@ -63,9 +63,8 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
 
     private fun forEachDownloadStatusListener(action: (DownloadStatusListener) -> Unit) {
         synchronized(download_status_listeners) {
-            val iterator = download_status_listeners.iterator()
-            while (iterator.hasNext()) {
-                action(iterator.next())
+            for (listener in download_status_listeners.toList()) {
+                action(listener)
             }
         }
     }

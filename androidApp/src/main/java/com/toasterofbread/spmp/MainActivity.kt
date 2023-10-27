@@ -13,6 +13,11 @@ import android.view.View
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.core.view.WindowCompat
 import com.toasterofbread.toastercomposetools.platform.ApplicationContext
 import com.toasterofbread.spmp.platform.AppContext
@@ -79,10 +84,17 @@ class MainActivity : ComponentActivity() {
             else null
 
         setContent {
-            context.setStatusBarColour(context.theme.background)
-            context.setNavigationBarColour(context.theme.background)
+            var launched: Boolean by remember { mutableStateOf(false) }
 
-            SpMp.App(open_uri?.toString())
+            LaunchedEffect(Unit) {
+                context.setStatusBarColour(context.theme.background)
+                context.setNavigationBarColour(context.theme.background)
+                launched = true
+            }
+
+            if (launched) {
+                SpMp.App(open_uri?.toString())
+            }
         }
     }
 

@@ -55,11 +55,6 @@ fun Theme.ApplicationTheme(
 
             outline = on_background,
             outlineVariant = vibrant_accent
-//            error: Color = this.error,
-//            onError: Color = this.onError,
-//            errorContainer: Color = this.errorContainer,
-//            onErrorContainer: Color = this.onErrorContainer,
-//            scrim: Color = this.scrim
         )
 
     val default_typography = MaterialTheme.typography

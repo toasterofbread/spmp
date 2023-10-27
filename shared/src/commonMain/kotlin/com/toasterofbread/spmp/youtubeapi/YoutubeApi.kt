@@ -132,11 +132,9 @@ interface YoutubeApi {
     suspend fun Request.Builder.addAuthApiHeaders(
         include: List<String>? = null
     ): Request.Builder {
-        if (user_auth_state != null) {
-            user_auth_state?.addHeadersToRequest(this, include)
-            return this
-        }
-        return addAuthlessApiHeaders(include)
+        addAuthlessApiHeaders(include)
+        user_auth_state?.addHeadersToRequest(this, include)
+        return this
     }
 
     suspend fun Request.Builder.postWithBody(
@@ -241,10 +239,26 @@ interface YoutubeApi {
     val SongRelatedContent: SongRelatedContentEndpoint
     val SongLyrics: SongLyricsEndpoint
 
-    interface UserAuthState {
-        val api: YoutubeApi
-        val own_channel: Artist?
+    abstract class UserAuthState(
+        headers: Headers
+    ) {
+        abstract val api: YoutubeApi
+        abstract val own_channel: Artist?
         val headers: Headers
+
+        init {
+            val headers_builder = Headers.Builder()
+
+            val headers_to_keep = listOf("cookie", "authorization", "x-goog-authuser")
+            for (header in headers_to_keep) {
+                val value = headers[header]
+                if (value != null) {
+                    headers_builder.add(header, value)
+                }
+            }
+
+            this.headers = headers_builder.build()
+        }
 
         private enum class ValueType { CHANNEL, HEADER }
 
@@ -319,23 +333,24 @@ interface YoutubeApi {
                 }
 
             override suspend fun Request.Builder.addAuthApiHeaders(include: List<String>?): Request.Builder {
+                addApiHeadersNoAuth()
                 auth.addHeadersToRequest(this, include)
                 return this
             }
         }
 
         // --- Account playlists ---
-        val AccountPlaylists: AccountPlaylistsEndpoint
-        val CreateAccountPlaylist: CreateAccountPlaylistEndpoint
-        val DeleteAccountPlaylist: DeleteAccountPlaylistEndpoint
-        val AccountPlaylistEditor: AccountPlaylistEditorEndpoint
-        val AccountPlaylistAddSongs: AccountPlaylistAddSongsEndpoint
+        abstract val AccountPlaylists: AccountPlaylistsEndpoint
+        abstract val CreateAccountPlaylist: CreateAccountPlaylistEndpoint
+        abstract val DeleteAccountPlaylist: DeleteAccountPlaylistEndpoint
+        abstract val AccountPlaylistEditor: AccountPlaylistEditorEndpoint
+        abstract val AccountPlaylistAddSongs: AccountPlaylistAddSongsEndpoint
 
         // --- Interaction ---
-        val SubscribedToArtist: SubscribedToArtistEndpoint
-        val SetSubscribedToArtist: SetSubscribedToArtistEndpoint
-        val SongLiked: SongLikedEndpoint
-        val SetSongLiked: SetSongLikedEndpoint
-        val MarkSongAsWatched: MarkSongAsWatchedEndpoint
+        abstract val SubscribedToArtist: SubscribedToArtistEndpoint
+        abstract val SetSubscribedToArtist: SetSubscribedToArtistEndpoint
+        abstract val SongLiked: SongLikedEndpoint
+        abstract val SetSongLiked: SetSongLikedEndpoint
+        abstract val MarkSongAsWatched: MarkSongAsWatchedEndpoint
     }
 }

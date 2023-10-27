@@ -70,7 +70,7 @@ actual class AppContext(
                                 accent_colour_source = Settings.getEnum<AccentColourSource>(Settings.KEY_ACCENT_COLOUR_SOURCE, prefs)
                             }
                             Settings.KEY_CURRENT_THEME.name -> {
-                                current_theme_idx = Settings.get(Settings.KEY_CURRENT_THEME, prefs)
+                                setCurrentThemeIdx(Settings.get(Settings.KEY_CURRENT_THEME, prefs))
                             }
                             Settings.KEY_THEMES.name -> {
                                 reloadThemes()
@@ -85,7 +85,7 @@ actual class AppContext(
                 val prefs = getPrefs()
                 prefs.addListener(prefs_listener)
                 accent_colour_source = Settings.getEnum<AccentColourSource>(Settings.KEY_ACCENT_COLOUR_SOURCE, prefs)
-                current_theme_idx = Settings.get(Settings.KEY_CURRENT_THEME, prefs)
+                setCurrentThemeIdx(Settings.get(Settings.KEY_CURRENT_THEME, prefs), false)
             }
 
             override fun getDarkColorScheme(): ColorScheme =

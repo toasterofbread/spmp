@@ -85,8 +85,9 @@ object SpMp {
 
     @Composable
     fun App(open_uri: String? = null) {
+        context.theme.Update()
+
         context.theme.ApplicationTheme(context, getFontFamily(context) ?: FontFamily.Default) {
-            context.theme.Update()
 
             LaunchedEffect(open_uri) {
                 if (open_uri != null) {

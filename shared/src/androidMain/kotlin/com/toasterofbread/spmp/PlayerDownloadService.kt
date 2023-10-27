@@ -436,44 +436,49 @@ class PlayerDownloadService: PlatformServiceImpl() {
             download.status = status
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            download.total_size = connection.contentLengthLong + download.downloaded
-        }
-        else {
-            download.total_size = connection.contentLength + download.downloaded
-        }
-        download.status = DownloadStatus.Status.DOWNLOADING
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                download.total_size = connection.contentLengthLong + download.downloaded
+            }
+            else {
+                download.total_size = connection.contentLength + download.downloaded
+            }
+            download.status = DownloadStatus.Status.DOWNLOADING
 
-        while (true) {
-            val size = input.read(data)
-            if (size < 0) {
-                break
+            while (true) {
+                val size = input.read(data)
+                if (size < 0) {
+                    break
+                }
+
+                synchronized(executor) {
+                    if (stopping || download.cancelled) {
+                        close(DownloadStatus.Status.CANCELLED)
+                        return@withContext Result.success(null)
+                    }
+                    if (paused) {
+                        close(DownloadStatus.Status.PAUSED)
+                        return@withContext Result.success(null)
+                    }
+                }
+
+                download.downloaded += size
+                output.write(data, 0, size)
+
+                onDownloadProgress()
             }
 
-            synchronized(executor) {
-                if (stopping || download.cancelled) {
-                    close(DownloadStatus.Status.CANCELLED)
-                    return@withContext Result.success(null)
-                }
-                if (paused) {
-                    close(DownloadStatus.Status.PAUSED)
-                    return@withContext Result.success(null)
-                }
-            }
+            val metadata_retriever = MediaMetadataRetriever()
+            metadata_retriever.setDataSource(context.ctx, Uri.parse(file.uri))
 
-            download.downloaded += size
-            output.write(data, 0, size)
+            val duration_ms = metadata_retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong()
+            SongRef(download.song.id).Duration.setNotNull(duration_ms, context.database)
 
-            onDownloadProgress()
+            close(DownloadStatus.Status.FINISHED)
         }
-
-        val metadata_retriever = MediaMetadataRetriever()
-        metadata_retriever.setDataSource(context.ctx, Uri.parse(file.uri))
-
-        val duration_ms = metadata_retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong()
-        SongRef(download.song.id).Duration.setNotNull(duration_ms, context.database)
-
-        close(DownloadStatus.Status.FINISHED)
+        catch (_: Throwable) {
+            close(DownloadStatus.Status.CANCELLED)
+        }
 
         val renamed = file.renameTo(file.name.dropLast(FILE_DOWNLOADING_SUFFIX.length))
 

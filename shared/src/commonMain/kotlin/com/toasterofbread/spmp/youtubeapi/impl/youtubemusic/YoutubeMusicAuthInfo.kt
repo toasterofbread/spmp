@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic
 
-import SpMp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.platform.getDataLanguage
@@ -30,8 +29,8 @@ class YoutubeChannelNotCreatedException(
 class YoutubeMusicAuthInfo private constructor(
     override val api: YoutubeMusicApi,
     override val own_channel: Artist,
-    override val headers: Headers
-): YoutubeApi.UserAuthState {
+    headers: Headers
+): YoutubeApi.UserAuthState(headers) {
     companion object {
         val REQUIRED_HEADERS = listOf("authorization", "cookie")
 

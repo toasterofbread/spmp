@@ -380,7 +380,7 @@
     <string name="s_key_resume_on_bt_connect">Resume when Bluetooth device connected</string>
     <string name="s_sub_resume_on_bt_connect">If playback was paused by device disconnection, playback will resume when a Bluetooth audio device is connected</string>
     <string name="s_key_pause_on_bt_disconnect">Pause when Bluetooth device disconnected</string>
-    <string name="s_key_resume_on_wired_connect">Resume when wired device disconnected</string>
+    <string name="s_key_resume_on_wired_connect">Resume when wired device connected</string>
     <string name="s_sub_resume_on_wired_connect">If playback was paused by device disconnection, playback will resume when a wired audio device is connected</string>
     <string name="s_key_pause_on_wired_disconnect">Pause when wired device disconnected</string>
 

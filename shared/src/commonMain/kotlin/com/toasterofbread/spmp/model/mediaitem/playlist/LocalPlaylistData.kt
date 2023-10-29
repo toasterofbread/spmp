@@ -11,6 +11,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.MediaItemRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer
@@ -30,6 +31,7 @@ class LocalPlaylistData(id: String): PlaylistData(id), LocalPlaylist {
     var play_count: Int = 0
 
     override fun toString(): String = "LocalPlaylistData($id)"
+    override fun getReference(): LocalPlaylistRef = LocalPlaylistRef(id)
 
     override val property_rememberer: PropertyRememberer =
         UnsupportedPropertyRememberer(can_read = true) {

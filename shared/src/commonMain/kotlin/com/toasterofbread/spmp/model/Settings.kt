@@ -235,6 +235,7 @@ enum class Settings {
     // Other
     KEY_SEARCH_SHOW_SUGGESTIONS,
     KEY_OPEN_NP_ON_SONG_PLAYED,
+    KEY_START_RADIO_ON_SONG_PRESS,
     KEY_MULTISELECT_CANCEL_ON_ACTION,
     KEY_MULTISELECT_CANCEL_WHEN_NONE_SELECTED, // TODO
     KEY_SHOW_LIKES_PLAYLIST,
@@ -443,6 +444,7 @@ enum class Settings {
                 KEY_VOLUME_STEPS -> 50
                 KEY_SEARCH_SHOW_SUGGESTIONS -> true
                 KEY_OPEN_NP_ON_SONG_PLAYED -> true
+                KEY_START_RADIO_ON_SONG_PRESS -> true
                 KEY_MULTISELECT_CANCEL_ON_ACTION -> true
                 KEY_MULTISELECT_CANCEL_WHEN_NONE_SELECTED -> true
                 KEY_SHOW_LIKES_PLAYLIST -> true

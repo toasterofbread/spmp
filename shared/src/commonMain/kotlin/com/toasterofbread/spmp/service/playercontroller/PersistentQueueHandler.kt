@@ -139,7 +139,7 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
                 val jobs: MutableList<Job> = mutableListOf()
 
                 for (song in songs) {
-                    if (!song.Loaded.get(context.database)) {
+                    if (song.Title.get(context.database) == null) {
                         jobs.add(
                             launch {
                                 request_limit.withPermit {

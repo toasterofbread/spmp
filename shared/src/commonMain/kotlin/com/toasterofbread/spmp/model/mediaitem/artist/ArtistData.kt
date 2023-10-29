@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.model.mediaitem.artist
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
+import com.toasterofbread.spmp.model.mediaitem.MediaItemRef
 import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer
 
 class ArtistData(
@@ -19,6 +20,7 @@ class ArtistData(
             "layouts" to layouts,
             "subscriber_count" to subscriber_count
         )
+    override fun getReference(): ArtistRef = ArtistRef(id)
 
     override fun toString(): String = "ArtistData($id)"
 

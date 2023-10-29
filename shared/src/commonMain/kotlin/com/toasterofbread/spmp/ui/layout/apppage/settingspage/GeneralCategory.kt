@@ -111,6 +111,12 @@ internal fun getGeneralCategory(language: String, available_languages: List<Lang
         ),
 
         SettingsToggleItem(
+            SettingsValueState(Settings.KEY_START_RADIO_ON_SONG_PRESS.name),
+            getString("s_key_start_radio_on_song_press"),
+            getString("s_sub_start_radio_on_song_press")
+        ),
+
+        SettingsToggleItem(
             SettingsValueState(Settings.KEY_MULTISELECT_CANCEL_ON_ACTION.name),
             getString("s_key_multiselect_cancel_on_action"),
             getString("s_sub_multiselect_cancel_on_action")

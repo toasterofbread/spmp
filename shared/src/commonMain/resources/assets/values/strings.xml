@@ -337,6 +337,9 @@
     <string name="s_key_multiselect_cancel_on_action">Cancel multiple selection after action</string>
     <string name="s_sub_multiselect_cancel_on_action">Disable media item multiselect states once an action is performed</string>
 
+    <string name="s_key_start_radio_on_song_press">Start radio on song press</string>
+    <string name="s_sub_start_radio_on_song_press">Instead of playing just the song, its YouTube radio will be added to the queue</string>
+
     <string name="s_key_persistent_queue">Persistent song queue</string>
     <string name="s_sub_persistent_queue">Song queue will persist even when closing the app</string>
 

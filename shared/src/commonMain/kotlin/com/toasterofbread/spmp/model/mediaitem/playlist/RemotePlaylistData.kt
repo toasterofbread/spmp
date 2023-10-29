@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.model.mediaitem.playlist
 
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.MediaItemRef
 import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
@@ -10,9 +11,11 @@ import com.toasterofbread.spmp.platform.AppContext
 
 class RemotePlaylistData(id: String): PlaylistData(id), RemotePlaylist {
     var continuation: MediaItemLayout.Continuation? = null
+    var playlist_url: String? = null
 
     override fun toString(): String = "RemotePlaylistData($id, type=$playlist_type)"
     override fun getType(): MediaItemType = MediaItemType.PLAYLIST_REM
+    override fun getReference(): RemotePlaylistRef = RemotePlaylistRef(id)
 
     override fun getDataValues(): Map<String, Any?> =
         super.getDataValues() + mapOf(
@@ -52,6 +55,7 @@ class RemotePlaylistData(id: String): PlaylistData(id), RemotePlaylist {
             Year.setNotNull(year, db, uncertain)
             Owner.setNotNull(owner, db, uncertain)
             Continuation.setNotNull(continuation, db, uncertain)
+            PlaylistUrl.setNotNull(playlist_url, db, uncertain)
             CustomImageUrl.setNotNull(custom_image_url, db, uncertain)
             ImageWidth.setNotNull(image_width, db, uncertain)
             SortType.setNotNull(sort_type, db, uncertain)

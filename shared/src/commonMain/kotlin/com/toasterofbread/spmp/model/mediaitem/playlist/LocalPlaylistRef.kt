@@ -9,6 +9,7 @@ import com.toasterofbread.spmp.platform.AppContext
 
 class LocalPlaylistRef(override val id: String): LocalPlaylist, MediaItemRef() {
     override fun toString(): String = "LocalPlaylistRef($id)"
+    override fun getReference(): LocalPlaylistRef = this
 
     override fun createDbEntry(db: Database) {
         throw IllegalStateException(id)

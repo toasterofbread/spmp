@@ -15,11 +15,13 @@ import com.toasterofbread.spmp.platform.AppContext
 class ArtistRef(override val id: String): Artist, MediaItemRef() {
     override fun toString(): String = "ArtistRef($id)"
     override val property_rememberer: PropertyRememberer = PropertyRememberer()
+    override fun getReference(): ArtistRef = this
 }
 
 sealed interface Artist: MediaItem {
     override fun getType(): MediaItemType = MediaItemType.ARTIST
     override fun getURL(context: AppContext): String = "https://music.youtube.com/channel/$id"
+    override fun getReference(): ArtistRef
 
     val SubscribeChannelId: Property<String?>
         get() = property_rememberer.rememberSingleQueryProperty(

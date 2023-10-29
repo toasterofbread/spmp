@@ -5,6 +5,9 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import app.cash.sqldelight.Query
+import com.google.gson.Gson
+import com.google.gson.JsonObject
+import com.google.gson.JsonPrimitive
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
@@ -16,11 +19,17 @@ import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.service.playercontroller.DiscordStatusHandler
 import com.toasterofbread.spmp.service.playercontroller.PersistentQueueHandler
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
+import com.toasterofbread.spmp.youtubeapi.fromJson
 import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.IOException
 import java.util.Timer
 import java.util.TimerTask
 import kotlin.random.Random
@@ -108,7 +117,62 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
             radio.checkRadioContinuation()
             discord_status.updateDiscordStatus(song)
 
+            coroutine_scope.launch {
+                sendStatusWebhook(song)
+            }
+
             play()
+        }
+
+        private suspend fun sendStatusWebhook(song: Song?) {
+            val webhook_url: String? = Settings.KEY_STATUS_WEBHOOK_URL.get()
+            if (webhook_url.isNullOrBlank()) {
+                return
+            }
+
+            withContext(Dispatchers.IO) {
+                val gson = Gson()
+                val payload: JsonObject
+
+                val user_payload: String? = Settings.KEY_STATUS_WEBHOOK_PAYLOAD.get()
+                if (!user_payload.isNullOrBlank()) {
+                    payload =
+                        try {
+                            gson.fromJson(user_payload)
+                        }
+                        catch (e: Throwable) {
+                            e.printStackTrace()
+                            JsonObject()
+                        }
+                }
+                else {
+                    payload = JsonObject()
+                }
+
+                payload.add("youtube_video_id", song?.id?.let { JsonPrimitive(it) })
+
+                val request = Request.Builder()
+                    .url(webhook_url)
+                    .post(
+                        gson.toJson(payload).toRequestBody("application/json".toMediaType())
+                    )
+                    .build()
+
+                println("SEND ${gson.toJson(payload)}")
+                
+                try {
+                    val result = OkHttpClient().newCall(request).execute()
+                    if (!result.isSuccessful) {
+                        val message = "${result.code}: ${result.body?.string()}"
+                        result.close()
+                        throw IOException(message)
+                    }
+                    result.close()
+                }
+                catch (e: Throwable) {
+                    IOException("POST request to webhook '$webhook_url' with $song failed", e).printStackTrace()
+                }
+            }
         }
 
         override fun onSongMoved(from: Int, to: Int) {

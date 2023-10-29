@@ -486,6 +486,12 @@
     <string name="s_key_navbar_height_multiplier">ナビゲーションバーの高さの倍率</string>
     <string name="s_sub_navbar_height_multiplier">システムが正しい高さを報告しない場合、これで調節できます（アプリの再起動が必要です）</string>
 
+    <string name="s_key_status_webhook_url">ステータスウェブフックのURL</string>
+    <string name="s_sub_status_webhook_url">再生中の曲が変わるとこのURLへJSONのPOSTリクエストが送信されます。例：`{"youtube_video_id": "&lt;動画のID&gt;"}`</string>
+
+    <string name="s_key_status_webhook_payload">ステータスウェブフックの送信データ</string>
+    <string name="s_sub_status_webhook_payload">ウェブフックへ追加で送信されるJSONデータ</string>
+
     <string name="s_group_caching">キャッシュ</string>
     <string name="s_key_enable_thumbnail_cache">サムネール画像をキャッシュする</string>
     

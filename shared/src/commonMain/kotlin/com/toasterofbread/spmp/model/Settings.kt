@@ -247,6 +247,8 @@ enum class Settings {
     KEY_STOP_PLAYER_ON_APP_CLOSE,
     KEY_LIBRARY_PATH,
     KEY_NAVBAR_HEIGHT_MULTIPLIER,
+    KEY_STATUS_WEBHOOK_URL,
+    KEY_STATUS_WEBHOOK_PAYLOAD,
 
     // Internal
     INTERNAL_TOPBAR_MODE_HOME,
@@ -455,6 +457,8 @@ enum class Settings {
                 KEY_STOP_PLAYER_ON_APP_CLOSE -> false
                 KEY_LIBRARY_PATH -> ""
                 KEY_NAVBAR_HEIGHT_MULTIPLIER -> 1f
+                KEY_STATUS_WEBHOOK_URL -> ProjectBuildConfig.STATUS_WEBHOOK_URL ?: ""
+                KEY_STATUS_WEBHOOK_PAYLOAD -> ProjectBuildConfig.STATUS_WEBHOOK_PAYLOAD ?: "{}"
 
                 KEY_SPMS_PORT -> 3973
 

@@ -33,6 +33,7 @@ import com.toasterofbread.toastercomposetools.platform.composable.platformClicka
 import com.toasterofbread.toastercomposetools.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.PillMenu
+import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.*
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
@@ -115,7 +116,14 @@ class SettingsAppPage(override val state: AppPageState, footer_modifier: Modifie
             Settings.KEY_YTM_AUTH.name
         ).init(Settings.prefs, Settings.Companion::provideDefault)
     private val settings_interface: SettingsInterface =
-        getPrefsPageSettingsInterface(state, pill_menu, ytm_auth, footer_modifier, { current_category }, { current_category = null })
+        getPrefsPageSettingsInterface(
+            state,
+            pill_menu,
+            ytm_auth,
+            footer_modifier,
+            { current_category },
+            { current_category = null }
+        )
 
     override fun onBackNavigation(): Boolean {
         if (current_category != null) {
@@ -291,7 +299,10 @@ class SettingsAppPage(override val state: AppPageState, footer_modifier: Modifie
                             CompositionLocalProvider(LocalContentColor provides player.theme.on_background) {
                                 settings_interface.Interface(
                                     Modifier.fillMaxSize(),
-                                    content_padding = PaddingValues(top = top_padding, bottom = content_padding.calculateBottomPadding())
+                                    content_padding = PaddingValues(top = top_padding, bottom = content_padding.calculateBottomPadding()),
+                                    titleFooter = {
+                                        WaveBorder()
+                                    }
                                 )
                             }
                         }

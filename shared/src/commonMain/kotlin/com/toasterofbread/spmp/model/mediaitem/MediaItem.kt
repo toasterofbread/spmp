@@ -36,6 +36,7 @@ interface MediaItem: MediaItemHolder {
     fun getHolder(): MediaItemHolder = this
     fun getType(): MediaItemType
     fun getURL(context: AppContext): String
+    fun getReference(): MediaItemRef
 
     fun getActiveTitle(db: Database): String? {
         return db.mediaItemQueries.activeTitleById(id).executeAsOneOrNull()?.IFNULL

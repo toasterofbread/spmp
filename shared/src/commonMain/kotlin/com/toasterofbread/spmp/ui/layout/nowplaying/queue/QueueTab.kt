@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.queue
 
-import LocalNowPlayingExpansion
 import LocalPlayerState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
@@ -27,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -54,6 +54,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.rememberTopBarShouldShowInQueue
 import com.toasterofbread.spmp.youtubeapi.radio.LoadStatus
 import com.toasterofbread.toastercomposetools.utils.common.getContrasted
+import com.toasterofbread.toastercomposetools.utils.common.launchSingle
 import com.toasterofbread.toastercomposetools.utils.common.thenIf
 import kotlinx.coroutines.delay
 import org.burnoutcrew.reorderable.ReorderableLazyListState
@@ -72,8 +73,8 @@ internal fun QueueTab(
     padding: PaddingValues = PaddingValues()
 ) {
     val player = LocalPlayerState.current
-    val expansion = LocalNowPlayingExpansion.current
     val density = LocalDensity.current
+    val scroll_coroutine_scope = rememberCoroutineScope()
 
     var key_inc by remember { mutableStateOf(0) }
     val radio_info_position: NowPlayingQueueRadioInfoPosition by Settings.KEY_NP_QUEUE_RADIO_INFO_POSITION.rememberMutableEnumState()
@@ -168,12 +169,12 @@ internal fun QueueTab(
         }
     )
 
-    val show_top_bar by rememberTopBarShouldShowInQueue(expansion.top_bar_mode.value)
+    val show_top_bar by rememberTopBarShouldShowInQueue(player.expansion.top_bar_mode.value)
     val top_bar_height by animateDpAsState(
         if (show_top_bar) top_bar.height else 0.dp
     )
 
-    val expanded by remember { derivedStateOf { expansion.get() > 1f } }
+    val expanded by remember { derivedStateOf { player.expansion.get() > 1f } }
     LaunchedEffect(expanded) {
         val index = player.status.m_index
         if (expanded && index >= 0) {
@@ -209,7 +210,11 @@ internal fun QueueTab(
                 QueueButtonsRow(
                     getBackgroundColour,
                     multiselect_context
-                )
+                ) { scroll_index ->
+                    scroll_coroutine_scope.launchSingle {
+                        queue_list_state.listState.scrollToItem(scroll_index)
+                    }
+                }
 
                 if (radio_info_position == NowPlayingQueueRadioInfoPosition.TOP_BAR) {
                     CurrentRadioIndicator(getBackgroundColour, multiselect_context, Modifier.padding(bottom = 10.dp))

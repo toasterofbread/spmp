@@ -327,6 +327,9 @@
     <string name="s_key_multiselect_cancel_on_action">アクション後に複数選択を解除する</string>
     <string name="s_sub_multiselect_cancel_on_action">複数選択のアクションを使った後、複数選択モードが解除されます</string>
 
+    <string name="s_key_start_radio_on_song_press">曲をタップしたらラジオを再生する</string>
+    <string name="s_sub_start_radio_on_song_press">再生するだけではなく、YouTubeのラジオをキューに加える</string>
+
     <string name="s_key_persistent_queue">再生キューを覚える</string>
     <string name="s_sub_persistent_queue">アプリを閉じても曲キューは保持されます</string>
 

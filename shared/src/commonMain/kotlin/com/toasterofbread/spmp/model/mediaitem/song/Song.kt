@@ -15,6 +15,7 @@ import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
+import com.toasterofbread.spmp.model.mediaitem.MediaItemRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
@@ -42,6 +43,7 @@ private const val STATIC_LYRICS_SYNC_OFFSET: Long = 1000
 interface Song: MediaItem.WithArtist {
     override fun getType(): MediaItemType = MediaItemType.SONG
     override fun getURL(context: AppContext): String = "https://music.youtube.com/watch?v=$id"
+    override fun getReference(): SongRef
 
     override fun createDbEntry(db: Database) {
         db.songQueries.insertById(id)

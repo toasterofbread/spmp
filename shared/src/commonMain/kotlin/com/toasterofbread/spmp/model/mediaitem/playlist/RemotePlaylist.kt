@@ -24,6 +24,13 @@ sealed interface RemotePlaylist: Playlist {
             }},
             { playlistQueries.updateContinuationById(it?.token, it?.type?.ordinal?.toLong(), id) }
         )
+    val PlaylistUrl: Property<String?>
+        get() = property_rememberer.rememberSingleQueryProperty(
+            "PlaylistUrl",
+            { playlistQueries.playlistUrlById(id) },
+            { playlist_url },
+            { playlistQueries.updatePlaylistUrlById(it, id) }
+        )
 
     override fun getType(): MediaItemType = MediaItemType.PLAYLIST_REM
 

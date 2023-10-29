@@ -9,6 +9,7 @@ CREATE TABLE Playlist (
     owner TEXT,
     continuation_token TEXT,
     continuation_type INTEGER,
+    playlist_url TEXT,
 
     custom_image_url TEXT,
     image_width REAL,
@@ -62,6 +63,9 @@ updateOwnerById: UPDATE Playlist SET owner = :owner WHERE id == :id;
 
 continuationById: SELECT continuation_token, continuation_type FROM Playlist WHERE id == :id;
 updateContinuationById: UPDATE Playlist SET continuation_token = :continuation_token, continuation_type = :continuation_type WHERE id == :id;
+
+playlistUrlById: SELECT playlist_url FROM Playlist WHERE id == :id;
+updatePlaylistUrlById: UPDATE Playlist SET playlist_url = :playlist_url WHERE id == :id;
 
 --
 

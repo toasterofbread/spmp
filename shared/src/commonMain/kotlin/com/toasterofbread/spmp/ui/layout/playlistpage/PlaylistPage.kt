@@ -51,17 +51,14 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.toastercomposetools.platform.composable.SwipeRefresh
-import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_DEFAULT_HEIGHT
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageWithItem
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.toastercomposetools.settings.ui.Theme
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
+import com.toasterofbread.toastercomposetools.platform.composable.SwipeRefresh
 import com.toasterofbread.toastercomposetools.utils.common.copy
 import com.toasterofbread.toastercomposetools.utils.common.getThemeColour
 import com.toasterofbread.toastercomposetools.utils.common.thenIf
@@ -269,7 +266,6 @@ class PlaylistPage(
 
         val loading by playlist.loadDataOnChange(
             player.context,
-            force = playlist is RemotePlaylist,
             onLoadFailed = { error ->
                 load_error = error
             },

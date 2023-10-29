@@ -258,7 +258,12 @@ class PlayerStateImpl(override val context: AppContext): PlayerState(null, null,
     override fun playMediaItem(item: MediaItem, shuffle: Boolean, at_index: Int) {
         withPlayer {
             if (item is Song) {
-                playSong(item, start_radio = true, shuffle = shuffle, at_index = at_index)
+                playSong(
+                    item,
+                    start_radio = Settings.KEY_START_RADIO_ON_SONG_PRESS.get(context),
+                    shuffle = shuffle,
+                    at_index = at_index
+                )
             }
             else {
                 startRadioAtIndex(at_index, item, shuffle = shuffle)

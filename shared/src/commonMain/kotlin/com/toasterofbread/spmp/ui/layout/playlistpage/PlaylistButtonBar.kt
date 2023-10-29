@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.ui.layout.playlistpage
 
-import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -28,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
@@ -68,7 +68,7 @@ internal fun PlaylistPage.PlaylistButtonBar(modifier: Modifier = Modifier) {
                     Icon(Icons.Default.Edit, null)
                 }
 
-                val playlist_items: List<MediaItem>? by playlist.Items.observe(player.database)
+                val playlist_items: List<Song>? by playlist.Items.observe(player.database)
                 PlaylistInfoText(playlist_items, Modifier.fillMaxWidth().weight(1f))
             }
         }
@@ -76,7 +76,7 @@ internal fun PlaylistPage.PlaylistButtonBar(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun PlaylistPage.PlaylistInfoText(items: List<MediaItem>?, modifier: Modifier = Modifier) {
+private fun PlaylistPage.PlaylistInfoText(items: List<Song>?, modifier: Modifier = Modifier) {
     val db = player.database
 
     Row(
@@ -89,15 +89,37 @@ private fun PlaylistPage.PlaylistInfoText(items: List<MediaItem>?, modifier: Mod
             val total_duration: Long? by playlist.TotalDuration.observe(db)
 
             if (item_count > 0) {
-                val text = remember(total_duration, item_count) {
-                    val duration_text = total_duration.let { duration ->
-                        if (duration == null) ""
-                        else durationToString(
-                            duration,
-                            player.context.getUiLanguage(),
-                            short = true
-                        ) + " • "
+                val text: String = remember(total_duration, item_count) {
+                    var duration: Long = total_duration ?: 0
+                    var incomplete_duration: Boolean = false
+
+                    if (duration == 0L) {
+                        if (items.size < item_count) {
+                            incomplete_duration = true
+                        }
+
+                        for (item in items) {
+                            val item_duration: Long? = item.Duration.get(db)
+                            if (item_duration != null) {
+                                duration += item_duration
+                            }
+                            else {
+                                incomplete_duration = true
+                            }
+                        }
                     }
+
+                    val duration_text: String =
+                        if (duration == 0L) ""
+                        else (
+                            durationToString(
+                                duration,
+                                player.context.getUiLanguage(),
+                                short = true
+                            )
+                            + (if (incomplete_duration) "+" else "")
+                            + " • "
+                        )
 
                     duration_text + getString("playlist_x_songs").replace("\$x", item_count.toString())
                 }

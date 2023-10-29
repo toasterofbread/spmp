@@ -28,7 +28,8 @@ import com.toasterofbread.toastercomposetools.utils.common.getContrasted
 @Composable
 fun QueueButtonsRow(
     getBackgroundColour: () -> Color,
-    multiselect_context: MediaItemMultiSelectContext
+    multiselect_context: MediaItemMultiSelectContext,
+    scrollToitem: (Int) -> Unit
 ) {
     val padding = 10.dp
     val player = LocalPlayerState.current
@@ -76,7 +77,6 @@ fun QueueButtonsRow(
                         player.controller?.service_player?.undoableAction {
                             if (multiselect_context.is_active) {
                                 shuffleQueueIndices(multiselect_context.getSelectedItems().map { it.second!! })
-                                multiselect_context.onActionPerformed()
                             }
                             else {
                                 shuffleQueue(start = current_song_index + 1)
@@ -86,7 +86,11 @@ fun QueueButtonsRow(
                     onLongClick = if (multiselect_context.is_active) null else ({
                         if (!multiselect_context.is_active) {
                             player.controller?.service_player?.undoableAction {
-                                shuffleQueue()
+                                if (current_song_index > 0) {
+                                    moveSong(current_song_index, 0)
+                                    scrollToitem(0)
+                                }
+                                shuffleQueue(start = 1)
                             }
                             player.context.vibrateShort()
                         }

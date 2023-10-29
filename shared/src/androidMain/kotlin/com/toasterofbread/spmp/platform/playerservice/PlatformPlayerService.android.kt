@@ -315,7 +315,12 @@ actual class PlatformPlayerService: MediaSessionService() {
     }
 
     override fun onBind(intent: Intent?): IBinder? {
-        return super.onBind(intent) ?: PlayerBinder(this)
+        try {
+            super.onBind(intent)
+        }
+        catch (_: Throwable) {}
+
+        return PlayerBinder(this)
     }
 
     actual override fun onCreate() {

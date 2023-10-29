@@ -2,13 +2,11 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsGroupItem
 import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsItem
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsSliderItem
 import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsToggleItem
 import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsValueState
-import com.toasterofbread.spmp.PlayerAccessibilityService
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsTextFieldItem
 import kotlin.math.roundToInt
 
 private fun getMusicTopBarGroup(): List<SettingsItem> {
@@ -55,6 +53,18 @@ internal fun getOtherCategory(): List<SettingsItem> {
         SettingsToggleItem(
             SettingsValueState(Settings.KEY_SEARCH_SHOW_SUGGESTIONS.name),
             getString("s_key_search_show_suggestions"), null
+        ),
+
+        SettingsTextFieldItem(
+            SettingsValueState(Settings.KEY_STATUS_WEBHOOK_URL.name),
+            getString("s_key_status_webhook_url"),
+            getString("s_sub_status_webhook_url")
+        ),
+
+        SettingsTextFieldItem(
+            SettingsValueState(Settings.KEY_STATUS_WEBHOOK_PAYLOAD.name),
+            getString("s_key_status_webhook_payload"),
+            getString("s_sub_status_webhook_payload")
         )
     ) + getCachingGroup() + getMusicTopBarGroup()
 }

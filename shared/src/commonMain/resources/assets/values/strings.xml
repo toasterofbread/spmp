@@ -496,6 +496,12 @@
     <string name="s_key_navbar_height_multiplier">Navigation bar height multiplier</string>
     <string name="s_sub_navbar_height_multiplier">Use if your system doesn't report the navbar height correctly (requires app restart)</string>
 
+    <string name="s_key_status_webhook_url">Status webhook URL</string>
+    <string name="s_sub_status_webhook_url">When the playing song changes, a JSON post request will be sent to this URL in the following format: `{"youtube_video_id": "&lt;Video ID&gt;"}`</string>
+
+    <string name="s_key_status_webhook_payload">Status webhook payload</string>
+    <string name="s_sub_status_webhook_payload">Additional JSON data to be sent to the status webhook</string>
+
     <string name="s_group_caching">Caching</string>
     <string name="s_key_enable_thumbnail_cache">Enable thumbnail cache</string>
 

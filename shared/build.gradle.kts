@@ -27,7 +27,9 @@ val DEBUG_KEY_NAMES = mapOf(
     "DISCORD_STATUS_TEXT_TEXT_C_OVERRIDE" to "String",
     "DISCORD_STATUS_TEXT_BUTTON_SONG_OVERRIDE" to "String",
     "DISCORD_STATUS_TEXT_BUTTON_PROJECT_OVERRIDE" to "String",
-    "MUTE_PLAYER" to "Boolean"
+    "MUTE_PLAYER" to "Boolean",
+    "STATUS_WEBHOOK_URL" to "String",
+    "STATUS_WEBHOOK_PAYLOAD" to "String"
 )
 
 val buildConfigDir: Provider<Directory> get() = project.layout.buildDirectory.dir("generated/buildconfig")

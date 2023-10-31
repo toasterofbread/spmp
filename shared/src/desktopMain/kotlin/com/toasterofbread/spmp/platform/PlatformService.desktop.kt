@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.platform
 
+import com.toasterofbread.toastercomposetools.platform.PlatformContext
 
 actual open class PlatformServiceImpl: PlatformService {
     private class ServiceConnection(val service: PlatformServiceImpl)
@@ -15,12 +16,12 @@ actual open class PlatformServiceImpl: PlatformService {
         return connections.isEmpty()
     }
 
-    private fun init(context: PlatformContext) {
+    private fun init(context: AppContext) {
         _context = context
     }
 
-    private lateinit var _context: PlatformContext
-    actual override val context: PlatformContext get() = _context
+    private lateinit var _context: AppContext
+    actual override val context: AppContext get() = _context
 
     actual override fun onCreate() {}
     actual override fun onDestroy() {}
@@ -30,7 +31,7 @@ actual open class PlatformServiceImpl: PlatformService {
         private val service_instances: MutableMap<Class<out PlatformServiceImpl>, PlatformServiceImpl> = mutableMapOf()
 
         internal fun startService(
-            context: PlatformContext,
+            context: AppContext,
             cls: Class<out PlatformServiceImpl>,
             onConnected: ((binder: PlatformBinder?) -> Unit)?,
             onDisconnected: (() -> Unit)?
@@ -48,7 +49,7 @@ actual open class PlatformServiceImpl: PlatformService {
             return service.getConnection()
         }
 
-        internal fun unbindService(context: PlatformContext, connection: Any) {
+        internal fun unbindService(context: AppContext, connection: Any) {
             require(connection is ServiceConnection)
             if (connection.service.removeConnection(connection)) {
                 connection.service.onDestroy()
@@ -74,7 +75,7 @@ actual open class PlatformServiceImpl: PlatformService {
 }
 
 actual fun startPlatformService(
-    context: PlatformContext,
+    context: AppContext,
     cls: Class<out PlatformServiceImpl>,
     onConnected: ((binder: PlatformBinder?) -> Unit)?,
     onDisconnected: (() -> Unit)?,
@@ -82,6 +83,6 @@ actual fun startPlatformService(
     return PlatformServiceImpl.startService(context, cls, onConnected, onDisconnected)
 }
 
-actual fun unbindPlatformService(context: PlatformContext, connection: Any) {
+actual fun unbindPlatformService(context: AppContext, connection: Any) {
     return PlatformServiceImpl.unbindService(context, connection)
 }

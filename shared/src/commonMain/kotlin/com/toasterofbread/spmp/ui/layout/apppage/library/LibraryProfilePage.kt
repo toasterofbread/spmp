@@ -8,11 +8,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistPage
 
-class LibraryProfilePage(context: PlatformContext): LibrarySubPage(context) {
+class LibraryProfilePage(context: AppContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =
         Icons.Default.Person
 

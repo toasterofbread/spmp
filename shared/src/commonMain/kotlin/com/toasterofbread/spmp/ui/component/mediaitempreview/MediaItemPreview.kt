@@ -22,7 +22,10 @@ import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,8 +41,11 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.db.observePlayCount
 import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
 import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction
+import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
+import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.rememberDownloadStatus
 import com.toasterofbread.spmp.resources.getString
@@ -47,8 +53,7 @@ import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.utils.common.getValue
-import com.toasterofbread.utils.common.setAlpha
+import com.toasterofbread.toastercomposetools.utils.common.getValue
 
 const val MEDIA_ITEM_PREVIEW_LONG_HEIGHT_DP: Float = 50f
 const val MEDIA_ITEM_PREVIEW_SQUARE_FONT_SIZE_SP: Float = 12f
@@ -67,6 +72,26 @@ fun MediaItem.getLongPressMenuData(
         multiselect_key = multiselect_key,
         getTitle = getTitle
     )
+
+@Composable
+private fun MediaItem.loadIfLocalPlaylist(): MediaItem? {
+    val context: AppContext = LocalPlayerState.current.context
+    val state: MutableState<MediaItem?> = remember { mutableStateOf(if (this !is LocalPlaylistRef) this else null) }
+
+    LaunchedEffect(this) {
+        val item: MediaItem = this@loadIfLocalPlaylist
+
+        if (item !is LocalPlaylistRef) {
+            state.value = item
+            return@LaunchedEffect
+        }
+
+        state.value = null
+        state.value = PlaylistFileConverter.loadFromFile(item.getLocalPlaylistFile(context), context)
+    }
+
+    return state.value
+}
 
 @Composable
 fun MediaItemPreviewSquare(
@@ -90,23 +115,28 @@ fun MediaItemPreviewSquare(
             )
         }
 ) {
+    val loaded_item: MediaItem? = item.loadIfLocalPlaylist()
+    if (loaded_item == null) {
+        return
+    }
+
     Column(
-        modifier.mediaItemPreviewInteraction(item, long_press_menu_data),
+        modifier.mediaItemPreviewInteraction(loaded_item, long_press_menu_data),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            item.Thumbnail(
+            loaded_item.Thumbnail(
                 MediaItemThumbnailProvider.Quality.LOW,
                 Modifier.longPressMenuIcon(long_press_menu_data, enable_long_press_menu).aspectRatio(1f),
                 getContentColour = contentColour
             )
 
             multiselect_context?.also { ctx ->
-                ctx.SelectableItemOverlay(item, Modifier.fillMaxWidth().aspectRatio(1f), key = long_press_menu_data.multiselect_key)
+                ctx.SelectableItemOverlay(loaded_item, Modifier.fillMaxWidth().aspectRatio(1f), key = long_press_menu_data.multiselect_key)
             }
 
-            if (item is Playlist) {
+            if (loaded_item is Playlist) {
                 Icon(
                     Icons.Default.QueueMusic,
                     null,
@@ -114,7 +144,7 @@ fun MediaItemPreviewSquare(
                         .size(25.dp)
                         .align(Alignment.BottomEnd)
                         .padding(2.dp)
-                        .background(Color.Black.setAlpha(0.5f), CircleShape)
+                        .background(Color.Black.copy(alpha = 0.5f), CircleShape)
                         .padding(2.dp)
                 )
             }
@@ -125,7 +155,7 @@ fun MediaItemPreviewSquare(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally)
         ) {
-            val item_title: String? by item.observeActiveTitle()
+            val item_title: String? by loaded_item.observeActiveTitle()
             val max_lines = max_text_rows ?: 1
 
             Text(
@@ -139,7 +169,7 @@ fun MediaItemPreviewSquare(
                 textAlign = TextAlign.Center
             )
 
-            val download_status: PlayerDownloadManager.DownloadStatus? by (item as? Song)?.rememberDownloadStatus()
+            val download_status: PlayerDownloadManager.DownloadStatus? by (loaded_item as? Song)?.rememberDownloadStatus()
 
             if (show_download_indicator && download_status != null) {
                 Icon(
@@ -179,17 +209,22 @@ fun MediaItemPreviewLong(
             )
         }
 ) {
+    val loaded_item: MediaItem? = item.loadIfLocalPlaylist()
+    if (loaded_item == null) {
+        return
+    }
+
     val player = LocalPlayerState.current
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
-            .mediaItemPreviewInteraction(item, long_press_menu_data)
+            .mediaItemPreviewInteraction(loaded_item, long_press_menu_data)
             .height(MEDIA_ITEM_PREVIEW_LONG_HEIGHT_DP.dp)
     ) {
         Box(Modifier.fillMaxHeight().aspectRatio(1f), contentAlignment = Alignment.Center) {
-            item.Thumbnail(
+            loaded_item.Thumbnail(
                 MediaItemThumbnailProvider.Quality.LOW,
                 Modifier
                     .longPressMenuIcon(long_press_menu_data, enable_long_press_menu)
@@ -198,7 +233,7 @@ fun MediaItemPreviewLong(
             )
 
             (multiselect_context ?: long_press_menu_data.multiselect_context)?.also { ctx ->
-                ctx.SelectableItemOverlay(item, Modifier.fillMaxSize(), key = long_press_menu_data.multiselect_key)
+                ctx.SelectableItemOverlay(loaded_item, Modifier.fillMaxSize(), key = long_press_menu_data.multiselect_key)
             }
         }
 
@@ -208,7 +243,7 @@ fun MediaItemPreviewLong(
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
-            val item_title: String? by item.observeActiveTitle()
+            val item_title: String? by loaded_item.observeActiveTitle()
             Text(
                 item_title ?: "",
                 color = contentColour?.invoke() ?: Color.Unspecified,
@@ -218,9 +253,9 @@ fun MediaItemPreviewLong(
                 overflow = TextOverflow.Clip
             )
 
-            val artist_title: String? = if (show_artist) (item as? MediaItem.WithArtist)?.Artist?.observePropertyActiveTitle()?.value else null
+            val artist_title: String? = if (show_artist) (loaded_item as? MediaItem.WithArtist)?.Artist?.observePropertyActiveTitle()?.value else null
             val extra_info = getExtraInfo?.invoke() ?: emptyList()
-            val download_status: PlayerDownloadManager.DownloadStatus? by (item as? Song)?.rememberDownloadStatus()
+            val download_status: PlayerDownloadManager.DownloadStatus? by (loaded_item as? Song)?.rememberDownloadStatus()
 
             if ((show_download_indicator && download_status != null) || show_play_count || show_type || extra_info.isNotEmpty() || artist_title != null) {
                 Row(
@@ -249,7 +284,7 @@ fun MediaItemPreviewLong(
                     }
 
                     if (show_play_count) {
-                        val play_count = item.observePlayCount(player.context)
+                        val play_count = loaded_item.observePlayCount(player.context)
                         InfoText(
                             getString("mediaitem_play_count_\$x_short")
                                 .replace("\$x", play_count?.toString() ?: "?")
@@ -257,7 +292,7 @@ fun MediaItemPreviewLong(
                     }
 
                     if (show_type) {
-                        InfoText(item.getType().getReadable(false))
+                        InfoText(loaded_item.getType().getReadable(false))
                     }
 
                     for (info in extra_info) {

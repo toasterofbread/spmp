@@ -12,14 +12,14 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter.saveToFile
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
 
 @Composable
-fun MediaItemLibrary.rememberLocalPlaylists(context: PlatformContext): List<LocalPlaylistData>? {
+fun MediaItemLibrary.rememberLocalPlaylists(context: AppContext): List<LocalPlaylistData>? {
     var playlists: List<LocalPlaylistData>? by remember { mutableStateOf(null) }
     LaunchedEffect(Unit) {
         playlists = loadLocalPlaylists(context)
@@ -52,7 +52,7 @@ fun MediaItemLibrary.rememberLocalPlaylists(context: PlatformContext): List<Loca
     return playlists
 }
 
-suspend fun MediaItemLibrary.loadLocalPlaylists(context: PlatformContext): List<LocalPlaylistData>? = withContext(Dispatchers.IO) {
+suspend fun MediaItemLibrary.loadLocalPlaylists(context: AppContext): List<LocalPlaylistData>? = withContext(Dispatchers.IO) {
     val playlists_dir = getLocalPlaylistsDir(context)
     if (!playlists_dir.is_directory) {
         return@withContext null
@@ -64,7 +64,7 @@ suspend fun MediaItemLibrary.loadLocalPlaylists(context: PlatformContext): List<
     return@withContext playlists
 }
 
-suspend fun MediaItemLibrary.createLocalPlaylist(context: PlatformContext, base_data: PlaylistData? = null): Result<LocalPlaylistData> = withContext(Dispatchers.IO) {
+suspend fun MediaItemLibrary.createLocalPlaylist(context: AppContext, base_data: PlaylistData? = null): Result<LocalPlaylistData> = withContext(Dispatchers.IO) {
     val playlists_dir = getLocalPlaylistsDir(context)
     var largest_existing_id: Int = -1
 

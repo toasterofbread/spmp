@@ -10,7 +10,7 @@ import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.fromJson
 import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
-import com.toasterofbread.utils.common.launchSingle
+import com.toasterofbread.toastercomposetools.utils.common.launchSingle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -213,7 +213,7 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
             val properties = (event["properties"] as? Map<String, Any>) ?: continue
 
             when (type) {
-                "SongTransition" -> {
+                "ItemTransition" -> {
                     _current_song_index = (properties["index"] as Double).toInt()
                     _duration_ms = -1
                     updateCurrentSongPosition(0)
@@ -261,18 +261,18 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
                     updateCurrentSongPosition(position_ms)
                     listeners.forEach { it.onSeeked(position_ms) }
                 }
-                "SongAdded" -> {
-                    val song = SongData(event["song_id"] as String)
+                "ItemAdded" -> {
+                    val song = SongData(event["item_id"] as String)
                     val index = event["index"] as Int
                     playlist.add(index, song)
                     listeners.forEach { it.onSongAdded(index, song) }
                 }
-                "SongRemoved" -> {
+                "ItemRemoved" -> {
                     val index = event["index"] as Int
                     playlist.removeAt(index)
                     listeners.forEach { it.onSongRemoved(index) }
                 }
-                "SongMoved" -> {
+                "ItemMoved" -> {
                     val to = event["to_index"] as Int
                     val from = event["from_index"] as Int
                     playlist.add(to, playlist.removeAt(from))

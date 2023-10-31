@@ -9,16 +9,15 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
-import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.platform.composable.onWindowBackPressed
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.toastercomposetools.platform.composable.onWindowBackPressed
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -26,7 +25,7 @@ private const val SCREEN_SIZE_UPDATE_INTERVAL: Long = 100
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
-    val context = PlatformContext()
+    val context = AppContext(SpMp.app_name)
     SpMp.init(context)
 
     val coroutine_scope = CoroutineScope(Job())

@@ -1,8 +1,8 @@
 package com.toasterofbread.spmp.resources
 
-import com.toasterofbread.spmp.platform.PlatformContext
 import org.kobjects.ktxml.api.EventType
 import org.kobjects.ktxml.mini.MiniXmlPullParser
+import com.toasterofbread.spmp.platform.AppContext
 import java.io.InputStream
 import java.util.MissingResourceException
 
@@ -11,7 +11,7 @@ private const val DEFAULT_LANGUAGE = "en-GB"
 object Languages {
     data class LanguageInfo(val code: String, val readable_name: String)
 
-    fun loadAvailableLanugages(context: PlatformContext): List<LanguageInfo> {
+    fun loadAvailableLanugages(context: AppContext): List<LanguageInfo> {
         val languages: MutableList<LanguageInfo> = mutableListOf()
 
         iterateValuesDirectories(context) { language, path ->

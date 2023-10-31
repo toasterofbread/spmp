@@ -5,15 +5,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.font.FontFamily
-import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.utils.common.amplifyPercent
-import com.toasterofbread.utils.common.blendWith
-import com.toasterofbread.utils.common.contrastAgainst
-import com.toasterofbread.utils.common.getContrasted
+import com.toasterofbread.toastercomposetools.settings.ui.Theme
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.toastercomposetools.utils.common.amplifyPercent
+import com.toasterofbread.toastercomposetools.utils.common.blendWith
+import com.toasterofbread.toastercomposetools.utils.common.contrastAgainst
+import com.toasterofbread.toastercomposetools.utils.common.getContrasted
 
 @Composable
 fun Theme.ApplicationTheme(
-    context: PlatformContext,
+    context: AppContext,
     font_family: FontFamily = FontFamily.Default,
     content: @Composable () -> Unit
 ) {
@@ -54,11 +55,6 @@ fun Theme.ApplicationTheme(
 
             outline = on_background,
             outlineVariant = vibrant_accent
-//            error: Color = this.error,
-//            onError: Color = this.onError,
-//            errorContainer: Color = this.errorContainer,
-//            onErrorContainer: Color = this.onErrorContainer,
-//            scrim: Color = this.scrim
         )
 
     val default_typography = MaterialTheme.typography

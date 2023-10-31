@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.artistpage
 
 import LocalPlayerState
+import SpMp.isDebugBuild
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
@@ -33,13 +34,13 @@ import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemList
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.toastercomposetools.settings.ui.Theme
 import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsRow
-import com.toasterofbread.utils.*
-import com.toasterofbread.utils.common.copy
-import com.toasterofbread.utils.composable.*
-import com.toasterofbread.utils.modifier.horizontal
+import com.toasterofbread.toastercomposetools.utils.*
+import com.toasterofbread.toastercomposetools.utils.common.copy
+import com.toasterofbread.toastercomposetools.utils.composable.*
+import com.toasterofbread.toastercomposetools.utils.modifier.horizontal
 import kotlinx.coroutines.*
 
 @Composable
@@ -117,6 +118,7 @@ fun ArtistPage(
                 load_error?.also { error ->
                     ErrorInfoDisplay(
                         error,
+                        isDebugBuild(),
                         content_modifier.padding(content_padding),
                         onDismiss = null
                     )

@@ -46,23 +46,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.google.gson.Gson
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.youtubeapi.fromJson
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
-import com.toasterofbread.utils.common.isDebugBuild
-import com.toasterofbread.utils.common.thenIf
-import com.toasterofbread.utils.composable.ShapedIconButton
-import com.toasterofbread.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.utils.composable.WidthShrinkText
-import com.toasterofbread.utils.modifier.background
-import com.toasterofbread.utils.modifier.disableParentScroll
+import com.toasterofbread.toastercomposetools.utils.common.thenIf
+import com.toasterofbread.toastercomposetools.utils.composable.ShapedIconButton
+import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.toastercomposetools.utils.composable.WidthShrinkText
+import com.toasterofbread.toastercomposetools.utils.modifier.background
+import com.toasterofbread.toastercomposetools.utils.modifier.disableParentScroll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
@@ -77,6 +75,7 @@ const val ERROR_INFO_DISPLAY_DEFAULT_EXPANDED_HEIGHT_DP: Float = 500f
 @Composable
 fun ErrorInfoDisplay(
     error: Throwable?,
+    show_throw_button: Boolean,
     modifier: Modifier = Modifier,
     message: String? = null,
     pair_error: Pair<String, String>? = null,
@@ -172,7 +171,7 @@ fun ErrorInfoDisplay(
                 enter = expandVertically(),
                 exit = shrinkVertically()
             ) {
-                ExpandedContent(error, pair_error, shape, disable_parent_scroll, expanded_content_modifier)
+                ExpandedContent(error, pair_error, shape, disable_parent_scroll, show_throw_button, expanded_content_modifier)
             }
         }
     }
@@ -217,8 +216,9 @@ private fun LongTextDisplay(text: String, wrap_text: Boolean, modifier: Modifier
 private fun ExpandedContent(
     error: Throwable?,
     pair_error: Pair<String, String>?,
-    shape: Shape, 
-    disable_parent_scroll: Boolean, 
+    shape: Shape,
+    disable_parent_scroll: Boolean,
+    show_throw_button: Boolean,
     modifier: Modifier = Modifier
 ) {
     val coroutine_scope = rememberCoroutineScope()
@@ -230,6 +230,8 @@ private fun ExpandedContent(
         containerColor = player.theme.accent,
         contentColor = player.theme.on_accent
     )
+
+    var current_error: Throwable? by remember(error) { mutableStateOf(error) }
 
     Box(
         modifier
@@ -256,12 +258,16 @@ private fun ExpandedContent(
                     Button(
                         {
                             coroutine_scope.launch {
-                                text_to_show = uploadErrorToPasteEe(
-                                    (error?.message ?: pair_error?.first).toString(),
-                                    (error?.stackTraceToString() ?: pair_error?.second).toString(),
+                                uploadErrorToPasteEe(
+                                    (current_error?.message ?: pair_error?.first).toString(),
+                                    (current_error?.stackTraceToString() ?: pair_error?.second).toString(),
                                     ProjectBuildConfig.PASTE_EE_TOKEN,
-                                    error = error
-                                ).getOrElse { it.toString() }
+                                    error = current_error
+                                )
+                                    .fold(
+                                        { text_to_show = it },
+                                        { current_error = it }
+                                    )
                             }
                         },
                         colors = button_colours,
@@ -271,7 +277,7 @@ private fun ExpandedContent(
                     }
                 }
 
-                Crossfade(text_to_show ?: error?.stackTraceToString() ?: pair_error!!.second!!) { text ->
+                Crossfade(text_to_show ?: current_error?.stackTraceToString() ?: pair_error!!.second) { text ->
                     LongTextDisplay(
                         text,
                         wrap_text,
@@ -285,8 +291,8 @@ private fun ExpandedContent(
             Row(Modifier.align(Alignment.BottomStart), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 val extra_button_text =
                     if (text_to_show != null) getString("action_cancel")
-                    else when (error) {
-                        is com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException -> getString("error_info_display_show_json_data")
+                    else when (current_error) {
+                        is DataParseException -> getString("error_info_display_show_json_data")
                         else -> null
                     }
 
@@ -303,8 +309,8 @@ private fun ExpandedContent(
                                 text_to_show = null
                             }
                             else {
-                                when (error) {
-                                    is com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException -> {
+                                when (val error = current_error) {
+                                    is DataParseException -> {
                                         coroutine_scope.launch {
                                             coroutineContext.job.invokeOnCompletion {
                                                 cause_data_loading = false
@@ -312,9 +318,9 @@ private fun ExpandedContent(
 
                                             cause_data_loading = true
 
-                                            error.getCauseData().fold(
+                                            error.getCauseResponseData().fold(
                                                 { text_to_show = it },
-                                                { player.context.sendToast(it.toString()) }
+                                                { current_error = it }
                                             )
                                         }
                                     }
@@ -335,9 +341,9 @@ private fun ExpandedContent(
                     }
                 }
 
-                if (isDebugBuild() && error != null) {
+                if (show_throw_button && current_error != null) {
                     Button(
-                        { throw error },
+                        { current_error?.also { throw it } },
                         colors = button_colours
                     ) {
                         Text(getString("throw_error"))
@@ -356,18 +362,23 @@ suspend fun uploadErrorToPasteEe(
     logs: String? = null,
 ): Result<String> = withContext(Dispatchers.IO) {
     val sections = mutableListOf(
+        mapOf("name" to "VERSION", "contents" to "Commit: '${ProjectBuildConfig.GIT_COMMIT_HASH}' | Tag: '${ProjectBuildConfig.GIT_TAG}'"),
         mapOf("name" to "MESSAGE", "contents" to message),
-        mapOf("name" to "STACKTRACE", "contents" to stack_trace),
+        mapOf("name" to "STACKTRACE", "contents" to stack_trace)
     )
 
-    if (error is com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException) {
-        val cause_data_result = error.getCauseData()
+    if (error is DataParseException) {
+        sections.add(mapOf("name" to "REQUEST_URL", "contents" to error.getCauseRequestUrl().toString()))
+        sections.add(mapOf("name" to "REQUEST_DATA", "contents" to error.getCauseRequestData().toString()))
+        sections.add(mapOf("name" to "REQUEST_HEADERS", "contents" to error.getCauseRequestHeaders().toString()))
+
+        val cause_data_result = error.getCauseResponseData()
         val cause_data = cause_data_result.getOrNull() ?: return@withContext cause_data_result.cast()
 
         sections.add(
             mapOf(
-                "name" to "DATA",
-                "contents" to cause_data
+                "name" to "RESPONSE_DATA",
+                "contents" to cause_data.ifBlank { null.toString() }
             )
         )
     }

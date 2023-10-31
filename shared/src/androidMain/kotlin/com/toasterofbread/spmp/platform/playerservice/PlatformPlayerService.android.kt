@@ -70,10 +70,9 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.PlayerServiceCommand
-import com.toasterofbread.spmp.platform.isConnectionMetered
 import com.toasterofbread.spmp.platform.processMediaDataSpec
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.shared.R
@@ -117,7 +116,7 @@ fun getMediaNotificationImageSize(image: Bitmap): IntSize {
 private fun formatMediaNotificationImage(
     image: Bitmap,
     song: Song,
-    context: PlatformContext,
+    context: AppContext,
 ): Bitmap {
     val dimensions: IntSize = getMediaNotificationImageSize(image)
     val offset: IntOffset = song.NotificationImageOffset.get(context.database) ?: IntOffset.Zero
@@ -135,8 +134,8 @@ private class PlayerBinder(val service: PlatformPlayerService): Binder()
 
 @androidx.annotation.OptIn(UnstableApi::class)
 actual class PlatformPlayerService: MediaSessionService(), PlayerService {
-    actual override val context: PlatformContext get() = _context
-    private lateinit var _context: PlatformContext
+    actual val context: AppContext get() = _context
+    private lateinit var _context: AppContext
 
     private val coroutine_scope = CoroutineScope(Dispatchers.Main)
     private lateinit var player: Player
@@ -263,11 +262,11 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
             player_instance?.removeListener(listener)
         }
 
-        private fun PlatformContext.getAndroidContext(): Context =
+        private fun AppContext.getAndroidContext(): Context =
             ctx.applicationContext
 
         actual fun connect(
-            context: PlatformContext,
+            context: AppContext,
             instance: PlatformPlayerService?,
             onConnected: (PlatformPlayerService) -> Unit,
             onDisconnected: () -> Unit,
@@ -290,11 +289,11 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
             return service_connection
         }
 
-        actual fun disconnect(context: PlatformContext, connection: Any) {
+        actual fun disconnect(context: AppContext, connection: Any) {
             context.getAndroidContext().unbindService(connection as ServiceConnection)
         }
 
-        actual fun isServiceRunning(context: PlatformContext): Boolean {
+        actual fun isServiceRunning(context: AppContext): Boolean {
             val manager: ActivityManager = context.ctx.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
             for (service in manager.getRunningServices(Int.MAX_VALUE)) {
                 if (service.service.className == PlatformPlayerService::class.java.name) {
@@ -315,14 +314,19 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
     }
 
     override fun onBind(intent: Intent?): IBinder? {
-        return super.onBind(intent) ?: PlayerBinder(this)
+        try {
+            super.onBind(intent)
+        }
+        catch (_: Throwable) {}
+
+        return PlayerBinder(this)
     }
 
     actual override fun onCreate() {
         super.onCreate()
 
         initialiseSessionAndPlayer()
-        _context = PlatformContext(this, coroutine_scope).init()
+        _context = AppContext(this, coroutine_scope).init()
 
         _service_player = object : PlayerServicePlayer(this) {
             override fun onUndoStateChanged() {
@@ -575,7 +579,7 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
         }) { data_spec: DataSpec ->
             try {
                 return@Factory runBlocking {
-                    processMediaDataSpec(data_spec, context, isConnectionMetered())
+                    processMediaDataSpec(data_spec, context, context.isConnectionMetered())
                 }
             }
             catch (e: Throwable) {
@@ -711,7 +715,7 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
 }
 
 @UnstableApi
-private fun Song.buildExoMediaItem(context: PlatformContext): MediaItem =
+private fun Song.buildExoMediaItem(context: AppContext): MediaItem =
     MediaItem.Builder()
         .setRequestMetadata(MediaItem.RequestMetadata.Builder().setMediaUri(id.toUri()).build())
         .setUri(id)

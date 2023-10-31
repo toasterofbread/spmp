@@ -6,7 +6,7 @@ import com.toasterofbread.spmp.model.mediaitem.getMediaItemFromUid
 import com.toasterofbread.spmp.model.mediaitem.getUid
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 
 sealed interface ViewMore {
     fun execute(player: PlayerState, title: LocalisedString?)
@@ -108,7 +108,7 @@ data class ListPageBrowseIdViewMore(
         )
     }
 
-    fun getBrowseParamsData(title: LocalisedString?, context: PlatformContext): BrowseParamsData =
+    fun getBrowseParamsData(title: LocalisedString?, context: AppContext): BrowseParamsData =
         BrowseParamsData(list_page_browse_id, browse_params, title?.getString(context) ?: "")
 }
 

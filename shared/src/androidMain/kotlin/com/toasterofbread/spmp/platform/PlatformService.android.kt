@@ -15,7 +15,7 @@ actual abstract class PlatformBinder: Binder()
 actual open class PlatformServiceImpl: Service(), PlatformService {
     private val coroutine_scope = CoroutineScope(Job())
 
-    actual override val context: PlatformContext by lazy { PlatformContext(this, coroutine_scope).init() }
+    actual override val context: AppContext by lazy { AppContext(this, coroutine_scope).init() }
     actual override fun onCreate() {
         super.onCreate()
     }
@@ -42,7 +42,7 @@ actual open class PlatformServiceImpl: Service(), PlatformService {
 }
 
 actual fun startPlatformService(
-    context: PlatformContext,
+    context: AppContext,
     cls: Class<out PlatformServiceImpl>,
     onConnected: ((binder: PlatformBinder?) -> Unit)?,
     onDisconnected: (() -> Unit)?
@@ -66,6 +66,6 @@ actual fun startPlatformService(
     return service_connection
 }
 
-actual fun unbindPlatformService(context: PlatformContext, connection: Any) {
+actual fun unbindPlatformService(context: AppContext, connection: Any) {
     context.ctx.unbindService(connection as ServiceConnection)
 }

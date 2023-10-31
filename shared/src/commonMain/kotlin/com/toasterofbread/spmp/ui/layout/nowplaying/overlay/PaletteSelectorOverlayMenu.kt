@@ -44,8 +44,7 @@ import com.toasterofbread.spmp.platform.generatePalette
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
-import com.toasterofbread.utils.common.setAlpha
-import com.toasterofbread.utils.composable.OnChangedEffect
+import com.toasterofbread.toastercomposetools.utils.composable.OnChangedEffect
 import kotlin.math.roundToInt
 
 //const val PALETTE_SIMILAR_COLOUR_THRESHOLD = 0.1f
@@ -154,7 +153,7 @@ class PaletteSelectorPlayerOverlayMenu(
                             colors = SliderDefaults.colors(
                                 thumbColor = background_colour,
                                 activeTrackColor = background_colour,
-                                inactiveTrackColor = background_colour.setAlpha(0.2f)
+                                inactiveTrackColor = background_colour.copy(alpha = 0.2f)
                             ),
                             modifier = Modifier.weight(1f)
                         )
@@ -213,7 +212,7 @@ class PaletteSelectorPlayerOverlayMenu(
                             colors = SliderDefaults.colors(
                                 thumbColor = background_colour,
                                 activeTrackColor = background_colour,
-                                inactiveTrackColor = background_colour.setAlpha(0.2f)
+                                inactiveTrackColor = background_colour.copy(alpha = 0.2f)
                             ),
                             modifier = Modifier.weight(1f)
                         )

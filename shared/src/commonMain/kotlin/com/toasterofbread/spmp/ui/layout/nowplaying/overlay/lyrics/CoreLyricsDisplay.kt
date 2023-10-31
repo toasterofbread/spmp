@@ -6,7 +6,6 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,15 +38,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.SongLyrics
+import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.composable.platformClickable
+import com.toasterofbread.toastercomposetools.platform.composable.platformClickable
 import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING
-import com.toasterofbread.utils.common.AnnotatedReadingTerm
-import com.toasterofbread.utils.common.calculateReadingsAnnotatedString
-import com.toasterofbread.utils.common.setAlpha
-import com.toasterofbread.utils.common.thenIf
-import com.toasterofbread.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.spmp.ui.component.AnnotatedReadingTerm
+import com.toasterofbread.spmp.ui.component.calculateReadingsAnnotatedString
+import com.toasterofbread.toastercomposetools.utils.common.thenIf
+import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.delay
 
 @Composable
@@ -250,7 +248,7 @@ private fun LyricsTextElement(
     }
     val colour by animateColorAsState(
         LocalContentColor.current.let { colour ->
-            colour.setAlpha(
+            colour.copy(alpha = 
                 if (colour.alpha == 0f) 1f
                 else if (colour.alpha == 1f && is_current) 1f
                 else 0.65f

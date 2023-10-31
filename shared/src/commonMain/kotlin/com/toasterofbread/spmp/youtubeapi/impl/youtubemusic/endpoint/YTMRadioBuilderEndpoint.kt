@@ -4,7 +4,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderArtist
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderEndpoint
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
@@ -82,7 +82,7 @@ class YTMRadioBuilderEndpoint(override val api: YoutubeMusicApi): RadioBuilderEn
         return radio_token
     }
 
-    override suspend fun getBuiltRadio(radio_token: String, context: PlatformContext): Result<RemotePlaylistData?> {
+    override suspend fun getBuiltRadio(radio_token: String, context: AppContext): Result<RemotePlaylistData?> {
         require(radio_token.startsWith("VLRDAT"))
         require(radio_token.contains('E'))
 

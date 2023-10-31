@@ -14,6 +14,7 @@ kotlin {
             dependencies {
                 implementation(compose.desktop.currentOs)
                 implementation(project(":shared"))
+                implementation(project(":ToasterComposeTools:lib"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.6.4")
             }
         }
@@ -25,9 +26,15 @@ compose.desktop {
         mainClass = "MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            targetFormats(TargetFormat.AppImage)
             packageName = "KotlinMultiplatformComposeDesktopApplication"
-            packageVersion = "1.0.0"
+            packageVersion = "0.2.3"
+
+            modules("java.sql")
         }
+
+//        buildTypes.release.proguard {
+//            version.set("7.4.0-beta02")
+//        }
     }
 }

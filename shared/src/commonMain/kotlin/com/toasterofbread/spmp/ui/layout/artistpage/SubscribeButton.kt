@@ -20,10 +20,10 @@ import com.toasterofbread.spmp.model.mediaitem.loader.ArtistSubscribedLoader
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.isOwnChannel
-import com.toasterofbread.utils.common.getContrasted
-import com.toasterofbread.utils.common.lazyAssert
-import com.toasterofbread.utils.composable.ShapedIconButton
-import com.toasterofbread.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.toastercomposetools.utils.common.getContrasted
+import com.toasterofbread.toastercomposetools.utils.common.lazyAssert
+import com.toasterofbread.toastercomposetools.utils.composable.ShapedIconButton
+import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.launch
 
 @Composable
@@ -68,11 +68,11 @@ fun ArtistSubscribeButton(
                         }
                     }
                 },
-                icon_modifier,
-                colours = IconButtonDefaults.iconButtonColors(
+                IconButtonDefaults.iconButtonColors(
                     containerColor = if (subscribed && getAccentColour != null) getAccentColour() else Color.Transparent,
                     contentColor = if (subscribed && getAccentColour != null) getAccentColour().getContrasted() else LocalContentColor.current
-                )
+                ),
+                icon_modifier
             ) {
                 Icon(if (subscribed) Icons.Filled.PersonRemove else Icons.Outlined.PersonAddAlt1, null)
             }

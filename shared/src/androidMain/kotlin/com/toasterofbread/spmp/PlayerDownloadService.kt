@@ -24,8 +24,8 @@ import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.song.getSongFormatByQuality
 import com.toasterofbread.spmp.platform.PlatformBinder
-import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.platform.PlatformFile
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.toastercomposetools.platform.PlatformFile
 import com.toasterofbread.spmp.platform.PlatformServiceImpl
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
@@ -49,7 +49,7 @@ private const val DOWNLOAD_MAX_RETRY_COUNT = 3
 
 class PlayerDownloadService: PlatformServiceImpl() {
     private inner class Download(
-        context: PlatformContext,
+        context: AppContext,
         val song: Song,
         val quality: SongAudioQuality,
         var silent: Boolean,
@@ -120,7 +120,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
     }
 
     private var download_inc: Int = 0
-    private fun getOrCreateDownload(context: PlatformContext, song: Song): Download {
+    private fun getOrCreateDownload(context: AppContext, song: Song): Download {
         synchronized(downloads) {
             for (download in downloads) {
                 if (download.song.id == song.id) {
@@ -436,44 +436,49 @@ class PlayerDownloadService: PlatformServiceImpl() {
             download.status = status
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            download.total_size = connection.contentLengthLong + download.downloaded
-        }
-        else {
-            download.total_size = connection.contentLength + download.downloaded
-        }
-        download.status = DownloadStatus.Status.DOWNLOADING
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                download.total_size = connection.contentLengthLong + download.downloaded
+            }
+            else {
+                download.total_size = connection.contentLength + download.downloaded
+            }
+            download.status = DownloadStatus.Status.DOWNLOADING
 
-        while (true) {
-            val size = input.read(data)
-            if (size < 0) {
-                break
+            while (true) {
+                val size = input.read(data)
+                if (size < 0) {
+                    break
+                }
+
+                synchronized(executor) {
+                    if (stopping || download.cancelled) {
+                        close(DownloadStatus.Status.CANCELLED)
+                        return@withContext Result.success(null)
+                    }
+                    if (paused) {
+                        close(DownloadStatus.Status.PAUSED)
+                        return@withContext Result.success(null)
+                    }
+                }
+
+                download.downloaded += size
+                output.write(data, 0, size)
+
+                onDownloadProgress()
             }
 
-            synchronized(executor) {
-                if (stopping || download.cancelled) {
-                    close(DownloadStatus.Status.CANCELLED)
-                    return@withContext Result.success(null)
-                }
-                if (paused) {
-                    close(DownloadStatus.Status.PAUSED)
-                    return@withContext Result.success(null)
-                }
-            }
+            val metadata_retriever = MediaMetadataRetriever()
+            metadata_retriever.setDataSource(context.ctx, Uri.parse(file.uri))
 
-            download.downloaded += size
-            output.write(data, 0, size)
+            val duration_ms = metadata_retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong()
+            SongRef(download.song.id).Duration.setNotNull(duration_ms, context.database)
 
-            onDownloadProgress()
+            close(DownloadStatus.Status.FINISHED)
         }
-
-        val metadata_retriever = MediaMetadataRetriever()
-        metadata_retriever.setDataSource(context.ctx, Uri.parse(file.uri))
-
-        val duration_ms = metadata_retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong()
-        SongRef(download.song.id).Duration.setNotNull(duration_ms, context.database)
-
-        close(DownloadStatus.Status.FINISHED)
+        catch (_: Throwable) {
+            close(DownloadStatus.Status.CANCELLED)
+        }
 
         val renamed = file.renameTo(file.name.dropLast(FILE_DOWNLOADING_SUFFIX.length))
 
@@ -619,7 +624,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
     private fun getNotificationBuilder(): NotificationCompat.Builder {
         val content_intent: PendingIntent = PendingIntent.getActivity(
             this, 0,
-            Intent(this@PlayerDownloadService, PlatformContext.main_activity),
+            Intent(this@PlayerDownloadService, AppContext.main_activity),
             PendingIntent.FLAG_IMMUTABLE
         )
 

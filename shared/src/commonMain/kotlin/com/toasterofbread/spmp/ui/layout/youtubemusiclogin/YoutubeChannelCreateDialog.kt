@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.youtubemusiclogin
 
+import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
@@ -14,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -30,15 +32,15 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
-import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
-import com.toasterofbread.spmp.platform.composable.rememberImagePainter
+import com.toasterofbread.toastercomposetools.platform.composable.PlatformAlertDialog
+import com.toasterofbread.toastercomposetools.platform.composable.rememberImagePainter
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.endpoint.YoutubeChannelCreationFormEndpoint.YoutubeAccountCreationForm.ChannelCreationForm
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
-import com.toasterofbread.utils.composable.LinkifyText
-import com.toasterofbread.utils.composable.ShapedIconButton
-import com.toasterofbread.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.utils.composable.WidthShrinkText
+import com.toasterofbread.toastercomposetools.utils.composable.LinkifyText
+import com.toasterofbread.toastercomposetools.utils.composable.ShapedIconButton
+import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.toastercomposetools.utils.composable.WidthShrinkText
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import okhttp3.Headers
@@ -50,6 +52,7 @@ fun YoutubeChannelCreateDialog(
     api: YoutubeMusicApi,
     onFinished: (Result<Artist>?) -> Unit
 ) {
+    val player = LocalPlayerState.current
     val coroutine_scope = rememberCoroutineScope()
 
     val fields = remember(form) { form.contents.createCoreIdentityChannelContentRenderer.getInputFields() }
@@ -101,7 +104,12 @@ fun YoutubeChannelCreateDialog(
         },
         dismissButton = {
             ShapedIconButton(
-                { onFinished(null) }
+                { onFinished(null) },
+                IconButtonDefaults.iconButtonColors(
+                    containerColor = player.theme.accent,
+                    contentColor = player.theme.on_accent,
+                    disabledContainerColor = player.theme.accent.copy(alpha = 0.5f)
+                )
             ) {
                 Icon(Icons.Default.Close, null)
             }
@@ -140,6 +148,7 @@ fun YoutubeChannelCreateDialog(
 
             LinkifyText(
                 getString("youtube_channel_creation_subtitle"),
+                player.theme.accent,
                 style = MaterialTheme.typography.titleMedium
             )
         }

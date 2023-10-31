@@ -6,8 +6,8 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.db.getPlayCount
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
-import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.platform.PlatformFile
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.toastercomposetools.platform.PlatformFile
 import com.toasterofbread.spmp.platform.getLocalAudioFile
 import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.Dispatchers
@@ -20,7 +20,7 @@ object PlaylistFileConverter {
         "${playlist.id}.${getFileExtension()}"
     fun getFileExtension(): String = "m3u"
 
-    private fun OutputStreamWriter.writeFileHeaders(playlist: PlaylistData, context: PlatformContext) {
+    private fun OutputStreamWriter.writeFileHeaders(playlist: PlaylistData, context: AppContext) {
         write(
             buildString {
                 appendLine("#EXTM3U")
@@ -53,7 +53,7 @@ object PlaylistFileConverter {
         )
     }
 
-    suspend fun PlaylistData.saveToFile(file: PlatformFile, context: PlatformContext): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun PlaylistData.saveToFile(file: PlatformFile, context: AppContext): Result<Unit> = withContext(Dispatchers.IO) {
         val temp_file = file.getSibling("${file.name}.tmp")
 
         val result =  runCatching {
@@ -95,7 +95,7 @@ object PlaylistFileConverter {
         return@withContext result
     }
 
-    suspend fun loadFromFile(file: PlatformFile, context: PlatformContext): LocalPlaylistData? = withContext(Dispatchers.IO) {
+    suspend fun loadFromFile(file: PlatformFile, context: AppContext): LocalPlaylistData? = withContext(Dispatchers.IO) {
         val required_suffix: String = ".${getFileExtension()}"
         if (!file.name.endsWith(required_suffix)) {
             return@withContext null

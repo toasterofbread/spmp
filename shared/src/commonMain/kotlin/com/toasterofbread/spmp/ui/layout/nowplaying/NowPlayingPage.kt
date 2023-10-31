@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.ui.layout.nowplaying
 
 import LocalPlayerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -16,18 +17,19 @@ abstract class NowPlayingPage {
     abstract fun Page(page_height: Dp, top_bar: NowPlayingTopBar, modifier: Modifier)
     abstract fun shouldShow(player: PlayerState): Boolean
 
-    @Composable
-    fun getTopPadding(): Dp {
-        val player: PlayerState = LocalPlayerState.current
-        if (player.context.getStatusBarHeightDp() > 0.dp) {
-            return NOW_PLAYING_MAIN_PADDING.dp / 2
-        }
-        return NOW_PLAYING_MAIN_PADDING.dp
-    }
-    fun getHorizontalPadding(): Dp = NOW_PLAYING_MAIN_PADDING.dp
-    fun getBottomPadding(): Dp = NOW_PLAYING_MAIN_PADDING.dp
-
     companion object {
+        val top_padding: Dp
+            @Composable get() {
+                val player: PlayerState = LocalPlayerState.current
+                if (player.context.getStatusBarHeightDp() > 0.dp) {
+                    return NOW_PLAYING_MAIN_PADDING.dp / 2
+                }
+                return NOW_PLAYING_MAIN_PADDING.dp
+            }
+
+        val horizontal_padding: Dp = NOW_PLAYING_MAIN_PADDING.dp
+        val bottom_padding: Dp = NOW_PLAYING_MAIN_PADDING.dp
+
         val ALL: List<NowPlayingPage> =
             listOf(
                 NowPlayingMainTabPage(),

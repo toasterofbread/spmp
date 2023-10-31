@@ -55,15 +55,14 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.LargeDropdownMenu
-import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
+import com.toasterofbread.toastercomposetools.utils.composable.LargeDropdownMenu
+import com.toasterofbread.toastercomposetools.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.toastercomposetools.settings.ui.Theme
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
-import com.toasterofbread.utils.common.getValue
-import com.toasterofbread.utils.common.setAlpha
-import com.toasterofbread.utils.composable.OnChangedEffect
+import com.toasterofbread.toastercomposetools.utils.common.getValue
+import com.toasterofbread.toastercomposetools.utils.composable.OnChangedEffect
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
@@ -90,8 +89,8 @@ fun LyricsSearchMenu(
     var loading by remember { mutableStateOf(false) }
 
     val text_field_colours = TextFieldDefaults.colors(
-        focusedContainerColor = accent.setAlpha(0.75f),
-        unfocusedContainerColor = accent.setAlpha(0.75f),
+        focusedContainerColor = accent.copy(alpha = 0.75f),
+        unfocusedContainerColor = accent.copy(alpha = 0.75f),
         focusedTextColor = on_accent,
         unfocusedTextColor = on_accent,
         focusedLabelColor = on_accent,
@@ -100,7 +99,7 @@ fun LyricsSearchMenu(
         unfocusedTrailingIconColor = on_accent,
         cursorColor = on_accent,
         focusedIndicatorColor = accent,
-        unfocusedIndicatorColor = accent.setAlpha(0.5f)
+        unfocusedIndicatorColor = accent.copy(alpha = 0.5f)
     )
 
     val focus = LocalFocusManager.current

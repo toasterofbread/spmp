@@ -10,8 +10,8 @@ import com.google.gson.Gson
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
-import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.platform.PlatformPreferences
+import com.toasterofbread.toastercomposetools.platform.PlatformPreferences
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
@@ -235,6 +235,7 @@ enum class Settings {
     // Other
     KEY_SEARCH_SHOW_SUGGESTIONS,
     KEY_OPEN_NP_ON_SONG_PLAYED,
+    KEY_START_RADIO_ON_SONG_PRESS,
     KEY_MULTISELECT_CANCEL_ON_ACTION,
     KEY_MULTISELECT_CANCEL_WHEN_NONE_SELECTED, // TODO
     KEY_SHOW_LIKES_PLAYLIST,
@@ -246,6 +247,8 @@ enum class Settings {
     KEY_STOP_PLAYER_ON_APP_CLOSE,
     KEY_LIBRARY_PATH,
     KEY_NAVBAR_HEIGHT_MULTIPLIER,
+    KEY_STATUS_WEBHOOK_URL,
+    KEY_STATUS_WEBHOOK_PAYLOAD,
 
     // Internal
     INTERNAL_TOPBAR_MODE_HOME,
@@ -258,7 +261,7 @@ enum class Settings {
         return Settings.get(this, preferences)
     }
 
-    fun <T> get(context: PlatformContext): T {
+    fun <T> get(context: AppContext): T {
         return Settings.get(this, context.getPrefs())
     }
 
@@ -443,6 +446,7 @@ enum class Settings {
                 KEY_VOLUME_STEPS -> 50
                 KEY_SEARCH_SHOW_SUGGESTIONS -> true
                 KEY_OPEN_NP_ON_SONG_PLAYED -> true
+                KEY_START_RADIO_ON_SONG_PRESS -> true
                 KEY_MULTISELECT_CANCEL_ON_ACTION -> true
                 KEY_MULTISELECT_CANCEL_WHEN_NONE_SELECTED -> true
                 KEY_SHOW_LIKES_PLAYLIST -> true
@@ -453,6 +457,8 @@ enum class Settings {
                 KEY_STOP_PLAYER_ON_APP_CLOSE -> false
                 KEY_LIBRARY_PATH -> ""
                 KEY_NAVBAR_HEIGHT_MULTIPLIER -> 1f
+                KEY_STATUS_WEBHOOK_URL -> ProjectBuildConfig.STATUS_WEBHOOK_URL ?: ""
+                KEY_STATUS_WEBHOOK_PAYLOAD -> ProjectBuildConfig.STATUS_WEBHOOK_PAYLOAD ?: "{}"
 
                 KEY_SPMS_PORT -> 3973
 

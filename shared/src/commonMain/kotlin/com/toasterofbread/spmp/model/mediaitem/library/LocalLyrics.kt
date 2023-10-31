@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem.library
 
-import com.toasterofbread.spmp.model.SongLyrics
+import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

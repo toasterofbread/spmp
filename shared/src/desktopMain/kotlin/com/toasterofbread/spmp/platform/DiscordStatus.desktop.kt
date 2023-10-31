@@ -5,7 +5,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 
 // TODO
 
-actual class DiscordStatus actual constructor(context: PlatformContext, account_token: String?) {
+actual class DiscordStatus actual constructor(context: AppContext, account_token: String?) {
     actual companion object {
         actual fun isSupported(): Boolean = false // TODO
 

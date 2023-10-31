@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.model.mediaitem.db
 
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 
 fun Boolean.toSQLBoolean(): Long? = if (this) 0L else null
@@ -21,7 +21,7 @@ fun Long?.fromNullableSQLBoolean(): Boolean? =
         else -> null
     }
 
-suspend fun <T, ItemType: MediaItemData> PlatformContext.loadMediaItemValue(item: ItemType, getValue: ItemType.() -> T?): Result<T>? {
+suspend fun <T, ItemType: MediaItemData> AppContext.loadMediaItemValue(item: ItemType, getValue: ItemType.() -> T?): Result<T>? {
     // If the item is marked as already loaded, give up
     val loaded = database.mediaItemQueries.loadedById(item.id).executeAsOneOrNull()?.loaded.fromSQLBoolean()
     if (loaded) {

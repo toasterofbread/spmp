@@ -3,12 +3,12 @@ package com.toasterofbread.spmp.resources.uilocalisation
 import SpMp
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getDataLanguage
 import com.toasterofbread.spmp.platform.getUiLanguage
 
 sealed interface LocalisedString {
-    fun getString(context: PlatformContext): String
+    fun getString(context: AppContext): String
     fun getType(): Type
 
     fun serialise(): String {
@@ -50,14 +50,14 @@ sealed interface LocalisedString {
 data class RawLocalisedString(
     val raw_string: String
 ): LocalisedString {
-    override fun getString(context: PlatformContext): String = raw_string
+    override fun getString(context: AppContext): String = raw_string
     override fun getType(): LocalisedString.Type = LocalisedString.Type.RAW
 }
 
 data class AppLocalisedString(
     val string_key: String
 ): LocalisedString {
-    override fun getString(context: PlatformContext): String = getString(string_key)
+    override fun getString(context: AppContext): String = getString(string_key)
     override fun getType(): LocalisedString.Type = LocalisedString.Type.APP
 }
 
@@ -72,7 +72,7 @@ data class YoutubeLocalisedString(
         SEARCH_PAGE,
         FILTER_CHIP;
 
-        fun createFromKey(key: String, context: PlatformContext): LocalisedString {
+        fun createFromKey(key: String, context: AppContext): LocalisedString {
             return createFromKey(key, context.getDataLanguage())
         }
 
@@ -93,14 +93,14 @@ data class YoutubeLocalisedString(
         }
     }
 
-    override fun getString(context: PlatformContext): String = getLocalised(context).let { it.second ?: it.first }
+    override fun getString(context: AppContext): String = getLocalised(context).let { it.second ?: it.first }
     override fun getType(): LocalisedString.Type = LocalisedString.Type.YOUTUBE
 
     fun getYoutubeStringId(): YoutubeUILocalisation.StringID? =
         type.getStringData().item_ids[index]
 
     private var localised: Pair<String, String?>? = null
-    private fun getLocalised(context: PlatformContext): Pair<String, String?> {
+    private fun getLocalised(context: AppContext): Pair<String, String?> {
         if (localised == null) {
             val strings = type.getStringData()
             try {
@@ -115,7 +115,7 @@ data class YoutubeLocalisedString(
     }
 
     companion object {
-        fun mediaItemPage(key: String, item_type: MediaItemType, context: PlatformContext, source_language: String = context.getDataLanguage()): LocalisedString =
+        fun mediaItemPage(key: String, item_type: MediaItemType, context: AppContext, source_language: String = context.getDataLanguage()): LocalisedString =
             when (item_type) {
                 MediaItemType.ARTIST -> Type.ARTIST_PAGE.createFromKey(key, context)
                 else -> {

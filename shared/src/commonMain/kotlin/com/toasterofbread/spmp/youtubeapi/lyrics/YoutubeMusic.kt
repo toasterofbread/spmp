@@ -1,10 +1,10 @@
 package com.toasterofbread.spmp.youtubeapi.lyrics
 
 import androidx.compose.ui.graphics.Color
-import com.toasterofbread.spmp.model.SongLyrics
+import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -17,7 +17,7 @@ internal class YoutubeMusicLyricsSource(source_idx: Int): LyricsSource(source_id
     override fun supportsLyricsBySearching(): Boolean = false
     override suspend fun searchForLyrics(title: String, artist_name: String?): Result<List<SearchResult>> { throw NotImplementedError() }
 
-    override suspend fun getReferenceBySong(song: Song, context: PlatformContext): Result<LyricsReference?> = withContext(Dispatchers.IO) {
+    override suspend fun getReferenceBySong(song: Song, context: AppContext): Result<LyricsReference?> = withContext(Dispatchers.IO) {
         val browse_id = song.LyricsBrowseId.get(context.database)
         if (browse_id != null) {
             return@withContext Result.success(referenceOfSource(browse_id))
@@ -40,7 +40,7 @@ internal class YoutubeMusicLyricsSource(source_idx: Int): LyricsSource(source_id
         )
     }
 
-    override suspend fun getLyrics(lyrics_id: String, context: PlatformContext): Result<SongLyrics> = withContext(Dispatchers.IO) {
+    override suspend fun getLyrics(lyrics_id: String, context: AppContext): Result<SongLyrics> = withContext(Dispatchers.IO) {
         val result = context.ytapi.SongLyrics.getSongLyrics(lyrics_id)
         return@withContext result.fold(
             { lyrics_text ->

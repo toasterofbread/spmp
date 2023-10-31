@@ -35,7 +35,7 @@ import java.io.IOException
 import java.util.Base64
 
 actual class DiscordStatus actual constructor(
-    private val context: PlatformContext,
+    private val context: AppContext,
     private val account_token: String?
 ) {
     actual companion object {

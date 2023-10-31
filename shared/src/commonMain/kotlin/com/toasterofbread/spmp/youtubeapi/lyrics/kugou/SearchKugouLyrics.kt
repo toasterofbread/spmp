@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.youtubeapi.lyrics.kugou
 
 import com.google.gson.Gson
-import com.toasterofbread.spmp.model.SongLyrics
+import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.youtubeapi.executeResult
 import com.toasterofbread.spmp.youtubeapi.fromJson
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast

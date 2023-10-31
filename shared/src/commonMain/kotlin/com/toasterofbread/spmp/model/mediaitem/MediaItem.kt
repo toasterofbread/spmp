@@ -20,7 +20,7 @@ import com.toasterofbread.spmp.model.mediaitem.db.observeAsState
 import com.toasterofbread.spmp.model.mediaitem.db.toSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.toImageBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -35,7 +35,8 @@ interface MediaItem: MediaItemHolder {
     override fun toString(): String
     fun getHolder(): MediaItemHolder = this
     fun getType(): MediaItemType
-    fun getURL(context: PlatformContext): String
+    fun getURL(context: AppContext): String
+    fun getReference(): MediaItemRef
 
     fun getActiveTitle(db: Database): String? {
         return db.mediaItemQueries.activeTitleById(id).executeAsOneOrNull()?.IFNULL
@@ -50,7 +51,7 @@ interface MediaItem: MediaItemHolder {
             }
     }
 
-    suspend fun setActiveTitle(value: String?, context: PlatformContext) = withContext(Dispatchers.IO) {
+    suspend fun setActiveTitle(value: String?, context: AppContext) = withContext(Dispatchers.IO) {
         CustomTitle.set(value, context.database)
     }
 
@@ -64,7 +65,7 @@ interface MediaItem: MediaItemHolder {
         data.thumbnail_provider = ThumbnailProvider.get(db)
     }
 
-    suspend fun loadData(context: PlatformContext, populate_data: Boolean = true, force: Boolean = false): Result<MediaItemData> {
+    suspend fun loadData(context: AppContext, populate_data: Boolean = true, force: Boolean = false): Result<MediaItemData> {
         val data = getEmptyData()
         if (!force && Loaded.get(context.database)) {
             if (populate_data) {

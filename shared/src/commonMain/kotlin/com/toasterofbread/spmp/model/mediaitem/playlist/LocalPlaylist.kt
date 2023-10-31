@@ -13,21 +13,24 @@ import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.library.createLocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter.saveToFile
-import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.modifier.background
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.toastercomposetools.platform.PlatformFile
+import com.toasterofbread.toastercomposetools.utils.modifier.background
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 sealed interface LocalPlaylist: Playlist {
+    fun getLocalPlaylistFile(context: AppContext): PlatformFile =
+        MediaItemLibrary.getLocalPlaylistFile(this, context)
+
     override fun getType(): MediaItemType = MediaItemType.PLAYLIST_LOC
-    override fun getURL(context: PlatformContext): String =
-        "file://" + MediaItemLibrary.getLocalPlaylistFile(this, context).absolute_path
+    override fun getURL(context: AppContext): String =
+        "file://" + getLocalPlaylistFile(context).absolute_path
     override fun getEmptyData(): LocalPlaylistData = LocalPlaylistData(id)
 
-    override suspend fun loadData(context: PlatformContext, populate_data: Boolean, force: Boolean): Result<LocalPlaylistData>
+    override suspend fun loadData(context: AppContext, populate_data: Boolean, force: Boolean): Result<LocalPlaylistData>
 
-    override suspend fun setActiveTitle(value: String?, context: PlatformContext) {
+    override suspend fun setActiveTitle(value: String?, context: AppContext) {
         val data: LocalPlaylistData = loadData(context).getOrNull() ?: return
         data.title = value
 
@@ -35,7 +38,7 @@ sealed interface LocalPlaylist: Playlist {
         data.saveToFile(file, context)
     }
 
-    override suspend fun setSortType(sort_type: MediaItemSortType?, context: PlatformContext): Result<Unit> {
+    override suspend fun setSortType(sort_type: MediaItemSortType?, context: AppContext): Result<Unit> {
         val data: LocalPlaylistData = loadData(context).fold(
             { it },
             { return Result.failure(it) }
@@ -47,7 +50,7 @@ sealed interface LocalPlaylist: Playlist {
     }
 }
 
-suspend fun Playlist.downloadAsLocalPlaylist(context: PlatformContext, replace: Boolean = false): Result<LocalPlaylistData> = withContext(Dispatchers.IO) {
+suspend fun Playlist.downloadAsLocalPlaylist(context: AppContext, replace: Boolean = false): Result<LocalPlaylistData> = withContext(Dispatchers.IO) {
     val playlist_data: PlaylistData = loadData(context).fold(
         { it },
         { return@withContext Result.failure(it) }

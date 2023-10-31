@@ -5,8 +5,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.PlatformBinder
-import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.PlayerListener
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.startPlatformService
 import com.toasterofbread.spmp.platform.unbindPlatformService
 import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
@@ -14,7 +14,7 @@ import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
 private class PlayerServiceBinder(val service: PlatformPlayerService): PlatformBinder()
 
 actual class PlatformPlayerService: ZmqSpMsPlayerService(), PlayerService {
-    actual override val context: PlatformContext get() = super.context
+    actual override val context: AppContext get() = super.context
 
     override val listeners: List<PlayerListener>
         get() = Companion.listeners
@@ -124,7 +124,7 @@ actual class PlatformPlayerService: ZmqSpMsPlayerService(), PlayerService {
         updateCurrentSongPosition(position_ms)
 
         onEvent { it.onSeeked(position_ms) }
-        sendRequest("seekTo", position_ms)
+        sendRequest("seekToTime", position_ms)
     }
 
     actual override fun seekToSong(index: Int) {
@@ -139,7 +139,7 @@ actual class PlatformPlayerService: ZmqSpMsPlayerService(), PlayerService {
             it.onEvents()
         }
 
-        sendRequest("seekToSong", index)
+        sendRequest("seekToItem", index)
     }
 
     actual override fun seekToNext() {
@@ -196,7 +196,7 @@ actual class PlatformPlayerService: ZmqSpMsPlayerService(), PlayerService {
         require(index in 0..song_count)
 
         playlist.add(index, song)
-        sendRequest("addSong", song.id, index)
+        sendRequest("addItem", song.id, index)
 
         if (_current_song_index < 0) {
             _current_song_index = 0
@@ -232,7 +232,7 @@ actual class PlatformPlayerService: ZmqSpMsPlayerService(), PlayerService {
         }
 
         onEvent { it.onSongMoved(from, to) }
-        sendRequest("moveSong", from, to)
+        sendRequest("moveItem", from, to)
     }
 
     actual override fun removeSong(index: Int) {
@@ -242,7 +242,7 @@ actual class PlatformPlayerService: ZmqSpMsPlayerService(), PlayerService {
         }
 
         onEvent { it.onSongRemoved(index) }
-        sendRequest("removeSong", index)
+        sendRequest("removeItem", index)
     }
 
     actual override fun addListener(listener: PlayerListener) {}
@@ -276,7 +276,7 @@ actual class PlatformPlayerService: ZmqSpMsPlayerService(), PlayerService {
     actual companion object {
         private val listeners: MutableList<PlayerListener> = mutableListOf()
 
-        actual fun isServiceRunning(context: PlatformContext): Boolean = true
+        actual fun isServiceRunning(context: AppContext): Boolean = true
 
         actual fun addListener(listener: PlayerListener) {
             listeners.add(listener)
@@ -287,7 +287,7 @@ actual class PlatformPlayerService: ZmqSpMsPlayerService(), PlayerService {
         }
 
         actual fun connect(
-            context: PlatformContext,
+            context: AppContext,
             instance: PlatformPlayerService?,
             onConnected: (PlatformPlayerService) -> Unit,
             onDisconnected: () -> Unit,
@@ -302,7 +302,7 @@ actual class PlatformPlayerService: ZmqSpMsPlayerService(), PlayerService {
             )
         }
 
-        actual fun disconnect(context: PlatformContext, connection: Any) {
+        actual fun disconnect(context: AppContext, connection: Any) {
             unbindPlatformService(context, connection)
         }
     }

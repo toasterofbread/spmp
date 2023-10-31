@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.platform
 import android.net.Uri
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSpec
+import com.toasterofbread.toastercomposetools.platform.PlatformFile
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.db.getPlayCount
@@ -14,7 +15,7 @@ import java.io.IOException
 import java.time.Duration
 
 @UnstableApi
-internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: PlatformContext, metered: Boolean): DataSpec {
+internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppContext, metered: Boolean): DataSpec {
     val song = SongRef(data_spec.uri.toString())
 
     val download_manager = context.download_manager

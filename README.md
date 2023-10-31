@@ -76,9 +76,10 @@ Pull requests, bug reports, and feature suggestions are welcome! This is my firs
 
 The app is currently being developed for both English and Japanese. Contributions for other languages would be greatly appreciated! Information about app localisation can be found [here](https://github.com/toasterofbread/spmp/wiki/App-localisation).
 
-## Also available on
+## Also available from
 
-<a href="https://apt.izzysoft.de/fdroid/index/apk/com.toasterofbread.spmp/"><img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" height=100></a>
+[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" height="100">](https://f-droid.org/en/packages/com.toasterofbread.spmp/)
+[<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" height="100">](https://apt.izzysoft.de/fdroid/index/apk/com.toasterofbread.spmp/)
 
 ## Thanks to
 - [ytmusicapi](https://github.com/sigma67/ytmusicapi/): Used as a reference for the YouTube Music API

@@ -12,6 +12,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -67,19 +68,18 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.getEditorOrNull
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.isPlaylistEditable
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.composable.BackHandler
-import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
+import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
+import com.toasterofbread.toastercomposetools.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.rememberSongDownloads
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.multiselect_context.MultiSelectSelectedItemActions
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
-import com.toasterofbread.utils.common.getContrasted
-import com.toasterofbread.utils.common.lazyAssert
-import com.toasterofbread.utils.common.setAlpha
-import com.toasterofbread.utils.composable.ScrollabilityIndicatorRow
-import com.toasterofbread.utils.composable.ShapedIconButton
+import com.toasterofbread.toastercomposetools.utils.common.getContrasted
+import com.toasterofbread.toastercomposetools.utils.common.lazyAssert
+import com.toasterofbread.toastercomposetools.utils.composable.ScrollabilityIndicatorRow
+import com.toasterofbread.toastercomposetools.utils.composable.ShapedIconButton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.joinAll
@@ -171,7 +171,7 @@ class MediaItemMultiSelectContext(
     @Composable
     fun SelectableItemOverlay(item: MediaItem, modifier: Modifier = Modifier, key: Int? = null) {
         val selected by remember(item, key) { derivedStateOf { isItemSelected(item, key) } }
-        val background_colour = LocalContentColor.current.getContrasted().setAlpha(0.5f)
+        val background_colour = LocalContentColor.current.getContrasted().copy(alpha = 0.5f)
 
         AnimatedVisibility(selected, modifier, enter = fadeIn(), exit = fadeOut()) {
             Box(Modifier.background(background_colour), contentAlignment = Alignment.Center) {
@@ -229,7 +229,7 @@ class MediaItemMultiSelectContext(
             Divider(Modifier.padding(top = 5.dp), color = LocalContentColor.current, thickness = hint_path_thickness)
 
             val scroll_state = rememberScrollState()
-            ScrollabilityIndicatorRow(scroll_state, Modifier.fillMaxWidth()) {
+            ScrollabilityIndicatorRow(scroll_state, Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
                 Row(Modifier.fillMaxWidth().horizontalScroll(scroll_state), verticalAlignment = Alignment.CenterVertically) {
                     GeneralSelectedItemActions()
 
@@ -262,7 +262,7 @@ class MediaItemMultiSelectContext(
             containerColor = player.theme.accent,
             disabledContainerColor = player.theme.accent,
             contentColor = player.theme.on_accent,
-            disabledContentColor = player.theme.on_accent.setAlpha(0.5f)
+            disabledContentColor = player.theme.on_accent.copy(alpha = 0.5f)
         )
 
         fun onPlaylistsSelected() {

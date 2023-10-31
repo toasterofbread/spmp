@@ -17,7 +17,8 @@ import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.toastercomposetools.settings.ui.Theme
+import getPlatform
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 
@@ -47,36 +48,40 @@ fun WaveBorder(
             }
     ) {
         // TODO
-//        val path = Path()
-//        val colour = getColour(player.theme)
-//
-//        // Above equilibrium (cut out from rect)
-//        wavePath(path, -1, height.toPx(), waves, getWaveOffset)
-//        clipPath(
-//            path,
-//            ClipOp.Difference
-//        ) {
-//            drawRect(
-//                colour,
-//                topLeft = Offset(0f, height.toPx() / 2)
-//            )
-//        }
-//
-//        val border_stroke = if (border_thickness > 0.dp) Stroke(border_thickness.toPx()) else null
-//
-//        // Upper border
-//        if (border_stroke != null) {
-//            drawPath(path, border_colour, style = border_stroke)
-//        }
-//
-//        // Below equilibrium
-//        wavePath(path, 1, height.toPx(), waves, getWaveOffset)
-//        drawPath(path, colour)
-//
-//        // Lower border
-//        if (border_stroke != null) {
-//            drawPath(path, border_colour, style = border_stroke)
-//        }
+        if (getPlatform() == Platform.DESKTOP) {
+            return@Canvas
+        }
+
+        val path = Path()
+        val colour = getColour(player.theme)
+
+        // Above equilibrium (cut out from rect)
+        wavePath(path, -1, height.toPx(), waves, getWaveOffset)
+        clipPath(
+            path,
+            ClipOp.Difference
+        ) {
+            drawRect(
+                colour,
+                topLeft = Offset(0f, height.toPx() / 2)
+            )
+        }
+
+        val border_stroke = if (border_thickness > 0.dp) Stroke(border_thickness.toPx()) else null
+
+        // Upper border
+        if (border_stroke != null) {
+            drawPath(path, border_colour, style = border_stroke)
+        }
+
+        // Below equilibrium
+        wavePath(path, 1, height.toPx(), waves, getWaveOffset)
+        drawPath(path, colour)
+
+        // Lower border
+        if (border_stroke != null) {
+            drawPath(path, border_colour, style = border_stroke)
+        }
     }
 }
 

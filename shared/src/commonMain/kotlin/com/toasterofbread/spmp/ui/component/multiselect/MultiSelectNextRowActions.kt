@@ -27,7 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.platform.vibrateShort
+import com.toasterofbread.toastercomposetools.platform.vibrateShort
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 
 @OptIn(ExperimentalFoundationApi::class)

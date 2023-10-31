@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.resources
 
 import SpMp
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getUiLanguage
 import kotlinx.coroutines.runBlocking
 import org.kobjects.ktxml.api.EventType
@@ -20,7 +20,7 @@ private val string_arrays: Map<String, List<String>> get() = _string_arrays!!
 private val resource_load_lock = ReentrantLock()
 
 @Suppress("BlockingMethodInNonBlockingContext")
-fun initResources(language: String, context: PlatformContext) {
+fun initResources(language: String, context: AppContext) {
     fun formatText(text: String): String = text.replace("\\\"", "\"").replace("\\'", "'")
 
     resource_load_lock.withLock {
@@ -120,7 +120,7 @@ fun getStringOrNull(key: String): String? = _strings?.get(key)
 fun getStringTODO(temp_string: String): String = "$temp_string // TODO" // String to be localised
 fun getStringArray(key: String): List<String> = string_arrays[key] ?: throw NotImplementedError(key)
 
-fun getStringSafe(key: String, context: PlatformContext): String {
+fun getStringSafe(key: String, context: AppContext): String {
     resource_load_lock.withLock {
         if (_strings == null) {
             initResources(context.getUiLanguage(), context)
@@ -129,7 +129,7 @@ fun getStringSafe(key: String, context: PlatformContext): String {
     }
 }
 
-fun getStringArraySafe(key: String, context: PlatformContext): List<String> {
+fun getStringArraySafe(key: String, context: AppContext): List<String> {
     resource_load_lock.withLock {
         if (_string_arrays == null) {
             initResources(context.getUiLanguage(), context)
@@ -138,7 +138,7 @@ fun getStringArraySafe(key: String, context: PlatformContext): List<String> {
     }
 }
 
-inline fun iterateValuesDirectories(context: PlatformContext, action: (language: String?, path: String) -> Boolean) {
+inline fun iterateValuesDirectories(context: AppContext, action: (language: String?, path: String) -> Boolean) {
     for (file in context.listResourceFiles("") ?: emptyList()) {
         if (!file.startsWith("values")) {
             continue

@@ -36,13 +36,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
+import com.toasterofbread.toastercomposetools.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.platform.getDefaultPaddingValues
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.utils.common.setAlpha
-import com.toasterofbread.utils.composable.Marquee
-import com.toasterofbread.utils.composable.WidthShrinkText
+import com.toasterofbread.toastercomposetools.utils.composable.Marquee
+import com.toasterofbread.toastercomposetools.utils.composable.WidthShrinkText
 
 @Composable
 fun ManualLoginPage(
@@ -111,7 +110,7 @@ fun ManualLoginPage(
                     Modifier
                         .border(
                             1.dp,
-                            LocalContentColor.current.setAlpha(0.5f),
+                            LocalContentColor.current.copy(alpha = 0.5f),
                             RoundedCornerShape(16.dp)
                         )
                         .padding(10.dp)

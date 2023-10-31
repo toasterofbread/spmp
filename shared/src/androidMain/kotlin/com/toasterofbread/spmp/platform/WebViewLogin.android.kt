@@ -15,12 +15,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.viewinterop.AndroidView
-import com.toasterofbread.spmp.platform.composable.BackHandler
+import com.toasterofbread.toastercomposetools.utils.common.isDark
+import com.toasterofbread.toastercomposetools.utils.composable.OnChangedEffect
+import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.composable.OnChangedEffect
-import com.toasterofbread.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.utils.common.isDark
 import kotlinx.coroutines.runBlocking
 
 actual fun isWebViewLoginSupported(): Boolean = true
@@ -57,6 +56,8 @@ actual fun WebViewLogin(
     val player: PlayerState = LocalPlayerState.current
     var web_view: WebView? by remember { mutableStateOf(null) }
     val is_dark: Boolean by remember { derivedStateOf { player.theme.background.isDark() } }
+
+    val test = player.theme.background
 
     var requested_url: String? by remember { mutableStateOf(null) }
     OnChangedEffect(requested_url) {

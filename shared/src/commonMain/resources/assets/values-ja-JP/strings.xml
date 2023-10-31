@@ -327,6 +327,9 @@
     <string name="s_key_multiselect_cancel_on_action">アクション後に複数選択を解除する</string>
     <string name="s_sub_multiselect_cancel_on_action">複数選択のアクションを使った後、複数選択モードが解除されます</string>
 
+    <string name="s_key_start_radio_on_song_press">曲をタップしたらラジオを再生する</string>
+    <string name="s_sub_start_radio_on_song_press">再生するだけではなく、YouTubeのラジオをキューに加える</string>
+
     <string name="s_key_persistent_queue">再生キューを覚える</string>
     <string name="s_sub_persistent_queue">アプリを閉じても曲キューは保持されます</string>
 
@@ -483,6 +486,12 @@
     <string name="s_key_navbar_height_multiplier">ナビゲーションバーの高さの倍率</string>
     <string name="s_sub_navbar_height_multiplier">システムが正しい高さを報告しない場合、これで調節できます（アプリの再起動が必要です）</string>
 
+    <string name="s_key_status_webhook_url">ステータスウェブフックのURL</string>
+    <string name="s_sub_status_webhook_url">再生中の曲が変わるとこのURLへJSONのPOSTリクエストが送信されます。例：`{"youtube_video_id": "&lt;動画のID&gt;"}`</string>
+
+    <string name="s_key_status_webhook_payload">ステータスウェブフックの送信データ</string>
+    <string name="s_sub_status_webhook_payload">ウェブフックへ追加で送信されるJSONデータ</string>
+
     <string name="s_group_caching">キャッシュ</string>
     <string name="s_key_enable_thumbnail_cache">サムネール画像をキャッシュする</string>
     
@@ -581,6 +590,9 @@
     <string name="auth_not_signed_in">ログインされていません</string>
     <string name="auth_sign_in">ログイン</string>
     <string name="auth_sign_out">ログアウト</string>
+
+    <string name="info_using_release_$x">リリース「$x」を使用中</string>
+    <string name="info_using_non_release_commit_$x">リリースではないコミット「$x」を使用中</string>
 
     <string name="warning_ytm_login">今からアプリ内で YouTube Music のログインページに移動します。&#xA;&#xA;ログインを終えたら、セッションクッキーを取って、保存し、オススメフィードやチャンネル登録などの YouTube Music への API リクエストのみに使います。&#xA;&#xA;よろしいですか？</string>
     <string name="info_ytm_login">アプリ内で YouTube Music のログインページに移動します。&#xA;&#xA;ログインを終えたら、セッションクッキーを取って、保存し、オススメフィードやチャンネル登録などの YouTube Music への API リクエストのみに使います。</string>

@@ -5,7 +5,7 @@ import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.toasterofbread.Database
 import java.io.File
 
-actual fun PlatformContext.getSqlDriver(): SqlDriver {
+actual fun AppContext.getSqlDriver(): SqlDriver {
     val database_file: File = getFilesDir().resolve("spmp_database.db")
     database_file.parentFile.mkdirs()
 

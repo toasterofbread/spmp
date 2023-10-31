@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.composable
 
 import LocalPlayerState
+import SpMp.isDebugBuild
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.google.gson.Gson
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.platform.WebViewLogin
-import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
+import com.toasterofbread.toastercomposetools.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
@@ -49,8 +50,8 @@ import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeChannelNotCreatedException
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
-import com.toasterofbread.utils.composable.LinkifyText
-import com.toasterofbread.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.toastercomposetools.utils.composable.LinkifyText
+import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -141,6 +142,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
                 if (error != null) {
                     ErrorInfoDisplay(
                         error,
+                        isDebugBuild(),
                         Modifier.fillMaxWidth().padding(content_padding),
                         expanded_content_modifier = Modifier.fillMaxHeight(),
                         onDismiss = null
@@ -264,6 +266,8 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
 
     @Composable
     override fun LoginConfirmationDialog(info_only: Boolean, onFinished: (param: Any?) -> Unit) {
+        val player = LocalPlayerState.current
+
         PlatformAlertDialog(
             { onFinished(null) },
             confirmButton = {
@@ -279,7 +283,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
             title = if (info_only) null else ({ Text(getString("prompt_confirm_action")) }),
             text = {
                 Column {
-                    LinkifyText(getString(if (info_only) "info_ytm_login" else "warning_ytm_login"))
+                    LinkifyText(getString(if (info_only) "info_ytm_login" else "warning_ytm_login"), player.theme.accent)
                     if (!info_only) {
                         FilledTonalButton({ onFinished(true) }, Modifier.fillMaxWidth().padding(top = 5.dp).offset(y = 20.dp)) {
                             Text(getString("action_login_manually"))
@@ -415,7 +419,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
                     }
                     catch (e: Throwable) {
                         return@withContext Result.failure(
-                            DataParseException(cause = e) {
+                            DataParseException(e, account_request) {
                                 runCatching {
                                     api.performRequest(account_request).getOrThrow().body!!.string()
                                 }

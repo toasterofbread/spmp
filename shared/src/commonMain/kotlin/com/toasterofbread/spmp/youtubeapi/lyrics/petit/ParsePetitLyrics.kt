@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.youtubeapi.lyrics.petit
 
 import com.atilika.kuromoji.ipadic.Tokenizer
-import com.toasterofbread.spmp.model.SongLyrics
+import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.youtubeapi.lyrics.createTokeniser
 import com.toasterofbread.spmp.youtubeapi.lyrics.mergeAndFuriganiseTerms

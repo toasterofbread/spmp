@@ -5,7 +5,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 
 abstract class PlaylistData(
     override var id: String,
@@ -25,7 +25,7 @@ abstract class PlaylistData(
 
     var item_set_ids: List<String>? = null
 ): MediaItem.DataWithArtist(), Playlist {
-    abstract suspend fun savePlaylist(context: PlatformContext)
+    abstract suspend fun savePlaylist(context: AppContext)
 
     override fun getDataValues(): Map<String, Any?> =
         super.getDataValues() + mapOf(

@@ -12,7 +12,6 @@ import androidx.compose.ui.unit.dp
 import com.github.krottv.compose.sliders.DefaultThumb
 import com.github.krottv.compose.sliders.DefaultTrack
 import com.github.krottv.compose.sliders.SliderValueHorizontal
-import com.toasterofbread.utils.common.setAlpha
 
 @Composable
 internal fun VolumeSlider(colour: Color, modifier: Modifier = Modifier, reverse: Boolean = false) {
@@ -33,7 +32,7 @@ internal fun VolumeSlider(colour: Color, modifier: Modifier = Modifier, reverse:
             track = { a, b, c, d, e ->
                 DefaultTrack(
                     a, b, c, d, e,
-                    colorTrack = colour.setAlpha(0.5f),
+                    colorTrack = colour.copy(alpha = 0.5f),
                     colorProgress = colour
                 )
             },

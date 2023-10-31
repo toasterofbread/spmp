@@ -6,7 +6,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.youtubeapi.endpoint.AccountPlaylistEditorEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
-import com.toasterofbread.utils.common.lazyAssert
+import com.toasterofbread.toastercomposetools.utils.common.lazyAssert
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
@@ -116,7 +116,8 @@ private class AccountPlaylistEditor(playlist: RemotePlaylist, val auth: YoutubeM
                 return data
             }
             is Action.Remove -> {
-                check(playlist is RemotePlaylistData && playlist.item_set_ids != null)
+                check(playlist is RemotePlaylistData) { "$playlist is not a remote playlist" }
+                checkNotNull(playlist.item_set_ids) { "$playlist item set IDs have not been loaded" }
 
                 playlist.Items.removeItem(action.index, context.database)
 

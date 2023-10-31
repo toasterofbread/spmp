@@ -44,11 +44,11 @@ import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.db.SongFeedCache
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.model.mutableSettingsState
-import com.toasterofbread.spmp.platform.BackHandler
-import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
-import com.toasterofbread.spmp.platform.composable.SwipeRefresh
-import com.toasterofbread.spmp.platform.composable.platformClickable
+import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.toastercomposetools.platform.composable.PlatformAlertDialog
+import com.toasterofbread.toastercomposetools.platform.composable.SwipeRefresh
+import com.toasterofbread.toastercomposetools.platform.composable.platformClickable
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -60,9 +60,9 @@ import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
 import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedLoadResult
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
-import com.toasterofbread.utils.common.anyCauseIs
-import com.toasterofbread.utils.common.launchSingle
-import com.toasterofbread.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.toastercomposetools.utils.common.anyCauseIs
+import com.toasterofbread.toastercomposetools.utils.common.launchSingle
+import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -499,7 +499,7 @@ private fun populateArtistsLayout(
     artists_layout_items: MutableList<MediaItem>,
     layouts: List<MediaItemLayout>?,
     own_channel: Artist?,
-    context: PlatformContext
+    context: AppContext
 ) {
     val artists_map: MutableMap<String, Int?> = mutableMapOf()
     for (layout in layouts.orEmpty()) {

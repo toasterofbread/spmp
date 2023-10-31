@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.apppage.library
 
 import LocalPlayerState
+import SpMp.isDebugBuild
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.expandHorizontally
@@ -39,19 +40,19 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
-import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.platform.vibrateShort
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.toastercomposetools.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
-import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.common.copy
-import com.toasterofbread.utils.composable.PlatformClickableIconButton
-import com.toasterofbread.utils.composable.ResizableOutlinedTextField
+import com.toasterofbread.toastercomposetools.settings.ui.Theme
+import com.toasterofbread.toastercomposetools.utils.common.copy
+import com.toasterofbread.toastercomposetools.utils.composable.PlatformClickableIconButton
+import com.toasterofbread.toastercomposetools.utils.composable.ResizableOutlinedTextField
 
-abstract class LibrarySubPage(val context: PlatformContext) {
+abstract class LibrarySubPage(val context: AppContext) {
     abstract fun getIcon(): ImageVector
 
     open fun isHidden(): Boolean = false
@@ -249,6 +250,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
             error?.also {
                 ErrorInfoDisplay(
                     it,
+                    isDebugBuild(),
                     modifier = Modifier.padding(content_padding.copy(bottom = 20.dp)),
                     message = getString("error_yt_feed_parse_failed"),
                     onRetry = {

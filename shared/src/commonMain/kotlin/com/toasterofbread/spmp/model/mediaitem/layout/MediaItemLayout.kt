@@ -9,7 +9,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemList
@@ -84,7 +84,7 @@ data class MediaItemLayout(
             }
         }
 
-        suspend fun loadContinuation(context: PlatformContext, filters: List<RadioBuilderModifier> = emptyList()): Result<Pair<List<MediaItemData>, String?>> {
+        suspend fun loadContinuation(context: AppContext, filters: List<RadioBuilderModifier> = emptyList()): Result<Pair<List<MediaItemData>, String?>> {
             return when (type) {
                 Type.SONG -> loadSongContinuation(filters, context)
                 Type.PLAYLIST -> loadPlaylistContinuation(false, context)
@@ -99,7 +99,7 @@ data class MediaItemLayout(
             }
         }
 
-        private suspend fun loadSongContinuation(filters: List<RadioBuilderModifier>, context: PlatformContext): Result<Pair<List<MediaItemData>, String?>> {
+        private suspend fun loadSongContinuation(filters: List<RadioBuilderModifier>, context: AppContext): Result<Pair<List<MediaItemData>, String?>> {
             val radio_endpoint = context.ytapi.SongRadio
             if (!radio_endpoint.isImplemented()) {
                 return Result.failure(EndpointNotImplementedException(radio_endpoint))
@@ -112,7 +112,7 @@ data class MediaItemLayout(
             )
         }
 
-        private suspend fun loadPlaylistContinuation(initial: Boolean, context: PlatformContext): Result<Pair<List<MediaItemData>, String?>> {
+        private suspend fun loadPlaylistContinuation(initial: Boolean, context: AppContext): Result<Pair<List<MediaItemData>, String?>> {
             val continuation_endpoint = context.ytapi.PlaylistContinuation
 
             if (!continuation_endpoint.isImplemented()) {
@@ -122,7 +122,7 @@ data class MediaItemLayout(
             return continuation_endpoint.getPlaylistContinuation(initial, token, if (initial) playlist_skip_amount else 0)
         }
 
-        private suspend fun loadArtistContinuation(context: PlatformContext): Result<Pair<List<MediaItemData>, String?>> {
+        private suspend fun loadArtistContinuation(context: AppContext): Result<Pair<List<MediaItemData>, String?>> {
             TODO()
         }
     }

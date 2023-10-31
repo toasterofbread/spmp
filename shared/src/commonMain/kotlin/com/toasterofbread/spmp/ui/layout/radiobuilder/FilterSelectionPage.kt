@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.radiobuilder
 
 import LocalPlayerState
+import SpMp.isDebugBuild
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
@@ -32,8 +33,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
-import com.toasterofbread.spmp.platform.composable.platformClickable
-import com.toasterofbread.spmp.platform.vibrateShort
+import com.toasterofbread.toastercomposetools.platform.composable.platformClickable
+import com.toasterofbread.toastercomposetools.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
@@ -41,8 +42,8 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderArtist
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.InvalidRadioException
-import com.toasterofbread.utils.composable.ShapedIconButton
-import com.toasterofbread.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.toastercomposetools.utils.composable.ShapedIconButton
+import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -170,6 +171,7 @@ fun FilterSelectionPage(
                             AnimatedVisibility(show_error) {
                                 ErrorInfoDisplay(
                                     error,
+                                    isDebugBuild(),
                                     Modifier.fillMaxWidth(),
                                     onDismiss = { load_error = null }
                                 )

@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.model.mediaitem.song
 
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.MediaItemRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
@@ -9,7 +10,7 @@ import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
-import com.toasterofbread.utils.common.lazyAssert
+import com.toasterofbread.toastercomposetools.utils.common.lazyAssert
 
 class SongData(
     override var id: String,
@@ -30,6 +31,7 @@ class SongData(
             "related_browse_id" to related_browse_id,
             "lyrics_browse_id" to lyrics_browse_id
         )
+    override fun getReference(): SongRef = SongRef(id)
 
     override val ThumbnailProvider: Property<MediaItemThumbnailProvider?>
         get() = super<Song>.ThumbnailProvider

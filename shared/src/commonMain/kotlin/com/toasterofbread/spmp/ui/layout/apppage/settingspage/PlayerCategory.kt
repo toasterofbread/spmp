@@ -1,11 +1,11 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
-import com.toasterofbread.composesettings.ui.item.SettingsGroupItem
-import com.toasterofbread.composesettings.ui.item.SettingsItem
-import com.toasterofbread.composesettings.ui.item.SettingsMultipleChoiceItem
-import com.toasterofbread.composesettings.ui.item.SettingsSliderItem
-import com.toasterofbread.composesettings.ui.item.SettingsToggleItem
-import com.toasterofbread.composesettings.ui.item.SettingsValueState
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsGroupItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsMultipleChoiceItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsSliderItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsToggleItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.NowPlayingQueueRadioInfoPosition
 import com.toasterofbread.spmp.model.NowPlayingQueueWaveBorderMode
 import com.toasterofbread.spmp.model.OverscrollClearMode
@@ -25,7 +25,7 @@ internal fun getPlayerCategory(): List<SettingsItem> {
             getString("s_key_mini_player_overscroll_clear_enabled"), null
         ),
 
-        SettingsSliderItem(
+        AppSliderItem(
             SettingsValueState(Settings.KEY_MINI_PLAYER_OVERSCROLL_CLEAR_TIME.name),
             getString("s_key_mini_player_overscroll_clear_time"), null,
             range = 0f .. 1f

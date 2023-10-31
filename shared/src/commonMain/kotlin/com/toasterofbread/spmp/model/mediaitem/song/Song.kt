@@ -15,6 +15,7 @@ import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
+import com.toasterofbread.spmp.model.mediaitem.MediaItemRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
@@ -25,7 +26,7 @@ import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.crop
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.platform.toImageBitmap
@@ -41,7 +42,8 @@ private const val STATIC_LYRICS_SYNC_OFFSET: Long = 1000
 
 interface Song: MediaItem.WithArtist {
     override fun getType(): MediaItemType = MediaItemType.SONG
-    override fun getURL(context: PlatformContext): String = "https://music.youtube.com/watch?v=$id"
+    override fun getURL(context: AppContext): String = "https://music.youtube.com/watch?v=$id"
+    override fun getReference(): SongRef
 
     override fun createDbEntry(db: Database) {
         db.songQueries.insertById(id)
@@ -59,7 +61,7 @@ interface Song: MediaItem.WithArtist {
         data.lyrics_browse_id = LyricsBrowseId.get(db)
     }
 
-    override suspend fun loadData(context: PlatformContext, populate_data: Boolean, force: Boolean): Result<SongData> {
+    override suspend fun loadData(context: AppContext, populate_data: Boolean, force: Boolean): Result<SongData> {
         return super.loadData(context, populate_data, force) as Result<SongData>
     }
 
@@ -193,7 +195,7 @@ interface Song: MediaItem.WithArtist {
         }
 
     companion object {
-        fun isSongIdRegistered(context: PlatformContext, id: String): Boolean {
+        fun isSongIdRegistered(context: AppContext, id: String): Boolean {
             return context.database.songQueries.countById(id).executeAsOne() > 0
         }
     }

@@ -8,9 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Pause
@@ -41,13 +39,13 @@ import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.composable.platformClickable
-import com.toasterofbread.spmp.platform.vibrateShort
+import com.toasterofbread.toastercomposetools.platform.composable.platformClickable
+import com.toasterofbread.toastercomposetools.platform.vibrateShort
 import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
-import com.toasterofbread.utils.common.getValue
-import com.toasterofbread.utils.composable.Marquee
+import com.toasterofbread.toastercomposetools.utils.common.getValue
+import com.toasterofbread.toastercomposetools.utils.composable.Marquee
 
 private const val TITLE_FONT_SIZE_SP: Float = 21f
 private const val ARTIST_FONT_SIZE_SP: Float = 14f

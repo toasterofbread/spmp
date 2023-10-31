@@ -51,21 +51,19 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
-import com.toasterofbread.spmp.platform.composable.platformClickable
-import com.toasterofbread.spmp.platform.vibrateShort
+import com.toasterofbread.toastercomposetools.platform.composable.platformClickable
+import com.toasterofbread.toastercomposetools.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
-import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.common.copy
-import com.toasterofbread.utils.common.setAlpha
-import com.toasterofbread.utils.common.thenIf
-import com.toasterofbread.utils.composable.AlignableCrossfade
-import com.toasterofbread.utils.composable.Marquee
-import com.toasterofbread.utils.composable.NoRipple
-import com.toasterofbread.utils.composable.PlatformClickableIconButton
+import com.toasterofbread.toastercomposetools.utils.common.copy
+import com.toasterofbread.toastercomposetools.utils.common.thenIf
+import com.toasterofbread.toastercomposetools.utils.composable.AlignableCrossfade
+import com.toasterofbread.toastercomposetools.utils.composable.Marquee
+import com.toasterofbread.toastercomposetools.utils.composable.NoRipple
+import com.toasterofbread.toastercomposetools.utils.composable.PlatformClickableIconButton
 
 @Composable
 internal fun LongPressMenuContent(
@@ -309,7 +307,7 @@ internal fun LongPressMenuBackground(
 ) {
     Box(
         modifier
-            .background(Color.Black.setAlpha(0.5f))
+            .background(Color.Black.copy(alpha = 0.5f))
             .clickable(remember { MutableInteractionSource() }, null, onClick = close)
     )
 }

@@ -1,3 +1,4 @@
+import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
 import java.util.*
 
@@ -27,7 +28,9 @@ val DEBUG_KEY_NAMES = mapOf(
     "DISCORD_STATUS_TEXT_BUTTON_SONG_OVERRIDE" to "String",
     "DISCORD_STATUS_TEXT_BUTTON_PROJECT_OVERRIDE" to "String",
     "MUTE_PLAYER" to "Boolean",
-    "DISABLE_PERSISTENT_QUEUE" to "Boolean"
+    "DISABLE_PERSISTENT_QUEUE" to "Boolean",
+    "STATUS_WEBHOOK_URL" to "String",
+    "STATUS_WEBHOOK_PAYLOAD" to "String"
 )
 
 val buildConfigDir: Provider<Directory> get() = project.layout.buildDirectory.dir("generated/buildconfig")
@@ -99,6 +102,8 @@ fun GenerateBuildConfig.buildConfig(debug: Boolean) {
         debug_only = true
     )
 
+    fields_to_generate.add(Triple("GIT_COMMIT_HASH", "String?", "\"${getCurrentGitCommitHash()}\""))
+    fields_to_generate.add(Triple("GIT_TAG", "String?", "\"${getCurrentGitTag()}\""))
     fields_to_generate.add(Triple("IS_DEBUG", "Boolean", debug.toString()))
 }
 
@@ -117,7 +122,7 @@ tasks.all {
 }
 
 kotlin {
-    android()
+    androidTarget()
 
     jvm("desktop")
 
@@ -135,9 +140,10 @@ kotlin {
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
 
+                implementation(project(":ToasterComposeTools:lib"))
+
                 implementation("com.squareup.okhttp3:okhttp:4.10.0")
                 implementation("com.google.code.gson:gson:2.10.1")
-                implementation("com.godaddy.android.colorpicker:compose-color-picker:0.7.0")
                 implementation("org.apache.commons:commons-text:1.10.0")
                 implementation("com.atilika.kuromoji:kuromoji-ipadic:0.9.0")
                 implementation("org.jsoup:jsoup:1.16.1")
@@ -164,12 +170,10 @@ kotlin {
                 implementation("com.google.accompanist:accompanist-pager:0.21.2-beta")
                 implementation("com.google.accompanist:accompanist-pager-indicators:0.21.2-beta")
                 implementation("com.google.accompanist:accompanist-systemuicontroller:0.21.2-beta")
-                implementation("com.google.accompanist:accompanist-swiperefresh:0.21.2-beta")
                 implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
                 implementation("androidx.palette:palette:1.0.0")
                 //noinspection GradleDependency
                 implementation("com.github.andob:android-awt:1.0.0")
-                implementation("io.coil-kt:coil-compose:2.3.0")
                 implementation("com.github.toasterofbread:KizzyRPC:84e79614b4")
                 implementation("app.cash.sqldelight:android-driver:2.0.0-rc02")
                 implementation("com.anggrayudi:storage:1.5.5")
@@ -267,5 +271,34 @@ open class GenerateBuildConfig : DefaultTask() {
         }
 
         file.writeText(content)
+    }
+}
+
+fun cmd(vararg args: String): String {
+    val out = ByteArrayOutputStream()
+    exec {
+        commandLine(args.toList())
+        standardOutput = out
+    }
+    return out.toString().trim()
+}
+
+fun getCurrentGitTag(): String? {
+    try {
+        return cmd("git", "tag", "--points-at", "HEAD").ifBlank { null }
+    }
+    catch (e: Throwable) {
+        RuntimeException("Getting Git tag failed", e).printStackTrace()
+        return null
+    }
+}
+
+fun getCurrentGitCommitHash(): String? {
+    try {
+        return cmd("git", "rev-parse", "HEAD").ifBlank { null }
+    }
+    catch (e: Throwable) {
+        RuntimeException("Getting Git commit hash failed", e).printStackTrace()
+        return null
     }
 }

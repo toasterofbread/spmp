@@ -284,7 +284,7 @@
     <string name="settings_value_not_int">Value is not an integer</string>
     <string name="settings_value_not_float">Value is not a float</string>
 
-    <string name="s_page_preferences">Preferences</string>
+    <string name="s_page_preferences">Settings</string>
 
     <string name="s_cat_general">General</string>
     <string name="s_key_interface_lang">Interface language</string>
@@ -337,6 +337,9 @@
     <string name="s_key_multiselect_cancel_on_action">Cancel multiple selection after action</string>
     <string name="s_sub_multiselect_cancel_on_action">Disable media item multiselect states once an action is performed</string>
 
+    <string name="s_key_start_radio_on_song_press">Start radio on song press</string>
+    <string name="s_sub_start_radio_on_song_press">Instead of playing just the song, its YouTube radio will be added to the queue</string>
+
     <string name="s_key_persistent_queue">Persistent song queue</string>
     <string name="s_sub_persistent_queue">Song queue will persist even when closing the app</string>
 
@@ -380,7 +383,7 @@
     <string name="s_key_resume_on_bt_connect">Resume when Bluetooth device connected</string>
     <string name="s_sub_resume_on_bt_connect">If playback was paused by device disconnection, playback will resume when a Bluetooth audio device is connected</string>
     <string name="s_key_pause_on_bt_disconnect">Pause when Bluetooth device disconnected</string>
-    <string name="s_key_resume_on_wired_connect">Resume when wired device disconnected</string>
+    <string name="s_key_resume_on_wired_connect">Resume when wired device connected</string>
     <string name="s_sub_resume_on_wired_connect">If playback was paused by device disconnection, playback will resume when a wired audio device is connected</string>
     <string name="s_key_pause_on_wired_disconnect">Pause when wired device disconnected</string>
 
@@ -493,6 +496,12 @@
     <string name="s_key_navbar_height_multiplier">Navigation bar height multiplier</string>
     <string name="s_sub_navbar_height_multiplier">Use if your system doesn't report the navbar height correctly (requires app restart)</string>
 
+    <string name="s_key_status_webhook_url">Status webhook URL</string>
+    <string name="s_sub_status_webhook_url">When the playing song changes, a JSON post request will be sent to this URL in the following format: `{"youtube_video_id": "&lt;Video ID&gt;"}`</string>
+
+    <string name="s_key_status_webhook_payload">Status webhook payload</string>
+    <string name="s_sub_status_webhook_payload">Additional JSON data to be sent to the status webhook</string>
+
     <string name="s_group_caching">Caching</string>
     <string name="s_key_enable_thumbnail_cache">Enable thumbnail cache</string>
 
@@ -591,6 +600,9 @@
     <string name="auth_not_signed_in">Not signed in</string>
     <string name="auth_sign_in">Sign in</string>
     <string name="auth_sign_out">Sign out</string>
+
+    <string name="info_using_release_$x">Using release $x</string>
+    <string name="info_using_non_release_commit_$x">Using non-release commit $x</string>
 
     <string name="warning_ytm_login">You will be directed to an in-app webview in order to log into YouTube Music.&#xA;&#xA;Once logged in, your session cookie will be extracted, stored, and used only for API requests to YouTube Music such as getting your recommended feed and subscribing to artists.&#xA;&#xA;Continue?</string>
     <string name="info_ytm_login">You will be directed to an in-app webview in order to log into YouTube Music.&#xA;&#xA;Once logged in, your session cookie will be extracted, stored, and used only for API requests to YouTube Music such as getting your recommended feed and subscribing to artists.</string>

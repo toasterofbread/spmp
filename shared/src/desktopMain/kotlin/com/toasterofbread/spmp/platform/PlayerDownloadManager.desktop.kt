@@ -2,8 +2,8 @@ package com.toasterofbread.spmp.platform
 
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
+import com.toasterofbread.toastercomposetools.platform.PlatformFile
 
-actual class PlayerDownloadManager actual constructor(context: PlatformContext) {
 //    actual class DownloadStatus {
 //        actual val song: Song
 //            get() = TODO("Not yet implemented")
@@ -48,6 +48,7 @@ actual class PlayerDownloadManager actual constructor(context: PlatformContext) 
 //
 //    actual fun release() {
 //    }
+actual class PlayerDownloadManager actual constructor(context: AppContext) {
     actual class DownloadStatus {
         actual val song: Song
             get() = TODO("Not yet implemented")
@@ -61,6 +62,8 @@ actual class PlayerDownloadManager actual constructor(context: PlatformContext) 
             get() = TODO("Not yet implemented")
 
         actual enum class Status { IDLE, PAUSED, DOWNLOADING, CANCELLED, ALREADY_FINISHED, FINISHED }
+
+        actual fun isCompleted(): Boolean = TODO()
     }
 
     actual open class DownloadStatusListener actual constructor() {
@@ -80,15 +83,6 @@ actual class PlayerDownloadManager actual constructor(context: PlatformContext) 
     actual fun removeDownloadStatusListener(listener: DownloadStatusListener) {
     }
 
-    actual fun getDownload(
-        song: Song,
-        callback: (DownloadStatus?) -> Unit,
-    ) {
-    }
-
-    actual fun getDownloads(callback: (List<DownloadStatus>) -> Unit) {
-    }
-
     @Synchronized
     actual fun startDownload(
         song_id: String,
@@ -99,11 +93,22 @@ actual class PlayerDownloadManager actual constructor(context: PlatformContext) 
 
     actual fun release() {
     }
+
+    actual suspend fun getDownload(song: Song): DownloadStatus? {
+        return null // TODO
+    }
+
+    actual suspend fun getDownloads(): List<DownloadStatus> {
+        return emptyList() // TODO
+    }
+
+    actual suspend fun deleteSongLocalAudioFile(song: Song) {
+    }
 }
 
 actual fun Song.getLocalAudioFile(
-    context: PlatformContext,
+    context: AppContext,
     allow_partial: Boolean,
 ): PlatformFile? {
-    TODO("Not yet implemented")
+    return null // TODO
 }

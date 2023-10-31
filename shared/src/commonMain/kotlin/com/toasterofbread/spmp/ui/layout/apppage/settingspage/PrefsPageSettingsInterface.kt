@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
-import SpMp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
@@ -9,23 +8,28 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.toasterofbread.composesettings.ui.SettingsInterface
-import com.toasterofbread.composesettings.ui.SettingsPageWithItems
-import com.toasterofbread.composesettings.ui.item.SettingsValueState
+import androidx.compose.ui.Modifier
+import com.toasterofbread.toastercomposetools.platform.vibrateShort
+import com.toasterofbread.toastercomposetools.settings.ui.SettingsInterface
+import com.toasterofbread.toastercomposetools.settings.ui.SettingsPageWithItems
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.getUiLanguage
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.Languages
 import com.toasterofbread.spmp.ui.component.PillMenu
+import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 
 internal fun getPrefsPageSettingsInterface(
-    context: PlatformContext,
+    page_state: AppPageState,
     pill_menu: PillMenu,
     ytm_auth: SettingsValueState<Set<String>>,
+    footer_modifier: Modifier,
     getCategory: () -> PrefsPageCategory?,
     close: () -> Unit
 ): SettingsInterface {
     lateinit var settings_interface: SettingsInterface
+    val context: AppContext = page_state.context
 
     val pill_menu_action_overrider: @Composable PillMenu.Action.(i: Int) -> Boolean = { i ->
         if (i == 0) {
@@ -56,7 +60,7 @@ internal fun getPrefsPageSettingsInterface(
         PrefsPageCategory.FILTER to lazy { getFilterCategory() },
         PrefsPageCategory.FEED to lazy { getFeedCategory() },
         PrefsPageCategory.PLAYER to lazy { getPlayerCategory() },
-        PrefsPageCategory.LIBRARY to lazy { getLibraryCategory() },
+        PrefsPageCategory.LIBRARY to lazy { getLibraryCategory(context) },
         PrefsPageCategory.THEME to lazy { getThemeCategory(context.theme) },
         PrefsPageCategory.LYRICS to lazy { getLyricsCategory() },
         PrefsPageCategory.DOWNLOAD to lazy { getDownloadCategory() },
@@ -68,10 +72,10 @@ internal fun getPrefsPageSettingsInterface(
     settings_interface = SettingsInterface(
         { context.theme },
         PrefsPageScreen.ROOT.ordinal,
-        context,
         Settings.prefs,
         Settings.Companion::provideDefault,
-        pill_menu,
+        footer_modifier,
+        { context.vibrateShort() },
         { index, param ->
             when (PrefsPageScreen.values()[index]) {
                 PrefsPageScreen.ROOT -> SettingsPageWithItems(

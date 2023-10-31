@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.youtubeapi.lyrics.petit
 
-import com.toasterofbread.spmp.model.SongLyrics
+import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.youtubeapi.executeResult
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource.SearchResult
 import kotlinx.coroutines.Dispatchers

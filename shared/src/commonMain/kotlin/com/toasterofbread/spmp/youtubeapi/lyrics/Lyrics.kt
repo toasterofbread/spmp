@@ -2,10 +2,10 @@ package com.toasterofbread.spmp.youtubeapi.lyrics
 
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.SongLyrics
+import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getStringTODO
 import mediaitem.LyricsById
 
@@ -34,10 +34,10 @@ sealed class LyricsSource(val source_index: Int) {
     abstract fun getColour(): Color
 
     open fun supportsLyricsBySong(): Boolean = false
-    open suspend fun getReferenceBySong(song: Song, context: PlatformContext): Result<LyricsReference?> { throw NotImplementedError() }
+    open suspend fun getReferenceBySong(song: Song, context: AppContext): Result<LyricsReference?> { throw NotImplementedError() }
 
     open fun supportsLyricsBySearching(): Boolean = true
-    abstract suspend fun getLyrics(lyrics_id: String, context: PlatformContext): Result<SongLyrics>
+    abstract suspend fun getLyrics(lyrics_id: String, context: AppContext): Result<SongLyrics>
     abstract suspend fun searchForLyrics(title: String, artist_name: String? = null): Result<List<SearchResult>>
 
     fun referenceOfSource(id: String): LyricsReference =
@@ -70,7 +70,7 @@ sealed class LyricsSource(val source_index: Int) {
 
         suspend fun searchSongLyricsByPriority(
             song: Song,
-            context: PlatformContext,
+            context: AppContext,
             default: Int = Settings.KEY_LYRICS_DEFAULT_SOURCE.get()
         ): Result<SongLyrics> {
             val db = context.database
@@ -145,7 +145,7 @@ sealed class LyricsSource(val source_index: Int) {
     }
 }
 
-suspend fun loadLyrics(reference: LyricsReference, context: PlatformContext): Result<SongLyrics> {
+suspend fun loadLyrics(reference: LyricsReference, context: AppContext): Result<SongLyrics> {
     require(!reference.isNone())
 
     val source = LyricsSource.fromIdx(reference.source_index)

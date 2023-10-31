@@ -27,11 +27,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.BackHandler
+import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.composable.WidthShrinkText
-import com.toasterofbread.utils.modifier.background
+import com.toasterofbread.toastercomposetools.settings.ui.Theme
+import com.toasterofbread.toastercomposetools.utils.composable.WidthShrinkText
+import com.toasterofbread.toastercomposetools.utils.modifier.background
 
 internal enum class SpecialMode {
     ADJUST_SYNC, SELECT_SYNC_LINE

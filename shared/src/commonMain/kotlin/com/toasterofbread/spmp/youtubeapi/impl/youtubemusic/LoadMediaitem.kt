@@ -166,6 +166,7 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                     }
                 }
 
+
                 if (item is RemotePlaylistData) {
                     val menu_buttons: List<Header.TopLevelButton>? =
                         parsed.header?.musicDetailHeaderRenderer?.menu?.menuRenderer?.topLevelButtons
@@ -194,14 +195,14 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
 
                     val items: List<Pair<MediaItemData, String?>> = row.value.getMediaItemsAndSetIds(hl)
                     val items_mapped: List<MediaItemData> = items.map {
-                        val list_item = it.first
+                        val list_item: MediaItemData = it.first
                         if (item is Artist && list_item is SongData && list_item.song_type == SongType.PODCAST) {
                             list_item.artist = item
                         }
                         list_item
                     }
 
-                    val continuation_token =
+                    val continuation_token: String? =
                         row.value.musicPlaylistShelfRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation
 
                     if (item is RemotePlaylistData) {

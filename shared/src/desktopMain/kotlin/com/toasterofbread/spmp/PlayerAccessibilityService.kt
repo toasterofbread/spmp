@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp
 
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 
 actual class PlayerAccessibilityService actual constructor() {
     actual companion object {
@@ -8,40 +8,40 @@ actual class PlayerAccessibilityService actual constructor() {
             TODO("Not yet implemented")
         }
 
-        actual fun addEnabledListener(listener: (Boolean) -> Unit, context: PlatformContext) {
+        actual fun addEnabledListener(listener: (Boolean) -> Unit, context: AppContext) {
+            throw NotImplementedError()
         }
 
-        actual fun removeEnabledListener(listener: (Boolean) -> Unit, context: PlatformContext) {
+        actual fun removeEnabledListener(listener: (Boolean) -> Unit, context: AppContext) {
+            throw NotImplementedError()
         }
 
-        actual fun isEnabled(context: PlatformContext): Boolean {
-            TODO("Not yet implemented")
+        actual fun isEnabled(context: AppContext): Boolean {
+            throw NotImplementedError()
         }
 
-        actual fun enableInteractive(context: PlatformContext) {
-        }
-
-        actual fun enable(context: PlatformContext, root: Boolean) {
+        actual fun enable(context: AppContext, root: Boolean) {
+            throw NotImplementedError()
         }
 
         actual fun disable() {
         }
 
-        actual fun isSettingsPermissionGranted(context: PlatformContext): Boolean {
+        actual fun isSettingsPermissionGranted(context: AppContext): Boolean {
             TODO("Not yet implemented")
         }
 
         actual fun requestRootPermission(callback: (granted: Boolean) -> Unit) {
         }
 
-        actual fun isOverlayPermissionGranted(context: PlatformContext): Boolean {
+        actual fun isOverlayPermissionGranted(context: AppContext): Boolean {
             TODO("Not yet implemented")
         }
 
-        actual fun requestOverlayPermission(
-            context: PlatformContext,
-            callback: (success: Boolean) -> Unit,
-        ) {
+        actual fun requestOverlayPermission(context: AppContext, callback: (success: Boolean) -> Unit) {
+        }
+
+        actual fun enableInteractive(context: AppContext) {
         }
 
     }

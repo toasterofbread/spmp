@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp
 
+import LocalPlayerState
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -24,15 +25,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anggrayudi.storage.extension.count
 import com.google.gson.Gson
-import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.platform.sendToast
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.toastercomposetools.utils.common.thenIf
+import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.ui.component.uploadErrorToPasteEe
 import com.toasterofbread.spmp.ui.theme.ApplicationTheme
-import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.common.thenIf
-import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -45,13 +44,13 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
-import java.util.concurrent.TimeUnit
 
 private const val LOGCAT_LINES_TO_DISPLAY: Int = 100
 
 class ErrorReportActivity : ComponentActivity() {
     private val coroutine_scope = CoroutineScope(Job())
     private var logcat_output: String? by mutableStateOf(null)
+    private var context: AppContext? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,13 +58,10 @@ class ErrorReportActivity : ComponentActivity() {
         val message = intent.getStringExtra("message") ?: "No message"
         val stack_trace = intent.getStringExtra("stack_trace") ?: "No stack trace"
 
-        val context: PlatformContext? =
-            try {
-                PlatformContext(this, coroutine_scope).init()
-            }
-            catch (_: Throwable) {
-                null
-            }
+        try {
+            context = AppContext(this, coroutine_scope).init()
+        }
+        catch (_: Throwable) {}
 
         val logcat_lines = LOGCAT_LINES_TO_DISPLAY + stack_trace.count("\n")
 
@@ -80,7 +76,7 @@ class ErrorReportActivity : ComponentActivity() {
                 }
 
                 if (context != null) {
-                    context.theme.ApplicationTheme(context) {
+                    context!!.theme.ApplicationTheme(context!!) {
                         ErrorDisplay(message, stack_trace, logcat, error_text)
                     }
                 }
@@ -145,7 +141,7 @@ class ErrorReportActivity : ComponentActivity() {
 
                                 IconButton(onClick = {
                                     clipboard.setText(AnnotatedString(error_text))
-                                    sendToast(getStringTODO("Copied stack trace to clipboard"))
+                                    context?.sendToast(getStringTODO("Copied stack trace to clipboard"))
                                 }) {
                                     Icon(Icons.Outlined.ContentCopy, null)
                                 }
@@ -172,7 +168,7 @@ class ErrorReportActivity : ComponentActivity() {
                                                     .build()
 
                                                 val response = client.newCall(request).execute()
-                                                sendToast(response.code.toString())
+                                                context?.sendToast(response.code.toString())
 
                                                 response.close()
 
@@ -236,10 +232,10 @@ class ErrorReportActivity : ComponentActivity() {
                                 ).fold(
                                     { url ->
                                         clipboard.setText(AnnotatedString(url))
-                                        sendToast(getStringTODO("URL copied to clipboard"))
+                                        context?.sendToast(getStringTODO("URL copied to clipboard"))
                                     },
                                     { error ->
-                                        sendToast(getStringTODO("Failed: ") + error.toString())
+                                        context?.sendToast(getStringTODO("Failed: ") + error.toString())
                                     }
                                 )
                             }

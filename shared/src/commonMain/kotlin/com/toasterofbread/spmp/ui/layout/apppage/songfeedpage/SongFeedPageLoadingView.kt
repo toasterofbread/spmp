@@ -6,8 +6,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.toastercomposetools.settings.ui.Theme
+import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
 
 @Composable
 internal fun SongFeedPageLoadingView(modifier: Modifier = Modifier) {

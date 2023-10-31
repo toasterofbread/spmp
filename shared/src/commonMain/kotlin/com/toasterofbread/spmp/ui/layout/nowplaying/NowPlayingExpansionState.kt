@@ -7,18 +7,66 @@ import androidx.compose.material.SwipeableState
 import androidx.compose.runtime.*
 import androidx.compose.ui.unit.Density
 import com.toasterofbread.spmp.model.MusicTopBarMode
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import kotlin.math.roundToInt
 
+interface ExpansionState {
+    val top_bar_mode: MutableState<MusicTopBarMode>
+    fun get(): Float
+    fun getPageRange(): IntRange
+
+    fun getBounded(): Float = get().coerceIn(getPageRange().first.toFloat(), getPageRange().last.toFloat())
+    fun getAbsolute(): Float {
+        val bounded = getBounded()
+        if (bounded <= 1f) {
+            return bounded
+        }
+        else {
+            return 2f - getBounded()
+        }
+    }
+
+    fun getAppearing(): Float {
+        val absolute = getAbsolute()
+        return minOf(
+            1f,
+            if (absolute > 0.5f) 1f
+            else (absolute * 2f)
+        )
+    }
+    fun getDisappearing(): Float {
+        val absolute = getAbsolute()
+        return minOf(
+            1f,
+            if (absolute < 0.5f) 1f
+            else (1f - ((absolute - 0.5f) * 2f))
+        )
+    }
+
+    companion object {
+        fun getStatic(expansion_value: Float) =
+            object : ExpansionState {
+                override val top_bar_mode: MutableState<MusicTopBarMode> =
+                    mutableStateOf(MusicTopBarMode.default)
+
+                override fun get(): Float =
+                    expansion_value
+
+                override fun getPageRange(): IntRange =
+                    0 .. 1
+            }
+    }
+}
+
 @OptIn(ExperimentalMaterialApi::class)
-class NowPlayingExpansionState(val player: PlayerState, swipe_state: State<SwipeableState<Int>>) {
+class NowPlayingExpansionState(val player: PlayerState, swipe_state: State<SwipeableState<Int>>): ExpansionState {
     private val swipe_state by swipe_state
     private var switch_to_page: Int by mutableStateOf(-1)
 
-    val top_bar_mode: MutableState<MusicTopBarMode> = mutableStateOf(MusicTopBarMode.default)
+    override val top_bar_mode: MutableState<MusicTopBarMode> = mutableStateOf(MusicTopBarMode.default)
     
-    private fun getPageRange(): IntRange =
+    override fun getPageRange(): IntRange =
         0 .. getNowPlayingVerticalPageCount(player)
 
     @Composable
@@ -48,7 +96,7 @@ class NowPlayingExpansionState(val player: PlayerState, swipe_state: State<Swipe
         return get().roundToInt().coerceIn(getPageRange())
     }
 
-    fun get(): Float {
+    override fun get(): Float {
         val anchors: Map<Float, Int> = swipe_state.anchors
         if (anchors.isEmpty()) {
             return 0f
@@ -100,37 +148,9 @@ class NowPlayingExpansionState(val player: PlayerState, swipe_state: State<Swipe
 
         return low_index + progress
     }
-
-    fun getBounded(): Float = get().coerceIn(getPageRange().first.toFloat(), getPageRange().last.toFloat())
-    fun getAbsolute(): Float {
-        val bounded = getBounded()
-        if (bounded <= 1f) {
-            return bounded
-        }
-        else {
-            return 2f - getBounded()
-        }
-    }
-
-    fun getAppearing(): Float {
-        val absolute = getAbsolute()
-        return minOf(
-            1f,
-            if (absolute > 0.5f) 1f
-            else (absolute * 2f)
-        )
-    }
-    fun getDisappearing(): Float {
-        val absolute = getAbsolute()
-        return minOf(
-            1f,
-            if (absolute < 0.5f) 1f
-            else (1f - ((absolute - 0.5f) * 2f))
-        )
-    }
 }
 
-fun WindowInsets.getAdjustedKeyboardHeight(density: Density, context: PlatformContext): Int {
+fun WindowInsets.getAdjustedKeyboardHeight(density: Density, context: AppContext): Int {
     val bottom: Int = getBottom(density)
     if (bottom > 0) {
         val navbar_height: Int = context.getNavigationBarHeight()

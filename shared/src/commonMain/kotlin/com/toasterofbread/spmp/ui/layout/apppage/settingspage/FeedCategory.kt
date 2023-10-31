@@ -2,12 +2,12 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import LocalPlayerState
 import androidx.compose.runtime.remember
-import com.toasterofbread.composesettings.ui.item.SettingsGroupItem
-import com.toasterofbread.composesettings.ui.item.SettingsItem
-import com.toasterofbread.composesettings.ui.item.SettingsSliderItem
-import com.toasterofbread.composesettings.ui.item.SettingsStringSetItem
-import com.toasterofbread.composesettings.ui.item.SettingsToggleItem
-import com.toasterofbread.composesettings.ui.item.SettingsValueState
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsGroupItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsSliderItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsStringSetItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsToggleItem
+import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
@@ -27,7 +27,7 @@ internal fun getFeedCategory(): List<SettingsItem> {
             getString("s_key_feed_show_song_download_indicators"), null
         ),
 
-        SettingsSliderItem(
+        AppSliderItem(
             SettingsValueState<Int>(Settings.KEY_FEED_INITIAL_ROWS.name),
             getString("s_key_feed_initial_rows"),
             getString("s_sub_feed_initial_rows"),
@@ -37,7 +37,7 @@ internal fun getFeedCategory(): List<SettingsItem> {
             steps = 10
         ),
 
-        SettingsSliderItem(
+        AppSliderItem(
             SettingsValueState<Int>(Settings.KEY_FEED_SQUARE_PREVIEW_TEXT_LINES.name),
             getString("s_key_feed_square_preview_text_lines"),
             null,
@@ -46,7 +46,7 @@ internal fun getFeedCategory(): List<SettingsItem> {
             range = 1f..5f
         ),
 
-        SettingsSliderItem(
+        AppSliderItem(
             SettingsValueState<Int>(Settings.KEY_FEED_GRID_ROW_COUNT.name),
             getString("s_key_feed_grid_row_count"),
             null,
@@ -55,7 +55,7 @@ internal fun getFeedCategory(): List<SettingsItem> {
             range = 1f..10f
         ),
 
-        SettingsSliderItem(
+        AppSliderItem(
             SettingsValueState<Int>(Settings.KEY_FEED_GRID_ROW_COUNT_EXPANDED.name),
             getString("s_key_feed_grid_row_count_expanded"),
             null,
@@ -64,7 +64,7 @@ internal fun getFeedCategory(): List<SettingsItem> {
             range = 1f..10f
         ),
 
-        SettingsSliderItem(
+        AppSliderItem(
             SettingsValueState<Int>(Settings.KEY_FEED_ALT_GRID_ROW_COUNT.name),
             getString("s_key_feed_alt_grid_row_count"),
             null,
@@ -73,7 +73,7 @@ internal fun getFeedCategory(): List<SettingsItem> {
             range = 1f..10f
         ),
 
-        SettingsSliderItem(
+        AppSliderItem(
             SettingsValueState<Int>(Settings.KEY_FEED_ALT_GRID_ROW_COUNT_EXPANDED.name),
             getString("s_key_feed_alt_grid_row_count_expanded"),
             null,
@@ -87,7 +87,7 @@ internal fun getFeedCategory(): List<SettingsItem> {
             getString("s_key_feed_show_radios"), null
         ),
 
-        SettingsStringSetItem(
+        AppStringSetItem(
             SettingsValueState(Settings.KEY_FEED_HIDDEN_ROWS.name),
             getString("s_key_hidden_feed_rows"), getString("s_sub_hidden_feed_rows"),
             getString("s_hidden_feed_rows_dialog_title"),

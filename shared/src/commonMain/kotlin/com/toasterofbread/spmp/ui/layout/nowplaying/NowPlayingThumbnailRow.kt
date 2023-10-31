@@ -50,15 +50,14 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.composable.BackHandler
-import com.toasterofbread.spmp.platform.composable.platformClickable
+import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
+import com.toasterofbread.toastercomposetools.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.getPixel
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.Thumbnail
@@ -71,13 +70,12 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.RelatedContentPlayerOverlayMenu
 import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
-import com.toasterofbread.utils.common.getInnerSquareSizeOfCircle
-import com.toasterofbread.utils.common.getValue
-import com.toasterofbread.utils.common.setAlpha
-import com.toasterofbread.utils.common.thenIf
-import com.toasterofbread.utils.composable.OnChangedEffect
-import com.toasterofbread.utils.modifier.background
-import com.toasterofbread.utils.modifier.disableParentScroll
+import com.toasterofbread.toastercomposetools.utils.common.getInnerSquareSizeOfCircle
+import com.toasterofbread.toastercomposetools.utils.common.getValue
+import com.toasterofbread.toastercomposetools.utils.common.thenIf
+import com.toasterofbread.toastercomposetools.utils.composable.OnChangedEffect
+import com.toasterofbread.toastercomposetools.utils.modifier.background
+import com.toasterofbread.toastercomposetools.utils.modifier.disableParentScroll
 import kotlin.math.absoluteValue
 import kotlin.math.min
 
@@ -102,7 +100,8 @@ fun ThumbnailRow(
     onThumbnailLoaded: (Song?, ImageBitmap?) -> Unit,
     setThemeColour: (Color?) -> Unit,
     getSeekState: () -> Float,
-    disable_parent_scroll_while_menu_open: Boolean = true
+    disable_parent_scroll_while_menu_open: Boolean = true,
+    overlayContent: (@Composable () -> Unit)? = null
 ) {
     val player = LocalPlayerState.current
     val expansion = LocalNowPlayingExpansion.current
@@ -136,7 +135,7 @@ fun ThumbnailRow(
     }
 
     Row(
-        modifier,
+        modifier.clip(thumbnail_shape),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = horizontal_arrangement
     ) {
@@ -273,7 +272,7 @@ fun ThumbnailRow(
                         .fillMaxSize()
                         .background(
                             thumbnail_shape,
-                            { Color.DarkGray.setAlpha(overlay_background_alpha) }
+                            { Color.DarkGray.copy(alpha = overlay_background_alpha) }
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -310,6 +309,8 @@ fun ThumbnailRow(
                     }
                 }
             }
+
+            overlayContent?.invoke()
         }
 
         Row(

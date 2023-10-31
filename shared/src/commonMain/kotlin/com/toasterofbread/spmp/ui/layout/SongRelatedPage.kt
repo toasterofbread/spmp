@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout
 
+import SpMp.isDebugBuild
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
@@ -36,10 +37,10 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLon
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.youtubeapi.SongRelatedContentEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.RelatedGroup
-import com.toasterofbread.utils.common.getContrasted
-import com.toasterofbread.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.utils.modifier.horizontal
-import com.toasterofbread.utils.modifier.vertical
+import com.toasterofbread.toastercomposetools.utils.common.getContrasted
+import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.toastercomposetools.utils.modifier.horizontal
+import com.toasterofbread.toastercomposetools.utils.modifier.vertical
 
 @Composable
 fun SongRelatedPage(
@@ -70,7 +71,7 @@ fun SongRelatedPage(
                 SubtleLoadingIndicator()
             }
             else if (related == null) {
-                ErrorInfoDisplay(result.exceptionOrNull()!!, onDismiss = null)
+                ErrorInfoDisplay(result.exceptionOrNull()!!, isDebugBuild(), onDismiss = null)
             }
             else if (related.isEmpty()) {
                 Text(getString("song_related_page_no_content"))

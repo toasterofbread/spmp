@@ -3,10 +3,10 @@ package com.toasterofbread.spmp.model.mediaitem.playlist
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItemRef
 import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer
-import com.toasterofbread.utils.common.lazyAssert
 
 class RemotePlaylistRef(override val id: String): RemotePlaylist, MediaItemRef() {
     override fun toString(): String = "RemotePlaylistRef($id)"
+    override fun getReference(): RemotePlaylistRef = this
 
     override fun getEmptyData(): RemotePlaylistData = RemotePlaylistData(id)
     override fun createDbEntry(db: Database) {

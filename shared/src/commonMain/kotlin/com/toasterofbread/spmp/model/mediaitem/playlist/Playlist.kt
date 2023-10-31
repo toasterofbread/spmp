@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.model.mediaitem.playlist
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
+import com.toasterofbread.spmp.model.mediaitem.MediaItemRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
@@ -13,7 +14,7 @@ import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
-import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.AppContext
 
 sealed interface Playlist: MediaItem.WithArtist {
     override fun getEmptyData(): PlaylistData
@@ -101,9 +102,9 @@ sealed interface Playlist: MediaItem.WithArtist {
         data.sort_type = SortType.get(db)
     }
 
-    suspend fun setSortType(sort_type: MediaItemSortType?, context: PlatformContext): Result<Unit>
+    suspend fun setSortType(sort_type: MediaItemSortType?, context: AppContext): Result<Unit>
 
-    override suspend fun loadData(context: PlatformContext, populate_data: Boolean, force: Boolean): Result<PlaylistData> {
+    override suspend fun loadData(context: AppContext, populate_data: Boolean, force: Boolean): Result<PlaylistData> {
         return super.loadData(context, populate_data, force) as Result<PlaylistData>
     }
 }

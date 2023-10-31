@@ -19,7 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.platform.composable.rememberImagePainter
+import com.toasterofbread.toastercomposetools.platform.composable.rememberImagePainter
 import com.toasterofbread.spmp.resources.getString
 import okhttp3.Headers
 

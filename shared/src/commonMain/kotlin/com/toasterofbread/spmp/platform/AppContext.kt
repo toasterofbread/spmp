@@ -19,11 +19,11 @@ import com.toasterofbread.spmp.model.AccentColourSource
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.toastercomposetools.platform.PlatformContext
 import com.toasterofbread.toastercomposetools.platform.PlatformPreferences
-import com.toasterofbread.toastercomposetools.settings.ui.Theme
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.toastercomposetools.settings.ui.StaticThemeData
+import com.toasterofbread.toastercomposetools.settings.ui.Theme
 import com.toasterofbread.toastercomposetools.settings.ui.ThemeData
 import java.util.Locale
 

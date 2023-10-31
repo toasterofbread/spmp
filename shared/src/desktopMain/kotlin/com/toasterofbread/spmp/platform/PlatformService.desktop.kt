@@ -1,7 +1,5 @@
 package com.toasterofbread.spmp.platform
 
-import com.toasterofbread.toastercomposetools.platform.PlatformContext
-
 actual open class PlatformServiceImpl: PlatformService {
     private class ServiceConnection(val service: PlatformServiceImpl)
     private val connections: MutableList<ServiceConnection> = mutableListOf()

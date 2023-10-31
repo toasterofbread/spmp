@@ -134,7 +134,7 @@ private class PlayerBinder(val service: PlatformPlayerService): Binder()
 
 @androidx.annotation.OptIn(UnstableApi::class)
 actual class PlatformPlayerService: MediaSessionService(), PlayerService {
-    actual val context: AppContext get() = _context
+    actual override val context: AppContext get() = _context
     private lateinit var _context: AppContext
 
     private val coroutine_scope = CoroutineScope(Dispatchers.Main)

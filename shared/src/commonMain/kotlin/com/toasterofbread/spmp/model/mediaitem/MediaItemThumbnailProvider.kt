@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.ui.unit.IntSize
-import mediaitem.ThumbnailProviderById
+import com.toasterofbread.db.mediaitem.ThumbnailProviderById
 
 interface MediaItemThumbnailProvider {
     fun getThumbnailUrl(quality: Quality): String?

@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem.db
 
-import com.toasterofbread.Database
+import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.FilterChip
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
@@ -103,8 +103,10 @@ object SongFeedCache {
                         },
                         null,
                         row.layout_type?.let { MediaItemLayout.Type.values()[it.toInt()] },
-                        view_more = row.view_more_type?.let { view_more_type ->
-                            ViewMoreType.values()[view_more_type.toInt()].getViewMore(row.view_more_data!!)
+                        view_more = row.view_more_type?.let { type ->
+                            row.view_more_data?.let { data ->
+                                ViewMoreType.values()[type.toInt()].getViewMore(data)
+                            }
                         }
                     )
                 }

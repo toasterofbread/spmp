@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem.playlist
 
-import com.toasterofbread.Database
+import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider

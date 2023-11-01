@@ -21,13 +21,13 @@ import com.toasterofbread.toastercomposetools.settings.ui.Theme
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 
-const val WAVE_BORDER_DEFAULT_HEIGHT: Float = 20f
+const val WAVE_BORDER_HEIGHT_DP: Float = 20f
 
 @Composable
 fun WaveBorder(
     modifier: Modifier = Modifier,
     getColour: Theme.() -> Color = { background },
-    height: Dp = WAVE_BORDER_DEFAULT_HEIGHT.dp,
+    height: Dp = WAVE_BORDER_HEIGHT_DP.dp,
     getOffset: ((height: Int) -> Int)? = null,
     waves: Int = 3,
     getWaveOffset: (DrawScope.() -> Float)? = null,

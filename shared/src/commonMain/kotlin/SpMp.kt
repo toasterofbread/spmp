@@ -88,7 +88,6 @@ object SpMp {
         context.theme.Update()
 
         context.theme.ApplicationTheme(context, getFontFamily(context) ?: FontFamily.Default) {
-
             LaunchedEffect(open_uri) {
                 if (open_uri != null) {
                     player_state.openUri(open_uri).onFailure {

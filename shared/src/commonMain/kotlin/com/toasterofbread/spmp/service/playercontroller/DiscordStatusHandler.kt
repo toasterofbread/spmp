@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.service.playercontroller
 
 import SpMp
-import com.toasterofbread.Database
+import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef

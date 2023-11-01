@@ -6,6 +6,7 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getDataLanguage
 import com.toasterofbread.spmp.platform.getUiLanguage
+import com.toasterofbread.spmp.resources.getStringTODO
 
 sealed interface LocalisedString {
     fun getString(context: AppContext): String
@@ -29,19 +30,29 @@ sealed interface LocalisedString {
 
     companion object {
         fun deserialise(data: String): LocalisedString {
-            val split = data.split(",", limit = 2)
-            val type = Type.values()[split[0].toInt()]
+            val split: List<String> = data.split(",", limit = 2)
 
-            when (type) {
-                Type.RAW -> return RawLocalisedString(split[1])
-                Type.APP -> return AppLocalisedString(split[1])
-                Type.YOUTUBE -> {
-                    val (youtube_type_index, index) = split[1].split(",", limit = 2)
-                    return YoutubeLocalisedString(
-                        YoutubeLocalisedString.Type.values()[youtube_type_index.toInt()],
-                        index.toInt()
-                    )
+            try {
+                val type = Type.values()[split[0].toInt()]
+
+                when (type) {
+                    Type.RAW -> return RawLocalisedString(split[1])
+                    Type.APP -> return AppLocalisedString(split[1])
+                    Type.YOUTUBE -> {
+                        if (split.size < 2) {
+                            return RawLocalisedString("")
+                        }
+
+                        val (youtube_type_index, index) = split[1].split(",", limit = 2)
+                        return YoutubeLocalisedString(
+                            YoutubeLocalisedString.Type.values()[youtube_type_index.toInt()],
+                            index.toInt()
+                        )
+                    }
                 }
+            }
+            catch (e: Throwable) {
+                throw RuntimeException("LocalisedString deserialisation failed '$data' $split", e)
             }
         }
     }

@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.runtime.Composable
-import com.toasterofbread.Database
+import com.toasterofbread.db.Database
 import com.toasterofbread.toastercomposetools.utils.composable.LargeDropdownMenu
 import com.toasterofbread.spmp.model.mediaitem.db.getPlayCount
 import com.toasterofbread.spmp.model.mediaitem.song.Song

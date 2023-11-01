@@ -368,6 +368,9 @@
     <string name="s_sub_player_overlay_menu_custom_action">By default, triggers on long press</string>
     <string name="s_key_player_overlay_menu_swap_long_short_press_actions">Swap overlay menu long and short press actions</string>
 
+    <string name="s_key_np_queue_item_swipe_sensitivity">Queue item swipe sensitivity</string>
+    <string name="s_sub_np_queue_item_swipe_sensitivity">Decrease if queue items are easily removed by accident</string>
+
     <string name="s_key_np_queue_wave_border_mode">Queue wave border mode</string>
     <string name="s_sub_np_queue_wave_border_mode">Animation mode of the wave border between the queued songs and option buttons</string>
     <string name="s_option_wave_border_mode_time">Animate over time</string>

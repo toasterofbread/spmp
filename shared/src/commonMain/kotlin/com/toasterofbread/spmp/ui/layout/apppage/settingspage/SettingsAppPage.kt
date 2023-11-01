@@ -33,6 +33,7 @@ import com.toasterofbread.toastercomposetools.platform.composable.platformClicka
 import com.toasterofbread.toastercomposetools.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.PillMenu
+import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.*
@@ -302,7 +303,8 @@ class SettingsAppPage(override val state: AppPageState, footer_modifier: Modifie
                                     content_padding = PaddingValues(top = top_padding, bottom = content_padding.calculateBottomPadding()),
                                     titleFooter = {
                                         WaveBorder()
-                                    }
+                                    },
+                                    page_top_padding = WAVE_BORDER_HEIGHT_DP.dp
                                 )
                             }
                         }

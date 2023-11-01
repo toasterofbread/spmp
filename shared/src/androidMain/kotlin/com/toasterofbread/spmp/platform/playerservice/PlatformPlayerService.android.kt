@@ -316,7 +316,10 @@ actual class PlatformPlayerService: MediaSessionService() {
 
     override fun onBind(intent: Intent?): IBinder? {
         try {
-            super.onBind(intent)
+            val binder = super.onBind(intent)
+            if (binder != null) {
+                return binder
+            }
         }
         catch (_: Throwable) {}
 

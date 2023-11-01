@@ -12,12 +12,16 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
@@ -39,16 +43,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.times
-import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
-import com.toasterofbread.toastercomposetools.platform.composable.composeScope
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
 import com.toasterofbread.spmp.ui.layout.nowplaying.ExpansionState
@@ -60,7 +63,10 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.ThumbnailRow
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.QueueTab
+import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
+import com.toasterofbread.toastercomposetools.platform.composable.composeScope
 import com.toasterofbread.toastercomposetools.utils.common.launchSingle
+import com.toasterofbread.toastercomposetools.utils.composable.getTop
 import kotlin.math.absoluteValue
 
 private const val CONTROLS_MAX_HEIGHT_DP: Float = 400f
@@ -68,11 +74,11 @@ private const val QUEUE_OVERSCROLL_PADDING_DP: Float = 200f
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-internal fun NowPlayingMainTabPage.NowPlayingMainTabLandscape(page_height: Dp, top_bar: NowPlayingTopBar, modifier: Modifier = Modifier) {
+internal fun NowPlayingMainTabPage.NowPlayingMainTabLandscape(page_height: Dp, top_bar: NowPlayingTopBar, content_padding: PaddingValues, modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
     val expansion = LocalNowPlayingExpansion.current
 
-    val proportion: Float = player.context.getStatusBarHeightDp() / player.screen_size.height
+    val proportion: Float = WindowInsets.getTop() / player.screen_size.height
     val proportion_exp: Float by remember { derivedStateOf {
         (expansion.get().coerceIn(0f, 1f) * (1f - proportion)).coerceAtLeast(0f)
     } }
@@ -86,13 +92,20 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLandscape(page_height: Dp, t
     val queue_swipe_coroutine_scope = rememberCoroutineScope()
     val queue_swipe_state = rememberSwipeableState(1)
 
+    val layout_direction = LocalLayoutDirection.current
+    val start_padding = content_padding.calculateStartPadding(layout_direction)
+    val end_padding = content_padding.calculateEndPadding(layout_direction)
+    val page_width: Dp = player.screen_size.width - start_padding - end_padding
+
     BoxWithConstraints(
         modifier = modifier
             .height(height)
             .padding(horizontal = horizontal_padding)
             .padding(
+                top = lerp(0.dp, top_padding, proportion_exp),
                 bottom = lerp(0.dp, bottom_padding, proportion_exp),
-                top = lerp(0.dp, top_padding, proportion_exp)
+                start = start_padding,
+                end = end_padding
             )
     ) {
         Row(
@@ -100,7 +113,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLandscape(page_height: Dp, t
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            val extra_width: Dp = (player.screen_size.width / 2) - page_height
+            val extra_width: Dp = (page_width / 2) - page_height
 
             val thumbnail_rounding: Int? = player.status.m_song?.ThumbnailRounding?.observe(player.context.database)?.value
             val thumbnail_shape: Shape = RoundedCornerShape(thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING)
@@ -170,7 +183,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLandscape(page_height: Dp, t
                                     .then(queue_swipe_modifier),
                                 inline = true,
                                 shape = thumbnail_shape,
-                                padding = PaddingValues(top = 10.dp)
+                                content_padding = PaddingValues(top = 10.dp)
                             )
                         }
                     }

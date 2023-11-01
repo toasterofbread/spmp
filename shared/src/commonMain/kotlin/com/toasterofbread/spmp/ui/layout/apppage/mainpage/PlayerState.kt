@@ -161,7 +161,6 @@ open class PlayerState protected constructor(
     open val app_page_state: AppPageState get() = upstream!!.app_page_state
     val app_page: AppPage get() = app_page_state.current_page
 
-    open val bottom_padding: Float get() = upstream!!.bottom_padding
     open val main_multiselect_context: MediaItemMultiSelectContext get() = upstream!!.main_multiselect_context
     open val np_theme_mode: ThemeMode get() = upstream!!.np_theme_mode
     open val np_overlay_menu: MutableState<PlayerOverlayMenu?> get() = upstream!!.np_overlay_menu
@@ -179,11 +178,6 @@ open class PlayerState protected constructor(
 
     open fun interactService(action: (player: PlatformPlayerService) -> Unit) { upstream!!.interactService(action) }
     open fun isRunningAndFocused(): Boolean = upstream!!.isRunningAndFocused()
-
-    val bottom_padding_dp: Dp
-        @Composable get() = with(LocalDensity.current) {
-            bottom_padding.toDp() + getDefaultVerticalPadding()
-        }
 
     fun copy(
         onClickedOverride: ((item: MediaItem, multiselect_key: Int?) -> Unit)? = null,

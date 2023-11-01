@@ -2,7 +2,6 @@ package com.toasterofbread.spmp.ui.layout.apppage.mainpage
 
 import LocalPlayerState
 import SpMp
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.ExperimentalMaterialApi
@@ -21,7 +20,6 @@ import com.toasterofbread.spmp.model.mediaitem.layout.BrowseParamsData
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.*
-import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
 import com.toasterofbread.spmp.service.playercontroller.PersistentQueueHandler
@@ -34,15 +32,17 @@ import com.toasterofbread.spmp.ui.layout.*
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.MediaItemAppPage
-import com.toasterofbread.spmp.ui.layout.nowplaying.getNowPlayingVerticalPageCount
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
-import com.toasterofbread.spmp.ui.layout.nowplaying.getAdjustedKeyboardHeight
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
+import com.toasterofbread.spmp.ui.layout.nowplaying.getNowPlayingVerticalPageCount
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
+import com.toasterofbread.toastercomposetools.platform.PlatformPreferences
+import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
 import com.toasterofbread.toastercomposetools.utils.common.init
 import com.toasterofbread.toastercomposetools.utils.composable.OnChangedEffect
-import com.toasterofbread.toastercomposetools.platform.PlatformPreferences
+import com.toasterofbread.toastercomposetools.utils.composable.getEnd
+import com.toasterofbread.toastercomposetools.utils.composable.getStart
 import kotlinx.coroutines.*
 
 enum class FeedLoadState { PREINIT, NONE, LOADING, CONTINUING }
@@ -66,8 +66,6 @@ class PlayerStateImpl(override val context: AppContext): PlayerState(null, null,
     private var now_playing_switch_page: Int by mutableStateOf(-1)
     private val app_page_undo_stack: MutableList<AppPage?> = mutableStateListOf()
 
-    private val bottom_padding_anim = Animatable(context.getNavigationBarHeight().toFloat())
-
     private val low_memory_listener: () -> Unit
     private val prefs_listener: PlatformPreferences.Listener
 
@@ -85,7 +83,6 @@ class PlayerStateImpl(override val context: AppContext): PlayerState(null, null,
     override val expansion = NowPlayingExpansionState(this, np_swipe_state)
 
     override val app_page_state = AppPageState(this)
-    override val bottom_padding: Float get() = bottom_padding_anim.value
     override val main_multiselect_context: MediaItemMultiSelectContext = MediaItemMultiSelectContext()
     override var np_theme_mode: ThemeMode by mutableStateOf(Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE, context.getPrefs()))
     override val np_overlay_menu: MutableState<PlayerOverlayMenu?> = mutableStateOf(null)
@@ -154,32 +151,48 @@ class PlayerStateImpl(override val context: AppContext): PlayerState(null, null,
         }
     }
 
-    private fun Density.getNpBottomPadding(insets: WindowInsets): Int {
-        return context.getNavigationBarHeight() + (if (np_overlay_menu.value == null) insets.getAdjustedKeyboardHeight(this, context) else 0)
+    private fun Density.getNpBottomPadding(system_insets: WindowInsets, navigation_insets: WindowInsets, keyboard_insets: WindowInsets): Int {
+        val ime_padding: Int =
+            if (np_overlay_menu.value != null) 0
+            else keyboard_insets.getBottom(this).let { ime ->
+                    if (ime > 0) {
+                        val nav = navigation_insets.getBottom(this@getNpBottomPadding)
+                        return@let ime.coerceAtMost(
+                            (ime - nav).coerceAtLeast(0)
+                        )
+                    }
+                    return@let ime
+                }
+
+        return system_insets.getBottom(this) + ime_padding
     }
 
     @Composable
     override fun nowPlayingTopOffset(base: Modifier): Modifier {
+        val system_insets = WindowInsets.systemBars
+        val navigation_insets = WindowInsets.navigationBars
         val keyboard_insets = WindowInsets.ime
         val screen_height: Dp = screen_size.height
 
-        return base.offset {
-            val bottom_padding = getNpBottomPadding(keyboard_insets)
-            val swipe_offset: Dp =
-                if (session_started) -np_swipe_state.value.offset.value.dp - (screen_height * 0.5f)
-                else 0.dp
+        return base
+            .offset {
+                val bottom_padding = getNpBottomPadding(system_insets, navigation_insets, keyboard_insets)
+                val swipe_offset: Dp =
+                    if (session_started) -np_swipe_state.value.offset.value.dp - (screen_height * 0.5f)
+                    else 0.dp
 
-            IntOffset(
-                0,
-                swipe_offset.toPx().toInt() - bottom_padding
-            )
-        }
+                IntOffset(
+                    0,
+                    swipe_offset.toPx().toInt() - bottom_padding
+                )
+            }
+            .padding(start = system_insets.getStart(), end = system_insets.getEnd())
     }
 
     @Composable
     override fun nowPlayingBottomPadding(include_np: Boolean): Dp {
         val bottom_padding = with(LocalDensity.current) {
-            LocalDensity.current.getNpBottomPadding(WindowInsets.ime).toDp()
+            LocalDensity.current.getNpBottomPadding(WindowInsets.systemBars, WindowInsets.navigationBars, WindowInsets.ime).toDp()
         }
 
         if (include_np) {
@@ -311,11 +324,7 @@ class PlayerStateImpl(override val context: AppContext): PlayerState(null, null,
     fun NowPlaying() {
         val player = LocalPlayerState.current
         val density = LocalDensity.current
-        val bottom_padding = density.getNpBottomPadding(WindowInsets.ime)
-
-        OnChangedEffect(bottom_padding) {
-            bottom_padding_anim.animateTo(bottom_padding.toFloat())
-        }
+        val bottom_padding = density.getNpBottomPadding(WindowInsets.systemBars, WindowInsets.navigationBars, WindowInsets.ime)
 
         val vertical_page_count = getNowPlayingVerticalPageCount(player)
 
@@ -338,7 +347,11 @@ class PlayerStateImpl(override val context: AppContext): PlayerState(null, null,
         }
 
         if (np_swipe_anchors != null) {
-            com.toasterofbread.spmp.ui.layout.nowplaying.NowPlaying(np_swipe_state.value, np_swipe_anchors!!)
+            com.toasterofbread.spmp.ui.layout.nowplaying.NowPlaying(
+                np_swipe_state.value,
+                np_swipe_anchors!!,
+                content_padding = PaddingValues(start = WindowInsets.getStart(), end = WindowInsets.getEnd())
+            )
         }
 
         OnChangedEffect(now_playing_switch_page) {

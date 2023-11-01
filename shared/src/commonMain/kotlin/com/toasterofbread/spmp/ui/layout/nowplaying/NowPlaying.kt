@@ -35,6 +35,7 @@ import com.toasterofbread.toastercomposetools.utils.*
 import com.toasterofbread.toastercomposetools.utils.common.amplifyPercent
 import com.toasterofbread.toastercomposetools.utils.composable.OnChangedEffect
 import com.toasterofbread.toastercomposetools.utils.composable.RecomposeOnInterval
+import com.toasterofbread.toastercomposetools.utils.composable.getTop
 import com.toasterofbread.toastercomposetools.utils.modifier.brushBackground
 import kotlinx.coroutines.delay
 
@@ -77,7 +78,7 @@ internal fun PlayerState.getNPAltOnBackground(): Color =
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>) {
+fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>, content_padding: PaddingValues) {
     LocalNowPlayingExpansion.current.init()
 
     val player: PlayerState = LocalPlayerState.current
@@ -118,7 +119,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
         val page_height: Dp = (
             player.screen_size.height
             - bottom_padding
-            - player.context.getStatusBarHeightDp()
+            - WindowInsets.getTop()
         )
 
         val is_shut by remember { derivedStateOf { swipe_state.targetValue == 0 } }
@@ -250,7 +251,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
 
             CompositionLocalProvider(LocalContentColor provides player.getNPOnBackground()) {
                 Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-                    NowPlayingCardContent(page_height)
+                    NowPlayingCardContent(page_height, content_padding)
                 }
             }
         }
@@ -263,7 +264,7 @@ private fun StatusBarColourHandler(page_height: Dp) {
     val expansion = LocalNowPlayingExpansion.current
 
     val background_colour = player.getNPBackground()
-    val status_bar_height = player.context.getStatusBarHeightDp()
+    val status_bar_height = WindowInsets.statusBars.getTop()
 
     val status_bar_height_percent = (
         status_bar_height.value * (if (player.context.isDisplayingAboveNavigationBar()) 1f else 0.75f)
@@ -289,7 +290,7 @@ private fun StatusBarColourHandler(page_height: Dp) {
 }
 
 @Composable
-private fun NowPlayingCardContent(page_height: Dp, modifier: Modifier = Modifier) {
+private fun NowPlayingCardContent(page_height: Dp, content_padding: PaddingValues, modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
     val expansion = LocalNowPlayingExpansion.current
 
@@ -306,11 +307,12 @@ private fun NowPlayingCardContent(page_height: Dp, modifier: Modifier = Modifier
         ) {
             composeScope {
                 val spacer_height: Dp
+
                 if (player.isPortrait()) {
-                    spacer_height = lerp(MINIMISED_NOW_PLAYING_V_PADDING_DP.dp, player.context.getStatusBarHeightDp(), expansion.get().coerceIn(0f, 1f))
+                    spacer_height = lerp(MINIMISED_NOW_PLAYING_V_PADDING_DP.dp, WindowInsets.statusBars.getTop(), expansion.get().coerceIn(0f, 1f))
                 }
                 else {
-                    val max_height: Dp = player.context.getStatusBarHeightDp() - 2.dp
+                    val max_height: Dp = WindowInsets.statusBars.getTop() - 2.dp
                     val proportion: Float = (max_height + 5.dp) / player.screen_size.height
 
                     val exp: Float = expansion.get().coerceIn(0f, 1f)
@@ -348,7 +350,7 @@ private fun NowPlayingCardContent(page_height: Dp, modifier: Modifier = Modifier
                     }
                 )
             }) {
-                pages.firstOrNull()?.Page(page_height, top_bar, Modifier.fillMaxWidth().requiredHeight(page_height).offset(offsetProvider))
+                pages.firstOrNull()?.Page(page_height, top_bar, content_padding, Modifier.fillMaxWidth().requiredHeight(page_height).offset(offsetProvider))
             }
 
             composeScope {
@@ -357,7 +359,7 @@ private fun NowPlayingCardContent(page_height: Dp, modifier: Modifier = Modifier
         }
 
         for (i in 1 until pages.size) {
-            pages[i].Page(page_height, top_bar, Modifier.offset(0.dp, -player.nowPlayingBottomPadding()))
+            pages[i].Page(page_height, top_bar, content_padding, Modifier.offset(0.dp, -player.nowPlayingBottomPadding()))
         }
     }
 }

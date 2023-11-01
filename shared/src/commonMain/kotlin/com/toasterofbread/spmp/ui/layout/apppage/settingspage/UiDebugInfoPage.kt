@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -24,7 +26,6 @@ import com.toasterofbread.toastercomposetools.settings.ui.SettingsPage
 import com.toasterofbread.toastercomposetools.settings.ui.SettingsPageWithItems
 import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsComposableItem
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.toastercomposetools.platform.getNavigationBarHeightDp
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.toastercomposetools.utils.common.roundTo
 import com.toasterofbread.toastercomposetools.utils.composable.RecomposeOnInterval
@@ -74,7 +75,6 @@ private fun SizeIndicator(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 fun getUiDebugInfoPage(): SettingsPage =
     SettingsPageWithItems(
         { getString("s_subpage_ui_debug_info") },
@@ -93,25 +93,11 @@ fun getUiDebugInfoPage(): SettingsPage =
                     }
                 },
 
-                // Status bar height
-                SettingsComposableItem {
-                    SizeIndicator("Status bar height") { context ->
-                        context.getStatusBarHeightDp()
-                    }
-                },
-
-                // Navigation bar height
-                SettingsComposableItem {
-                    SizeIndicator("Navigation bar height") { context ->
-                        context.getNavigationBarHeightDp()
-                    }
-                },
-
                 // Keyboard height
                 SettingsComposableItem {
                     Column(Modifier.fillMaxWidth()) {
                         SizeIndicator("Keyboard height", show_percent_of_screen = true) { context ->
-                            context.getImeInsets()!!.getBottom(this).toDp()
+                            WindowInsets.ime.getBottom(this).toDp()
                         }
                         OutlinedTextField(
                             "",

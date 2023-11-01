@@ -8,8 +8,8 @@ import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,6 +28,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import com.toasterofbread.spmp.model.mediaitem.song.Song
@@ -47,7 +49,7 @@ internal const val OVERLAY_MENU_ANIMATION_DURATION: Int = 200
 internal const val SEEK_BAR_GRADIENT_OVERFLOW_RATIO: Float = 0.3f
 
 @Composable
-internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(top_bar: NowPlayingTopBar, modifier: Modifier = Modifier) {
+internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(top_bar: NowPlayingTopBar, content_padding: PaddingValues, modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
     val expansion = LocalNowPlayingExpansion.current
 
@@ -62,16 +64,16 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(top_bar: NowPlaying
     ) {
         top_bar.NowPlayingTopBar()
 
-        val screen_width = player.screen_size.width
+        val page_width: Dp = player.screen_size.width - content_padding.calculateLeftPadding(LayoutDirection.Ltr) - content_padding.calculateRightPadding(LayoutDirection.Ltr)
 
         composeScope {
             ThumbnailRow(
                 Modifier
                     .height(
-                        lerp(MINIMISED_NOW_PLAYING_HEIGHT_DP.dp - (MINIMISED_NOW_PLAYING_V_PADDING_DP.dp * 2), screen_width - (horizontal_padding * 2), expansion.getAbsolute())
+                        lerp(MINIMISED_NOW_PLAYING_HEIGHT_DP.dp - (MINIMISED_NOW_PLAYING_V_PADDING_DP.dp * 2), page_width - (horizontal_padding * 2), expansion.getAbsolute())
                     )
                     .width(
-                        lerp(screen_width - (MINIMISED_NOW_PLAYING_HORIZ_PADDING.dp * 2), screen_width - (horizontal_padding * 2), expansion.getAbsolute())
+                        lerp(page_width - (MINIMISED_NOW_PLAYING_HORIZ_PADDING.dp * 2), page_width - (horizontal_padding * 2), expansion.getAbsolute())
                     ),
                 horizontal_arrangement = Arrangement.SpaceEvenly,
                 onThumbnailLoaded = { song, image ->

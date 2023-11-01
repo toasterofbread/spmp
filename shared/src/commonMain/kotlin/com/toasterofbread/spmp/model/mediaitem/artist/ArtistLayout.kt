@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.model.mediaitem.artist
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import com.toasterofbread.Database
+import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.db.ListPropertyImpl

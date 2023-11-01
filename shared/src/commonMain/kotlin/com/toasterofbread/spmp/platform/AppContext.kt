@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.Database
+import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.toastercomposetools.platform.PlatformContext

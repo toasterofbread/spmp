@@ -8,7 +8,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import app.cash.sqldelight.Query
-import com.toasterofbread.Database
+import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 
 @Composable

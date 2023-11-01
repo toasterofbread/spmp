@@ -11,7 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.IntOffset
 import app.cash.sqldelight.Query
-import com.toasterofbread.Database
+import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
@@ -34,8 +34,8 @@ import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.toLyricsReference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import mediaitem.AlbumById
-import mediaitem.song.ArtistById
+import com.toasterofbread.db.mediaitem.AlbumById
+import com.toasterofbread.db.mediaitem.song.ArtistById
 import java.net.URL
 
 private const val STATIC_LYRICS_SYNC_OFFSET: Long = 1000

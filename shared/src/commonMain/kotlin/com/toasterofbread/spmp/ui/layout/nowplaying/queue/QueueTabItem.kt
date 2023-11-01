@@ -14,8 +14,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalViewConfiguration
+import androidx.compose.ui.platform.ViewConfiguration
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.getString
@@ -87,49 +90,65 @@ class QueueTabItem(val song: Song, val key: Int) {
         val max_offset = with(LocalDensity.current) { player.screen_size.width.toPx() }
         val anchors = mapOf(-max_offset to 0, 0f to 1, max_offset to 2)
 
-        Box(
-            Modifier
-                .offset { IntOffset(swipe_state.offset.value.roundToInt(), 0) }
-                .background(RoundedCornerShape(45), getBackgroundColour)
-        ) {
-            val padding = 7.dp
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(start = padding, end = 10.dp)
-            ) {
-                MediaItemPreviewLong(
-                    song,
-                    Modifier
-                        .weight(1f)
-                        .padding(vertical = padding)
-                        .swipeable(
-                            swipe_state,
-                            anchors,
-                            Orientation.Horizontal,
-                            thresholds = { _, _ -> FractionalThreshold(0.2f) }
-                        ),
-                    contentColour = { getBackgroundColour().getContrasted() },
-                    show_type = false,
-                    multiselect_context = multiselect_context,
-                    multiselect_key = index,
-                    getTitle = { getLPMTitle(index) }
-                )
+        val view_configuration = LocalViewConfiguration.current
+        CompositionLocalProvider(
+            LocalViewConfiguration provides remember {
+                object : ViewConfiguration {
+                    override val doubleTapMinTimeMillis get() = view_configuration.doubleTapMinTimeMillis
+                    override val doubleTapTimeoutMillis get() = view_configuration.doubleTapTimeoutMillis
+                    override val longPressTimeoutMillis get() = view_configuration.longPressTimeoutMillis
 
-                val radio_item_index = player.controller?.radio_state?.item?.second
-                if (radio_item_index == index) {
-                    Icon(Icons.Default.Radio, null, Modifier.size(20.dp))
+                    override val touchSlop: Float
+                        get() {
+                            return view_configuration.touchSlop * 2f * (2.1f - Settings.KEY_NP_QUEUE_ITEM_SWIPE_SENSITIVITY.get<Float>())
+                        }
                 }
+            }
+        ) {
+            Box(
+                Modifier
+                    .offset { IntOffset(swipe_state.offset.value.roundToInt(), 0) }
+                    .background(RoundedCornerShape(45), getBackgroundColour)
+            ) {
+                val padding = 7.dp
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(start = padding, end = 10.dp)
+                ) {
+                    MediaItemPreviewLong(
+                        song,
+                        Modifier
+                            .weight(1f)
+                            .padding(vertical = padding)
+                            .swipeable(
+                                swipe_state,
+                                anchors,
+                                Orientation.Horizontal,
+                                thresholds = { _, _ -> FractionalThreshold(0.2f) }
+                            ),
+                        contentColour = { getBackgroundColour().getContrasted() },
+                        show_type = false,
+                        multiselect_context = multiselect_context,
+                        multiselect_key = index,
+                        getTitle = { getLPMTitle(index) }
+                    )
 
-                // Drag handle
-                Icon(
-                    Icons.Default.Menu,
-                    null,
-                    Modifier
-                        .detectReorder(list_state)
-                        .requiredSize(25.dp),
-                    tint = getBackgroundColour().getContrasted()
-                )
+                    val radio_item_index = player.controller?.radio_state?.item?.second
+                    if (radio_item_index == index) {
+                        Icon(Icons.Default.Radio, null, Modifier.size(20.dp))
+                    }
+
+                    // Drag handle
+                    Icon(
+                        Icons.Default.Menu,
+                        null,
+                        Modifier
+                            .detectReorder(list_state)
+                            .requiredSize(25.dp),
+                        tint = getBackgroundColour().getContrasted()
+                    )
+                }
             }
         }
     }

@@ -9,17 +9,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import app.cash.sqldelight.Query
-import com.toasterofbread.Database
-import com.toasterofbread.spmp.model.mediaitem.artist.Artist
-import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
+import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.mediaitem.db.AltSetterProperty
 import com.toasterofbread.spmp.model.mediaitem.db.AltSetterSingleProperty
 import com.toasterofbread.spmp.model.mediaitem.db.ListProperty
 import com.toasterofbread.spmp.model.mediaitem.db.ListPropertyImpl
 import com.toasterofbread.spmp.model.mediaitem.db.Property
-import com.toasterofbread.spmp.model.mediaitem.db.PropertyImpl
 import com.toasterofbread.spmp.model.mediaitem.db.SingleProperty
-import mediaitem.song.ArtistById
 
 open class PropertyRememberer {
     private val properties: MutableMap<String, Any> = mutableMapOf()

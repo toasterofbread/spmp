@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.youtubeapi
 
 import com.google.gson.Gson
 import com.google.gson.JsonObject
-import com.toasterofbread.Database
+import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.platform.AppContext

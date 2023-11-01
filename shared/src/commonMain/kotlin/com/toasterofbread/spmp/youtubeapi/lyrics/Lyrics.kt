@@ -7,7 +7,7 @@ import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getStringTODO
-import mediaitem.LyricsById
+import com.toasterofbread.db.mediaitem.LyricsById
 
 data class LyricsReference(val source_index: Int, val id: String) {
     fun isNone(): Boolean = source_index < 0

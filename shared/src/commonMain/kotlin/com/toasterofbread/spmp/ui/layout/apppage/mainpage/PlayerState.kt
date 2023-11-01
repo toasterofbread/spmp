@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
-import com.toasterofbread.Database
+import com.toasterofbread.db.Database
 import com.toasterofbread.toastercomposetools.settings.ui.Theme
 import com.toasterofbread.toastercomposetools.utils.common.indexOfOrNull
 import com.toasterofbread.spmp.model.mediaitem.MediaItem

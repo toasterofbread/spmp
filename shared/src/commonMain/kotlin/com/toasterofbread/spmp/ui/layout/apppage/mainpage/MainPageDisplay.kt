@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
-import com.toasterofbread.spmp.ui.component.WAVE_BORDER_DEFAULT_HEIGHT
+import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.toastercomposetools.utils.composable.getEnd
 import com.toasterofbread.toastercomposetools.utils.composable.getStart
 import com.toasterofbread.toastercomposetools.utils.composable.getTop
@@ -38,7 +38,7 @@ fun MainPageDisplay() {
                     player.main_multiselect_context,
                     Modifier,
                     PaddingValues(
-                        top = if (page.showTopBar()) WAVE_BORDER_DEFAULT_HEIGHT.dp else (top_padding + vertical_padding),
+                        top = if (page.showTopBar()) WAVE_BORDER_HEIGHT_DP.dp else (top_padding + vertical_padding),
                         bottom = player.nowPlayingBottomPadding(true) + vertical_padding,
                         start = horizontal_padding + WindowInsets.getStart(),
                         end = horizontal_padding + WindowInsets.getEnd()

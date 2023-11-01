@@ -60,6 +60,13 @@ internal fun getPlayerCategory(): List<SettingsItem> {
 
         SettingsGroupItem(null),
 
+        AppSliderItem(
+            SettingsValueState(Settings.KEY_NP_QUEUE_ITEM_SWIPE_SENSITIVITY.name),
+            getString("s_key_np_queue_item_swipe_sensitivity"),
+            getString("s_sub_np_queue_item_swipe_sensitivity"),
+            range = 0.1f .. 2f
+        ),
+
         SettingsMultipleChoiceItem(
             SettingsValueState(Settings.KEY_NP_QUEUE_WAVE_BORDER_MODE.name),
             getString("s_key_np_queue_wave_border_mode"),

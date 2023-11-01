@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.ui.graphics.Color
-import com.toasterofbread.Database
+import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType

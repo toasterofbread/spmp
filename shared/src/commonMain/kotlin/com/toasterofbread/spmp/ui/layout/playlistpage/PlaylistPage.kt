@@ -51,7 +51,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.ui.component.WAVE_BORDER_DEFAULT_HEIGHT
+import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
@@ -352,7 +352,7 @@ class PlaylistPage(
             }
 
             val top_padding by animateDpAsState(
-                if (top_bar_showing) WAVE_BORDER_DEFAULT_HEIGHT.dp
+                if (top_bar_showing) WAVE_BORDER_HEIGHT_DP.dp
                 else content_padding.calculateTopPadding()
             )
 

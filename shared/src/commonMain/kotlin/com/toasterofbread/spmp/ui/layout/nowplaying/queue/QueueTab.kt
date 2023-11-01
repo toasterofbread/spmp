@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -56,6 +57,7 @@ import com.toasterofbread.spmp.youtubeapi.radio.LoadStatus
 import com.toasterofbread.toastercomposetools.utils.common.getContrasted
 import com.toasterofbread.toastercomposetools.utils.common.launchSingle
 import com.toasterofbread.toastercomposetools.utils.common.thenIf
+import com.toasterofbread.toastercomposetools.utils.composable.getTop
 import kotlinx.coroutines.delay
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
@@ -70,7 +72,7 @@ internal fun QueueTab(
     modifier: Modifier = Modifier,
     inline: Boolean = false,
     shape: Shape = RoundedCornerShape(QUEUE_CORNER_RADIUS_DP.dp),
-    padding: PaddingValues = PaddingValues()
+    content_padding: PaddingValues = PaddingValues()
 ) {
     val player = LocalPlayerState.current
     val density = LocalDensity.current
@@ -195,13 +197,13 @@ internal fun QueueTab(
                     requiredHeight(page_height + 200.dp)
                     .padding(
                         top =
-                            player.context.getStatusBarHeightDp()
+                            WindowInsets.getTop()
                             + top_bar_height
                             + MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
                     )
                 }
                 .background(queue_background_colour, shape)
-                .padding(padding)
+                .padding(content_padding)
                 .clip(shape)
         ) {
             val list_padding = 10.dp

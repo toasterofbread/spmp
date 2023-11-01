@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
@@ -71,6 +73,7 @@ import com.toasterofbread.toastercomposetools.settings.ui.Theme
 import com.toasterofbread.toastercomposetools.utils.common.getContrasted
 import com.toasterofbread.toastercomposetools.utils.common.getThemeColour
 import com.toasterofbread.toastercomposetools.utils.composable.ShapedIconButton
+import com.toasterofbread.toastercomposetools.utils.composable.getTop
 import com.toasterofbread.toastercomposetools.utils.modifier.background
 import com.toasterofbread.toastercomposetools.utils.modifier.brushBackground
 import com.toasterofbread.toastercomposetools.utils.modifier.drawScopeBackground
@@ -146,7 +149,7 @@ fun ArtistLayout(
         ) {
             val showing = music_top_bar_showing || multiselect_context?.is_active == true
             AnimatedVisibility(showing) {
-                Spacer(Modifier.height(player.context.getStatusBarHeightDp()))
+                Spacer(Modifier.height(WindowInsets.getTop()))
             }
 
             music_top_bar_showing = player.top_bar.MusicTopBar(

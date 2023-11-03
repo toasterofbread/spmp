@@ -196,6 +196,17 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
         val song_gradient_depth: Float? =
             player.status.m_song?.PlayerGradientDepth?.observe(player.database)?.value
 
+        val swipe_modifier: Modifier = remember {
+            Modifier.scrollWheelSwipeable(
+                state = swipe_state,
+                anchors = swipe_anchors,
+                thresholds = { _, _ -> FractionalThreshold(0.2f) },
+                orientation = Orientation.Vertical,
+                reverse_direction = true,
+                interaction_source = swipe_interaction_source
+            )
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -208,14 +219,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
                         }
                     )
                 }
-                .scrollWheelSwipeable(
-                    state = swipe_state,
-                    anchors = swipe_anchors,
-                    thresholds = { _, _ -> FractionalThreshold(0.2f) },
-                    orientation = Orientation.Vertical,
-                    reverse_direction = true,
-                    interaction_source = swipe_interaction_source
-                )
+                .then(swipe_modifier)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null
@@ -251,7 +255,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
 
             CompositionLocalProvider(LocalContentColor provides player.getNPOnBackground()) {
                 Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-                    NowPlayingCardContent(page_height, content_padding)
+                    NowPlayingCardContent(page_height, content_padding, swipe_modifier)
                 }
             }
         }
@@ -290,7 +294,7 @@ private fun StatusBarColourHandler(page_height: Dp) {
 }
 
 @Composable
-private fun NowPlayingCardContent(page_height: Dp, content_padding: PaddingValues, modifier: Modifier = Modifier) {
+private fun NowPlayingCardContent(page_height: Dp, content_padding: PaddingValues, swipe_modifier: Modifier, modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
     val expansion = LocalNowPlayingExpansion.current
 
@@ -350,7 +354,13 @@ private fun NowPlayingCardContent(page_height: Dp, content_padding: PaddingValue
                     }
                 )
             }) {
-                pages.firstOrNull()?.Page(page_height, top_bar, content_padding, Modifier.fillMaxWidth().requiredHeight(page_height).offset(offsetProvider))
+                pages.firstOrNull()?.Page(
+                    page_height,
+                    top_bar,
+                    content_padding,
+                    swipe_modifier,
+                    Modifier.fillMaxWidth().requiredHeight(page_height).offset(offsetProvider)
+                )
             }
 
             composeScope {
@@ -359,7 +369,7 @@ private fun NowPlayingCardContent(page_height: Dp, content_padding: PaddingValue
         }
 
         for (i in 1 until pages.size) {
-            pages[i].Page(page_height, top_bar, content_padding, Modifier.offset(0.dp, -player.nowPlayingBottomPadding()))
+            pages[i].Page(page_height, top_bar, content_padding, swipe_modifier, Modifier.offset(0.dp, -player.nowPlayingBottomPadding()))
         }
     }
 }

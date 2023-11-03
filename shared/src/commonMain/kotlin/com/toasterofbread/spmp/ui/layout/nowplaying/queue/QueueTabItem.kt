@@ -31,6 +31,23 @@ import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.detectReorder
 import kotlin.math.roundToInt
 
+@Composable
+fun TouchSlopScope(getTouchSlop: ViewConfiguration.() -> Float, content: @Composable (ViewConfiguration) -> Unit) {
+    val view_configuration: ViewConfiguration = LocalViewConfiguration.current
+    CompositionLocalProvider(
+        remember {
+            LocalViewConfiguration provides object : ViewConfiguration {
+                override val doubleTapMinTimeMillis get() = view_configuration.doubleTapMinTimeMillis
+                override val doubleTapTimeoutMillis get() = view_configuration.doubleTapTimeoutMillis
+                override val longPressTimeoutMillis get() = view_configuration.longPressTimeoutMillis
+                override val touchSlop: Float get() = getTouchSlop(view_configuration)
+            }
+        }
+    ) {
+        content(view_configuration)
+    }
+}
+
 class QueueTabItem(val song: Song, val key: Int) {
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -90,21 +107,9 @@ class QueueTabItem(val song: Song, val key: Int) {
         val max_offset = with(LocalDensity.current) { player.screen_size.width.toPx() }
         val anchors = mapOf(-max_offset to 0, 0f to 1, max_offset to 2)
 
-        val view_configuration = LocalViewConfiguration.current
-        CompositionLocalProvider(
-            LocalViewConfiguration provides remember {
-                object : ViewConfiguration {
-                    override val doubleTapMinTimeMillis get() = view_configuration.doubleTapMinTimeMillis
-                    override val doubleTapTimeoutMillis get() = view_configuration.doubleTapTimeoutMillis
-                    override val longPressTimeoutMillis get() = view_configuration.longPressTimeoutMillis
-
-                    override val touchSlop: Float
-                        get() {
-                            return view_configuration.touchSlop * 2f * (2.1f - Settings.KEY_NP_QUEUE_ITEM_SWIPE_SENSITIVITY.get<Float>())
-                        }
-                }
-            }
-        ) {
+        TouchSlopScope({
+            touchSlop * 2f * (2.1f - Settings.KEY_NP_QUEUE_ITEM_SWIPE_SENSITIVITY.get<Float>())
+        }) { parent_view_configuration ->
             Box(
                 Modifier
                     .offset { IntOffset(swipe_state.offset.value.roundToInt(), 0) }
@@ -139,15 +144,17 @@ class QueueTabItem(val song: Song, val key: Int) {
                         Icon(Icons.Default.Radio, null, Modifier.size(20.dp))
                     }
 
-                    // Drag handle
-                    Icon(
-                        Icons.Default.Menu,
-                        null,
-                        Modifier
-                            .detectReorder(list_state)
-                            .requiredSize(25.dp),
-                        tint = getBackgroundColour().getContrasted()
-                    )
+                    TouchSlopScope({ parent_view_configuration.touchSlop }) {
+                        // Drag handle
+                        Icon(
+                            Icons.Default.Menu,
+                            null,
+                            Modifier
+                                .detectReorder(list_state)
+                                .requiredSize(25.dp),
+                            tint = getBackgroundColour().getContrasted()
+                        )
+                    }
                 }
             }
         }

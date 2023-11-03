@@ -64,7 +64,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(top_bar: NowPlaying
             top_bar.NowPlayingTopBar()
 
             val thumbnail_size: Dp by remember { derivedStateOf {
-                minOf(this@BoxWithConstraints.maxWidth - (horizontal_padding * 2), this@BoxWithConstraints.maxHeight)
+                minOf(this@BoxWithConstraints.maxWidth - (horizontal_padding * 2), this@BoxWithConstraints.maxHeight - 350.dp)
             } }
             val controls_height: Dp by remember { derivedStateOf {
                 this@BoxWithConstraints.maxHeight - thumbnail_size

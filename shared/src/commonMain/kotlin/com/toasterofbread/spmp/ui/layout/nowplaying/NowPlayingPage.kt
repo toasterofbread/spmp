@@ -15,7 +15,7 @@ const val NOW_PLAYING_MAIN_PADDING = 10f
 
 abstract class NowPlayingPage {
     @Composable
-    abstract fun Page(page_height: Dp, top_bar: NowPlayingTopBar, content_padding: PaddingValues, modifier: Modifier)
+    abstract fun Page(page_height: Dp, top_bar: NowPlayingTopBar, content_padding: PaddingValues, swipe_modifier: Modifier, modifier: Modifier)
     abstract fun shouldShow(player: PlayerState): Boolean
 
     companion object {

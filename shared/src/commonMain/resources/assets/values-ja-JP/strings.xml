@@ -361,6 +361,9 @@
     <string name="s_key_np_queue_item_swipe_sensitivity">キューの曲のスワイプのしやすさ</string>
     <string name="s_sub_np_queue_item_swipe_sensitivity">間違えて曲を消してしまうことが多い場合、これを減少してください</string>
 
+    <string name="s_key_np_queue_extra_side_padding">曲キューの両側にパディングを増加</string>
+    <string name="s_sub_np_queue_extra_side_padding">キューを閉じるスワイプの使用が可能なエリアが増えます</string>
+
     <string name="s_key_np_queue_wave_border_mode">曲キューの波ボーダーのアニメーションモード</string>
     <string name="s_sub_np_queue_wave_border_mode">曲キューと操作ボタンの間にある波型ボーダーのアニメーション方法</string>
     <string name="s_option_wave_border_mode_time">時の流れ</string>

@@ -13,7 +13,7 @@ class NowPlayingQueuePage: NowPlayingPage() {
     override fun shouldShow(player: PlayerState): Boolean = player.isPortrait()
 
     @Composable
-    override fun Page(page_height: Dp, top_bar: NowPlayingTopBar, content_padding: PaddingValues, modifier: Modifier) {
-        QueueTab(page_height, top_bar, modifier, content_padding = content_padding)
+    override fun Page(page_height: Dp, top_bar: NowPlayingTopBar, content_padding: PaddingValues, swipe_modifier: Modifier, modifier: Modifier) {
+        QueueTab(page_height, top_bar, swipe_modifier, modifier, content_padding = content_padding)
     }
 }

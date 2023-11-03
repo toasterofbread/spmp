@@ -371,6 +371,9 @@
     <string name="s_key_np_queue_item_swipe_sensitivity">Queue item swipe sensitivity</string>
     <string name="s_sub_np_queue_item_swipe_sensitivity">Decrease if queue items are easily removed by accident</string>
 
+    <string name="s_key_np_queue_extra_side_padding">Add padding to queue sides</string>
+    <string name="s_sub_np_queue_extra_side_padding">Use to increase area for dismiss swipe</string>
+
     <string name="s_key_np_queue_wave_border_mode">Queue wave border mode</string>
     <string name="s_sub_np_queue_wave_border_mode">Animation mode of the wave border between the queued songs and option buttons</string>
     <string name="s_option_wave_border_mode_time">Animate over time</string>

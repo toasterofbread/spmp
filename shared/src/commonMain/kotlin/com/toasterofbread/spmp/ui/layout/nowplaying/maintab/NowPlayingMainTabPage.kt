@@ -65,7 +65,7 @@ class NowPlayingMainTabPage: NowPlayingPage() {
     override fun shouldShow(player: PlayerState): Boolean = true
 
     @Composable
-    override fun Page(page_height: Dp, top_bar: NowPlayingTopBar, content_padding: PaddingValues, modifier: Modifier) {
+    override fun Page(page_height: Dp, top_bar: NowPlayingTopBar, content_padding: PaddingValues, swipe_modifier: Modifier, modifier: Modifier) {
         player = LocalPlayerState.current
         val current_song: Song? by player.status.song_state
 

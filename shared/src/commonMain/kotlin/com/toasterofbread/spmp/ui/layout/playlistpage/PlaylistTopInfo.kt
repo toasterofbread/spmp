@@ -13,12 +13,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.systemGestures
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -60,6 +63,7 @@ import com.toasterofbread.toastercomposetools.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.toastercomposetools.utils.common.getContrasted
+import com.toasterofbread.toastercomposetools.utils.composable.getStart
 
 private const val PLAYLIST_IMAGE_MIN_HEIGHT_DP: Float = 120f
 
@@ -138,13 +142,9 @@ internal fun PlaylistPage.PlaylistTopInfo(items: List<Pair<MediaItem, Int>>?, mo
             }
         }
 
-        // System insets spacing
+        // System gestures padding
         AnimatedVisibility(edit_in_progress && !show_image) {
-            player.context.getSystemInsets()?.also { system_insets ->
-                with(LocalDensity.current) {
-                    Spacer(Modifier.width(system_insets.getLeft(this, LocalLayoutDirection.current).toDp()))
-                }
-            }
+            Spacer(Modifier.width(WindowInsets.systemGestures.getStart()))
         }
 
         // Split position drag handle

@@ -3,30 +3,29 @@ package com.toasterofbread.spmp.platform
 import android.net.Uri
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSpec
-import com.toasterofbread.toastercomposetools.platform.PlatformFile
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.db.getPlayCount
+import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.song.getSongStreamFormat
 import com.toasterofbread.spmp.platform.playerservice.AUTO_DOWNLOAD_SOFT_TIMEOUT
+import com.toasterofbread.toastercomposetools.platform.PlatformFile
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import java.io.IOException
-import java.time.Duration
 
 @UnstableApi
 internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppContext, metered: Boolean): DataSpec {
     val song = SongRef(data_spec.uri.toString())
 
     val download_manager = context.download_manager
-    var local_file: PlatformFile? = song.getLocalAudioFile(context)
+    var local_file: PlatformFile? = song.getLocalSongFile(context)
     if (local_file != null) {
         println("Playing song ${song.id} from local file $local_file")
         return data_spec.withUri(Uri.parse(local_file.uri))
     }
 
     if (
-        song.getPlayCount(context.database, Duration.ofDays(7)) >= Settings.KEY_AUTO_DOWNLOAD_THRESHOLD.get<Int>(context)
+        song.getPlayCount(context.database, 7) >= Settings.KEY_AUTO_DOWNLOAD_THRESHOLD.get<Int>(context)
         && (Settings.KEY_AUTO_DOWNLOAD_ON_METERED.get(context) || !metered)
     ) {
         var done = false
@@ -56,7 +55,7 @@ internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppConte
                             done = true
                         }
                         PlayerDownloadManager.DownloadStatus.Status.FINISHED, PlayerDownloadManager.DownloadStatus.Status.ALREADY_FINISHED -> {
-                            local_file = song.getLocalAudioFile(context)
+                            local_file = song.getLocalSongFile(context)
                             done = true
                         }
                     }
@@ -82,7 +81,7 @@ internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppConte
     val format = getSongStreamFormat(song.id, context).fold(
         { it },
         {
-            throw IOException(it)
+            throw it
         }
     )
 

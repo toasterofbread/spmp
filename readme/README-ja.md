@@ -21,7 +21,7 @@
 ## 開発状態
 SpMpはまだアルファ版であり、バグはまだ多く残っていますが、まもなく機能をすべて完成させてベータ版となる予定です。僕はすでにSpMpをYouTube Musicのかわりに使っています。
 
-Compose Multiplatformでのデスクトップ上サポートは[計画](https://github.com/toasterofbread/spmp-server)されていますが、本プロジェクトが完成するまでは優先されません。
+Compose Multiplatformでの[デスクトップ上サポート](https://github.com/toasterofbread/spmp-server)は[開発中](https://github.com/toasterofbread/spmp/pull/170)ですが、本プロジェクトが完成するまでは優先されません。
 
 <br>
 

@@ -13,9 +13,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -34,10 +37,12 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.db.rememberThemeColour
 import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
-import com.toasterofbread.toastercomposetools.platform.getNavigationBarHeightDp
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.toasterofbread.toastercomposetools.utils.common.contrastAgainst
 import com.toasterofbread.toastercomposetools.utils.common.launchSingle
+import com.toasterofbread.toastercomposetools.utils.composable.getBottom
+import com.toasterofbread.toastercomposetools.utils.composable.getEnd
+import com.toasterofbread.toastercomposetools.utils.composable.getStart
 import kotlinx.coroutines.delay
 
 private const val MENU_OPEN_ANIM_MS: Int = 150
@@ -130,10 +135,10 @@ fun LongPressMenu(
                 LongPressMenuContent(
                     data,
                     PaddingValues(
-                        start = MENU_CONTENT_PADDING_DP.dp,
-                        end = MENU_CONTENT_PADDING_DP.dp,
+                        start = MENU_CONTENT_PADDING_DP.dp + WindowInsets.systemBars.getStart(),
+                        end = MENU_CONTENT_PADDING_DP.dp + WindowInsets.systemBars.getEnd(),
                         top = MENU_CONTENT_PADDING_DP.dp,
-                        bottom = MENU_CONTENT_PADDING_DP.dp + player.context.getNavigationBarHeightDp()
+                        bottom = MENU_CONTENT_PADDING_DP.dp + WindowInsets.systemBars.getBottom()
                     ),
                     { accent_colour },
                     Modifier

@@ -9,7 +9,7 @@ import com.toasterofbread.toastercomposetools.utils.common.isKanji
 import com.toasterofbread.toastercomposetools.utils.common.isKatakana
 import java.nio.channels.ClosedByInterruptException
 
-fun createTokeniser(): Tokenizer {
+fun createFuriganaTokeniser(): Tokenizer {
     try {
         return Tokenizer()
     }
@@ -81,7 +81,7 @@ private fun _mergeAndFuriganiseTerms(tokeniser: Tokenizer, terms: List<SongLyric
             if (term.start != null && (start == null || term.start < start)) {
                 start = term.start
             }
-            if (term.end != null && (end == null || term.end > end)) {
+            if (term.end != null && (end == null || term.end!! > end)) {
                 end = term.end
             }
 

@@ -8,7 +8,7 @@ import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.toastercomposetools.platform.PlatformFile
-import com.toasterofbread.spmp.platform.getLocalAudioFile
+import com.toasterofbread.spmp.platform.getLocalSongFile
 import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -66,7 +66,7 @@ object PlaylistFileConverter {
                     for (song in items ?: emptyList()) {
                         val song_path: String
 
-                        val local_file = song.getLocalAudioFile(context)
+                        val local_file = song.getLocalSongFile(context)
 
                         if (local_file != null) {
                             local_file.path

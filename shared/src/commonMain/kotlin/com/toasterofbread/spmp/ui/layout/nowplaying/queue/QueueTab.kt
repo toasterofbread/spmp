@@ -4,15 +4,19 @@ import LocalPlayerState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
@@ -21,7 +25,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -56,6 +59,7 @@ import com.toasterofbread.spmp.youtubeapi.radio.LoadStatus
 import com.toasterofbread.toastercomposetools.utils.common.getContrasted
 import com.toasterofbread.toastercomposetools.utils.common.launchSingle
 import com.toasterofbread.toastercomposetools.utils.common.thenIf
+import com.toasterofbread.toastercomposetools.utils.composable.getTop
 import kotlinx.coroutines.delay
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
@@ -67,10 +71,11 @@ private const val QUEUE_CORNER_RADIUS_DP: Float = 25f
 internal fun QueueTab(
     page_height: Dp,
     top_bar: NowPlayingTopBar,
+    swipe_modifier: Modifier,
     modifier: Modifier = Modifier,
     inline: Boolean = false,
     shape: Shape = RoundedCornerShape(QUEUE_CORNER_RADIUS_DP.dp),
-    padding: PaddingValues = PaddingValues()
+    content_padding: PaddingValues = PaddingValues()
 ) {
     val player = LocalPlayerState.current
     val density = LocalDensity.current
@@ -174,13 +179,15 @@ internal fun QueueTab(
         if (show_top_bar) top_bar.height else 0.dp
     )
 
-    val expanded by remember { derivedStateOf { player.expansion.get() > 1f } }
-    LaunchedEffect(expanded) {
-        val index = player.status.m_index
-        if (expanded && index >= 0) {
-            queue_list_state.listState.scrollToItem(index)
-        }
-    }
+//    composeScope {
+//        val expanded by remember { derivedStateOf { player.expansion.get() > 1f } }
+//        LaunchedEffect(expanded) {
+//            val index = player.status.m_index
+//            if (expanded && index >= 0) {
+//                queue_list_state.listState.scrollToItem(index)
+//            }
+//        }
+//    }
 
     CompositionLocalProvider(LocalContentColor provides queue_background_colour.getContrasted()) {
         Box(
@@ -195,13 +202,13 @@ internal fun QueueTab(
                     requiredHeight(page_height + 200.dp)
                     .padding(
                         top =
-                            player.context.getStatusBarHeightDp()
+                            WindowInsets.getTop()
                             + top_bar_height
                             + MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
                     )
                 }
                 .background(queue_background_colour, shape)
-                .padding(padding)
+                .padding(content_padding)
                 .clip(shape)
         ) {
             val list_padding = 10.dp
@@ -235,59 +242,73 @@ internal fun QueueTab(
                         + if (wave_border_mode != NowPlayingQueueWaveBorderMode.LINE) 15.dp else 0.dp
                     )
 
-                    LazyColumn(
-                        state = queue_list_state.listState,
-                        contentPadding = PaddingValues(top = top_padding),
-                        modifier = Modifier
-                            .reorderable(queue_list_state)
-                            .onPlaced { coords ->
-                                list_position = with(density) { coords.positionInParent().y.toDp() }
-                            },
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    BoxWithConstraints(
+                        Modifier.onPlaced { coords ->
+                            list_position = with(density) { coords.positionInParent().y.toDp() }
+                        }
                     ) {
-                        if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) {
-                            item {
-                                CurrentRadioIndicator(getBackgroundColour, multiselect_context, Modifier.padding(bottom = 15.dp))
+                        val side_padding: Dp = maxWidth * Settings.KEY_NP_QUEUE_EXTRA_SIDE_PADDING.get<Float>() * 0.25f
+
+                        LazyColumn(
+                            state = queue_list_state.listState,
+                            contentPadding = PaddingValues(
+                                top = top_padding,
+                                start = side_padding,
+                                end = side_padding
+                            ),
+                            modifier = Modifier.reorderable(queue_list_state),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) {
+                                item {
+                                    CurrentRadioIndicator(getBackgroundColour, multiselect_context, Modifier.padding(bottom = 15.dp))
+                                }
                             }
-                        }
 
-                        QueueItems(
-                            song_items,
-                            queue_list_state,
-                            multiselect_context,
-                            player,
-                            { playing_key },
-                            { playing_key = it },
-                            Modifier.padding(horizontal = list_padding)
-                        )
-
-                        item {
-                            player.controller?.radio_state?.LoadStatus(
-                                Modifier
-                                    .heightIn(min = 50.dp)
-                                    .padding(top = list_padding, start = list_padding, end = list_padding)
-                                    .fillMaxWidth(),
-                                expanded_modifier = Modifier.height(page_height / 2)
+                            QueueItems(
+                                song_items,
+                                queue_list_state,
+                                multiselect_context,
+                                player,
+                                { playing_key },
+                                { playing_key = it },
+                                Modifier.padding(horizontal = list_padding)
                             )
+
+                            item {
+                                player.controller?.radio_state?.LoadStatus(
+                                    Modifier
+                                        .heightIn(min = 50.dp)
+                                        .padding(top = list_padding, start = list_padding, end = list_padding)
+                                        .fillMaxWidth(),
+                                    expanded_modifier = Modifier.height(page_height / 2)
+                                )
+                            }
+
+                            if (!inline) {
+                                item {
+                                    var bottom_padding: Dp = (
+                                            MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
+                                                    + list_position
+                                            )
+
+                                    if (player.controller?.radio_state?.loading == true) {
+                                        bottom_padding = page_height - bottom_padding
+                                    }
+
+                                    if (player.controller?.radio_state?.load_error != null) {
+                                        bottom_padding += 60.dp
+                                    }
+
+                                    Spacer(Modifier.height(bottom_padding))
+                                }
+                            }
                         }
 
-                        if (!inline) {
-                            item {
-                                var bottom_padding: Dp = (
-                                        MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
-                                                + list_position
-                                        )
-
-                                if (player.controller?.radio_state?.loading == true) {
-                                    bottom_padding = page_height - bottom_padding
-                                }
-
-                                if (player.controller?.radio_state?.load_error != null) {
-                                    bottom_padding += 60.dp
-                                }
-
-                                Spacer(Modifier.height(bottom_padding))
-                            }
+                        if (side_padding > 0.dp) {
+                            val padding_box_modifier = Modifier.fillMaxHeight().width(side_padding).then(swipe_modifier)
+                            Box(padding_box_modifier.align(Alignment.CenterStart))
+                            Box(padding_box_modifier.align(Alignment.CenterEnd))
                         }
                     }
                 }

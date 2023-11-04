@@ -56,13 +56,13 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
-import com.toasterofbread.toastercomposetools.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.AnnotatedReadingTerm
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
-import com.toasterofbread.spmp.ui.component.AnnotatedReadingTerm
+import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
+import com.toasterofbread.toastercomposetools.platform.composable.PlatformAlertDialog
 import com.toasterofbread.toastercomposetools.utils.common.launchSingle
 import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
 
@@ -159,6 +159,7 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
                                 )
                                 Item(getString("lyrics_info_key_id"), lyrics.id)
                                 Item(getString("lyrics_info_key_sync_type"), lyrics.sync_type.getReadable())
+                                Item(getString("lyrics_info_key_local_file"), lyrics.reference.local_file?.absolute_path.toString())
                             }
                         }
                     }
@@ -192,7 +193,8 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
                                         onClick = {
                                             show_furigana = !show_furigana
                                             is_open = !is_open
-                                        })
+                                        }
+                                    )
                                 )
                             }
                             3 -> ActionButton(Icons.Filled.Search) { submenu = Submenu.SEARCH }

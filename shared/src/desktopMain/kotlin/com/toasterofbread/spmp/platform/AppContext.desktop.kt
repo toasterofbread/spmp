@@ -1,14 +1,12 @@
 package com.toasterofbread.spmp.platform
 
-import com.toasterofbread.Database
+import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.toastercomposetools.platform.PlatformContext
 import com.toasterofbread.toastercomposetools.platform.PlatformPreferences
 import com.toasterofbread.toastercomposetools.settings.ui.Theme
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 actual class AppContext(app_name: String): PlatformContext(app_name, PlatformPlayerService::class.java) {
     actual val database: Database = createDatabase()

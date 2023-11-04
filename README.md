@@ -21,7 +21,7 @@ A YouTube Music client with a focus on language and metadata customisation, buil
 ## Development status
 SpMp is in alpha and still has many bugs, but is very close to being feature-complete. I've been using it instead of YouTube Music for a while now.
 
-Support for Compose Multiplatform on desktop is [planned](https://github.com/toasterofbread/spmp-server) but will not be a priority until the main project is stable.
+Support for Compose Multiplatform on [desktop](https://github.com/toasterofbread/spmp-server) is [in-progress](https://github.com/toasterofbread/spmp/pull/170) but will not be a priority until the main project is stable.
 
 <br>
 

@@ -32,11 +32,9 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
-import com.toasterofbread.spmp.ui.component.MusicTopBar
-import com.toasterofbread.spmp.ui.component.WAVE_BORDER_DEFAULT_HEIGHT
+import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.toastercomposetools.settings.ui.Theme
 import com.toasterofbread.toastercomposetools.utils.common.copy
 import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.toastercomposetools.utils.composable.spanItem
@@ -63,7 +61,7 @@ fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, co
             padding = PaddingValues(top = top_padding)
         ).showing
 
-        val list_top_padding by animateDpAsState(if (top_bar_showing) WAVE_BORDER_DEFAULT_HEIGHT.dp else top_padding)
+        val list_top_padding by animateDpAsState(if (top_bar_showing) WAVE_BORDER_HEIGHT_DP.dp else top_padding)
         val list_padding = content_padding.copy(top = list_top_padding)
 
         items_result?.fold(
@@ -76,7 +74,7 @@ fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, co
 
                 Column(Modifier.fillMaxSize()) {
                     AnimatedVisibility(multiselect_context.is_active) {
-                        multiselect_context.InfoDisplay(Modifier.fillMaxWidth().padding(top = WAVE_BORDER_DEFAULT_HEIGHT.dp))
+                        multiselect_context.InfoDisplay(Modifier.fillMaxWidth().padding(top = WAVE_BORDER_HEIGHT_DP.dp))
                     }
 
                     LazyVerticalGrid(

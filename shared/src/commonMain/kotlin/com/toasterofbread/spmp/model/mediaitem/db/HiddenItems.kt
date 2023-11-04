@@ -8,7 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import app.cash.sqldelight.Query
-import com.toasterofbread.Database
+import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
@@ -19,9 +19,9 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
-import mediaitem.ArtistQueries
-import mediaitem.PlaylistQueries
-import mediaitem.SongQueries
+import com.toasterofbread.db.mediaitem.ArtistQueries
+import com.toasterofbread.db.mediaitem.PlaylistQueries
+import com.toasterofbread.db.mediaitem.SongQueries
 
 fun isMediaItemHidden(item: MediaItem, db: Database, hidden_items: List<MediaItem>? = null): Boolean {
     if (hidden_items?.any { it.id == item.id } ?: item.Hidden.get(db)) {

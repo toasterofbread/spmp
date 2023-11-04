@@ -7,7 +7,7 @@ plugins {
     kotlin("plugin.serialization") version "1.9.0"
     id("com.android.library")
     id("org.jetbrains.compose")
-    id("app.cash.sqldelight") version "2.0.0-rc02"
+    id("app.cash.sqldelight") version "2.0.0"
 }
 
 val KEY_NAMES = mapOf(
@@ -175,7 +175,7 @@ kotlin {
                 //noinspection GradleDependency
                 implementation("com.github.andob:android-awt:1.0.0")
                 implementation("com.github.toasterofbread:KizzyRPC:84e79614b4")
-                implementation("app.cash.sqldelight:android-driver:2.0.0-rc02")
+                implementation("app.cash.sqldelight:android-driver:2.0.0")
                 implementation("com.anggrayudi:storage:1.5.5")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.6.0")
                 implementation("io.github.jan-tennert.supabase:functions-kt:1.3.2")
@@ -188,7 +188,7 @@ kotlin {
                 implementation(compose.desktop.common)
                 implementation("org.zeromq:jeromq:0.5.3")
                 implementation("com.github.ltttttttttttt:load-the-image:1.0.5")
-                implementation("app.cash.sqldelight:sqlite-driver:2.0.0-rc02")
+                implementation("app.cash.sqldelight:sqlite-driver:2.0.0")
             }
         }
     }
@@ -227,7 +227,8 @@ android {
 sqldelight {
     databases {
         create("Database") {
-            packageName.set("com.toasterofbread")
+            packageName.set("com.toasterofbread.db")
+            version = 2
         }
     }
 }

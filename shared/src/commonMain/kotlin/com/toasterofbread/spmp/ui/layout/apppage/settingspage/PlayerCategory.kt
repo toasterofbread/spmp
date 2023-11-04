@@ -12,6 +12,7 @@ import com.toasterofbread.spmp.model.OverscrollClearMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
+import kotlin.math.roundToInt
 
 internal fun getPlayerCategory(): List<SettingsItem> {
     return listOf(
@@ -59,6 +60,25 @@ internal fun getPlayerCategory(): List<SettingsItem> {
         ),
 
         SettingsGroupItem(null),
+
+        AppSliderItem(
+            SettingsValueState(Settings.KEY_NP_QUEUE_ITEM_SWIPE_SENSITIVITY.name),
+            getString("s_key_np_queue_item_swipe_sensitivity"),
+            getString("s_sub_np_queue_item_swipe_sensitivity"),
+            range = 0.1f .. 2f
+        ),
+
+        AppSliderItem(
+            SettingsValueState(Settings.KEY_NP_QUEUE_EXTRA_SIDE_PADDING.name),
+            getString("s_key_np_queue_extra_side_padding"),
+            getString("s_sub_np_queue_extra_side_padding"),
+            range = 0f .. 1f,
+            min_label = "0%",
+            max_label = "100%",
+            getValueText = {
+                (it as Float * 100).roundToInt().toString() + "%"
+            }
+        ),
 
         SettingsMultipleChoiceItem(
             SettingsValueState(Settings.KEY_NP_QUEUE_WAVE_BORDER_MODE.name),

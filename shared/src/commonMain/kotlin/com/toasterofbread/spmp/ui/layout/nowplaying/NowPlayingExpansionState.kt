@@ -149,14 +149,3 @@ class NowPlayingExpansionState(val player: PlayerState, swipe_state: State<Swipe
         return low_index + progress
     }
 }
-
-fun WindowInsets.getAdjustedKeyboardHeight(density: Density, context: AppContext): Int {
-    val bottom: Int = getBottom(density)
-    if (bottom > 0) {
-        val navbar_height: Int = context.getNavigationBarHeight()
-        return bottom.coerceAtMost(
-            (bottom - navbar_height).coerceAtLeast(0)
-        )
-    }
-    return bottom
-}

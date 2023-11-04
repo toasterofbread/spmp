@@ -12,7 +12,7 @@ import com.google.gson.GsonBuilder
 import com.google.gson.TypeAdapter
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
-import com.toasterofbread.Database
+import com.toasterofbread.db.Database
 import com.toasterofbread.toastercomposetools.platform.ApplicationContext
 import com.toasterofbread.toastercomposetools.platform.PlatformContext
 import com.toasterofbread.toastercomposetools.platform.PlatformPreferences

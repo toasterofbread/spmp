@@ -100,6 +100,9 @@
     <string name="prompt_confirm_settings_page_reset">Reset all values on this page?</string>
     <string name="prompt_hide_feed_rows_with_$title">Hide feed rows with title '$title'?</string>
 
+    <string name="action_download_pause">Pause</string>
+    <string name="action_download_resume">Resume</string>
+
     <string name="player_overlay_menu_action_open_main_menu">Open main overlay menu</string>
     <string name="player_overlay_menu_action_open_theming">Open theming</string>
     <string name="player_overlay_menu_action_pick_theme_colour">Pick accent colour from image</string>
@@ -179,6 +182,7 @@
     <string name="lyrics_info_key_source">Source</string>
     <string name="lyrics_info_key_id">ID</string>
     <string name="lyrics_info_key_sync_type">Sync type</string>
+    <string name="lyrics_info_key_local_file">Local file</string>
     <string name="lyrics_source_petit">PetitLyrics</string>
     <string name="lyrics_source_kugou">KuGou</string>
     <string name="lyrics_source_ytm">YouTube Music</string>
@@ -367,6 +371,12 @@
     <string name="s_key_player_overlay_menu_custom_action">Overlay menu custom action</string>
     <string name="s_sub_player_overlay_menu_custom_action">By default, triggers on long press</string>
     <string name="s_key_player_overlay_menu_swap_long_short_press_actions">Swap overlay menu long and short press actions</string>
+
+    <string name="s_key_np_queue_item_swipe_sensitivity">Queue item swipe sensitivity</string>
+    <string name="s_sub_np_queue_item_swipe_sensitivity">Decrease if queue items are easily removed by accident</string>
+
+    <string name="s_key_np_queue_extra_side_padding">Add padding to queue sides</string>
+    <string name="s_sub_np_queue_extra_side_padding">Use to increase area for dismiss swipe</string>
 
     <string name="s_key_np_queue_wave_border_mode">Queue wave border mode</string>
     <string name="s_sub_np_queue_wave_border_mode">Animation mode of the wave border between the queued songs and option buttons</string>

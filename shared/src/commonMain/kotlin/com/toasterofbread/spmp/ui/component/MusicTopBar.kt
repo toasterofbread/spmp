@@ -343,7 +343,7 @@ class MusicTopBar(val player: PlayerState) {
         }
 
         return MusicTopBarState(
-            if (!show) padding.calculateTopPadding() else if (getBottomBorderColour != null) WAVE_BORDER_DEFAULT_HEIGHT.dp else 0.dp,
+            if (!show) padding.calculateTopPadding() else if (getBottomBorderColour != null) WAVE_BORDER_HEIGHT_DP.dp else 0.dp,
             show
         )
     }

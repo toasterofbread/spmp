@@ -131,7 +131,7 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
 
         val original_title: String? = song.Title.get(context.database)
 
-        for (file in getDownloadDir(context).listFiles() ?: emptyList()) {
+        for (file in getSongDownloadDir(context).listFiles() ?: emptyList()) {
             val data = PlayerDownloadService.getFilenameData(file.name)
             if (data.id_or_title == song.id || data.id_or_title == original_title) {
                 return@withContext DownloadStatus(
@@ -153,7 +153,7 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
             getAllDownloadsStatus()
         } ?: emptyList()
 
-        val files: List<PlatformFile> = getDownloadDir(context).listFiles() ?: emptyList()
+        val files: List<PlatformFile> = getSongDownloadDir(context).listFiles() ?: emptyList()
         return@withContext current_downloads + files.mapNotNull { file ->
             if (current_downloads.any { it.file?.matches(file) == true }) {
                 return@mapNotNull null
@@ -274,14 +274,26 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
     }
 
     companion object {
-        fun getDownloadDir(context: AppContext): PlatformFile {
-            return MediaItemLibrary.getLocalSongsDir(context)
-        }
+        fun getSongDownloadDir(context: AppContext): PlatformFile =
+            MediaItemLibrary.getLocalSongsDir(context)
+        fun getLyricsDownloadDir(context: AppContext): PlatformFile =
+            MediaItemLibrary.getLocalLyricsDir(context)
     }
 }
 
-actual fun Song.getLocalAudioFile(context: AppContext, allow_partial: Boolean): PlatformFile? {
-    val files = PlayerDownloadManager.getDownloadDir(context).listFiles() ?: return null
+actual fun Song.getLocalSongFile(context: AppContext, allow_partial: Boolean): PlatformFile? {
+    val files = PlayerDownloadManager.getSongDownloadDir(context).listFiles() ?: return null
+    for (file in files) {
+        val status: Boolean? = PlayerDownloadService.fileMatchesDownload(file.name, this)
+        if (status == true || (allow_partial && status == false)) {
+            return file
+        }
+    }
+    return null
+}
+
+actual fun Song.getLocalLyricsFile(context: AppContext, allow_partial: Boolean): PlatformFile? {
+    val files = PlayerDownloadManager.getLyricsDownloadDir(context).listFiles() ?: return null
     for (file in files) {
         val status: Boolean? = PlayerDownloadService.fileMatchesDownload(file.name, this)
         if (status == true || (allow_partial && status == false)) {

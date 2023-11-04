@@ -62,7 +62,14 @@ actual class PlayerDownloadManager actual constructor(context: AppContext) {
     }
 }
 
-actual fun Song.getLocalAudioFile(
+actual fun Song.getLocalSongFile(
+    context: AppContext,
+    allow_partial: Boolean,
+): PlatformFile? {
+    return null // TODO
+}
+
+actual fun Song.getLocalLyricsFile(
     context: AppContext,
     allow_partial: Boolean,
 ): PlatformFile? {

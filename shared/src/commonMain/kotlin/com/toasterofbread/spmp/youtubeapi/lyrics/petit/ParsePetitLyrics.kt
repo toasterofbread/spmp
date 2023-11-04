@@ -3,7 +3,7 @@ package com.toasterofbread.spmp.youtubeapi.lyrics.petit
 import com.atilika.kuromoji.ipadic.Tokenizer
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.resources.getStringTODO
-import com.toasterofbread.spmp.youtubeapi.lyrics.createTokeniser
+import com.toasterofbread.spmp.youtubeapi.lyrics.createFuriganaTokeniser
 import com.toasterofbread.spmp.youtubeapi.lyrics.mergeAndFuriganiseTerms
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
@@ -69,7 +69,7 @@ internal fun parseTimedLyrics(data: String): Result<List<List<SongLyrics.Term>>>
         return SongLyrics.Term(listOf(SongLyrics.Term.Text(text)), line_index, start!!, end!!)
     }
 
-    val tokeniser: Tokenizer = createTokeniser()
+    val tokeniser: Tokenizer = createFuriganaTokeniser()
 
     fun parseLine(index: Int): List<SongLyrics.Term> {
         parser.require(XmlPullParser.START_TAG, null, "line")

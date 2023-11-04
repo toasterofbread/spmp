@@ -46,7 +46,7 @@ data class SongLyrics(
         val subterms: List<Text>,
         var line_index: Int,
         val start: Long? = null,
-        val end: Long? = null
+        var end: Long? = null
     ) {
         var line_range: LongRange? = null
         var data: Any? = null
@@ -71,7 +71,6 @@ data class SongLyrics(
 
         val range: LongRange
             get() = start!! .. end!!
-
     }
 
     init {

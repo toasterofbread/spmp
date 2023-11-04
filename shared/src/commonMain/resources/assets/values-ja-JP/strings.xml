@@ -93,6 +93,9 @@
     <string name="prompt_confirm_settings_page_reset">このページのバリューを全てリセットしますか？</string>
     <string name="prompt_hide_feed_rows_with_$title">タイトルが「$title」の行を隠しますか？</string>
 
+    <string name="action_download_pause">一時停止</string>
+    <string name="action_download_resume">続ける</string>
+
     <string name="player_overlay_menu_action_open_main_menu">オーバーレイ画面を開く</string>
     <string name="player_overlay_menu_action_open_theming">テーマ画面を開く</string>
     <string name="player_overlay_menu_action_pick_theme_colour">アクセント色をイメージから選ぶ</string>
@@ -172,6 +175,7 @@
     <string name="lyrics_info_key_source">源</string>
     <string name="lyrics_info_key_id">ID</string>
     <string name="lyrics_info_key_sync_type">シンク方法</string>
+    <string name="lyrics_info_key_local_file">ファイル</string>
     <string name="lyrics_source_petit">プチリリ</string>
     <string name="lyrics_source_kugou">KuGou</string>
     <string name="lyrics_source_ytm">YouTube Music</string>

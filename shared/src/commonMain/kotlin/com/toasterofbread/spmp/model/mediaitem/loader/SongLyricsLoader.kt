@@ -3,16 +3,20 @@ package com.toasterofbread.spmp.model.mediaitem.loader
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import com.toasterofbread.spmp.model.lyrics.LyricsFileConverter
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.getLocalLyricsFile
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
 import com.toasterofbread.spmp.youtubeapi.lyrics.loadLyrics
+import com.toasterofbread.toastercomposetools.platform.PlatformFile
 import java.lang.ref.WeakReference
 
 internal object SongLyricsLoader: Loader<SongLyrics>() {
     private val loaded_by_reference: MutableMap<LyricsReference, WeakReference<SongLyrics>> = mutableStateMapOf()
+    private val loaded_by_song: MutableMap<String, WeakReference<SongLyrics>> = mutableStateMapOf()
 
     private val loading_by_id: MutableMap<String, LoadJob<Result<SongLyrics>>> = mutableStateMapOf()
     private val loading_by_reference: MutableMap<LyricsReference, LoadJob<Result<SongLyrics>>> = mutableStateMapOf()
@@ -25,6 +29,21 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
         song: Song,
         context: AppContext
     ): Result<SongLyrics>? {
+        loaded_by_song[song.id]?.get()?.also {
+            return Result.success(it)
+        }
+
+        val local_file: PlatformFile? = song.getLocalLyricsFile(context)
+        if (local_file != null) {
+            val lyrics: SongLyrics? = LyricsFileConverter.loadFromFile(local_file, context)?.second
+            if (lyrics != null) {
+                val ref = WeakReference(lyrics)
+                loaded_by_song[song.id] = ref
+                loaded_by_reference[lyrics.reference] = ref
+                return Result.success(lyrics)
+            }
+        }
+
         val lyrics_reference: LyricsReference? = song.Lyrics.get(context.database)
         if (lyrics_reference != null) {
             if (lyrics_reference.isNone()) {
@@ -83,7 +102,7 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
 
             override val song_id: String = song.id
             override val lyrics: SongLyrics?
-                get() = loaded_by_reference[song_lyrics_reference.value]?.get()
+                get() = loaded_by_song[song.id]?.get() ?: loaded_by_reference[song_lyrics_reference.value]?.get()
             override val loading: Boolean
                 get() = loading_by_id.containsKey(song_id) || loading_by_reference.containsKey(song_lyrics_reference.value)
             override val is_none: Boolean

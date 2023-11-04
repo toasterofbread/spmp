@@ -1,10 +1,12 @@
 package com.toasterofbread.spmp.model.mediaitem.library
 
 import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.lyrics.LyricsFileConverter
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.toastercomposetools.platform.PlatformFile
 import com.toasterofbread.toastercomposetools.utils.common.addUnique
@@ -28,6 +30,9 @@ object MediaItemLibrary {
 
     fun getLocalLyricsDir(context: AppContext): PlatformFile =
         getLibraryDir(context).resolve("lyrics")
+
+    fun getLocalLyricsFile(song: Song, context: AppContext): PlatformFile =
+        getLocalLyricsDir(context).resolve(LyricsFileConverter.getSongLyricsFileName(song))
 
     fun getLocalPlaylistsDir(context: AppContext): PlatformFile =
         getLibraryDir(context).resolve("playlists")

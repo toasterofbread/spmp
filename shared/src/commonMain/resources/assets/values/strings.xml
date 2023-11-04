@@ -100,6 +100,9 @@
     <string name="prompt_confirm_settings_page_reset">Reset all values on this page?</string>
     <string name="prompt_hide_feed_rows_with_$title">Hide feed rows with title '$title'?</string>
 
+    <string name="action_download_pause">Pause</string>
+    <string name="action_download_resume">Resume</string>
+
     <string name="player_overlay_menu_action_open_main_menu">Open main overlay menu</string>
     <string name="player_overlay_menu_action_open_theming">Open theming</string>
     <string name="player_overlay_menu_action_pick_theme_colour">Pick accent colour from image</string>
@@ -179,6 +182,7 @@
     <string name="lyrics_info_key_source">Source</string>
     <string name="lyrics_info_key_id">ID</string>
     <string name="lyrics_info_key_sync_type">Sync type</string>
+    <string name="lyrics_info_key_local_file">Local file</string>
     <string name="lyrics_source_petit">PetitLyrics</string>
     <string name="lyrics_source_kugou">KuGou</string>
     <string name="lyrics_source_ytm">YouTube Music</string>

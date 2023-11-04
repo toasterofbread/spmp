@@ -27,4 +27,6 @@ enum class VideoFormatsEndpointType {
 
 abstract class VideoFormatsEndpoint: YoutubeApi.Endpoint() {
     abstract suspend fun getVideoFormats(id: String, filter: ((YoutubeVideoFormat) -> Boolean)? = null): Result<List<YoutubeVideoFormat>>
+
+    class YoutubeMusicPremiumContentException(message: String?): RuntimeException(message)
 }

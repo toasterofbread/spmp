@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.platform.playerservice
 
-import SpMp
 import android.app.ActivityManager
 import android.app.PendingIntent
 import android.content.ComponentName
@@ -77,6 +76,7 @@ import com.toasterofbread.spmp.platform.processMediaDataSpec
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.shared.R
 import com.toasterofbread.spmp.youtubeapi.endpoint.SetSongLikedEndpoint
+import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpoint
 import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -452,7 +452,11 @@ actual class PlatformPlayerService: MediaSessionService() {
                         }
 
                         override fun getRetryDelayMsFor(loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo): Long {
-                            return 1000
+                            if (loadErrorInfo.exception.cause is VideoFormatsEndpoint.YoutubeMusicPremiumContentException) {
+                                // Returning Long.MAX_VALUE leads to immediate retry, and returning C.TIME_UNSET cancels the notification entirely for some reason
+                                return 10000000
+                            }
+                            return 1000 * 10
                         }
 
                         override fun getMinimumLoadableRetryCount(dataType: Int): Int {

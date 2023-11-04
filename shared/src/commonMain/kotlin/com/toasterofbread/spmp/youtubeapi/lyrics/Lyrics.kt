@@ -8,8 +8,9 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.db.mediaitem.LyricsById
+import com.toasterofbread.toastercomposetools.platform.PlatformFile
 
-data class LyricsReference(val source_index: Int, val id: String) {
+data class LyricsReference(val source_index: Int, val id: String, val local_file: PlatformFile? = null) {
     fun isNone(): Boolean = source_index < 0
 
     companion object {
@@ -153,7 +154,7 @@ suspend fun loadLyrics(reference: LyricsReference, context: AppContext): Result<
 }
 
 internal fun parseStaticLyrics(lyrics_text: String): List<List<SongLyrics.Term>> {
-    val tokeniser = createTokeniser()
+    val tokeniser = createFuriganaTokeniser()
     return lyrics_text.split('\n').map { line ->
         val terms: MutableList<SongLyrics.Term> = mutableListOf()
         val split = line.split(' ')

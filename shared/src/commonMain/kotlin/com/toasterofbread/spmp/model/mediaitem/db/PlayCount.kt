@@ -49,13 +49,13 @@ suspend fun MediaItem.incrementPlayCount(context: AppContext, by: Int = 1): Resu
     }
 }
 
-fun MediaItem.getPlayCount(db: Database, range: Duration? = null): Int {
+fun MediaItem.getPlayCount(db: Database, range_days: Long? = null): Int {
     if (this is LocalPlaylistData) {
         return play_count
     }
 
-    val entries = if (range != null) {
-        val since_day = LocalDate.now().minusDays(range.toDays()).toEpochDay()
+    val entries = if (range_days != null) {
+        val since_day = LocalDate.now().minusDays(range_days).toEpochDay()
         db.mediaItemPlayCountQueries.byItemIdSince(
             id, since_day,
             { _, play_count -> play_count }
@@ -72,23 +72,23 @@ fun MediaItem.getPlayCount(db: Database, range: Duration? = null): Int {
 }
 
 @Composable
-fun MediaItem.observePlayCount(context: AppContext, range: Duration? = null): Int? {
+fun MediaItem.observePlayCount(context: AppContext, range_days: Long? = null): Int? {
     val db = context.database
     var play_count_state: Int? by remember { mutableStateOf(null) }
 
-    LaunchedEffect(id, range) {
+    LaunchedEffect(id, range_days) {
         play_count_state = null
         withContext(Dispatchers.IO) {
-            play_count_state = getPlayCount(db, range)
+            play_count_state = getPlayCount(db, range_days)
         }
     }
 
-    DisposableEffect(id, range) {
+    DisposableEffect(id, range_days) {
         val query =
-            if (range != null)
+            if (range_days != null)
                 db.mediaItemPlayCountQueries.byItemIdSince(
                     id,
-                    LocalDate.now().minusDays(range.toDays()).toEpochDay(),
+                    LocalDate.now().minusDays(range_days).toEpochDay(),
                     { _, play_count -> play_count }
                 )
             else

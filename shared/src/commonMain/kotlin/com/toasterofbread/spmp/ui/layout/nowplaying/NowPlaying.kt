@@ -196,7 +196,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
         val song_gradient_depth: Float? =
             player.status.m_song?.PlayerGradientDepth?.observe(player.database)?.value
 
-        val swipe_modifier: Modifier = remember {
+        val swipe_modifier: Modifier = remember(swipe_anchors) {
             Modifier.scrollWheelSwipeable(
                 state = swipe_state,
                 anchors = swipe_anchors,

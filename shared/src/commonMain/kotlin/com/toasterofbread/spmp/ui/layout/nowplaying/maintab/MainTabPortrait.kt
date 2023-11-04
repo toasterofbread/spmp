@@ -8,6 +8,7 @@ import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -48,6 +49,10 @@ internal const val MINIMISED_NOW_PLAYING_HORIZ_PADDING: Float = 10f
 internal const val OVERLAY_MENU_ANIMATION_DURATION: Int = 200
 internal const val SEEK_BAR_GRADIENT_OVERFLOW_RATIO: Float = 0.3f
 
+private fun BoxWithConstraintsScope.getThumbnailSize(): Dp {
+    return minOf(maxWidth - (horizontal_padding * 2), maxHeight - 350.dp)
+}
+
 @Composable
 internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(top_bar: NowPlayingTopBar, content_padding: PaddingValues, modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
@@ -63,12 +68,8 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(top_bar: NowPlaying
 
             top_bar.NowPlayingTopBar()
 
-            val thumbnail_size: Dp by remember { derivedStateOf {
-                minOf(this@BoxWithConstraints.maxWidth - (horizontal_padding * 2), this@BoxWithConstraints.maxHeight - 350.dp)
-            } }
-            val controls_height: Dp by remember { derivedStateOf {
-                this@BoxWithConstraints.maxHeight - thumbnail_size
-            } }
+            val thumbnail_size: Dp = this@BoxWithConstraints.getThumbnailSize()
+            val controls_height: Dp = this@BoxWithConstraints.maxHeight - thumbnail_size
 
             composeScope {
                 ThumbnailRow(

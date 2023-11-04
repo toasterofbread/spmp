@@ -151,9 +151,9 @@ class PlayerStateImpl(override val context: AppContext): PlayerState(null, null,
         }
     }
 
-    private fun Density.getNpBottomPadding(system_insets: WindowInsets, navigation_insets: WindowInsets, keyboard_insets: WindowInsets): Int {
+    private fun Density.getNpBottomPadding(system_insets: WindowInsets, navigation_insets: WindowInsets, keyboard_insets: WindowInsets?): Int {
         val ime_padding: Int =
-            if (np_overlay_menu.value != null) 0
+            if (keyboard_insets == null || np_overlay_menu.value != null) 0
             else keyboard_insets.getBottom(this).let { ime ->
                     if (ime > 0) {
                         val nav = navigation_insets.getBottom(this@getNpBottomPadding)
@@ -322,9 +322,9 @@ class PlayerStateImpl(override val context: AppContext): PlayerState(null, null,
 
     @Composable
     fun NowPlaying() {
-        val player = LocalPlayerState.current
-        val density = LocalDensity.current
-        val bottom_padding = density.getNpBottomPadding(WindowInsets.systemBars, WindowInsets.navigationBars, WindowInsets.ime)
+        val player: PlayerState = LocalPlayerState.current
+        val density: Density = LocalDensity.current
+        val bottom_padding: Int = density.getNpBottomPadding(WindowInsets.systemBars, WindowInsets.navigationBars, WindowInsets.ime)
 
         val vertical_page_count = getNowPlayingVerticalPageCount(player)
 

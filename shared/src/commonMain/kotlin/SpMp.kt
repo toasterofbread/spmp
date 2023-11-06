@@ -34,11 +34,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.util.logging.Logger
 
-enum class Platform {
-    ANDROID, DESKTOP
-}
-expect fun getPlatform(): Platform
-
 val LocalPlayerState: ProvidableCompositionLocal<PlayerState> = staticCompositionLocalOf { SpMp.player_state }
 object LocalNowPlayingExpansion {
     val current: NowPlayingExpansionState
@@ -50,7 +45,7 @@ object SpMp {
     val Log: Logger = Logger.getLogger(SpMp::class.java.name)
 
     private lateinit var context: AppContext
-    private lateinit var player_state: PlayerStateImpl
+    lateinit var player_state: PlayerStateImpl
 
     val prefs: PlatformPreferences get() = context.getPrefs()
 

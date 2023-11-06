@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.SwipeableState
+import androidx.compose.material.swipeable
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -197,13 +198,13 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
             player.status.m_song?.PlayerGradientDepth?.observe(player.database)?.value
 
         val swipe_modifier: Modifier = remember(swipe_anchors) {
-            Modifier.scrollWheelSwipeable(
+            Modifier.swipeable(
                 state = swipe_state,
                 anchors = swipe_anchors,
                 thresholds = { _, _ -> FractionalThreshold(0.2f) },
                 orientation = Orientation.Vertical,
-                reverse_direction = true,
-                interaction_source = swipe_interaction_source
+                reverseDirection = true,
+                interactionSource = swipe_interaction_source
             )
         }
 

@@ -5,7 +5,6 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChipDefaults
@@ -15,8 +14,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
+import com.toasterofbread.spmp.platform.isLargeFormFactor
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.toastercomposetools.settings.ui.Theme
+import com.toasterofbread.toastercomposetools.platform.composable.ScrollBarLazyRow
 
 abstract class AppPageWithItem : AppPage() {
     abstract val item: MediaItemHolder
@@ -26,12 +26,38 @@ abstract class AppPage {
     abstract val state: AppPageState
 
     @Composable
-    abstract fun ColumnScope.Page(
+    fun ColumnScope.Page(
+        multiselect_context: MediaItemMultiSelectContext,
+        modifier: Modifier,
+        content_padding: PaddingValues,
+        close: () -> Unit
+    ) {
+        val player = LocalPlayerState.current
+        if (player.isLargeFormFactor()) {
+            LFFPage(multiselect_context, modifier, content_padding, close)
+        }
+        else {
+            SFFPage(multiselect_context, modifier, content_padding, close)
+        }
+    }
+
+    @Composable
+    protected abstract fun ColumnScope.SFFPage(
         multiselect_context: MediaItemMultiSelectContext,
         modifier: Modifier,
         content_padding: PaddingValues,
         close: () -> Unit
     )
+
+    @Composable
+    protected open fun ColumnScope.LFFPage(
+        multiselect_context: MediaItemMultiSelectContext,
+        modifier: Modifier,
+        content_padding: PaddingValues,
+        close: () -> Unit
+    ) {
+        SFFPage(multiselect_context, modifier, content_padding, close)
+    }
 
     @Composable
     open fun showTopBar() = false
@@ -60,10 +86,11 @@ abstract class AppPage {
     ) {
         val player = LocalPlayerState.current
 
-        LazyRow(
+        ScrollBarLazyRow(
             modifier,
             horizontalArrangement = Arrangement.spacedBy(spacing),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            scrollbar_colour = player.theme.accent
         ) {
             items(chip_count) { index ->
                 Crossfade(isChipSelected(index)) { selected ->

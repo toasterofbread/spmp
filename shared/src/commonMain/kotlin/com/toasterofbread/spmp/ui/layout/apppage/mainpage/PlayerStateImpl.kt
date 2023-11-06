@@ -49,7 +49,7 @@ enum class FeedLoadState { PREINIT, NONE, LOADING, CONTINUING }
 
 @Composable
 fun PlayerState.getMainPageItemSize(): DpSize {
-    val width = if (isScreenLarge()) MEDIAITEM_PREVIEW_SQUARE_SIZE_LARGE.dp else MEDIAITEM_PREVIEW_SQUARE_SIZE_SMALL.dp
+    val width = if (isLargeFormFactor()) MEDIAITEM_PREVIEW_SQUARE_SIZE_LARGE.dp else MEDIAITEM_PREVIEW_SQUARE_SIZE_SMALL.dp
     return DpSize(
         width,
         width + 30.dp

@@ -159,25 +159,40 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
 
         if (state.state != _state.ordinal) {
             _state = MediaPlayerState.values()[state.state]
-            listeners.forEach { it.onStateChanged(_state) }
+            listeners.forEach { 
+                it.onStateChanged(_state)
+                it.onEvents() 
+            }
         }
         if (state.is_playing != _is_playing) {
             _is_playing = state.is_playing
-            listeners.forEach { it.onPlayingChanged(_is_playing) }
+            listeners.forEach { 
+                it.onPlayingChanged(_is_playing)
+                it.onEvents() 
+            }
         }
         if (state.current_song_index != _current_song_index) {
             _current_song_index = state.current_song_index
 
             val song = playlist.getOrNull(_current_song_index)
-            listeners.forEach { it.onSongTransition(song, false) }
+            listeners.forEach { 
+                it.onSongTransition(song, false)
+                it.onEvents() 
+            }
         }
         if (state.volume != _volume) {
             _volume = state.volume
-            listeners.forEach { it.onVolumeChanged(_volume) }
+            listeners.forEach { 
+                it.onVolumeChanged(_volume)
+                it.onEvents() 
+            }
         }
         if (state.repeat_mode != _repeat_mode.ordinal) {
             _repeat_mode = MediaPlayerRepeatMode.values()[state.repeat_mode]
-            listeners.forEach { it.onRepeatModeChanged(_repeat_mode) }
+            listeners.forEach { 
+                it.onRepeatModeChanged(_repeat_mode)
+                it.onEvents() 
+            }
         }
 
         _duration_ms = state.duration_ms.toLong()
@@ -209,76 +224,111 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
             }
             println("Processing event: $event")
 
-            val type = (event["type"] as String?) ?: continue
-            val properties = (event["properties"] as? Map<String, Any>) ?: continue
-
-            when (type) {
-                "ItemTransition" -> {
-                    _current_song_index = (properties["index"] as Double).toInt()
-                    _duration_ms = -1
-                    updateCurrentSongPosition(0)
-                    listeners.forEach { it.onSongTransition(getSong(_current_song_index), false) }
-                }
-                "PropertyChanged" -> {
-                    val value: Any? = properties["value"]
-                    when (properties["key"] as String) {
-                        "state" -> {
-                            if (value != _state.ordinal) {
-                                _state = MediaPlayerState.values()[(value as Double).toInt()]
-                                listeners.forEach { it.onStateChanged(_state) }
-                            }
+            try {
+                val type = (event["type"] as String?) ?: continue
+                val properties = (event["properties"] as? Map<String, Any>) ?: continue
+                when (type) {
+                    "ItemTransition" -> {
+                        _current_song_index = (properties["index"] as Double).toInt()
+                        _duration_ms = -1
+                        updateCurrentSongPosition(0)
+                        listeners.forEach { 
+                            it.onSongTransition(getSong(_current_song_index), false)
+                            it.onEvents() 
                         }
-                        "is_playing" -> {
-                            if (value != _is_playing) {
-                                updateIsPlaying(value as Boolean)
-                                listeners.forEach { it.onPlayingChanged(_is_playing) }
-                            }
-                        }
-                        "repeat_mode" -> {
-                            if (value != _repeat_mode.ordinal) {
-                                _repeat_mode = MediaPlayerRepeatMode.values()[(value as Double).toInt()]
-                                listeners.forEach { it.onRepeatModeChanged(_repeat_mode) }
-                            }
-                        }
-                        "volume" -> {
-                            if (value != _volume) {
-                                _volume = (value as Double).toFloat()
-                                listeners.forEach { it.onVolumeChanged(_volume) }
-                            }
-                        }
-                        "duration_ms" -> {
-                            val duration = (value as Double).toLong()
-                            if (duration != _duration_ms) {
-                                _duration_ms = duration
-                                listeners.forEach { it.onDurationChanged(_duration_ms) }
-                            }
-                        }
-                        else -> throw NotImplementedError(type)
                     }
+                    "PropertyChanged" -> {
+                        val value: Any? = properties["value"]
+                        when (properties["key"] as String) {
+                            "state" -> {
+                                if (value != _state.ordinal) {
+                                    _state = MediaPlayerState.values()[(value as Double).toInt()]
+                                    listeners.forEach { 
+                                        it.onStateChanged(_state)
+                                        it.onEvents() 
+                                    }
+                                }
+                            }
+                            "is_playing" -> {
+                                if (value != _is_playing) {
+                                    updateIsPlaying(value as Boolean)
+                                    listeners.forEach { 
+                                        it.onPlayingChanged(_is_playing)
+                                        it.onEvents() 
+                                    }
+                                }
+                            }
+                            "repeat_mode" -> {
+                                if (value != _repeat_mode.ordinal) {
+                                    _repeat_mode = MediaPlayerRepeatMode.values()[(value as Double).toInt()]
+                                    listeners.forEach { 
+                                        it.onRepeatModeChanged(_repeat_mode)
+                                        it.onEvents() 
+                                    }
+                                }
+                            }
+                            "volume" -> {
+                                if (value != _volume) {
+                                    _volume = (value as Double).toFloat()
+                                    listeners.forEach { 
+                                        it.onVolumeChanged(_volume)
+                                        it.onEvents() 
+                                    }
+                                }
+                            }
+                            "duration_ms" -> {
+                                val duration = (value as Double).toLong()
+                                if (duration != _duration_ms) {
+                                    _duration_ms = duration
+                                    listeners.forEach { 
+                                        it.onDurationChanged(_duration_ms)
+                                        it.onEvents() 
+                                    }
+                                }
+                            }
+                            else -> throw NotImplementedError(type)
+                        }
+                    }
+                    "Seeked" -> {
+                        val position_ms = (properties["position_ms"] as Double).toLong()
+                        updateCurrentSongPosition(position_ms)
+                        listeners.forEach { 
+                            it.onSeeked(position_ms)
+                            it.onEvents() 
+                        }
+                    }
+                    "ItemAdded" -> {
+                        val song = SongData(properties["item_id"] as String)
+                        val index = (properties["index"] as Double).toInt()
+                        playlist.add(index, song)
+                        listeners.forEach { 
+                            it.onSongAdded(index, song)
+                            it.onEvents() 
+                        }
+                        service_player.session_started = true
+                    }
+                    "ItemRemoved" -> {
+                        val index = (properties["index"] as Double).toInt()
+                        playlist.removeAt(index)
+                        listeners.forEach { 
+                            it.onSongRemoved(index)
+                            it.onEvents() 
+                        }
+                    }
+                    "ItemMoved" -> {
+                        val to = (properties["to_index"] as Double).toInt()
+                        val from = (properties["from_index"] as Double).toInt()
+                        playlist.add(to, playlist.removeAt(from))
+                        listeners.forEach { 
+                            it.onSongMoved(from, to)
+                            it.onEvents() 
+                        }
+                    }
+                    else -> throw NotImplementedError(type)
                 }
-                "Seeked" -> {
-                    val position_ms = (event["position_ms"] as Int).toLong()
-                    updateCurrentSongPosition(position_ms)
-                    listeners.forEach { it.onSeeked(position_ms) }
-                }
-                "ItemAdded" -> {
-                    val song = SongData(event["item_id"] as String)
-                    val index = event["index"] as Int
-                    playlist.add(index, song)
-                    listeners.forEach { it.onSongAdded(index, song) }
-                }
-                "ItemRemoved" -> {
-                    val index = event["index"] as Int
-                    playlist.removeAt(index)
-                    listeners.forEach { it.onSongRemoved(index) }
-                }
-                "ItemMoved" -> {
-                    val to = event["to_index"] as Int
-                    val from = event["from_index"] as Int
-                    playlist.add(to, playlist.removeAt(from))
-                    listeners.forEach { it.onSongMoved(from, to) }
-                }
-                else -> throw NotImplementedError(event["type"] as String)
+            }
+            catch (e: Throwable) {
+                throw RuntimeException("Processing event $event failed", e)
             }
         }
 

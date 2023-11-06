@@ -34,7 +34,7 @@ data class MediaItemAppPage(
     }
 
     @Composable
-    override fun ColumnScope.Page(
+    override fun ColumnScope.SFFPage(
         multiselect_context: MediaItemMultiSelectContext,
         modifier: Modifier,
         content_padding: PaddingValues,
@@ -55,7 +55,7 @@ data class MediaItemAppPage(
                     }
                 }
                 with(page) {
-                    Page(multiselect_context, modifier, content_padding, close)
+                    SFFPage(multiselect_context, modifier, content_padding, close)
                 }
             }
             is Artist -> ArtistPage(

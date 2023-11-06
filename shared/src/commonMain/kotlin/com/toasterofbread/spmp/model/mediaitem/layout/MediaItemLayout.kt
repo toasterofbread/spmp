@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem.layout
 
+import LocalPlayerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -10,6 +11,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.isLargeFormFactor
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemList
@@ -17,7 +19,11 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
 
-fun getDefaultMediaItemPreviewSize(): DpSize = DpSize(100.dp, 120.dp)
+@Composable
+fun getDefaultMediaItemPreviewSize(): DpSize =
+    if (LocalPlayerState.current.isLargeFormFactor()) DpSize(180.dp, 250.dp)
+    else DpSize(100.dp, 120.dp)
+
 @Composable
 fun getMediaItemPreviewSquareAdditionalHeight(text_rows: Int?, line_height: TextUnit): Dp {
     return with(LocalDensity.current) { line_height.toDp() } * ((text_rows ?: 1) - 1)

@@ -14,12 +14,13 @@ import com.google.gson.GsonBuilder
 import com.google.gson.TypeAdapter
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
-import com.toasterofbread.spmp.model.AccentColourSource
 import com.toasterofbread.db.Database
+import com.toasterofbread.spmp.model.AccentColourSource
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
+import com.toasterofbread.toastercomposetools.platform.Platform
 import com.toasterofbread.toastercomposetools.platform.PlatformContext
 import com.toasterofbread.toastercomposetools.platform.PlatformPreferences
 import com.toasterofbread.toastercomposetools.settings.ui.StaticThemeData
@@ -116,17 +117,17 @@ fun PlayerState.isPortrait(): Boolean {
     return (screen_size.width / screen_size.height) <= MIN_PORTRAIT_RATIO
 }
 
-fun PlayerState.isScreenLarge(): Boolean {
-    if (screen_size.width < 900.dp) {
-        return false
+fun PlayerState.isLargeFormFactor(): Boolean {
+    return when (Platform.current) {
+        Platform.ANDROID -> false
+        Platform.DESKTOP -> screen_size.width >= 500.dp && screen_size.height >= 500.dp
     }
-    return screen_size.height >= 600.dp && (screen_size.width / screen_size.height) > MIN_PORTRAIT_RATIO
 }
 
 @Composable
-fun PlayerState.getDefaultHorizontalPadding(): Dp = if (isScreenLarge()) 30.dp else 10.dp
+fun PlayerState.getDefaultHorizontalPadding(): Dp = if (isLargeFormFactor()) 30.dp else 10.dp
 @Composable
-fun PlayerState.getDefaultVerticalPadding(): Dp = if (isScreenLarge()) 30.dp else 10.dp // TODO
+fun PlayerState.getDefaultVerticalPadding(): Dp = if (isLargeFormFactor()) 30.dp else 10.dp // TODO
 
 @Composable
 fun PlayerState.getDefaultPaddingValues(): PaddingValues = PaddingValues(horizontal = getDefaultHorizontalPadding(), vertical = getDefaultVerticalPadding())

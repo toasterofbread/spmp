@@ -288,9 +288,9 @@ internal fun QueueTab(
                             if (!inline) {
                                 item {
                                     var bottom_padding: Dp = (
-                                            MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
-                                                    + list_position
-                                            )
+                                        MINIMISED_NOW_PLAYING_HEIGHT_DP.dp * 2
+                                        + list_position
+                                    )
 
                                     if (player.controller?.radio_state?.loading == true) {
                                         bottom_padding = page_height - bottom_padding

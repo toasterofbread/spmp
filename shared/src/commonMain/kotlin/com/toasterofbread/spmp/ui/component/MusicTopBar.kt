@@ -372,7 +372,7 @@ private fun TopBarEmptyContent() {
             .clipToBounds()
     ) {
         drawWave(
-            height = size.height / 2,
+            wave_size = size.copy(height = size.height / 2),
             waves = 3,
             stroke_width = stroke_width,
             getWaveOffset = {

@@ -10,13 +10,14 @@ import com.google.gson.Gson
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
-import com.toasterofbread.toastercomposetools.platform.PlatformPreferences
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpointType
 import com.toasterofbread.spmp.youtubeapi.fromJson
+import com.toasterofbread.toastercomposetools.platform.Platform
+import com.toasterofbread.toastercomposetools.platform.PlatformPreferences
 import okhttp3.Headers.Companion.toHeaders
 import java.util.*
 
@@ -384,11 +385,11 @@ enum class Settings {
                 KEY_FEED_SHOW_FILTER_BAR -> true
                 KEY_FEED_SHOW_SONG_DOWNLOAD_INDICATORS -> false
                 KEY_FEED_INITIAL_ROWS -> 4
-                KEY_FEED_SQUARE_PREVIEW_TEXT_LINES -> 1
-                KEY_FEED_GRID_ROW_COUNT -> 2
-                KEY_FEED_GRID_ROW_COUNT_EXPANDED -> 2
-                KEY_FEED_ALT_GRID_ROW_COUNT -> 4
-                KEY_FEED_ALT_GRID_ROW_COUNT_EXPANDED -> 4
+                KEY_FEED_SQUARE_PREVIEW_TEXT_LINES -> if (Platform.DESKTOP.isCurrent()) 2 else 1
+                KEY_FEED_GRID_ROW_COUNT -> if (Platform.DESKTOP.isCurrent()) 1 else 2
+                KEY_FEED_GRID_ROW_COUNT_EXPANDED -> if (Platform.DESKTOP.isCurrent()) 1 else 2
+                KEY_FEED_ALT_GRID_ROW_COUNT -> if (Platform.DESKTOP.isCurrent()) 2 else 4
+                KEY_FEED_ALT_GRID_ROW_COUNT_EXPANDED -> if (Platform.DESKTOP.isCurrent()) 2 else 4
                 KEY_FEED_SHOW_RADIOS -> false
                 KEY_FEED_HIDDEN_ROWS -> emptySet<String>()
 

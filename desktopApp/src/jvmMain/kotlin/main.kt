@@ -3,6 +3,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
@@ -11,15 +12,25 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowPlacement
+import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.toastercomposetools.platform.composable.onWindowBackPressed
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
-import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.toastercomposetools.platform.composable.onWindowBackPressed
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.awt.AWTEventMulticaster
+import java.awt.event.WindowEvent
+import java.awt.event.WindowStateListener
+import java.io.File
 
 private const val SCREEN_SIZE_UPDATE_INTERVAL: Long = 100
 
@@ -44,7 +55,8 @@ fun main() {
                     return@Window onWindowBackPressed()
                 }
                 return@Window false
-            }
+            },
+            state = rememberWindowState(size = DpSize(1280.dp, 720.dp), position = WindowPosition(Alignment.Center))
         ) {
             var initialised by remember { mutableStateOf(false) }
             LaunchedEffect(Unit) {

@@ -52,8 +52,8 @@ actual class PlatformPlayerService: ZmqSpMsPlayerService(), PlayerService {
             if (value == _repeat_mode) {
                 return
             }
-            _repeat_mode = value
-            onEvent { it.onRepeatModeChanged(_repeat_mode) }
+//            _repeat_mode = value
+//            onEvent { it.onRepeatModeChanged(_repeat_mode) }
             sendRequest("setRepeatMode", value.ordinal)
         }
     actual override var volume: Float
@@ -62,8 +62,8 @@ actual class PlatformPlayerService: ZmqSpMsPlayerService(), PlayerService {
             if (value == _volume) {
                 return
             }
-            _volume = value
-            onEvent { it.onVolumeChanged(_volume) }
+//            _volume = value
+//            onEvent { it.onVolumeChanged(_volume) }
             sendRequest("setVolume", value)
         }
 
@@ -77,113 +77,113 @@ actual class PlatformPlayerService: ZmqSpMsPlayerService(), PlayerService {
     }
     
     actual override fun play() {
-        if (playlist.isEmpty() || _is_playing) {
-            return
-        }
-
-        _is_playing = true
-        updateCurrentSongPosition(current_song_time)
-
-        onEvent { it.onPlayingChanged(_is_playing) }
+//        if (playlist.isEmpty() || _is_playing) {
+//            return
+//        }
+//
+//        _is_playing = true
+//        updateCurrentSongPosition(current_song_time)
+//
+//        onEvent { it.onPlayingChanged(_is_playing) }
 
         sendRequest("play")
     }
 
     actual override fun pause() {
-        if (playlist.isEmpty() || !_is_playing) {
-            return
-        }
-
-        _is_playing = false
-        updateCurrentSongPosition(System.currentTimeMillis() - current_song_time)
-
-        onEvent { it.onPlayingChanged(_is_playing) }
+//        if (playlist.isEmpty() || !_is_playing) {
+//            return
+//        }
+//
+//        _is_playing = false
+//        updateCurrentSongPosition(System.currentTimeMillis() - current_song_time)
+//
+//        onEvent { it.onPlayingChanged(_is_playing) }
 
         sendRequest("pause")
     }
 
     actual override fun playPause() {
-        if (playlist.isEmpty()) {
-            return
-        }
-
-        val pos_ms = current_position_ms
-        _is_playing = !_is_playing
-        updateCurrentSongPosition(pos_ms)
-
-        onEvent { it.onPlayingChanged(_is_playing) }
+//        if (playlist.isEmpty()) {
+//            return
+//        }
+//
+//        val pos_ms = current_position_ms
+//        _is_playing = !_is_playing
+//        updateCurrentSongPosition(pos_ms)
+//
+//        onEvent { it.onPlayingChanged(_is_playing) }
 
         sendRequest("playPause")
     }
 
     actual override fun seekTo(position_ms: Long) {
-        if (playlist.isEmpty()) {
-            return
-        }
-
-        updateCurrentSongPosition(position_ms)
-
-        onEvent { it.onSeeked(position_ms) }
+//        if (playlist.isEmpty()) {
+//            return
+//        }
+//
+//        updateCurrentSongPosition(position_ms)
+//
+//        onEvent { it.onSeeked(position_ms) }
         sendRequest("seekToTime", position_ms)
     }
 
     actual override fun seekToSong(index: Int) {
-        require(index in playlist.indices) { "$index | ${playlist.toList()}" }
-
-        _current_song_index = index
-        _duration_ms = 0
-        updateCurrentSongPosition(0)
-
-        onEvent {
-            it.onSongTransition(playlist[index], true)
-            it.onEvents()
-        }
+//        require(index in playlist.indices) { "$index | ${playlist.toList()}" }
+//
+//        _current_song_index = index
+//        _duration_ms = 0
+//        updateCurrentSongPosition(0)
+//
+//        onEvent {
+//            it.onSongTransition(playlist[index], true)
+//            it.onEvents()
+//        }
 
         sendRequest("seekToItem", index)
     }
 
     actual override fun seekToNext() {
-        if (playlist.isEmpty()) {
-            return
-        }
-
-        val target_index = when (_repeat_mode) {
-            MediaPlayerRepeatMode.NONE -> if (_current_song_index + 1 == playlist.size) return else _current_song_index + 1
-            MediaPlayerRepeatMode.ONE -> _current_song_index
-            MediaPlayerRepeatMode.ALL -> if (_current_song_index + 1 == playlist.size) 0 else _current_song_index + 1
-        }
-
-        _current_song_index = target_index
-        current_song_time = 0
-        _duration_ms = -1
-
-        onEvent {
-            it.onSongTransition(playlist[_current_song_index], true)
-            it.onEvents()
-        }
+//        if (playlist.isEmpty()) {
+//            return
+//        }
+//
+//        val target_index = when (_repeat_mode) {
+//            MediaPlayerRepeatMode.NONE -> if (_current_song_index + 1 == playlist.size) return else _current_song_index + 1
+//            MediaPlayerRepeatMode.ONE -> _current_song_index
+//            MediaPlayerRepeatMode.ALL -> if (_current_song_index + 1 == playlist.size) 0 else _current_song_index + 1
+//        }
+//
+//        _current_song_index = target_index
+//        current_song_time = 0
+//        _duration_ms = -1
+//
+//        onEvent {
+//            it.onSongTransition(playlist[_current_song_index], true)
+//            it.onEvents()
+//        }
 
         sendRequest("seekToNext")
     }
 
     actual override fun seekToPrevious() {
-        if (playlist.isEmpty()) {
-            return
-        }
-
-        val target_index = when (_repeat_mode) {
-            MediaPlayerRepeatMode.NONE -> if (_current_song_index == 0) return else _current_song_index - 1
-            MediaPlayerRepeatMode.ONE -> _current_song_index
-            MediaPlayerRepeatMode.ALL -> if (_current_song_index == 0) playlist.size - 1 else _current_song_index - 1
-        }
-
-        _current_song_index = target_index
-        current_song_time = 0
-        _duration_ms = -1
-
-        onEvent {
-            it.onSongTransition(playlist[_current_song_index], true)
-            it.onEvents()
-        }
+//        if (playlist.isEmpty()) {
+//            return
+//        }
+//
+//        val target_index = when (_repeat_mode) {
+//            MediaPlayerRepeatMode.NONE -> if (_current_song_index == 0) return else _current_song_index - 1
+//            MediaPlayerRepeatMode.ONE -> _current_song_index
+//            MediaPlayerRepeatMode.ALL -> if (_current_song_index == 0) playlist.size - 1 else _current_song_index - 1
+//        }
+//
+//        _current_song_index = target_index
+//        current_song_time = 0
+//        _duration_ms = -1
+//
+//        onEvent {
+//            it.onSongTransition(playlist[_current_song_index], true)
+//            it.onEvents()
+//        }
 
         sendRequest("seekToPrevious")
     }
@@ -193,55 +193,55 @@ actual class PlatformPlayerService: ZmqSpMsPlayerService(), PlayerService {
     actual override fun getSong(index: Int): Song? = playlist.getOrNull(index)
 
     actual override fun addSong(song: Song, index: Int) {
-        require(index in 0..song_count)
+//        require(index in 0..song_count)
 
-        playlist.add(index, song)
+//        playlist.add(index, song)
         sendRequest("addItem", song.id, index)
 
-        if (_current_song_index < 0) {
-            _current_song_index = 0
-        }
-        service_player.session_started = true
-
-        onEvent {
-            it.onSongAdded(index, song)
-            it.onEvents()
-        }
+//        if (_current_song_index < 0) {
+//            _current_song_index = 0
+//        }
+//        service_player.session_started = true
+//
+//        onEvent {
+//            it.onSongAdded(index, song)
+//            it.onEvents()
+//        }
     }
 
     actual override fun moveSong(from: Int, to: Int) {
-        require(from in 0 until song_count)
-        require(to in 0 until song_count)
-
-        if (playlist.size < 2) {
-            return
-        }
-
-        playlist.add(to, playlist.removeAt(from))
-
-        if (from == _current_song_index) {
-            _current_song_index = to
-        }
-        else if (to == _current_song_index) {
-            if (from < _current_song_index) {
-                _current_song_index--
-            }
-            else {
-                _current_song_index++
-            }
-        }
-
-        onEvent { it.onSongMoved(from, to) }
+//        require(from in 0 until song_count)
+//        require(to in 0 until song_count)
+//
+//        if (playlist.size < 2) {
+//            return
+//        }
+//
+//        playlist.add(to, playlist.removeAt(from))
+//
+//        if (from == _current_song_index) {
+//            _current_song_index = to
+//        }
+//        else if (to == _current_song_index) {
+//            if (from < _current_song_index) {
+//                _current_song_index--
+//            }
+//            else {
+//                _current_song_index++
+//            }
+//        }
+//
+//        onEvent { it.onSongMoved(from, to) }
         sendRequest("moveItem", from, to)
     }
 
     actual override fun removeSong(index: Int) {
-        playlist.removeAt(index)
-        if (_current_song_index == playlist.size) {
-            _current_song_index--
-        }
-
-        onEvent { it.onSongRemoved(index) }
+//        playlist.removeAt(index)
+//        if (_current_song_index == playlist.size) {
+//            _current_song_index--
+//        }
+//
+//        onEvent { it.onSongRemoved(index) }
         sendRequest("removeItem", index)
     }
 

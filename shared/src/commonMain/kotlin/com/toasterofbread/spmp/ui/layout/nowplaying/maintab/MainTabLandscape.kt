@@ -21,9 +21,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
-import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.SwipeableState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material.icons.filled.VolumeUp
@@ -41,6 +41,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -67,6 +68,7 @@ import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
 import com.toasterofbread.toastercomposetools.platform.composable.composeScope
 import com.toasterofbread.toastercomposetools.utils.common.launchSingle
 import com.toasterofbread.toastercomposetools.utils.composable.getTop
+import kotlinx.coroutines.CoroutineScope
 import kotlin.math.absoluteValue
 
 private const val CONTROLS_MAX_HEIGHT_DP: Float = 400f
@@ -86,15 +88,16 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLandscape(page_height: Dp, t
     val absolute_expansion: Float by remember { derivedStateOf {
         expansion.getAbsolute()
     } }
-    val min_height = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp - (MINIMISED_NOW_PLAYING_V_PADDING_DP.dp * 2)
-    val height = ((absolute_expansion * (page_height - min_height)) + min_height).coerceAtLeast(min_height)
 
-    val queue_swipe_coroutine_scope = rememberCoroutineScope()
-    val queue_swipe_state = rememberSwipeableState(1)
+    val min_height: Dp = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp - (MINIMISED_NOW_PLAYING_V_PADDING_DP.dp * 2)
+    val height: Dp = ((absolute_expansion * (page_height - min_height)) + min_height).coerceAtLeast(min_height)
 
-    val layout_direction = LocalLayoutDirection.current
-    val start_padding = content_padding.calculateStartPadding(layout_direction)
-    val end_padding = content_padding.calculateEndPadding(layout_direction)
+    val queue_swipe_coroutine_scope: CoroutineScope = rememberCoroutineScope()
+    val queue_swipe_state: SwipeableState<Int> = rememberSwipeableState(1)
+
+    val layout_direction: LayoutDirection = LocalLayoutDirection.current
+    val start_padding: Dp = content_padding.calculateStartPadding(layout_direction)
+    val end_padding: Dp = content_padding.calculateEndPadding(layout_direction)
     val page_width: Dp = player.screen_size.width - start_padding - end_padding
 
     BoxWithConstraints(
@@ -109,7 +112,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLandscape(page_height: Dp, t
             )
     ) {
         Row(
-            Modifier.fillMaxSize(),
+            Modifier.fillMaxSize().clipToBounds(),
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
@@ -117,6 +120,8 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLandscape(page_height: Dp, t
 
             val thumbnail_rounding: Int? = player.status.m_song?.ThumbnailRounding?.observe(player.context.database)?.value
             val thumbnail_shape: Shape = RoundedCornerShape(thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING)
+
+            val parent_max_width: Dp = this@BoxWithConstraints.maxWidth
 
             BoxWithConstraints(
                 Modifier
@@ -143,7 +148,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLandscape(page_height: Dp, t
                     queue_swipe_state.snapTo(0)
                 }
 
-                val thumb_size = minOf(height, maxWidth)
+                val thumb_size: Dp = minOf(height, maxWidth, parent_max_width * 0.5f)
 
                 composeScope {
                     ThumbnailRow(
@@ -190,7 +195,16 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLandscape(page_height: Dp, t
                 }
             }
 
-            Box(Modifier.requiredSize(minOf(page_height, this@BoxWithConstraints.maxWidth / 2))) {
+            val controls_height: Dp = page_height - top_padding - bottom_padding
+
+            Box(
+                Modifier
+                    // Fix size of controls to reduce compositions
+                    .requiredSize(
+                        minOf(page_height, parent_max_width / 2),
+                        controls_height
+                    )
+            ) {
                 composeScope(
                     remember { { it: Float -> seek_state = it } },
                     top_bar,
@@ -212,12 +226,13 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLandscape(page_height: Dp, t
                             .offset {
                                 IntOffset(
                                     ((1f - player.expansion.getBounded()) * page_height).roundToPx() / 2,
-                                    0
+                                    (controls_height * 0.5f * (1f - player.expansion.getBounded())).roundToPx()
                                 )
                             }
                             .graphicsLayer {
                                 alpha = 1f - (1f - player.expansion.getBounded()).absoluteValue
-                            }
+                            },
+                        verticalArrangement = Arrangement.SpaceEvenly
                     ) {
                         composeScope {
                             top_bar.NowPlayingTopBar(expansion = ExpansionState.getStatic(1f))

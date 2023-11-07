@@ -85,7 +85,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
     val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
     val density: Density = LocalDensity.current
 
-    val swipe_interaction_source = remember { MutableInteractionSource() }
+    val swipe_interaction_source: MutableInteractionSource = remember { MutableInteractionSource() }
     val swipe_interactions: MutableList<Interaction> = remember { mutableStateListOf() }
     var player_alpha: Float by remember { mutableStateOf(1f) }
 
@@ -112,17 +112,17 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
         exit = slideOutVertically(),
         enter = slideInVertically()
     ) {
-        val bottom_padding = player.nowPlayingBottomPadding()
+        val bottom_padding: Dp = player.nowPlayingBottomPadding()
         val default_gradient_depth: Float by Settings.KEY_NOWPLAYING_DEFAULT_GRADIENT_DEPTH.rememberMutableState()
 
-        val half_screen_height = player.screen_size.height * 0.5f
+        val half_screen_height: Dp = player.screen_size.height * 0.5f
         val page_height: Dp = (
             player.screen_size.height
             - bottom_padding
             - WindowInsets.getTop()
         )
 
-        val is_shut by remember { derivedStateOf { swipe_state.targetValue == 0 } }
+        val is_shut: Boolean by remember { derivedStateOf { swipe_state.targetValue == 0 } }
 
         var switch_to_page: Int by remember { mutableStateOf(-1) }
         OnChangedEffect(switch_to_page) {
@@ -311,12 +311,13 @@ private fun NowPlayingCardContent(page_height: Dp, content_padding: PaddingValue
         ) {
             composeScope {
                 val spacer_height: Dp
+                val top_inset: Dp = WindowInsets.statusBars.getTop()
 
-                if (player.isPortrait()) {
+                if (player.isPortrait() || top_inset <= 2.dp) {
                     spacer_height = lerp(MINIMISED_NOW_PLAYING_V_PADDING_DP.dp, WindowInsets.statusBars.getTop(), expansion.get().coerceIn(0f, 1f))
                 }
                 else {
-                    val max_height: Dp = WindowInsets.statusBars.getTop() - 2.dp
+                    val max_height: Dp = top_inset - 2.dp
                     val proportion: Float = (max_height + 5.dp) / player.screen_size.height
 
                     val exp: Float = expansion.get().coerceIn(0f, 1f)
@@ -359,7 +360,7 @@ private fun NowPlayingCardContent(page_height: Dp, content_padding: PaddingValue
                     top_bar,
                     content_padding,
                     swipe_modifier,
-                    Modifier.fillMaxWidth().requiredHeight(page_height).offset(offsetProvider)
+                    Modifier.fillMaxWidth().offset(offsetProvider)
                 )
             }
 

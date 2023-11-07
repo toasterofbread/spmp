@@ -32,7 +32,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
-import com.toasterofbread.toastercomposetools.platform.composable.PlatformAlertDialog
+import androidx.compose.material3.AlertDialog
 import com.toasterofbread.toastercomposetools.platform.composable.rememberImagePainter
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.endpoint.YoutubeChannelCreationFormEndpoint.YoutubeAccountCreationForm.ChannelCreationForm
@@ -65,7 +65,7 @@ fun YoutubeChannelCreateDialog(
     }
     val can_create = params[fields[0].key]!!.isNotBlank()
 
-    PlatformAlertDialog(
+    AlertDialog(
         onDismissRequest = { onFinished(null) },
         confirmButton = {
             var loading by remember { mutableStateOf(false) }
@@ -122,35 +122,36 @@ fun YoutubeChannelCreateDialog(
                 }
                 WidthShrinkText(getString("youtube_channel_creation_title"))
             }
-        }
-    ) {
-        Column(Modifier.padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            with(form.contents.createCoreIdentityChannelContentRenderer) {
-                for (item in fields.withIndex()) {
-                    val field = item.value
-                    val is_error = item.index == 0 && !can_create
+        },
+        text = {
+            Column(Modifier.padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                with(form.contents.createCoreIdentityChannelContentRenderer) {
+                    for (item in fields.withIndex()) {
+                        val field = item.value
+                        val is_error = item.index == 0 && !can_create
 
-                    TextField(
-                        params[field.key]!!,
-                        { params[field.key] = it },
-                        label = {
-                            Text(field.label ?: field.key)
-                        },
-                        supportingText = {
-                            AnimatedVisibility(is_error) {
-                                Text(missingNameErrorMessage.firstTextOrNull() ?: getString("error_message_generic"))
-                            }
-                        },
-                        isError = is_error
-                    )
+                        TextField(
+                            params[field.key]!!,
+                            { params[field.key] = it },
+                            label = {
+                                Text(field.label ?: field.key)
+                            },
+                            supportingText = {
+                                AnimatedVisibility(is_error) {
+                                    Text(missingNameErrorMessage.firstTextOrNull() ?: getString("error_message_generic"))
+                                }
+                            },
+                            isError = is_error
+                        )
+                    }
                 }
-            }
 
-            LinkifyText(
-                getString("youtube_channel_creation_subtitle"),
-                player.theme.accent,
-                style = MaterialTheme.typography.titleMedium
-            )
+                LinkifyText(
+                    getString("youtube_channel_creation_subtitle"),
+                    player.theme.accent,
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
         }
-    }
+    )
 }

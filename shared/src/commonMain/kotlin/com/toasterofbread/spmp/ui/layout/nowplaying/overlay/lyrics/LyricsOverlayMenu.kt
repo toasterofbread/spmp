@@ -62,7 +62,8 @@ import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
 import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
-import com.toasterofbread.toastercomposetools.platform.composable.PlatformAlertDialog
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.FilledTonalButton
 import com.toasterofbread.toastercomposetools.utils.common.launchSingle
 import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
 
@@ -122,48 +123,50 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
         Box(contentAlignment = Alignment.Center) {
             var show_lyrics_info by remember { mutableStateOf(false) }
             if (show_lyrics_info) {
-                PlatformAlertDialog(
-                    { show_lyrics_info = false },
-                    {
+                AlertDialog(
+                    onDismissRequest = { show_lyrics_info = false },
+                    confirmButton = {},
+                    dismissButton = {
                         Button({ show_lyrics_info = false }) {
                             Text(getString("action_close"))
                         }
-                    }
-                ) {
-                    Crossfade(lyrics_state.lyrics) { lyrics ->
-                        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(15.dp)) {
-                            if (lyrics == null) {
-                                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                                    Icon(Icons.Default.Close, null)
+                    },
+                    text = {
+                        Crossfade(lyrics_state.lyrics) { lyrics ->
+                            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(15.dp)) {
+                                if (lyrics == null) {
+                                    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                        Icon(Icons.Default.Close, null)
+                                    }
                                 }
-                            }
-                            else {
-                                @Composable
-                                fun Item(title: String, text: String) {
-                                    val faint_colour = LocalContentColor.current.copy(alpha = 0.75f)
-                                    Column(Modifier.fillMaxWidth().border(1.dp, faint_colour, RoundedCornerShape(16.dp)).padding(10.dp)) {
-                                        Text(title, style = MaterialTheme.typography.bodySmall, color = faint_colour)
-                                        Spacer(Modifier.height(5.dp))
+                                else {
+                                    @Composable
+                                    fun Item(title: String, text: String) {
+                                        val faint_colour = LocalContentColor.current.copy(alpha = 0.75f)
+                                        Column(Modifier.fillMaxWidth().border(1.dp, faint_colour, RoundedCornerShape(16.dp)).padding(10.dp)) {
+                                            Text(title, style = MaterialTheme.typography.bodySmall, color = faint_colour)
+                                            Spacer(Modifier.height(5.dp))
 
-                                        SelectionContainer {
-                                            Text(text, style = MaterialTheme.typography.titleMedium)
+                                            SelectionContainer {
+                                                Text(text, style = MaterialTheme.typography.titleMedium)
+                                            }
                                         }
                                     }
-                                }
 
-                                Item(
-                                    getString("lyrics_info_key_source"),
-                                    remember(lyrics.source_idx) {
-                                        LyricsSource.fromIdx(lyrics.source_idx).getReadable()
-                                    }
-                                )
-                                Item(getString("lyrics_info_key_id"), lyrics.id)
-                                Item(getString("lyrics_info_key_sync_type"), lyrics.sync_type.getReadable())
-                                Item(getString("lyrics_info_key_local_file"), lyrics.reference.local_file?.absolute_path.toString())
+                                    Item(
+                                        getString("lyrics_info_key_source"),
+                                        remember(lyrics.source_idx) {
+                                            LyricsSource.fromIdx(lyrics.source_idx).getReadable()
+                                        }
+                                    )
+                                    Item(getString("lyrics_info_key_id"), lyrics.id)
+                                    Item(getString("lyrics_info_key_sync_type"), lyrics.sync_type.getReadable())
+                                    Item(getString("lyrics_info_key_local_file"), lyrics.reference.local_file?.absolute_path.toString())
+                                }
                             }
                         }
                     }
-                }
+                )
             }
 
             // Pill menu

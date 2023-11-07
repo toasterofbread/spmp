@@ -40,7 +40,7 @@ import com.toasterofbread.spmp.ui.layout.PinnedItemsRow
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.FeedLoadState
 import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
 import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
-import com.toasterofbread.toastercomposetools.platform.composable.PlatformAlertDialog
+import androidx.compose.material3.AlertDialog
 import com.toasterofbread.toastercomposetools.platform.composable.SwipeRefresh
 import com.toasterofbread.toastercomposetools.platform.composable.platformClickable
 import com.toasterofbread.toastercomposetools.utils.common.launchSingle
@@ -139,7 +139,7 @@ fun SongFeedAppPage.LFFSongFeedAppPage(
         hiding_layout?.also { layout ->
             check(layout.title != null)
 
-            PlatformAlertDialog(
+            AlertDialog(
                 onDismissRequest = { hiding_layout = null },
                 confirmButton = {
                     Button({

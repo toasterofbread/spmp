@@ -56,7 +56,7 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.toastercomposetools.utils.composable.LargeDropdownMenu
-import com.toasterofbread.toastercomposetools.platform.composable.PlatformAlertDialog
+import androidx.compose.material3.AlertDialog
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.toastercomposetools.settings.ui.Theme
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
@@ -247,7 +247,7 @@ fun LyricsSearchMenu(
                         }
 
                         if (confirming_no_lyrics) {
-                            PlatformAlertDialog(
+                            AlertDialog(
                                 onDismissRequest = { confirming_no_lyrics = false },
                                 confirmButton = {
                                     Button({ song.Lyrics.set(LyricsReference.NONE, player.database) }) {

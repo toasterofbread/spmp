@@ -98,7 +98,7 @@ class NowPlayingTopBar {
                     requiredHeight(height * top_bar_height)
                 }
                 .height(IntrinsicSize.Min)
-                .padding(horizontal = NOW_PLAYING_MAIN_PADDING.dp)
+                .padding(horizontal = NOW_PLAYING_MAIN_PADDING_DP.dp)
                 .graphicsLayer { this@graphicsLayer.alpha = alpha }
         ) { song ->
             if (hide_content || song == null) {

@@ -10,7 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.toasterofbread.toastercomposetools.platform.composable.PlatformAlertDialog
+import androidx.compose.material3.AlertDialog
 import com.toasterofbread.spmp.resources.getString
 
 @Composable
@@ -24,7 +24,7 @@ internal fun ResetConfirmationDialog(show_state: MutableState<Boolean>, reset: s
     }
 
     if (show_state.value) {
-        PlatformAlertDialog(
+        AlertDialog(
             { show_state.value = false },
             confirmButton = {
                 FilledTonalButton(

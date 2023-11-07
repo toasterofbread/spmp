@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
@@ -69,7 +70,6 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.isPlaylistEditable
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
-import com.toasterofbread.toastercomposetools.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.rememberSongDownloads
 import com.toasterofbread.spmp.resources.getString
@@ -285,7 +285,7 @@ class MediaItemMultiSelectContext(
             onActionPerformed()
         }
 
-        PlatformAlertDialog(
+        AlertDialog(
             onDismissRequest = onFinished,
             confirmButton = {
                 Row {

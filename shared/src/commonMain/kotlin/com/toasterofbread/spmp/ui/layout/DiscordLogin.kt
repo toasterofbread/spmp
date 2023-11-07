@@ -36,7 +36,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.google.gson.Gson
 import com.toasterofbread.spmp.platform.WebViewLogin
-import com.toasterofbread.toastercomposetools.platform.composable.PlatformAlertDialog
+import androidx.compose.material3.AlertDialog
 import com.toasterofbread.toastercomposetools.platform.composable.rememberImagePainter
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.resources.getString
@@ -58,7 +58,7 @@ private const val DISCORD_DEFAULT_AVATAR = "https://discord.com/assets/1f0bfc086
 
 @Composable
 fun DiscordLoginConfirmation(info_only: Boolean = false, onFinished: (manual: Boolean?) -> Unit) {
-    PlatformAlertDialog(
+    AlertDialog(
         { onFinished(false) },
         confirmButton = {
             FilledTonalButton({

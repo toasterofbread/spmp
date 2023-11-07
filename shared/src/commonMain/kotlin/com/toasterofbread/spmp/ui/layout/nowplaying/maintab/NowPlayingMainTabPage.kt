@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.Dp
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.platform.isLargeFormFactor
 import com.toasterofbread.spmp.platform.isPortrait
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
@@ -92,7 +93,10 @@ class NowPlayingMainTabPage: NowPlayingPage() {
         }
 
         if (player.isPortrait()) {
-            NowPlayingMainTabPortrait(top_bar, content_padding, modifier)
+            NowPlayingMainTabPortrait(page_height, top_bar, content_padding, modifier)
+        }
+        else if (player.isLargeFormFactor()) {
+            NowPlayingMainTabLarge(page_height, top_bar, content_padding, modifier)
         }
         else {
             NowPlayingMainTabLandscape(page_height, top_bar, content_padding, modifier)

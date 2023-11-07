@@ -41,14 +41,18 @@ import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.generatePalette
+import com.toasterofbread.spmp.platform.isLargeFormFactor
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.toastercomposetools.utils.composable.OnChangedEffect
 import kotlin.math.roundToInt
 
-//const val PALETTE_SIMILAR_COLOUR_THRESHOLD = 0.1f
-const val DEFAULT_THUMBNAIL_ROUNDING: Int = 5
+val DEFAULT_THUMBNAIL_ROUNDING: Int
+    @Composable get() =
+        if (LocalPlayerState.current.isLargeFormFactor()) 1
+        else 5
+
 const val MIN_THUMBNAIL_ROUNDING: Int = 0
 const val MAX_THUMBNAIL_ROUNDING: Int = 50
 
@@ -165,8 +169,9 @@ class PaletteSelectorPlayerOverlayMenu(
                     }
                 }
 
+                val default_thumbnail_rounding = DEFAULT_THUMBNAIL_ROUNDING
                 var corner_slider_value by remember { mutableStateOf(
-                    ((thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING) - MIN_THUMBNAIL_ROUNDING) / (MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING).toFloat()
+                    ((thumbnail_rounding ?: default_thumbnail_rounding) - MIN_THUMBNAIL_ROUNDING) / (MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING).toFloat()
                 ) }
 
                 val anim_state = remember { Animatable(0f) }
@@ -189,7 +194,7 @@ class PaletteSelectorPlayerOverlayMenu(
                 }
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    val radius = (thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING) * 2
+                    val radius = (thumbnail_rounding ?: default_thumbnail_rounding) * 2
                     Text(
                         getString("song_theme_menu_corner_radius_\$x")
                             .replace("\$x", radius.toString().padStart(3, ' ')),
@@ -217,7 +222,7 @@ class PaletteSelectorPlayerOverlayMenu(
                             modifier = Modifier.weight(1f)
                         )
                         IconButton({
-                            corner_slider_value = (DEFAULT_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING) / (MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING).toFloat()
+                            corner_slider_value = (default_thumbnail_rounding - MIN_THUMBNAIL_ROUNDING) / (MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING).toFloat()
                             anim_target = corner_slider_value
                         }) {
                             Icon(Icons.Filled.Refresh, null)

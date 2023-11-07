@@ -41,7 +41,7 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.toastercomposetools.platform.composable.platformClickable
-import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING
+import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING_DP
 import com.toasterofbread.spmp.ui.component.AnnotatedReadingTerm
 import com.toasterofbread.spmp.ui.component.calculateReadingsAnnotatedString
 import com.toasterofbread.toastercomposetools.utils.common.thenIf
@@ -64,7 +64,7 @@ fun CoreLyricsDisplay(
     val lyrics_sync_offset: Long? by song.getLyricsSyncOffset(player.database, false)
 
     var area_size: Dp by remember { mutableStateOf(0.dp) }
-    val size_px = with(LocalDensity.current) { ((area_size - (NOW_PLAYING_MAIN_PADDING.dp * 2) - (15.dp * getExpansion() * 2)).value * 0.9.dp).toPx() }
+    val size_px = with(LocalDensity.current) { ((area_size - (NOW_PLAYING_MAIN_PADDING_DP.dp * 2) - (15.dp * getExpansion() * 2)).value * 0.9.dp).toPx() }
     val line_height = with (LocalDensity.current) { 20.sp.toPx() }
     val line_spacing = with (LocalDensity.current) { 25.dp.toPx() }
 

@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.google.gson.Gson
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.platform.WebViewLogin
-import com.toasterofbread.toastercomposetools.platform.composable.PlatformAlertDialog
+import androidx.compose.material3.AlertDialog
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
@@ -268,7 +268,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
     override fun LoginConfirmationDialog(info_only: Boolean, onFinished: (param: Any?) -> Unit) {
         val player = LocalPlayerState.current
 
-        PlatformAlertDialog(
+        AlertDialog(
             { onFinished(null) },
             confirmButton = {
                 FilledTonalButton({

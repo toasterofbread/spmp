@@ -24,6 +24,7 @@ fun LazyListScope.QueueItems(
     setPlayingKey: (Int?) -> Unit,
     item_modifier: Modifier = Modifier
 ) {
+    val items: List<QueueTabItem> = song_items.toList()
     items(song_items.size, { song_items[it].key }) { index ->
         val item = song_items[index]
         ReorderableItem(queue_list_state, item.key, item_modifier) { is_dragging ->

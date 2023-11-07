@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import com.toasterofbread.toastercomposetools.utils.modifier.background
 

@@ -90,7 +90,7 @@ The app is currently being developed for both English and Japanese. Contribution
 - [Piped](https://github.com/TeamPiped/Piped): Provides stream URLs for music playback
 - [SQLDelight](https://github.com/cashapp/sqldelight): Database for media metadata
 - [Kuromoji](https://github.com/atilika/kuromoji): Generates furigana (readings) for Japanese lyrics
-- [KizzyRPC](https://github.com/dead8309/KizzyRPC) and [Kord](https://github.com/kordlib/kord): Discord status functionality and custom image support
+- [KizzyRPC](https://github.com/dead8309/KizzyRPC): Discord status functionality
 - [ComposeReorderable](https://github.com/aclassen/ComposeReorderable): Reorderable lists like the song queue
 - [compose-color-picker](https://github.com/godaddy/compose-color-picker): Theme editor colour wheel
 - [Catppuccin](https://github.com/catppuccin/java): Themes included as options in-app

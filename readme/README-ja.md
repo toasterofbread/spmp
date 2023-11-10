@@ -90,7 +90,7 @@ Pull requestと機能の提案は歓迎です！これは僕の初めてのCompo
 - [Piped](https://github.com/TeamPiped/Piped): 曲再生用のストリームURLを提供
 - [SQLDelight](https://github.com/cashapp/sqldelight): メディアのメタデータ用データベース
 - [Kuromoji](https://github.com/atilika/kuromoji): 日本語歌詞のふりがなを生成
-- [KizzyRPC](https://github.com/dead8309/KizzyRPC) and [Kord](https://github.com/kordlib/kord): Discordステータスとその画像機能
+- [KizzyRPC](https://github.com/dead8309/KizzyRPC): Discordステータス機能
 - [ComposeReorderable](https://github.com/aclassen/ComposeReorderable): 曲キューなどの順序変更可能なリスト
 - [compose-color-picker](https://github.com/godaddy/compose-color-picker): テーマエディター内のカラーセレクター
 - [Catppuccin](https://github.com/catppuccin/java): テーマがアプリのにオプションに含まれています

@@ -79,7 +79,6 @@ Pull requestと機能の提案は歓迎です！これは僕の初めてのCompo
 ## こちらからも入手
 
 [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" height="100">](https://f-droid.org/en/packages/com.toasterofbread.spmp/)
-[<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" height="100">](https://apt.izzysoft.de/fdroid/index/apk/com.toasterofbread.spmp/)
 
 ## 参考にしたソフト
 - [ytmusicapi](https://github.com/sigma67/ytmusicapi/): YouTube Music APIの使い方の参考にさせてもらいました

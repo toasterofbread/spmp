@@ -41,16 +41,16 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.toastercomposetools.platform.vibrateShort
+import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
-import com.toasterofbread.toastercomposetools.settings.ui.Theme
-import com.toasterofbread.toastercomposetools.utils.common.copy
-import com.toasterofbread.toastercomposetools.utils.composable.PlatformClickableIconButton
-import com.toasterofbread.toastercomposetools.utils.composable.ResizableOutlinedTextField
+import com.toasterofbread.composekit.settings.ui.Theme
+import com.toasterofbread.composekit.utils.common.copy
+import com.toasterofbread.composekit.utils.composable.PlatformClickableIconButton
+import com.toasterofbread.composekit.utils.composable.ResizableOutlinedTextField
 
 abstract class LibrarySubPage(val context: AppContext) {
     abstract fun getIcon(): ImageVector

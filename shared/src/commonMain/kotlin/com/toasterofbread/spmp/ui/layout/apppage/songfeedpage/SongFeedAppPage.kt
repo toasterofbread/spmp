@@ -44,11 +44,11 @@ import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.db.SongFeedCache
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.model.mutableSettingsState
-import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
+import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.toastercomposetools.platform.composable.PlatformAlertDialog
-import com.toasterofbread.toastercomposetools.platform.composable.SwipeRefresh
-import com.toasterofbread.toastercomposetools.platform.composable.platformClickable
+import androidx.compose.material3.AlertDialog
+import com.toasterofbread.composekit.platform.composable.SwipeRefresh
+import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -60,9 +60,9 @@ import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
 import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedLoadResult
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
-import com.toasterofbread.toastercomposetools.utils.common.anyCauseIs
-import com.toasterofbread.toastercomposetools.utils.common.launchSingle
-import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.composekit.utils.common.anyCauseIs
+import com.toasterofbread.composekit.utils.common.launchSingle
+import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -237,7 +237,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
             hiding_layout?.also { layout ->
                 check(layout.title != null)
 
-                PlatformAlertDialog(
+                AlertDialog(
                     onDismissRequest = { hiding_layout = null },
                     confirmButton = {
                         Button({

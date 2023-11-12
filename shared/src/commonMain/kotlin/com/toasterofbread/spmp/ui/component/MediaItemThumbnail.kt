@@ -31,9 +31,9 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistDefaultThum
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.toastercomposetools.utils.common.launchSingle
-import com.toasterofbread.toastercomposetools.utils.composable.OnChangedEffect
-import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.composekit.utils.common.launchSingle
+import com.toasterofbread.composekit.utils.composable.OnChangedEffect
+import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 
 private suspend inline fun MediaItem.loadThumb(
     player: PlayerState,

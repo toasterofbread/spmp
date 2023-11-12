@@ -1,8 +1,8 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
-import com.toasterofbread.toastercomposetools.settings.ui.item.BasicSettingsValueState
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsSliderItem
-import com.toasterofbread.toastercomposetools.utils.common.roundTo
+import com.toasterofbread.composekit.settings.ui.item.BasicSettingsValueState
+import com.toasterofbread.composekit.settings.ui.item.SettingsSliderItem
+import com.toasterofbread.composekit.utils.common.roundTo
 import com.toasterofbread.spmp.resources.getString
 
 fun AppSliderItem(

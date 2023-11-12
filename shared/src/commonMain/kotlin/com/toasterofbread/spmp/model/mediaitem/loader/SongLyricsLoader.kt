@@ -11,7 +11,7 @@ import com.toasterofbread.spmp.platform.getLocalLyricsFile
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
 import com.toasterofbread.spmp.youtubeapi.lyrics.loadLyrics
-import com.toasterofbread.toastercomposetools.platform.PlatformFile
+import com.toasterofbread.composekit.platform.PlatformFile
 import java.lang.ref.WeakReference
 
 internal object SongLyricsLoader: Loader<SongLyrics>() {

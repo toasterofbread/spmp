@@ -7,9 +7,9 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.toastercomposetools.platform.PlatformContext
-import com.toasterofbread.toastercomposetools.platform.PlatformPreferences
-import com.toasterofbread.toastercomposetools.settings.ui.Theme
+import com.toasterofbread.composekit.platform.PlatformContext
+import com.toasterofbread.composekit.platform.PlatformPreferences
+import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import java.util.Locale
 

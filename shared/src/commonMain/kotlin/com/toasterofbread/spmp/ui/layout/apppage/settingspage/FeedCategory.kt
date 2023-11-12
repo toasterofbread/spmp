@@ -2,12 +2,12 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import LocalPlayerState
 import androidx.compose.runtime.remember
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsGroupItem
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsItem
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsSliderItem
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsStringSetItem
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsToggleItem
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsValueState
+import com.toasterofbread.composekit.settings.ui.item.SettingsGroupItem
+import com.toasterofbread.composekit.settings.ui.item.SettingsItem
+import com.toasterofbread.composekit.settings.ui.item.SettingsSliderItem
+import com.toasterofbread.composekit.settings.ui.item.SettingsStringSetItem
+import com.toasterofbread.composekit.settings.ui.item.SettingsToggleItem
+import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString

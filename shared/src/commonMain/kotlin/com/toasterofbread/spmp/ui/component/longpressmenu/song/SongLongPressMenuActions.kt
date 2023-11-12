@@ -39,7 +39,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
+import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MEDIA_ITEM_RELATED_CONTENT_ICON
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
@@ -55,8 +55,8 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuActionProvider
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
-import com.toasterofbread.toastercomposetools.utils.common.getValue
-import com.toasterofbread.toastercomposetools.utils.composable.ShapedIconButton
+import com.toasterofbread.composekit.utils.common.getValue
+import com.toasterofbread.composekit.utils.composable.ShapedIconButton
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 

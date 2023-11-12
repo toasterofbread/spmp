@@ -23,8 +23,8 @@ import com.toasterofbread.spmp.platform.rememberSongDownloads
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MEDIAITEM_LIST_DEFAULT_SPACING_DP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.toastercomposetools.utils.common.thenIf
-import com.toasterofbread.toastercomposetools.utils.modifier.horizontal
+import com.toasterofbread.composekit.utils.common.thenIf
+import com.toasterofbread.composekit.utils.modifier.horizontal
 
 @Composable
 fun LocalArtistPage(

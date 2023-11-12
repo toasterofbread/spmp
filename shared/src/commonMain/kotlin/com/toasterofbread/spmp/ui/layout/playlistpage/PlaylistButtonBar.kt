@@ -31,7 +31,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
-import com.toasterofbread.toastercomposetools.utils.composable.WidthShrinkText
+import com.toasterofbread.composekit.utils.composable.WidthShrinkText
 
 @Composable
 internal fun PlaylistPage.PlaylistButtonBar(modifier: Modifier = Modifier) {

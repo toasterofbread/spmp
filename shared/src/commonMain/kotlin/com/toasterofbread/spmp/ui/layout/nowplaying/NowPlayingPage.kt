@@ -9,7 +9,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NowPlayingMainTabPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.NowPlayingQueuePage
-import com.toasterofbread.toastercomposetools.utils.composable.getTop
+import com.toasterofbread.composekit.utils.composable.getTop
 
 const val NOW_PLAYING_MAIN_PADDING = 10f
 

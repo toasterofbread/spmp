@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.component
 
 import LocalPlayerState
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -12,9 +13,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.toastercomposetools.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.toastercomposetools.utils.common.launchSingle
+import com.toasterofbread.composekit.utils.common.launchSingle
 
 @Composable
 fun MediaItemTitleEditDialog(item: MediaItem, modifier: Modifier = Modifier, close: () -> Unit) {
@@ -23,7 +23,7 @@ fun MediaItemTitleEditDialog(item: MediaItem, modifier: Modifier = Modifier, clo
 
     var edited_title: String by remember { mutableStateOf(item.getActiveTitle(player.database) ?: "") }
 
-    PlatformAlertDialog(
+    AlertDialog(
         close,
         {
             Button({

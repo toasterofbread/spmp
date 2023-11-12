@@ -42,7 +42,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.top
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThumbnailRow
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
-import com.toasterofbread.toastercomposetools.platform.composable.composeScope
+import com.toasterofbread.composekit.platform.composable.composeScope
 import kotlin.math.absoluteValue
 
 internal const val MINIMISED_NOW_PLAYING_HORIZ_PADDING: Float = 10f

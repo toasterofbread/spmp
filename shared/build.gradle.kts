@@ -139,7 +139,7 @@ kotlin {
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
 
-                implementation(project(":ToasterComposeTools:lib"))
+                implementation(project(":ComposeKit:lib"))
 
                 implementation("com.squareup.okhttp3:okhttp:4.10.0")
                 implementation("com.google.code.gson:gson:2.10.1")

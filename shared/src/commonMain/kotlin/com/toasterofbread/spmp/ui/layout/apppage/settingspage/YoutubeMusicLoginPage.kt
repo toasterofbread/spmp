@@ -17,9 +17,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.toasterofbread.toastercomposetools.settings.ui.SettingsPage
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsValueState
-import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
+import com.toasterofbread.composekit.settings.ui.SettingsPage
+import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
+import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.youtubeapi.composable.LoginPage

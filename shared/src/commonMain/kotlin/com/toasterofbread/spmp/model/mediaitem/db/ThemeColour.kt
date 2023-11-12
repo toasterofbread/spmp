@@ -9,7 +9,7 @@ import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
-import com.toasterofbread.toastercomposetools.utils.common.getThemeColour
+import com.toasterofbread.composekit.utils.common.getThemeColour
 
 @Composable
 fun MediaItem.rememberThemeColour(): Color? {

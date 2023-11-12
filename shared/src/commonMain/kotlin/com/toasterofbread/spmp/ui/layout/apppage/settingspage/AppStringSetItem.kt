@@ -3,8 +3,8 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.toastercomposetools.settings.ui.item.BasicSettingsValueState
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsStringSetItem
+import com.toasterofbread.composekit.settings.ui.item.BasicSettingsValueState
+import com.toasterofbread.composekit.settings.ui.item.SettingsStringSetItem
 import com.toasterofbread.spmp.resources.getString
 
 fun AppStringSetItem(

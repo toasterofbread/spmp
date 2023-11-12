@@ -25,16 +25,16 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
-import com.toasterofbread.toastercomposetools.platform.composable.PlatformAlertDialog
+import androidx.compose.material3.AlertDialog
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
-import com.toasterofbread.toastercomposetools.utils.composable.Marquee
+import com.toasterofbread.composekit.utils.composable.Marquee
 
 @Composable
 fun InfoDialog(item: MediaItem, close: () -> Unit) {
     val player = LocalPlayerState.current
     
-    PlatformAlertDialog(
+    AlertDialog(
         close,
         confirmButton = {
             FilledTonalButton(

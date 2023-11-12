@@ -39,13 +39,13 @@ import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.toastercomposetools.platform.composable.platformClickable
-import com.toasterofbread.toastercomposetools.platform.vibrateShort
+import com.toasterofbread.composekit.platform.composable.platformClickable
+import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
-import com.toasterofbread.toastercomposetools.utils.common.getValue
-import com.toasterofbread.toastercomposetools.utils.composable.Marquee
+import com.toasterofbread.composekit.utils.common.getValue
+import com.toasterofbread.composekit.utils.composable.Marquee
 
 private const val TITLE_FONT_SIZE_SP: Float = 21f
 private const val ARTIST_FONT_SIZE_SP: Float = 14f

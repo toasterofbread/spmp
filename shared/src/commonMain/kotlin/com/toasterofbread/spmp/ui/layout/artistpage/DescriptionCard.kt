@@ -19,9 +19,9 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.toastercomposetools.settings.ui.Theme
-import com.toasterofbread.toastercomposetools.utils.composable.LinkifyText
-import com.toasterofbread.toastercomposetools.utils.composable.NoRipple
+import com.toasterofbread.composekit.settings.ui.Theme
+import com.toasterofbread.composekit.utils.composable.LinkifyText
+import com.toasterofbread.composekit.utils.composable.NoRipple
 
 @Composable
 fun DescriptionCard(description_text: String, getBackgroundColour: () -> Color, getAccentColour: () -> Color?, toggleInfo: () -> Unit) {

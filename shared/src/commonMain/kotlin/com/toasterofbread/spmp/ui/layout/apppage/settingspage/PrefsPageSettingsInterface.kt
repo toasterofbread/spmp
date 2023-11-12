@@ -9,10 +9,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.toasterofbread.toastercomposetools.platform.vibrateShort
-import com.toasterofbread.toastercomposetools.settings.ui.SettingsInterface
-import com.toasterofbread.toastercomposetools.settings.ui.SettingsPageWithItems
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsValueState
+import com.toasterofbread.composekit.platform.vibrateShort
+import com.toasterofbread.composekit.settings.ui.SettingsInterface
+import com.toasterofbread.composekit.settings.ui.SettingsPageWithItems
+import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.platform.AppContext

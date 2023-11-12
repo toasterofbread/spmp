@@ -46,8 +46,8 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSqu
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.endpoint.CreateAccountPlaylistEndpoint
-import com.toasterofbread.toastercomposetools.utils.composable.LoadActionIconButton
-import com.toasterofbread.toastercomposetools.utils.composable.spanItem
+import com.toasterofbread.composekit.utils.composable.LoadActionIconButton
+import com.toasterofbread.composekit.utils.composable.spanItem
 
 internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =

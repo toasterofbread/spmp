@@ -23,20 +23,20 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import com.toasterofbread.spmp.model.OverscrollClearMode
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
-import com.toasterofbread.toastercomposetools.platform.composable.scrollWheelSwipeable
-import com.toasterofbread.toastercomposetools.platform.composable.composeScope
+import com.toasterofbread.composekit.platform.composable.BackHandler
+import com.toasterofbread.composekit.platform.composable.scrollWheelSwipeable
+import com.toasterofbread.composekit.platform.composable.composeScope
 import com.toasterofbread.spmp.platform.isPortrait
-import com.toasterofbread.toastercomposetools.platform.vibrateShort
+import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.toastercomposetools.utils.*
-import com.toasterofbread.toastercomposetools.utils.common.amplifyPercent
-import com.toasterofbread.toastercomposetools.utils.composable.OnChangedEffect
-import com.toasterofbread.toastercomposetools.utils.composable.RecomposeOnInterval
-import com.toasterofbread.toastercomposetools.utils.composable.getTop
-import com.toasterofbread.toastercomposetools.utils.modifier.brushBackground
+import com.toasterofbread.composekit.utils.*
+import com.toasterofbread.composekit.utils.common.amplifyPercent
+import com.toasterofbread.composekit.utils.composable.OnChangedEffect
+import com.toasterofbread.composekit.utils.composable.RecomposeOnInterval
+import com.toasterofbread.composekit.utils.composable.getTop
+import com.toasterofbread.composekit.utils.modifier.brushBackground
 import kotlinx.coroutines.delay
 
 enum class ThemeMode { BACKGROUND, ELEMENTS, NONE }

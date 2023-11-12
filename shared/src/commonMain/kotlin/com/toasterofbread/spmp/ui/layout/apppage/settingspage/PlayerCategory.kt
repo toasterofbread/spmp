@@ -1,11 +1,11 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsGroupItem
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsItem
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsMultipleChoiceItem
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsSliderItem
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsToggleItem
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsValueState
+import com.toasterofbread.composekit.settings.ui.item.SettingsGroupItem
+import com.toasterofbread.composekit.settings.ui.item.SettingsItem
+import com.toasterofbread.composekit.settings.ui.item.SettingsMultipleChoiceItem
+import com.toasterofbread.composekit.settings.ui.item.SettingsSliderItem
+import com.toasterofbread.composekit.settings.ui.item.SettingsToggleItem
+import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.NowPlayingQueueRadioInfoPosition
 import com.toasterofbread.spmp.model.NowPlayingQueueWaveBorderMode
 import com.toasterofbread.spmp.model.OverscrollClearMode

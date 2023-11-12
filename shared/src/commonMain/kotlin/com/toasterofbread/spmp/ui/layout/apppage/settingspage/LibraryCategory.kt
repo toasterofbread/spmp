@@ -3,10 +3,10 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 import LocalPlayerState
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsFileItem
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsItem
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsToggleItem
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsValueState
+import com.toasterofbread.composekit.settings.ui.item.SettingsFileItem
+import com.toasterofbread.composekit.settings.ui.item.SettingsItem
+import com.toasterofbread.composekit.settings.ui.item.SettingsToggleItem
+import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.platform.getUiLanguage

@@ -2,11 +2,11 @@ package com.toasterofbread.spmp.youtubeapi.lyrics
 
 import com.atilika.kuromoji.ipadic.Tokenizer
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
-import com.toasterofbread.toastercomposetools.utils.common.hasKanjiAndHiragana
-import com.toasterofbread.toastercomposetools.utils.common.isHiragana
-import com.toasterofbread.toastercomposetools.utils.common.isJP
-import com.toasterofbread.toastercomposetools.utils.common.isKanji
-import com.toasterofbread.toastercomposetools.utils.common.isKatakana
+import com.toasterofbread.composekit.utils.common.hasKanjiAndHiragana
+import com.toasterofbread.composekit.utils.common.isHiragana
+import com.toasterofbread.composekit.utils.common.isJP
+import com.toasterofbread.composekit.utils.common.isKanji
+import com.toasterofbread.composekit.utils.common.isKatakana
 import java.nio.channels.ClosedByInterruptException
 
 fun createFuriganaTokeniser(): Tokenizer {

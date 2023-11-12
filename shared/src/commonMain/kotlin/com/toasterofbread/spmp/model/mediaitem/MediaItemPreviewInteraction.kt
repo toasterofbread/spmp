@@ -12,10 +12,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalViewConfiguration
-import com.toasterofbread.toastercomposetools.platform.vibrateShort
-import com.toasterofbread.toastercomposetools.utils.composable.OnChangedEffect
+import com.toasterofbread.composekit.platform.vibrateShort
+import com.toasterofbread.composekit.utils.composable.OnChangedEffect
 import com.toasterofbread.spmp.platform.Platform
-import com.toasterofbread.toastercomposetools.platform.composable.platformClickable
+import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import kotlinx.coroutines.delay
 

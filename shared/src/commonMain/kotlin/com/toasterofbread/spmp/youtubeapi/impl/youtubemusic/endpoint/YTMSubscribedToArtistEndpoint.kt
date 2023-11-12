@@ -3,7 +3,7 @@ package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.youtubeapi.endpoint.SubscribedToArtistEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
-import com.toasterofbread.toastercomposetools.utils.common.lazyAssert
+import com.toasterofbread.composekit.utils.common.lazyAssert
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request

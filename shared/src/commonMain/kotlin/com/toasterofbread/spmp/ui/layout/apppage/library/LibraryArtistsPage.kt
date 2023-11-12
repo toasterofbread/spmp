@@ -37,7 +37,7 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageWithItem
 import com.toasterofbread.spmp.ui.layout.artistpage.LocalArtistPage
-import com.toasterofbread.toastercomposetools.utils.composable.EmptyListCrossfade
+import com.toasterofbread.composekit.utils.composable.EmptyListCrossfade
 
 class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =

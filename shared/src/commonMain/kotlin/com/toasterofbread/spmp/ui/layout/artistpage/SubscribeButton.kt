@@ -20,10 +20,10 @@ import com.toasterofbread.spmp.model.mediaitem.loader.ArtistSubscribedLoader
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.isOwnChannel
-import com.toasterofbread.toastercomposetools.utils.common.getContrasted
-import com.toasterofbread.toastercomposetools.utils.common.lazyAssert
-import com.toasterofbread.toastercomposetools.utils.composable.ShapedIconButton
-import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.composekit.utils.common.getContrasted
+import com.toasterofbread.composekit.utils.common.lazyAssert
+import com.toasterofbread.composekit.utils.composable.ShapedIconButton
+import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.launch
 
 @Composable

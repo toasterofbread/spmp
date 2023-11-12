@@ -51,11 +51,11 @@ import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.toReadableSubscriberCount
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.toastercomposetools.platform.vibrateShort
+import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
-import com.toasterofbread.toastercomposetools.settings.ui.Theme
-import com.toasterofbread.toastercomposetools.utils.composable.WidthShrinkText
+import com.toasterofbread.composekit.settings.ui.Theme
+import com.toasterofbread.composekit.utils.composable.WidthShrinkText
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable

@@ -20,7 +20,7 @@ import com.toasterofbread.spmp.ui.component.longpressmenu.playlist.PlaylistLongP
 import com.toasterofbread.spmp.ui.component.longpressmenu.song.SongLongPressMenuActions
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistSubscribeButton
-import com.toasterofbread.toastercomposetools.utils.common.getContrasted
+import com.toasterofbread.composekit.utils.common.getContrasted
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

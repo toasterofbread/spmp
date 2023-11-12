@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.google.gson.Gson
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.platform.WebViewLogin
-import com.toasterofbread.toastercomposetools.platform.composable.PlatformAlertDialog
+import androidx.compose.material3.AlertDialog
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
@@ -50,8 +50,8 @@ import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeChannelNotCreatedException
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
-import com.toasterofbread.toastercomposetools.utils.composable.LinkifyText
-import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.composekit.utils.composable.LinkifyText
+import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -268,7 +268,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
     override fun LoginConfirmationDialog(info_only: Boolean, onFinished: (param: Any?) -> Unit) {
         val player = LocalPlayerState.current
 
-        PlatformAlertDialog(
+        AlertDialog(
             { onFinished(null) },
             confirmButton = {
                 FilledTonalButton({

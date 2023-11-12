@@ -15,20 +15,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.toasterofbread.toastercomposetools.settings.ui.item.BasicSettingsValueState
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsComposableItem
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsItem
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsLargeToggleItem
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsValueState
+import com.toasterofbread.composekit.settings.ui.item.BasicSettingsValueState
+import com.toasterofbread.composekit.settings.ui.item.SettingsComposableItem
+import com.toasterofbread.composekit.settings.ui.item.SettingsItem
+import com.toasterofbread.composekit.settings.ui.item.SettingsLargeToggleItem
+import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
-import com.toasterofbread.toastercomposetools.platform.PlatformPreferences
+import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
-import com.toasterofbread.toastercomposetools.utils.composable.ShapedIconButton
+import com.toasterofbread.composekit.utils.composable.ShapedIconButton
 
 @Composable
 fun rememberYtmAuthItem(ytm_auth: SettingsValueState<Set<String>>, initialise: Boolean = false): SettingsItem {

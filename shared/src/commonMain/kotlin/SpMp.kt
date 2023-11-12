@@ -12,7 +12,7 @@ import androidx.compose.ui.text.font.FontFamily
 import com.toasterofbread.spmp.model.FontMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.toastercomposetools.platform.PlatformPreferences
+import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.getString

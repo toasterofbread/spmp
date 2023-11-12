@@ -8,7 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.toasterofbread.toastercomposetools.platform.PlatformPreferences
+import com.toasterofbread.composekit.platform.PlatformPreferences
 
 @Composable
 fun <T> mutableSettingsState(settings_key: Settings, prefs: PlatformPreferences = Settings.prefs): MutableState<T> {

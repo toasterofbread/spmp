@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
@@ -68,18 +69,18 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.getEditorOrNull
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.isPlaylistEditable
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
-import com.toasterofbread.toastercomposetools.platform.composable.PlatformAlertDialog
+import androidx.compose.material3.AlertDialog
+import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.rememberSongDownloads
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.multiselect_context.MultiSelectSelectedItemActions
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
-import com.toasterofbread.toastercomposetools.utils.common.getContrasted
-import com.toasterofbread.toastercomposetools.utils.common.lazyAssert
-import com.toasterofbread.toastercomposetools.utils.composable.ScrollabilityIndicatorRow
-import com.toasterofbread.toastercomposetools.utils.composable.ShapedIconButton
+import com.toasterofbread.composekit.utils.common.getContrasted
+import com.toasterofbread.composekit.utils.common.lazyAssert
+import com.toasterofbread.composekit.utils.composable.ScrollabilityIndicatorRow
+import com.toasterofbread.composekit.utils.composable.ShapedIconButton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.joinAll
@@ -285,7 +286,7 @@ class MediaItemMultiSelectContext(
             onActionPerformed()
         }
 
-        PlatformAlertDialog(
+        AlertDialog(
             onDismissRequest = onFinished,
             confirmButton = {
                 Row {

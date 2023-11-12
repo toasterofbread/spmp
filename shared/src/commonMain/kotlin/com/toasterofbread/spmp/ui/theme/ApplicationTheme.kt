@@ -5,12 +5,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.font.FontFamily
-import com.toasterofbread.toastercomposetools.settings.ui.Theme
+import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.toastercomposetools.utils.common.amplifyPercent
-import com.toasterofbread.toastercomposetools.utils.common.blendWith
-import com.toasterofbread.toastercomposetools.utils.common.contrastAgainst
-import com.toasterofbread.toastercomposetools.utils.common.getContrasted
+import com.toasterofbread.composekit.utils.common.amplifyPercent
+import com.toasterofbread.composekit.utils.common.blendWith
+import com.toasterofbread.composekit.utils.common.contrastAgainst
+import com.toasterofbread.composekit.utils.common.getContrasted
 
 @Composable
 fun Theme.ApplicationTheme(

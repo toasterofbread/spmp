@@ -56,8 +56,8 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
-import com.toasterofbread.toastercomposetools.platform.composable.platformClickable
+import com.toasterofbread.composekit.platform.composable.BackHandler
+import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.getPixel
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.Thumbnail
@@ -70,12 +70,12 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.RelatedContentPlayerOverlayMenu
 import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
-import com.toasterofbread.toastercomposetools.utils.common.getInnerSquareSizeOfCircle
-import com.toasterofbread.toastercomposetools.utils.common.getValue
-import com.toasterofbread.toastercomposetools.utils.common.thenIf
-import com.toasterofbread.toastercomposetools.utils.composable.OnChangedEffect
-import com.toasterofbread.toastercomposetools.utils.modifier.background
-import com.toasterofbread.toastercomposetools.utils.modifier.disableParentScroll
+import com.toasterofbread.composekit.utils.common.getInnerSquareSizeOfCircle
+import com.toasterofbread.composekit.utils.common.getValue
+import com.toasterofbread.composekit.utils.common.thenIf
+import com.toasterofbread.composekit.utils.composable.OnChangedEffect
+import com.toasterofbread.composekit.utils.modifier.background
+import com.toasterofbread.composekit.utils.modifier.disableParentScroll
 import kotlin.math.absoluteValue
 import kotlin.math.min
 

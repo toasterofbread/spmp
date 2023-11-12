@@ -26,8 +26,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.toastercomposetools.platform.composable.platformClickable
-import com.toasterofbread.toastercomposetools.platform.vibrateShort
+import com.toasterofbread.composekit.platform.composable.platformClickable
+import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.layout.radiobuilder.RADIO_BUILDER_ICON_WIDTH_DP
 import com.toasterofbread.spmp.ui.layout.radiobuilder.RadioBuilderIcon

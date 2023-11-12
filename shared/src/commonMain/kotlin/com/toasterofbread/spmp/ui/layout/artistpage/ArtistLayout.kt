@@ -64,20 +64,20 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
-import com.toasterofbread.toastercomposetools.platform.composable.SwipeRefresh
+import com.toasterofbread.composekit.platform.composable.SwipeRefresh
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.toastercomposetools.settings.ui.Theme
-import com.toasterofbread.toastercomposetools.utils.common.getContrasted
-import com.toasterofbread.toastercomposetools.utils.common.getThemeColour
-import com.toasterofbread.toastercomposetools.utils.composable.ShapedIconButton
-import com.toasterofbread.toastercomposetools.utils.composable.getTop
-import com.toasterofbread.toastercomposetools.utils.modifier.background
-import com.toasterofbread.toastercomposetools.utils.modifier.brushBackground
-import com.toasterofbread.toastercomposetools.utils.modifier.drawScopeBackground
-import com.toasterofbread.toastercomposetools.utils.modifier.horizontal
+import com.toasterofbread.composekit.settings.ui.Theme
+import com.toasterofbread.composekit.utils.common.getContrasted
+import com.toasterofbread.composekit.utils.common.getThemeColour
+import com.toasterofbread.composekit.utils.composable.ShapedIconButton
+import com.toasterofbread.composekit.utils.composable.getTop
+import com.toasterofbread.composekit.utils.modifier.background
+import com.toasterofbread.composekit.utils.modifier.brushBackground
+import com.toasterofbread.composekit.utils.modifier.drawScopeBackground
+import com.toasterofbread.composekit.utils.modifier.horizontal
 
 private const val ARTIST_IMAGE_SCROLL_MODIFIER = 0.25f
 

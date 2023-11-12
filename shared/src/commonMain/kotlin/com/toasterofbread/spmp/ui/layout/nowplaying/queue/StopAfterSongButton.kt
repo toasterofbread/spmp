@@ -21,8 +21,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import com.toasterofbread.toastercomposetools.utils.common.getContrasted
-import com.toasterofbread.toastercomposetools.utils.modifier.background
+import com.toasterofbread.composekit.utils.common.getContrasted
+import com.toasterofbread.composekit.utils.modifier.background
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

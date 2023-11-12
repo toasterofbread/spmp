@@ -1,6 +1,6 @@
 rootProject.name = "SpMp"
 
-include(":ToasterComposeTools:lib")
+include(":ComposeKit:lib")
 include(":shared")
 include(":androidApp")
 include(":desktopApp")

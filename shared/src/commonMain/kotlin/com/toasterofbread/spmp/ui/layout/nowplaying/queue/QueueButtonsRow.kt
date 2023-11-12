@@ -18,11 +18,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.toastercomposetools.platform.vibrateShort
+import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
-import com.toasterofbread.toastercomposetools.utils.common.getContrasted
+import com.toasterofbread.composekit.utils.common.getContrasted
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

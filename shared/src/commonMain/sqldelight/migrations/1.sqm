@@ -1,2 +1,9 @@
-ALTER TABLE Playlist ADD COLUMN playlist_url TEXT;
-ALTER TABLE SongFeedRow ADD COLUMN layout_type INTEGER;
+IF COL_LENGTH("Playlist", "playlist_url") IS NULL
+BEGIN
+    ALTER TABLE Playlist ADD COLUMN playlist_url TEXT;
+END
+
+IF COL_LENGTH("SongFeedRow", "layout_type") IS NULL
+BEGIN
+    ALTER TABLE SongFeedRow ADD COLUMN layout_type INTEGER;
+END

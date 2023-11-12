@@ -19,7 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.core.view.WindowCompat
-import com.toasterofbread.toastercomposetools.platform.ApplicationContext
+import com.toasterofbread.composekit.platform.ApplicationContext
 import com.toasterofbread.spmp.platform.AppContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job

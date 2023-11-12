@@ -36,12 +36,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.toastercomposetools.platform.composable.PlatformAlertDialog
+import androidx.compose.material3.AlertDialog
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.platform.getDefaultPaddingValues
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.toastercomposetools.utils.composable.Marquee
-import com.toasterofbread.toastercomposetools.utils.composable.WidthShrinkText
+import com.toasterofbread.composekit.utils.composable.Marquee
+import com.toasterofbread.composekit.utils.composable.WidthShrinkText
 
 @Composable
 fun ManualLoginPage(
@@ -171,7 +171,7 @@ private fun InfoEntry(label: String, modifier: Modifier = Modifier, onFinished: 
 
 @Composable
 private fun ErrorDialog(error: Pair<String, String>, close: () -> Unit) {
-    PlatformAlertDialog(
+    AlertDialog(
         onDismissRequest = close,
         confirmButton = {
             Button(close) {

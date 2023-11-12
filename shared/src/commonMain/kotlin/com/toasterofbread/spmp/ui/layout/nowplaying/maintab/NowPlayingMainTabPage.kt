@@ -16,7 +16,7 @@ import com.toasterofbread.spmp.platform.isPortrait
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
-import com.toasterofbread.toastercomposetools.utils.common.getThemeColour
+import com.toasterofbread.composekit.utils.common.getThemeColour
 import kotlinx.coroutines.delay
 
 private const val ACCENT_CLEAR_WAIT_TIME_MS: Long = 1000

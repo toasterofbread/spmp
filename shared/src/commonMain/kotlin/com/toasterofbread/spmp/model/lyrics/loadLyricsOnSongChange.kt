@@ -11,7 +11,7 @@ import app.cash.sqldelight.Query
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.toastercomposetools.utils.common.launchSingle
+import com.toasterofbread.composekit.utils.common.launchSingle
 
 @Composable
 fun loadLyricsOnSongChange(song: Song?, context: AppContext, load_lyrics: Boolean = true): SongLyrics? {

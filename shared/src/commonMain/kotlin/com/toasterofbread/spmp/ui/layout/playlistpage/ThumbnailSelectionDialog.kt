@@ -31,7 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.toastercomposetools.platform.composable.PlatformAlertDialog
+import androidx.compose.material3.AlertDialog
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 
@@ -42,7 +42,7 @@ internal fun PlaylistPage.ThumbnailSelectionDialog(
     var url_input_mode: Boolean by remember { mutableStateOf(false) }
     var url_input: String by remember(url_input_mode) { mutableStateOf("") }
 
-    PlatformAlertDialog(
+    AlertDialog(
         onDismissRequest = close,
         confirmButton = {
             Row {

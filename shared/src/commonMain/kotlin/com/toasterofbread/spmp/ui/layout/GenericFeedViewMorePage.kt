@@ -35,9 +35,9 @@ import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.toastercomposetools.utils.common.copy
-import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.toastercomposetools.utils.composable.spanItem
+import com.toasterofbread.composekit.utils.common.copy
+import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.composekit.utils.composable.spanItem
 import kotlin.math.absoluteValue
 
 @Composable

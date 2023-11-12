@@ -36,8 +36,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.google.gson.Gson
 import com.toasterofbread.spmp.platform.WebViewLogin
-import com.toasterofbread.toastercomposetools.platform.composable.PlatformAlertDialog
-import com.toasterofbread.toastercomposetools.platform.composable.rememberImagePainter
+import androidx.compose.material3.AlertDialog
+import com.toasterofbread.composekit.platform.composable.rememberImagePainter
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.executeResult
@@ -45,8 +45,8 @@ import com.toasterofbread.spmp.youtubeapi.fromJson
 import com.toasterofbread.spmp.youtubeapi.fromMap
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
-import com.toasterofbread.toastercomposetools.utils.composable.LinkifyText
-import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.composekit.utils.composable.LinkifyText
+import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -58,7 +58,7 @@ private const val DISCORD_DEFAULT_AVATAR = "https://discord.com/assets/1f0bfc086
 
 @Composable
 fun DiscordLoginConfirmation(info_only: Boolean = false, onFinished: (manual: Boolean?) -> Unit) {
-    PlatformAlertDialog(
+    AlertDialog(
         { onFinished(false) },
         confirmButton = {
             FilledTonalButton({

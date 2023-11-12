@@ -66,9 +66,9 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.ThumbnailRow
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
-import com.toasterofbread.toastercomposetools.platform.composable.composeScope
-import com.toasterofbread.toastercomposetools.utils.common.launchSingle
-import com.toasterofbread.toastercomposetools.utils.composable.getTop
+import com.toasterofbread.composekit.platform.composable.composeScope
+import com.toasterofbread.composekit.utils.common.launchSingle
+import com.toasterofbread.composekit.utils.composable.getTop
 import kotlin.math.absoluteValue
 
 private const val CONTROLS_MAX_HEIGHT_DP: Float = 400f

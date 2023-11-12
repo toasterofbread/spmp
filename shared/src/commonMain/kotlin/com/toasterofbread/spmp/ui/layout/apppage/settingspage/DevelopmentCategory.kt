@@ -18,14 +18,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsComposableItem
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsGroupItem
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsItem
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsSubpageItem
+import com.toasterofbread.composekit.settings.ui.item.SettingsComposableItem
+import com.toasterofbread.composekit.settings.ui.item.SettingsGroupItem
+import com.toasterofbread.composekit.settings.ui.item.SettingsItem
+import com.toasterofbread.composekit.settings.ui.item.SettingsSubpageItem
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.UnlocalisedStringCollector.UnlocalisedString
-import com.toasterofbread.toastercomposetools.utils.common.blendWith
-import com.toasterofbread.toastercomposetools.utils.composable.WidthShrinkText
+import com.toasterofbread.composekit.utils.common.blendWith
+import com.toasterofbread.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.spmp.ui.component.CopyShareButtons
 
 internal fun getDevelopmentCategory(): List<SettingsItem> {

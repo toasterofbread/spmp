@@ -30,7 +30,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
+import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.MusicTopBar

@@ -62,8 +62,8 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.getPlaylistThumbSha
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getSongThumbShape
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getThumbShape
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.toastercomposetools.settings.ui.Theme
-import com.toasterofbread.toastercomposetools.utils.common.getContrasted
+import com.toasterofbread.composekit.settings.ui.Theme
+import com.toasterofbread.composekit.utils.common.getContrasted
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

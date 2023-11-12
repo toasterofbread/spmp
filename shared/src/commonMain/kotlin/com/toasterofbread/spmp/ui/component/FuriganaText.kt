@@ -39,8 +39,8 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.toastercomposetools.utils.common.isFullWidth
-import com.toasterofbread.toastercomposetools.utils.common.putIfAbsent
+import com.toasterofbread.composekit.utils.common.isFullWidth
+import com.toasterofbread.composekit.utils.common.putIfAbsent
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 
 data class ReadingTextData(

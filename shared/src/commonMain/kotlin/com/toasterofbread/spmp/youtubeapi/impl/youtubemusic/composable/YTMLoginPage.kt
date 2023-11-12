@@ -50,8 +50,8 @@ import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeChannelNotCreatedException
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
-import com.toasterofbread.toastercomposetools.utils.composable.LinkifyText
-import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.composekit.utils.composable.LinkifyText
+import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

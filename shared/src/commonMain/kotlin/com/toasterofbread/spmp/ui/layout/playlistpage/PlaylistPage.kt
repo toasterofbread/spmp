@@ -58,11 +58,11 @@ import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageWithItem
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
-import com.toasterofbread.toastercomposetools.platform.composable.SwipeRefresh
-import com.toasterofbread.toastercomposetools.utils.common.copy
-import com.toasterofbread.toastercomposetools.utils.common.getThemeColour
-import com.toasterofbread.toastercomposetools.utils.common.thenIf
-import com.toasterofbread.toastercomposetools.utils.composable.stickyHeaderWithTopPadding
+import com.toasterofbread.composekit.platform.composable.SwipeRefresh
+import com.toasterofbread.composekit.utils.common.copy
+import com.toasterofbread.composekit.utils.common.getThemeColour
+import com.toasterofbread.composekit.utils.common.thenIf
+import com.toasterofbread.composekit.utils.composable.stickyHeaderWithTopPadding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

@@ -37,12 +37,12 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNowPlayingVerticalPageCount
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
-import com.toasterofbread.toastercomposetools.platform.PlatformPreferences
-import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
-import com.toasterofbread.toastercomposetools.utils.common.init
-import com.toasterofbread.toastercomposetools.utils.composable.OnChangedEffect
-import com.toasterofbread.toastercomposetools.utils.composable.getEnd
-import com.toasterofbread.toastercomposetools.utils.composable.getStart
+import com.toasterofbread.composekit.platform.PlatformPreferences
+import com.toasterofbread.composekit.platform.composable.BackHandler
+import com.toasterofbread.composekit.utils.common.init
+import com.toasterofbread.composekit.utils.composable.OnChangedEffect
+import com.toasterofbread.composekit.utils.composable.getEnd
+import com.toasterofbread.composekit.utils.composable.getStart
 import kotlinx.coroutines.*
 
 enum class FeedLoadState { PREINIT, NONE, LOADING, CONTINUING }

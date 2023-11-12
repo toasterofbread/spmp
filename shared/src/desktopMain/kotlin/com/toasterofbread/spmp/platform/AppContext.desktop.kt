@@ -4,9 +4,9 @@ import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
-import com.toasterofbread.toastercomposetools.platform.PlatformContext
-import com.toasterofbread.toastercomposetools.platform.PlatformPreferences
-import com.toasterofbread.toastercomposetools.settings.ui.Theme
+import com.toasterofbread.composekit.platform.PlatformContext
+import com.toasterofbread.composekit.platform.PlatformPreferences
+import com.toasterofbread.composekit.settings.ui.Theme
 
 actual class AppContext(app_name: String): PlatformContext(app_name, PlatformPlayerService::class.java) {
     actual val database: Database = createDatabase()

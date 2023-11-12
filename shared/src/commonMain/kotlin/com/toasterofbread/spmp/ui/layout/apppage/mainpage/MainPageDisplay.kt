@@ -15,9 +15,9 @@ import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
-import com.toasterofbread.toastercomposetools.utils.composable.getEnd
-import com.toasterofbread.toastercomposetools.utils.composable.getStart
-import com.toasterofbread.toastercomposetools.utils.composable.getTop
+import com.toasterofbread.composekit.utils.composable.getEnd
+import com.toasterofbread.composekit.utils.composable.getStart
+import com.toasterofbread.composekit.utils.composable.getTop
 
 @Composable
 fun MainPageDisplay() {

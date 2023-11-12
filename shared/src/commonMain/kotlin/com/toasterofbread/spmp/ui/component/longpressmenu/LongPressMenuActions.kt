@@ -29,7 +29,7 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.longpressmenu.artist.ArtistLongPressMenuInfo
 import com.toasterofbread.spmp.ui.component.longpressmenu.playlist.PlaylistLongPressMenuInfo
 import com.toasterofbread.spmp.ui.component.longpressmenu.song.SongLongPressMenuInfo
-import com.toasterofbread.toastercomposetools.utils.composable.WidthShrinkText
+import com.toasterofbread.composekit.utils.composable.WidthShrinkText
 
 const val MENU_ITEM_SPACING: Int = 20
 

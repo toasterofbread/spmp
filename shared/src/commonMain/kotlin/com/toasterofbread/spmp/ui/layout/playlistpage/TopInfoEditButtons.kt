@@ -27,8 +27,8 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.downloadAsLocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.uploadAsAccountPlaylist
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
-import com.toasterofbread.toastercomposetools.utils.composable.AlignableCrossfade
-import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.composekit.utils.composable.AlignableCrossfade
+import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.launch
 
 @Composable

@@ -34,13 +34,13 @@ import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemList
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.toastercomposetools.settings.ui.Theme
+import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsRow
-import com.toasterofbread.toastercomposetools.utils.*
-import com.toasterofbread.toastercomposetools.utils.common.copy
-import com.toasterofbread.toastercomposetools.utils.composable.*
-import com.toasterofbread.toastercomposetools.utils.modifier.horizontal
+import com.toasterofbread.composekit.utils.*
+import com.toasterofbread.composekit.utils.common.copy
+import com.toasterofbread.composekit.utils.composable.*
+import com.toasterofbread.composekit.utils.modifier.horizontal
 import kotlinx.coroutines.*
 
 @Composable

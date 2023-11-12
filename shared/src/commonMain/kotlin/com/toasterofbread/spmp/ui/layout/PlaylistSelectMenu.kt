@@ -25,12 +25,12 @@ import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.library.rememberLocalPlaylists
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.rememberOwnedPlaylists
-import com.toasterofbread.toastercomposetools.platform.composable.SwipeRefresh
+import com.toasterofbread.composekit.platform.composable.SwipeRefresh
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
-import com.toasterofbread.toastercomposetools.settings.ui.Theme
+import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
-import com.toasterofbread.toastercomposetools.utils.common.addUnique
-import com.toasterofbread.toastercomposetools.utils.common.launchSingle
+import com.toasterofbread.composekit.utils.common.addUnique
+import com.toasterofbread.composekit.utils.common.launchSingle
 
 @Composable
 fun PlaylistSelectMenu(

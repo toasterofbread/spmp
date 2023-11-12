@@ -10,7 +10,7 @@ import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.fromJson
 import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
-import com.toasterofbread.toastercomposetools.utils.common.launchSingle
+import com.toasterofbread.composekit.utils.common.launchSingle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

@@ -11,7 +11,7 @@ import com.toasterofbread.spmp.platform.isLargeFormFactor
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NowPlayingMainTabPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.NowPlayingQueuePage
-import com.toasterofbread.toastercomposetools.utils.composable.getTop
+import com.toasterofbread.composekit.utils.composable.getTop
 
 const val NOW_PLAYING_MAIN_PADDING_DP = 10f
 const val NOW_PLAYING_MAIN_PADDING_LARGE_DP = 30f

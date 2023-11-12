@@ -61,11 +61,11 @@ import com.toasterofbread.spmp.ui.component.AnnotatedReadingTerm
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
-import com.toasterofbread.toastercomposetools.platform.composable.BackHandler
+import com.toasterofbread.composekit.platform.composable.BackHandler
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
-import com.toasterofbread.toastercomposetools.utils.common.launchSingle
-import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.composekit.utils.common.launchSingle
+import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 
 private enum class Submenu {
     SEARCH, SYNC

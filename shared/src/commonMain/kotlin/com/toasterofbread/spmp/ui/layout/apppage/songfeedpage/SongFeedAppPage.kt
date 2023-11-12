@@ -39,8 +39,8 @@ import com.toasterofbread.spmp.ui.layout.apppage.mainpage.FeedLoadState
 import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedLoadResult
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
-import com.toasterofbread.toastercomposetools.utils.common.anyCauseIs
-import com.toasterofbread.toastercomposetools.utils.common.launchSingle
+import com.toasterofbread.composekit.utils.common.anyCauseIs
+import com.toasterofbread.composekit.utils.common.launchSingle
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

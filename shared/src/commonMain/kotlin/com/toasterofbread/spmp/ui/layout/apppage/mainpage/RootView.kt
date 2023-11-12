@@ -12,7 +12,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
-import com.toasterofbread.toastercomposetools.utils.modifier.background
+import com.toasterofbread.composekit.utils.modifier.background
 
 const val MINIMISED_NOW_PLAYING_HEIGHT_DP: Int = 64
 const val MINIMISED_NOW_PLAYING_V_PADDING_DP: Int = 7

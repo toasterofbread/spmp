@@ -12,8 +12,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import com.toasterofbread.db.Database
-import com.toasterofbread.toastercomposetools.settings.ui.Theme
-import com.toasterofbread.toastercomposetools.utils.common.indexOfOrNull
+import com.toasterofbread.composekit.settings.ui.Theme
+import com.toasterofbread.composekit.utils.common.indexOfOrNull
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.layout.BrowseParamsData

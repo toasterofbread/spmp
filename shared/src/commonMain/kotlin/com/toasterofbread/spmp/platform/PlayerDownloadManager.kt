@@ -10,7 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
-import com.toasterofbread.toastercomposetools.platform.PlatformFile
+import com.toasterofbread.composekit.platform.PlatformFile
 
 expect class PlayerDownloadManager(context: AppContext) {
     class DownloadStatus {

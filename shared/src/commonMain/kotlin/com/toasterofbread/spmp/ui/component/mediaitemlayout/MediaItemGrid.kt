@@ -50,7 +50,7 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLon
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.toastercomposetools.utils.modifier.background
+import com.toasterofbread.composekit.utils.modifier.background
 
 @Composable
 fun MediaItemGrid(

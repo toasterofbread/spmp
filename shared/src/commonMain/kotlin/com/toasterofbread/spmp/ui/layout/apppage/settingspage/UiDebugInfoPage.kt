@@ -22,13 +22,13 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.toastercomposetools.settings.ui.SettingsPage
-import com.toasterofbread.toastercomposetools.settings.ui.SettingsPageWithItems
-import com.toasterofbread.toastercomposetools.settings.ui.item.SettingsComposableItem
+import com.toasterofbread.composekit.settings.ui.SettingsPage
+import com.toasterofbread.composekit.settings.ui.SettingsPageWithItems
+import com.toasterofbread.composekit.settings.ui.item.SettingsComposableItem
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.toastercomposetools.utils.common.roundTo
-import com.toasterofbread.toastercomposetools.utils.composable.RecomposeOnInterval
+import com.toasterofbread.composekit.utils.common.roundTo
+import com.toasterofbread.composekit.utils.composable.RecomposeOnInterval
 
 @Composable
 private fun SizeIndicator(

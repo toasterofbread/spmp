@@ -40,8 +40,8 @@ import androidx.compose.material3.AlertDialog
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.platform.getDefaultPaddingValues
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.toastercomposetools.utils.composable.Marquee
-import com.toasterofbread.toastercomposetools.utils.composable.WidthShrinkText
+import com.toasterofbread.composekit.utils.composable.Marquee
+import com.toasterofbread.composekit.utils.composable.WidthShrinkText
 
 @Composable
 fun ManualLoginPage(

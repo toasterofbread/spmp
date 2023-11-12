@@ -33,7 +33,7 @@ import com.toasterofbread.spmp.resources.uilocalisation.durationToString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.toastercomposetools.utils.composable.EmptyListCrossfade
+import com.toasterofbread.composekit.utils.composable.EmptyListCrossfade
 
 class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =

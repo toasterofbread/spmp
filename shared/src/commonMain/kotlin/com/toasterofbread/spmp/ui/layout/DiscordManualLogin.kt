@@ -7,7 +7,7 @@ import com.google.gson.Gson
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringArray
 import com.toasterofbread.spmp.youtubeapi.fromJson
-import com.toasterofbread.toastercomposetools.utils.common.launchSingle
+import com.toasterofbread.composekit.utils.common.launchSingle
 
 private data class DiscordErrorMessage(val message: String?)
 

@@ -45,7 +45,7 @@ import com.toasterofbread.spmp.platform.isLargeFormFactor
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
-import com.toasterofbread.toastercomposetools.utils.composable.OnChangedEffect
+import com.toasterofbread.composekit.utils.composable.OnChangedEffect
 import kotlin.math.roundToInt
 
 val DEFAULT_THUMBNAIL_ROUNDING: Int

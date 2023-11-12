@@ -16,8 +16,8 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAct
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpointType
 import com.toasterofbread.spmp.youtubeapi.fromJson
-import com.toasterofbread.toastercomposetools.platform.Platform
-import com.toasterofbread.toastercomposetools.platform.PlatformPreferences
+import com.toasterofbread.composekit.platform.Platform
+import com.toasterofbread.composekit.platform.PlatformPreferences
 import okhttp3.Headers.Companion.toHeaders
 import java.util.*
 

@@ -37,10 +37,10 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLon
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.youtubeapi.SongRelatedContentEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.RelatedGroup
-import com.toasterofbread.toastercomposetools.utils.common.getContrasted
-import com.toasterofbread.toastercomposetools.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.toastercomposetools.utils.modifier.horizontal
-import com.toasterofbread.toastercomposetools.utils.modifier.vertical
+import com.toasterofbread.composekit.utils.common.getContrasted
+import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.composekit.utils.modifier.horizontal
+import com.toasterofbread.composekit.utils.modifier.vertical
 
 @Composable
 fun SongRelatedPage(

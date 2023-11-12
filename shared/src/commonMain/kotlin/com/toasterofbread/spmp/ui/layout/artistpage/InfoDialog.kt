@@ -28,7 +28,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import androidx.compose.material3.AlertDialog
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
-import com.toasterofbread.toastercomposetools.utils.composable.Marquee
+import com.toasterofbread.composekit.utils.composable.Marquee
 
 @Composable
 fun InfoDialog(item: MediaItem, close: () -> Unit) {

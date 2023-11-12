@@ -1,6 +1,6 @@
 rootProject.name = "SpMp"
 
-include(":ToasterComposeTools:lib")
+include(":ComposeKit:lib")
 include(":shared")
 include(":androidApp")
 include(":desktopApp")
@@ -29,7 +29,7 @@ pluginManagement {
 }
 
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
         google()
         mavenCentral()

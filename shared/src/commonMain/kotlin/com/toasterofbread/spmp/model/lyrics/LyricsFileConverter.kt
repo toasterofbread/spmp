@@ -9,8 +9,8 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.createFuriganaTokeniser
 import com.toasterofbread.spmp.youtubeapi.lyrics.mergeAndFuriganiseTerms
-import com.toasterofbread.toastercomposetools.platform.PlatformFile
-import com.toasterofbread.toastercomposetools.utils.common.indexOfOrNull
+import com.toasterofbread.composekit.platform.PlatformFile
+import com.toasterofbread.composekit.utils.common.indexOfOrNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.OutputStreamWriter

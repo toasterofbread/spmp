@@ -20,12 +20,12 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
-import com.toasterofbread.toastercomposetools.platform.Platform
-import com.toasterofbread.toastercomposetools.platform.PlatformContext
-import com.toasterofbread.toastercomposetools.platform.PlatformPreferences
-import com.toasterofbread.toastercomposetools.settings.ui.StaticThemeData
-import com.toasterofbread.toastercomposetools.settings.ui.Theme
-import com.toasterofbread.toastercomposetools.settings.ui.ThemeData
+import com.toasterofbread.composekit.platform.Platform
+import com.toasterofbread.composekit.platform.PlatformContext
+import com.toasterofbread.composekit.platform.PlatformPreferences
+import com.toasterofbread.composekit.settings.ui.StaticThemeData
+import com.toasterofbread.composekit.settings.ui.Theme
+import com.toasterofbread.composekit.settings.ui.ThemeData
 import java.util.Locale
 
 private const val MIN_PORTRAIT_RATIO: Float = 1f / 1.2f

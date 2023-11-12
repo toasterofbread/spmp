@@ -8,8 +8,8 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.toastercomposetools.platform.PlatformFile
-import com.toasterofbread.toastercomposetools.utils.common.addUnique
+import com.toasterofbread.composekit.platform.PlatformFile
+import com.toasterofbread.composekit.utils.common.addUnique
 
 object MediaItemLibrary {
     fun getLibraryDir(

@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
@@ -60,7 +61,6 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.bot
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.horizontal_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.top_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
-import com.toasterofbread.spmp.ui.layout.nowplaying.ThumbnailRow
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.QueueTab
@@ -68,6 +68,7 @@ import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.composekit.platform.composable.composeScope
 import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.composekit.utils.composable.getTop
+import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.SmallThumbnailRow
 import kotlinx.coroutines.CoroutineScope
 import kotlin.math.absoluteValue
 
@@ -151,7 +152,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLandscape(page_height: Dp, t
                 val thumb_size: Dp = minOf(height, maxWidth, parent_max_width * 0.5f)
 
                 composeScope {
-                    ThumbnailRow(
+                    SmallThumbnailRow(
                         queue_swipe_modifier.height(thumb_size),
                         horizontal_arrangement = Arrangement.Start,
                         onThumbnailLoaded = { song, image ->
@@ -176,8 +177,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLandscape(page_height: Dp, t
                         if (!hide) {
                             QueueTab(
                                 thumb_size + QUEUE_OVERSCROLL_PADDING_DP.dp,
-                                top_bar,
-                                Modifier
+                                padding_modifier = Modifier
                                     .graphicsLayer { alpha = (absolute_expansion * 2f).coerceAtMost(1f) }
                                     .offset {
                                         IntOffset(
@@ -186,6 +186,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLandscape(page_height: Dp, t
                                         )
                                     }
                                     .then(queue_swipe_modifier),
+                                top_bar = top_bar,
                                 inline = true,
                                 shape = thumbnail_shape,
                                 content_padding = PaddingValues(top = 10.dp)
@@ -257,7 +258,8 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLandscape(page_height: Dp, t
                                     },
                                     Modifier.fillMaxWidth().height(CONTROLS_MAX_HEIGHT_DP.dp),
                                     vertical_arrangement = Arrangement.SpaceEvenly,
-                                    font_size_multiplier = 1.2f,
+                                    title_font_size = 25.sp,
+                                    artist_font_size = 17.sp,
                                     button_row_arrangement = Arrangement.spacedBy(5.dp, Alignment.Start),
                                     text_align = TextAlign.Start
                                 )

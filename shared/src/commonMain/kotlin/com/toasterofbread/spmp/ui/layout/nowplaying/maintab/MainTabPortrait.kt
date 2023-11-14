@@ -41,9 +41,9 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.bot
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.horizontal_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.top_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
-import com.toasterofbread.spmp.ui.layout.nowplaying.ThumbnailRow
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.composekit.platform.composable.composeScope
+import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.SmallThumbnailRow
 import kotlin.math.absoluteValue
 
 internal const val MINIMISED_NOW_PLAYING_HORIZ_PADDING: Float = 10f
@@ -74,7 +74,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(page_height: Dp, to
             val controls_height: Dp = this@BoxWithConstraints.maxHeight - thumbnail_size
 
             composeScope {
-                ThumbnailRow(
+                SmallThumbnailRow(
                     Modifier
                         .size(
                             width = lerp(this@BoxWithConstraints.maxWidth - (MINIMISED_NOW_PLAYING_HORIZ_PADDING.dp * 2), thumbnail_size, expansion.getAbsolute()),

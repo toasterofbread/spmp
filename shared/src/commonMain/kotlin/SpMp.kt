@@ -6,6 +6,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
@@ -62,8 +67,6 @@ object SpMp {
             context.ytapi.init()
         }
 
-        player_state = PlayerStateImpl(context)
-
         initResources(context.getUiLanguage(), context)
         _yt_ui_localisation = YoutubeUILocalisation(UILanguages())
     }
@@ -75,7 +78,6 @@ object SpMp {
     }
 
     fun onStart() {
-        player_state.onStart()
     }
 
     fun onStop() {
@@ -87,6 +89,15 @@ object SpMp {
         context.theme.Update()
 
         context.theme.ApplicationTheme(context, getFontFamily(context) ?: FontFamily.Default) {
+            val player_coroutine_scope: CoroutineScope = rememberCoroutineScope()
+            var player_created: Boolean by remember { mutableStateOf(false) }
+
+            LaunchedEffect(Unit) {
+                player_state = PlayerStateImpl(context, player_coroutine_scope)
+                player_state.onStart()
+                player_created = true
+            }
+
             LaunchedEffect(open_uri) {
                 if (open_uri != null) {
                     player_state.openUri(open_uri).onFailure {
@@ -95,10 +106,12 @@ object SpMp {
                 }
             }
 
-            Surface(modifier = modifier.fillMaxSize()) {
-                CompositionLocalProvider(LocalPlayerState provides player_state) {
-                    RootView(player_state)
-                    LoadingSplashView(Modifier.fillMaxSize())
+            if (player_created) {
+                Surface(modifier = modifier.fillMaxSize()) {
+                    CompositionLocalProvider(LocalPlayerState provides player_state) {
+                        RootView(player_state)
+                        LoadingSplashView(Modifier.fillMaxSize())
+                    }
                 }
             }
         }

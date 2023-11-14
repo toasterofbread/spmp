@@ -26,14 +26,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
@@ -46,6 +52,8 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.composekit.utils.common.getValue
 import com.toasterofbread.composekit.utils.composable.Marquee
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 
 private const val TITLE_FONT_SIZE_SP: Float = 21f
 private const val ARTIST_FONT_SIZE_SP: Float = 14f
@@ -56,10 +64,16 @@ internal fun Controls(
     seek: (Float) -> Unit,
     modifier: Modifier = Modifier,
     button_row_arrangement: Arrangement.Horizontal = Arrangement.Center,
+    seek_bar_next_to_buttons: Boolean = false,
     disable_text_marquees: Boolean = false,
     vertical_arrangement: Arrangement.Vertical = Arrangement.spacedBy(25.dp),
-    font_size_multiplier: Float = 1f,
-    text_align: TextAlign = TextAlign.Center
+    title_font_size: TextUnit = TITLE_FONT_SIZE_SP.sp,
+    artist_font_size: TextUnit = ARTIST_FONT_SIZE_SP.sp,
+    text_align: TextAlign = TextAlign.Center,
+    title_text_max_lines: Int = 1,
+    getBackgroundColour: PlayerState.() -> Color = { getNPBackground() },
+    getOnBackgroundColour: PlayerState.() -> Color = { getNPOnBackground() },
+    getAccentColour: (PlayerState.() -> Color)? = null
 ) {
     val player = LocalPlayerState.current
 
@@ -106,10 +120,22 @@ internal fun Controls(
                     draw(this@Canvas.size)
                 }
 
-                val gradient_end = this@Canvas.size.width * 1.7f
+                val gradient_end: Float
+                val gradient_colours: List<Color>
+
+                val accent: Color? = if (player.np_theme_mode != ThemeMode.NONE) getAccentColour?.invoke(player) else null
+                if (accent != null) {
+                    gradient_end = this@Canvas.size.width * 0.95f
+                    gradient_colours = listOf(getOnBackgroundColour(player), getOnBackgroundColour(player), accent)
+                }
+                else {
+                    gradient_end = this@Canvas.size.width * 1.9f
+                    gradient_colours = listOf(getOnBackgroundColour(player), getBackgroundColour(player))
+                }
+
                 drawRect(
                     Brush.linearGradient(
-                        listOf(player.getNPOnBackground(), player.getNPBackground()),
+                        gradient_colours,
                         end = Offset(gradient_end, gradient_end)
                     ),
                     blendMode = BlendMode.SrcAtop
@@ -123,11 +149,10 @@ internal fun Controls(
             Marquee(Modifier.fillMaxWidth(), disable = disable_text_marquees) {
                 Text(
                     song_title ?: "",
-                    fontSize = TITLE_FONT_SIZE_SP.sp * font_size_multiplier,
-                    color = player.getNPOnBackground(),
+                    fontSize = title_font_size,
+                    color = getOnBackgroundColour(player),
                     textAlign = text_align,
-                    maxLines = 1,
-                    softWrap = false,
+                    maxLines = title_text_max_lines,
                     // Using ellipsis makes this go weird, no clue why
                     overflow = TextOverflow.Clip,
                     modifier = Modifier
@@ -143,8 +168,8 @@ internal fun Controls(
 
             Text(
                 song_artist_title ?: "",
-                fontSize = ARTIST_FONT_SIZE_SP.sp * font_size_multiplier,
-                color = player.getNPOnBackground(),
+                fontSize = artist_font_size,
+                color = getOnBackgroundColour(player),
                 textAlign = text_align,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -168,7 +193,13 @@ internal fun Controls(
             )
         }
 
-        SeekBar(seek)
+        val getSeekBarTrackColour: PlayerState.() -> Color = {
+            getOnBackgroundColour(this).copy(alpha = 0.1f)
+        }
+
+        if (!seek_bar_next_to_buttons) {
+            SeekBar(seek, getColour = getOnBackgroundColour, getTrackColour = getSeekBarTrackColour)
+        }
 
         Row(
             horizontalArrangement = button_row_arrangement,
@@ -201,6 +232,13 @@ internal fun Controls(
             ) {
                 player.controller?.seekToNext()
             }
+
+            if (seek_bar_next_to_buttons) {
+                SeekBar(seek, Modifier.fillMaxWidth().weight(1f), getColour = getOnBackgroundColour, getTrackColour = getSeekBarTrackColour)
+            }
         }
     }
 }
+
+private operator fun Size.plus(size: Size): Size =
+    Size(width + size.width, height + size.height)

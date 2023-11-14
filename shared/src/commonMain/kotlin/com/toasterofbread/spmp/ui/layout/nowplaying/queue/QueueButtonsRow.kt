@@ -21,98 +21,99 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.composekit.utils.common.getContrasted
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun QueueButtonsRow(
-    getBackgroundColour: () -> Color,
+    getButtonColour: () -> Color,
     multiselect_context: MediaItemMultiSelectContext,
+    arrangement: Arrangement.Horizontal = Arrangement.SpaceEvenly,
     scrollToitem: (Int) -> Unit
 ) {
     val padding = 10.dp
     val player = LocalPlayerState.current
-    val background_colour = player.getNPBackground()
+    val button_colour = getButtonColour()
 
     Row(
         Modifier
             .padding(top = padding, start = padding, end = padding, bottom = 10.dp)
             .height(40.dp)
             .fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceEvenly
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        RepeatButton(getBackgroundColour, Modifier.fillMaxHeight())
-        StopAfterSongButton(getBackgroundColour, Modifier.fillMaxHeight())
+        Row(Modifier.fillMaxWidth().weight(1f), horizontalArrangement = arrangement) {
+            RepeatButton(getButtonColour, Modifier.fillMaxHeight())
+            StopAfterSongButton(getButtonColour, Modifier.fillMaxHeight())
 
-        Button(
-            onClick = {
-                player.controller?.service_player?.undoableAction {
-                    if (multiselect_context.is_active) {
-                        for (item in multiselect_context.getSelectedItems().sortedByDescending { it.second!! }) {
-                            removeFromQueue(item.second!!)
+            Button(
+                onClick = {
+                    player.controller?.service_player?.undoableAction {
+                        if (multiselect_context.is_active) {
+                            for (item in multiselect_context.getSelectedItems().sortedByDescending { it.second!! }) {
+                                removeFromQueue(item.second!!)
+                            }
+                            multiselect_context.onActionPerformed()
                         }
-                        multiselect_context.onActionPerformed()
+                        else {
+                            clearQueue(keep_current = player.status.m_song_count > 1)
+                        }
                     }
-                    else {
-                        clearQueue(keep_current = player.status.m_song_count > 1)
-                    }
-                }
-            },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = background_colour,
-                contentColor = background_colour.getContrasted()
-            ),
-            border = multiselect_context.getActiveHintBorder()
-        ) {
-            Text(getString("queue_clear"))
-        }
-
-        Surface(
-            Modifier
-                .clip(FilledButtonTokens.ContainerShape.toShape())
-                .combinedClickable(
-                    onClick = {
-                        player.controller?.service_player?.undoableAction {
-                            if (multiselect_context.is_active) {
-                                shuffleQueueIndices(multiselect_context.getSelectedItems().map { it.second!! })
-                            }
-                            else {
-                                shuffleQueue(start = current_song_index + 1)
-                            }
-                        }
-                    },
-                    onLongClick = if (multiselect_context.is_active) null else ({
-                        if (!multiselect_context.is_active) {
-                            player.controller?.service_player?.undoableAction {
-                                if (current_song_index > 0) {
-                                    moveSong(current_song_index, 0)
-                                    scrollToitem(0)
-                                }
-                                shuffleQueue(start = 1)
-                            }
-                            player.context.vibrateShort()
-                        }
-                    })
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = button_colour,
+                    contentColor = button_colour.getContrasted()
                 ),
-            color = background_colour,
-            shape = FilledButtonTokens.ContainerShape.toShape(),
-            border = multiselect_context.getActiveHintBorder()
-        ) {
-            Box(
-                Modifier
-                    .defaultMinSize(
-                        minWidth = ButtonDefaults.MinWidth,
-                        minHeight = ButtonDefaults.MinHeight
-                    )
-                    .padding(ButtonDefaults.ContentPadding),
-                contentAlignment = Alignment.Center
+                border = multiselect_context.getActiveHintBorder()
             ) {
-                Text(
-                    text = getString("queue_shuffle"),
-                    style = MaterialTheme.typography.labelLarge
-                )
+                Text(getString("queue_clear"))
+            }
+
+            Surface(
+                Modifier
+                    .clip(FilledButtonTokens.ContainerShape.toShape())
+                    .combinedClickable(
+                        onClick = {
+                            player.controller?.service_player?.undoableAction {
+                                if (multiselect_context.is_active) {
+                                    shuffleQueueIndices(multiselect_context.getSelectedItems().map { it.second!! })
+                                }
+                                else {
+                                    shuffleQueue(start = current_song_index + 1)
+                                }
+                            }
+                        },
+                        onLongClick = if (multiselect_context.is_active) null else ({
+                            if (!multiselect_context.is_active) {
+                                player.controller?.service_player?.undoableAction {
+                                    if (current_song_index > 0) {
+                                        moveSong(current_song_index, 0)
+                                        scrollToitem(0)
+                                    }
+                                    shuffleQueue(start = 1)
+                                }
+                                player.context.vibrateShort()
+                            }
+                        })
+                    ),
+                color = button_colour,
+                shape = FilledButtonTokens.ContainerShape.toShape(),
+                border = multiselect_context.getActiveHintBorder()
+            ) {
+                Box(
+                    Modifier
+                        .defaultMinSize(
+                            minWidth = ButtonDefaults.MinWidth,
+                            minHeight = ButtonDefaults.MinHeight
+                        )
+                        .padding(ButtonDefaults.ContentPadding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = getString("queue_shuffle"),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
             }
         }
 

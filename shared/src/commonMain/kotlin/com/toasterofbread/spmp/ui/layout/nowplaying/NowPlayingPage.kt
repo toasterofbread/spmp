@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.platform.isLargeFormFactor
@@ -20,6 +21,8 @@ abstract class NowPlayingPage {
     @Composable
     abstract fun Page(page_height: Dp, top_bar: NowPlayingTopBar, content_padding: PaddingValues, swipe_modifier: Modifier, modifier: Modifier)
     abstract fun shouldShow(player: PlayerState): Boolean
+
+    open fun getPlayerBackgroundColourOverride(player: PlayerState): Color? = null
 
     companion object {
         @Composable

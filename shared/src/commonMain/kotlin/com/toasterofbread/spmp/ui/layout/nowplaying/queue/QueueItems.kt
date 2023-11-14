@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -22,16 +23,18 @@ fun LazyListScope.QueueItems(
     player: PlayerState,
     getPlayingKey: () -> Int?,
     setPlayingKey: (Int?) -> Unit,
-    item_modifier: Modifier = Modifier
+    item_modifier: Modifier = Modifier,
+    getItemColour: PlayerState.() -> Color = { getNPAltOnBackground() },
+    getCurrentItemColour: PlayerState.() -> Color = { getNPBackground() }
 ) {
     val items: List<QueueTabItem> = song_items.toList()
-    items(song_items.size, { song_items[it].key }) { index ->
-        val item = song_items[index]
+    items(items.size, { items[it].key }) { index ->
+        val item: QueueTabItem = song_items[index]
         ReorderableItem(queue_list_state, item.key, item_modifier) { is_dragging ->
             LaunchedEffect(is_dragging) {
                 if (is_dragging) {
                     player.context.vibrateShort()
-                    setPlayingKey(song_items[player.status.m_index].key)
+                    setPlayingKey(items.getOrNull(player.status.m_index)?.key)
                 }
             }
 
@@ -42,8 +45,8 @@ fun LazyListScope.QueueItems(
                     {
                         val playing_key = getPlayingKey()
                         val current = if (playing_key != null) playing_key == item.key else player.status.m_index == index
-                        if (current) player.getNPBackground()
-                        else player.getNPAltOnBackground()
+                        if (current) getCurrentItemColour(player)
+                        else getItemColour(player)
                     },
                     multiselect_context
                 ) {

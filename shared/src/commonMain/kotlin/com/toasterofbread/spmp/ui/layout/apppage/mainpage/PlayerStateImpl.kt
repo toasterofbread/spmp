@@ -2,7 +2,9 @@ package com.toasterofbread.spmp.ui.layout.apppage.mainpage
 
 import LocalPlayerState
 import SpMp
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
@@ -57,30 +59,32 @@ fun PlayerState.getMainPageItemSize(): DpSize {
 }
 
 @OptIn(ExperimentalMaterialApi::class)
-class PlayerStateImpl(override val context: AppContext): PlayerState(null, null, null) {
+class PlayerStateImpl(override val context: AppContext, private val coroutine_scope: CoroutineScope): PlayerState(null, null, null) {
     private var _player: PlatformPlayerService? by mutableStateOf(null)
-    override val session_started: Boolean get() = _player?.service_player?.session_started == true
 
-    override var screen_size: DpSize by mutableStateOf(DpSize.Zero)
-
-    private var now_playing_switch_page: Int by mutableStateOf(-1)
     private val app_page_undo_stack: MutableList<AppPage?> = mutableStateListOf()
 
     private val low_memory_listener: () -> Unit
     private val prefs_listener: PlatformPreferences.Listener
 
     private fun switchNowPlayingPage(page: Int) {
-        now_playing_switch_page = page
+        coroutine_scope.launch {
+            np_swipe_state.value.animateTo(page)
+        }
     }
 
     private var long_press_menu_data: LongPressMenuData? by mutableStateOf(null)
     private var long_press_menu_showing: Boolean by mutableStateOf(false)
     private var long_press_menu_direct: Boolean by mutableStateOf(false)
 
-    private val np_swipe_state: MutableState<SwipeableState<Int>> = mutableStateOf(SwipeableState(0))
+    private val np_swipe_state: MutableState<SwipeableState<Int>> = mutableStateOf(
+        SwipeableState(0, spring(Spring.DampingRatioNoBouncy, Spring.StiffnessMediumLow))
+    )
     private var np_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
 
-    override val expansion = NowPlayingExpansionState(this, np_swipe_state)
+    override val expansion = NowPlayingExpansionState(this, np_swipe_state, coroutine_scope)
+    override val session_started: Boolean get() = _player?.service_player?.session_started == true
+    override var screen_size: DpSize by mutableStateOf(DpSize.Zero)
 
     override val app_page_state = AppPageState(this)
     override val main_multiselect_context: MediaItemMultiSelectContext = MediaItemMultiSelectContext()
@@ -106,7 +110,6 @@ class PlayerStateImpl(override val context: AppContext): PlayerState(null, null,
         }
     }
 
-    private val coroutine_scope = CoroutineScope(Job())
     fun onStart() {
         SpMp.addLowMemoryListener(low_memory_listener)
         context.getPrefs().addListener(prefs_listener)
@@ -326,7 +329,8 @@ class PlayerStateImpl(override val context: AppContext): PlayerState(null, null,
         val density: Density = LocalDensity.current
         val bottom_padding: Int = density.getNpBottomPadding(WindowInsets.systemBars, WindowInsets.navigationBars, WindowInsets.ime)
 
-        val vertical_page_count = getNowPlayingVerticalPageCount(player)
+        val vertical_page_count: Int = getNowPlayingVerticalPageCount(player)
+        val minimised_now_playing_height: Dp = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
 
         LaunchedEffect(screen_size.height, bottom_padding, vertical_page_count) {
             val half_screen_height: Float = screen_size.height.value * 0.5f
@@ -334,7 +338,7 @@ class PlayerStateImpl(override val context: AppContext): PlayerState(null, null,
             with(density) {
                 np_swipe_anchors = (0..vertical_page_count)
                     .associateBy { anchor ->
-                        if (anchor == 0) MINIMISED_NOW_PLAYING_HEIGHT_DP.toFloat() - half_screen_height
+                        if (anchor == 0) minimised_now_playing_height.value - half_screen_height
                         else ((screen_size.height - bottom_padding.toDp()).value * anchor) - half_screen_height
                     }
             }
@@ -352,13 +356,6 @@ class PlayerStateImpl(override val context: AppContext): PlayerState(null, null,
                 np_swipe_anchors!!,
                 content_padding = PaddingValues(start = WindowInsets.getStart(), end = WindowInsets.getEnd())
             )
-        }
-
-        OnChangedEffect(now_playing_switch_page) {
-            if (now_playing_switch_page >= 0) {
-                np_swipe_state.value.animateTo(now_playing_switch_page)
-                now_playing_switch_page = -1
-            }
         }
     }
 

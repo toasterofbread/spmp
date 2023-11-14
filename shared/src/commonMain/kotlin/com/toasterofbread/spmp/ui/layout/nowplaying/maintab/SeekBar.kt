@@ -39,9 +39,15 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.composekit.utils.common.formatElapsedTime
 import com.toasterofbread.composekit.utils.composable.RecomposeOnInterval
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 
 @Composable
-fun SeekBar(seek: (Float) -> Unit) {
+fun SeekBar(
+    seek: (Float) -> Unit,
+    modifier: Modifier = Modifier,
+    getColour: PlayerState.() -> Color = { getNPOnBackground() },
+    getTrackColour: PlayerState.() -> Color = { getNPAltOnBackground() }
+) {
     val player = LocalPlayerState.current
 
     var position_override by remember { mutableStateOf<Float?>(null) }
@@ -64,15 +70,15 @@ fun SeekBar(seek: (Float) -> Unit) {
     RecomposeOnInterval(POSITION_UPDATE_INTERVAL_MS, player.status.m_playing) { state ->
         state
 
-        Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        Column(modifier, verticalArrangement = Arrangement.spacedBy(5.dp)) {
             Box(Modifier.fillMaxWidth().padding(horizontal = 7.dp).requiredHeight(12.dp), contentAlignment = Alignment.BottomCenter) {
                 Row(
                     Modifier.fillMaxWidth().requiredHeight(30.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    SeekBarTimeText(player.status.getPositionMillis(), player.getNPOnBackground())
-                    SeekBarTimeText(player.status.m_duration_ms, player.getNPOnBackground())
+                    SeekBarTimeText(player.status.getPositionMillis(), getColour(player))
+                    SeekBarTimeText(player.status.m_duration_ms, getColour(player))
                 }
             }
 
@@ -89,8 +95,8 @@ fun SeekBar(seek: (Float) -> Unit) {
                     cancel_area_side = null
                 },
                 thumbSizeInDp = DpSize(12.dp, 12.dp),
-                track = { a, b, _, _, e -> SeekTrack(a, b, e, player.getNPAltOnBackground(), player.getNPOnBackground()) },
-                thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, player.getNPOnBackground(), 1f) }
+                track = { a, b, _, _, e -> SeekTrack(a, b, e, getTrackColour(player), getColour(player)) },
+                thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, getColour(player), 1f) }
             )
         }
     }

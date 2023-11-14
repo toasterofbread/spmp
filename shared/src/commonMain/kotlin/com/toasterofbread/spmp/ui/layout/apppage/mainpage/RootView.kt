@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.apppage.mainpage
 
+import LocalPlayerState
 import SpMp.isDebugBuild
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,9 +14,12 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import com.toasterofbread.composekit.utils.modifier.background
+import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NowPlayingMainTabPage
 
-const val MINIMISED_NOW_PLAYING_HEIGHT_DP: Int = 64
-const val MINIMISED_NOW_PLAYING_V_PADDING_DP: Int = 7
+val MINIMISED_NOW_PLAYING_HEIGHT_DP: Float
+    @Composable get() = NowPlayingMainTabPage.Mode.getCurrent(LocalPlayerState.current).getMinimisedPlayerHeight().value
+val MINIMISED_NOW_PLAYING_V_PADDING_DP: Float
+    @Composable get() = NowPlayingMainTabPage.Mode.getCurrent(LocalPlayerState.current).getMinimisedPlayerVPadding().value
 const val MEDIAITEM_PREVIEW_SQUARE_SIZE_SMALL: Float = 100f
 const val MEDIAITEM_PREVIEW_SQUARE_SIZE_LARGE: Float = 200f
 

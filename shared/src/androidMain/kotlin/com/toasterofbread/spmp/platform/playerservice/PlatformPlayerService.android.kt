@@ -11,6 +11,7 @@ import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.media.MediaRouter
+import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
 import android.os.Binder
 import android.os.Build
@@ -60,6 +61,7 @@ import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.spmp.exovisualiser.ExoVisualizer
 import com.toasterofbread.spmp.exovisualiser.FFTAudioProcessor
 import com.toasterofbread.spmp.model.Settings
@@ -137,30 +139,61 @@ actual class PlatformPlayerService: MediaSessionService() {
     actual val context: AppContext get() = _context
     private lateinit var _context: AppContext
 
-    private val coroutine_scope = CoroutineScope(Dispatchers.Main)
-    private lateinit var player: Player
+    private val coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
+    private lateinit var player: ExoPlayer
     private lateinit var media_session: MediaSession
+    private var loudness_enhancer: LoudnessEnhancer? = null
 
     private var current_song: Song? = null
     private var paused_by_device_disconnect: Boolean = false
     private var device_connection_changed_playing_status: Boolean = false
 
-    private val song_liked_listener = SongLikedStatus.Listener { song, liked_status ->
-        println("SONG LIKED CHANGED $song $liked_status")
+    private val song_liked_listener: SongLikedStatus.Listener = SongLikedStatus.Listener { song, liked_status ->
         if (song == current_song) {
             updatePlayerCustomActions(liked_status)
         }
     }
 
-    private val player_listener = object : Player.Listener {
+    private fun LoudnessEnhancer.update(song: Song?) {
+        if (song == null || !Settings.KEY_ENABLE_AUDIO_NORMALISATION.get<Boolean>(context)) {
+            enabled = false
+            return
+        }
+
+        val loudness_db: Float? = song.LoudnessDbById.get(context.database)
+        if (loudness_db == null) {
+            setTargetGain(0)
+        }
+        else {
+            setTargetGain((loudness_db * 100).toInt())
+        }
+
+        enabled = true
+    }
+
+    private val player_listener: Player.Listener = object : Player.Listener {
         override fun onMediaItemTransition(media_item: MediaItem?, reason: Int) {
-            val song = media_item?.getSong()
+            val song: Song? = media_item?.getSong()
             if (song?.id == current_song?.id) {
                 return
             }
 
             current_song = song
             updatePlayerCustomActions()
+
+            if (loudness_enhancer == null) {
+                loudness_enhancer = LoudnessEnhancer(player.audioSessionId)
+            }
+
+            loudness_enhancer?.update(song)
+        }
+
+        override fun onAudioSessionIdChanged(audioSessionId: Int) {
+            loudness_enhancer?.release()
+            loudness_enhancer = LoudnessEnhancer(audioSessionId).apply {
+                update(current_song)
+                enabled = true
+            }
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -169,6 +202,14 @@ actual class PlatformPlayerService: MediaSessionService() {
             }
             else {
                 paused_by_device_disconnect = false
+            }
+        }
+    }
+
+    private val prefs_listener: PlatformPreferences.Listener = object : PlatformPreferences.Listener {
+        override fun onChanged(prefs: PlatformPreferences, key: String) {
+            if (key == Settings.KEY_ENABLE_AUDIO_NORMALISATION.name) {
+                loudness_enhancer?.update(current_song)
             }
         }
     }
@@ -331,6 +372,7 @@ actual class PlatformPlayerService: MediaSessionService() {
 
         initialiseSessionAndPlayer()
         _context = AppContext(this, coroutine_scope).init()
+        _context.getPrefs().addListener(prefs_listener)
 
         _service_player = object : PlayerServicePlayer(this) {
             override fun onUndoStateChanged() {
@@ -355,10 +397,12 @@ actual class PlatformPlayerService: MediaSessionService() {
     }
 
     actual override fun onDestroy() {
+        _context.getPrefs().removeListener(prefs_listener)
         coroutine_scope.cancel()
         service_player.release()
         player.release()
         media_session.release()
+        loudness_enhancer?.release()
         SongLikedStatus.removeListener(song_liked_listener)
 
         val audio_manager = getSystemService(AUDIO_SERVICE) as AudioManager?
@@ -587,7 +631,9 @@ actual class PlatformPlayerService: MediaSessionService() {
         }) { data_spec: DataSpec ->
             try {
                 return@Factory runBlocking {
-                    processMediaDataSpec(data_spec, context, context.isConnectionMetered())
+                    processMediaDataSpec(data_spec, context, context.isConnectionMetered()).also {
+                        loudness_enhancer?.update(current_song)
+                    }
                 }
             }
             catch (e: Throwable) {

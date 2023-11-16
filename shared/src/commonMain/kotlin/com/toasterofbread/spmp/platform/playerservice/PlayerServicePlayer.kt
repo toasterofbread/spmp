@@ -158,8 +158,6 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
                     )
                     .build()
 
-                println("SEND ${gson.toJson(payload)}")
-                
                 try {
                     val result = OkHttpClient().newCall(request).execute()
                     if (!result.isSuccessful) {

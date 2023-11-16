@@ -183,6 +183,7 @@ enum class Settings {
     KEY_FEED_HIDDEN_ROWS,
 
     // Player
+    KEY_PLAYER_SHOW_REPEAT_SHUFFLE_BUTTONS,
     KEY_PLAYER_OVERLAY_CUSTOM_ACTION,
     KEY_PLAYER_OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS,
     KEY_MINI_PLAYER_SHOW_PREV_BUTTON,
@@ -392,6 +393,7 @@ enum class Settings {
                 KEY_FEED_SHOW_RADIOS -> false
                 KEY_FEED_HIDDEN_ROWS -> emptySet<String>()
 
+                KEY_PLAYER_SHOW_REPEAT_SHUFFLE_BUTTONS -> false
                 KEY_PLAYER_OVERLAY_CUSTOM_ACTION -> PlayerOverlayMenuAction.DEFAULT_CUSTOM.ordinal
                 KEY_PLAYER_OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS -> false
                 KEY_MINI_PLAYER_SHOW_PREV_BUTTON -> false

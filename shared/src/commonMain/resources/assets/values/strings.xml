@@ -368,6 +368,9 @@
     <string name="s_option_mini_player_overscroll_clear_mode_hide_if_queue_empty">Hide player if queue empty</string>
     <string name="s_option_mini_player_overscroll_clear_mode_none_if_queue_empty">Only clear queue</string>
 
+    <string name="s_key_player_show_repeat_shuffle_buttons">Show repeat and shuffle buttons in player</string>
+    <string name="s_sub_player_show_repeat_shuffle_buttons">They will be shown in the queue regardless of this option</string>
+
     <string name="s_key_player_overlay_menu_custom_action">Overlay menu custom action</string>
     <string name="s_sub_player_overlay_menu_custom_action">By default, triggers on long press</string>
     <string name="s_key_player_overlay_menu_swap_long_short_press_actions">Swap overlay menu long and short press actions</string>

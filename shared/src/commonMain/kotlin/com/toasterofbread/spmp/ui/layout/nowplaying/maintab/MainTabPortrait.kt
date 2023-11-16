@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.rounded.Radio
+import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import com.toasterofbread.composekit.platform.composable.composeScope
 import com.toasterofbread.composekit.utils.modifier.bounceOnClick
+import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
@@ -49,7 +51,9 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.hor
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.top_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThumbnailRow
+import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
+import com.toasterofbread.spmp.ui.layout.nowplaying.queue.RepeatButton
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import kotlin.math.absoluteValue
 
@@ -112,6 +116,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(page_height: Dp, to
                 ) {
                     val side_button_modifier: Modifier = Modifier.alpha(0.35f)
                     val side_button_padding: Dp = 20.dp
+                    val show_shuffle_repeat_buttons: Boolean by Settings.KEY_PLAYER_SHOW_REPEAT_SHUFFLE_BUTTONS.rememberMutableState()
 
                     Controls(
                         current_song,
@@ -152,15 +157,41 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(page_height: Dp, to
                                     {
                                         current_song?.let { song ->
                                             player.withPlayer {
-                                                startRadioAtIndex(current_song_index + 1, song, current_song_index, skip_first = true)
-                                                player.expansion.scrollTo(2)
+                                                undoableAction {
+                                                    startRadioAtIndex(current_song_index + 1, song, current_song_index, skip_first = true)
+                                                }
                                             }
+                                            player.expansion.scrollTo(2)
                                         }
                                     },
                                     side_button_modifier.padding(start = side_button_padding).bounceOnClick()
                                 ) {
                                     Icon(Icons.Rounded.Radio, null, tint = player.getNPOnBackground())
                                 }
+                            }
+                        },
+                        artistRowStartContent = {
+                            if (show_shuffle_repeat_buttons) {
+                                RepeatButton({ player.getNPBackground() })
+                            }
+                            else {
+                                Spacer(Modifier.height(40.dp))
+                            }
+                        },
+                        artistRowEndContent = {
+                            if (show_shuffle_repeat_buttons) {
+                                IconButton({
+                                    player.withPlayer {
+                                        undoableAction {
+                                            shuffleQueue(start = current_song_index + 1)
+                                        }
+                                    }
+                                }) {
+                                    Icon(Icons.Rounded.Shuffle, null)
+                                }
+                            }
+                            else {
+                                Spacer(Modifier.height(40.dp))
                             }
                         }
                     )

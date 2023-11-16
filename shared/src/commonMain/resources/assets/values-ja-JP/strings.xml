@@ -502,6 +502,8 @@
     <string name="s_key_enable_audio_normalisation">音量のノーマライゼーション</string>
     <string name="s_sub_enable_audio_normalisation">YouTubeからの音量データで行われるので、成功しない場合もあります</string>
 
+    <string name="s_key_enable_silence_skipping">無音部分をスキップ</string>
+
     <string name="s_key_status_webhook_url">ステータスウェブフックのURL</string>
     <string name="s_sub_status_webhook_url">再生中の曲が変わるとこのURLへJSONのPOSTリクエストが送信されます。例：`{"youtube_video_id": "&lt;動画のID&gt;"}`</string>
 

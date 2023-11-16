@@ -512,6 +512,8 @@
     <string name="s_key_enable_audio_normalisation">Enable audio normalisation</string>
     <string name="s_sub_enable_audio_normalisation">Availability may be limited to certain videos, as loudness data is provided by YouTube</string>
 
+    <string name="s_key_enable_silence_skipping">Enable silence skipping</string>
+
     <string name="s_key_status_webhook_url">Status webhook URL</string>
     <string name="s_sub_status_webhook_url">When the playing song changes, a JSON post request will be sent to this URL in the following format: `{"youtube_video_id": "&lt;Video ID&gt;"}`</string>
 

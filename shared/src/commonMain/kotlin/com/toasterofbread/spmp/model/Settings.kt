@@ -253,6 +253,7 @@ enum class Settings {
     KEY_STATUS_WEBHOOK_URL,
     KEY_STATUS_WEBHOOK_PAYLOAD,
     KEY_ENABLE_AUDIO_NORMALISATION,
+    KEY_ENABLE_SILENCE_SKIPPING,
 
     // Internal
     INTERNAL_TOPBAR_MODE_HOME,
@@ -467,6 +468,7 @@ enum class Settings {
                 KEY_STATUS_WEBHOOK_URL -> ProjectBuildConfig.STATUS_WEBHOOK_URL ?: ""
                 KEY_STATUS_WEBHOOK_PAYLOAD -> ProjectBuildConfig.STATUS_WEBHOOK_PAYLOAD ?: "{}"
                 KEY_ENABLE_AUDIO_NORMALISATION -> false
+                KEY_ENABLE_SILENCE_SKIPPING -> false
 
                 KEY_SPMS_PORT -> 3973
 

@@ -23,6 +23,7 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.composekit.utils.common.getContrasted
+import com.toasterofbread.composekit.utils.modifier.bounceOnClick
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -43,8 +44,8 @@ fun QueueButtonsRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        RepeatButton(getBackgroundColour, Modifier.fillMaxHeight())
-        StopAfterSongButton(getBackgroundColour, Modifier.fillMaxHeight())
+        RepeatButton(getBackgroundColour, Modifier.fillMaxHeight().bounceOnClick())
+        StopAfterSongButton(getBackgroundColour, Modifier.fillMaxHeight().bounceOnClick())
 
         Button(
             onClick = {
@@ -60,6 +61,7 @@ fun QueueButtonsRow(
                     }
                 }
             },
+            modifier = Modifier.bounceOnClick(),
             colors = ButtonDefaults.buttonColors(
                 containerColor = background_colour,
                 contentColor = background_colour.getContrasted()
@@ -71,6 +73,7 @@ fun QueueButtonsRow(
 
         Surface(
             Modifier
+                .bounceOnClick()
                 .clip(FilledButtonTokens.ContainerShape.toShape())
                 .combinedClickable(
                     onClick = {
@@ -123,6 +126,7 @@ fun QueueButtonsRow(
 
         Box(
             modifier = Modifier
+                .bounceOnClick()
                 .background(
                     undo_background,
                     CircleShape

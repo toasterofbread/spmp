@@ -22,6 +22,9 @@ import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.composekit.utils.composable.PlatformClickableIconButton
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.composekit.utils.modifier.bounceOnClick
+import com.toasterofbread.spmp.youtubeapi.endpoint.SetSongLikedEndpoint
+import com.toasterofbread.spmp.youtubeapi.endpoint.SongLikedEndpoint
 
 @Composable
 fun LikeDislikeButton(
@@ -31,8 +34,8 @@ fun LikeDislikeButton(
     getEnabled: (() -> Boolean)? = null,
     getColour: () -> Color
 ) {
-    val get_liked_endpoint = auth_state.SongLiked
-    val set_liked_endpoint = auth_state.SetSongLiked
+    val get_liked_endpoint: SongLikedEndpoint = auth_state.SongLiked
+    val set_liked_endpoint: SetSongLikedEndpoint = auth_state.SetSongLiked
     check(get_liked_endpoint.isImplemented())
     check(set_liked_endpoint.isImplemented())
 
@@ -73,7 +76,7 @@ fun LikeDislikeButton(
                 )
             }
         },
-        modifier,
+        modifier.bounceOnClick(),
         apply_minimum_size = false
     ) {
         Crossfade(liked_status) { status ->

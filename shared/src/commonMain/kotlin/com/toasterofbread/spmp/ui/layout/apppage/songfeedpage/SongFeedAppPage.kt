@@ -63,6 +63,8 @@ import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
 import com.toasterofbread.composekit.utils.common.anyCauseIs
 import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.composekit.utils.modifier.horizontal
+import com.toasterofbread.composekit.utils.modifier.vertical
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -228,8 +230,8 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
             }
 
             @Composable
-            fun TopContent() {
-                PinnedItemsRow(Modifier.padding(bottom = 10.dp))
+            fun TopContent(modifier: Modifier = Modifier) {
+                PinnedItemsRow(modifier.padding(bottom = 10.dp))
             }
 
             var hiding_layout: MediaItemLayout? by remember { mutableStateOf(null) }
@@ -276,20 +278,21 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
                         { loadFeed(true) }
                     } else null
                     val loading_continuation = load_state != FeedLoadState.NONE
+                    val horizontal_padding: PaddingValues = content_padding.horizontal
 
                     LazyColumn(
                         Modifier.graphicsLayer { alpha = state_alpha.value },
                         state = scroll_state,
-                        contentPadding = content_padding,
+                        contentPadding = content_padding.vertical,
                         userScrollEnabled = !state_alpha.isRunning
                     ) {
                         item {
-                            TopContent()
+                            TopContent(Modifier.padding(horizontal_padding))
                         }
 
                         item {
                             if (artists_layout.items.isNotEmpty()) {
-                                artists_layout.Layout(multiselect_context = player.main_multiselect_context, apply_filter = true)
+                                artists_layout.Layout(multiselect_context = player.main_multiselect_context, apply_filter = true, content_padding = horizontal_padding)
                             }
                         }
 
@@ -328,7 +331,8 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
                                 apply_filter = true,
                                 square_item_max_text_rows = square_item_max_text_rows,
                                 show_download_indicators = show_download_indicators,
-                                grid_rows = Pair(rows, expanded_rows)
+                                grid_rows = Pair(rows, expanded_rows),
+                                content_padding = horizontal_padding
                             )
                         }
 
@@ -337,7 +341,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
                                 val (requestContinuation, loading) = data
 
                                 if (loading || requestContinuation != null) {
-                                    Box(Modifier.fillMaxWidth().heightIn(min = 60.dp), contentAlignment = Alignment.Center) {
+                                    Box(Modifier.fillMaxWidth().heightIn(min = 60.dp).padding(horizontal_padding), contentAlignment = Alignment.Center) {
                                         if (loading) {
                                             SubtleLoadingIndicator()
                                         }

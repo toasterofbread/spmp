@@ -3,7 +3,10 @@ package com.toasterofbread.spmp.ui.component.mediaitemlayout
 import LocalPlayerState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -14,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.composekit.utils.modifier.horizontal
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
@@ -35,9 +39,10 @@ fun MediaItemList(
     numbered: Boolean = false,
     multiselect_context: MediaItemMultiSelectContext? = null,
     apply_filter: Boolean = false,
-    show_download_indicators: Boolean = true
+    show_download_indicators: Boolean = true,
+    content_padding: PaddingValues = PaddingValues()
 ) {
-    MediaItemList(layout.items, modifier, title_modifier, numbered, layout.title, layout.subtitle, layout.view_more, multiselect_context, apply_filter, show_download_indicators = show_download_indicators)
+    MediaItemList(layout.items, modifier, title_modifier, numbered, layout.title, layout.subtitle, layout.view_more, multiselect_context, apply_filter, show_download_indicators = show_download_indicators, content_padding = content_padding)
 }
 
 @Composable
@@ -52,12 +57,15 @@ fun MediaItemList(
     multiselect_context: MediaItemMultiSelectContext? = null,
     apply_filter: Boolean = false,
     show_download_indicators: Boolean = true,
-    play_as_list: Boolean = false
+    play_as_list: Boolean = false,
+    content_padding: PaddingValues = PaddingValues()
 ) {
     val filtered_items: List<MediaItem> by items.rememberFilteredItems(apply_filter)
     val player: PlayerState = LocalPlayerState.current
 
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(MEDIAITEM_LIST_DEFAULT_SPACING_DP.dp)) {
+    Column(modifier.padding(content_padding.horizontal), verticalArrangement = Arrangement.spacedBy(MEDIAITEM_LIST_DEFAULT_SPACING_DP.dp)) {
+        Spacer(Modifier.height(content_padding.calculateTopPadding()))
+
         TitleBar(
             items,
             title,
@@ -104,5 +112,7 @@ fun MediaItemList(
                 }
             }
         }
+
+        Spacer(Modifier.height(content_padding.calculateBottomPadding()))
     }
 }

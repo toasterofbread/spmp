@@ -9,9 +9,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -50,6 +52,8 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSqu
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.composekit.utils.modifier.background
+import com.toasterofbread.composekit.utils.modifier.horizontal
+import com.toasterofbread.composekit.utils.modifier.vertical
 
 @Composable
 fun MediaItemGrid(
@@ -62,6 +66,7 @@ fun MediaItemGrid(
     multiselect_context: MediaItemMultiSelectContext? = null,
     square_item_max_text_rows: Int? = null,
     show_download_indicators: Boolean = true,
+    content_padding: PaddingValues = PaddingValues(),
     itemSizeProvider: @Composable () -> DpSize = { getDefaultMediaItemPreviewSize() },
     startContent: (LazyGridScope.() -> Unit)? = null
 ) {
@@ -79,6 +84,7 @@ fun MediaItemGrid(
         show_download_indicators = show_download_indicators,
         itemSizeProvider = itemSizeProvider,
         multiselect_context = multiselect_context,
+        content_padding = content_padding,
         startContent = startContent
     )
 }
@@ -99,6 +105,7 @@ fun MediaItemGrid(
     show_download_indicators: Boolean = true,
     itemSizeProvider: @Composable () -> DpSize = { getDefaultMediaItemPreviewSize() },
     multiselect_context: MediaItemMultiSelectContext? = null,
+    content_padding: PaddingValues = PaddingValues(),
     startContent: (LazyGridScope.() -> Unit)? = null
 ) {
     val player: PlayerState = LocalPlayerState.current
@@ -108,13 +115,15 @@ fun MediaItemGrid(
     val expanded_row_count: Int = rows?.second ?: row_count
 
     val item_spacing = Arrangement.spacedBy(if (alt_style) 7.dp else 15.dp)
-    val item_size =
+    val item_size: DpSize =
         if (alt_style) DpSize(0.dp, MEDIA_ITEM_PREVIEW_LONG_HEIGHT_DP.dp)
         else itemSizeProvider() + DpSize(0.dp, getMediaItemPreviewSquareAdditionalHeight(square_item_max_text_rows, MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP.sp))
+    val horizontal_padding: PaddingValues = content_padding.horizontal
 
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(modifier.padding(content_padding.vertical), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         var expanded: Boolean by remember { mutableStateOf(false) }
         Row(
+            Modifier.padding(horizontal_padding),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
@@ -156,7 +165,8 @@ fun MediaItemGrid(
                     .height(item_size.height * current_rows + item_spacing.spacing * (current_rows - 1))
                     .fillMaxWidth(),
                 horizontalArrangement = item_spacing,
-                verticalArrangement = item_spacing
+                verticalArrangement = item_spacing,
+                contentPadding = content_padding
             ) {
                 startContent?.invoke(this)
 
@@ -177,7 +187,7 @@ fun MediaItemGrid(
             }
 
             if (multiselect_context != null && !shouldShowTitleBar(title, subtitle)) {
-                Box(Modifier.background(CircleShape, player.theme.background_provider), contentAlignment = Alignment.Center) {
+                Box(Modifier.background(CircleShape, player.theme.background_provider).padding(horizontal_padding), contentAlignment = Alignment.Center) {
                     multiselect_context.CollectionToggleButton(filtered_items)
                 }
             }

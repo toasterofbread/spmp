@@ -39,6 +39,7 @@ import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.composekit.platform.composable.composeScope
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
 import com.toasterofbread.composekit.utils.common.thenIf
+import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 
 @Composable
 fun rememberTopBarShouldShowInQueue(mode: MusicTopBarMode): State<Boolean> {
@@ -106,47 +107,17 @@ class NowPlayingTopBar {
             }
 
             Row(
-                Modifier.fillMaxSize().onSizeChanged {
+                Modifier.fillMaxSize().heightIn(40.dp).onSizeChanged {
                     height = with(density) { it.height.toDp() }
                 },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val buttons_alpha by remember { derivedStateOf { (2f - expansion.getBounded()).coerceIn(0f, 1f) } }
-
-                composeScope {
-                    Box(Modifier.width(40.dp * buttons_alpha)) {
-                        val auth_state = player.context.ytapi.user_auth_state
-                        if (auth_state != null) {
-                            LikeDislikeButton(
-                                song,
-                                auth_state,
-                                Modifier.fillMaxSize().graphicsLayer { this@graphicsLayer.alpha = buttons_alpha },
-                                { 1f - expansion.getDisappearing() > 0f },
-                                { player.getNPOnBackground().copy(alpha = 0.5f) }
-                            )
-                        }
-                    }
-                }
-
                 lyrics_showing = player.top_bar.MusicTopBarWithVisualiser(
                     Settings.INTERNAL_TOPBAR_MODE_NOWPLAYING,
                     Modifier.fillMaxSize().weight(1f),
                     song = song
                 ).showing
-
-                composeScope {
-                    IconButton(
-                        {
-                            if (1f - expansion.getDisappearing() > 0f) {
-                                player.onMediaItemLongClicked(song, player.status.m_index)
-                            }
-                        },
-                        Modifier.graphicsLayer { this@graphicsLayer.alpha = buttons_alpha }.width(40.dp * buttons_alpha)
-                    ) {
-                        Icon(Icons.Filled.MoreHoriz, null, tint = player.getNPOnBackground().copy(alpha = 0.5f))
-                    }
-                }
             }
         }
     }

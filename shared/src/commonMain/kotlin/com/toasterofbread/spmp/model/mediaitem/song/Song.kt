@@ -34,7 +34,6 @@ import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.toLyricsReference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import com.toasterofbread.db.mediaitem.AlbumById
 import com.toasterofbread.db.mediaitem.song.ArtistById
 import java.net.URL
 
@@ -59,6 +58,7 @@ interface Song: MediaItem.WithArtist {
         data.album = Album.get(db)
         data.related_browse_id = RelatedBrowseId.get(db)
         data.lyrics_browse_id = LyricsBrowseId.get(db)
+        data.loudness_db = LoudnessDbById.get(db)
     }
 
     override suspend fun loadData(context: AppContext, populate_data: Boolean, force: Boolean): Result<SongData> {
@@ -118,6 +118,10 @@ interface Song: MediaItem.WithArtist {
         get() = property_rememberer.rememberSingleQueryProperty(
         "LyricsBrowseId", { songQueries.lyricsBrowseIdById(id) }, { lyrics_browse_id }, { songQueries.updateLyricsBrowseIdById(it, id) }
     )
+    val LoudnessDbById: Property<Float?>
+        get() = property_rememberer.rememberSingleQueryProperty(
+            "LoudnessDbById", { songQueries.loudnessDbById(id) }, { loudness_db?.toFloat() }, { songQueries.updateLoudnessDbById(it?.toDouble(), id) }
+        )
 
     val Lyrics: Property<LyricsReference?>
         get() = property_rememberer.rememberSingleQueryProperty(

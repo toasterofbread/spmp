@@ -252,6 +252,7 @@ enum class Settings {
     KEY_NAVBAR_HEIGHT_MULTIPLIER,
     KEY_STATUS_WEBHOOK_URL,
     KEY_STATUS_WEBHOOK_PAYLOAD,
+    KEY_ENABLE_AUDIO_NORMALISATION,
 
     // Internal
     INTERNAL_TOPBAR_MODE_HOME,
@@ -465,6 +466,7 @@ enum class Settings {
                 KEY_NAVBAR_HEIGHT_MULTIPLIER -> 1f
                 KEY_STATUS_WEBHOOK_URL -> ProjectBuildConfig.STATUS_WEBHOOK_URL ?: ""
                 KEY_STATUS_WEBHOOK_PAYLOAD -> ProjectBuildConfig.STATUS_WEBHOOK_PAYLOAD ?: "{}"
+                KEY_ENABLE_AUDIO_NORMALISATION -> false
 
                 KEY_SPMS_PORT -> 3973
 

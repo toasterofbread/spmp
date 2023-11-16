@@ -114,7 +114,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(page_height: Dp, to
                         .height(controls_height),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
-                    val side_button_modifier: Modifier = Modifier.alpha(0.35f)
+                    val button_modifier: Modifier = Modifier.alpha(0.35f)
                     val side_button_padding: Dp = 20.dp
                     val show_shuffle_repeat_buttons: Boolean by Settings.KEY_PLAYER_SHOW_REPEAT_SHUFFLE_BUTTONS.rememberMutableState()
 
@@ -135,7 +135,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(page_height: Dp, to
                                 Modifier
                                     .padding(10.dp)
                                     .padding(end = side_button_padding)
-                                    .then(side_button_modifier)
+                                    .then(button_modifier)
                             ) {
                                 current_song?.let { song ->
                                     val auth_state: YoutubeApi.UserAuthState? = player.context.ytapi.user_auth_state
@@ -164,7 +164,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(page_height: Dp, to
                                             player.expansion.scrollTo(2)
                                         }
                                     },
-                                    side_button_modifier.padding(start = side_button_padding).bounceOnClick()
+                                    button_modifier.padding(start = side_button_padding).bounceOnClick()
                                 ) {
                                     Icon(Icons.Rounded.Radio, null, tint = player.getNPOnBackground())
                                 }
@@ -172,7 +172,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(page_height: Dp, to
                         },
                         artistRowStartContent = {
                             if (show_shuffle_repeat_buttons) {
-                                RepeatButton({ player.getNPBackground() })
+                                RepeatButton({ player.getNPBackground() }, button_modifier)
                             }
                             else {
                                 Spacer(Modifier.height(40.dp))
@@ -180,13 +180,16 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(page_height: Dp, to
                         },
                         artistRowEndContent = {
                             if (show_shuffle_repeat_buttons) {
-                                IconButton({
-                                    player.withPlayer {
-                                        undoableAction {
-                                            shuffleQueue(start = current_song_index + 1)
+                                IconButton(
+                                    {
+                                        player.withPlayer {
+                                            undoableAction {
+                                                shuffleQueue(start = current_song_index + 1)
+                                            }
                                         }
-                                    }
-                                }) {
+                                    },
+                                    button_modifier
+                                ) {
                                     Icon(Icons.Rounded.Shuffle, null)
                                 }
                             }

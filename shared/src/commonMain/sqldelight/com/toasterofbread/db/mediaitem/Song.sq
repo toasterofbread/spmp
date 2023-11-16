@@ -7,6 +7,7 @@ CREATE TABLE Song (
     album TEXT,
     related_browse_id TEXT,
     lyrics_browse_id TEXT,
+    loudness_db REAL,
 
     --
 
@@ -59,6 +60,10 @@ updateRelatedBrowseIdById: UPDATE Song SET related_browse_id = :related_browse_i
 
 lyricsBrowseIdById: SELECT lyrics_browse_id FROM Song WHERE id == :id;
 updateLyricsBrowseIdById: UPDATE Song SET lyrics_browse_id = :lyrics_browse_id WHERE id == :id;
+
+loudnessDbById: SELECT loudness_db FROM Song WHERE id == :id;
+updateLoudnessDbById: UPDATE Song SET loudness_db = :loudness_db WHERE id == :id;
+
 
 --
 

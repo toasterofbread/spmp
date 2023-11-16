@@ -9,15 +9,16 @@ import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.song.getSongStreamFormat
 import com.toasterofbread.spmp.platform.playerservice.AUTO_DOWNLOAD_SOFT_TIMEOUT
 import com.toasterofbread.composekit.platform.PlatformFile
+import com.toasterofbread.spmp.youtubeapi.YoutubeVideoFormat
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import java.io.IOException
 
 @UnstableApi
 internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppContext, metered: Boolean): DataSpec {
-    val song = SongRef(data_spec.uri.toString())
+    val song: SongRef = SongRef(data_spec.uri.toString())
 
-    val download_manager = context.download_manager
+    val download_manager: PlayerDownloadManager = context.download_manager
     var local_file: PlatformFile? = song.getLocalSongFile(context)
     if (local_file != null) {
         println("Playing song ${song.id} from local file $local_file")
@@ -28,9 +29,9 @@ internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppConte
         song.getPlayCount(context.database, 7) >= Settings.KEY_AUTO_DOWNLOAD_THRESHOLD.get<Int>(context)
         && (Settings.KEY_AUTO_DOWNLOAD_ON_METERED.get(context) || !metered)
     ) {
-        var done = false
+        var done: Boolean = false
         runBlocking {
-            val initial_status = download_manager.getDownload(song)
+            val initial_status: PlayerDownloadManager.DownloadStatus? = download_manager.getDownload(song)
             when (initial_status?.status) {
                 PlayerDownloadManager.DownloadStatus.Status.IDLE, PlayerDownloadManager.DownloadStatus.Status.CANCELLED, PlayerDownloadManager.DownloadStatus.Status.PAUSED, null -> {
                     download_manager.startDownload(song.id, true) { status ->
@@ -42,7 +43,7 @@ internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppConte
                 else -> {}
             }
 
-            val listener = object : PlayerDownloadManager.DownloadStatusListener() {
+            val listener: PlayerDownloadManager.DownloadStatusListener = object : PlayerDownloadManager.DownloadStatusListener() {
                 override fun onDownloadChanged(status: PlayerDownloadManager.DownloadStatus) {
                     if (status.song.id != song.id) {
                         return
@@ -65,7 +66,7 @@ internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppConte
             }
             download_manager.addDownloadStatusListener(listener)
 
-            var elapsed = 0
+            var elapsed: Int = 0
             while (!done && elapsed < AUTO_DOWNLOAD_SOFT_TIMEOUT) {
                 delay(100)
                 elapsed += 100
@@ -78,12 +79,18 @@ internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppConte
         }
     }
 
-    val format = getSongStreamFormat(song.id, context).fold(
-        { it },
-        {
-            throw it
-        }
-    )
+    val format: YoutubeVideoFormat =
+        getSongStreamFormat(song.id, context).fold(
+            { it },
+            { throw it }
+        )
+
+    try {
+        song.LoudnessDbById.setNotNull(format.loudness_db, context.database)
+    }
+    catch (e: Throwable) {
+        e.printStackTrace()
+    }
 
     if (local_file != null) {
         println("Playing song ${song.id} from local file $local_file")

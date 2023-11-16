@@ -276,8 +276,9 @@ class PlaylistPage(
             }
         )
 
-        LaunchedEffect(loading) {
-            val playlist_data = loaded_data ?: playlist
+        val playlist_data = loaded_data ?: playlist
+        
+        LaunchedEffect(playlist_data) {
             if (playlist_editor?.playlist == playlist_data) {
                 return@LaunchedEffect
             }

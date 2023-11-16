@@ -147,14 +147,14 @@ fun MediaItem.loadDataOnChange(
             }
             override fun onLoadFinished(key: String, value: MediaItemData) {
                 if (key == id) {
-                    loading_state.value = false
                     onLoadSucceeded?.invoke(value)
+                    loading_state.value = false
                 }
             }
             override fun onLoadFailed(key: String, error: Throwable) {
                 if (key == id) {
-                    loading_state.value = false
                     onLoadFailed?.invoke(error)
+                    loading_state.value = false
                 }
             }
         }

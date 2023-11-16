@@ -60,6 +60,11 @@ internal fun getOtherCategory(): List<SettingsItem> {
             getString("s_key_enable_audio_normalisation"), getString("s_sub_enable_audio_normalisation")
         ),
 
+        SettingsToggleItem(
+            SettingsValueState(Settings.KEY_ENABLE_SILENCE_SKIPPING.name),
+            getString("s_key_enable_silence_skipping"), null
+        ),
+
         SettingsTextFieldItem(
             SettingsValueState(Settings.KEY_STATUS_WEBHOOK_URL.name),
             getString("s_key_status_webhook_url"),

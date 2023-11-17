@@ -127,6 +127,7 @@ enum class Settings {
     KEY_LYRICS_ENABLE_WORD_SYNC,
     KEY_LYRICS_FONT_SIZE,
     KEY_LYRICS_DEFAULT_SOURCE,
+    KEY_LYRICS_TOP_BAR_ENABLE,
     KEY_LYRICS_TOP_BAR_MAX_LINES,
     KEY_LYRICS_TOP_BAR_PREAPPLY_MAX_LINES,
     KEY_LYRICS_SYNC_DELAY,
@@ -348,6 +349,7 @@ enum class Settings {
                 KEY_LYRICS_ENABLE_WORD_SYNC -> false
                 KEY_LYRICS_FONT_SIZE -> 0.5f
                 KEY_LYRICS_DEFAULT_SOURCE -> 0
+                KEY_LYRICS_TOP_BAR_ENABLE -> true
                 KEY_LYRICS_TOP_BAR_MAX_LINES -> 3
                 KEY_LYRICS_TOP_BAR_PREAPPLY_MAX_LINES -> false
                 KEY_LYRICS_SYNC_DELAY -> 0f

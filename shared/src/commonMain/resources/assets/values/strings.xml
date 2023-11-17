@@ -451,6 +451,7 @@
     <string name="s_key_lyrics_font_size">Font size</string>
 
     <string name="s_group_top_bar_lyrics">Top bar lyrics</string>
+    <string name="s_key_lyrics_top_bar_enable">Enable top bar lyrics</string>
     <string name="s_key_lyrics_top_bar_max_lines">Max lines</string>
     <string name="s_key_lyrics_top_bar_preapply_max_lines">Pre-allocate the space needed to display max lines</string>
     <string name="s_key_lyrics_sync_delay">Lyrics sync delay</string>

@@ -217,17 +217,18 @@ class MusicTopBar(val player: PlayerState) {
         val player = LocalPlayerState.current
         var mode_state: MusicTopBarMode by mutableStateOf(getTargetMode())
 
+        val lyrics_enabled: Boolean by Settings.KEY_LYRICS_TOP_BAR_ENABLE.rememberMutableState()
         val visualiser_width: Float by Settings.KEY_TOPBAR_VISUALISER_WIDTH.rememberMutableState()
         check(visualiser_width in 0f .. 1f)
 
         val sync_offset_state: State<Long?>? = song?.getLyricsSyncOffset(player.database, true)
 
-        val current_state by remember(lyrics) {
+        val current_state by remember(lyrics, lyrics_enabled) {
             derivedStateOf {
                 val target = getTargetMode()
                 for (mode_i in target.ordinal downTo 0) {
                     val mode = MusicTopBarMode.values()[mode_i]
-                    val state = getModeState(mode, lyrics)
+                    val state = getModeState(mode, if (lyrics_enabled) lyrics else null)
                     if (state != null) {
                         mode_state = mode
                         return@derivedStateOf state

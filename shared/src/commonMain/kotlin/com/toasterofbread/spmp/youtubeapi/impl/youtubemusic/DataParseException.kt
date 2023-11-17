@@ -12,8 +12,8 @@ import okhttp3.Response
 import okio.Buffer
 import java.io.Reader
 
+val REQUEST_HEADERS_TO_REMOVE = listOf("authorization", "cookie")
 private val YOUTUBE_JSON_DATA_KEYS_TO_REMOVE = listOf("responseContext", "trackingParams", "clickTrackingParams", "serializedShareEntity", "serializedContextData", "loggingContext")
-private val REQUEST_HEADERS_TO_REMOVE = listOf("Authorization", "cookie")
 
 class DataParseException(cause: Throwable? = null, private val cause_request: Request?, message: String? = null, private val causeDataProvider: suspend () -> Result<String>): RuntimeException(message, cause) {
     private var cause_data: String? = null
@@ -52,7 +52,7 @@ class DataParseException(cause: Throwable? = null, private val cause_request: Re
         val i = headers.iterator()
         while (i.hasNext()) {
             val header = i.next()
-            if (REQUEST_HEADERS_TO_REMOVE.any { it.lowercase() == header.first.lowercase() }) {
+            if (REQUEST_HEADERS_TO_REMOVE.any { it == header.first.lowercase() }) {
                 i.remove()
             }
         }

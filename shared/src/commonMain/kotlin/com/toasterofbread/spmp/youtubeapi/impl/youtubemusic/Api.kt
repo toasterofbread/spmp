@@ -1,21 +1,37 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic
 
-import com.google.gson.JsonElement
-import com.google.gson.JsonObject
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
-import com.toasterofbread.spmp.youtubeapi.fromJson
 import com.toasterofbread.spmp.youtubeapi.getReader
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import okhttp3.Request
 import okhttp3.Response
 import okio.Buffer
-import java.io.Reader
 import java.util.zip.ZipException
 
 const val DEFAULT_CONNECT_TIMEOUT = 10000
+
+fun Request.stringify() = buildString {
+    append("Request{method=")
+    append(method)
+    append(", url=")
+    append(url)
+
+    val include_headers: List<Pair<String, String>> = headers.filter { !REQUEST_HEADERS_TO_REMOVE.contains(it.first.lowercase()) }
+    if (include_headers.isNotEmpty()) {
+        append(", headers=[")
+        include_headers.forEachIndexed { index, (name, value) ->
+            if (index > 0) {
+                append(", ")
+            }
+            append(name)
+            append(':')
+            append(value)
+        }
+        append(']')
+    }
+    append('}')
+}
 
 fun <T> Result.Companion.failure(request: Request, response: Response, api: YoutubeApi?): Result<T> {
     var body: String
@@ -41,7 +57,7 @@ fun <T> Result.Companion.failure(request: Request, response: Response, api: Yout
         buffer.readUtf8()
     }
 
-    return failure(RuntimeException("Request failed\nRequest=$request\nRequest body=$request_body\nResponse=$body"))
+    return failure(RuntimeException("Request failed\nRequest=${request.stringify()}\nRequest body=$request_body\nResponse=$body"))
 }
 
 inline fun <I, O> Result<I>.cast(transform: (I) -> O = { it as O }): Result<O> {

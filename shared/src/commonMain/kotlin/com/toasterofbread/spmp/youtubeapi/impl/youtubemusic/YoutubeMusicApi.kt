@@ -135,7 +135,7 @@ data class YoutubeMusicApi(
         val context_substitutor = StringSubstitutor(
             mapOf(
                 "user_agent" to getUserAgent(),
-                "hl" to context.getDataLanguage()
+                "hl" to context.getDataLanguage().split("-", limit = 2).firstOrNull()
             ),
             "\${", "}"
         )

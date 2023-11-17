@@ -66,7 +66,7 @@ object SpMp {
         player_state = PlayerStateImpl(context)
 
         initResources(context.getUiLanguage(), context)
-        _yt_ui_localisation = YoutubeUILocalisation(UILanguages())
+        _yt_ui_localisation = YoutubeUILocalisation(UILanguages)
     }
 
     fun release() {

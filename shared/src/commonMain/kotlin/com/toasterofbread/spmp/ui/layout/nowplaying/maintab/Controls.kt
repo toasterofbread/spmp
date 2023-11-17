@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.material.icons.Icons
@@ -46,9 +48,10 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.composekit.utils.common.getValue
 import com.toasterofbread.composekit.utils.composable.Marquee
+import com.toasterofbread.composekit.utils.modifier.bounceOnClick
 
 private const val TITLE_FONT_SIZE_SP: Float = 21f
-private const val ARTIST_FONT_SIZE_SP: Float = 14f
+private const val ARTIST_FONT_SIZE_SP: Float = 12f
 
 @Composable
 internal fun Controls(
@@ -57,9 +60,13 @@ internal fun Controls(
     modifier: Modifier = Modifier,
     button_row_arrangement: Arrangement.Horizontal = Arrangement.Center,
     disable_text_marquees: Boolean = false,
-    vertical_arrangement: Arrangement.Vertical = Arrangement.spacedBy(25.dp),
+    vertical_arrangement: Arrangement.Vertical = Arrangement.spacedBy(20.dp),
     font_size_multiplier: Float = 1f,
-    text_align: TextAlign = TextAlign.Center
+    text_align: TextAlign = TextAlign.Center,
+    buttonRowStartContent: @Composable RowScope.() -> Unit = {},
+    buttonRowEndContent: @Composable RowScope.() -> Unit = {},
+    artistRowStartContent: @Composable RowScope.() -> Unit = {},
+    artistRowEndContent: @Composable RowScope.() -> Unit = {}
 ) {
     val player = LocalPlayerState.current
 
@@ -86,6 +93,7 @@ internal fun Controls(
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
+                .bounceOnClick()
                 .clickable(
                     onClick = onClick,
                     indication = null,
@@ -141,40 +149,47 @@ internal fun Controls(
                 )
             }
 
-            Text(
-                song_artist_title ?: "",
-                fontSize = ARTIST_FONT_SIZE_SP.sp * font_size_multiplier,
-                color = player.getNPOnBackground(),
-                textAlign = text_align,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .platformClickable(
-                        onClick = {
-                            val artist: Artist? = song?.Artist?.get(player.database)
-                            if (artist?.isForItem() == false) {
-                                player.onMediaItemClicked(artist)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                artistRowStartContent()
+                Spacer(Modifier)
+                Text(
+                    song_artist_title ?: "",
+                    fontSize = ARTIST_FONT_SIZE_SP.sp * font_size_multiplier,
+                    color = player.getNPOnBackground(),
+                    textAlign = text_align,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .platformClickable(
+                            onClick = {
+                                val artist: Artist? = song?.Artist?.get(player.database)
+                                if (artist?.isForItem() == false) {
+                                    player.onMediaItemClicked(artist)
+                                }
+                            },
+                            onAltClick = {
+                                val artist: Artist? = song?.Artist?.get(player.database)
+                                if (artist?.isForItem() == false) {
+                                    player.onMediaItemLongClicked(artist)
+                                    player.context.vibrateShort()
+                                }
                             }
-                        },
-                        onAltClick = {
-                            val artist: Artist? = song?.Artist?.get(player.database)
-                            if (artist?.isForItem() == false) {
-                                player.onMediaItemLongClicked(artist)
-                                player.context.vibrateShort()
-                            }
-                        }
-                    )
-            )
+                        )
+                )
+                Spacer(Modifier)
+                artistRowEndContent()
+            }
         }
 
-        SeekBar(seek)
+        SeekBar(Modifier.fillMaxWidth(), seek = seek)
 
         Row(
             horizontalArrangement = button_row_arrangement,
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
+            buttonRowStartContent()
+
             // Previous
             PlayerButton(
                 Icons.Rounded.SkipPrevious,
@@ -201,6 +216,8 @@ internal fun Controls(
             ) {
                 player.controller?.seekToNext()
             }
+
+            buttonRowEndContent()
         }
     }
 }

@@ -6,7 +6,8 @@ data class YoutubeVideoFormat(
     val itag: Int?,
     val mimeType: String,
     val bitrate: Int,
-    val url: String?
+    val url: String?,
+    val loudness_db: Float? = null
 ) {
     val audio_only: Boolean get() = mimeType.startsWith("audio")
 }
@@ -14,9 +15,13 @@ data class YoutubeVideoFormat(
 internal data class YoutubeFormatsResponse(
     val playabilityStatus: PlayabilityStatus,
     val streamingData: StreamingData?,
+    val playerConfig: PlayerConfig?
 ) {
     data class StreamingData(val formats: List<YoutubeVideoFormat>, val adaptiveFormats: List<YoutubeVideoFormat>)
     data class PlayabilityStatus(val status: String)
+
+    data class PlayerConfig(val audioConfig: AudioConfig?)
+    data class AudioConfig(val loudnessDb: Float?)
 }
 
 internal suspend fun YoutubeApi.Endpoint.buildVideoFormatsRequest(id: String): Request {

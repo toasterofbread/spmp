@@ -1,0 +1,4 @@
+IF COL_LENGTH("Song", "loudness_db") IS NULL
+BEGIN
+    ALTER TABLE Song ADD COLUMN loudness_db REAL;
+END

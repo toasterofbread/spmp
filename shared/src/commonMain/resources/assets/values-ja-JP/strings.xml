@@ -207,6 +207,7 @@
     <string name="lpm_action_download">ダウンロード</string>
     <string name="lpm_action_delete_local_song_file">保存済みのファイルを消去</string>
     <string name="lpm_action_go_to_artist">アーティストを見る</string>
+    <string name="lpm_action_go_to_album">アルバムを開く</string>
     <string name="lpm_action_song_related">関係コンテンツを表示</string>
     <string name="lpm_action_print_info">情報をコンソールに出力する</string>
     <string name="lpm_action_share">共有</string>
@@ -358,6 +359,9 @@
     <string name="s_option_mini_player_overscroll_clear_mode_hide_if_queue_empty">曲キューが空の場合のみプレイヤーを隠す</string>
     <string name="s_option_mini_player_overscroll_clear_mode_none_if_queue_empty">曲キューをクリアするのみ</string>
 
+    <string name="s_key_player_show_repeat_shuffle_buttons">プレイヤー画面でリプレイとシャッフルボタンを表示</string>
+    <string name="s_sub_player_show_repeat_shuffle_buttons">このオプションに関係なく、キュー画面には表示されます</string>
+
     <string name="s_key_player_overlay_menu_custom_action">オーバーレイ画面のカスタムアクション</string>
     <string name="s_sub_player_overlay_menu_custom_action">デフォルトでは、長押しで発生します</string>
     <string name="s_key_player_overlay_menu_swap_long_short_press_actions">オーバーレイ画面の短押しと長押しアクションを交換する</string>
@@ -497,6 +501,11 @@
     <string name="s_key_navbar_height_multiplier">ナビゲーションバーの高さの倍率</string>
     <string name="s_sub_navbar_height_multiplier">システムが正しい高さを報告しない場合、これで調節できます（アプリの再起動が必要です）</string>
 
+    <string name="s_key_enable_audio_normalisation">音量のノーマライゼーション</string>
+    <string name="s_sub_enable_audio_normalisation">YouTubeからの音量データで行われるので、成功しない場合もあります</string>
+
+    <string name="s_key_enable_silence_skipping">無音部分をスキップ</string>
+
     <string name="s_key_status_webhook_url">ステータスウェブフックのURL</string>
     <string name="s_sub_status_webhook_url">再生中の曲が変わるとこのURLへJSONのPOSTリクエストが送信されます。例：`{"youtube_video_id": "&lt;動画のID&gt;"}`</string>
 
@@ -584,7 +593,7 @@
     <string name="s_cat_desc_lyrics">歌詞の表示や動作の設定</string>
     <string name="s_cat_desc_download">音質と自動ダウンロードのオプション</string>
     <string name="s_cat_desc_discord_status">Discordアカウントとステータスの表示の調節</string>
-    <string name="s_cat_desc_other">キャッシュとアクセシビリティサービスの設定</string>
+    <string name="s_cat_desc_other">キャッシュなどの設定</string>
 
     <string name="song_related_page_no_content">この曲には関係コンテンツがありません</string>
     <string name="song_related_page_empty_row">なにもありません</string>

@@ -184,6 +184,7 @@ enum class Settings {
     KEY_FEED_HIDDEN_ROWS,
 
     // Player
+    KEY_PLAYER_SHOW_REPEAT_SHUFFLE_BUTTONS,
     KEY_PLAYER_OVERLAY_CUSTOM_ACTION,
     KEY_PLAYER_OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS,
     KEY_MINI_PLAYER_SHOW_PREV_BUTTON,
@@ -252,6 +253,8 @@ enum class Settings {
     KEY_NAVBAR_HEIGHT_MULTIPLIER,
     KEY_STATUS_WEBHOOK_URL,
     KEY_STATUS_WEBHOOK_PAYLOAD,
+    KEY_ENABLE_AUDIO_NORMALISATION,
+    KEY_ENABLE_SILENCE_SKIPPING,
 
     // Internal
     INTERNAL_TOPBAR_MODE_HOME,
@@ -394,6 +397,7 @@ enum class Settings {
                 KEY_FEED_SHOW_RADIOS -> false
                 KEY_FEED_HIDDEN_ROWS -> emptySet<String>()
 
+                KEY_PLAYER_SHOW_REPEAT_SHUFFLE_BUTTONS -> false
                 KEY_PLAYER_OVERLAY_CUSTOM_ACTION -> PlayerOverlayMenuAction.DEFAULT_CUSTOM.ordinal
                 KEY_PLAYER_OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS -> false
                 KEY_MINI_PLAYER_SHOW_PREV_BUTTON -> false
@@ -465,6 +469,8 @@ enum class Settings {
                 KEY_NAVBAR_HEIGHT_MULTIPLIER -> 1f
                 KEY_STATUS_WEBHOOK_URL -> ProjectBuildConfig.STATUS_WEBHOOK_URL ?: ""
                 KEY_STATUS_WEBHOOK_PAYLOAD -> ProjectBuildConfig.STATUS_WEBHOOK_PAYLOAD ?: "{}"
+                KEY_ENABLE_AUDIO_NORMALISATION -> false
+                KEY_ENABLE_SILENCE_SKIPPING -> false
 
                 KEY_SPMS_PORT -> 3973
 

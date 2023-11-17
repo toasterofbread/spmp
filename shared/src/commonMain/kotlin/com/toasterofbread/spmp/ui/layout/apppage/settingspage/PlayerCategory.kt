@@ -41,6 +41,14 @@ internal fun getPlayerCategory(): List<SettingsItem> {
             OverscrollClearMode.values()[index].getReadable()
         },
 
+        SettingsGroupItem(null),
+
+        SettingsToggleItem(
+            SettingsValueState(Settings.KEY_PLAYER_SHOW_REPEAT_SHUFFLE_BUTTONS.name),
+            getString("s_key_player_show_repeat_shuffle_buttons"), getString("s_sub_player_show_repeat_shuffle_buttons"),
+            title_max_lines = 2
+        ),
+
         SettingsMultipleChoiceItem(
             SettingsValueState(Settings.KEY_PLAYER_OVERLAY_CUSTOM_ACTION.name),
             getString("s_key_player_overlay_menu_custom_action"),

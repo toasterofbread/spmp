@@ -74,7 +74,7 @@ class MainPlayerOverlayMenu(
         DisposableEffect(Unit) {
             val status_listener = object : PlayerDownloadManager.DownloadStatusListener() {
                 override fun onDownloadChanged(status: DownloadStatus) {
-                    if (status.song == getSong()) {
+                    if (status.song.id == getSong().id) {
                         download_status = status
                     }
                 }

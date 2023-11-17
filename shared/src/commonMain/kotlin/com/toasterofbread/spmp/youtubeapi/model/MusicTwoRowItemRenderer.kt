@@ -52,6 +52,14 @@ class MusicTwoRowItemRenderer(
                 data.title = this@MusicTwoRowItemRenderer.title.first_text
                 data.thumbnail_provider = thumbnailRenderer.toThumbnailProvider()
                 data.artist = getArtist(data)
+
+                for (item in menu?.menuRenderer?.items ?: emptyList()) {
+                    val browse_endpoint: BrowseEndpoint = item.menuNavigationItemRenderer?.navigationEndpoint?.browseEndpoint ?: continue
+                    if (browse_endpoint.getMediaItemType() == MediaItemType.PLAYLIST_REM) {
+                        data.album = RemotePlaylistData(browse_endpoint.browseId)
+                        break
+                    }
+                }
             }
         }
 

@@ -64,6 +64,7 @@ import com.toasterofbread.composekit.utils.composable.AlignableCrossfade
 import com.toasterofbread.composekit.utils.composable.Marquee
 import com.toasterofbread.composekit.utils.composable.NoRipple
 import com.toasterofbread.composekit.utils.composable.PlatformClickableIconButton
+import com.toasterofbread.composekit.utils.modifier.bounceOnClick
 
 @Composable
 internal fun LongPressMenuContent(
@@ -126,7 +127,7 @@ internal fun LongPressMenuContent(
                             {
                                 item_pinned_to_home = !pinned
                             },
-                            Modifier.size(pin_button_size)
+                            Modifier.size(pin_button_size).bounceOnClick()
                         ) {
                             Icon(
                                 if (pinned) Icons.Filled.PushPin

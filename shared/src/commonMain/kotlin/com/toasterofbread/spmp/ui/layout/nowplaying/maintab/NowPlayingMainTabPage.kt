@@ -92,7 +92,7 @@ class NowPlayingMainTabPage: NowPlayingPage() {
         }
 
         if (player.isPortrait()) {
-            NowPlayingMainTabPortrait(top_bar, content_padding, modifier)
+            NowPlayingMainTabPortrait(page_height, top_bar, content_padding, modifier)
         }
         else {
             NowPlayingMainTabLandscape(page_height, top_bar, content_padding, modifier)

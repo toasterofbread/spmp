@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem.layout
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -48,14 +49,15 @@ data class MediaItemLayout(
             apply_filter: Boolean = false,
             square_item_max_text_rows: Int? = null,
             show_download_indicators: Boolean = true,
-            grid_rows: Pair<Int, Int>? = null
+            grid_rows: Pair<Int, Int>? = null,
+            content_padding: PaddingValues = PaddingValues()
         ) {
             when (this) {
-                GRID -> MediaItemGrid(layout, modifier, title_modifier, grid_rows, multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators)
-                GRID_ALT -> MediaItemGrid(layout, modifier, title_modifier, grid_rows, alt_style = true, multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators)
-                ROW -> MediaItemGrid(layout, modifier, title_modifier, Pair(1, 1), multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators)
-                LIST -> MediaItemList(layout, modifier, title_modifier, false, multiselect_context = multiselect_context, apply_filter = apply_filter, show_download_indicators = show_download_indicators)
-                NUMBERED_LIST -> MediaItemList(layout, modifier, title_modifier, true, multiselect_context = multiselect_context, apply_filter = apply_filter, show_download_indicators = show_download_indicators)
+                GRID -> MediaItemGrid(layout, modifier, title_modifier, grid_rows, multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators, content_padding = content_padding)
+                GRID_ALT -> MediaItemGrid(layout, modifier, title_modifier, grid_rows, alt_style = true, multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators, content_padding = content_padding)
+                ROW -> MediaItemGrid(layout, modifier, title_modifier, Pair(1, 1), multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators, content_padding = content_padding)
+                LIST -> MediaItemList(layout, modifier, title_modifier, false, multiselect_context = multiselect_context, apply_filter = apply_filter, show_download_indicators = show_download_indicators, content_padding = content_padding)
+                NUMBERED_LIST -> MediaItemList(layout, modifier, title_modifier, true, multiselect_context = multiselect_context, apply_filter = apply_filter, show_download_indicators = show_download_indicators, content_padding = content_padding)
                 CARD -> com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemCard(
                     layout,
                     modifier,
@@ -67,8 +69,8 @@ data class MediaItemLayout(
     }
 
     @Composable
-    fun Layout(modifier: Modifier = Modifier, title_Modifier: Modifier = Modifier, multiselect_context: MediaItemMultiSelectContext? = null, apply_filter: Boolean = false) {
-        type!!.Layout(this, modifier, title_Modifier, multiselect_context, apply_filter)
+    fun Layout(modifier: Modifier = Modifier, title_Modifier: Modifier = Modifier, multiselect_context: MediaItemMultiSelectContext? = null, apply_filter: Boolean = false, content_padding: PaddingValues = PaddingValues()) {
+        type!!.Layout(this, modifier, title_Modifier, multiselect_context, apply_filter, content_padding = content_padding)
     }
 
     data class Continuation(var token: String, var type: Type, val song_id: String? = null, val playlist_skip_amount: Int = 0) {

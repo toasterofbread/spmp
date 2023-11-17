@@ -13,7 +13,7 @@ class RemotePlaylistData(id: String): PlaylistData(id), RemotePlaylist {
     var continuation: MediaItemLayout.Continuation? = null
     var playlist_url: String? = null
 
-    override fun toString(): String = "RemotePlaylistData($id, type=$playlist_type)"
+    override fun toString(): String = "RemotePlaylistData($id, type=$playlist_type, title=$title)"
     override fun getType(): MediaItemType = MediaItemType.PLAYLIST_REM
     override fun getReference(): RemotePlaylistRef = RemotePlaylistRef(id)
 

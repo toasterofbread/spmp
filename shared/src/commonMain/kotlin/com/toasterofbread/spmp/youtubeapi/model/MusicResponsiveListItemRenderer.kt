@@ -29,6 +29,7 @@ data class MusicResponsiveListItemRenderer(
         var artist: ArtistData? = null
         var playlist: RemotePlaylistData? = null
         var duration: Long? = null
+        var album: RemotePlaylistData? = null
 
         if (video_id == null) {
             val page_type = navigationEndpoint?.browseEndpoint?.getPageType()
@@ -119,15 +120,22 @@ data class MusicResponsiveListItemRenderer(
                     artist.title = text.first_text
                 }
             }
+        }
 
-            if (artist == null && menu != null) {
-                for (item in menu.menuRenderer.items) {
-                    val browse_endpoint = (item.menuNavigationItemRenderer ?: continue).navigationEndpoint.browseEndpoint ?: continue
-                    if (browse_endpoint.getMediaItemType() == MediaItemType.ARTIST) {
+        for (item in menu?.menuRenderer?.items ?: emptyList()) {
+            val browse_endpoint: BrowseEndpoint = (item.menuNavigationItemRenderer ?: continue).navigationEndpoint.browseEndpoint ?: continue
+            when (browse_endpoint.getMediaItemType()) {
+                MediaItemType.ARTIST -> {
+                    if (artist == null) {
                         artist = ArtistData(browse_endpoint.browseId)
-                        break
                     }
                 }
+                MediaItemType.PLAYLIST_REM -> {
+                    if (album == null) {
+                        album = RemotePlaylistData(browse_endpoint.browseId)
+                    }
+                }
+                else -> {}
             }
         }
 
@@ -136,6 +144,9 @@ data class MusicResponsiveListItemRenderer(
 
         if (item_data is MediaItem.DataWithArtist) {
             item_data.artist = artist
+        }
+        if (item_data is SongData) {
+            item_data.album = album
         }
 
         return Pair(item_data, playlistItemData?.playlistSetVideoId)

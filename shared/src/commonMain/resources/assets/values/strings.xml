@@ -217,6 +217,7 @@
     <string name="lpm_action_download">Download</string>
     <string name="lpm_action_delete_local_song_file">Delete local file</string>
     <string name="lpm_action_go_to_artist">Go to artist</string>
+    <string name="lpm_action_go_to_album">Open album</string>
     <string name="lpm_action_song_related">Show related content</string>
     <string name="lpm_action_print_info">Print info</string>
     <string name="lpm_action_share">Share</string>

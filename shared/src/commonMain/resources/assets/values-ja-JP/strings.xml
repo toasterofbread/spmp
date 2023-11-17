@@ -207,6 +207,7 @@
     <string name="lpm_action_download">ダウンロード</string>
     <string name="lpm_action_delete_local_song_file">保存済みのファイルを消去</string>
     <string name="lpm_action_go_to_artist">アーティストを見る</string>
+    <string name="lpm_action_go_to_album">アルバムを開く</string>
     <string name="lpm_action_song_related">関係コンテンツを表示</string>
     <string name="lpm_action_print_info">情報をコンソールに出力する</string>
     <string name="lpm_action_share">共有</string>

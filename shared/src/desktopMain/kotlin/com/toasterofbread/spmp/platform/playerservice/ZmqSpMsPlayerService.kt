@@ -123,6 +123,7 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
         }
 
         val state_data: String = reply.first.data.decodeToString().trimEnd { it == '\u0000' }
+        println("Received handshake reply from server with the following state data:\n$state_data")
 
         val state: ServerState
         try {
@@ -134,22 +135,17 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
 
         assert(playlist.isEmpty())
 
-        val jobs: MutableList<Job> = mutableListOf()
-        val items: MutableList<Song?> = mutableListOf()
+        val items: Array<Song?> = arrayOfNulls(state.queue.size)
 
-        for ((i, id) in state.queue.withIndex()) {
-            items.add(null)
-            jobs.add(
-                launch {
-                    val song: Song = SongRef(id)
-                    song.loadData(context).onSuccess { data ->
-                        data.saveToDatabase(context.database)
-                    }
-                    items.add(i, song)
+        state.queue.mapIndexed { i, id ->
+            launch {
+                val song: Song = SongRef(id)
+                song.loadData(context).onSuccess { data ->
+                    data.saveToDatabase(context.database)
                 }
-            )
-        }
-        jobs.joinAll()
+                items[i] = song
+            }
+        }.joinAll()
 
         playlist.addAll(items.filterNotNull())
 
@@ -316,8 +312,8 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
                         }
                     }
                     "ItemMoved" -> {
-                        val to = (properties["to_index"] as Double).toInt()
-                        val from = (properties["from_index"] as Double).toInt()
+                        val to = (properties["to"] as Double).toInt()
+                        val from = (properties["from"] as Double).toInt()
                         playlist.add(to, playlist.removeAt(from))
                         listeners.forEach { 
                             it.onSongMoved(from, to)

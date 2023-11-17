@@ -139,7 +139,7 @@ object SpMp {
         return FontFamily(context.loadFontFromFile("font/$font_path"))
     }
 
-    val app_name: String get() = getStringOrNull("app_name") ?: "spmp"
+    val app_name: String get() = getStringOrNull("app_name") ?: "SpMp"
 
     val unlocalised_string_collector: UnlocalisedStringCollector? = UnlocalisedStringCollector()
 

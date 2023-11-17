@@ -12,6 +12,9 @@ import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.processDefaultResponse
 import com.toasterofbread.composekit.utils.common.indexOfOrNull
+import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.youtubeapi.model.Header
+import com.toasterofbread.spmp.youtubeapi.model.HeaderRenderer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
@@ -21,7 +24,8 @@ import java.net.URI
 private const val EMPTY_PLAYLIST_IMAGE_URL_PREFIX: String = "https://www.gstatic.com/youtube/media/ytm/images/pbg/playlist-empty-state"
 
 private data class PlaylistUrlResponse(
-    val microformat: Microformat?
+    val microformat: Microformat?,
+    val header: Header?
 ) {
     data class Microformat(val microformatDataRenderer: MicroformatDataRenderer)
     data class MicroformatDataRenderer(val urlCanonical: String?)
@@ -93,6 +97,12 @@ class YTMLoadPlaylistEndpoint(override val api: YoutubeMusicApi): LoadPlaylistEn
 
             playlist_url = response.microformat?.microformatDataRenderer?.urlCanonical
             playlist_data.playlist_url = playlist_url
+
+            val header_renderer: HeaderRenderer? = response.header?.getRenderer()
+            if (header_renderer != null) {
+                playlist_data.title = header_renderer.title?.firstTextOrNull()
+                playlist_data.thumbnail_provider = MediaItemThumbnailProvider.fromThumbnails(header_renderer.getThumbnails())
+            }
         }
 
         if (playlist_url != null) {
@@ -101,8 +111,8 @@ class YTMLoadPlaylistEndpoint(override val api: YoutubeMusicApi): LoadPlaylistEn
                 playlist_url.indexOfOrNull("&", start) ?: playlist_url.length
             browse_id = formatBrowseId(playlist_url.substring(start, end))
         }
-
-        val hl = api.context.getDataLanguage()
+        
+        val hl: String = api.context.getDataLanguage()
         val request: Request = Request.Builder()
             .endpointUrl("/youtubei/v1/browse")
             .addAuthApiHeaders()
@@ -127,7 +137,7 @@ class YTMLoadPlaylistEndpoint(override val api: YoutubeMusicApi): LoadPlaylistEn
                 return@withContext Result.failure(DataParseException.ofYoutubeJsonRequest(request, api, cause = it))
             }
 
-        val provider = playlist_data.thumbnail_provider
+        val provider: MediaItemThumbnailProvider? = playlist_data.thumbnail_provider
         if (provider is MediaItemThumbnailProviderImpl && (provider.url_a.startsWith(EMPTY_PLAYLIST_IMAGE_URL_PREFIX) || provider.url_b?.startsWith(EMPTY_PLAYLIST_IMAGE_URL_PREFIX) == true)) {
             playlist_data.thumbnail_provider = null
         }

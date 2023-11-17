@@ -83,6 +83,11 @@ internal fun getLyricsCategory(): List<SettingsItem> {
 
         SettingsGroupItem(getString("s_group_top_bar_lyrics")),
 
+        SettingsToggleItem(
+            SettingsValueState(Settings.KEY_LYRICS_TOP_BAR_ENABLE.name),
+            getString("s_key_lyrics_top_bar_enable"), null
+        ),
+
         AppSliderItem(
             SettingsValueState<Int>(Settings.KEY_LYRICS_TOP_BAR_MAX_LINES.name),
             getString("s_key_lyrics_top_bar_max_lines"), null,

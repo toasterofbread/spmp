@@ -42,22 +42,21 @@ import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 
 @Composable
-fun rememberTopBarShouldShowInQueue(mode: MusicTopBarMode): State<Boolean> {
-    val player = LocalPlayerState.current
+fun rememberTopBarShouldShowInQueue(mode: MusicTopBarMode): Boolean {
+    val player: PlayerState = LocalPlayerState.current
     val show_lyrics_in_queue: Boolean by Settings.KEY_TOPBAR_SHOW_LYRICS_IN_QUEUE.rememberMutableState()
     val show_visualiser_in_queue: Boolean by Settings.KEY_TOPBAR_SHOW_VISUALISER_IN_QUEUE.rememberMutableState()
 
-    return remember(player.status.m_song?.id) {
-        val lyrics_state = player.status.m_song?.let { song ->
+    val lyrics_state = remember(player.status.m_song?.id) {
+        player.status.m_song?.let { song ->
             SongLyricsLoader.getItemState(song, player.context)
         }
 
-        derivedStateOf {
-            when (mode) {
-                MusicTopBarMode.VISUALISER -> show_visualiser_in_queue
-                MusicTopBarMode.LYRICS -> show_lyrics_in_queue && lyrics_state?.lyrics?.synced == true
-            }
-        }
+    }
+    
+    return when (mode) {
+        MusicTopBarMode.VISUALISER -> show_visualiser_in_queue
+        MusicTopBarMode.LYRICS -> show_lyrics_in_queue && lyrics_state?.lyrics?.synced == true
     }
 }
 
@@ -76,19 +75,19 @@ class NowPlayingTopBar {
 
     @Composable
     fun NowPlayingTopBar(modifier: Modifier = Modifier, expansion: ExpansionState = LocalNowPlayingExpansion.current) {
-        val player = LocalPlayerState.current
-        val density = LocalDensity.current
+        val player: PlayerState = LocalPlayerState.current
+        val density: Density = LocalDensity.current
 
-        val show_in_queue by rememberTopBarShouldShowInQueue(expansion.top_bar_mode.value)
+        val show_in_queue: Boolean = rememberTopBarShouldShowInQueue(expansion.top_bar_mode.value)
         var lyrics_showing: Boolean by remember { mutableStateOf(false) }
 
-        val top_bar_height by remember { derivedStateOf {
+        val top_bar_height by remember(show_in_queue) { derivedStateOf {
             if (!show_in_queue || expansion.getBounded() < 1f) expansion.getAppearing() else 1f
         } }
 
-        val max_height by getMaxHeight(show_in_queue)
-        val alpha by remember { derivedStateOf { if (!show_in_queue || expansion.getBounded() < 1f) 1f - expansion.getDisappearing() else 1f } }
-        val hide_content by remember { derivedStateOf { alpha <= 0f } }
+        val max_height: Dp by getMaxHeight(show_in_queue)
+        val alpha: Float by remember(show_in_queue) { derivedStateOf { if (!show_in_queue || expansion.getBounded() < 1f) 1f - expansion.getDisappearing() else 1f } }
+        val hide_content: Boolean by remember { derivedStateOf { alpha <= 0f } }
 
         Crossfade(
             player.status.m_song,

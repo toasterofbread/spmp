@@ -174,7 +174,7 @@ internal fun QueueTab(
         }
     )
 
-    val show_top_bar by rememberTopBarShouldShowInQueue(player.expansion.top_bar_mode.value)
+    val show_top_bar: Boolean = rememberTopBarShouldShowInQueue(player.expansion.top_bar_mode.value)
     val top_bar_height by animateDpAsState(
         if (show_top_bar) top_bar.height else 0.dp
     )

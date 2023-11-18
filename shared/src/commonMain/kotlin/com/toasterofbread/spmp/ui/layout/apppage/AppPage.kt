@@ -42,7 +42,7 @@ abstract class AppPage {
     }
 
     @Composable
-    protected abstract fun ColumnScope.SFFPage(
+    abstract fun ColumnScope.SFFPage(
         multiselect_context: MediaItemMultiSelectContext,
         modifier: Modifier,
         content_padding: PaddingValues,
@@ -50,7 +50,7 @@ abstract class AppPage {
     )
 
     @Composable
-    protected open fun ColumnScope.LFFPage(
+    open fun ColumnScope.LFFPage(
         multiselect_context: MediaItemMultiSelectContext,
         modifier: Modifier,
         content_padding: PaddingValues,

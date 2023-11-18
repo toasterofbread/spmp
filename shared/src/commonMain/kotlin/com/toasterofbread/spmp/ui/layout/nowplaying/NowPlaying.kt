@@ -221,7 +221,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
                 ) {
                     if (is_shut) {
                         coroutine_scope.launch {
-                            swipe_state.animateTo(if (swipe_state.targetValue == 0) 1 else 0)
+                            expansion.scrollTo(if (swipe_state.targetValue == 0) 1 else 0)
                         }
                     }
                 }
@@ -253,7 +253,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
         ) {
             BackHandler({ !is_shut }) {
                 coroutine_scope.launch {
-                    swipe_state.animateTo(swipe_state.targetValue - 1)
+                    expansion.scroll(-1)
                 }
             }
 

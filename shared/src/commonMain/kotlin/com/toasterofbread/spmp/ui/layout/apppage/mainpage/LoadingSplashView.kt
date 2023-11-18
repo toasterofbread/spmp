@@ -5,6 +5,7 @@ import LocalPlayerState
 import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -18,11 +19,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
@@ -50,7 +53,9 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 import com.toasterofbread.composekit.utils.common.bitmapResource
+import com.toasterofbread.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.platform.splash.SplashExtraLoadingContent
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.PrefsPageCategory
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.getCategory
@@ -122,7 +127,7 @@ fun LoadingSplashView(splash_mode: SplashMode?, loading_message: String?, modifi
 
                     AnimatedVisibility(show_message) {
                         Column(
-                            Modifier.width(500.dp),
+                            Modifier.width(500.dp).animateContentSize(),
                             verticalArrangement = Arrangement.spacedBy(10.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
@@ -131,59 +136,7 @@ fun LoadingSplashView(splash_mode: SplashMode?, loading_message: String?, modifi
                             }
                             LinearProgressIndicator(Modifier.fillMaxWidth(), color = player.theme.accent)
 
-                            Platform.DESKTOP.only {
-                                var show_config_dialog: Boolean by remember { mutableStateOf(false) }
-
-                                Button(
-                                    { show_config_dialog = true },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = player.theme.accent,
-                                        contentColor = player.theme.on_accent
-                                    )
-                                ) {
-                                    Text(getString("button_configure_server_connection"))
-                                }
-
-                                if (show_config_dialog) {
-                                    val settings_items: List<SettingsItem> = remember { PrefsPageCategory.SERVER.getCategory(player.context) }
-
-                                    LaunchedEffect(settings_items) {
-                                        for (item in settings_items) {
-                                            item.setEnableAutosave(false)
-                                        }
-                                    }
-
-                                    AlertDialog(
-                                        onDismissRequest = { show_config_dialog = false },
-                                        confirmButton = {
-                                            Button({
-                                                for (item in settings_items) {
-                                                    item.save()
-                                                }
-                                                show_config_dialog = false
-                                            }) {
-                                                Text(getString("action_save"))
-                                            }
-                                        },
-                                        dismissButton = {
-                                            Button({ show_config_dialog = false }) {
-                                                Text(getString("action_close"))
-                                            }
-                                        },
-                                        title = {
-                                            Text(getString("title_configure_server_connection"))
-                                        },
-                                        text = {
-                                            Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                                                for (item in settings_items) {
-                                                    item.initialise(SpMp.prefs, Settings.Companion::provideDefault)
-                                                    item.Item(player.app_page_state.Settings.settings_interface, { _, _ -> }, {})
-                                                }
-                                            }
-                                        }
-                                    )
-                                }
-                            }
+                            SplashExtraLoadingContent(Modifier)
                         }
                     }
                 }

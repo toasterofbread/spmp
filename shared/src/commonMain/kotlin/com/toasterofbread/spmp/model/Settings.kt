@@ -204,6 +204,8 @@ enum class Settings {
     // Server
     KEY_SERVER_IP,
     KEY_SERVER_PORT,
+    KEY_SERVER_COMMAND,
+    KEY_SERVER_KILL_CHILD_ON_EXIT,
 
     // Auth
     KEY_YTM_AUTH,
@@ -476,6 +478,8 @@ enum class Settings {
 
                 KEY_SERVER_IP -> "127.0.0.1"
                 KEY_SERVER_PORT -> 3973
+                KEY_SERVER_COMMAND -> "spms"
+                KEY_SERVER_KILL_CHILD_ON_EXIT -> true
 
                 // Internal
                 INTERNAL_TOPBAR_MODE_HOME -> MusicTopBarMode.LYRICS.ordinal

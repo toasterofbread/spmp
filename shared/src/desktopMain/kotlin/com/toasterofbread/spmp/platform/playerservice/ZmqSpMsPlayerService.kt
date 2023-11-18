@@ -157,7 +157,7 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
 
         socket_load_state = PlayerServiceLoadState(
             true,
-            getString("loading_message_connecting_to_server_at_\$x").replace("\$x", url)
+            getString("desktop_splash_connecting_to_server_at_\$x").replace("\$x", url)
         )
 
         println("Waiting for reply from server at $url...")
@@ -184,7 +184,7 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
 
         socket_load_state = PlayerServiceLoadState(
             true,
-            getString("loading_message_setting_initial_state")
+            getString("desktop_splash_setting_initial_state")
         )
 
         assert(playlist.isEmpty())

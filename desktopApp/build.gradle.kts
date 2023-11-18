@@ -2,9 +2,7 @@
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import org.gradle.internal.enterprise.test.FileProperty
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files.getPosixFilePermissions
 import java.nio.file.Files.setPosixFilePermissions
 import java.nio.file.attribute.PosixFilePermission
@@ -143,7 +141,7 @@ abstract class ActuallyPackageAppImage: DefaultTask() {
             }
 
             delay(100)
-            project.logger.lifecycle("\nAppImage packaged successfully at ${appimage_output.absolutePath}")
+            project.logger.lifecycle("\nAppImage successfully packaged to ${appimage_output.absolutePath}")
         }
     }
 }

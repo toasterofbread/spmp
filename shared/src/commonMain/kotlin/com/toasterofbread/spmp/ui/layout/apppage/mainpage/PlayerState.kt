@@ -1,5 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.apppage.mainpage
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
@@ -35,6 +37,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
+import kotlinx.coroutines.launch
 import java.net.URI
 import java.net.URISyntaxException
 
@@ -172,6 +175,7 @@ open class PlayerState protected constructor(
     val theme: Theme get() = context.theme
     open val context: AppContext get() = upstream!!.context
 
+    open fun switchNowPlayingPage(page: Int): Unit = upstream!!.switchNowPlayingPage(page)
     open val expansion: NowPlayingExpansionState get() = upstream!!.expansion
 
     open val app_page_state: AppPageState get() = upstream!!.app_page_state

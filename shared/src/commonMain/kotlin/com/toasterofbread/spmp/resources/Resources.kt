@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.resources
 
-import SpMp
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getUiLanguage
 import kotlinx.coroutines.runBlocking
@@ -24,6 +23,10 @@ fun initResources(language: String, context: AppContext) {
     fun formatText(text: String): String = text.replace("\\\"", "\"").replace("\\'", "'")
 
     resource_load_lock.withLock {
+        if (_strings != null && _string_arrays != null) {
+            return
+        }
+
         runBlocking {
             val strs = mutableMapOf<String, String>()
             val str_arrays = mutableMapOf<String, List<String>>()

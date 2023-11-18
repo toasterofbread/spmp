@@ -45,7 +45,7 @@ data class MediaItemAppPage(
         when (val item = item.item) {
             null -> close()
             is Playlist -> {
-                val page = remember(item) {
+                val page: PlaylistPage = remember(item) {
                     PlaylistPage(
                         player.app_page_state,
                         item,
@@ -54,6 +54,7 @@ data class MediaItemAppPage(
                         onOpened(previous_item)
                     }
                 }
+
                 with(page) {
                     SFFPage(multiselect_context, modifier, content_padding, close)
                 }

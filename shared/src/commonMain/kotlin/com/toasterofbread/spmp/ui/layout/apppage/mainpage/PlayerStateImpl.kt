@@ -45,6 +45,7 @@ import com.toasterofbread.composekit.utils.common.init
 import com.toasterofbread.composekit.utils.composable.OnChangedEffect
 import com.toasterofbread.composekit.utils.composable.getEnd
 import com.toasterofbread.composekit.utils.composable.getStart
+import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NowPlayingMainTabPage
 import kotlinx.coroutines.*
 
 enum class FeedLoadState { PREINIT, NONE, LOADING, CONTINUING }
@@ -67,9 +68,15 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
     private val low_memory_listener: () -> Unit
     private val prefs_listener: PlatformPreferences.Listener
 
-    private fun switchNowPlayingPage(page: Int) {
+    override fun switchNowPlayingPage(page: Int) {
         coroutine_scope.launch {
-            np_swipe_state.value.animateTo(page, spring(Spring.DampingRatioNoBouncy, Spring.StiffnessMediumLow))
+            np_swipe_state.value.animateTo(
+                page,
+                when (NowPlayingMainTabPage.Mode.getCurrent(this@PlayerStateImpl)) {
+                    NowPlayingMainTabPage.Mode.LARGE -> spring(Spring.DampingRatioNoBouncy, Spring.StiffnessMediumLow)
+                    else -> spring()
+                }
+            )
         }
     }
 

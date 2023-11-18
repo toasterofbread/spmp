@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsItemInfoText
 import com.toasterofbread.composekit.settings.ui.item.SettingsTextFieldItem
+import com.toasterofbread.composekit.settings.ui.item.SettingsToggleItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.model.Settings
@@ -50,6 +51,16 @@ internal fun getServerCategory(): List<SettingsItem> {
                 }
                 return@SettingsTextFieldItem null
             }
+        ),
+
+        SettingsTextFieldItem(
+            SettingsValueState(Settings.KEY_SERVER_COMMAND.name),
+            getString("s_key_server_command"), getString("s_sub_server_command")
+        ),
+
+        SettingsToggleItem(
+            SettingsValueState(Settings.KEY_SERVER_KILL_CHILD_ON_EXIT.name),
+            getString("s_key_server_kill_child_on_exit"), null
         )
     )
 }

@@ -6,6 +6,7 @@
     <string name="app_name_debug" translatable="false">SpMp (debug)</string>
     <string name="project_url" translatable="false">https://github.com/toasterofbread/spmp</string>
     <string name="report_issue_url" translatable="false">https://github.com/toasterofbread/spmp/issues/new?labels=Bug&amp;template=bug_report.md&amp;title=%5BBug%5D+</string>
+    <string name="server_info_url" translatable="false">https://github.com/toasterofbread/spmp-server</string>
 
     <string name="project_url_name">project URL</string>
 
@@ -198,11 +199,15 @@
     <string name="error_message_generic">A error occurred</string>
     <string name="error_yt_feed_parse_failed">YouTube feed parsing failed</string>
     <string name="error_player_service_not_connected">Player service isn't connecting&#xA;A bug may have occurred</string>
+    <string name="error_on_server_command_execution">An error occurred while calling server command</string>
 
-    <string name="loading_message_connecting_to_server_at_$x">Connecting to server at $x</string>
-    <string name="loading_message_setting_initial_state">Setting initial state</string>
-    <string name="button_configure_server_connection">Configure connection</string>
-    <string name="title_configure_server_connection">Configure server connection</string>
+    <string name="desktop_splash_connecting_to_server_at_$x">Connecting to server at $x</string>
+    <string name="desktop_splash_setting_initial_state">Setting initial state</string>
+    <string name="desktop_splash_button_configure_connection">Configure connection</string>
+    <string name="desktop_splash_title_configure_server_connection">Configure server connection</string>
+    <string name="desktop_splash_button_start_server">Start local server</string>
+    <string name="desktop_splash_button_stop_process">Stop process</string>
+    <string name="desktop_splash_process_running_with_command_$x">Process running with this command:&#xA;$x</string>
 
     <string name="throw_error">Throw</string>
     <string name="report_error">Report</string>
@@ -535,6 +540,9 @@
 
     <string name="s_key_server_ip">Server IP address</string>
     <string name="s_key_server_port">Server port</string>
+    <string name="s_key_server_command">Server command</string>
+    <string name="s_sub_server_command">Command to be run when manually starting the server from within SpMp&#xA;The first occurence of '$@' will be replaced with the server arguments, otherwise they will be appended to the command</string>
+    <string name="s_key_server_kill_child_on_exit">Stop child server on exit</string>
 
     <string name="s_cat_development">Development</string>
 

@@ -125,7 +125,7 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
         }
 
         private suspend fun sendStatusWebhook(song: Song?) {
-            val webhook_url: String? = Settings.KEY_STATUS_WEBHOOK_URL.get()
+            val webhook_url: String? = Settings.KEY_STATUS_WEBHOOK_URL.get(context)
             if (webhook_url.isNullOrBlank()) {
                 return
             }
@@ -134,7 +134,7 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
                 val gson = Gson()
                 val payload: JsonObject
 
-                val user_payload: String? = Settings.KEY_STATUS_WEBHOOK_PAYLOAD.get()
+                val user_payload: String? = Settings.KEY_STATUS_WEBHOOK_PAYLOAD.get(context)
                 if (!user_payload.isNullOrBlank()) {
                     payload =
                         try {

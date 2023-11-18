@@ -253,7 +253,7 @@ class PlaylistPage(
         multiselect_context: MediaItemMultiSelectContext,
         modifier: Modifier,
         content_padding: PaddingValues,
-        close: () -> Unit,
+        close: () -> Unit
     ) {
         val db = player.database
 

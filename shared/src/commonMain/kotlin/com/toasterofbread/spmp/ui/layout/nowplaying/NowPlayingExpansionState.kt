@@ -80,9 +80,7 @@ class NowPlayingExpansionState(
 
     fun scrollTo(page: Int) {
         require(page in getPageRange())
-        coroutine_scope.launch {
-            swipe_state.animateTo(page)
-        }
+        player.switchNowPlayingPage(page)
     }
 
     fun close() {

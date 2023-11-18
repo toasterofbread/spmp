@@ -33,7 +33,9 @@ import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.toasterofbread.spmp.platform.getLocalLyricsFile
 import com.toasterofbread.spmp.platform.getLocalSongFile
+import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.resources.initResources
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -221,6 +223,8 @@ class PlayerDownloadService: PlatformServiceImpl() {
     override fun onCreate() {
         super.onCreate()
 
+        initResources(context.getUiLanguage(), context)
+
         synchronized(downloads) {
             downloads.clear()
         }
@@ -234,7 +238,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
         )
         pause_resume_action = NotificationCompat.Action.Builder(
             IconCompat.createWithResource(this, android.R.drawable.ic_menu_close_clear_cancel),
-            getString("action_download_pause"),
+            getString("action_download_pause") ?: "Pause",
             PendingIntent.getService(
                 this,
                 IntentAction.PAUSE_RESUME.ordinal,

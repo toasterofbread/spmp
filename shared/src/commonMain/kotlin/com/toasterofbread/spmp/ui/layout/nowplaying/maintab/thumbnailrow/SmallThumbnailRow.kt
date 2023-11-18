@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.ui.layout.nowplaying
+package com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow
 
 import LocalNowPlayingExpansion
 import LocalPlayerState
@@ -7,7 +7,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,12 +19,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.SkipNext
-import androidx.compose.material.icons.rounded.SkipPrevious
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -43,7 +36,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -52,15 +44,22 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.composekit.platform.composable.BackHandler
+import com.toasterofbread.composekit.platform.composable.platformClickable
+import com.toasterofbread.composekit.utils.common.getInnerSquareSizeOfCircle
+import com.toasterofbread.composekit.utils.common.getValue
+import com.toasterofbread.composekit.utils.common.thenIf
+import com.toasterofbread.composekit.utils.composable.OnChangedEffect
+import com.toasterofbread.composekit.utils.modifier.background
+import com.toasterofbread.composekit.utils.modifier.disableParentScroll
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.composekit.platform.composable.BackHandler
-import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.getPixel
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.Thumbnail
+import com.toasterofbread.spmp.ui.layout.nowplaying.EXPANDED_THRESHOLD
+import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.OVERLAY_MENU_ANIMATION_DURATION
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.MainPlayerOverlayMenu
@@ -70,16 +69,10 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.RelatedContentPlayerOverlayMenu
 import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
-import com.toasterofbread.composekit.utils.common.getInnerSquareSizeOfCircle
-import com.toasterofbread.composekit.utils.common.getValue
-import com.toasterofbread.composekit.utils.common.thenIf
-import com.toasterofbread.composekit.utils.composable.OnChangedEffect
-import com.toasterofbread.composekit.utils.modifier.background
-import com.toasterofbread.composekit.utils.modifier.disableParentScroll
 import kotlin.math.absoluteValue
 import kotlin.math.min
 
-private fun handleColourPick(image: ImageBitmap, image_size: IntSize, tap_offset: Offset, onPicked: (Color) -> Unit) {
+internal fun handleThumbnailColourPick(image: ImageBitmap, image_size: IntSize, tap_offset: Offset, onPicked: (Color) -> Unit) {
     val bitmap_size = min(image.width, image.height)
     var x = (tap_offset.x / image_size.width) * bitmap_size
     var y = (tap_offset.y / image_size.height) * bitmap_size
@@ -94,7 +87,7 @@ private fun handleColourPick(image: ImageBitmap, image_size: IntSize, tap_offset
 }
 
 @Composable
-fun ThumbnailRow(
+fun SmallThumbnailRow(
     modifier: Modifier = Modifier,
     horizontal_arrangement: Arrangement.Horizontal,
     onThumbnailLoaded: (Song?, ImageBitmap?) -> Unit,
@@ -257,7 +250,7 @@ fun ThumbnailRow(
                                 onTap = { offset ->
                                     colourpick_callback?.also { callback ->
                                         current_thumb_image?.also { image ->
-                                            handleColourPick(image, image_size, offset, callback)
+                                            handleThumbnailColourPick(image, image_size, offset, callback)
                                             return@detectTapGestures
                                         }
                                     }
@@ -342,35 +335,8 @@ fun ThumbnailRow(
                 )
             }
 
-            val player_button_modifier = Modifier.size(40.dp)
-
             val show_prev_button: Boolean by Settings.KEY_MINI_PLAYER_SHOW_PREV_BUTTON.rememberMutableState()
-
-            if (show_prev_button) {
-                IconButton({ player.controller?.seekToPrevious() }, player_button_modifier) {
-                    Image(
-                        Icons.Rounded.SkipPrevious,
-                        null,
-                        colorFilter = ColorFilter.tint(player.getNPOnBackground())
-                    )
-                }
-            }
-
-            IconButton({ player.controller?.playPause() }, player_button_modifier) {
-                Image(
-                    if (player.status.m_playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                    getString(if (player.status.m_playing) "media_pause" else "media_play"),
-                    colorFilter = ColorFilter.tint(player.getNPOnBackground())
-                )
-            }
-
-            IconButton({ player.controller?.seekToNext() }, player_button_modifier) {
-                Image(
-                    Icons.Rounded.SkipNext,
-                    null,
-                    colorFilter = ColorFilter.tint(player.getNPOnBackground())
-                )
-            }
+            ThumbnailRowControlButtons(Modifier.size(40.dp), show_prev_button = show_prev_button)
         }
     }
 }

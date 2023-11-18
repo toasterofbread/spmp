@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -50,9 +51,9 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.bot
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.horizontal_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.top_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
-import com.toasterofbread.spmp.ui.layout.nowplaying.ThumbnailRow
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
+import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.SmallThumbnailRow
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.RepeatButton
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import kotlin.math.absoluteValue
@@ -61,6 +62,7 @@ internal const val MINIMISED_NOW_PLAYING_HORIZ_PADDING: Float = 10f
 internal const val OVERLAY_MENU_ANIMATION_DURATION: Int = 200
 internal const val SEEK_BAR_GRADIENT_OVERFLOW_RATIO: Float = 0.3f
 
+@Composable
 private fun BoxWithConstraintsScope.getThumbnailSize(): Dp {
     return minOf(maxWidth - (horizontal_padding * 2), maxHeight - 350.dp)
 }
@@ -72,7 +74,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(page_height: Dp, to
 
     val current_song: Song? by player.status.song_state
 
-    BoxWithConstraints(modifier) {
+    BoxWithConstraints(modifier.requiredHeight(page_height)) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             composeScope {
                 Spacer(Modifier.height(lerp(0.dp, top_padding, expansion.get().coerceIn(0f, 1f))))
@@ -84,7 +86,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(page_height: Dp, to
             val controls_height: Dp = this@BoxWithConstraints.maxHeight - thumbnail_size
 
             composeScope {
-                ThumbnailRow(
+                SmallThumbnailRow(
                     Modifier
                         .size(
                             width = lerp(this@BoxWithConstraints.maxWidth - (MINIMISED_NOW_PLAYING_HORIZ_PADDING.dp * 2), thumbnail_size, expansion.getAbsolute()),

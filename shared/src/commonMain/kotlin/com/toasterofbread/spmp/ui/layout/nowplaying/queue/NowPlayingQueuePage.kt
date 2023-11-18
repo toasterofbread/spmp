@@ -14,6 +14,6 @@ class NowPlayingQueuePage: NowPlayingPage() {
 
     @Composable
     override fun Page(page_height: Dp, top_bar: NowPlayingTopBar, content_padding: PaddingValues, swipe_modifier: Modifier, modifier: Modifier) {
-        QueueTab(page_height, top_bar, swipe_modifier, modifier, content_padding = content_padding)
+        QueueTab(page_height, modifier, top_bar = top_bar, padding_modifier = swipe_modifier, content_padding = content_padding)
     }
 }

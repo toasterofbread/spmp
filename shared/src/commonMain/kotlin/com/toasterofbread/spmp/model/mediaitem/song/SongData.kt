@@ -1,8 +1,8 @@
 package com.toasterofbread.spmp.model.mediaitem.song
 
+import com.toasterofbread.composekit.utils.common.lazyAssert
 import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
@@ -10,8 +10,6 @@ import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
-import com.toasterofbread.composekit.utils.common.lazyAssert
-import com.toasterofbread.db.mediaitem.LoudnessDbById
 
 class SongData(
     override var id: String,

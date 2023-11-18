@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.SwipeableState
+import androidx.compose.material.swipeable
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,23 +22,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
-import com.toasterofbread.spmp.model.OverscrollClearMode
-import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.composekit.platform.composable.BackHandler
-import com.toasterofbread.composekit.platform.composable.scrollWheelSwipeable
 import com.toasterofbread.composekit.platform.composable.composeScope
-import com.toasterofbread.spmp.platform.isPortrait
 import com.toasterofbread.composekit.platform.vibrateShort
-import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.composekit.utils.*
 import com.toasterofbread.composekit.utils.common.amplifyPercent
-import com.toasterofbread.composekit.utils.composable.OnChangedEffect
 import com.toasterofbread.composekit.utils.composable.RecomposeOnInterval
 import com.toasterofbread.composekit.utils.composable.getTop
 import com.toasterofbread.composekit.utils.modifier.brushBackground
+import com.toasterofbread.spmp.model.OverscrollClearMode
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.platform.isLargeFormFactor
+import com.toasterofbread.spmp.platform.isPortrait
+import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 enum class ThemeMode { BACKGROUND, ELEMENTS, NONE }
 
@@ -50,8 +52,8 @@ private const val GRADIENT_BOTTOM_PADDING_DP = 100
 private const val GRADIENT_TOP_START_RATIO = 0.7f
 private const val OVERSCROLL_CLEAR_DISTANCE_THRESHOLD_DP = 5f
 
-internal fun PlayerState.getNPBackground(): Color {
-    return when (np_theme_mode) {
+internal fun PlayerState.getNPBackground(theme_mode: ThemeMode = np_theme_mode): Color {
+    return when (theme_mode) {
         ThemeMode.BACKGROUND -> theme.accent
         ThemeMode.ELEMENTS -> theme.background
         ThemeMode.NONE -> theme.background
@@ -66,24 +68,23 @@ internal fun PlayerState.getNPOnBackground(): Color {
     }
 }
 
-internal fun PlayerState.getNPAltBackground(): Color {
-    return when (np_theme_mode) {
+internal fun PlayerState.getNPAltBackground(theme_mode: ThemeMode = np_theme_mode): Color {
+    return when (theme_mode) {
         ThemeMode.BACKGROUND -> getNPBackground().amplifyPercent(-0.4f, opposite_percent = -0.2f)
         else -> theme.background
     }
 }
 
-internal fun PlayerState.getNPAltOnBackground(): Color =
-    getNPBackground().amplifyPercent(-0.4f, opposite_percent = -0.1f)
+internal fun PlayerState.getNPAltOnBackground(theme_mode: ThemeMode = np_theme_mode): Color =
+    getNPBackground(theme_mode).amplifyPercent(-0.4f, opposite_percent = -0.1f)
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>, content_padding: PaddingValues) {
-    LocalNowPlayingExpansion.current.init()
-
     val player: PlayerState = LocalPlayerState.current
     val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
     val density: Density = LocalDensity.current
+    val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     val swipe_interaction_source: MutableInteractionSource = remember { MutableInteractionSource() }
     val swipe_interactions: MutableList<Interaction> = remember { mutableStateListOf() }
@@ -105,8 +106,6 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
         }
     }
 
-    expansion.init()
-
     AnimatedVisibility(
         player.session_started,
         exit = slideOutVertically(),
@@ -123,14 +122,6 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
         )
 
         val is_shut: Boolean by remember { derivedStateOf { swipe_state.targetValue == 0 } }
-
-        var switch_to_page: Int by remember { mutableStateOf(-1) }
-        OnChangedEffect(switch_to_page) {
-            if (switch_to_page >= 0) {
-                swipe_state.animateTo(switch_to_page)
-                switch_to_page = -1
-            }
-        }
 
         val overscroll_clear_enabled: Boolean by Settings.KEY_MINI_PLAYER_OVERSCROLL_CLEAR_ENABLED.rememberMutableState()
         val overscroll_clear_time: Float by Settings.KEY_MINI_PLAYER_OVERSCROLL_CLEAR_TIME.rememberMutableState()
@@ -196,14 +187,18 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
         val song_gradient_depth: Float? =
             player.status.m_song?.PlayerGradientDepth?.observe(player.database)?.value
 
-        val swipe_modifier: Modifier = remember(swipe_anchors) {
-            Modifier.scrollWheelSwipeable(
+        val pages: List<NowPlayingPage> = NowPlayingPage.ALL.filter { it.shouldShow(player) }
+        val large_page_showing: Boolean = !player.isPortrait() && player.isLargeFormFactor()
+
+        val swipe_modifier: Modifier = remember(swipe_anchors, large_page_showing) {
+            Modifier.swipeable(
                 state = swipe_state,
                 anchors = swipe_anchors,
                 thresholds = { _, _ -> FractionalThreshold(0.2f) },
                 orientation = Orientation.Vertical,
-                reverse_direction = true,
-                interaction_source = swipe_interaction_source
+                reverseDirection = true,
+                interactionSource = swipe_interaction_source,
+                enabled = !large_page_showing
             )
         }
 
@@ -225,7 +220,9 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
                     indication = null
                 ) {
                     if (is_shut) {
-                        switch_to_page = if (swipe_state.targetValue == 0) 1 else 0
+                        coroutine_scope.launch {
+                            swipe_state.animateTo(if (swipe_state.targetValue == 0) 1 else 0)
+                        }
                     }
                 }
                 .graphicsLayer {
@@ -233,13 +230,18 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
                 }
                 .brushBackground {
                     with(density) {
+                        val override_colour: Color? = pages[swipe_state.currentValue.coerceAtMost(pages.size - 1)].getPlayerBackgroundColourOverride(player)
+                        if (override_colour != null) {
+                            return@brushBackground Brush.verticalGradient(listOf(override_colour, override_colour))
+                        }
+
                         val screen_height_px = page_height.toPx()
                         val v_offset = (expansion.get() - 1f).coerceAtLeast(0f) * screen_height_px
 
                         val gradient_depth = 1f - (song_gradient_depth ?: default_gradient_depth)
                         check(gradient_depth in 0f .. 1f)
 
-                        Brush.verticalGradient(
+                        return@brushBackground Brush.verticalGradient(
                             listOf(player.getNPBackground(), player.getNPAltBackground()),
                             startY = v_offset + (page_height.toPx() * GRADIENT_TOP_START_RATIO),
                             endY = v_offset - GRADIENT_BOTTOM_PADDING_DP.dp.toPx() + (
@@ -250,7 +252,9 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
                 }
         ) {
             BackHandler({ !is_shut }) {
-                switch_to_page = swipe_state.targetValue - 1
+                coroutine_scope.launch {
+                    swipe_state.animateTo(swipe_state.targetValue - 1)
+                }
             }
 
             CompositionLocalProvider(LocalContentColor provides player.getNPOnBackground()) {

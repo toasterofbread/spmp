@@ -10,13 +10,14 @@ import com.google.gson.Gson
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
-import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpointType
 import com.toasterofbread.spmp.youtubeapi.fromJson
+import com.toasterofbread.composekit.platform.Platform
+import com.toasterofbread.composekit.platform.PlatformPreferences
 import okhttp3.Headers.Companion.toHeaders
 import java.util.*
 
@@ -160,8 +161,8 @@ enum class Settings {
 
     // Accessibility Service
 //    KEY_ACC_VOL_INTERCEPT_MODE,
-    KEY_ACC_VOL_INTERCEPT_NOTIFICATION,
-    KEY_ACC_SCREEN_OFF,
+//    KEY_ACC_VOL_INTERCEPT_NOTIFICATION,
+//    KEY_ACC_SCREEN_OFF,
 
     // Top bar content
     KEY_TOPBAR_LYRICS_LINGER,
@@ -201,7 +202,8 @@ enum class Settings {
     KEY_PAUSE_ON_WIRED_DISCONNECT,
 
     // Server
-    KEY_SPMS_PORT,
+    KEY_SERVER_IP,
+    KEY_SERVER_PORT,
 
     // Auth
     KEY_YTM_AUTH,
@@ -374,8 +376,8 @@ enum class Settings {
                 KEY_AUTO_DOWNLOAD_ON_METERED -> false
 
 //                KEY_ACC_VOL_INTERCEPT_MODE -> PlayerAccessibilityService.PlayerAccessibilityServiceVolumeInterceptMode.NEVER.ordinal
-                KEY_ACC_VOL_INTERCEPT_NOTIFICATION -> false
-                KEY_ACC_SCREEN_OFF -> false
+//                KEY_ACC_VOL_INTERCEPT_NOTIFICATION -> false
+//                KEY_ACC_SCREEN_OFF -> false
 
                 // Top bar content
                 KEY_TOPBAR_LYRICS_LINGER -> true
@@ -389,11 +391,11 @@ enum class Settings {
                 KEY_FEED_SHOW_FILTER_BAR -> true
                 KEY_FEED_SHOW_SONG_DOWNLOAD_INDICATORS -> false
                 KEY_FEED_INITIAL_ROWS -> 4
-                KEY_FEED_SQUARE_PREVIEW_TEXT_LINES -> 1
-                KEY_FEED_GRID_ROW_COUNT -> 2
-                KEY_FEED_GRID_ROW_COUNT_EXPANDED -> 2
-                KEY_FEED_ALT_GRID_ROW_COUNT -> 4
-                KEY_FEED_ALT_GRID_ROW_COUNT_EXPANDED -> 4
+                KEY_FEED_SQUARE_PREVIEW_TEXT_LINES -> if (Platform.DESKTOP.isCurrent()) 2 else 1
+                KEY_FEED_GRID_ROW_COUNT -> if (Platform.DESKTOP.isCurrent()) 1 else 2
+                KEY_FEED_GRID_ROW_COUNT_EXPANDED -> if (Platform.DESKTOP.isCurrent()) 1 else 2
+                KEY_FEED_ALT_GRID_ROW_COUNT -> if (Platform.DESKTOP.isCurrent()) 2 else 4
+                KEY_FEED_ALT_GRID_ROW_COUNT_EXPANDED -> if (Platform.DESKTOP.isCurrent()) 2 else 4
                 KEY_FEED_SHOW_RADIOS -> false
                 KEY_FEED_HIDDEN_ROWS -> emptySet<String>()
 
@@ -472,7 +474,8 @@ enum class Settings {
                 KEY_ENABLE_AUDIO_NORMALISATION -> false
                 KEY_ENABLE_SILENCE_SKIPPING -> false
 
-                KEY_SPMS_PORT -> 3973
+                KEY_SERVER_IP -> "127.0.0.1"
+                KEY_SERVER_PORT -> 3973
 
                 // Internal
                 INTERNAL_TOPBAR_MODE_HOME -> MusicTopBarMode.LYRICS.ordinal

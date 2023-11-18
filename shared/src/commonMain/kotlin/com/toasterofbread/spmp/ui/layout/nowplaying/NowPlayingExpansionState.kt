@@ -9,6 +9,8 @@ import androidx.compose.ui.unit.Density
 import com.toasterofbread.spmp.model.MusicTopBarMode
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 interface ExpansionState {
@@ -60,36 +62,31 @@ interface ExpansionState {
 }
 
 @OptIn(ExperimentalMaterialApi::class)
-class NowPlayingExpansionState(val player: PlayerState, swipe_state: State<SwipeableState<Int>>): ExpansionState {
+class NowPlayingExpansionState(
+    val player: PlayerState,
+    swipe_state: State<SwipeableState<Int>>,
+    private val coroutine_scope: CoroutineScope
+): ExpansionState {
     private val swipe_state by swipe_state
-    private var switch_to_page: Int by mutableStateOf(-1)
 
     override val top_bar_mode: MutableState<MusicTopBarMode> = mutableStateOf(MusicTopBarMode.default)
     
     override fun getPageRange(): IntRange =
         0 .. getNowPlayingVerticalPageCount(player)
 
-    @Composable
-    fun init() {
-        LaunchedEffect(switch_to_page) {
-            if (switch_to_page >= 0) {
-                swipe_state.animateTo(switch_to_page)
-                switch_to_page = -1
-            }
-        }
-    }
-
     fun scroll(pages: Int) {
-        switch_to_page = (swipe_state.targetValue + pages).coerceIn(getPageRange())
+        scrollTo((swipe_state.targetValue + pages).coerceIn(getPageRange()))
     }
 
     fun scrollTo(page: Int) {
         require(page in getPageRange())
-        switch_to_page = page
+        coroutine_scope.launch {
+            swipe_state.animateTo(page)
+        }
     }
 
     fun close() {
-        switch_to_page = if (swipe_state.targetValue == 0) 1 else 0
+        scrollTo(if (swipe_state.targetValue == 0) 1 else 0)
     }
 
     fun getPage(): Int {

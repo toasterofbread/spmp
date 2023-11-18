@@ -14,9 +14,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalViewConfiguration
 import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.composekit.utils.composable.OnChangedEffect
-import com.toasterofbread.spmp.platform.Platform
 import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
+import com.toasterofbread.composekit.platform.Platform
 import kotlinx.coroutines.delay
 
 enum class MediaItemPreviewInteractionPressStage {
@@ -67,7 +67,7 @@ fun Modifier.mediaItemPreviewInteraction(
     val onClick = onClick ?: player::onMediaItemClicked
     val onLongClick = onLongClick ?: player::onMediaItemLongClicked
 
-    if (Platform.is_desktop) {
+    if (Platform.DESKTOP.isCurrent()) {
         return platformClickable(
             onClick = { MediaItemPreviewInteractionPressStage.INSTANT.execute(item, long_press_menu_data, onClick, onLongClick) },
             onAltClick = { MediaItemPreviewInteractionPressStage.LONG_1.execute(item, long_press_menu_data, onClick, onLongClick) },

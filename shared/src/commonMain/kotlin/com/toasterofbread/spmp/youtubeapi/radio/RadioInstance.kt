@@ -213,7 +213,7 @@ class RadioInstance(val context: AppContext) {
                         return@launchSingle
                     }
 
-                    val initial_songs = getInitialSongs()
+                    val initial_songs: Result<List<Song>> = getInitialSongs()
                     initial_songs.onFailure { error ->
                         synchronized(lock) {
                             state = state.copyWithLoadError(error, can_retry)

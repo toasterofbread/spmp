@@ -25,12 +25,15 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import com.toasterofbread.composekit.settings.ui.SettingsInterface
-import com.toasterofbread.composekit.settings.ui.item.*
-import com.toasterofbread.spmp.ProjectBuildConfig
-import com.toasterofbread.spmp.model.*
+import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.composekit.platform.vibrateShort
+import com.toasterofbread.composekit.settings.ui.SettingsInterface
+import com.toasterofbread.composekit.settings.ui.item.*
+import com.toasterofbread.composekit.utils.common.blendWith
+import com.toasterofbread.composekit.utils.modifier.getHorizontal
+import com.toasterofbread.spmp.ProjectBuildConfig
+import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
@@ -39,8 +42,6 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 import com.toasterofbread.spmp.ui.layout.*
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
-import com.toasterofbread.composekit.utils.common.blendWith
-import com.toasterofbread.composekit.utils.modifier.getHorizontal
 import org.jetbrains.compose.resources.*
 
 private const val PREFS_PAGE_EXTRA_PADDING_DP: Float = 10f
@@ -61,8 +62,14 @@ enum class PrefsPageCategory {
     LYRICS,
     DOWNLOAD,
     DISCORD_STATUS,
+    SERVER,
     OTHER,
     DEVELOPMENT;
+
+    fun shouldShow(): Boolean = when (this) {
+        SERVER -> Platform.DESKTOP.isCurrent()
+        else -> true
+    }
 
     @OptIn(ExperimentalResourceApi::class)
     @Composable
@@ -76,6 +83,7 @@ enum class PrefsPageCategory {
         LYRICS -> if (filled) Icons.Filled.MusicNote else Icons.Outlined.MusicNote
         DOWNLOAD -> if (filled) Icons.Filled.Download else Icons.Outlined.Download
         DISCORD_STATUS -> resource("drawable/ic_discord.xml").readBytesSync().toImageVector(LocalDensity.current)
+        SERVER -> if (filled) Icons.Filled.Dns else Icons.Outlined.Dns
         OTHER -> if (filled) Icons.Filled.MoreHoriz else Icons.Outlined.MoreHoriz
         DEVELOPMENT -> if (filled) Icons.Filled.Code else Icons.Outlined.Code
     }
@@ -90,6 +98,7 @@ enum class PrefsPageCategory {
         LYRICS -> getString("s_cat_lyrics")
         DOWNLOAD -> getString("s_cat_download")
         DISCORD_STATUS -> getString("s_cat_discord_status")
+        SERVER -> getString("s_cat_server")
         OTHER -> getString("s_cat_other")
         DEVELOPMENT -> getString("s_cat_development")
     }
@@ -104,6 +113,7 @@ enum class PrefsPageCategory {
         LYRICS -> getString("s_cat_desc_lyrics")
         DOWNLOAD -> getString("s_cat_desc_download")
         DISCORD_STATUS -> getString("s_cat_desc_discord_status")
+        SERVER -> getString("s_cat_desc_server")
         OTHER -> getString("s_cat_desc_other")
         DEVELOPMENT -> ""
     }
@@ -116,7 +126,7 @@ class SettingsAppPage(override val state: AppPageState, footer_modifier: Modifie
         SettingsValueState<Set<String>>(
             Settings.KEY_YTM_AUTH.name
         ).init(Settings.prefs, Settings.Companion::provideDefault)
-    private val settings_interface: SettingsInterface =
+    val settings_interface: SettingsInterface =
         getPrefsPageSettingsInterface(
             state,
             pill_menu,
@@ -136,7 +146,7 @@ class SettingsAppPage(override val state: AppPageState, footer_modifier: Modifie
 
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
     @Composable
-    override fun ColumnScope.Page(
+    override fun ColumnScope.SFFPage(
         multiselect_context: MediaItemMultiSelectContext,
         modifier: Modifier,
         content_padding: PaddingValues,

@@ -6,16 +6,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontFamily
+import com.toasterofbread.composekit.platform.PlatformPreferences
+import com.toasterofbread.composekit.utils.common.thenIf
+import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.FontMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.composekit.platform.PlatformPreferences
-import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.platform.getUiLanguage
-import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.resources.getStringOrNull
 import com.toasterofbread.spmp.resources.initResources
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.resources.uilocalisation.UnlocalisedStringCollector
@@ -25,6 +32,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.mainpage.LoadingSplashView
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.RootView
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.SplashMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.theme.ApplicationTheme
 import kotlinx.coroutines.CoroutineScope
@@ -32,8 +40,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.util.logging.Logger
-
-expect fun getPlatformName(): String
 
 val LocalPlayerState: ProvidableCompositionLocal<PlayerState> = staticCompositionLocalOf { SpMp.player_state }
 object LocalNowPlayingExpansion {
@@ -46,7 +52,7 @@ object SpMp {
     val Log: Logger = Logger.getLogger(SpMp::class.java.name)
 
     private lateinit var context: AppContext
-    private lateinit var player_state: PlayerStateImpl
+    lateinit var player_state: PlayerStateImpl
 
     val prefs: PlatformPreferences get() = context.getPrefs()
 
@@ -63,8 +69,6 @@ object SpMp {
             context.ytapi.init()
         }
 
-        player_state = PlayerStateImpl(context)
-
         initResources(context.getUiLanguage(), context)
         _yt_ui_localisation = YoutubeUILocalisation(UILanguages)
     }
@@ -76,7 +80,6 @@ object SpMp {
     }
 
     fun onStart() {
-        player_state.onStart()
     }
 
     fun onStop() {
@@ -84,10 +87,20 @@ object SpMp {
     }
 
     @Composable
-    fun App(open_uri: String? = null) {
+    fun App(modifier: Modifier = Modifier, open_uri: String? = null) {
         context.theme.Update()
 
         context.theme.ApplicationTheme(context, getFontFamily(context) ?: FontFamily.Default) {
+            val player_coroutine_scope: CoroutineScope = rememberCoroutineScope()
+
+            var player_created: Boolean by remember { mutableStateOf(false) }
+
+            LaunchedEffect(Unit) {
+                player_state = PlayerStateImpl(context, player_coroutine_scope)
+                player_state.onStart()
+                player_created = true
+            }
+
             LaunchedEffect(open_uri) {
                 if (open_uri != null) {
                     player_state.openUri(open_uri).onFailure {
@@ -96,10 +109,21 @@ object SpMp {
                 }
             }
 
-            Surface(modifier = Modifier.fillMaxSize()) {
-                CompositionLocalProvider(LocalPlayerState provides player_state) {
-                    RootView(player_state)
-                    LoadingSplashView(Modifier.fillMaxSize())
+            Surface(modifier = modifier.fillMaxSize()) {
+                if (player_created) {
+                    CompositionLocalProvider(LocalPlayerState provides player_state) {
+                        RootView(player_state)
+
+                        LoadingSplashView(
+                            if (!player_state.service_connected) SplashMode.SPLASH else null,
+                            player_state.service_loading_message,
+                            Modifier
+                                .fillMaxSize()
+                                .thenIf(!player_state.service_connected) {
+                                    pointerInput(Unit) {}
+                                }
+                        )
+                    }
                 }
             }
         }
@@ -127,7 +151,7 @@ object SpMp {
         return FontFamily(context.loadFontFromFile("font/$font_path"))
     }
 
-    val app_name: String get() = getString("app_name")
+    val app_name: String get() = getStringOrNull("app_name") ?: "SpMp"
 
     val unlocalised_string_collector: UnlocalisedStringCollector? = UnlocalisedStringCollector()
 

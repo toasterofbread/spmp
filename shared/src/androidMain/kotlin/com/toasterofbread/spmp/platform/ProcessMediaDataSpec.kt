@@ -12,7 +12,6 @@ import com.toasterofbread.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.youtubeapi.YoutubeVideoFormat
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import java.io.IOException
 
 @UnstableApi
 internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppContext, metered: Boolean): DataSpec {

@@ -32,10 +32,9 @@ expect class PlatformServiceImpl: PlatformService {
     override fun removeMessageReceiver(receiver: (Any?) -> Unit)
 }
 
-
 expect fun startPlatformService(
     context: AppContext,
-    cls: Class<out PlatformService>,
+    cls: Class<out PlatformServiceImpl>,
     onConnected: ((binder: PlatformBinder?) -> Unit)? = null,
     onDisconnected: (() -> Unit)? = null
 ): Any // Service connection

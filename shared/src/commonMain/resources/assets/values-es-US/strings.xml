@@ -1,8 +1,4 @@
 <resources>
-	<string name="acc_ser_enable_dialog_body">El servicio se puede habilitar automáticamente otorgando permiso de configuración segura de escritura usando root</string>
-	<string name="acc_ser_enable_dialog_btn_manual">Habilitar manualmente</string>
-	<string name="acc_ser_enable_dialog_btn_root">usar root</string>
-	<string name="acc_ser_enable_dialog_title">Habilitar el servicio de accesibilidad</string>
 	<string name="action_cancel">Cancelar</string>
 	<string name="action_close">Cerrar</string>
 	<string name="action_confirm_action">Sí</string>
@@ -196,10 +192,6 @@
 	<string name="radio_title_artists_splitter">, </string>
 	<string name="radios">Radios</string>
 	<string name="report_error">Reportar</string>
-	<string name="s_acc_service_disable">Desabilitar</string>
-	<string name="s_acc_service_disabled">El servicio está deshabilitado</string>
-	<string name="s_acc_service_enable">Habilitar</string>
-	<string name="s_acc_service_enabled">El servicio está habilitado</string>
 	<string name="s_button_reset_stats">Reiniciar estadísticas de reproducción</string>
 	<string name="s_cat_audio_video">Audio / Video</string>
 	<string name="s_cat_desc_discord_status">Administra la cuenta de Discord y personaliza la apariencia del estado</string>
@@ -231,14 +223,12 @@
 	<string name="s_discord_status_enabled">El estado de Discord está habilitado</string>
 	<string name="s_discord_status_text_info">Para mostrar información sobre la canción actual, use las cadenas a continuación:\n- $canción\n- $artista</string>
 	<string name="s_filter_title_keywords_dialog_title">Añadir palabra clave</string>
-	<string name="s_group_acc_service">Servicio de accesibilidad</string>
 	<string name="s_group_caching">Almacenamiento en caché</string>
 	<string name="s_group_localisation">Localización</string>
 	<string name="s_group_long_press_menu">Menú de pulsación larga</string>
 	<string name="s_group_rec_feed">Feed recomendado</string>
 	<string name="s_group_top_bar_lyrics">Letras de la barra superior</string>
 	<string name="s_group_topbar">Barra superior de música</string>
-	<string name="s_key_acc_screen_off">Habilitar mientras la pantalla está apagada</string>
 	<string name="s_key_accent_source">Acento de color </string>
 	<string name="s_key_add_songs_to_history">Añadir canción al historial de YouTube </string>
 	<string name="s_key_auto_download_enabled">Habilitar la descarga automática de canciones</string>
@@ -315,9 +305,6 @@
 	<string name="s_key_topbar_visualiser_width">Ancho del visualizador</string>
 	<string name="s_key_treat_singles_as_song">Trata los sencillos de los artistas como una canción.</string>
 	<string name="s_key_unlocalised_strings">Cadenas no localizadas</string>
-	<string name="s_key_vol_intercept_mode">Modo de intercepción de volumen</string>
-	<string name="s_key_vol_intercept_notification">Notificación de cambio de volumen</string>
-	<string name="s_key_vol_steps">Pasos de volumen</string>
 	<string name="s_option_accent_theme">Del tema</string>
 	<string name="s_option_accent_thumbnail">De la miniatura</string>
 	<string name="s_option_audio_quality_high">Alto</string>
@@ -333,16 +320,12 @@
 	<string name="s_option_np_accent_background">Fondo de color con acento</string>
 	<string name="s_option_np_accent_elements">Elementos de color con acento</string>
 	<string name="s_option_np_accent_none">No usar color de acento</string>
-	<string name="s_option_vol_intercept_mode_always">Cuando la sesión multimedia está activa</string>
-	<string name="s_option_vol_intercept_mode_app">Cuando la aplicación está abierta</string>
-	<string name="s_option_vol_intercept_mode_never">Nunca</string>
 	<string name="s_option_wave_border_mode_line">borde de línea</string>
 	<string name="s_option_wave_border_mode_none">Sin animación</string>
 	<string name="s_option_wave_border_mode_scroll">Animar al desplazarse por la cola</string>
 	<string name="s_option_wave_border_mode_time">Animar a lo largo del tiempo</string>
 	<string name="s_option_wave_border_mode_time_sync">Animar a lo largo del tiempo mientras se reproduce</string>
 	<string name="s_page_preferences">Preferencias</string>
-	<string name="s_sub_acc_screen_off">Requiere privilegios de root</string>
 	<string name="s_sub_add_songs_to_history">Las canciones escuchadas se enviarán a YouTube y se agregarán al historial de la cuenta.</string>
 	<string name="s_sub_auto_download_quality">Calidad de audio de las canciones descargadas automáticamente.</string>
 	<string name="s_sub_auto_download_threshold">Las canciones que hayas escuchado al menos tantas veces se descargarán automáticamente</string>
@@ -375,9 +358,6 @@
 	<string name="s_sub_topbar_lyrics_linger">Cuando finaliza una línea, permanecerá visible hasta que comience la siguiente línea.</string>
 	<string name="s_sub_treat_singles_as_song">Las playlist contenidas en la pestaña \'Sencillos\' en la página de un artista se tratarán como la canción contenida, si solo hay una.</string>
 	<string name="s_sub_unlocalised_strings">Cadenas que no se han traducido al idioma actual</string>
-	<string name="s_sub_vol_intercept_mode">El servicio de accesibilidad puede interceptar las pulsaciones de teclas de volumen y utilizarlas para cambiar el volumen de SpMp en lugar del volumen del sistema.</string>
-	<string name="s_sub_vol_intercept_notification">Mostrar una ventana emergente en pantalla cuando el servicio intercepta la pulsación de una tecla de volumen</string>
-	<string name="s_sub_vol_steps">Cantidad de pasos al cambiar el volumen</string>
 	<string name="s_subpage_ui_debug_info">Información de depuración de la interfaz de usuario</string>
 	<string name="s_theme_editor_title">Editar tema</string>
 	<string name="search_entry_field_hint">Buscar</string>

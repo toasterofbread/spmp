@@ -109,6 +109,21 @@ class PlayerStatus internal constructor() {
     var m_redo_count: Int by mutableStateOf(redo_count)
         private set
 
+    override fun toString(): String =
+        mapOf(
+            "playing" to m_playing,
+            "duration_ms" to m_duration_ms,
+            "song" to m_song,
+            "index" to m_index,
+            "repeat_mode" to m_repeat_mode,
+            "has_next" to m_has_next,
+            "has_previous" to m_has_previous,
+            "volume" to m_volume,
+            "song_count" to m_song_count,
+            "undo_count" to m_undo_count,
+            "redo_count" to m_redo_count
+        ).toString()
+
     init {
         PlatformPlayerService.addListener(object : PlayerListener() {
             init {
@@ -128,8 +143,9 @@ class PlayerStatus internal constructor() {
                 m_undo_count = undo_count
                 m_redo_count = redo_count
             }
-
-            override fun onSongAdded(index: Int, song: Song) {}
+            override fun onDurationChanged(duration_ms: Long) {
+                m_duration_ms = duration_ms
+            }
 
             override fun onEvents() {
                 m_duration_ms = duration_ms

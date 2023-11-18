@@ -54,10 +54,16 @@ fun rememberYtmAuthItem(ytm_auth: SettingsValueState<Set<String>>, initialise: B
 
                 override fun init(prefs: PlatformPreferences, defaultProvider: (String) -> Any): BasicSettingsValueState<Boolean> = this
                 override fun release(prefs: PlatformPreferences) {}
+                override fun setEnableAutosave(value: Boolean) {}
                 override fun reset() = ytm_auth.reset()
                 override fun save() = ytm_auth.save()
                 override fun getDefault(defaultProvider: (String) -> Any): Boolean =
                     defaultProvider(Settings.KEY_YTM_AUTH.name) is YoutubeMusicAuthInfo
+
+                @Composable
+                override fun onChanged(key: Any?, action: (Boolean) -> Unit) {
+                    TODO()
+                }
             },
             enabledContent = { modifier ->
                 val data = YoutubeApi.UserAuthState.unpackSetData(ytm_auth.get(), player.context)

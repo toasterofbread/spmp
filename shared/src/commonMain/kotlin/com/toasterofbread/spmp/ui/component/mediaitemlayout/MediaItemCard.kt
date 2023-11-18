@@ -82,10 +82,8 @@ fun MediaItemCard(
 
     val accent_colour: Color? = item.rememberThemeColour()
 
-    val shape = remember(item) {
-        item.getType().getThumbShape()
-    }
-    val long_press_menu_data = remember(item) {
+    val shape = item.getType().getThumbShape()
+    val long_press_menu_data = remember(item, shape) {
         LongPressMenuData(item, shape, multiselect_context = multiselect_context)
     }
 

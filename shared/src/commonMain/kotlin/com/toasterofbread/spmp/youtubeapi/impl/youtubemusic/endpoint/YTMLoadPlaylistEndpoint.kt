@@ -1,5 +1,7 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 
+import com.toasterofbread.composekit.utils.common.indexOfOrNull
+import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProviderImpl
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
@@ -11,15 +13,12 @@ import com.toasterofbread.spmp.youtubeapi.endpoint.LoadPlaylistEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.processDefaultResponse
-import com.toasterofbread.composekit.utils.common.indexOfOrNull
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.youtubeapi.model.Header
 import com.toasterofbread.spmp.youtubeapi.model.HeaderRenderer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 import okhttp3.Response
-import java.net.URI
 
 private const val EMPTY_PLAYLIST_IMAGE_URL_PREFIX: String = "https://www.gstatic.com/youtube/media/ytm/images/pbg/playlist-empty-state"
 

@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
@@ -23,6 +24,7 @@ import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.toImageBitmap
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.URL
@@ -40,17 +42,29 @@ interface MediaItem: MediaItemHolder {
     fun getURL(context: AppContext): String
     fun getReference(): MediaItemRef
 
+    private fun formatActiveTitle(active_title: String): String {
+        Platform.DESKTOP.only {
+            return active_title.replace('ㅤ', '\u200b')
+        }
+        return active_title
+    }
+
     fun getActiveTitle(db: Database): String? {
-        return db.mediaItemQueries.activeTitleById(id).executeAsOneOrNull()?.IFNULL
+        return db.mediaItemQueries.activeTitleById(id).executeAsOneOrNull()?.IFNULL?.let { formatActiveTitle(it) }
     }
 
     @Composable
     fun observeActiveTitle(): MutableState<String?> {
-        val player = LocalPlayerState.current
+        val player: PlayerState = LocalPlayerState.current
         return player.database.mediaItemQueries.activeTitleById(id)
-            .observeAsState({ it.executeAsOneOrNull()?.IFNULL }) { title ->
-                setActiveTitle(title, player.context)
-            }
+            .observeAsState(
+                mapValue = {
+                    it.executeAsOneOrNull()?.IFNULL?.let { formatActiveTitle(it) }
+                },
+                onExternalChange = { title ->
+                    setActiveTitle(title, player.context)
+                }
+            )
     }
 
     suspend fun setActiveTitle(value: String?, context: AppContext) = withContext(Dispatchers.IO) {
@@ -68,7 +82,7 @@ interface MediaItem: MediaItemHolder {
     }
 
     suspend fun loadData(context: AppContext, populate_data: Boolean = true, force: Boolean = false): Result<MediaItemData> {
-        val data = getEmptyData()
+        val data: MediaItemData = getEmptyData()
         if (!force && Loaded.get(context.database)) {
             if (populate_data) {
                 populateData(data, context.database)

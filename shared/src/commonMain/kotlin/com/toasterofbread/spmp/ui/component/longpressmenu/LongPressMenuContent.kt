@@ -47,17 +47,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.artist.Artist
-import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.composekit.platform.vibrateShort
-import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
-import com.toasterofbread.spmp.ui.component.Thumbnail
-import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
-import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.toasterofbread.composekit.utils.common.copy
 import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.composekit.utils.composable.AlignableCrossfade
@@ -65,6 +56,15 @@ import com.toasterofbread.composekit.utils.composable.Marquee
 import com.toasterofbread.composekit.utils.composable.NoRipple
 import com.toasterofbread.composekit.utils.composable.PlatformClickableIconButton
 import com.toasterofbread.composekit.utils.modifier.bounceOnClick
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
+import com.toasterofbread.spmp.ui.component.Thumbnail
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 
 @Composable
 internal fun LongPressMenuContent(

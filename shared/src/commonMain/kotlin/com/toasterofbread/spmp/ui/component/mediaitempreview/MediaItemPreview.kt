@@ -31,7 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
@@ -48,6 +47,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
+import com.toasterofbread.spmp.platform.isLargeFormFactor
 import com.toasterofbread.spmp.platform.rememberDownloadStatus
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.Thumbnail
@@ -56,9 +56,12 @@ import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.composekit.utils.common.getValue
 
-const val MEDIA_ITEM_PREVIEW_LONG_HEIGHT_DP: Float = 50f
-const val MEDIA_ITEM_PREVIEW_SQUARE_FONT_SIZE_SP: Float = 12f
-const val MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP: Float = 14f
+val MEDIA_ITEM_PREVIEW_LONG_HEIGHT_DP: Float
+    @Composable get() = if (LocalPlayerState.current.isLargeFormFactor()) 100f else 50f
+val MEDIA_ITEM_PREVIEW_SQUARE_FONT_SIZE_SP: Float
+    @Composable get() = if (LocalPlayerState.current.isLargeFormFactor()) 15f else 12f
+
+const val MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP: Float = 20f
 private const val INFO_SPLITTER: String = "\u2022"
 
 fun MediaItem.getLongPressMenuData(
@@ -121,6 +124,8 @@ fun MediaItemPreviewSquare(
         return
     }
 
+    val player = LocalPlayerState.current
+
     Column(
         modifier.mediaItemPreviewInteraction(loaded_item, long_press_menu_data),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -157,7 +162,7 @@ fun MediaItemPreviewSquare(
             horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally)
         ) {
             val item_title: String? by loaded_item.observeActiveTitle()
-            val max_lines = max_text_rows ?: 1
+            val max_lines = max_text_rows ?: if (player.isLargeFormFactor()) 2 else 1
 
             Text(
                 item_title ?: "",
@@ -167,7 +172,7 @@ fun MediaItemPreviewSquare(
                 lineHeight = line_height,
                 maxLines = max_lines,
                 overflow = if (max_lines == 1) TextOverflow.Ellipsis else TextOverflow.Clip,
-                textAlign = TextAlign.Center
+                textAlign = if (player.isLargeFormFactor()) TextAlign.Start else TextAlign.Center
             )
 
             val download_status: PlayerDownloadManager.DownloadStatus? by (loaded_item as? Song)?.rememberDownloadStatus()
@@ -196,7 +201,7 @@ fun MediaItemPreviewLong(
     show_artist: Boolean = true,
     show_download_indicator: Boolean = true,
     title_lines: Int = 1,
-    font_size: TextUnit = 15.sp,
+    font_size: TextUnit = if (LocalPlayerState.current.isLargeFormFactor()) 20.sp else 15.sp,
     getExtraInfo: (@Composable () -> List<String>)? = null,
     multiselect_context: MediaItemMultiSelectContext? = null,
     multiselect_key: Int? = null,

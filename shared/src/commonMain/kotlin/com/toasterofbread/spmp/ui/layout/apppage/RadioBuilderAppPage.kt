@@ -10,7 +10,7 @@ import com.toasterofbread.spmp.ui.layout.radiobuilder.RadioBuilderPage
 
 class RadioBuilderAppPage(override val state: AppPageState): AppPage() {
     @Composable
-    override fun ColumnScope.Page(
+    override fun ColumnScope.SFFPage(
         multiselect_context: MediaItemMultiSelectContext,
         modifier: Modifier,
         content_padding: PaddingValues,

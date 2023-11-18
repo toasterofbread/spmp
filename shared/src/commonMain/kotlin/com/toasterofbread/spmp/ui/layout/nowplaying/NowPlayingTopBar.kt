@@ -5,7 +5,6 @@ import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,11 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreHoriz
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
@@ -34,14 +28,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.model.MusicTopBarMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
-import com.toasterofbread.composekit.platform.composable.composeScope
-import com.toasterofbread.spmp.ui.component.LikeDislikeButton
-import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 
 @Composable
 fun rememberTopBarShouldShowInQueue(mode: MusicTopBarMode): Boolean {
@@ -104,7 +95,7 @@ class NowPlayingTopBar {
                     requiredHeight(height * top_bar_height)
                 }
                 .height(IntrinsicSize.Min)
-                .padding(horizontal = NOW_PLAYING_MAIN_PADDING.dp)
+                .padding(horizontal = NOW_PLAYING_MAIN_PADDING_DP.dp)
                 .graphicsLayer { this@graphicsLayer.alpha = alpha }
         ) { song ->
             if (hide_content || song == null) {

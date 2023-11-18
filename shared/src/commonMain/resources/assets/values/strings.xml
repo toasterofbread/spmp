@@ -96,6 +96,7 @@
     <string name="action_deny_action">No</string>
     <string name="action_warning_accept">Accept</string>
     <string name="action_load_retry">Retry</string>
+    <string name="action_save">Save</string>
     <string name="prompt_confirm_action">Please confirm</string>
     <string name="prompt_confirm_settings_page_reset">Reset all values on this page?</string>
     <string name="prompt_hide_feed_rows_with_$title">Hide feed rows with title '$title'?</string>
@@ -196,18 +197,18 @@
 
     <string name="error_message_generic">A error occurred</string>
     <string name="error_yt_feed_parse_failed">YouTube feed parsing failed</string>
-    <string name="error_player_service_not_connected">"Player service isn't connecting&#xA;A bug may have occurred"</string>
+    <string name="error_player_service_not_connected">Player service isn't connecting&#xA;A bug may have occurred</string>
+
+    <string name="loading_message_connecting_to_server_at_$x">Connecting to server at $x</string>
+    <string name="loading_message_setting_initial_state">Setting initial state</string>
+    <string name="button_configure_server_connection">Configure connection</string>
+    <string name="title_configure_server_connection">Configure server connection</string>
 
     <string name="throw_error">Throw</string>
     <string name="report_error">Report</string>
     <string name="wrap_text_switch_label">Wrap text</string>
     <string name="upload_to_paste_dot_ee">Upload to Paste.ee</string>
     <string name="error_info_display_show_json_data">Show JSON data</string>
-
-    <string name="acc_ser_enable_dialog_title">Enabling accessibility service</string>
-    <string name="acc_ser_enable_dialog_body">Service can be enabled automatically by granting write secure settings permission using root</string>
-    <string name="acc_ser_enable_dialog_btn_root">Use root</string>
-    <string name="acc_ser_enable_dialog_btn_manual">Enable manually</string>
 
     <string name="lpm_action_radio">Start radio</string>
     <string name="lpm_action_play">Play</string>
@@ -285,9 +286,11 @@
 
     <string name="settings_string_set_item_empty">No items added</string>
     <string name="settings_string_set_item_already_added">Item already added</string>
-    <string name="settings_value_out_of_$range">Value is out of range ($range)</string>
-    <string name="settings_value_not_int">Value is not an integer</string>
-    <string name="settings_value_not_float">Value is not a float</string>
+    <string name="settings_value_out_of_$range">Out of range ($range)</string>
+    <string name="settings_value_not_int">Not an integer</string>
+    <string name="settings_value_not_float">Not a float</string>
+    <string name="settings_value_not_ipv4">Not a valid IPv4 address</string>
+    <string name="settings_value_not_port">Not a valid port</string>
 
     <string name="s_page_preferences">Settings</string>
 
@@ -333,9 +336,6 @@
     <string name="s_key_hidden_feed_rows">Hidden rows</string>
     <string name="s_sub_hidden_feed_rows">Rows can also be hidden by long-pressing their title</string>
     <string name="s_hidden_feed_rows_dialog_title">Hide row by title</string>
-
-    <string name="s_key_vol_steps">Volume steps</string>
-    <string name="s_sub_vol_steps">Amount of steps when changing volume</string>
 
     <string name="s_key_open_np_on_song_played">Open player when song clicked</string>
     <string name="s_sub_open_np_on_song_played">The now playing menu will open automatically when clicking and playing a song</string>
@@ -525,29 +525,16 @@
     <string name="s_group_caching">Caching</string>
     <string name="s_key_enable_thumbnail_cache">Enable thumbnail cache</string>
 
-    <string name="s_group_acc_service">Accessibility service</string>
-
-    <string name="s_acc_service_enabled">Service is enabled</string>
-    <string name="s_acc_service_disabled">Service is disabled</string>
-    <string name="s_acc_service_enable">Enable</string>
-    <string name="s_acc_service_disable">Disable</string>
-
     <string name="s_discord_status_enabled">Discord status is enabled</string>
     <string name="s_discord_status_disabled">Discord status is disabled</string>
     <string name="s_discord_status_enable">Enable</string>
     <string name="s_discord_status_disable">Disable</string>
 
-    <string name="s_key_vol_intercept_mode">Volume intercept mode</string>
-    <string name="s_sub_vol_intercept_mode">The accessibility service can intercept volume key presses and use them to change SpMp\'s volume instead of the system volume</string>
-    <string name="s_option_vol_intercept_mode_always">When media session is active</string>
-    <string name="s_option_vol_intercept_mode_app">When the app is open</string>
-    <string name="s_option_vol_intercept_mode_never">Never</string>
+    <string name="s_cat_server">Server</string>
+    <string name="s_info_server">The SpMp server component (SpMs) must be running at the specified port IP address and port. https://github.com/toasterofbread/spmp-server</string>
 
-    <string name="s_key_acc_screen_off">Enable while screen is off</string>
-    <string name="s_sub_acc_screen_off">Requires root privledges</string>
-
-    <string name="s_key_vol_intercept_notification">Volume change notification</string>
-    <string name="s_sub_vol_intercept_notification">Show an on-screen popup when the service intercepts a volume key press</string>
+    <string name="s_key_server_ip">Server IP address</string>
+    <string name="s_key_server_port">Server port</string>
 
     <string name="s_cat_development">Development</string>
 
@@ -604,7 +591,8 @@
     <string name="s_cat_desc_download">Download quality and automatic download options</string>
     <string name="s_cat_desc_discord_status">Manage Discord account and customise status appearance</string>
     <string name="s_cat_desc_other">Cache and other miscellaneous options</string>
-    
+    <string name="s_cat_desc_server">Configure the connection to SpMs</string>
+
     <string name="song_related_page_no_content">Song has no related content</string>
     <string name="song_related_page_empty_row">No content</string>
 

@@ -116,7 +116,7 @@ fun initResources(language: String, context: AppContext) {
 }
 
 fun getString(key: String): String = strings[key] ?: throw NotImplementedError(key)
-fun getStringOrNull(key: String): String? = strings[key]
+fun getStringOrNull(key: String): String? = _strings?.get(key)
 fun getStringTODO(temp_string: String): String = "$temp_string // TODO" // String to be localised
 fun getStringArray(key: String): List<String> = string_arrays[key] ?: throw NotImplementedError(key)
 

@@ -139,8 +139,9 @@ private fun formatMediaNotificationImage(
 private class PlayerBinder(val service: PlatformPlayerService): Binder()
 
 @androidx.annotation.OptIn(UnstableApi::class)
-actual class PlatformPlayerService: MediaSessionService() {
-    actual val context: AppContext get() = _context
+actual class PlatformPlayerService: MediaSessionService(), PlayerService {
+    actual val load_state: PlayerServiceLoadState = PlayerServiceLoadState(false)
+    actual override val context: AppContext get() = _context
     private lateinit var _context: AppContext
 
     private val coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
@@ -275,10 +276,10 @@ actual class PlatformPlayerService: MediaSessionService() {
         }
     }
 
-    actual fun addListener(listener: PlayerListener) {
+    actual override fun addListener(listener: PlayerListener) {
         listener.addToPlayer(player)
     }
-    actual fun removeListener(listener: PlayerListener) {
+    actual override fun removeListener(listener: PlayerListener) {
         listener.removeFromPlayer(player)
     }
 
@@ -687,28 +688,28 @@ actual class PlatformPlayerService: MediaSessionService() {
     }
 
     private lateinit var _service_player: PlayerServicePlayer
-    actual val service_player: PlayerServicePlayer get() = _service_player
-    actual val state: MediaPlayerState get() = convertState(player.playbackState)
-    actual val is_playing: Boolean get() = player.isPlaying
-    actual val song_count: Int get() = player.mediaItemCount
-    actual val current_song_index: Int get() = player.currentMediaItemIndex
-    actual val current_position_ms: Long get() = player.currentPosition
-    actual val duration_ms: Long get() = player.duration
-    actual val radio_state: RadioInstance.RadioState get() = service_player.radio_state
-    actual var repeat_mode: MediaPlayerRepeatMode
+    actual override val service_player: PlayerServicePlayer get() = _service_player
+    actual override val state: MediaPlayerState get() = convertState(player.playbackState)
+    actual override val is_playing: Boolean get() = player.isPlaying
+    actual override val song_count: Int get() = player.mediaItemCount
+    actual override val current_song_index: Int get() = player.currentMediaItemIndex
+    actual override val current_position_ms: Long get() = player.currentPosition
+    actual override val duration_ms: Long get() = player.duration
+    actual override val radio_state: RadioInstance.RadioState get() = service_player.radio_state
+    actual override var repeat_mode: MediaPlayerRepeatMode
         get() = MediaPlayerRepeatMode.values()[player.repeatMode]
         set(value) {
             player.repeatMode = value.ordinal
         }
-    actual var volume: Float
+    actual override var volume: Float
         get() = player.volume
         set(value) {
             player.volume = value
         }
-    actual val has_focus: Boolean
+    actual override val has_focus: Boolean
         get() = TODO()
 
-    actual fun isPlayingOverRemoteDevice(): Boolean {
+    actual override fun isPlayingOverRemoteDevice(): Boolean {
         val media_router: MediaRouter = (getSystemService(MEDIA_ROUTER_SERVICE) as MediaRouter?) ?: return false
         val selected_route: MediaRouter.RouteInfo = media_router.getSelectedRoute(MediaRouter.ROUTE_TYPE_LIVE_AUDIO)
 
@@ -720,15 +721,15 @@ actual class PlatformPlayerService: MediaSessionService() {
         }
     }
 
-    actual fun play() {
+    actual override fun play() {
         player.play()
     }
 
-    actual fun pause() {
+    actual override fun pause() {
         player.pause()
     }
 
-    actual fun playPause() {
+    actual override fun playPause() {
         if (player.isPlaying) {
             player.pause()
         }
@@ -737,28 +738,28 @@ actual class PlatformPlayerService: MediaSessionService() {
         }
     }
 
-    actual fun seekTo(position_ms: Long) {
+    actual override fun seekTo(position_ms: Long) {
         player.seekTo(position_ms)
         listeners.forEach { it.onSeeked(position_ms) }
     }
 
-    actual fun seekToSong(index: Int) {
+    actual override fun seekToSong(index: Int) {
         player.seekTo(index, 0)
     }
 
-    actual fun seekToNext() {
+    actual override fun seekToNext() {
         player.seekToNext()
     }
 
-    actual fun seekToPrevious() {
+    actual override fun seekToPrevious() {
         player.seekToPrevious()
     }
 
-    actual fun getSong(): Song? {
+    actual override fun getSong(): Song? {
         return player.currentMediaItem?.getSong()
     }
 
-    actual fun getSong(index: Int): Song? {
+    actual override fun getSong(index: Int): Song? {
         if (index !in 0 until song_count) {
             return null
         }
@@ -766,25 +767,25 @@ actual class PlatformPlayerService: MediaSessionService() {
         return player.getMediaItemAt(index).getSong()
     }
 
-    actual fun addSong(song: Song, index: Int) {
+    actual override fun addSong(song: Song, index: Int) {
         player.addMediaItem(index, song.buildExoMediaItem(context))
         listeners.forEach { it.onSongAdded(index, song) }
 
         service_player.session_started = true
     }
 
-    actual fun moveSong(from: Int, to: Int) {
+    actual override fun moveSong(from: Int, to: Int) {
         player.moveMediaItem(from, to)
         listeners.forEach { it.onSongMoved(from, to) }
     }
 
-    actual fun removeSong(index: Int) {
+    actual override fun removeSong(index: Int) {
         player.removeMediaItem(index)
         listeners.forEach { it.onSongRemoved(index) }
     }
 
     @Composable
-    actual fun Visualiser(colour: Color, modifier: Modifier, opacity: Float) {
+    actual override fun Visualiser(colour: Color, modifier: Modifier, opacity: Float) {
         val visualiser = remember { ExoVisualizer(fft_audio_processor) }
         visualiser.Visualiser(colour, modifier, opacity)
     }

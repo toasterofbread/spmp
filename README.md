@@ -76,10 +76,9 @@ Pull requests, bug reports, and feature suggestions are welcome! This is my firs
 
 The app is currently being developed for both English and Japanese. Contributions for other languages would be greatly appreciated! Information about app localisation can be found [here](https://github.com/toasterofbread/spmp/wiki/App-localisation).
 
-## Also available from
+## Also available at
 
 [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" height="100">](https://f-droid.org/en/packages/com.toasterofbread.spmp/)
-[<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" height="100">](https://apt.izzysoft.de/fdroid/index/apk/com.toasterofbread.spmp/)
 
 ## Thanks to
 - [ytmusicapi](https://github.com/sigma67/ytmusicapi/): Used as a reference for the YouTube Music API
@@ -91,7 +90,7 @@ The app is currently being developed for both English and Japanese. Contribution
 - [Piped](https://github.com/TeamPiped/Piped): Provides stream URLs for music playback
 - [SQLDelight](https://github.com/cashapp/sqldelight): Database for media metadata
 - [Kuromoji](https://github.com/atilika/kuromoji): Generates furigana (readings) for Japanese lyrics
-- [KizzyRPC](https://github.com/dead8309/KizzyRPC) and [Kord](https://github.com/kordlib/kord): Discord status functionality and custom image support
+- [KizzyRPC](https://github.com/dead8309/KizzyRPC): Discord status functionality
 - [ComposeReorderable](https://github.com/aclassen/ComposeReorderable): Reorderable lists like the song queue
 - [compose-color-picker](https://github.com/godaddy/compose-color-picker): Theme editor colour wheel
 - [Catppuccin](https://github.com/catppuccin/java): Themes included as options in-app

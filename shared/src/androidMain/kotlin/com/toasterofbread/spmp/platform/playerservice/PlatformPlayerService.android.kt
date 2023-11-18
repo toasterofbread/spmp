@@ -11,6 +11,7 @@ import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.media.MediaRouter
+import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
 import android.os.Binder
 import android.os.Build
@@ -33,6 +34,7 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
+import androidx.media3.common.audio.SonicAudioProcessor
 import androidx.media3.common.util.BitmapLoader
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
@@ -41,9 +43,12 @@ import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.RenderersFactory
-import androidx.media3.exoplayer.audio.AudioCapabilities
 import androidx.media3.exoplayer.audio.AudioRendererEventListener
+import androidx.media3.exoplayer.audio.AudioSink
+import androidx.media3.exoplayer.audio.DefaultAudioSink
+import androidx.media3.exoplayer.audio.DefaultAudioSink.DefaultAudioProcessorChain
 import androidx.media3.exoplayer.audio.MediaCodecAudioRenderer
+import androidx.media3.exoplayer.audio.SilenceSkippingAudioProcessor
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
@@ -60,6 +65,7 @@ import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.spmp.exovisualiser.ExoVisualizer
 import com.toasterofbread.spmp.exovisualiser.FFTAudioProcessor
 import com.toasterofbread.spmp.model.Settings
@@ -134,33 +140,66 @@ private class PlayerBinder(val service: PlatformPlayerService): Binder()
 
 @androidx.annotation.OptIn(UnstableApi::class)
 actual class PlatformPlayerService: MediaSessionService(), PlayerService {
-    actual val ready: PlayerServiceLoadState = PlayerServiceLoadState(false)
+    actual val load_state: PlayerServiceLoadState = PlayerServiceLoadState(false)
     actual override val context: AppContext get() = _context
     private lateinit var _context: AppContext
 
-    private val coroutine_scope = CoroutineScope(Dispatchers.Main)
-    private lateinit var player: Player
+    private val coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
+    private lateinit var player: ExoPlayer
     private lateinit var media_session: MediaSession
+    private lateinit var audio_sink: AudioSink
+    private var loudness_enhancer: LoudnessEnhancer? = null
 
     private var current_song: Song? = null
     private var paused_by_device_disconnect: Boolean = false
     private var device_connection_changed_playing_status: Boolean = false
 
-    private val song_liked_listener = SongLikedStatus.Listener { song, liked_status ->
+    private val song_liked_listener: SongLikedStatus.Listener = SongLikedStatus.Listener { song, liked_status ->
         if (song == current_song) {
             updatePlayerCustomActions(liked_status)
         }
     }
 
-    private val player_listener = object : Player.Listener {
+    private fun LoudnessEnhancer.update(song: Song?) {
+        if (song == null || !Settings.KEY_ENABLE_AUDIO_NORMALISATION.get<Boolean>(context)) {
+            enabled = false
+            return
+        }
+
+        val loudness_db: Float? = song.LoudnessDbById.get(context.database)
+        if (loudness_db == null) {
+            setTargetGain(0)
+        }
+        else {
+            setTargetGain((loudness_db * 100).toInt())
+        }
+
+        enabled = true
+    }
+
+    private val player_listener: Player.Listener = object : Player.Listener {
         override fun onMediaItemTransition(media_item: MediaItem?, reason: Int) {
-            val song = media_item?.getSong()
+            val song: Song? = media_item?.getSong()
             if (song?.id == current_song?.id) {
                 return
             }
 
             current_song = song
             updatePlayerCustomActions()
+
+            if (loudness_enhancer == null) {
+                loudness_enhancer = LoudnessEnhancer(player.audioSessionId)
+            }
+
+            loudness_enhancer?.update(song)
+        }
+
+        override fun onAudioSessionIdChanged(audioSessionId: Int) {
+            loudness_enhancer?.release()
+            loudness_enhancer = LoudnessEnhancer(audioSessionId).apply {
+                update(current_song)
+                enabled = true
+            }
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -169,6 +208,19 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
             }
             else {
                 paused_by_device_disconnect = false
+            }
+        }
+    }
+
+    private val prefs_listener: PlatformPreferences.Listener = object : PlatformPreferences.Listener {
+        override fun onChanged(prefs: PlatformPreferences, key: String) {
+            when (key) {
+                Settings.KEY_ENABLE_AUDIO_NORMALISATION.name -> {
+                    loudness_enhancer?.update(current_song)
+                }
+                Settings.KEY_ENABLE_SILENCE_SKIPPING.name -> {
+                    audio_sink.skipSilenceEnabled = Settings.KEY_ENABLE_SILENCE_SKIPPING.get(context)
+                }
             }
         }
     }
@@ -233,7 +285,7 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
 
     // If there's a better way to provide information to MediaControllers, I'd like to know
     actual companion object {
-        val audio_processor = FFTAudioProcessor()
+        val fft_audio_processor: FFTAudioProcessor = FFTAudioProcessor()
 
         private val listeners: MutableList<PlayerListener> = mutableListOf()
         private var player_instance: PlatformPlayerService? by mutableStateOf(null)
@@ -329,8 +381,10 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
     actual override fun onCreate() {
         super.onCreate()
 
-        initialiseSessionAndPlayer()
         _context = AppContext(this, coroutine_scope).init()
+        _context.getPrefs().addListener(prefs_listener)
+
+        initialiseSessionAndPlayer()
 
         _service_player = object : PlayerServicePlayer(this) {
             override fun onUndoStateChanged() {
@@ -355,10 +409,12 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
     }
 
     actual override fun onDestroy() {
+        _context.getPrefs().removeListener(prefs_listener)
         coroutine_scope.cancel()
         service_player.release()
         player.release()
         media_session.release()
+        loudness_enhancer?.release()
         SongLikedStatus.removeListener(song_liked_listener)
 
         val audio_manager = getSystemService(AUDIO_SERVICE) as AudioManager?
@@ -422,6 +478,18 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
     }
 
     private fun initialiseSessionAndPlayer() {
+        audio_sink = DefaultAudioSink.Builder(context.ctx)
+            .setAudioProcessorChain(
+                DefaultAudioProcessorChain(
+                    arrayOf(fft_audio_processor),
+                    SilenceSkippingAudioProcessor(),
+                    SonicAudioProcessor()
+                )
+            )
+            .build()
+
+        audio_sink.skipSilenceEnabled = Settings.KEY_ENABLE_SILENCE_SKIPPING.get(context)
+
         val renderers_factory = RenderersFactory { handler: Handler?, _, audioListener: AudioRendererEventListener?, _, _ ->
             arrayOf(
                 MediaCodecAudioRenderer(
@@ -429,8 +497,7 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
                     MediaCodecSelector.DEFAULT,
                     handler,
                     audioListener,
-                    AudioCapabilities.DEFAULT_AUDIO_CAPABILITIES,
-                    audio_processor
+                    audio_sink
                 )
             )
         }
@@ -587,7 +654,9 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
         }) { data_spec: DataSpec ->
             try {
                 return@Factory runBlocking {
-                    processMediaDataSpec(data_spec, context, context.isConnectionMetered())
+                    processMediaDataSpec(data_spec, context, context.isConnectionMetered()).also {
+                        loudness_enhancer?.update(current_song)
+                    }
                 }
             }
             catch (e: Throwable) {
@@ -717,7 +786,7 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
 
     @Composable
     actual override fun Visualiser(colour: Color, modifier: Modifier, opacity: Float) {
-        val visualiser = remember { ExoVisualizer(audio_processor) }
+        val visualiser = remember { ExoVisualizer(fft_audio_processor) }
         visualiser.Visualiser(colour, modifier, opacity)
     }
 }

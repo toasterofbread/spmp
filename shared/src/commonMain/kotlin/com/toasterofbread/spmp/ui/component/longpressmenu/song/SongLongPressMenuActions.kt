@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
@@ -264,14 +265,23 @@ private fun LongPressMenuActionProvider.LPMActions(
         val item_artist: Artist? by item.Artist.observe(player.database)
         item_artist?.also { artist ->
             ActionButton(Icons.Default.Person, getString("lpm_action_go_to_artist"), onClick = {
-                player.openMediaItem(artist,)
+                player.openMediaItem(artist)
+            })
+        }
+    }
+
+    if (item is Song) {
+        val item_album: Playlist? by item.Album.observe(player.database)
+        item_album?.also { album ->
+            ActionButton(Icons.Default.Album, getString("lpm_action_go_to_album"), onClick = {
+                player.openMediaItem(album)
             })
         }
     }
 
     ActionButton(MEDIA_ITEM_RELATED_CONTENT_ICON, getString("lpm_action_song_related"), onClick = {
         withSong {
-            player.openMediaItem(it,)
+            player.openMediaItem(it)
         }
     })
 }

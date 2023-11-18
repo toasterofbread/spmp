@@ -37,15 +37,15 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
+import com.toasterofbread.composekit.platform.composable.platformClickable
+import com.toasterofbread.composekit.utils.common.thenIf
+import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.composekit.platform.composable.platformClickable
-import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING_DP
 import com.toasterofbread.spmp.ui.component.AnnotatedReadingTerm
 import com.toasterofbread.spmp.ui.component.calculateReadingsAnnotatedString
-import com.toasterofbread.composekit.utils.common.thenIf
-import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING_DP
 import kotlinx.coroutines.delay
 
 @Composable

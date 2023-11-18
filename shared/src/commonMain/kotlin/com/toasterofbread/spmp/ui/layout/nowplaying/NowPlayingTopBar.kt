@@ -5,7 +5,6 @@ import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,11 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreHoriz
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
@@ -31,32 +25,31 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.model.MusicTopBarMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
-import com.toasterofbread.composekit.platform.composable.composeScope
-import com.toasterofbread.spmp.ui.component.LikeDislikeButton
-import com.toasterofbread.composekit.utils.common.thenIf
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 
 @Composable
-fun rememberTopBarShouldShowInQueue(mode: MusicTopBarMode): State<Boolean> {
-    val player = LocalPlayerState.current
+fun rememberTopBarShouldShowInQueue(mode: MusicTopBarMode): Boolean {
+    val player: PlayerState = LocalPlayerState.current
+    val top_bar_lyrics_enabled: Boolean by Settings.KEY_LYRICS_TOP_BAR_ENABLE.rememberMutableState()
     val show_lyrics_in_queue: Boolean by Settings.KEY_TOPBAR_SHOW_LYRICS_IN_QUEUE.rememberMutableState()
     val show_visualiser_in_queue: Boolean by Settings.KEY_TOPBAR_SHOW_VISUALISER_IN_QUEUE.rememberMutableState()
 
-    return remember(player.status.m_song?.id) {
-        val lyrics_state = player.status.m_song?.let { song ->
+    val lyrics_state = remember(player.status.m_song?.id) {
+        player.status.m_song?.let { song ->
             SongLyricsLoader.getItemState(song, player.context)
         }
-
-        derivedStateOf {
-            when (mode) {
-                MusicTopBarMode.VISUALISER -> show_visualiser_in_queue
-                MusicTopBarMode.LYRICS -> show_lyrics_in_queue && lyrics_state?.lyrics?.synced == true
-            }
-        }
+    }
+    
+    return when (mode) {
+        MusicTopBarMode.VISUALISER -> show_visualiser_in_queue
+        MusicTopBarMode.LYRICS -> top_bar_lyrics_enabled && show_lyrics_in_queue && lyrics_state?.lyrics?.synced == true
     }
 }
 
@@ -75,19 +68,23 @@ class NowPlayingTopBar {
 
     @Composable
     fun NowPlayingTopBar(modifier: Modifier = Modifier, expansion: ExpansionState = LocalNowPlayingExpansion.current) {
-        val player = LocalPlayerState.current
-        val density = LocalDensity.current
+        val player: PlayerState = LocalPlayerState.current
+        val density: Density = LocalDensity.current
 
-        val show_in_queue by rememberTopBarShouldShowInQueue(expansion.top_bar_mode.value)
+        val show_in_queue: Boolean = rememberTopBarShouldShowInQueue(expansion.top_bar_mode.value)
         var lyrics_showing: Boolean by remember { mutableStateOf(false) }
 
-        val top_bar_height by remember { derivedStateOf {
+        val top_bar_height by remember(show_in_queue) { derivedStateOf {
             if (!show_in_queue || expansion.getBounded() < 1f) expansion.getAppearing() else 1f
         } }
 
-        val max_height by getMaxHeight(show_in_queue)
-        val alpha by remember { derivedStateOf { if (!show_in_queue || expansion.getBounded() < 1f) 1f - expansion.getDisappearing() else 1f } }
-        val hide_content by remember { derivedStateOf { alpha <= 0f } }
+        val max_height: Dp by getMaxHeight(show_in_queue)
+        val alpha: Float by remember(show_in_queue) { derivedStateOf {
+            if (!show_in_queue || expansion.getBounded() < 1f) 1f - expansion.getDisappearing() else 1f }
+        }
+        val hide_content: Boolean by remember(show_in_queue) {
+            derivedStateOf { alpha <= 0f }
+        }
 
         Crossfade(
             player.status.m_song,
@@ -106,47 +103,17 @@ class NowPlayingTopBar {
             }
 
             Row(
-                Modifier.fillMaxSize().onSizeChanged {
+                Modifier.fillMaxSize().heightIn(40.dp).onSizeChanged {
                     height = with(density) { it.height.toDp() }
                 },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val buttons_alpha by remember { derivedStateOf { (2f - expansion.getBounded()).coerceIn(0f, 1f) } }
-
-                composeScope {
-                    Box(Modifier.width(40.dp * buttons_alpha)) {
-                        val auth_state = player.context.ytapi.user_auth_state
-                        if (auth_state != null) {
-                            LikeDislikeButton(
-                                song,
-                                auth_state,
-                                Modifier.fillMaxSize().graphicsLayer { this@graphicsLayer.alpha = buttons_alpha },
-                                { 1f - expansion.getDisappearing() > 0f },
-                                { player.getNPOnBackground().copy(alpha = 0.5f) }
-                            )
-                        }
-                    }
-                }
-
                 lyrics_showing = player.top_bar.MusicTopBarWithVisualiser(
                     Settings.INTERNAL_TOPBAR_MODE_NOWPLAYING,
                     Modifier.fillMaxSize().weight(1f),
                     song = song
                 ).showing
-
-                composeScope {
-                    IconButton(
-                        {
-                            if (1f - expansion.getDisappearing() > 0f) {
-                                player.onMediaItemLongClicked(song, player.status.m_index)
-                            }
-                        },
-                        Modifier.graphicsLayer { this@graphicsLayer.alpha = buttons_alpha }.width(40.dp * buttons_alpha)
-                    ) {
-                        Icon(Icons.Filled.MoreHoriz, null, tint = player.getNPOnBackground().copy(alpha = 0.5f))
-                    }
-                }
             }
         }
     }

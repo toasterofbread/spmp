@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -52,6 +53,9 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import com.toasterofbread.composekit.platform.composable.BackHandler
+import com.toasterofbread.composekit.utils.common.launchSingle
+import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
@@ -61,11 +65,6 @@ import com.toasterofbread.spmp.ui.component.AnnotatedReadingTerm
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
-import com.toasterofbread.composekit.platform.composable.BackHandler
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.FilledTonalButton
-import com.toasterofbread.composekit.utils.common.launchSingle
-import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 
 private enum class Submenu {
     SEARCH, SYNC
@@ -125,8 +124,7 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
             if (show_lyrics_info) {
                 AlertDialog(
                     onDismissRequest = { show_lyrics_info = false },
-                    confirmButton = {},
-                    dismissButton = {
+                    confirmButton = {
                         Button({ show_lyrics_info = false }) {
                             Text(getString("action_close"))
                         }

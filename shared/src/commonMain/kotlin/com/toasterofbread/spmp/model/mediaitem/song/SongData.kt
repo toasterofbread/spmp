@@ -1,8 +1,8 @@
 package com.toasterofbread.spmp.model.mediaitem.song
 
+import com.toasterofbread.composekit.utils.common.lazyAssert
 import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
@@ -10,7 +10,6 @@ import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
-import com.toasterofbread.composekit.utils.common.lazyAssert
 
 class SongData(
     override var id: String,
@@ -20,7 +19,8 @@ class SongData(
     var duration: Long? = null,
     var album: RemotePlaylist? = null,
     var related_browse_id: String? = null,
-    var lyrics_browse_id: String? = null
+    var lyrics_browse_id: String? = null,
+    var loudness_db: Float? = null
 ): MediaItem.DataWithArtist(), Song {
     override fun toString(): String = "SongData($id)"
     override fun getDataValues(): Map<String, Any?> =
@@ -29,7 +29,8 @@ class SongData(
             "duration" to duration,
             "album" to album,
             "related_browse_id" to related_browse_id,
-            "lyrics_browse_id" to lyrics_browse_id
+            "lyrics_browse_id" to lyrics_browse_id,
+            "loudness_db" to loudness_db
         )
     override fun getReference(): SongRef = SongRef(id)
 
@@ -60,6 +61,7 @@ class SongData(
             Album.setNotNull(album, db, uncertain)
             RelatedBrowseId.setNotNull(related_browse_id, db, uncertain)
             LyricsBrowseId.setNotNull(lyrics_browse_id, db, uncertain)
+            LoudnessDbById.setNotNull(loudness_db, db, uncertain)
         }}
     }
 }

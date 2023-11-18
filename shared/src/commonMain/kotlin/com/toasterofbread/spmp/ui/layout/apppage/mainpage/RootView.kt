@@ -11,10 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpSize
-import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
 import com.toasterofbread.composekit.utils.modifier.background
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NowPlayingMainTabPage
+import kotlinx.coroutines.delay
 
 val MINIMISED_NOW_PLAYING_HEIGHT_DP: Float
     @Composable get() = NowPlayingMainTabPage.Mode.getCurrent(LocalPlayerState.current).getMinimisedPlayerHeight().value

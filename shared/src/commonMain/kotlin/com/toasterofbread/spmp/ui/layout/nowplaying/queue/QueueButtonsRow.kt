@@ -19,9 +19,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.vibrateShort
+import com.toasterofbread.composekit.utils.common.getContrasted
+import com.toasterofbread.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.composekit.utils.common.getContrasted
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -43,8 +44,8 @@ fun QueueButtonsRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(Modifier.fillMaxWidth().weight(1f), horizontalArrangement = arrangement) {
-            RepeatButton(getButtonColour, Modifier.fillMaxHeight())
-            StopAfterSongButton(getButtonColour, Modifier.fillMaxHeight())
+            RepeatButton(getButtonColour, Modifier.fillMaxHeight().bounceOnClick())
+            StopAfterSongButton(getButtonColour, Modifier.fillMaxHeight().bounceOnClick())
 
             Button(
                 onClick = {
@@ -60,6 +61,7 @@ fun QueueButtonsRow(
                         }
                     }
                 },
+                modifier = Modifier.bounceOnClick(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = button_colour,
                     contentColor = button_colour.getContrasted()
@@ -71,6 +73,7 @@ fun QueueButtonsRow(
 
             Surface(
                 Modifier
+                    .bounceOnClick()
                     .clip(FilledButtonTokens.ContainerShape.toShape())
                     .combinedClickable(
                         onClick = {
@@ -124,6 +127,7 @@ fun QueueButtonsRow(
 
         Box(
             modifier = Modifier
+                .bounceOnClick()
                 .background(
                     undo_background,
                     CircleShape

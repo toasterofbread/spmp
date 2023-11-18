@@ -163,6 +163,9 @@ abstract class PlaylistEditor(open val playlist: Playlist, val context: AppConte
                 is LocalPlaylist -> {
                     return true
                 }
+                is RemotePlaylistData -> {
+                    return false
+                }
                 is RemotePlaylist -> {
                     val owner: Artist? = Owner.get(context.database)
                     return owner != null && owner.id == context.ytapi.user_auth_state?.own_channel?.id

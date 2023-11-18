@@ -44,6 +44,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.toasterofbread.composekit.utils.common.getContrasted
+import com.toasterofbread.composekit.utils.common.launchSingle
+import com.toasterofbread.composekit.utils.common.thenIf
+import com.toasterofbread.composekit.utils.common.thenWith
+import com.toasterofbread.composekit.utils.composable.getTop
 import com.toasterofbread.spmp.model.NowPlayingQueueRadioInfoPosition
 import com.toasterofbread.spmp.model.NowPlayingQueueWaveBorderMode
 import com.toasterofbread.spmp.model.Settings
@@ -53,19 +58,12 @@ import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.rememberTopBarShouldShowInQueue
 import com.toasterofbread.spmp.youtubeapi.radio.LoadStatus
-import com.toasterofbread.composekit.utils.common.getContrasted
-import com.toasterofbread.composekit.utils.common.launchSingle
-import com.toasterofbread.composekit.utils.common.thenIf
-import com.toasterofbread.composekit.utils.common.thenWith
-import com.toasterofbread.composekit.utils.composable.getTop
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltBackground
-import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import kotlinx.coroutines.delay
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
@@ -184,7 +182,7 @@ internal fun QueueTab(
         }
     )
 
-    val show_top_bar by rememberTopBarShouldShowInQueue(player.expansion.top_bar_mode.value)
+    val show_top_bar: Boolean = rememberTopBarShouldShowInQueue(player.expansion.top_bar_mode.value)
     val top_bar_height by animateDpAsState(
         if (show_top_bar && top_bar != null) top_bar.height else 0.dp
     )

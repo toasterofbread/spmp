@@ -71,9 +71,9 @@ fun SeekBar(
         state
 
         Column(modifier, verticalArrangement = Arrangement.spacedBy(5.dp)) {
-            Box(Modifier.fillMaxWidth().padding(horizontal = 7.dp).requiredHeight(12.dp), contentAlignment = Alignment.BottomCenter) {
+            Box(Modifier.padding(horizontal = 7.dp).requiredHeight(12.dp), contentAlignment = Alignment.BottomCenter) {
                 Row(
-                    Modifier.fillMaxWidth().requiredHeight(30.dp),
+                    Modifier.requiredHeight(30.dp).fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {

@@ -13,13 +13,13 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.utils.common.blendWith
+import com.toasterofbread.composekit.utils.common.getThemeColour
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.isLargeFormFactor
 import com.toasterofbread.spmp.platform.isPortrait
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
-import com.toasterofbread.composekit.utils.common.getThemeColour
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import kotlinx.coroutines.delay
 

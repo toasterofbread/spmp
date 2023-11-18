@@ -69,7 +69,7 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
 
     private fun switchNowPlayingPage(page: Int) {
         coroutine_scope.launch {
-            np_swipe_state.value.animateTo(page)
+            np_swipe_state.value.animateTo(page, spring(Spring.DampingRatioNoBouncy, Spring.StiffnessMediumLow))
         }
     }
 
@@ -78,7 +78,7 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
     private var long_press_menu_direct: Boolean by mutableStateOf(false)
 
     private val np_swipe_state: MutableState<SwipeableState<Int>> = mutableStateOf(
-        SwipeableState(0, spring(Spring.DampingRatioNoBouncy, Spring.StiffnessMediumLow))
+        SwipeableState(0)
     )
     private var np_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
 

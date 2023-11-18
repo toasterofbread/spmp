@@ -6,11 +6,11 @@ import com.toasterofbread.composekit.settings.ui.item.SettingsGroupItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsToggleItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
+import com.toasterofbread.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.FontMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.Languages
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.composekit.utils.composable.WidthShrinkText
 
 // TODO Allow setting to any language
 fun getLanguageDropdownItem(

@@ -3,8 +3,6 @@ package com.toasterofbread.spmp.ui.layout.nowplaying
 import LocalNowPlayingExpansion
 import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.*
@@ -29,7 +27,6 @@ import com.toasterofbread.composekit.platform.composable.composeScope
 import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.composekit.utils.*
 import com.toasterofbread.composekit.utils.common.amplifyPercent
-import com.toasterofbread.composekit.utils.composable.OnChangedEffect
 import com.toasterofbread.composekit.utils.composable.RecomposeOnInterval
 import com.toasterofbread.composekit.utils.composable.getTop
 import com.toasterofbread.composekit.utils.modifier.brushBackground

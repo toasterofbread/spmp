@@ -68,8 +68,7 @@ abstract class MediaItemData: MediaItem {
                 MediaItemType.PLAYLIST_REM -> {
                     if (this is SongData) {
                         val playlist = run.navigationEndpoint?.browseEndpoint?.getMediaItem()
-                        if (playlist is RemotePlaylistData) {
-                            assert(playlist.playlist_type == PlaylistType.ALBUM, { "$playlist (${playlist.playlist_type}) | ${run.navigationEndpoint}" })
+                        if (playlist is RemotePlaylistData && playlist.playlist_type == PlaylistType.ALBUM) {
                             playlist.title = run.text
                             album = playlist
                         }

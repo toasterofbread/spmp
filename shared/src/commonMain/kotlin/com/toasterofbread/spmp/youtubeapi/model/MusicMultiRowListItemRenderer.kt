@@ -55,15 +55,15 @@ class MusicMultiRowListItemRenderer(
                     data.title = podcast_text.text
                 }
             }
-            else {
-                for (item in menu.menuRenderer.items) {
-                    val browse_endpoint = item.menuNavigationItemRenderer?.navigationEndpoint?.browseEndpoint ?: continue
-                    if (browse_endpoint.getPageType() == "MUSIC_PAGE_TYPE_PODCAST_SHOW_DETAIL_PAGE") {
-                        podcast_data = RemotePlaylistData(
-                            browse_endpoint.browseId
-                        )
-                        break
-                    }
+
+            for (item in menu.menuRenderer.items) {
+                val browse_endpoint: BrowseEndpoint = item.menuNavigationItemRenderer?.navigationEndpoint?.browseEndpoint ?: continue
+
+                if (podcast_data == null && browse_endpoint.getPageType() == "MUSIC_PAGE_TYPE_PODCAST_SHOW_DETAIL_PAGE") {
+                    podcast_data = RemotePlaylistData(browse_endpoint.browseId)
+                }
+                else if (browse_endpoint.getMediaItemType() == MediaItemType.PLAYLIST_REM) {
+                    song.album = RemotePlaylistData(browse_endpoint.browseId)
                 }
             }
 

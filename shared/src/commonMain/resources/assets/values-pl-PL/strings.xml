@@ -155,11 +155,6 @@
     <string name="upload_to_paste_dot_ee">Prześlij do Paste.ee</string>
     <string name="error_info_display_show_json_data">Pokaż dane JSON</string>
 
-    <string name="acc_ser_enable_dialog_title">Włączanie usługi dostępności</string>
-    <string name="acc_ser_enable_dialog_body">Usługa może zostać włączona automatycznie poprzez nadanie uprawnień do zapisu ustawień bezpiecznych przy użyciu konta root</string>
-    <string name="acc_ser_enable_dialog_btn_root">Użyj root</string>
-    <string name="acc_ser_enable_dialog_btn_manual">Włącz ręcznie</string>
-
     <string name="lpm_action_radio">Uruchom radio</string>
     <string name="lpm_action_play">Odtwórz</string>
     <string name="lpm_action_shuffle_playlist">Losowo</string>
@@ -278,9 +273,6 @@
     <string name="s_key_feed_show_new_row">Włącz wiersz \'Nowości\'</string>
     <string name="s_key_feed_show_moods_row">Włącz wiersz \'Polecane playlisty\'</string>
     <string name="s_key_feed_show_charts_row">Włącz wiersz \'Wykresy\'</string>
-
-    <string name="s_key_vol_steps">Kroki głośności</string>
-    <string name="s_sub_vol_steps">Liczba kroków przy zmianie głośności</string>
 
     <string name="s_key_open_np_on_song_played">Otwiera odtwarzacz po kliknięciu utworu</string>
     <string name="s_sub_open_np_on_song_played">Menu odtwarzania otworzy się automatycznie po kliknięciu i odtworzeniu utworu</string>
@@ -402,29 +394,10 @@
     <string name="s_group_caching">Pamięć podręczna</string>
     <string name="s_key_enable_thumbnail_cache">Włącz pamięć podręczną miniatur</string>
     
-    <string name="s_group_acc_service">Obsługa dostępności</string>
-
-    <string name="s_acc_service_enabled">Usługa jest włączona</string>
-    <string name="s_acc_service_disabled">Usługa jest wyłączona</string>
-    <string name="s_acc_service_enable">Włącz</string>
-    <string name="s_acc_service_disable">Wyłącz</string>
-
     <string name="s_discord_status_enabled">Status Discord jest włączony</string>
     <string name="s_discord_status_disabled">Status Discord jest wyłączony</string>
     <string name="s_discord_status_enable">Włącz</string>
     <string name="s_discord_status_disable">Wyłącz</string>
-
-    <string name="s_key_vol_intercept_mode">Tryb przechwytywania głośności</string>
-    <string name="s_sub_vol_intercept_mode">Usługa dostępności może przechwytywać naciśnięcia klawiszy głośności i używać ich do zmiany głośności SpMp zamiast głośności systemu</string>
-    <string name="s_option_vol_intercept_mode_always">Gdy sesja multimedialna jest aktywna</string>
-    <string name="s_option_vol_intercept_mode_app">Gdy aplikacja jest otwarta</string>
-    <string name="s_option_vol_intercept_mode_never">Nigdy</string>
-
-    <string name="s_key_acc_screen_off">Włącz, gdy ekran jest wyłączony</string>
-    <string name="s_sub_acc_screen_off">Wymaga uprawnień administratora</string>
-
-    <string name="s_key_vol_intercept_notification">Powiadomienie o zmianie głośności</string>
-    <string name="s_sub_vol_intercept_notification">Wyświetla wyskakujące okienko na ekranie, gdy usługa przechwytuje naciśnięcie klawisza głośności</string>
 
     <string name="s_cat_discord_status">Status Discord</string>
 

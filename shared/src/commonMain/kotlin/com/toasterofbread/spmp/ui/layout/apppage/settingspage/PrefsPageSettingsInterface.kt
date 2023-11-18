@@ -15,8 +15,8 @@ import com.toasterofbread.composekit.settings.ui.SettingsPageWithItems
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.Languages
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState

@@ -2,7 +2,6 @@
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -16,14 +15,13 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontFamily
-import com.toasterofbread.spmp.model.FontMode
-import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.ProjectBuildConfig
+import com.toasterofbread.spmp.model.FontMode
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getUiLanguage
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringOrNull
 import com.toasterofbread.spmp.resources.initResources
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
@@ -72,7 +70,7 @@ object SpMp {
         }
 
         initResources(context.getUiLanguage(), context)
-        _yt_ui_localisation = YoutubeUILocalisation(UILanguages())
+        _yt_ui_localisation = YoutubeUILocalisation(UILanguages)
     }
 
     fun release() {

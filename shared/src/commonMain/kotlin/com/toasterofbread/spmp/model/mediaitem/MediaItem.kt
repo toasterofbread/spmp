@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.model.mediaitem
 import LocalPlayerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.graphics.Color
@@ -29,6 +30,7 @@ import kotlinx.coroutines.withContext
 import java.net.URL
 
 val MEDIA_ITEM_RELATED_CONTENT_ICON: ImageVector get() = Icons.Default.GridView
+val MEDIA_ITEM_RELATED_CONTENT_ICON_ROUNDED: ImageVector get() = Icons.Rounded.GridView
 
 interface MediaItem: MediaItemHolder {
     val id: String

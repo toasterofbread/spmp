@@ -28,8 +28,12 @@ class YoutubeiVideoFormatsEndpoint(override val api: YoutubeApi): VideoFormatsEn
 
         val streaming_data: YoutubeFormatsResponse.StreamingData = formats.streamingData
         return Result.success(
-            streaming_data.adaptiveFormats.filter { format ->
-                filter?.invoke(format) ?: true
+            streaming_data.adaptiveFormats.mapNotNull { format ->
+                if (filter?.invoke(format) == false) {
+                    return@mapNotNull null
+                }
+
+                format.copy(loudness_db = formats.playerConfig?.audioConfig?.loudnessDb)
             }
         )
     }

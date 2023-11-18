@@ -14,18 +14,18 @@ import com.google.gson.GsonBuilder
 import com.google.gson.TypeAdapter
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
-import com.toasterofbread.db.Database
-import com.toasterofbread.spmp.model.AccentColourSource
-import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.platform.PlatformContext
 import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.settings.ui.StaticThemeData
 import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.composekit.settings.ui.ThemeData
+import com.toasterofbread.db.Database
+import com.toasterofbread.spmp.model.AccentColourSource
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import java.util.Locale
 
 private const val MIN_PORTRAIT_RATIO: Float = 1f / 1.2f

@@ -8,20 +8,26 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material3.Icon
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.vibrateShort
+import com.toasterofbread.composekit.utils.common.launchSingle
+import com.toasterofbread.composekit.utils.composable.PlatformClickableIconButton
+import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLikedLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
-import com.toasterofbread.composekit.utils.common.launchSingle
-import com.toasterofbread.composekit.utils.composable.PlatformClickableIconButton
-import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.spmp.youtubeapi.endpoint.SetSongLikedEndpoint
+import com.toasterofbread.spmp.youtubeapi.endpoint.SongLikedEndpoint
 
 @Composable
 fun LikeDislikeButton(
@@ -31,8 +37,8 @@ fun LikeDislikeButton(
     getEnabled: (() -> Boolean)? = null,
     getColour: () -> Color
 ) {
-    val get_liked_endpoint = auth_state.SongLiked
-    val set_liked_endpoint = auth_state.SetSongLiked
+    val get_liked_endpoint: SongLikedEndpoint = auth_state.SongLiked
+    val set_liked_endpoint: SetSongLikedEndpoint = auth_state.SetSongLiked
     check(get_liked_endpoint.isImplemented())
     check(set_liked_endpoint.isImplemented())
 
@@ -73,7 +79,7 @@ fun LikeDislikeButton(
                 )
             }
         },
-        modifier,
+        modifier.bounceOnClick(),
         apply_minimum_size = false
     ) {
         Crossfade(liked_status) { status ->

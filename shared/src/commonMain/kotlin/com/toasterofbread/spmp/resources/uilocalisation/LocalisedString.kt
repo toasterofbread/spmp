@@ -7,6 +7,7 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getDataLanguage
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.getStringTODO
+import com.toasterofbread.spmp.resources.uilocalisation.localised.getByLanguage
 
 sealed interface LocalisedString {
     fun getString(context: AppContext): String
@@ -88,14 +89,12 @@ data class YoutubeLocalisedString(
         }
 
         fun createFromKey(key: String, source_language: String): LocalisedString {
-            val strings = getStringData()
+            val strings: YoutubeUILocalisation.LocalisationSet = getStringData()
 
-            for (item in strings.items.withIndex()) {
-                if (item.value[source_language]?.first == key) {
-                    return YoutubeLocalisedString(
-                        this,
-                        item.index
-                    )
+            for ((index, item) in strings.items.withIndex()) {
+                val by_language = item.getByLanguage(source_language)
+                if (by_language?.value?.value?.first == key) {
+                    return YoutubeLocalisedString(this, index)
                 }
             }
 
@@ -115,7 +114,7 @@ data class YoutubeLocalisedString(
         if (localised == null) {
             val strings = type.getStringData()
             try {
-                return strings.items[index][context.getUiLanguage()]!!
+                return strings.items[index].getByLanguage(context.getUiLanguage())!!.value.value
             }
             catch (e: Throwable) {
                 throw RuntimeException("Could not get localised string ($index, ${context.getUiLanguage()}, ${strings.items.toList()})", e)

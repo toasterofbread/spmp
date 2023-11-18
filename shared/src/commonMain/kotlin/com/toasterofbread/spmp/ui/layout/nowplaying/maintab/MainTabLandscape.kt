@@ -54,6 +54,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
+import com.toasterofbread.composekit.platform.composable.BackHandler
+import com.toasterofbread.composekit.platform.composable.composeScope
+import com.toasterofbread.composekit.utils.common.launchSingle
+import com.toasterofbread.composekit.utils.composable.getTop
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
 import com.toasterofbread.spmp.ui.layout.nowplaying.ExpansionState
@@ -62,13 +66,9 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.hor
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.top_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
+import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.SmallThumbnailRow
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.QueueTab
-import com.toasterofbread.composekit.platform.composable.BackHandler
-import com.toasterofbread.composekit.platform.composable.composeScope
-import com.toasterofbread.composekit.utils.common.launchSingle
-import com.toasterofbread.composekit.utils.composable.getTop
-import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.SmallThumbnailRow
 import kotlinx.coroutines.CoroutineScope
 import kotlin.math.absoluteValue
 

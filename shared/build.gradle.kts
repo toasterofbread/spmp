@@ -228,7 +228,7 @@ sqldelight {
     databases {
         create("Database") {
             packageName.set("com.toasterofbread.db")
-            version = 2
+            version = 3
         }
     }
 }

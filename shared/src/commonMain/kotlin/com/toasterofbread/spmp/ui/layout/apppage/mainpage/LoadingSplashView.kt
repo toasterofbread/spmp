@@ -2,6 +2,7 @@
 package com.toasterofbread.spmp.ui.layout.apppage.mainpage
 
 import LocalPlayerState
+import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
@@ -48,9 +49,9 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.composekit.utils.common.bitmapResource
 import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.PrefsPageCategory
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.getCategory
 import kotlinx.coroutines.delay

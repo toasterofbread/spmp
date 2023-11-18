@@ -128,6 +128,7 @@ enum class Settings {
     KEY_LYRICS_ENABLE_WORD_SYNC,
     KEY_LYRICS_FONT_SIZE,
     KEY_LYRICS_DEFAULT_SOURCE,
+    KEY_LYRICS_TOP_BAR_ENABLE,
     KEY_LYRICS_TOP_BAR_MAX_LINES,
     KEY_LYRICS_TOP_BAR_PREAPPLY_MAX_LINES,
     KEY_LYRICS_SYNC_DELAY,
@@ -160,8 +161,8 @@ enum class Settings {
 
     // Accessibility Service
 //    KEY_ACC_VOL_INTERCEPT_MODE,
-    KEY_ACC_VOL_INTERCEPT_NOTIFICATION,
-    KEY_ACC_SCREEN_OFF,
+//    KEY_ACC_VOL_INTERCEPT_NOTIFICATION,
+//    KEY_ACC_SCREEN_OFF,
 
     // Top bar content
     KEY_TOPBAR_LYRICS_LINGER,
@@ -184,6 +185,7 @@ enum class Settings {
     KEY_FEED_HIDDEN_ROWS,
 
     // Player
+    KEY_PLAYER_SHOW_REPEAT_SHUFFLE_BUTTONS,
     KEY_PLAYER_OVERLAY_CUSTOM_ACTION,
     KEY_PLAYER_OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS,
     KEY_MINI_PLAYER_SHOW_PREV_BUTTON,
@@ -253,6 +255,8 @@ enum class Settings {
     KEY_NAVBAR_HEIGHT_MULTIPLIER,
     KEY_STATUS_WEBHOOK_URL,
     KEY_STATUS_WEBHOOK_PAYLOAD,
+    KEY_ENABLE_AUDIO_NORMALISATION,
+    KEY_ENABLE_SILENCE_SKIPPING,
 
     // Internal
     INTERNAL_TOPBAR_MODE_HOME,
@@ -347,6 +351,7 @@ enum class Settings {
                 KEY_LYRICS_ENABLE_WORD_SYNC -> false
                 KEY_LYRICS_FONT_SIZE -> 0.5f
                 KEY_LYRICS_DEFAULT_SOURCE -> 0
+                KEY_LYRICS_TOP_BAR_ENABLE -> true
                 KEY_LYRICS_TOP_BAR_MAX_LINES -> 3
                 KEY_LYRICS_TOP_BAR_PREAPPLY_MAX_LINES -> false
                 KEY_LYRICS_SYNC_DELAY -> 0f
@@ -371,8 +376,8 @@ enum class Settings {
                 KEY_AUTO_DOWNLOAD_ON_METERED -> false
 
 //                KEY_ACC_VOL_INTERCEPT_MODE -> PlayerAccessibilityService.PlayerAccessibilityServiceVolumeInterceptMode.NEVER.ordinal
-                KEY_ACC_VOL_INTERCEPT_NOTIFICATION -> false
-                KEY_ACC_SCREEN_OFF -> false
+//                KEY_ACC_VOL_INTERCEPT_NOTIFICATION -> false
+//                KEY_ACC_SCREEN_OFF -> false
 
                 // Top bar content
                 KEY_TOPBAR_LYRICS_LINGER -> true
@@ -394,6 +399,7 @@ enum class Settings {
                 KEY_FEED_SHOW_RADIOS -> false
                 KEY_FEED_HIDDEN_ROWS -> emptySet<String>()
 
+                KEY_PLAYER_SHOW_REPEAT_SHUFFLE_BUTTONS -> false
                 KEY_PLAYER_OVERLAY_CUSTOM_ACTION -> PlayerOverlayMenuAction.DEFAULT_CUSTOM.ordinal
                 KEY_PLAYER_OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS -> false
                 KEY_MINI_PLAYER_SHOW_PREV_BUTTON -> false
@@ -465,6 +471,8 @@ enum class Settings {
                 KEY_NAVBAR_HEIGHT_MULTIPLIER -> 1f
                 KEY_STATUS_WEBHOOK_URL -> ProjectBuildConfig.STATUS_WEBHOOK_URL ?: ""
                 KEY_STATUS_WEBHOOK_PAYLOAD -> ProjectBuildConfig.STATUS_WEBHOOK_PAYLOAD ?: "{}"
+                KEY_ENABLE_AUDIO_NORMALISATION -> false
+                KEY_ENABLE_SILENCE_SKIPPING -> false
 
                 KEY_SERVER_IP -> "127.0.0.1"
                 KEY_SERVER_PORT -> 3973

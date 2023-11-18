@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.composekit.settings.ui.SettingsInterface
 import com.toasterofbread.composekit.settings.ui.SettingsPageWithItems
+import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.getUiLanguage
@@ -19,6 +20,22 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.Languages
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
+
+fun PrefsPageCategory.getCategory(context: AppContext, discord_auth_state: SettingsValueState<String>? = null): List<SettingsItem> =
+    when (this) {
+        PrefsPageCategory.GENERAL -> getGeneralCategory(context.getUiLanguage(), Languages.loadAvailableLanugages(context))
+        PrefsPageCategory.FILTER -> getFilterCategory()
+        PrefsPageCategory.FEED -> getFeedCategory()
+        PrefsPageCategory.PLAYER -> getPlayerCategory()
+        PrefsPageCategory.LIBRARY -> getLibraryCategory(context)
+        PrefsPageCategory.THEME -> getThemeCategory(context.theme)
+        PrefsPageCategory.LYRICS -> getLyricsCategory()
+        PrefsPageCategory.DOWNLOAD -> getDownloadCategory()
+        PrefsPageCategory.DISCORD_STATUS -> getDiscordStatusGroup(discord_auth_state!!)
+        PrefsPageCategory.SERVER -> getServerCategory()
+        PrefsPageCategory.OTHER -> getOtherCategory()
+        PrefsPageCategory.DEVELOPMENT -> getDevelopmentCategory()
+    }
 
 internal fun getPrefsPageSettingsInterface(
     page_state: AppPageState,
@@ -52,35 +69,27 @@ internal fun getPrefsPageSettingsInterface(
         }
     }
 
-    val discord_auth =
+    val discord_auth: SettingsValueState<String> =
         SettingsValueState<String>(Settings.KEY_DISCORD_ACCOUNT_TOKEN.name).init(Settings.prefs, Settings.Companion::provideDefault)
 
-    val categories = mapOf(
-        PrefsPageCategory.GENERAL to lazy { getGeneralCategory(context.getUiLanguage(), Languages.loadAvailableLanugages(context)) },
-        PrefsPageCategory.FILTER to lazy { getFilterCategory() },
-        PrefsPageCategory.FEED to lazy { getFeedCategory() },
-        PrefsPageCategory.PLAYER to lazy { getPlayerCategory() },
-        PrefsPageCategory.LIBRARY to lazy { getLibraryCategory(context) },
-        PrefsPageCategory.THEME to lazy { getThemeCategory(context.theme) },
-        PrefsPageCategory.LYRICS to lazy { getLyricsCategory() },
-        PrefsPageCategory.DOWNLOAD to lazy { getDownloadCategory() },
-        PrefsPageCategory.DISCORD_STATUS to lazy { getDiscordStatusGroup(discord_auth) },
-        PrefsPageCategory.OTHER to lazy { getOtherCategory() },
-        PrefsPageCategory.DEVELOPMENT to lazy { getDevelopmentCategory() }
-    )
+    val categories: MutableMap<PrefsPageCategory, List<SettingsItem>> = mutableMapOf()
 
     settings_interface = SettingsInterface(
         { context.theme },
         PrefsPageScreen.ROOT.ordinal,
         Settings.prefs,
         Settings.Companion::provideDefault,
-        footer_modifier,
         { context.vibrateShort() },
         { index, param ->
             when (PrefsPageScreen.values()[index]) {
                 PrefsPageScreen.ROOT -> SettingsPageWithItems(
                     { getCategory()?.getTitle() },
-                    { categories[getCategory()]?.value ?: emptyList() },
+                    {
+                        val category: PrefsPageCategory = getCategory() ?: return@SettingsPageWithItems emptyList()
+                        categories.getOrPut(category) {
+                            category.getCategory(context, discord_auth)
+                        }
+                    },
                     getIcon = {
                         val icon = getCategory()?.getIcon()
                         var current_icon by remember { mutableStateOf(icon) }
@@ -102,12 +111,13 @@ internal fun getPrefsPageSettingsInterface(
         { page: Int? ->
             if (page == PrefsPageScreen.ROOT.ordinal) {
                 pill_menu.removeActionOverrider(pill_menu_action_overrider)
-            } 
+            }
         else {
                 pill_menu.addActionOverrider(pill_menu_action_overrider)
             }
         },
-        close
+        close,
+        footer_modifier
     )
 
     return settings_interface

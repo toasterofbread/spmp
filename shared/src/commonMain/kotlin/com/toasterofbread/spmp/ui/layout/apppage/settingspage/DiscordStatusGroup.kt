@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -102,10 +103,16 @@ internal fun getDiscordStatusGroup(discord_auth: SettingsValueState<String>): Li
 
                 override fun init(prefs: PlatformPreferences, defaultProvider: (String) -> Any): BasicSettingsValueState<Boolean> = this
                 override fun release(prefs: PlatformPreferences) {}
+                override fun setEnableAutosave(value: Boolean) {}
                 override fun reset() = discord_auth.reset()
                 override fun save() = discord_auth.save()
                 override fun getDefault(defaultProvider: (String) -> Any): Boolean =
                     (defaultProvider(Settings.KEY_DISCORD_ACCOUNT_TOKEN.name) as String).isNotEmpty()
+
+                @Composable
+                override fun onChanged(key: Any?, action: (Boolean) -> Unit) {
+                    TODO()
+                }
             },
             enabledContent = { modifier ->
                 val auth = discord_auth.get()

@@ -89,6 +89,7 @@
     <string name="action_deny_action">いいえ</string>
     <string name="action_warning_accept">同意する</string>
     <string name="action_load_retry">再試行</string>
+    <string name="action_save">保存</string>
     <string name="prompt_confirm_action">確認してください</string>
     <string name="prompt_confirm_settings_page_reset">このページのバリューを全てリセットしますか？</string>
     <string name="prompt_hide_feed_rows_with_$title">タイトルが「$title」の行を隠しますか？</string>
@@ -188,6 +189,11 @@
     <string name="error_yt_feed_parse_failed">YouTubeフィード解析に失敗しました</string>
     <string name="error_player_service_not_connected">プレイヤーサービスとの接続がありません&#xA;バグが発生してる可能性があります</string>
 
+    <string name="loading_message_connecting_to_server_at_$x">$xのサーバーに接続中</string>
+    <string name="loading_message_setting_initial_state">初期状態の準備中</string>
+    <string name="button_configure_server_connection">接続設定</string>
+    <string name="title_configure_server_connection">サーバーの接続設定</string>
+
     <string name="throw_error">スロー</string>
     <string name="report_error">報告する</string>
     <string name="wrap_text_switch_label">折り返す</string>
@@ -274,9 +280,11 @@
 
     <string name="settings_string_set_item_empty">なにも入っていません</string>
     <string name="settings_string_set_item_already_added">そのアイテムはすでに含まれてます</string>
-    <string name="settings_value_out_of_$range">入力は範囲外です （$range）</string>
-    <string name="settings_value_not_int">入力は整数ではありません</string>
-    <string name="settings_value_not_float">入力は数ではありません</string>
+    <string name="settings_value_out_of_$range">範囲外です （$range）</string>
+    <string name="settings_value_not_int">整数ではありません</string>
+    <string name="settings_value_not_float">数ではありません</string>
+    <string name="settings_value_not_ipv4">正確なIPv4アドレスではありません</string>
+    <string name="settings_value_not_port">正確なポートではありません</string>
 
     <string name="s_page_preferences">設定</string>
 
@@ -529,6 +537,12 @@
     <string name="s_key_vol_intercept_notification">音量変化の通知</string>
     <string name="s_sub_vol_intercept_notification">アクセシビリティサービスがボリュームボタンをインターセプトした時に画面にメッセージを表示しする</string>
 
+    <string name="s_cat_server">サーバー</string>
+    <string name="s_info_server">SpMpのサーバー部分(SpMs)が設定されたIPアドレスとポートで実行されていなければなりません。https://github.com/toasterofbread/spmp-server</string>
+
+    <string name="s_key_server_ip">サーバーのIPアドレス</string>
+    <string name="s_key_server_port">サーバーのポート</string>
+
     <string name="s_cat_development">開発</string>
 
     <string name="s_subpage_ui_debug_info">UIデバッグ情報</string>
@@ -584,6 +598,8 @@
     <string name="s_cat_desc_download">音質と自動ダウンロードのオプション</string>
     <string name="s_cat_desc_discord_status">Discordアカウントとステータスの表示の調節</string>
     <string name="s_cat_desc_other">キャッシュとアクセシビリティサービスの設定</string>
+    <string name="s_cat_desc_server">Configure how SpMp connects to SpMs</string>
+    <string name="s_cat_desc_server">SpMsへの接続方法の設定</string>
 
     <string name="song_related_page_no_content">この曲には関係コンテンツがありません</string>
     <string name="song_related_page_empty_row">なにもありません</string>

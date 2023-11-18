@@ -162,10 +162,11 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                     CompositionLocalProvider(LocalContentColor provides background_colour.getContrasted()) {
                         LargeBottomBar(
                             Modifier
-                                .fillMaxWidth(0.5f)
-                                .fillMaxHeight()
                                 .align(Alignment.CenterEnd)
-                                .padding(horizontal = 10.dp)
+                                .fillMaxWidth()
+                                .padding(horizontal = 15.dp),
+                            Modifier
+                                .padding(top = bottom_bar_height - inner_bottom_padding - bottom_padding)
                         )
                     }
                 }

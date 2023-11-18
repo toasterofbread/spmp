@@ -190,8 +190,8 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
         val song_gradient_depth: Float? =
             player.status.m_song?.PlayerGradientDepth?.observe(player.database)?.value
 
-        val pages = NowPlayingPage.ALL.filter { it.shouldShow(player) }
-        val large_page_showing = !player.isPortrait() && player.isLargeFormFactor()
+        val pages: List<NowPlayingPage> = NowPlayingPage.ALL.filter { it.shouldShow(player) }
+        val large_page_showing: Boolean = !player.isPortrait() && player.isLargeFormFactor()
 
         val swipe_modifier: Modifier = remember(swipe_anchors, large_page_showing) {
             Modifier.swipeable(
@@ -201,7 +201,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
                 orientation = Orientation.Vertical,
                 reverseDirection = true,
                 interactionSource = swipe_interaction_source,
-//                enabled = !large_page_showing
+                enabled = !large_page_showing
             )
         }
 

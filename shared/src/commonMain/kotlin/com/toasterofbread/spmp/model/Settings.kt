@@ -200,7 +200,8 @@ enum class Settings {
     KEY_PAUSE_ON_WIRED_DISCONNECT,
 
     // Server
-    KEY_SPMS_PORT,
+    KEY_SERVER_IP,
+    KEY_SERVER_PORT,
 
     // Auth
     KEY_YTM_AUTH,
@@ -465,7 +466,8 @@ enum class Settings {
                 KEY_STATUS_WEBHOOK_URL -> ProjectBuildConfig.STATUS_WEBHOOK_URL ?: ""
                 KEY_STATUS_WEBHOOK_PAYLOAD -> ProjectBuildConfig.STATUS_WEBHOOK_PAYLOAD ?: "{}"
 
-                KEY_SPMS_PORT -> 3973
+                KEY_SERVER_IP -> "127.0.0.1"
+                KEY_SERVER_PORT -> 3973
 
                 // Internal
                 INTERNAL_TOPBAR_MODE_HOME -> MusicTopBarMode.LYRICS.ordinal

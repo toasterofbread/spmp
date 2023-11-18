@@ -31,7 +31,7 @@ class NowPlayingMainTabPage: NowPlayingPage() {
 
         fun getMinimisedPlayerHeight(): Dp =
             when (this) {
-                LARGE -> 100.dp
+                LARGE -> 80.dp
                 else -> 64.dp
             }
 

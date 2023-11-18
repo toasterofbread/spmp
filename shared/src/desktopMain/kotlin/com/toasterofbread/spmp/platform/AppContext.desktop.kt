@@ -14,7 +14,7 @@ actual class AppContext(app_name: String): PlatformContext(app_name, PlatformPla
     actual val ytapi: YoutubeApi
     actual val theme: Theme by lazy { ThemeImpl(this@AppContext) }
 
-    actual fun getPrefs(): PlatformPreferences = PlatformPreferences.getInstance(getFilesDir().resolve("preferences.json"))
+    actual fun getPrefs(): PlatformPreferences = PlatformPreferences.getInstance { getFilesDir().resolve("preferences.json") }
 
     init {
         val prefs = getPrefs()

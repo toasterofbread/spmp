@@ -234,14 +234,16 @@ fun LargeThumbnailRow(
                         .onSizeChanged {
                             image_size = it
                         }
-                        .platformClickable(
-                            onClick = {
-                                performPressAction(false)
-                            },
-                            onAltClick = {
-                                performPressAction(true)
-                            }
-                        )
+                        .thenIf(expanded) {
+                            platformClickable(
+                                onClick = {
+                                    performPressAction(false)
+                                },
+                                onAltClick = {
+                                    performPressAction(true)
+                                }
+                            )
+                        }
                 )
             }
 
@@ -331,7 +333,7 @@ fun LargeThumbnailRow(
                     maxLines = 1,
                     color = player.getNPOnBackground(),
                     overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.headlineMedium
+                    style = MaterialTheme.typography.headlineSmall
                 )
                 Text(
                     song_artist_title ?: "",

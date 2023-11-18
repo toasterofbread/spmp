@@ -2,20 +2,27 @@
 package com.toasterofbread.spmp.ui.layout.apppage.mainpage
 
 import LocalPlayerState
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.Image
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,50 +34,157 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.composekit.platform.Platform
+import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.composekit.utils.common.bitmapResource
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.ui.layout.apppage.settingspage.PrefsPageCategory
+import com.toasterofbread.spmp.ui.layout.apppage.settingspage.getCategory
 import kotlinx.coroutines.delay
 
-private const val WARNING_DELAY: Long = 5000L
-private enum class SplashMode {
+private const val MESSAGE_DELAY: Long = 2000L
+enum class SplashMode {
     SPLASH, WARNING
 }
 
 @Composable
-fun LoadingSplashView(modifier: Modifier = Modifier) {
-    var splash_mode: SplashMode? by remember { mutableStateOf(null) }
-    val player = LocalPlayerState.current
+fun LoadingSplashView(splash_mode: SplashMode?, loading_message: String?, modifier: Modifier = Modifier) {
+    val player: PlayerState = LocalPlayerState.current
+
+    var show_message: Boolean by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        delay(MESSAGE_DELAY)
+        show_message = true
+    }
 
     Crossfade(splash_mode, modifier) { mode ->
         when (mode) {
             null -> {}
             SplashMode.SPLASH -> {
                 val image: ImageBitmap = bitmapResource("drawable/ic_splash.png")
-                val background_colour: Color = remember(image) {
-                    val first_pixel = IntArray(1)
-                    image.readPixels(first_pixel, 0, 0, 1, 1)
-
-                    Color(first_pixel[0])
-                }
 
                 Column(
-                    Modifier.fillMaxSize().background(background_colour),
+                    Modifier.fillMaxSize().background(player.theme.background).padding(10.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                    verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically)
                 ) {
-                    Image(
-                        image,
-                        null,
+                    var launched: Boolean by remember { mutableStateOf(false) }
+                    val image_alpha: Float by animateFloatAsState(if (launched) 1f else 0f, tween(2000))
+
+                    LaunchedEffect(Unit) {
+                        launched = true
+                    }
+
+                    Box(
                         Modifier
-                            .size(with(LocalDensity.current) { 450.toDp() })
-                            .clip(CircleShape),
+                            .size(
+                                with(LocalDensity.current) {
+                                    minOf(image.width.toDp(), image.height.toDp(), 200.dp)
+                                }
+                            )
+                            .weight(1f, false)
+                            .alpha(image_alpha)
+                            .drawWithContent {
+                                drawIntoCanvas { canvas ->
+                                    val first_filter: ColorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
+                                    val second_filter: ColorFilter = ColorFilter.tint(player.theme.accent, BlendMode.Modulate)
+
+                                    canvas.saveLayer(
+                                        Rect(0f, 0f, size.width, size.height),
+                                        Paint().apply {
+                                            colorFilter = second_filter
+                                        }
+                                    )
+                                    drawImage(
+                                        image,
+                                        dstSize = IntSize(size.width.toInt(), size.height.toInt()),
+                                        colorFilter = first_filter
+                                    )
+                                    canvas.restore()
+                                }
+                            }
                     )
+
+                    AnimatedVisibility(show_message) {
+                        Column(
+                            Modifier.width(500.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            if (loading_message != null) {
+                                Text(loading_message, Modifier.padding(horizontal = 20.dp), color = player.theme.on_background)
+                            }
+                            LinearProgressIndicator(Modifier.fillMaxWidth(), color = player.theme.accent)
+
+                            Platform.DESKTOP.only {
+                                var show_config_dialog: Boolean by remember { mutableStateOf(false) }
+
+                                Button(
+                                    { show_config_dialog = true },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = player.theme.accent,
+                                        contentColor = player.theme.on_accent
+                                    )
+                                ) {
+                                    Text(getString("button_configure_server_connection"))
+                                }
+
+                                if (show_config_dialog) {
+                                    val settings_items: List<SettingsItem> = remember { PrefsPageCategory.SERVER.getCategory(player.context) }
+
+                                    LaunchedEffect(settings_items) {
+                                        for (item in settings_items) {
+                                            item.setEnableAutosave(false)
+                                        }
+                                    }
+
+                                    AlertDialog(
+                                        onDismissRequest = { show_config_dialog = false },
+                                        confirmButton = {
+                                            Button({
+                                                for (item in settings_items) {
+                                                    item.save()
+                                                }
+                                                show_config_dialog = false
+                                            }) {
+                                                Text(getString("action_save"))
+                                            }
+                                        },
+                                        dismissButton = {
+                                            Button({ show_config_dialog = false }) {
+                                                Text(getString("action_close"))
+                                            }
+                                        },
+                                        title = {
+                                            Text(getString("title_configure_server_connection"))
+                                        },
+                                        text = {
+                                            Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                                                for (item in settings_items) {
+                                                    item.initialise(SpMp.prefs, Settings.Companion::provideDefault)
+                                                    item.Item(player.app_page_state.Settings.settings_interface, { _, _ -> }, {})
+                                                }
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
             SplashMode.WARNING -> {

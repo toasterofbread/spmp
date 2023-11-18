@@ -134,6 +134,7 @@ private class PlayerBinder(val service: PlatformPlayerService): Binder()
 
 @androidx.annotation.OptIn(UnstableApi::class)
 actual class PlatformPlayerService: MediaSessionService(), PlayerService {
+    actual val ready: PlayerServiceLoadState = PlayerServiceLoadState(false)
     actual override val context: AppContext get() = _context
     private lateinit var _context: AppContext
 

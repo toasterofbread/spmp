@@ -23,6 +23,11 @@ enum class MediaPlayerRepeatMode {
     ALL
 }
 
+data class PlayerServiceLoadState(
+    val loading: Boolean,
+    val loading_message: String? = null
+)
+
 interface PlayerService {
     val context: AppContext
     val service_player: PlayerServicePlayer
@@ -85,6 +90,7 @@ expect class PlatformPlayerService: PlayerService {
         fun disconnect(context: AppContext, connection: Any)
     }
 
+    val load_state: PlayerServiceLoadState
     override val context: AppContext
     override val service_player: PlayerServicePlayer
 

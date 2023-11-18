@@ -403,7 +403,8 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
         }
     }
 
-    val service_connected: Boolean get() = _player != null
+    val service_connected: Boolean get() = _player?.load_state?.loading == false
+    val service_loading_message: String? get() = _player?.load_state?.takeIf { it.loading }?.loading_message
 
     private var service_connecting = false
     private var service_connected_listeners = mutableListOf<(PlatformPlayerService) -> Unit>()

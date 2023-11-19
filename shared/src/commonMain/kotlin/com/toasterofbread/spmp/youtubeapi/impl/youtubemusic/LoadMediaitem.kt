@@ -56,6 +56,7 @@ suspend fun processSong(song: SongData, response_body: Reader, api: YoutubeApi):
     }
 
     song.title = video.title.first_text
+    song.explicit = video.badges?.any { it.isExplicit() } == true
 
     video.getArtist(song, api.context).fold(
         { artist ->

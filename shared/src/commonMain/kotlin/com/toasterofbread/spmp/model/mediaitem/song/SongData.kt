@@ -20,7 +20,8 @@ class SongData(
     var album: RemotePlaylist? = null,
     var related_browse_id: String? = null,
     var lyrics_browse_id: String? = null,
-    var loudness_db: Float? = null
+    var loudness_db: Float? = null,
+    var explicit: Boolean? = null
 ): MediaItem.DataWithArtist(), Song {
     override fun toString(): String = "SongData($id)"
     override fun getDataValues(): Map<String, Any?> =
@@ -30,7 +31,8 @@ class SongData(
             "album" to album,
             "related_browse_id" to related_browse_id,
             "lyrics_browse_id" to lyrics_browse_id,
-            "loudness_db" to loudness_db
+            "loudness_db" to loudness_db,
+            "explicit" to explicit
         )
     override fun getReference(): SongRef = SongRef(id)
 
@@ -61,7 +63,8 @@ class SongData(
             Album.setNotNull(album, db, uncertain)
             RelatedBrowseId.setNotNull(related_browse_id, db, uncertain)
             LyricsBrowseId.setNotNull(lyrics_browse_id, db, uncertain)
-            LoudnessDbById.setNotNull(loudness_db, db, uncertain)
+            LoudnessDb.setNotNull(loudness_db, db, uncertain)
+            Explicit.setNotNull(explicit, db, uncertain)
         }}
     }
 }

@@ -19,8 +19,14 @@ data class MusicResponsiveListItemRenderer(
     val thumbnail: ThumbnailRenderer?,
     val navigationEndpoint: NavigationEndpoint?,
     val menu: YoutubeiNextResponse.Menu?,
-    val index: TextRuns?
-) { 
+    val index: TextRuns?,
+    val badges: List<Badge>?
+) {
+    data class Badge(val musicInlineBadgeRenderer: MusicInlineBadgeRenderer?) {
+        fun isExplicit(): Boolean = musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
+    }
+    data class MusicInlineBadgeRenderer(val icon: YoutubeiNextResponse.MenuIcon?)
+
     fun toMediaItemAndPlaylistSetVideoId(hl: String): Pair<MediaItemData, String?>? {
         var video_id: String? = playlistItemData?.videoId ?: navigationEndpoint?.watchEndpoint?.videoId
         var video_is_main: Boolean = true
@@ -102,6 +108,7 @@ data class MusicResponsiveListItemRenderer(
                 thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.firstOrNull()?.also {
                     data.song_type = if (it.height == it.width) SongType.SONG else SongType.VIDEO
                 }
+                data.explicit = badges?.any { it.isExplicit() } == true
             }
         }
         else if (video_is_main) {

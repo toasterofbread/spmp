@@ -85,7 +85,7 @@ internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppConte
         )
 
     try {
-        song.LoudnessDbById.setNotNull(format.loudness_db, context.database)
+        song.LoudnessDb.setNotNull(format.loudness_db, context.database)
     }
     catch (e: Throwable) {
         e.printStackTrace()

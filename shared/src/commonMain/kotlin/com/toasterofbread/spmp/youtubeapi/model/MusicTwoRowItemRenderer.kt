@@ -17,7 +17,8 @@ class MusicTwoRowItemRenderer(
     val title: TextRuns,
     val subtitle: TextRuns?,
     val thumbnailRenderer: ThumbnailRenderer,
-    val menu: YoutubeiNextResponse.Menu?
+    val menu: YoutubeiNextResponse.Menu?,
+    val subtitleBadges: List<MusicResponsiveListItemRenderer.Badge>?
 ) {
     private fun getArtist(host_item: MediaItemData): Artist? {
         for (run in subtitle?.runs ?: emptyList()) {
@@ -52,6 +53,7 @@ class MusicTwoRowItemRenderer(
                 data.title = this@MusicTwoRowItemRenderer.title.first_text
                 data.thumbnail_provider = thumbnailRenderer.toThumbnailProvider()
                 data.artist = getArtist(data)
+                data.explicit = subtitleBadges?.any { it.isExplicit() } == true
 
                 for (item in menu?.menuRenderer?.items ?: emptyList()) {
                     val browse_endpoint: BrowseEndpoint = item.menuNavigationItemRenderer?.navigationEndpoint?.browseEndpoint ?: continue

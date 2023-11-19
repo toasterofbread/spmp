@@ -15,7 +15,6 @@ import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
-import com.toasterofbread.spmp.model.mediaitem.MediaItemRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
@@ -35,6 +34,9 @@ import com.toasterofbread.spmp.youtubeapi.lyrics.toLyricsReference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.toasterofbread.db.mediaitem.song.ArtistById
+import com.toasterofbread.spmp.model.mediaitem.db.fromNullableSQLBoolean
+import com.toasterofbread.spmp.model.mediaitem.db.fromSQLBoolean
+import com.toasterofbread.spmp.model.mediaitem.db.toNullableSQLBoolean
 import java.net.URL
 
 private const val STATIC_LYRICS_SYNC_OFFSET: Long = 1000
@@ -58,7 +60,7 @@ interface Song: MediaItem.WithArtist {
         data.album = Album.get(db)
         data.related_browse_id = RelatedBrowseId.get(db)
         data.lyrics_browse_id = LyricsBrowseId.get(db)
-        data.loudness_db = LoudnessDbById.get(db)
+        data.loudness_db = LoudnessDb.get(db)
     }
 
     override suspend fun loadData(context: AppContext, populate_data: Boolean, force: Boolean): Result<SongData> {
@@ -118,9 +120,13 @@ interface Song: MediaItem.WithArtist {
         get() = property_rememberer.rememberSingleQueryProperty(
         "LyricsBrowseId", { songQueries.lyricsBrowseIdById(id) }, { lyrics_browse_id }, { songQueries.updateLyricsBrowseIdById(it, id) }
     )
-    val LoudnessDbById: Property<Float?>
+    val LoudnessDb: Property<Float?>
         get() = property_rememberer.rememberSingleQueryProperty(
             "LoudnessDbById", { songQueries.loudnessDbById(id) }, { loudness_db?.toFloat() }, { songQueries.updateLoudnessDbById(it?.toDouble(), id) }
+        )
+    val Explicit: Property<Boolean?>
+        get() = property_rememberer.rememberSingleQueryProperty(
+            "Explicit", { songQueries.explicitById(id) }, { explicit.fromNullableSQLBoolean() }, { songQueries.updateExplicitDbById(it.toNullableSQLBoolean(), id) }
         )
 
     val Lyrics: Property<LyricsReference?>

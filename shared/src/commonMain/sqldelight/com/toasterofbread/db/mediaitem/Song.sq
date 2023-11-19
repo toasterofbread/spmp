@@ -8,6 +8,7 @@ CREATE TABLE Song (
     related_browse_id TEXT,
     lyrics_browse_id TEXT,
     loudness_db REAL,
+    explicit INTEGER,
 
     --
 
@@ -64,6 +65,8 @@ updateLyricsBrowseIdById: UPDATE Song SET lyrics_browse_id = :lyrics_browse_id W
 loudnessDbById: SELECT loudness_db FROM Song WHERE id == :id;
 updateLoudnessDbById: UPDATE Song SET loudness_db = :loudness_db WHERE id == :id;
 
+explicitById: SELECT explicit FROM Song WHERE id == :id;
+updateExplicitDbById: UPDATE Song SET explicit = :explicit WHERE id == :id;
 
 --
 

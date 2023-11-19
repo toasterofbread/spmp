@@ -15,6 +15,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontFamily
+import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.ProjectBuildConfig
@@ -114,12 +115,17 @@ object SpMp {
                     CompositionLocalProvider(LocalPlayerState provides player_state) {
                         RootView(player_state)
 
+                        val splash_mode: SplashMode? = when (Platform.current) {
+                            Platform.ANDROID -> null
+                            Platform.DESKTOP -> if (!player_state.service_connected) SplashMode.SPLASH else null
+                        }
+
                         LoadingSplashView(
-                            if (!player_state.service_connected) SplashMode.SPLASH else null,
+                            splash_mode,
                             player_state.service_loading_message,
                             Modifier
                                 .fillMaxSize()
-                                .thenIf(!player_state.service_connected) {
+                                .thenIf(splash_mode != null) {
                                     pointerInput(Unit) {}
                                 }
                         )

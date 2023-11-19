@@ -393,7 +393,7 @@ enum class Settings {
                 KEY_FEED_SHOW_FILTER_BAR -> true
                 KEY_FEED_SHOW_SONG_DOWNLOAD_INDICATORS -> false
                 KEY_FEED_INITIAL_ROWS -> 4
-                KEY_FEED_SQUARE_PREVIEW_TEXT_LINES -> if (Platform.DESKTOP.isCurrent()) 2 else 1
+                KEY_FEED_SQUARE_PREVIEW_TEXT_LINES -> if (Platform.DESKTOP.isCurrent()) 2 else 2
                 KEY_FEED_GRID_ROW_COUNT -> if (Platform.DESKTOP.isCurrent()) 1 else 2
                 KEY_FEED_GRID_ROW_COUNT_EXPANDED -> if (Platform.DESKTOP.isCurrent()) 1 else 2
                 KEY_FEED_ALT_GRID_ROW_COUNT -> if (Platform.DESKTOP.isCurrent()) 2 else 4

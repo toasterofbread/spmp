@@ -18,8 +18,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DownloadDone
 import androidx.compose.material.icons.filled.Downloading
+import androidx.compose.material.icons.filled.Explicit
 import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -55,6 +57,7 @@ import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.composekit.utils.common.getValue
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 
 val MEDIA_ITEM_PREVIEW_LONG_HEIGHT_DP: Float
     @Composable get() = if (LocalPlayerState.current.isLargeFormFactor()) 100f else 50f
@@ -109,7 +112,7 @@ fun MediaItemPreviewSquare(
     max_text_rows: Int? = null,
     show_download_indicator: Boolean = true,
     font_size: TextUnit = MEDIA_ITEM_PREVIEW_SQUARE_FONT_SIZE_SP.sp,
-    line_height: TextUnit = MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP.sp,
+    line_height: TextUnit = MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP.sp * 0.75f,
     long_press_menu_data: LongPressMenuData =
         remember(item, multiselect_context, multiselect_key, getTitle) {
             item.getLongPressMenuData(
@@ -124,7 +127,7 @@ fun MediaItemPreviewSquare(
         return
     }
 
-    val player = LocalPlayerState.current
+    val player: PlayerState = LocalPlayerState.current
 
     Column(
         modifier.mediaItemPreviewInteraction(loaded_item, long_press_menu_data),
@@ -159,10 +162,15 @@ fun MediaItemPreviewSquare(
         Row(
             Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally)
+            horizontalArrangement = Arrangement.Center
         ) {
+            val is_explicit: Boolean? by (loaded_item as? Song)?.Explicit?.observe(player.database)
+            if (is_explicit == true) {
+                Icon(Icons.Default.Explicit, null, Modifier.size(15.dp).alpha(0.5f))
+            }
+
             val item_title: String? by loaded_item.observeActiveTitle()
-            val max_lines = max_text_rows ?: if (player.isLargeFormFactor()) 2 else 1
+            val max_lines: Int = max_text_rows ?: if (player.isLargeFormFactor()) 2 else 1
 
             Text(
                 item_title ?: "",
@@ -182,7 +190,7 @@ fun MediaItemPreviewSquare(
                     if (download_status?.isCompleted() == true) Icons.Default.DownloadDone
                     else Icons.Default.Downloading,
                     null,
-                    Modifier.alpha(0.5f).size(13.dp)
+                    Modifier.alpha(0.5f).size(13.dp).padding(start = 5.dp)
                 )
             }
         }
@@ -260,14 +268,24 @@ fun MediaItemPreviewLong(
             )
 
             val artist_title: String? = if (show_artist) (loaded_item as? MediaItem.WithArtist)?.Artist?.observePropertyActiveTitle()?.value else null
-            val extra_info = getExtraInfo?.invoke() ?: emptyList()
+            val extra_info: List<String> = getExtraInfo?.invoke() ?: emptyList()
             val download_status: PlayerDownloadManager.DownloadStatus? by (loaded_item as? Song)?.rememberDownloadStatus()
+            val is_explicit: Boolean? by (loaded_item as? Song)?.Explicit?.observe(player.database)
 
-            if ((show_download_indicator && download_status != null) || show_play_count || show_type || extra_info.isNotEmpty() || artist_title != null) {
+            if ((show_download_indicator && download_status != null) || show_play_count || show_type || extra_info.isNotEmpty() || artist_title != null || is_explicit == true) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.Top
                 ) {
+                    if (is_explicit == true) {
+                        Icon(
+                            Icons.Default.Explicit,
+                            null,
+                            Modifier.size(15.dp).alpha(0.5f),
+                            tint = contentColour?.invoke() ?: LocalContentColor.current
+                        )
+                    }
+
                     var text_displayed = false
 
                     @Composable

@@ -166,7 +166,7 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
             return
         }
 
-        val loudness_db: Float? = song.LoudnessDbById.get(context.database)
+        val loudness_db: Float? = song.LoudnessDb.get(context.database)
         if (loudness_db == null) {
             setTargetGain(0)
         }

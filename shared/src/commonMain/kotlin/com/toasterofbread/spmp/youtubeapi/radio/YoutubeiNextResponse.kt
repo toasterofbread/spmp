@@ -10,6 +10,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.model.BrowseEndpoint
+import com.toasterofbread.spmp.youtubeapi.model.MusicResponsiveListItemRenderer
 import com.toasterofbread.spmp.youtubeapi.model.MusicThumbnailRenderer
 import com.toasterofbread.spmp.youtubeapi.model.NavigationEndpoint
 import com.toasterofbread.spmp.youtubeapi.model.TextRuns
@@ -66,7 +67,8 @@ data class YoutubeiNextResponse(
         val title: TextRuns,
         val longBylineText: TextRuns,
         val menu: Menu,
-        val thumbnail: MusicThumbnailRenderer.Thumbnail
+        val thumbnail: MusicThumbnailRenderer.Thumbnail,
+        val badges: List<MusicResponsiveListItemRenderer.Badge>?
     ) {
         suspend fun getArtist(host_item: Song, context: AppContext): Result<ArtistData?> {
             // Get artist ID directly

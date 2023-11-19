@@ -12,6 +12,7 @@ import com.toasterofbread.spmp.youtubeapi.radio.YoutubeiNextResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
+import okhttp3.Response
 import java.io.IOException
 
 private const val RADIO_ID_PREFIX = "RDAMVM"
@@ -57,7 +58,7 @@ class YTMSongRadioEndpoint(override val api: YoutubeMusicApi): SongRadioEndpoint
             }
         }
 
-        val request = Request.Builder()
+        val request: Request = Request.Builder()
             .endpointUrl("/youtubei/v1/next")
             .addAuthApiHeaders()
             .postWithBody(
@@ -81,7 +82,7 @@ class YTMSongRadioEndpoint(override val api: YoutubeMusicApi): SongRadioEndpoint
             )
             .build()
 
-        val result = api.performRequest(request)
+        val result: Result<Response> = api.performRequest(request)
 
         val radio: YoutubeiNextResponse.PlaylistPanelRenderer
         val out_filters: List<List<RadioBuilderModifier>>?
@@ -97,7 +98,7 @@ class YTMSongRadioEndpoint(override val api: YoutubeMusicApi): SongRadioEndpoint
                 )
             }
 
-            val renderer = data
+            val renderer: YoutubeiNextResponse.MusicQueueRenderer = data
                 .contents
                 .singleColumnMusicWatchNextResultsRenderer
                 .tabbedRenderer

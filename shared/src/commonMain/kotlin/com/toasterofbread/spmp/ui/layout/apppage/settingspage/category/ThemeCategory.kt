@@ -1,20 +1,23 @@
-package com.toasterofbread.spmp.ui.layout.apppage.settingspage
+package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
 import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.composekit.settings.ui.ThemeData
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsMultipleChoiceItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsSliderItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.settings.ui.item.SettingsItemThemeSelector
-import com.toasterofbread.spmp.model.AccentColourSource
-import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.settings.category.AccentColourSource
+import com.toasterofbread.spmp.model.settings.category.ThemeSettings
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 
-internal fun getThemeCategory(theme: Theme): List<SettingsItem> {
+internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
+    val theme: Theme = context.theme
+
     return listOf(
         SettingsItemThemeSelector(
-            SettingsValueState(Settings.KEY_CURRENT_THEME.name),
+            SettingsValueState(ThemeSettings.Key.CURRENT_THEME.getName()),
             getString("s_key_current_theme"), null,
             getString("s_theme_editor_title"),
             { theme.getThemeCount() },
@@ -27,7 +30,7 @@ internal fun getThemeCategory(theme: Theme): List<SettingsItem> {
         ),
 
         SettingsMultipleChoiceItem(
-            SettingsValueState(Settings.KEY_ACCENT_COLOUR_SOURCE.name),
+            SettingsValueState(ThemeSettings.Key.ACCENT_COLOUR_SOURCE.getName()),
             getString("s_key_accent_source"), null,
             AccentColourSource.values().size, false
         ) { choice ->
@@ -38,7 +41,7 @@ internal fun getThemeCategory(theme: Theme): List<SettingsItem> {
         },
 
         SettingsMultipleChoiceItem(
-            SettingsValueState(Settings.KEY_NOWPLAYING_THEME_MODE.name),
+            SettingsValueState(ThemeSettings.Key.NOWPLAYING_THEME_MODE.getName()),
             getString("s_key_np_theme_mode"), null,
             3, false
         ) { choice ->
@@ -50,7 +53,7 @@ internal fun getThemeCategory(theme: Theme): List<SettingsItem> {
         },
 
         AppSliderItem(
-            SettingsValueState(Settings.KEY_NOWPLAYING_DEFAULT_GRADIENT_DEPTH.name),
+            SettingsValueState(ThemeSettings.Key.NOWPLAYING_DEFAULT_GRADIENT_DEPTH.getName()),
             getString("s_key_np_default_gradient_depth"), null
         )
     )

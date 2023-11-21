@@ -5,11 +5,9 @@ import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
@@ -30,22 +28,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 import com.toasterofbread.composekit.utils.composable.ShapedIconButton
-import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.settings.Settings
+import com.toasterofbread.spmp.model.settings.category.ServerSettings
+import com.toasterofbread.spmp.model.settings.category.SettingsCategory
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.spmp.ui.layout.apppage.settingspage.getCategory
+import com.toasterofbread.spmp.ui.layout.apppage.settingspage.getItems
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.concurrent.TimeUnit
 
 @OptIn(DelicateCoroutinesApi::class)
 @Suppress("NewApi")
 private fun startLocalServer(port: Int, onExit: (Int) -> Unit): Pair<String, Process>? {
-    var command: String = Settings.KEY_SERVER_COMMAND.get<String>().trim()
+    var command: String = ServerSettings.Key.LOCAL_COMMAND.get<String>().trim()
     if (command.isEmpty()) {
         return null
     }
@@ -66,7 +65,7 @@ private fun startLocalServer(port: Int, onExit: (Int) -> Unit): Pair<String, Pro
     val process: Process = builder.start()
 
     Runtime.getRuntime().addShutdownHook(Thread {
-        if (Settings.KEY_SERVER_KILL_CHILD_ON_EXIT.get()) {
+        if (ServerSettings.Key.KILL_CHILD_ON_EXIT.get()) {
             process.destroy()
         }
     })
@@ -103,7 +102,7 @@ actual fun SplashExtraLoadingContent(modifier: Modifier) {
                     }
 
                     try {
-                        local_server_process = startLocalServer(Settings.KEY_SERVER_PORT.get()) {
+                        local_server_process = startLocalServer(ServerSettings.Key.PORT.get()) {
                             if (local_server_process != null) {
                                 local_server_process = null
                                 local_server_error = RuntimeException(it.toString())
@@ -174,7 +173,7 @@ actual fun SplashExtraLoadingContent(modifier: Modifier) {
     }
 
     if (show_config_dialog) {
-        val settings_items: List<SettingsItem> = remember { com.toasterofbread.spmp.ui.layout.apppage.settingspage.PrefsPageCategory.SERVER.getCategory(player.context) }
+        val settings_items: List<SettingsItem> = remember { ServerSettings.getPage(player.context)?.items ?: emptyList() }
 
         LaunchedEffect(settings_items) {
             for (item in settings_items) {
@@ -187,8 +186,12 @@ actual fun SplashExtraLoadingContent(modifier: Modifier) {
             confirmButton = {
                 Button(
                     {
-                        for (item in settings_items) {
-                            item.save()
+                        player.context.getPrefs().edit {
+                            for (item in settings_items) {
+                                with (item) {
+                                    saveItem()
+                                }
+                            }
                         }
                         show_config_dialog = false
                     },
@@ -211,8 +214,8 @@ actual fun SplashExtraLoadingContent(modifier: Modifier) {
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
                     for (item in settings_items) {
-                        item.initialise(SpMp.prefs, Settings.Companion::provideDefault)
-                        item.Item(player.app_page_state.Settings.settings_interface, { _, _ -> }, {})
+                        item.initialise(SpMp.prefs, Settings::provideDefault)
+                        item.Item(player.app_page_state.Settings.settings_interface, { _, _ -> }, {}, Modifier)
                     }
                 }
             }

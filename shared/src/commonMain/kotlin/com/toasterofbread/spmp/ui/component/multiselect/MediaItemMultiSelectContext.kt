@@ -62,7 +62,6 @@ import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.common.lazyAssert
 import com.toasterofbread.composekit.utils.composable.ScrollabilityIndicatorRow
 import com.toasterofbread.composekit.utils.composable.ShapedIconButton
-import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
@@ -74,6 +73,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.getEditorOrNull
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.isPlaylistEditable
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.rememberSongDownloads
 import com.toasterofbread.spmp.resources.getString
@@ -111,13 +111,13 @@ class MediaItemMultiSelectContext(
     }
 
     fun onActionPerformed() {
-        if (Settings.KEY_MULTISELECT_CANCEL_ON_ACTION.get()) {
+        if (BehaviourSettings.Key.MULTISELECT_CANCEL_ON_ACTION.get()) {
             setActive(false)
         }
     }
 
     private fun onSelectedItemsChanged() {
-        if (selected_items.isEmpty() && Settings.KEY_MULTISELECT_CANCEL_WHEN_NONE_SELECTED.get()) {
+        if (selected_items.isEmpty() && BehaviourSettings.Key.MULTISELECT_CANCEL_ON_NONE_SELECTED.get()) {
             setActive(false)
         }
     }

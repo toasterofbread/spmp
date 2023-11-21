@@ -12,9 +12,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.composekit.utils.common.launchSingle
 
 @Composable
 fun MediaItemTitleEditDialog(item: MediaItem, modifier: Modifier = Modifier, close: () -> Unit) {

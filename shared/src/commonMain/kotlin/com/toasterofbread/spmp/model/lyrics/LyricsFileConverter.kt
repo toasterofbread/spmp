@@ -2,6 +2,8 @@ package com.toasterofbread.spmp.model.lyrics
 
 import SpMp
 import com.atilika.kuromoji.ipadic.Tokenizer
+import com.toasterofbread.composekit.platform.PlatformFile
+import com.toasterofbread.composekit.utils.common.indexOfOrNull
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
@@ -9,8 +11,6 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.createFuriganaTokeniser
 import com.toasterofbread.spmp.youtubeapi.lyrics.mergeAndFuriganiseTerms
-import com.toasterofbread.composekit.platform.PlatformFile
-import com.toasterofbread.composekit.utils.common.indexOfOrNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.OutputStreamWriter

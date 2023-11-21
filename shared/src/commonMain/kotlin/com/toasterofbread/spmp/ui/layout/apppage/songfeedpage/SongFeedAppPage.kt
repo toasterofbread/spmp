@@ -7,51 +7,38 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.platform.composable.BackHandler
-import com.toasterofbread.composekit.platform.composable.SwipeRefresh
-import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.composekit.utils.common.anyCauseIs
 import com.toasterofbread.composekit.utils.common.launchSingle
-import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.composekit.utils.modifier.horizontal
-import com.toasterofbread.composekit.utils.modifier.vertical
 import com.toasterofbread.spmp.model.FilterChip
-import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.db.SongFeedCache
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
-import com.toasterofbread.spmp.model.mutableSettingsState
+import com.toasterofbread.spmp.model.settings.Settings
+import com.toasterofbread.spmp.model.settings.category.FeedSettings
+import com.toasterofbread.spmp.model.settings.mutableSettingsState
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.FeedLoadState
-import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
 import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedLoadResult
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
@@ -97,7 +84,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
     @Composable
     override fun TopBarContent(modifier: Modifier, close: () -> Unit) {
         val player = LocalPlayerState.current
-        val show: Boolean by mutableSettingsState(Settings.KEY_FEED_SHOW_FILTER_BAR)
+        val show: Boolean by mutableSettingsState(FeedSettings.Key.SHOW_FILTER_BAR)
         
         AnimatedVisibility(show) {
             Row(modifier, verticalAlignment = Alignment.CenterVertically) {
@@ -192,7 +179,8 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
             load_state = if (continue_feed) FeedLoadState.CONTINUING else FeedLoadState.LOADING
 
             val result = loadFeedLayouts(
-                if (continue_feed && continuation != null) -1 else Settings.get(Settings.KEY_FEED_INITIAL_ROWS),
+                if (continue_feed && continuation != null) -1 else Settings.get(
+                    FeedSettings.Key.INITIAL_ROWS),
                 allow_cached,
                 filter_params,
                 if (continue_feed) continuation else null

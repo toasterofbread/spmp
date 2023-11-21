@@ -17,12 +17,15 @@ import com.google.gson.stream.JsonWriter
 import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.platform.PlatformContext
 import com.toasterofbread.composekit.platform.PlatformPreferences
+import com.toasterofbread.composekit.platform.PlatformPreferencesListener
 import com.toasterofbread.composekit.settings.ui.StaticThemeData
 import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.composekit.settings.ui.ThemeData
 import com.toasterofbread.db.Database
-import com.toasterofbread.spmp.model.AccentColourSource
-import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.settings.Settings
+import com.toasterofbread.spmp.model.settings.category.AccentColourSource
+import com.toasterofbread.spmp.model.settings.category.SystemSettings
+import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
@@ -54,17 +57,18 @@ internal class ThemeImpl(private val context: AppContext): Theme(getString("them
         builder.create()
     }
 
-    private val prefs_listener: PlatformPreferences.Listener =
-        object : PlatformPreferences.Listener {
+    private val prefs_listener: PlatformPreferencesListener =
+        object : PlatformPreferencesListener {
             override fun onChanged(prefs: PlatformPreferences, key: String) {
                 when (key) {
-                    Settings.KEY_ACCENT_COLOUR_SOURCE.name -> {
-                        accent_colour_source = Settings.getEnum<AccentColourSource>(Settings.KEY_ACCENT_COLOUR_SOURCE, prefs)
+                    ThemeSettings.Key.ACCENT_COLOUR_SOURCE.getName() -> {
+                        accent_colour_source = Settings.getEnum<AccentColourSource>(
+                            ThemeSettings.Key.ACCENT_COLOUR_SOURCE, prefs)
                     }
-                    Settings.KEY_CURRENT_THEME.name -> {
-                        setCurrentThemeIdx(Settings.get(Settings.KEY_CURRENT_THEME, prefs))
+                    ThemeSettings.Key.CURRENT_THEME.getName() -> {
+                        setCurrentThemeIdx(Settings.get(ThemeSettings.Key.CURRENT_THEME, prefs))
                     }
-                    Settings.KEY_THEMES.name -> {
+                    ThemeSettings.Key.THEMES.getName() -> {
                         reloadThemes()
                     }
                 }
@@ -76,8 +80,9 @@ internal class ThemeImpl(private val context: AppContext): Theme(getString("them
     init {
         val prefs = context.getPrefs()
         prefs.addListener(prefs_listener)
-        accent_colour_source = Settings.getEnum<AccentColourSource>(Settings.KEY_ACCENT_COLOUR_SOURCE, prefs)
-        setCurrentThemeIdx(Settings.get(Settings.KEY_CURRENT_THEME, prefs), false)
+        accent_colour_source = Settings.getEnum<AccentColourSource>(
+            ThemeSettings.Key.ACCENT_COLOUR_SOURCE, prefs)
+        setCurrentThemeIdx(Settings.get(ThemeSettings.Key.CURRENT_THEME, prefs), false)
     }
 
     override fun getDarkColorScheme(): ColorScheme =
@@ -87,14 +92,14 @@ internal class ThemeImpl(private val context: AppContext): Theme(getString("them
         context.getLightColorScheme()
 
     override fun loadThemes(): List<ThemeData> {
-        val themes = Settings.getJsonArray<String>(Settings.KEY_THEMES, gson, context.getPrefs())
+        val themes: List<String> = Settings.getJsonArray(ThemeSettings.Key.THEMES, gson, context.getPrefs())
         return themes.map { serialised ->
             StaticThemeData.deserialise(serialised)
         }
     }
 
     override fun saveThemes(themes: List<ThemeData>) {
-        Settings.set(Settings.KEY_THEMES, gson.toJson(themes))
+        Settings.set(ThemeSettings.Key.THEMES, gson.toJson(themes))
     }
 
     override fun selectAccentColour(theme_data: ThemeData, thumbnail_colour: Color?): Color =
@@ -133,7 +138,7 @@ fun PlayerState.getDefaultVerticalPadding(): Dp = if (isLargeFormFactor()) 30.dp
 fun PlayerState.getDefaultPaddingValues(): PaddingValues = PaddingValues(horizontal = getDefaultHorizontalPadding(), vertical = getDefaultVerticalPadding())
 
 fun AppContext.getUiLanguage(): String =
-    Settings.KEY_LANG_UI.get<String>(getPrefs()).ifEmpty { Locale.getDefault().toLanguageTag() }
+    SystemSettings.Key.LANG_UI.get<String>(getPrefs()).ifEmpty { Locale.getDefault().toLanguageTag() }
 
 fun AppContext.getDataLanguage(): String =
-    Settings.KEY_LANG_DATA.get<String>(getPrefs()).ifEmpty { Locale.getDefault().toLanguageTag() }
+    SystemSettings.Key.LANG_DATA.get<String>(getPrefs()).ifEmpty { Locale.getDefault().toLanguageTag() }

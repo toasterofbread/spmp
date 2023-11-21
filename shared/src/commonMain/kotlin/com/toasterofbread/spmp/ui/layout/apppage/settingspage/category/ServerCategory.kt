@@ -1,14 +1,14 @@
-package com.toasterofbread.spmp.ui.layout.apppage.settingspage
+package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsItemInfoText
 import com.toasterofbread.composekit.settings.ui.item.SettingsTextFieldItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsToggleItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
+import com.toasterofbread.spmp.model.settings.category.ServerSettings
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.model.Settings
 
-internal fun getServerCategory(): List<SettingsItem> {
+internal fun getServerCategoryItems(): List<SettingsItem> {
     // (I will never learn regex)
     // https://stackoverflow.com/a/36760050
     val ip_regex: Regex = "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}\$".toRegex()
@@ -24,7 +24,7 @@ internal fun getServerCategory(): List<SettingsItem> {
         ),
 
         SettingsTextFieldItem(
-            SettingsValueState(Settings.KEY_SERVER_IP.name),
+            SettingsValueState(ServerSettings.Key.IP_ADDRESS.getName()),
             getString("s_key_server_ip"), null,
             getStringError = { input ->
                 if (!ip_regex.matches(input)) {
@@ -36,7 +36,7 @@ internal fun getServerCategory(): List<SettingsItem> {
 
         SettingsTextFieldItem(
             SettingsValueState(
-                Settings.KEY_SERVER_PORT.name,
+                ServerSettings.Key.PORT.getName(),
                 getValueConverter = {
                     it?.toString()
                 },
@@ -54,12 +54,12 @@ internal fun getServerCategory(): List<SettingsItem> {
         ),
 
         SettingsTextFieldItem(
-            SettingsValueState(Settings.KEY_SERVER_COMMAND.name),
+            SettingsValueState(ServerSettings.Key.LOCAL_COMMAND.getName()),
             getString("s_key_server_command"), getString("s_sub_server_command")
         ),
 
         SettingsToggleItem(
-            SettingsValueState(Settings.KEY_SERVER_KILL_CHILD_ON_EXIT.name),
+            SettingsValueState(ServerSettings.Key.KILL_CHILD_ON_EXIT.getName()),
             getString("s_key_server_kill_child_on_exit"), null
         )
     )

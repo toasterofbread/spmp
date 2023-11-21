@@ -4,7 +4,6 @@ import LocalPlayerState
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -14,6 +13,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.composekit.utils.common.thenIf
+import com.toasterofbread.composekit.utils.modifier.horizontal
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
@@ -23,8 +24,6 @@ import com.toasterofbread.spmp.platform.rememberSongDownloads
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MEDIAITEM_LIST_DEFAULT_SPACING_DP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.composekit.utils.common.thenIf
-import com.toasterofbread.composekit.utils.modifier.horizontal
 
 @Composable
 fun LocalArtistPage(

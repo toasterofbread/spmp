@@ -6,11 +6,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.font.FontFamily
 import com.toasterofbread.composekit.settings.ui.Theme
-import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.composekit.utils.common.amplifyPercent
 import com.toasterofbread.composekit.utils.common.blendWith
 import com.toasterofbread.composekit.utils.common.contrastAgainst
 import com.toasterofbread.composekit.utils.common.getContrasted
+import com.toasterofbread.spmp.platform.AppContext
 
 @Composable
 fun Theme.ApplicationTheme(

@@ -40,9 +40,10 @@ import androidx.compose.ui.unit.times
 import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.settings.Settings
+import com.toasterofbread.spmp.model.settings.category.LyricsSettings
 import com.toasterofbread.spmp.ui.component.AnnotatedReadingTerm
 import com.toasterofbread.spmp.ui.component.calculateReadingsAnnotatedString
 import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING_DP
@@ -68,7 +69,7 @@ fun CoreLyricsDisplay(
     val line_height = with (LocalDensity.current) { 20.sp.toPx() }
     val line_spacing = with (LocalDensity.current) { 25.dp.toPx() }
 
-    val add_padding: Boolean = Settings.get(Settings.KEY_LYRICS_EXTRA_PADDING)
+    val add_padding: Boolean = Settings.get(LyricsSettings.Key.EXTRA_PADDING)
     val static_scroll_offset = with(LocalDensity.current) { 2.dp.toPx().toInt() }
     val padding_height =
         if (add_padding) (size_px + line_height + line_spacing).toInt() + static_scroll_offset
@@ -77,7 +78,7 @@ fun CoreLyricsDisplay(
     val terms = remember(lyrics) { lyrics.getReadingTerms() }
     var current_range: IntRange? by remember { mutableStateOf(null) }
 
-    fun getScrollOffset(follow_offset: Float = Settings.KEY_LYRICS_FOLLOW_OFFSET.get()): Int =
+    fun getScrollOffset(follow_offset: Float = LyricsSettings.Key.FOLLOW_OFFSET.get()): Int =
         (padding_height - static_scroll_offset - size_px * follow_offset).toInt()
 
     LaunchedEffect(lyrics) {
@@ -101,7 +102,7 @@ fun CoreLyricsDisplay(
         }
     }
 
-    val font_size_percent: Float by Settings.KEY_LYRICS_FONT_SIZE.rememberMutableState()
+    val font_size_percent: Float by LyricsSettings.Key.FONT_SIZE.rememberMutableState()
     val text_style: TextStyle = getLyricsTextStyle((10 + (font_size_percent * 20)).sp)
 
     var data_with_readings: List<AnnotatedReadingTerm>? by remember { mutableStateOf(null) }
@@ -195,7 +196,7 @@ fun CoreLyricsDisplay(
                         area_size = with(density) { it.height.toDp() }
                     },
                 state = scroll_state,
-                horizontalAlignment = when (Settings.get<Int>(Settings.KEY_LYRICS_TEXT_ALIGNMENT)) {
+                horizontalAlignment = when (Settings.get<Int>(LyricsSettings.Key.TEXT_ALIGNMENT)) {
                     0 -> if (LocalLayoutDirection.current == LayoutDirection.Ltr) Alignment.Start else Alignment.End
                     1 -> Alignment.CenterHorizontally
                     else -> if (LocalLayoutDirection.current == LayoutDirection.Ltr) Alignment.End else Alignment.Start

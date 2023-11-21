@@ -55,10 +55,11 @@ import com.toasterofbread.composekit.utils.composable.MeasureUnconstrainedView
 import com.toasterofbread.composekit.utils.composable.OnChangedEffect
 import com.toasterofbread.composekit.utils.modifier.background
 import com.toasterofbread.composekit.utils.modifier.disableParentScroll
-import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.settings.category.PlayerSettings
+import com.toasterofbread.spmp.model.settings.getEnum
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.EXPANDED_THRESHOLD
@@ -170,11 +171,11 @@ fun LargeThumbnailRow(
                 }
 
                 val custom_action: Boolean =
-                    if (Settings.KEY_PLAYER_OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.get()) !long_press
+                    if (PlayerSettings.Key.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.get()) !long_press
                     else long_press
 
                 val action: PlayerOverlayMenuAction =
-                    if (custom_action) Settings.KEY_PLAYER_OVERLAY_CUSTOM_ACTION.getEnum()
+                    if (custom_action) PlayerSettings.Key.OVERLAY_CUSTOM_ACTION.getEnum()
                     else PlayerOverlayMenuAction.DEFAULT
 
                 when (action) {

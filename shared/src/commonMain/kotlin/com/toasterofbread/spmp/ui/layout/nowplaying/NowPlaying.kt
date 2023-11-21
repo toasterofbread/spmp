@@ -30,8 +30,10 @@ import com.toasterofbread.composekit.utils.common.amplifyPercent
 import com.toasterofbread.composekit.utils.composable.RecomposeOnInterval
 import com.toasterofbread.composekit.utils.composable.getTop
 import com.toasterofbread.composekit.utils.modifier.brushBackground
-import com.toasterofbread.spmp.model.OverscrollClearMode
-import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.settings.category.OverscrollClearMode
+import com.toasterofbread.spmp.model.settings.category.PlayerSettings
+import com.toasterofbread.spmp.model.settings.category.ThemeSettings
+import com.toasterofbread.spmp.model.settings.rememberMutableEnumState
 import com.toasterofbread.spmp.platform.isLargeFormFactor
 import com.toasterofbread.spmp.platform.isPortrait
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
@@ -112,7 +114,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
         enter = slideInVertically()
     ) {
         val bottom_padding: Dp = player.nowPlayingBottomPadding()
-        val default_gradient_depth: Float by Settings.KEY_NOWPLAYING_DEFAULT_GRADIENT_DEPTH.rememberMutableState()
+        val default_gradient_depth: Float by ThemeSettings.Key.NOWPLAYING_DEFAULT_GRADIENT_DEPTH.rememberMutableState()
 
         val half_screen_height: Dp = player.screen_size.height * 0.5f
         val page_height: Dp = (
@@ -123,9 +125,9 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
 
         val is_shut: Boolean by remember { derivedStateOf { swipe_state.targetValue == 0 } }
 
-        val overscroll_clear_enabled: Boolean by Settings.KEY_MINI_PLAYER_OVERSCROLL_CLEAR_ENABLED.rememberMutableState()
-        val overscroll_clear_time: Float by Settings.KEY_MINI_PLAYER_OVERSCROLL_CLEAR_TIME.rememberMutableState()
-        val overscroll_clear_mode: OverscrollClearMode by Settings.KEY_MINI_PLAYER_OVERSCROLL_CLEAR_MODE.rememberMutableEnumState()
+        val overscroll_clear_enabled: Boolean by PlayerSettings.Key.MINI_OVERSCROLL_CLEAR_ENABLED.rememberMutableState()
+        val overscroll_clear_time: Float by PlayerSettings.Key.MINI_OVERSCROLL_CLEAR_TIME.rememberMutableState()
+        val overscroll_clear_mode: OverscrollClearMode by PlayerSettings.Key.MINI_OVERSCROLL_CLEAR_MODE.rememberMutableEnumState()
 
         LaunchedEffect(player.controller, swipe_interactions.isNotEmpty(), overscroll_clear_enabled) {
             if (!overscroll_clear_enabled) {

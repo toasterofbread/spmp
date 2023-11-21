@@ -17,7 +17,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
 import androidx.core.graphics.drawable.IconCompat
-import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.model.lyrics.LyricsFileConverter
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
@@ -25,9 +25,10 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.song.getSongFormatByQuality
-import com.toasterofbread.spmp.platform.PlatformBinder
+import com.toasterofbread.spmp.model.settings.Settings
+import com.toasterofbread.spmp.model.settings.category.StreamingSettings
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.composekit.platform.PlatformFile
+import com.toasterofbread.spmp.platform.PlatformBinder
 import com.toasterofbread.spmp.platform.PlatformServiceImpl
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
@@ -135,7 +136,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
                     return download
                 }
             }
-            return Download(context, song, Settings.getEnum(Settings.KEY_DOWNLOAD_AUDIO_QUALITY), true, download_inc++)
+            return Download(context, song, Settings.getEnum(StreamingSettings.Key.DOWNLOAD_AUDIO_QUALITY), true, download_inc++)
         }
     }
 

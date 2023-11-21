@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredSize
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
@@ -42,10 +41,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -55,20 +54,10 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.artist.Artist
-import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.composekit.platform.composable.SwipeRefresh
-import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.component.MusicTopBar
-import com.toasterofbread.spmp.ui.component.WaveBorder
-import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.common.getThemeColour
@@ -78,6 +67,14 @@ import com.toasterofbread.composekit.utils.modifier.background
 import com.toasterofbread.composekit.utils.modifier.brushBackground
 import com.toasterofbread.composekit.utils.modifier.drawScopeBackground
 import com.toasterofbread.composekit.utils.modifier.horizontal
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
+import com.toasterofbread.spmp.model.settings.category.TopBarSettings
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.WaveBorder
+import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 
 private const val ARTIST_IMAGE_SCROLL_MODIFIER = 0.25f
 
@@ -126,7 +123,7 @@ fun ArtistLayout(
         InfoDialog(artist) { show_info.value = false }
     }
 
-    val top_bar_over_image: Boolean by Settings.KEY_TOPBAR_DISPLAY_OVER_ARTIST_IMAGE.rememberMutableState()
+    val top_bar_over_image: Boolean by TopBarSettings.Key.DISPLAY_OVER_ARTIST_IMAGE.rememberMutableState()
     var music_top_bar_showing by remember { mutableStateOf(false) }
     val top_bar_alpha by animateFloatAsState(if (!top_bar_over_image || music_top_bar_showing || multiselect_context?.is_active == true) 1f else 0f)
 
@@ -153,7 +150,7 @@ fun ArtistLayout(
             }
 
             music_top_bar_showing = player.top_bar.MusicTopBar(
-                Settings.KEY_LYRICS_SHOW_IN_ARTIST,
+                TopBarSettings.Key.SHOW_IN_ARTIST,
                 Modifier.fillMaxWidth().zIndex(1f),
                 padding = content_padding.horizontal
             ).showing

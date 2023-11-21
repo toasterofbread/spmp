@@ -1,34 +1,34 @@
-package com.toasterofbread.spmp.ui.layout.apppage.settingspage
+package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
 import LocalPlayerState
 import androidx.compose.runtime.remember
 import com.toasterofbread.composekit.settings.ui.item.SettingsGroupItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsSliderItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsStringSetItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsToggleItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
-import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.settings.category.FeedSettings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.resources.uilocalisation.RawLocalisedString
+import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
+import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppStringSetItem
 
-internal fun getFeedCategory(): List<SettingsItem> {
+internal fun getFeedCategoryItems(): List<SettingsItem> {
     return listOf(
         SettingsGroupItem(getString("s_group_rec_feed")),
 
         SettingsToggleItem(
-            SettingsValueState(Settings.KEY_FEED_SHOW_FILTER_BAR.name),
+            SettingsValueState(FeedSettings.Key.SHOW_FILTER_BAR.getName()),
             getString("s_key_feed_show_filter_bar"), getString("s_sub_feed_show_filter_bar")
         ),
 
         SettingsToggleItem(
-            SettingsValueState(Settings.KEY_FEED_SHOW_SONG_DOWNLOAD_INDICATORS.name),
+            SettingsValueState(FeedSettings.Key.SHOW_SONG_DOWNLOAD_INDICATORS.getName()),
             getString("s_key_feed_show_song_download_indicators"), null
         ),
 
         AppSliderItem(
-            SettingsValueState<Int>(Settings.KEY_FEED_INITIAL_ROWS.name),
+            SettingsValueState<Int>(FeedSettings.Key.INITIAL_ROWS.getName()),
             getString("s_key_feed_initial_rows"),
             getString("s_sub_feed_initial_rows"),
             "1",
@@ -38,7 +38,7 @@ internal fun getFeedCategory(): List<SettingsItem> {
         ),
 
         AppSliderItem(
-            SettingsValueState<Int>(Settings.KEY_FEED_SQUARE_PREVIEW_TEXT_LINES.name),
+            SettingsValueState<Int>(FeedSettings.Key.SQUARE_PREVIEW_TEXT_LINES.getName()),
             getString("s_key_feed_square_preview_text_lines"),
             null,
             "1",
@@ -47,7 +47,7 @@ internal fun getFeedCategory(): List<SettingsItem> {
         ),
 
         AppSliderItem(
-            SettingsValueState<Int>(Settings.KEY_FEED_GRID_ROW_COUNT.name),
+            SettingsValueState<Int>(FeedSettings.Key.GRID_ROW_COUNT.getName()),
             getString("s_key_feed_grid_row_count"),
             null,
             "1",
@@ -56,7 +56,7 @@ internal fun getFeedCategory(): List<SettingsItem> {
         ),
 
         AppSliderItem(
-            SettingsValueState<Int>(Settings.KEY_FEED_GRID_ROW_COUNT_EXPANDED.name),
+            SettingsValueState<Int>(FeedSettings.Key.GRID_ROW_COUNT_EXPANDED.getName()),
             getString("s_key_feed_grid_row_count_expanded"),
             null,
             "1",
@@ -65,7 +65,7 @@ internal fun getFeedCategory(): List<SettingsItem> {
         ),
 
         AppSliderItem(
-            SettingsValueState<Int>(Settings.KEY_FEED_ALT_GRID_ROW_COUNT.name),
+            SettingsValueState<Int>(FeedSettings.Key.ALT_GRID_ROW_COUNT.getName()),
             getString("s_key_feed_alt_grid_row_count"),
             null,
             "1",
@@ -74,7 +74,7 @@ internal fun getFeedCategory(): List<SettingsItem> {
         ),
 
         AppSliderItem(
-            SettingsValueState<Int>(Settings.KEY_FEED_ALT_GRID_ROW_COUNT_EXPANDED.name),
+            SettingsValueState<Int>(FeedSettings.Key.ALT_GRID_ROW_COUNT_EXPANDED.getName()),
             getString("s_key_feed_alt_grid_row_count_expanded"),
             null,
             "1",
@@ -83,12 +83,12 @@ internal fun getFeedCategory(): List<SettingsItem> {
         ),
 
         SettingsToggleItem(
-            SettingsValueState(Settings.KEY_FEED_SHOW_RADIOS.name),
+            SettingsValueState(FeedSettings.Key.SHOW_RADIOS.getName()),
             getString("s_key_feed_show_radios"), null
         ),
 
         AppStringSetItem(
-            SettingsValueState(Settings.KEY_FEED_HIDDEN_ROWS.name),
+            SettingsValueState(FeedSettings.Key.HIDDEN_ROWS.getName()),
             getString("s_key_hidden_feed_rows"), getString("s_sub_hidden_feed_rows"),
             getString("s_hidden_feed_rows_dialog_title"),
             itemToText = {

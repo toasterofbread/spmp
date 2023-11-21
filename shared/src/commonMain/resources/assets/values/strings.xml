@@ -294,12 +294,11 @@
     <string name="settings_value_out_of_$range">Out of range ($range)</string>
     <string name="settings_value_not_int">Not an integer</string>
     <string name="settings_value_not_float">Not a float</string>
-    <string name="settings_value_not_ipv4">Not a valid IPv4 address</string>
+    <string name="settings_value_not_ipv4">Not a valid IPv4 addrefss</string>
     <string name="settings_value_not_port">Not a valid port</string>
 
     <string name="s_page_preferences">Settings</string>
 
-    <string name="s_cat_general">General</string>
     <string name="s_key_interface_lang">Interface language</string>
     <string name="s_sub_interface_lang">Language used for interface text</string>
     <string name="s_key_data_lang">Data language</string>
@@ -309,8 +308,6 @@
     <string name="s_key_lpm_close_on_action">Close menu on action</string>
     <string name="s_key_lpm_increment_play_after">Increment 'Play after' action on use</string>
 
-    <string name="s_cat_filter">Filter</string>
-    
     <string name="s_key_filter_enable">Enable item filter</string>
     <string name="s_key_filter_title_keywords">Title filter keywords</string>
     <string name="s_sub_filter_title_keywords">If an item's title contains any of these keywords, it will be hidden</string>
@@ -318,8 +315,6 @@
     <string name="s_key_filter_apply_to_artists">Apply filter to artists</string>
     <string name="s_key_filter_apply_to_artist_items">Apply filter to artist items</string>
     <string name="s_filter_title_keywords_dialog_title">Add keyword</string>
-
-    <string name="s_cat_home_page">Home page</string>
 
     <string name="s_key_hp_show_visualiser">Show music visualiser</string>
     <string name="s_sub_hp_show_visualiser">Displayed on the top bar during playback</string>
@@ -344,8 +339,11 @@
 
     <string name="s_key_open_np_on_song_played">Open player when song clicked</string>
     <string name="s_sub_open_np_on_song_played">The now playing menu will open automatically when clicking and playing a song</string>
+
     <string name="s_key_multiselect_cancel_on_action">Cancel multiple selection after action</string>
     <string name="s_sub_multiselect_cancel_on_action">Disable media item multiselect states once an action is performed</string>
+
+    <string name="s_key_multiselect_cancel_on_none_selected">Cancel multiselect once nothing is selected</string>
 
     <string name="s_key_start_radio_on_song_press">Start radio on song press</string>
     <string name="s_sub_start_radio_on_song_press">Instead of playing just the song, its YouTube radio will be added to the queue</string>
@@ -363,8 +361,6 @@
 
     <string name="s_key_stop_player_on_app_close">Stop player on app close</string>
     <string name="s_sub_stop_player_on_app_close">Music player will be stopped if the app is cleared from recents</string>
-
-    <string name="s_cat_player">Player</string>
 
     <string name="s_key_mini_player_show_prev_button">Show previous button in mini-player</string>
     <string name="s_key_mini_player_overscroll_clear_enabled">Swipe mini-player down to clear queue</string>
@@ -406,13 +402,9 @@
     <string name="s_sub_resume_on_wired_connect">If playback was paused by device disconnection, playback will resume when a wired audio device is connected</string>
     <string name="s_key_pause_on_wired_disconnect">Pause when wired device disconnected</string>
 
-    <string name="s_cat_library">Library</string>
-
     <string name="s_key_library_path">Library storage path</string>
     <string name="s_sub_library_path">Location to use for storing local playlists and songs</string>
     <string name="s_key_show_likes_playlist">Show likes playlist</string>
-
-    <string name="s_cat_theming">Theming</string>
 
     <string name="s_key_current_theme">Current theme</string>
     <string name="s_theme_editor_title">Edit theme</string>
@@ -427,8 +419,6 @@
     <string name="s_option_np_accent_none">Don\'t use accent colour</string>
 
     <string name="s_key_np_default_gradient_depth">Default gradient depth</string>
-
-    <string name="s_cat_lyrics">Lyrics</string>
 
     <string name="s_key_lyrics_default_source">Default lyrics source</string>
 
@@ -455,7 +445,6 @@
 
     <string name="s_key_lyrics_font_size">Font size</string>
 
-    <string name="s_group_top_bar_lyrics">Top bar lyrics</string>
     <string name="s_key_lyrics_top_bar_enable">Enable top bar lyrics</string>
     <string name="s_key_lyrics_top_bar_max_lines">Max lines</string>
     <string name="s_key_lyrics_top_bar_preapply_max_lines">Pre-allocate the space needed to display max lines</string>
@@ -487,8 +476,6 @@
     <string name="s_option_audio_quality_medium">Medium</string>
     <string name="s_option_audio_quality_low">Low</string>
 
-    <string name="s_cat_download">Downloads</string>
-
     <string name="s_key_video_formats_endpoint">Song stream/download method</string>
 
     <string name="s_key_auto_download_enabled">Enable song auto-download</string>
@@ -509,8 +496,6 @@
     <string name="s_option_listen_count_threshold_type_percent">Percentage</string>
     <string name="s_button_reset_stats">Reset listen stats</string>
     <string name="s_confirm_reset_stats">All recorded stats will be deleted</string>
-
-    <string name="s_cat_other">Other</string>
 
     <string name="s_key_search_show_suggestions">Show search suggestions</string>
     <string name="s_key_navbar_height_multiplier">Navigation bar height multiplier</string>
@@ -535,7 +520,6 @@
     <string name="s_discord_status_enable">Enable</string>
     <string name="s_discord_status_disable">Disable</string>
 
-    <string name="s_cat_server">Server</string>
     <string name="s_info_server">The SpMp server component (SpMs) must be running at the specified port IP address and port. https://github.com/toasterofbread/spmp-server</string>
 
     <string name="s_key_server_ip">Server IP address</string>
@@ -551,8 +535,6 @@
     <string name="s_group_localisation">Localisation</string>
     <string name="s_key_unlocalised_strings">Unlocalised strings</string>
     <string name="s_sub_unlocalised_strings">Strings that have not been localised for the current language</string>
-
-    <string name="s_cat_discord_status">Discord status</string>
 
     <string name="s_group_discord_status_disable_when">Disable status when</string>
     <string name="s_key_discord_status_disable_when_invisible">Invisible</string>
@@ -581,7 +563,6 @@
     <string name="s_sub_discord_status_show_button_project">Opens the project repository on GitHub</string>
     <string name="s_key_discord_status_button_project_text">Project page button text</string>
 
-    <string name="s_group_topbar">Music top bar</string>
     <string name="s_key_topbar_lyrics_linger">Lyrics linger</string>
     <string name="s_sub_topbar_lyrics_linger">When a line ends, it will remain visible until the next line begins</string>
     <string name="s_key_topbar_visualiser_width">Visualiser width</string>
@@ -589,17 +570,41 @@
     <string name="s_key_topbar_show_visualiser_in_queue">Show visualiser in music queue</string>
     <string name="s_key_topbar_display_over_artist_image">Display over main image on artist page</string>
 
-    <string name="s_cat_desc_general">Language, behaviour, and other options</string>
-    <string name="s_cat_desc_filter">Hide songs and playlists by keyword</string>
-    <string name="s_cat_desc_home_page">Cherry-pick song recommendations</string>
+    <string name="s_cat_general">General</string>
+    <string name="s_cat_desc_general">Language, and other options</string>
+
+    <string name="s_cat_behaviour">Behaviour</string>
+    <string name="s_cat_desc_behaviour">Various display and action tweaks</string>
+
+    <string name="s_cat_player">Player</string>
     <string name="s_cat_desc_player">Adjust music player view</string>
-    <string name="s_cat_desc_library">Control how the library is displayed</string>
-    <string name="s_cat_desc_theming">Customise app colours and change accent source</string>
+
+    <string name="s_cat_feed">Song feed</string>
+    <string name="s_cat_desc_feed">Cherry-pick song recommendations</string>
+
+    <string name="s_cat_theme">Theming</string>
+    <string name="s_cat_desc_theme">Customise app colours and change accent source</string>
+
+    <string name="s_cat_lyrics">Lyrics</string>
     <string name="s_cat_desc_lyrics">Lyrics appearance and behaviour</string>
-    <string name="s_cat_desc_download">Download quality and automatic download options</string>
+
+    <string name="s_cat_topbar">Music top bar</string>
+    <string name="s_cat_desc_topbar">Show, hide, and customise the top bar</string>
+
+    <string name="s_cat_discord_status">Discord status</string>
     <string name="s_cat_desc_discord_status">Manage Discord account and customise status appearance</string>
-    <string name="s_cat_desc_other">Cache and other miscellaneous options</string>
+
+    <string name="s_cat_filter">Filter</string>
+    <string name="s_cat_desc_filter">Hide songs and playlists by keyword</string>
+
+    <string name="s_cat_streaming">Playback</string>
+    <string name="s_cat_desc_streaming">Audio quality and playback settings</string>
+
+    <string name="s_cat_server">Server</string>
     <string name="s_cat_desc_server">Configure the connection to SpMs</string>
+
+    <string name="s_cat_misc">Other</string>
+    <string name="s_cat_desc_misc">Cache and other miscellaneous options</string>
 
     <string name="song_related_page_no_content">Song has no related content</string>
     <string name="song_related_page_empty_row">No content</string>
@@ -663,5 +668,7 @@
 
     <string name="err_root_not_granted">Could not get root privledges</string>
     <string name="err_secure_settings_grant_failed">Granting secure settings permission failed</string>
+
+    <string name="settings_export_filename_$date">SpMp_settings_$date</string>
 
 </resources>

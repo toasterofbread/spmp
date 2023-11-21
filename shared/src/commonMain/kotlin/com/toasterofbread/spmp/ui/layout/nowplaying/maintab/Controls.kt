@@ -32,9 +32,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.drawOutline
-import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -44,19 +41,19 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.toasterofbread.composekit.platform.composable.platformClickable
+import com.toasterofbread.composekit.platform.vibrateShort
+import com.toasterofbread.composekit.utils.common.getValue
+import com.toasterofbread.composekit.utils.composable.Marquee
+import com.toasterofbread.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.composekit.platform.composable.platformClickable
-import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
-import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
-import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
-import com.toasterofbread.composekit.utils.common.getValue
-import com.toasterofbread.composekit.utils.composable.Marquee
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
-import com.toasterofbread.composekit.utils.modifier.bounceOnClick
+import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
+import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 
 private const val TITLE_FONT_SIZE_SP: Float = 21f
 private const val ARTIST_FONT_SIZE_SP: Float = 12f

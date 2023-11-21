@@ -1,14 +1,14 @@
 package com.toasterofbread.spmp.youtubeapi.lyrics
 
 import androidx.compose.ui.graphics.Color
-import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.composekit.platform.PlatformFile
+import com.toasterofbread.db.mediaitem.LyricsById
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.settings.category.LyricsSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getStringTODO
-import com.toasterofbread.db.mediaitem.LyricsById
-import com.toasterofbread.composekit.platform.PlatformFile
 
 data class LyricsReference(val source_index: Int, val id: String, val local_file: PlatformFile? = null) {
     fun isNone(): Boolean = source_index < 0
@@ -60,7 +60,7 @@ sealed class LyricsSource(val source_index: Int) {
         }
 
         inline fun iterateByPriority(
-            default: Int = Settings.KEY_LYRICS_DEFAULT_SOURCE.get(),
+            default: Int = LyricsSettings.Key.DEFAULT_SOURCE.get(),
             action: (LyricsSource) -> Unit
         ) {
             for (i in 0 until SOURCE_AMOUNT) {
@@ -72,7 +72,7 @@ sealed class LyricsSource(val source_index: Int) {
         suspend fun searchSongLyricsByPriority(
             song: Song,
             context: AppContext,
-            default: Int = Settings.KEY_LYRICS_DEFAULT_SOURCE.get()
+            default: Int = LyricsSettings.Key.DEFAULT_SOURCE.get()
         ): Result<SongLyrics> {
             val db = context.database
             val (song_title, artist_title) = db.transactionWithResult {

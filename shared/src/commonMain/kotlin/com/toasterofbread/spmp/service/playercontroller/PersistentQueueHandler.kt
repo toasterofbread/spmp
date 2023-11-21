@@ -2,15 +2,14 @@ package com.toasterofbread.spmp.service.playercontroller
 
 import SpMp
 import com.toasterofbread.spmp.ProjectBuildConfig
-import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
+import com.toasterofbread.spmp.model.settings.category.SystemSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.job
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -61,7 +60,7 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
         PersistentQueueMetadata(player.current_song_index, player.current_position_ms)
 
     suspend fun savePersistentQueue() {
-        if (!persistent_queue_loaded || !Settings.KEY_PERSISTENT_QUEUE.get<Boolean>(context) || ProjectBuildConfig.DISABLE_PERSISTENT_QUEUE == true) {
+        if (!persistent_queue_loaded || !SystemSettings.Key.PERSISTENT_QUEUE.get<Boolean>(context) || ProjectBuildConfig.DISABLE_PERSISTENT_QUEUE == true) {
             return
         }
 
@@ -111,7 +110,7 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
         }
 
         withContext(Dispatchers.IO) {
-            if (!Settings.KEY_PERSISTENT_QUEUE.get<Boolean>(context)) {
+            if (!SystemSettings.Key.PERSISTENT_QUEUE.get<Boolean>(context)) {
                 SpMp.Log.info("loadPersistentQueue: Skipping, feature disabled")
                 context.deleteFile(PERSISTENT_QUEUE_FILENAME)
                 return@withContext

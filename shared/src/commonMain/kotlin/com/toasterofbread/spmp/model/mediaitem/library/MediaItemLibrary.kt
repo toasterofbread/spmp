@@ -1,20 +1,20 @@
 package com.toasterofbread.spmp.model.mediaitem.library
 
-import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.composekit.platform.PlatformFile
+import com.toasterofbread.composekit.utils.common.addUnique
 import com.toasterofbread.spmp.model.lyrics.LyricsFileConverter
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.settings.category.SystemSettings
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.composekit.platform.PlatformFile
-import com.toasterofbread.composekit.utils.common.addUnique
 
 object MediaItemLibrary {
     fun getLibraryDir(
         context: AppContext,
-        custom_location_uri: String = Settings.KEY_LIBRARY_PATH.get(context),
+        custom_location_uri: String = SystemSettings.Key.LIBRARY_PATH.get(context),
     ): PlatformFile {
         if (custom_location_uri.isBlank()) {
             return getDefaultLibraryDir(context)

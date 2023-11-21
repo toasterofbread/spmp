@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.radiobuilder
 
 import LocalPlayerState
-import SpMp
 import SpMp.isDebugBuild
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
@@ -29,11 +28,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.composekit.platform.composable.BackHandler
+import com.toasterofbread.spmp.model.settings.category.LyricsSettings
+import com.toasterofbread.spmp.model.settings.category.TopBarSettings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
-import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderArtist
@@ -79,7 +78,7 @@ fun RadioBuilderPage(
                 )
         ) {
             player.top_bar.MusicTopBar(
-                Settings.KEY_LYRICS_SHOW_IN_RADIOBUILDER,
+                TopBarSettings.Key.SHOW_IN_RADIOBUILDER,
                 Modifier.fillMaxWidth()
             )
     

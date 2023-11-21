@@ -29,17 +29,19 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.utils.common.thenIf
-import com.toasterofbread.spmp.model.MusicTopBarMode
-import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
+import com.toasterofbread.spmp.model.settings.category.InternalSettings
+import com.toasterofbread.spmp.model.settings.category.LyricsSettings
+import com.toasterofbread.spmp.model.settings.category.MusicTopBarMode
+import com.toasterofbread.spmp.model.settings.category.TopBarSettings
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 
 @Composable
 fun rememberTopBarShouldShowInQueue(mode: MusicTopBarMode): Boolean {
     val player: PlayerState = LocalPlayerState.current
-    val top_bar_lyrics_enabled: Boolean by Settings.KEY_LYRICS_TOP_BAR_ENABLE.rememberMutableState()
-    val show_lyrics_in_queue: Boolean by Settings.KEY_TOPBAR_SHOW_LYRICS_IN_QUEUE.rememberMutableState()
-    val show_visualiser_in_queue: Boolean by Settings.KEY_TOPBAR_SHOW_VISUALISER_IN_QUEUE.rememberMutableState()
+    val top_bar_lyrics_enabled: Boolean by TopBarSettings.Key.LYRICS_ENABLE.rememberMutableState()
+    val show_lyrics_in_queue: Boolean by TopBarSettings.Key.SHOW_LYRICS_IN_QUEUE.rememberMutableState()
+    val show_visualiser_in_queue: Boolean by TopBarSettings.Key.SHOW_VISUALISER_IN_QUEUE.rememberMutableState()
 
     val lyrics_state = remember(player.status.m_song?.id) {
         player.status.m_song?.let { song ->
@@ -110,7 +112,7 @@ class NowPlayingTopBar {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 lyrics_showing = player.top_bar.MusicTopBarWithVisualiser(
-                    Settings.INTERNAL_TOPBAR_MODE_NOWPLAYING,
+                    InternalSettings.Key.TOPBAR_MODE_NOWPLAYING,
                     Modifier.fillMaxSize().weight(1f),
                     song = song
                 ).showing

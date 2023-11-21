@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.youtubeapi.lyrics
 
 import androidx.compose.ui.graphics.Color
+import com.toasterofbread.composekit.utils.common.substringBetween
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
@@ -8,7 +9,6 @@ import com.toasterofbread.spmp.youtubeapi.executeResult
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
 import com.toasterofbread.spmp.youtubeapi.lyrics.petit.parseTimedLyrics
 import com.toasterofbread.spmp.youtubeapi.lyrics.petit.searchPetitLyrics
-import com.toasterofbread.composekit.utils.common.substringBetween
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType

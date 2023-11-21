@@ -5,7 +5,6 @@ import com.toasterofbread.spmp.youtubeapi.YoutubeFormatsResponse
 import com.toasterofbread.spmp.youtubeapi.YoutubeVideoFormat
 import com.toasterofbread.spmp.youtubeapi.buildVideoFormatsRequest
 import com.toasterofbread.spmp.youtubeapi.fromJson
-import java.io.IOException
 
 class YoutubeiVideoFormatsEndpoint(override val api: YoutubeApi): VideoFormatsEndpoint() {
     override suspend fun getVideoFormats(id: String, filter: ((YoutubeVideoFormat) -> Boolean)?): Result<List<YoutubeVideoFormat>> {

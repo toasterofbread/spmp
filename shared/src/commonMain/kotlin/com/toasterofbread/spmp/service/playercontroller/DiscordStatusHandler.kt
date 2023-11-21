@@ -1,17 +1,18 @@
 package com.toasterofbread.spmp.service.playercontroller
 
 import SpMp
+import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.db.Database
-import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.DiscordStatus
+import com.toasterofbread.spmp.model.settings.category.AuthSettings
+import com.toasterofbread.spmp.model.settings.category.DiscordSettings
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrThrowHere
-import com.toasterofbread.composekit.utils.common.launchSingle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -34,7 +35,7 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
     fun onDiscordAccountTokenChanged() {
         discord_rpc?.close()
 
-        val account_token = Settings.KEY_DISCORD_ACCOUNT_TOKEN.get<String>(context.getPrefs())
+        val account_token = AuthSettings.Key.DISCORD_ACCOUNT_TOKEN.get<String>(context.getPrefs())
         if (!DiscordStatus.isSupported() || (account_token.isBlank() && DiscordStatus.isAccountTokenRequired())) {
             discord_rpc = null
             return
@@ -91,10 +92,10 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
                     return@apply
                 }
 
-                val name = formatText(Settings.KEY_DISCORD_STATUS_NAME.get(), status_song, song_title)
-                val text_a = formatText(Settings.KEY_DISCORD_STATUS_TEXT_A.get(), status_song, song_title)
-                val text_b = formatText(Settings.KEY_DISCORD_STATUS_TEXT_B.get(), status_song, song_title)
-                val text_c = formatText(Settings.KEY_DISCORD_STATUS_TEXT_C.get(), status_song, song_title)
+                val name = formatText(DiscordSettings.Key.STATUS_NAME.get(), status_song, song_title)
+                val text_a = formatText(DiscordSettings.Key.STATUS_TEXT_A.get(), status_song, song_title)
+                val text_b = formatText(DiscordSettings.Key.STATUS_TEXT_B.get(), status_song, song_title)
+                val text_c = formatText(DiscordSettings.Key.STATUS_TEXT_C.get(), status_song, song_title)
 
                 val large_image: String?
                 val small_image: String?
@@ -115,11 +116,11 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
                 }
 
                 val buttons = mutableListOf<Pair<String, String>>().apply {
-                    if (Settings.KEY_DISCORD_SHOW_BUTTON_SONG.get()) {
-                        add(Settings.KEY_DISCORD_BUTTON_SONG_TEXT.get<String>() to status_song.getURL(context))
+                    if (DiscordSettings.Key.SHOW_SONG_BUTTON.get()) {
+                        add(DiscordSettings.Key.SONG_BUTTON_TEXT.get<String>() to status_song.getURL(context))
                     }
-                    if (Settings.KEY_DISCORD_SHOW_BUTTON_PROJECT.get()) {
-                        add(Settings.KEY_DISCORD_BUTTON_PROJECT_TEXT.get<String>() to getString("project_url"))
+                    if (DiscordSettings.Key.SHOW_PROJECT_BUTTON.get()) {
+                        add(DiscordSettings.Key.PROJECT_BUTTON_TEXT.get<String>() to getString("project_url"))
                     }
                 }
 

@@ -1,39 +1,39 @@
-package com.toasterofbread.spmp.ui.layout.apppage.settingspage
+package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
 import com.toasterofbread.composekit.settings.ui.item.SettingsGroupItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsMultipleChoiceItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsSliderItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsToggleItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
-import com.toasterofbread.spmp.model.NowPlayingQueueRadioInfoPosition
-import com.toasterofbread.spmp.model.NowPlayingQueueWaveBorderMode
-import com.toasterofbread.spmp.model.OverscrollClearMode
-import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueRadioInfoPosition
+import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueWaveBorderMode
+import com.toasterofbread.spmp.model.settings.category.OverscrollClearMode
+import com.toasterofbread.spmp.model.settings.category.PlayerSettings
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
 import kotlin.math.roundToInt
 
-internal fun getPlayerCategory(): List<SettingsItem> {
+internal fun getPlayerCategoryItems(): List<SettingsItem> {
     return listOf(
         SettingsToggleItem(
-            SettingsValueState(Settings.KEY_MINI_PLAYER_SHOW_PREV_BUTTON.name),
+            SettingsValueState(PlayerSettings.Key.MINI_SHOW_PREV_BUTTON.getName()),
             getString("s_key_mini_player_show_prev_button"), null
         ),
 
         SettingsToggleItem(
-            SettingsValueState(Settings.KEY_MINI_PLAYER_OVERSCROLL_CLEAR_ENABLED.name),
+            SettingsValueState(PlayerSettings.Key.MINI_OVERSCROLL_CLEAR_ENABLED.getName()),
             getString("s_key_mini_player_overscroll_clear_enabled"), null
         ),
 
         AppSliderItem(
-            SettingsValueState(Settings.KEY_MINI_PLAYER_OVERSCROLL_CLEAR_TIME.name),
+            SettingsValueState(PlayerSettings.Key.MINI_OVERSCROLL_CLEAR_TIME.getName()),
             getString("s_key_mini_player_overscroll_clear_time"), null,
             range = 0f .. 1f
         ),
 
         SettingsMultipleChoiceItem(
-            SettingsValueState(Settings.KEY_MINI_PLAYER_OVERSCROLL_CLEAR_MODE.name),
+            SettingsValueState(PlayerSettings.Key.MINI_OVERSCROLL_CLEAR_MODE.getName()),
             getString("s_key_mini_player_overscroll_clear_mode"), null,
             choice_amount = OverscrollClearMode.values().size,
             radio_style = false
@@ -44,13 +44,13 @@ internal fun getPlayerCategory(): List<SettingsItem> {
         SettingsGroupItem(null),
 
         SettingsToggleItem(
-            SettingsValueState(Settings.KEY_PLAYER_SHOW_REPEAT_SHUFFLE_BUTTONS.name),
+            SettingsValueState(PlayerSettings.Key.SHOW_REPEAT_SHUFFLE_BUTTONS.getName()),
             getString("s_key_player_show_repeat_shuffle_buttons"), getString("s_sub_player_show_repeat_shuffle_buttons"),
             title_max_lines = 2
         ),
 
         SettingsMultipleChoiceItem(
-            SettingsValueState(Settings.KEY_PLAYER_OVERLAY_CUSTOM_ACTION.name),
+            SettingsValueState(PlayerSettings.Key.OVERLAY_CUSTOM_ACTION.getName()),
             getString("s_key_player_overlay_menu_custom_action"),
             getString("s_sub_player_overlay_menu_custom_action"),
             PlayerOverlayMenuAction.values().size,
@@ -61,7 +61,7 @@ internal fun getPlayerCategory(): List<SettingsItem> {
         ),
 
         SettingsToggleItem(
-            SettingsValueState(Settings.KEY_PLAYER_OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.name),
+            SettingsValueState(PlayerSettings.Key.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.getName()),
             getString("s_key_player_overlay_menu_swap_long_short_press_actions"),
             null,
             title_max_lines = 2
@@ -70,14 +70,14 @@ internal fun getPlayerCategory(): List<SettingsItem> {
         SettingsGroupItem(null),
 
         AppSliderItem(
-            SettingsValueState(Settings.KEY_NP_QUEUE_ITEM_SWIPE_SENSITIVITY.name),
+            SettingsValueState(PlayerSettings.Key.QUEUE_ITEM_SWIPE_SENSITIVITY.getName()),
             getString("s_key_np_queue_item_swipe_sensitivity"),
             getString("s_sub_np_queue_item_swipe_sensitivity"),
             range = 0.1f .. 2f
         ),
 
         AppSliderItem(
-            SettingsValueState(Settings.KEY_NP_QUEUE_EXTRA_SIDE_PADDING.name),
+            SettingsValueState(PlayerSettings.Key.QUEUE_EXTRA_SIDE_PADDING.getName()),
             getString("s_key_np_queue_extra_side_padding"),
             getString("s_sub_np_queue_extra_side_padding"),
             range = 0f .. 1f,
@@ -89,7 +89,7 @@ internal fun getPlayerCategory(): List<SettingsItem> {
         ),
 
         SettingsMultipleChoiceItem(
-            SettingsValueState(Settings.KEY_NP_QUEUE_WAVE_BORDER_MODE.name),
+            SettingsValueState(PlayerSettings.Key.QUEUE_WAVE_BORDER_MODE.getName()),
             getString("s_key_np_queue_wave_border_mode"),
             getString("s_sub_np_queue_wave_border_mode"),
             NowPlayingQueueWaveBorderMode.values().size,
@@ -106,7 +106,7 @@ internal fun getPlayerCategory(): List<SettingsItem> {
         ),
 
         SettingsMultipleChoiceItem(
-            SettingsValueState(Settings.KEY_NP_QUEUE_RADIO_INFO_POSITION.name),
+            SettingsValueState(PlayerSettings.Key.QUEUE_RADIO_INFO_POSITION.getName()),
             getString("s_key_np_queue_radio_info_position"), null,
             NowPlayingQueueRadioInfoPosition.values().size,
             false,
@@ -116,19 +116,19 @@ internal fun getPlayerCategory(): List<SettingsItem> {
         ),
 
         SettingsToggleItem(
-            SettingsValueState(Settings.KEY_PAUSE_ON_BT_DISCONNECT.name),
+            SettingsValueState(PlayerSettings.Key.PAUSE_ON_BT_DISCONNECT.getName()),
             getString("s_key_pause_on_bt_disconnect"), null
         ),
         SettingsToggleItem(
-            SettingsValueState(Settings.KEY_RESUME_ON_BT_CONNECT.name),
+            SettingsValueState(PlayerSettings.Key.RESUME_ON_BT_CONNECT.getName()),
             getString("s_key_resume_on_bt_connect"), getString("s_sub_resume_on_bt_connect")
         ),
         SettingsToggleItem(
-            SettingsValueState(Settings.KEY_PAUSE_ON_WIRED_DISCONNECT.name),
+            SettingsValueState(PlayerSettings.Key.PAUSE_ON_WIRED_DISCONNECT.getName()),
             getString("s_key_pause_on_wired_disconnect"), null
         ),
         SettingsToggleItem(
-            SettingsValueState(Settings.KEY_RESUME_ON_WIRED_CONNECT.name),
+            SettingsValueState(PlayerSettings.Key.RESUME_ON_WIRED_CONNECT.getName()),
             getString("s_key_resume_on_wired_connect"), getString("s_sub_resume_on_wired_connect")
         )
     )

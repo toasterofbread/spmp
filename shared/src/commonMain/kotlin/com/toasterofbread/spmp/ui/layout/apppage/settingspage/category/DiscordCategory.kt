@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.ui.layout.apppage.settingspage
+package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
 import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.settings.ui.item.BasicSettingsValueState
 import com.toasterofbread.composekit.settings.ui.item.SettingsComposableItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsGroupItem
@@ -41,25 +42,31 @@ import com.toasterofbread.composekit.settings.ui.item.SettingsLargeToggleItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsTextFieldItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsToggleItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
-import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.composekit.utils.composable.LinkifyText
+import com.toasterofbread.composekit.utils.composable.ShapedIconButton
+import com.toasterofbread.spmp.model.settings.Settings
+import com.toasterofbread.spmp.model.settings.category.AuthSettings
+import com.toasterofbread.spmp.model.settings.category.DiscordSettings
+import com.toasterofbread.spmp.model.settings.category.InternalSettings
 import com.toasterofbread.spmp.platform.DiscordStatus
-import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.DiscordAccountPreview
 import com.toasterofbread.spmp.ui.layout.DiscordLoginConfirmation
-import com.toasterofbread.composekit.utils.composable.LinkifyText
-import com.toasterofbread.composekit.utils.composable.ShapedIconButton
+import com.toasterofbread.spmp.ui.layout.apppage.settingspage.PrefsPageScreen
 
-internal fun getDiscordStatusGroup(discord_auth: SettingsValueState<String>): List<SettingsItem> {
+internal fun getDiscordCategoryItems(): List<SettingsItem> {
     if (!DiscordStatus.isSupported()) {
         return emptyList()
     }
 
+    val discord_auth: SettingsValueState<String> = SettingsValueState<String>(
+        AuthSettings.Key.DISCORD_ACCOUNT_TOKEN.getName()
+    ).init(Settings.prefs, Settings::provideDefault)
     var account_token by mutableStateOf(discord_auth.get())
 
     return listOf(
         SettingsComposableItem {
-            var accepted: Boolean by Settings.INTERNAL_DISCORD_WARNING_ACCEPTED.rememberMutableState()
+            var accepted: Boolean by InternalSettings.Key.DISCORD_WARNING_ACCEPTED.rememberMutableState()
 
             AnimatedVisibility(!accepted, enter = expandVertically(), exit = shrinkVertically()) {
                 Card(
@@ -94,6 +101,7 @@ internal fun getDiscordStatusGroup(discord_auth: SettingsValueState<String>): Li
 
         SettingsLargeToggleItem(
             object : BasicSettingsValueState<Boolean> {
+                override fun getKeys(): List<String> = discord_auth.getKeys()
                 override fun get(): Boolean = discord_auth.get().isNotEmpty()
                 override fun set(value: Boolean) {
                     if (!value) {
@@ -105,9 +113,9 @@ internal fun getDiscordStatusGroup(discord_auth: SettingsValueState<String>): Li
                 override fun release(prefs: PlatformPreferences) {}
                 override fun setEnableAutosave(value: Boolean) {}
                 override fun reset() = discord_auth.reset()
-                override fun save() = discord_auth.save()
+                override fun PlatformPreferences.Editor.save() = with (discord_auth) { save() }
                 override fun getDefault(defaultProvider: (String) -> Any): Boolean =
-                    (defaultProvider(Settings.KEY_DISCORD_ACCOUNT_TOKEN.name) as String).isNotEmpty()
+                    (defaultProvider(AuthSettings.Key.DISCORD_ACCOUNT_TOKEN.getName()) as String).isNotEmpty()
 
                 @Composable
                 override fun onChanged(key: Any?, action: (Boolean) -> Unit) {
@@ -159,7 +167,7 @@ internal fun getDiscordStatusGroup(discord_auth: SettingsValueState<String>): Li
                     )
                 }
             },
-            prerequisite_value = SettingsValueState(Settings.INTERNAL_DISCORD_WARNING_ACCEPTED.name)
+            prerequisite_value = SettingsValueState(InternalSettings.Key.DISCORD_WARNING_ACCEPTED.getName())
         ) { target, setEnabled, _, openPage ->
             if (target) {
                 openPage(PrefsPageScreen.DISCORD_LOGIN.ordinal, null)
@@ -172,23 +180,23 @@ internal fun getDiscordStatusGroup(discord_auth: SettingsValueState<String>): Li
         SettingsGroupItem(getString("s_group_discord_status_disable_when")),
 
         SettingsToggleItem(
-            SettingsValueState(Settings.KEY_DISCORD_STATUS_DISABLE_WHEN_INVISIBLE.name),
+            SettingsValueState(DiscordSettings.Key.STATUS_DISABLE_WHEN_INVISIBLE.getName()),
             getString("s_key_discord_status_disable_when_invisible"), null
         ),
         SettingsToggleItem(
-            SettingsValueState(Settings.KEY_DISCORD_STATUS_DISABLE_WHEN_DND.name),
+            SettingsValueState(DiscordSettings.Key.STATUS_DISABLE_WHEN_DND.getName()),
             getString("s_key_discord_status_disable_when_dnd"), null
         ),
         SettingsToggleItem(
-            SettingsValueState(Settings.KEY_DISCORD_STATUS_DISABLE_WHEN_IDLE.name),
+            SettingsValueState(DiscordSettings.Key.STATUS_DISABLE_WHEN_IDLE.getName()),
             getString("s_key_discord_status_disable_when_idle"), null
         ),
         SettingsToggleItem(
-            SettingsValueState(Settings.KEY_DISCORD_STATUS_DISABLE_WHEN_OFFLINE.name),
+            SettingsValueState(DiscordSettings.Key.STATUS_DISABLE_WHEN_OFFLINE.getName()),
             getString("s_key_discord_status_disable_when_offline"), null
         ),
         SettingsToggleItem(
-            SettingsValueState(Settings.KEY_DISCORD_STATUS_DISABLE_WHEN_ONLINE.name),
+            SettingsValueState(DiscordSettings.Key.STATUS_DISABLE_WHEN_ONLINE.getName()),
             getString("s_key_discord_status_disable_when_online"), null
         ),
 
@@ -197,36 +205,36 @@ internal fun getDiscordStatusGroup(discord_auth: SettingsValueState<String>): Li
         SettingsItemInfoText(getString("s_discord_status_text_info")),
 
         SettingsTextFieldItem(
-            SettingsValueState(Settings.KEY_DISCORD_STATUS_NAME.name),
+            SettingsValueState(DiscordSettings.Key.STATUS_NAME.getName()),
             getString("s_key_discord_status_name"), getString("s_sub_discord_status_name")
         ),
         SettingsTextFieldItem(
-            SettingsValueState(Settings.KEY_DISCORD_STATUS_TEXT_A.name),
+            SettingsValueState(DiscordSettings.Key.STATUS_TEXT_A.getName()),
             getString("s_key_discord_status_text_a"), getString("s_sub_discord_status_text_a")
         ),
         SettingsTextFieldItem(
-            SettingsValueState(Settings.KEY_DISCORD_STATUS_TEXT_B.name),
+            SettingsValueState(DiscordSettings.Key.STATUS_TEXT_B.getName()),
             getString("s_key_discord_status_text_b"), getString("s_sub_discord_status_text_b")
         ),
         SettingsTextFieldItem(
-            SettingsValueState(Settings.KEY_DISCORD_STATUS_TEXT_C.name),
+            SettingsValueState(DiscordSettings.Key.STATUS_TEXT_C.getName()),
             getString("s_key_discord_status_text_c"), getString("s_sub_discord_status_text_c")
         ),
 
         SettingsToggleItem(
-            SettingsValueState(Settings.KEY_DISCORD_SHOW_BUTTON_SONG.name),
+            SettingsValueState(DiscordSettings.Key.SHOW_SONG_BUTTON.getName()),
             getString("s_key_discord_status_show_button_song"), getString("s_sub_discord_status_show_button_song")
         ),
         SettingsTextFieldItem(
-            SettingsValueState(Settings.KEY_DISCORD_BUTTON_SONG_TEXT.name),
+            SettingsValueState(DiscordSettings.Key.SONG_BUTTON_TEXT.getName()),
             getString("s_key_discord_status_button_song_text"), null
         ),
         SettingsToggleItem(
-            SettingsValueState(Settings.KEY_DISCORD_SHOW_BUTTON_PROJECT.name),
+            SettingsValueState(DiscordSettings.Key.SHOW_PROJECT_BUTTON.getName()),
             getString("s_key_discord_status_show_button_project"), getString("s_sub_discord_status_show_button_project")
         ),
         SettingsTextFieldItem(
-            SettingsValueState(Settings.KEY_DISCORD_BUTTON_PROJECT_TEXT.name),
+            SettingsValueState(DiscordSettings.Key.PROJECT_BUTTON_TEXT.getName()),
             getString("s_key_discord_status_button_project_text"), null
         )
     )

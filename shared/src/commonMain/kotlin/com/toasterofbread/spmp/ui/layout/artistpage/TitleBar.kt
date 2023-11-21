@@ -46,16 +46,14 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.toasterofbread.composekit.platform.vibrateShort
+import com.toasterofbread.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.toReadableSubscriberCount
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.resources.getStringTODO
-import com.toasterofbread.composekit.settings.ui.Theme
-import com.toasterofbread.composekit.utils.composable.WidthShrinkText
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable

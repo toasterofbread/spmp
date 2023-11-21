@@ -35,7 +35,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.composekit.platform.composable.SwipeRefresh
+import com.toasterofbread.composekit.utils.common.copy
+import com.toasterofbread.composekit.utils.common.getThemeColour
+import com.toasterofbread.composekit.utils.common.thenIf
+import com.toasterofbread.composekit.utils.composable.stickyHeaderWithTopPadding
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
@@ -51,6 +55,9 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.settings.category.FilterSettings
+import com.toasterofbread.spmp.model.settings.category.LyricsSettings
+import com.toasterofbread.spmp.model.settings.category.TopBarSettings
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -58,11 +65,6 @@ import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageWithItem
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
-import com.toasterofbread.composekit.platform.composable.SwipeRefresh
-import com.toasterofbread.composekit.utils.common.copy
-import com.toasterofbread.composekit.utils.common.getThemeColour
-import com.toasterofbread.composekit.utils.common.thenIf
-import com.toasterofbread.composekit.utils.composable.stickyHeaderWithTopPadding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -290,7 +292,7 @@ class PlaylistPage(
             playlist_editor = new_editor
         }
 
-        val apply_item_filter: Boolean by Settings.KEY_FILTER_APPLY_TO_PLAYLIST_ITEMS.rememberMutableState()
+        val apply_item_filter: Boolean by FilterSettings.Key.APPLY_TO_PLAYLIST_ITEMS.rememberMutableState()
 
         LaunchedEffect(playlist_items, sort_type, current_filter, apply_item_filter) {
             sorted_items = playlist_items?.let { items ->
@@ -339,7 +341,7 @@ class PlaylistPage(
             )
 
             val top_bar_showing: Boolean = player.top_bar.MusicTopBar(
-                Settings.KEY_LYRICS_SHOW_IN_SEARCH,
+                TopBarSettings.Key.SHOW_IN_SEARCH,
                 Modifier.fillMaxWidth().zIndex(2f),
                 padding = content_padding.copy(bottom = 0.dp)
             ).showing

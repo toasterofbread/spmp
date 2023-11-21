@@ -25,14 +25,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.composekit.platform.composable.BackHandler
+import com.toasterofbread.composekit.utils.common.getContrasted
+import com.toasterofbread.composekit.utils.composable.Marquee
+import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource.SearchResult
-import com.toasterofbread.composekit.utils.common.getContrasted
-import com.toasterofbread.composekit.utils.composable.Marquee
 
 @Composable
 internal fun ColumnScope.LyricsSearchResults(results_and_source: Pair<List<SearchResult>, Int>, modifier: Modifier = Modifier, onFinished: (Int?) -> Unit) {

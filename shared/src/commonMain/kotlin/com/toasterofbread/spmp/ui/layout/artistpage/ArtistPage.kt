@@ -14,6 +14,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.text.*
 import androidx.compose.ui.unit.*
+import com.toasterofbread.composekit.utils.*
+import com.toasterofbread.composekit.utils.common.copy
+import com.toasterofbread.composekit.utils.composable.*
+import com.toasterofbread.composekit.utils.modifier.horizontal
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
@@ -24,7 +28,8 @@ import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.loadDataOnChange
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
+import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
+import com.toasterofbread.spmp.model.settings.category.FilterSettings
 import com.toasterofbread.spmp.resources.uilocalisation.RawLocalisedString
 import com.toasterofbread.spmp.resources.uilocalisation.YoutubeLocalisedString
 import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
@@ -34,13 +39,8 @@ import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemList
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsRow
-import com.toasterofbread.composekit.utils.*
-import com.toasterofbread.composekit.utils.common.copy
-import com.toasterofbread.composekit.utils.composable.*
-import com.toasterofbread.composekit.utils.modifier.horizontal
 import kotlinx.coroutines.*
 
 @Composable
@@ -57,7 +57,7 @@ fun ArtistPage(
     val coroutine_scope = rememberCoroutineScope()
 
     val own_multiselect_context = remember(multiselect_context) { if (multiselect_context != null) null else MediaItemMultiSelectContext() {} }
-    val apply_filter: Boolean by Settings.KEY_FILTER_APPLY_TO_ARTIST_ITEMS.rememberMutableState()
+    val apply_filter: Boolean by FilterSettings.Key.APPLY_TO_ARTIST_ITEMS.rememberMutableState()
 
     var load_error: Throwable? by remember { mutableStateOf(null) }
     val loading by artist.loadDataOnChange(player.context, load = browse_params == null) { load_error = it }
@@ -175,7 +175,7 @@ fun ArtistPage(
                         val layout_id = (layout.title as? YoutubeLocalisedString)?.getYoutubeStringId()
 
                         val is_singles =
-                            Settings.KEY_TREAT_SINGLES_AS_SONG.get()
+                            BehaviourSettings.Key.TREAT_SINGLES_AS_SONG.get()
                                     && layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_SINGLES
 
                         val is_artist_row: Boolean =

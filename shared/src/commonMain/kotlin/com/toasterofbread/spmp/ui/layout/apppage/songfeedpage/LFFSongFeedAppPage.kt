@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,21 +31,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.composekit.platform.composable.BackHandler
+import com.toasterofbread.composekit.platform.composable.SwipeRefresh
+import com.toasterofbread.composekit.platform.composable.platformClickable
+import com.toasterofbread.composekit.utils.common.launchSingle
+import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
+import com.toasterofbread.spmp.model.settings.category.FeedSettings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.PinnedItemsRow
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.FeedLoadState
 import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
-import com.toasterofbread.composekit.platform.composable.BackHandler
-import androidx.compose.material3.AlertDialog
-import com.toasterofbread.composekit.platform.composable.SwipeRefresh
-import com.toasterofbread.composekit.platform.composable.platformClickable
-import com.toasterofbread.composekit.utils.common.launchSingle
-import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 
 @Composable
 fun SongFeedAppPage.LFFSongFeedAppPage(
@@ -72,15 +72,15 @@ fun SongFeedAppPage.LFFSongFeedAppPage(
             type = MediaItemLayout.Type.ROW
         )
     }
-    val hidden_rows: Set<String> by Settings.KEY_FEED_HIDDEN_ROWS.rememberMutableState()
+    val hidden_rows: Set<String> by FeedSettings.Key.HIDDEN_ROWS.rememberMutableState()
 
-    val square_item_max_text_rows: Int by Settings.KEY_FEED_SQUARE_PREVIEW_TEXT_LINES.rememberMutableState()
-    val show_download_indicators: Boolean by Settings.KEY_FEED_SHOW_SONG_DOWNLOAD_INDICATORS.rememberMutableState()
+    val square_item_max_text_rows: Int by FeedSettings.Key.SQUARE_PREVIEW_TEXT_LINES.rememberMutableState()
+    val show_download_indicators: Boolean by FeedSettings.Key.SHOW_SONG_DOWNLOAD_INDICATORS.rememberMutableState()
 
-    val grid_rows: Int by Settings.KEY_FEED_GRID_ROW_COUNT.rememberMutableState()
-    val grid_rows_expanded: Int by Settings.KEY_FEED_GRID_ROW_COUNT_EXPANDED.rememberMutableState()
-    val alt_grid_rows: Int by Settings.KEY_FEED_ALT_GRID_ROW_COUNT.rememberMutableState()
-    val alt_grid_rows_expanded: Int by Settings.KEY_FEED_ALT_GRID_ROW_COUNT_EXPANDED.rememberMutableState()
+    val grid_rows: Int by FeedSettings.Key.GRID_ROW_COUNT.rememberMutableState()
+    val grid_rows_expanded: Int by FeedSettings.Key.GRID_ROW_COUNT_EXPANDED.rememberMutableState()
+    val alt_grid_rows: Int by FeedSettings.Key.ALT_GRID_ROW_COUNT.rememberMutableState()
+    val alt_grid_rows_expanded: Int by FeedSettings.Key.ALT_GRID_ROW_COUNT_EXPANDED.rememberMutableState()
 
     LaunchedEffect(Unit) {
         if (layouts.isNullOrEmpty()) {
@@ -143,8 +143,8 @@ fun SongFeedAppPage.LFFSongFeedAppPage(
                 onDismissRequest = { hiding_layout = null },
                 confirmButton = {
                     Button({
-                        val hidden_rows: Set<String> = Settings.KEY_FEED_HIDDEN_ROWS.get()
-                        Settings.KEY_FEED_HIDDEN_ROWS.set(
+                        val hidden_rows: Set<String> = FeedSettings.Key.HIDDEN_ROWS.get()
+                        FeedSettings.Key.HIDDEN_ROWS.set(
                             hidden_rows.plus(layout.title.serialise())
                         )
 

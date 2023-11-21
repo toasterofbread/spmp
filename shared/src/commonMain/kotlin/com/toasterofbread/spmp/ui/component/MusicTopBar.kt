@@ -43,19 +43,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import app.cash.sqldelight.Query
 import com.toasterofbread.composekit.platform.composable.composeScope
-import com.toasterofbread.spmp.model.MusicTopBarMode
-import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.lyrics.SongLyrics
-import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
-import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.composekit.platform.composable.platformClickable
-import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.composekit.utils.composable.AlignableCrossfade
 import com.toasterofbread.composekit.utils.composable.pauseableInfiniteRepeatableAnimation
+import com.toasterofbread.spmp.model.lyrics.SongLyrics
+import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
+import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.settings.SettingsKey
+import com.toasterofbread.spmp.model.settings.category.MusicTopBarMode
+import com.toasterofbread.spmp.model.settings.category.TopBarSettings
+import com.toasterofbread.spmp.model.settings.rememberMutableEnumState
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -108,7 +110,7 @@ class MusicTopBar(val player: PlayerState) {
 
     @Composable
     fun MusicTopBarWithVisualiser(
-        target_mode_key: Settings,
+        target_mode_key: SettingsKey,
         modifier: Modifier = Modifier,
         song: Song? = LocalPlayerState.current.status.m_song,
         can_show_visualiser: Boolean = false,
@@ -178,7 +180,7 @@ class MusicTopBar(val player: PlayerState) {
 
     @Composable
     fun MusicTopBar(
-        can_show_key: Settings,
+        can_show_key: SettingsKey,
         modifier: Modifier = Modifier,
         padding: PaddingValues = PaddingValues(),
         getBottomBorderOffset: ((height: Int) -> Int)? = null,
@@ -217,8 +219,8 @@ class MusicTopBar(val player: PlayerState) {
         val player = LocalPlayerState.current
         var mode_state: MusicTopBarMode by mutableStateOf(getTargetMode())
 
-        val lyrics_enabled: Boolean by Settings.KEY_LYRICS_TOP_BAR_ENABLE.rememberMutableState()
-        val visualiser_width: Float by Settings.KEY_TOPBAR_VISUALISER_WIDTH.rememberMutableState()
+        val lyrics_enabled: Boolean by TopBarSettings.Key.LYRICS_ENABLE.rememberMutableState()
+        val visualiser_width: Float by TopBarSettings.Key.VISUALISER_WIDTH.rememberMutableState()
         check(visualiser_width in 0f .. 1f)
 
         val sync_offset_state: State<Long?>? = song?.getLyricsSyncOffset(player.database, true)
@@ -297,10 +299,10 @@ class MusicTopBar(val player: PlayerState) {
                             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 when (state) {
                                     is SongLyrics -> {
-                                        val linger: Boolean by Settings.KEY_TOPBAR_LYRICS_LINGER.rememberMutableState()
-                                        val show_furigana: Boolean by Settings.KEY_TOPBAR_LYRICS_SHOW_FURIGANA.rememberMutableState()
-                                        val max_lines: Int by Settings.KEY_LYRICS_TOP_BAR_MAX_LINES.rememberMutableState()
-                                        val preallocate_max_space: Boolean by Settings.KEY_LYRICS_TOP_BAR_PREAPPLY_MAX_LINES.rememberMutableState()
+                                        val linger: Boolean by TopBarSettings.Key.LYRICS_LINGER.rememberMutableState()
+                                        val show_furigana: Boolean by TopBarSettings.Key.LYRICS_SHOW_FURIGANA.rememberMutableState()
+                                        val max_lines: Int by TopBarSettings.Key.LYRICS_MAX_LINES.rememberMutableState()
+                                        val preallocate_max_space: Boolean by TopBarSettings.Key.LYRICS_PREAPPLY_MAX_LINES.rememberMutableState()
 
                                         LyricsLineDisplay(
                                             lyrics = state,

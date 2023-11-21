@@ -14,7 +14,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.requiredHeight
@@ -34,15 +33,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.mediaitem.db.rememberThemeColour
 import com.toasterofbread.composekit.platform.composable.BackHandler
-import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.toasterofbread.composekit.utils.common.contrastAgainst
 import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.composekit.utils.composable.getBottom
 import com.toasterofbread.composekit.utils.composable.getEnd
 import com.toasterofbread.composekit.utils.composable.getStart
+import com.toasterofbread.spmp.model.mediaitem.db.rememberThemeColour
+import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import kotlinx.coroutines.delay
 
 private const val MENU_OPEN_ANIM_MS: Int = 150
@@ -147,7 +146,7 @@ fun LongPressMenu(
                             remember { MutableInteractionSource() },
                             null
                         ) {},
-                    { if (Settings.KEY_LPM_CLOSE_ON_ACTION.get()) close_requested = true }
+                    { if (BehaviourSettings.Key.LPM_CLOSE_ON_ACTION.get()) close_requested = true }
                 )
             }
         }

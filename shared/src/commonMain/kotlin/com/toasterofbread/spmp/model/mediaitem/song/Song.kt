@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.IntOffset
 import app.cash.sqldelight.Query
 import com.toasterofbread.db.Database
-import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.db.mediaitem.song.ArtistById
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
@@ -21,10 +21,13 @@ import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.db.AltSetterProperty
 import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.db.PropertyImpl
+import com.toasterofbread.spmp.model.mediaitem.db.fromNullableSQLBoolean
+import com.toasterofbread.spmp.model.mediaitem.db.toNullableSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
+import com.toasterofbread.spmp.model.settings.category.LyricsSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.crop
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
@@ -33,10 +36,6 @@ import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.toLyricsReference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import com.toasterofbread.db.mediaitem.song.ArtistById
-import com.toasterofbread.spmp.model.mediaitem.db.fromNullableSQLBoolean
-import com.toasterofbread.spmp.model.mediaitem.db.fromSQLBoolean
-import com.toasterofbread.spmp.model.mediaitem.db.toNullableSQLBoolean
 import java.net.URL
 
 private const val STATIC_LYRICS_SYNC_OFFSET: Long = 1000
@@ -169,9 +168,9 @@ interface Song: MediaItem.WithArtist {
         val player: PlatformPlayerService = LocalPlayerState.current.controller ?: return mutableStateOf(0)
 
         val internal_offset: Long? by LyricsSyncOffset.observe(database)
-        val settings_delay: Float by Settings.KEY_LYRICS_SYNC_DELAY.rememberMutableState()
-        val settings_delay_topbar: Float by Settings.KEY_LYRICS_SYNC_DELAY_TOPBAR.rememberMutableState()
-        val settings_delay_bt: Float by Settings.KEY_LYRICS_SYNC_DELAY_BLUETOOTH.rememberMutableState()
+        val settings_delay: Float by LyricsSettings.Key.SYNC_DELAY.rememberMutableState()
+        val settings_delay_topbar: Float by LyricsSettings.Key.SYNC_DELAY_TOPBAR.rememberMutableState()
+        val settings_delay_bt: Float by LyricsSettings.Key.SYNC_DELAY_BLUETOOTH.rememberMutableState()
 
         return remember(player, is_topbar) { derivedStateOf {
             var delay: Float = settings_delay

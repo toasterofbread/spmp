@@ -4,9 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlatformBinder
 import com.toasterofbread.spmp.platform.PlayerListener
-import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.startPlatformService
 import com.toasterofbread.spmp.platform.unbindPlatformService
 import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance

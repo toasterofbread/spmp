@@ -14,7 +14,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Deselect
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Reorder
 import androidx.compose.material.icons.filled.Search
@@ -35,11 +34,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.composekit.utils.composable.ResizableOutlinedTextField
+import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.ui.component.WaveBorder
-import com.toasterofbread.composekit.utils.composable.ResizableOutlinedTextField
-import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.launch
 
 @Composable

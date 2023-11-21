@@ -1,11 +1,11 @@
 package com.toasterofbread.spmp.youtubeapi.model
 
 import com.toasterofbread.spmp.model.FilterChip
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.uilocalisation.YoutubeLocalisedString
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.ChipCloudRendererHeader
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMGetHomeFeedEndpoint
 import com.toasterofbread.spmp.youtubeapi.radio.YoutubeiNextResponse
-import com.toasterofbread.spmp.platform.AppContext
 
 data class YoutubeiBrowseResponse(
     val contents: Contents?,

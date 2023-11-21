@@ -288,7 +288,6 @@
 
     <string name="s_page_preferences">設定</string>
 
-    <string name="s_cat_general">一般</string>
     <string name="s_key_interface_lang">インタフェース言語</string>
     <string name="s_sub_interface_lang">アプリのUIに使われる言語</string>
     <string name="s_key_data_lang">データ言語</string>
@@ -298,8 +297,6 @@
     <string name="s_key_lpm_close_on_action">アクションを行ったら閉じる</string>
     <string name="s_key_lpm_increment_play_after">「○曲後に再生」使用時に曲数を増加</string>
 
-    <string name="s_cat_filter">フィルター</string>
-    
     <string name="s_key_filter_enable">アイテムフィルターを使用</string>
     <string name="s_key_filter_title_keywords">題名フィルターのキーワード</string>
     <string name="s_sub_filter_title_keywords">アイテムの題名にどれかのキーワードが含まれていれば、そのアイテムは隠されます</string>
@@ -307,8 +304,6 @@
     <string name="s_key_filter_apply_to_artists">アーティストにフィルターを適用</string>
     <string name="s_key_filter_apply_to_artist_items">アーティストのアイテムにフィルターを適用</string>
     <string name="s_filter_title_keywords_dialog_title">キーワードを追加</string>
-    
-    <string name="s_cat_home_page">メインページ</string>
 
     <string name="s_key_hp_show_visualiser">音楽ビジュアライザーを表示する</string>
     <string name="s_sub_hp_show_visualiser">再生時にトップバーに表示されます</string>
@@ -333,8 +328,11 @@
 
     <string name="s_key_open_np_on_song_played">曲をタップしたらプレーヤーを開く</string>
     <string name="s_sub_open_np_on_song_played">曲をタップしたときにプレーヤーが自動で開きます</string>
+
     <string name="s_key_multiselect_cancel_on_action">アクション後に複数選択を解除する</string>
     <string name="s_sub_multiselect_cancel_on_action">複数選択のアクションを使った後、複数選択モードが解除されます</string>
+
+    <string name="s_key_multiselect_cancel_on_none_selected">なにも選択されていなければ複数選択を解除する</string>
 
     <string name="s_key_start_radio_on_song_press">曲をタップしたらラジオを再生する</string>
     <string name="s_sub_start_radio_on_song_press">再生するだけではなく、YouTubeのラジオをキューに加える</string>
@@ -352,8 +350,6 @@
 
     <string name="s_key_stop_player_on_app_close">アプリを閉じたら再生を中止する</string>
     <string name="s_sub_stop_player_on_app_close">最近画面からアプリがクリアされると、音楽再生が終わります</string>
-
-    <string name="s_cat_player">プレイヤー</string>
 
     <string name="s_key_mini_player_show_prev_button">ミニプレイヤーで「前へ」のボタンを表示</string>
     <string name="s_key_mini_player_overscroll_clear_enabled">ミニプレーヤーを下にスワイプして曲キューをクリア</string>
@@ -395,13 +391,9 @@
     <string name="s_sub_resume_on_wired_connect">デバイスの切断によって再生が停止された場合、有線オーディオデバイスが接続されると再生が再開されます</string>
     <string name="s_key_pause_on_wired_disconnect">有線オーディオデバイス切断時に再生を一時停止</string>
 
-    <string name="s_cat_library">ライブラリ</string>
-
     <string name="s_key_library_path">ライブラリのストレージ場所</string>
     <string name="s_sub_library_path">プレイリストや曲の保存に使うフォルダ</string>
     <string name="s_key_show_likes_playlist">高評価のプレイシストを表示</string>
-
-    <string name="s_cat_theming">テーマ</string>
 
     <string name="s_key_current_theme">現在のテーマ</string>
     <string name="s_theme_editor_title">テーマを変更する</string>
@@ -416,8 +408,6 @@
     <string name="s_option_np_accent_none">アクセント色不使用</string>
 
     <string name="s_key_np_default_gradient_depth">グラデーションのデフォルトの深さ</string>
-
-    <string name="s_cat_lyrics">歌詞</string>
 
     <string name="s_key_lyrics_default_source">デフォルトの歌詞源</string>
 
@@ -444,7 +434,6 @@
 
     <string name="s_key_lyrics_font_size">フォントサイズ</string>
 
-    <string name="s_group_top_bar_lyrics">トップバーの歌詞</string>
     <string name="s_key_lyrics_top_bar_enable">トップバーの歌詞を表示</string>
     <string name="s_key_lyrics_top_bar_max_lines">最高テキスト行数</string>
     <string name="s_key_lyrics_top_bar_preapply_max_lines">最高行数の表示に必要な場所をあらかじめ取る</string>
@@ -476,8 +465,6 @@
     <string name="s_option_audio_quality_medium">中</string>
     <string name="s_option_audio_quality_low">低</string>
 
-    <string name="s_cat_download">ダウンロード</string>
-
     <string name="s_key_video_formats_endpoint">曲のストリーム・ダウンロード方式</string>
 
     <string name="s_key_auto_download_enabled">曲を自動的にダウンロードする</string>
@@ -498,8 +485,6 @@
     <string name="s_option_listen_count_threshold_type_percent"></string> <!--TODO-->
     <string name="s_button_reset_stats"></string> <!--TODO-->
     <string name="s_confirm_reset_stats"></string> <!--TODO-->
-
-    <string name="s_cat_other">その他</string>
 
     <string name="s_key_search_show_suggestions">検索のサジェスチョンを表示</string>
     <string name="s_key_navbar_height_multiplier">ナビゲーションバーの高さの倍率</string>
@@ -524,7 +509,6 @@
     <string name="s_discord_status_enable"></string> <!--TODO-->
     <string name="s_discord_status_disable"></string> <!--TODO-->
 
-    <string name="s_cat_server">サーバー</string>
     <string name="s_info_server">SpMpのサーバー部分(SpMs)が設定されたIPアドレスとポートで実行されていなければなりません。https://github.com/toasterofbread/spmp-server</string>
 
     <string name="s_key_server_ip">サーバーのIPアドレス</string>
@@ -540,8 +524,6 @@
     <string name="s_group_localisation">ローカリゼーション</string>
     <string name="s_key_unlocalised_strings">ローカライズされてない文</string>
     <string name="s_sub_unlocalised_strings">現在のアプリ言語に対してまだ書かれていないストリング</string>
-
-    <string name="s_cat_discord_status">Discordステータス</string>
 
     <string name="s_group_discord_status_disable_when">ステータス変更を無効にする状態</string>
     <string name="s_key_discord_status_disable_when_invisible">オンライン状態が隠されている時</string>
@@ -570,7 +552,6 @@
     <string name="s_sub_discord_status_show_button_project">押されるとこのプロジェクトのページが GitHub で開かれます</string>
     <string name="s_key_discord_status_button_project_text">プロジェクトページボタンに表示されるテキスト</string>
 
-    <string name="s_group_topbar">音楽トップバー</string>
     <string name="s_key_topbar_lyrics_linger">残り続ける歌詞</string>
     <string name="s_sub_topbar_lyrics_linger">行が終わっても、次の行が始まるまで表示されます</string>
     <string name="s_key_topbar_visualiser_width">ビジュアライザーの横幅</string>
@@ -578,18 +559,41 @@
     <string name="s_key_topbar_show_visualiser_in_queue">ビジュアライザーを曲キューで表示</string>
     <string name="s_key_topbar_display_over_artist_image">アーティストページのメイン画像の上に表示</string>
 
-    <string name="s_cat_desc_general">言語やアプリ動作などのオプション</string>
-    <string name="s_cat_desc_filter">キーワードを含む曲やプレイリストを隠す</string>
-    <string name="s_cat_desc_home_page">おすすめの曲やアーティストの調節</string>
+    <string name="s_cat_general">一般</string>
+    <string name="s_cat_desc_general">言語などのオプション</string>
+
+    <string name="s_cat_behaviour">作動</string>
+    <string name="s_cat_desc_behaviour">いくつかの表示やアクションの設定</string>
+
+    <string name="s_cat_player">プレイヤー</string>
     <string name="s_cat_desc_player">音楽プレイヤー画面の変更</string>
-    <string name="s_cat_desc_library">ライブラリの表示設定</string>
-    <string name="s_cat_desc_theming">アプリ内の色をカスタマイズする</string>
+
+    <string name="s_cat_feed">音楽フィード</string>
+    <string name="s_cat_desc_feed">おすすめの曲やアーティストの調節</string>
+
+    <string name="s_cat_theme">テーマ</string>
+    <string name="s_cat_desc_theme">アプリ内の色をカスタマイズ</string>
+
+    <string name="s_cat_lyrics">歌詞</string>
     <string name="s_cat_desc_lyrics">歌詞の表示や動作の設定</string>
-    <string name="s_cat_desc_download">音質と自動ダウンロードのオプション</string>
+
+    <string name="s_cat_topbar">音楽トップバー</string>
+    <string name="s_cat_desc_topbar">全画面の上に表示されるバーの変更</string>
+
+    <string name="s_cat_discord_status">Discordステータス</string>
     <string name="s_cat_desc_discord_status">Discordアカウントとステータスの表示の調節</string>
-    <string name="s_cat_desc_other">キャッシュなどの設定</string>
-    <string name="s_cat_desc_server">Configure how SpMp connects to SpMs</string>
+
+    <string name="s_cat_filter">フィルター</string>
+    <string name="s_cat_desc_filter">キーワードを含む曲やプレイリストを隠す</string>
+
+    <string name="s_desc_streaming">再生</string>
+    <string name="s_cat_desc_streaming">音質や再生の調節</string>
+
+    <string name="s_cat_server">サーバー</string>
     <string name="s_cat_desc_server">SpMsへの接続方法の設定</string>
+
+    <string name="s_cat_misc">その他</string>
+    <string name="s_cat_desc_misc">キャッシュなどの設定</string>
 
     <string name="song_related_page_no_content">この曲には関係コンテンツがありません</string>
     <string name="song_related_page_empty_row">なにもありません</string>
@@ -653,5 +657,7 @@
 
     <string name="err_root_not_granted">ルート許可を得ることができませんでした</string>
     <string name="err_secure_settings_grant_failed"></string> <!--TODO-->
+
+    <string name="settings_export_filename_$date">SpMp_設定_$date</string>
 
 </resources>

@@ -9,7 +9,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import app.cash.sqldelight.Query
 import com.toasterofbread.db.Database
-import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.db.mediaitem.ArtistQueries
+import com.toasterofbread.db.mediaitem.PlaylistQueries
+import com.toasterofbread.db.mediaitem.SongQueries
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
@@ -19,26 +21,24 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
-import com.toasterofbread.db.mediaitem.ArtistQueries
-import com.toasterofbread.db.mediaitem.PlaylistQueries
-import com.toasterofbread.db.mediaitem.SongQueries
+import com.toasterofbread.spmp.model.settings.category.FilterSettings
 
 fun isMediaItemHidden(item: MediaItem, db: Database, hidden_items: List<MediaItem>? = null): Boolean {
     if (hidden_items?.any { it.id == item.id } ?: item.Hidden.get(db)) {
         return true
     }
 
-    if (!Settings.KEY_FILTER_ENABLE.get<Boolean>()) {
+    if (!FilterSettings.Key.ENABLE.get<Boolean>()) {
         return false
     }
 
     val title = item.getActiveTitle(db) ?: return false
 
-    if (item is Artist && !Settings.KEY_FILTER_APPLY_TO_ARTISTS.get<Boolean>()) {
+    if (item is Artist && !FilterSettings.Key.APPLY_TO_ARTISTS.get<Boolean>()) {
         return false
     }
 
-    val keywords: Set<String> = Settings.KEY_FILTER_TITLE_KEYWORDS.get()
+    val keywords: Set<String> = FilterSettings.Key.TITLE_KEYWORDS.get()
     for (keyword in keywords) {
         if (title.contains(keyword)) {
             return true

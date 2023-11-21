@@ -28,16 +28,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.composekit.utils.common.copy
+import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.composekit.utils.composable.spanItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
+import com.toasterofbread.spmp.model.settings.category.LyricsSettings
+import com.toasterofbread.spmp.model.settings.category.TopBarSettings
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.composekit.utils.common.copy
-import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.composekit.utils.composable.spanItem
 import kotlin.math.absoluteValue
 
 @Composable
@@ -55,7 +56,7 @@ fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, co
         val top_padding: Dp = content_padding.calculateTopPadding()
 
         val top_bar_showing: Boolean = player.top_bar.MusicTopBar(
-            Settings.KEY_LYRICS_SHOW_IN_VIEWMORE,
+            TopBarSettings.Key.SHOW_IN_VIEWMORE,
             Modifier.fillMaxWidth().zIndex(10f),
             getBottomBorderColour = player.theme.background_provider,
             padding = PaddingValues(top = top_padding)

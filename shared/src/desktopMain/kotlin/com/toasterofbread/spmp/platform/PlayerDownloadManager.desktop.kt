@@ -1,8 +1,8 @@
 package com.toasterofbread.spmp.platform
 
+import com.toasterofbread.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
-import com.toasterofbread.composekit.platform.PlatformFile
 
 actual class PlayerDownloadManager actual constructor(context: AppContext) {
     actual class DownloadStatus {

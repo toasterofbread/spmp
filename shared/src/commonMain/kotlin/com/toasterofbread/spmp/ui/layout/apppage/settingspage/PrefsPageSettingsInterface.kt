@@ -9,40 +9,24 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.composekit.settings.ui.SettingsInterface
 import com.toasterofbread.composekit.settings.ui.SettingsPageWithItems
-import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
-import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.settings.Settings
+import com.toasterofbread.spmp.model.settings.category.AuthSettings
+import com.toasterofbread.spmp.model.settings.category.SettingsCategory
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.getUiLanguage
-import com.toasterofbread.spmp.resources.Languages
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
-
-fun PrefsPageCategory.getCategory(context: AppContext, discord_auth_state: SettingsValueState<String>? = null): List<SettingsItem> =
-    when (this) {
-        PrefsPageCategory.GENERAL -> getGeneralCategory(context.getUiLanguage(), Languages.loadAvailableLanugages(context))
-        PrefsPageCategory.FILTER -> getFilterCategory()
-        PrefsPageCategory.FEED -> getFeedCategory()
-        PrefsPageCategory.PLAYER -> getPlayerCategory()
-        PrefsPageCategory.LIBRARY -> getLibraryCategory(context)
-        PrefsPageCategory.THEME -> getThemeCategory(context.theme)
-        PrefsPageCategory.LYRICS -> getLyricsCategory()
-        PrefsPageCategory.DOWNLOAD -> getDownloadCategory()
-        PrefsPageCategory.DISCORD_STATUS -> getDiscordStatusGroup(discord_auth_state!!)
-        PrefsPageCategory.SERVER -> getServerCategory()
-        PrefsPageCategory.OTHER -> getOtherCategory()
-        PrefsPageCategory.DEVELOPMENT -> getDevelopmentCategory()
-    }
 
 internal fun getPrefsPageSettingsInterface(
     page_state: AppPageState,
     pill_menu: PillMenu,
     ytm_auth: SettingsValueState<Set<String>>,
     footer_modifier: Modifier,
-    getCategory: () -> PrefsPageCategory?,
+    getCategory: () -> SettingsCategory.Page?,
     close: () -> Unit
 ): SettingsInterface {
     lateinit var settings_interface: SettingsInterface
@@ -70,29 +54,25 @@ internal fun getPrefsPageSettingsInterface(
     }
 
     val discord_auth: SettingsValueState<String> =
-        SettingsValueState<String>(Settings.KEY_DISCORD_ACCOUNT_TOKEN.name).init(Settings.prefs, Settings.Companion::provideDefault)
-
-    val categories: MutableMap<PrefsPageCategory, List<SettingsItem>> = mutableMapOf()
+        SettingsValueState<String>(AuthSettings.Key.DISCORD_ACCOUNT_TOKEN.getName()).init(
+            Settings.prefs, Settings::provideDefault)
 
     settings_interface = SettingsInterface(
         { context.theme },
         PrefsPageScreen.ROOT.ordinal,
         Settings.prefs,
-        Settings.Companion::provideDefault,
+        Settings::provideDefault,
         { context.vibrateShort() },
         { index, param ->
             when (PrefsPageScreen.values()[index]) {
                 PrefsPageScreen.ROOT -> SettingsPageWithItems(
-                    { getCategory()?.getTitle() },
+                    { getCategory()?.title },
                     {
-                        val category: PrefsPageCategory = getCategory() ?: return@SettingsPageWithItems emptyList()
-                        categories.getOrPut(category) {
-                            category.getCategory(context, discord_auth)
-                        }
+                        getCategory()?.getItems(context) ?: emptyList()
                     },
                     getIcon = {
-                        val icon = getCategory()?.getIcon()
-                        var current_icon by remember { mutableStateOf(icon) }
+                        val icon: ImageVector? = getCategory()?.getIcon()
+                        var current_icon: ImageVector? by remember { mutableStateOf(icon) }
 
                         LaunchedEffect(icon) {
                             if (icon != null) {
@@ -112,7 +92,7 @@ internal fun getPrefsPageSettingsInterface(
             if (page == PrefsPageScreen.ROOT.ordinal) {
                 pill_menu.removeActionOverrider(pill_menu_action_overrider)
             }
-        else {
+            else {
                 pill_menu.addActionOverrider(pill_menu_action_overrider)
             }
         },

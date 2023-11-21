@@ -1,8 +1,9 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 package com.toasterofbread.spmp.ui.layout.nowplaying.overlay.lyrics
 
-import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
+import com.toasterofbread.spmp.model.settings.Settings
+import com.toasterofbread.spmp.model.settings.category.LyricsSettings
 import com.toasterofbread.spmp.ui.component.AnnotatedReadingTerm
 import com.toasterofbread.spmp.ui.component.ReadingTextData
 
@@ -18,7 +19,7 @@ internal fun List<ReadingTextData>.getTermRangeOfTime(lyrics: SongLyrics, time: 
         val term = (item.value.data ?: continue) as SongLyrics.Term
 
         val range =
-            if (lyrics.sync_type == SongLyrics.SyncType.WORD_SYNC && !Settings.get<Boolean>(Settings.KEY_LYRICS_ENABLE_WORD_SYNC)) {
+            if (lyrics.sync_type == SongLyrics.SyncType.WORD_SYNC && !Settings.get<Boolean>(LyricsSettings.Key.ENABLE_WORD_SYNC)) {
                 term.line_range ?: term.range
             }
             else {

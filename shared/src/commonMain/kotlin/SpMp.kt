@@ -19,8 +19,9 @@ import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.ProjectBuildConfig
-import com.toasterofbread.spmp.model.FontMode
-import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.settings.category.FontMode
+import com.toasterofbread.spmp.model.settings.category.SystemSettings
+import com.toasterofbread.spmp.model.settings.getEnum
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.getStringOrNull
@@ -53,7 +54,9 @@ object SpMp {
     val Log: Logger = Logger.getLogger(SpMp::class.java.name)
 
     private lateinit var context: AppContext
-    lateinit var player_state: PlayerStateImpl
+
+    private var _player_state: PlayerStateImpl? = null
+    val player_state: PlayerStateImpl get() = _player_state!!
 
     val prefs: PlatformPreferences get() = context.getPrefs()
 
@@ -77,14 +80,14 @@ object SpMp {
     fun release() {
         _yt_ui_localisation = null
         coroutine_scope.cancel()
-        player_state.release()
+        _player_state?.release()
     }
 
     fun onStart() {
     }
 
     fun onStop() {
-        player_state.onStop()
+        _player_state?.onStop()
     }
 
     @Composable
@@ -97,8 +100,8 @@ object SpMp {
             var player_created: Boolean by remember { mutableStateOf(false) }
 
             LaunchedEffect(Unit) {
-                player_state = PlayerStateImpl(context, player_coroutine_scope)
-                player_state.onStart()
+                _player_state = PlayerStateImpl(context, player_coroutine_scope)
+                _player_state?.onStart()
                 player_created = true
             }
 
@@ -152,7 +155,7 @@ object SpMp {
     }
 
     private fun getFontFamily(context: AppContext): FontFamily? {
-        val font_mode: FontMode = Settings.KEY_FONT.getEnum(context.getPrefs())
+        val font_mode: FontMode = SystemSettings.Key.FONT.getEnum(context.getPrefs())
         val font_path: String = font_mode.getFontFilePath(context.getUiLanguage()) ?: return null
         return FontFamily(context.loadFontFromFile("font/$font_path"))
     }

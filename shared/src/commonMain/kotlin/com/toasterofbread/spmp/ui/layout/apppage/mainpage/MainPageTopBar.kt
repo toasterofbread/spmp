@@ -25,9 +25,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.composekit.platform.vibrateShort
+import com.toasterofbread.spmp.model.settings.category.InternalSettings
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.layout.radiobuilder.RADIO_BUILDER_ICON_WIDTH_DP
 import com.toasterofbread.spmp.ui.layout.radiobuilder.RadioBuilderIcon
@@ -53,7 +53,7 @@ fun MainPageTopBar(content_padding: PaddingValues, modifier: Modifier = Modifier
             }
 
             player.top_bar.MusicTopBarWithVisualiser(
-                Settings.INTERNAL_TOPBAR_MODE_HOME,
+                InternalSettings.Key.TOPBAR_MODE_HOME,
                 Modifier.fillMaxSize().weight(1f),
                 hide_while_inactive = false,
                 can_show_visualiser = true

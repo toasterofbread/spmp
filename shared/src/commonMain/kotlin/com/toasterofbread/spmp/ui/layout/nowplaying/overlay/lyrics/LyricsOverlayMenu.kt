@@ -56,10 +56,10 @@ import androidx.compose.ui.zIndex
 import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.settings.category.LyricsSettings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.AnnotatedReadingTerm
 import com.toasterofbread.spmp.ui.component.PillMenu
@@ -87,7 +87,7 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
         val pill_menu = remember { PillMenu(expand_state = mutableStateOf(false)) }
 
         val lyrics_state: SongLyricsLoader.ItemState = remember(getSong().id) { SongLyricsLoader.getItemState(getSong(), player.context) }
-        var show_furigana: Boolean by remember { mutableStateOf(Settings.KEY_LYRICS_DEFAULT_FURIGANA.get()) }
+        var show_furigana: Boolean by remember { mutableStateOf(LyricsSettings.Key.DEFAULT_FURIGANA.get()) }
 
         var submenu: Submenu? by remember { mutableStateOf(null) }
         var lyrics_sync_line_data: Pair<Int, List<AnnotatedReadingTerm>>? by remember { mutableStateOf(null) }
@@ -256,7 +256,7 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
                 }
                 else if (lyrics != null) {
                     Box(Modifier.fillMaxSize()) {
-                        val lyrics_follow_enabled: Boolean by Settings.KEY_LYRICS_FOLLOW_ENABLED.rememberMutableState()
+                        val lyrics_follow_enabled: Boolean by LyricsSettings.Key.FOLLOW_ENABLED.rememberMutableState()
 
                         CoreLyricsDisplay(
                             lyrics,

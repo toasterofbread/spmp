@@ -4,12 +4,12 @@ import LocalPlayerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import com.toasterofbread.composekit.utils.common.indexOfOrNull
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringArray
 import com.toasterofbread.spmp.ui.layout.ManualLoginPage
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
-import com.toasterofbread.composekit.utils.common.indexOfOrNull
 import kotlinx.coroutines.launch
 import okhttp3.Headers
 

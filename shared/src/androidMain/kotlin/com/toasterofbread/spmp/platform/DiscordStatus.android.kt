@@ -8,9 +8,9 @@ import com.my.kizzyrpc.model.Assets
 import com.my.kizzyrpc.model.Metadata
 import com.my.kizzyrpc.model.Timestamps
 import com.toasterofbread.spmp.ProjectBuildConfig
-import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.settings.category.DiscordSettings
 import com.toasterofbread.spmp.youtubeapi.executeResult
 import com.toasterofbread.spmp.youtubeapi.fromJson
 import io.github.jan.supabase.functions.Functions
@@ -134,11 +134,11 @@ actual class DiscordStatus actual constructor(
             }
 
         val disable: Boolean = when (settings.getStatus()) {
-            "invisible" -> Settings.KEY_DISCORD_STATUS_DISABLE_WHEN_INVISIBLE.get(context)
-            "dnd" -> Settings.KEY_DISCORD_STATUS_DISABLE_WHEN_DND.get(context)
-            "idle" -> Settings.KEY_DISCORD_STATUS_DISABLE_WHEN_IDLE.get(context)
-            "offline" -> Settings.KEY_DISCORD_STATUS_DISABLE_WHEN_OFFLINE.get(context)
-            "online" -> Settings.KEY_DISCORD_STATUS_DISABLE_WHEN_ONLINE.get(context)
+            "invisible" -> DiscordSettings.Key.STATUS_DISABLE_WHEN_INVISIBLE.get(context)
+            "dnd" -> DiscordSettings.Key.STATUS_DISABLE_WHEN_DND.get(context)
+            "idle" -> DiscordSettings.Key.STATUS_DISABLE_WHEN_IDLE.get(context)
+            "offline" -> DiscordSettings.Key.STATUS_DISABLE_WHEN_OFFLINE.get(context)
+            "online" -> DiscordSettings.Key.STATUS_DISABLE_WHEN_ONLINE.get(context)
             else -> throw NotImplementedError(settings.getStatus())
         }
 

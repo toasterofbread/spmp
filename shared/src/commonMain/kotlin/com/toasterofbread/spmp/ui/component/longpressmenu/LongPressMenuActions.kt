@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.toasterofbread.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
@@ -29,7 +30,6 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.longpressmenu.artist.ArtistLongPressMenuInfo
 import com.toasterofbread.spmp.ui.component.longpressmenu.playlist.PlaylistLongPressMenuInfo
 import com.toasterofbread.spmp.ui.component.longpressmenu.song.SongLongPressMenuInfo
-import com.toasterofbread.composekit.utils.composable.WidthShrinkText
 
 const val MENU_ITEM_SPACING: Int = 20
 

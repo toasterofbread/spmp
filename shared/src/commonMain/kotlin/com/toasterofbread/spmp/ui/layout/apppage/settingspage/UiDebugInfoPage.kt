@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,10 +24,10 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.settings.ui.SettingsPage
 import com.toasterofbread.composekit.settings.ui.SettingsPageWithItems
 import com.toasterofbread.composekit.settings.ui.item.SettingsComposableItem
-import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.composekit.utils.common.roundTo
 import com.toasterofbread.composekit.utils.composable.RecomposeOnInterval
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.resources.getString
 
 @Composable
 private fun SizeIndicator(

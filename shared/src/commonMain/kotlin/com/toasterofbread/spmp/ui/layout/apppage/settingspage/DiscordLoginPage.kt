@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.composekit.settings.ui.SettingsPage
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
-import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.model.settings.category.DiscordSettings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.DiscordLogin
 
@@ -23,7 +23,7 @@ internal fun getDiscordLoginPage(discord_auth: SettingsValueState<String>, manua
             get() = if (manual) getString("discord_manual_login_title") else null
         override val icon: ImageVector?
             @Composable
-            get() = if (manual) PrefsPageCategory.DISCORD_STATUS.getIcon() else null
+            get() = if (manual) DiscordSettings.getPage()?.getIcon() else null
 
         @Composable
         override fun PageView(

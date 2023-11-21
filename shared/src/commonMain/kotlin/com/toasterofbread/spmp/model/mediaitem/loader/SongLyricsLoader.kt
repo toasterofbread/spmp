@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.model.mediaitem.loader
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import com.toasterofbread.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.model.lyrics.LyricsFileConverter
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.song.Song
@@ -11,7 +12,6 @@ import com.toasterofbread.spmp.platform.getLocalLyricsFile
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
 import com.toasterofbread.spmp.youtubeapi.lyrics.loadLyrics
-import com.toasterofbread.composekit.platform.PlatformFile
 import java.lang.ref.WeakReference
 
 internal object SongLyricsLoader: Loader<SongLyrics>() {

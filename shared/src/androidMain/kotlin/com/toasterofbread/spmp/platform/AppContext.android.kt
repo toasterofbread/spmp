@@ -2,26 +2,14 @@ package com.toasterofbread.spmp.platform
 
 import android.app.Activity
 import android.content.Context
-import androidx.compose.material3.ColorScheme
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.TypeAdapter
-import com.google.gson.stream.JsonReader
-import com.google.gson.stream.JsonWriter
-import com.toasterofbread.db.Database
 import com.toasterofbread.composekit.platform.ApplicationContext
 import com.toasterofbread.composekit.platform.PlatformContext
 import com.toasterofbread.composekit.platform.PlatformPreferences
-import com.toasterofbread.composekit.settings.ui.StaticThemeData
+import com.toasterofbread.composekit.platform.PlatformPreferencesImpl
 import com.toasterofbread.composekit.settings.ui.Theme
-import com.toasterofbread.composekit.settings.ui.ThemeData
-import com.toasterofbread.spmp.model.AccentColourSource
-import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.db.Database
+import com.toasterofbread.spmp.model.settings.category.YTApiSettings
+import com.toasterofbread.spmp.model.settings.getEnum
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -42,8 +30,8 @@ actual class AppContext(
 
     init {
         val prefs = getPrefs()
-        val youtubeapi_type: YoutubeApi.Type = Settings.KEY_YOUTUBEAPI_TYPE.getEnum(prefs)
-        ytapi = youtubeapi_type.instantiate(this, Settings.KEY_YOUTUBEAPI_URL.get(prefs))
+        val youtubeapi_type: YoutubeApi.Type = YTApiSettings.Key.API_TYPE.getEnum(prefs)
+        ytapi = youtubeapi_type.instantiate(this, YTApiSettings.Key.API_URL.get(prefs))
     }
 
     fun init(): AppContext {
@@ -53,5 +41,5 @@ actual class AppContext(
         return this
     }
 
-    actual fun getPrefs(): PlatformPreferences = PlatformPreferences.getInstance(ctx)
+    actual fun getPrefs(): PlatformPreferences = PlatformPreferencesImpl.getInstance(ctx)
 }

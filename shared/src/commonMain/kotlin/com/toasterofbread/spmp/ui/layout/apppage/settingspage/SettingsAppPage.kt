@@ -4,47 +4,48 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import com.toasterofbread.composekit.platform.Platform
-import com.toasterofbread.composekit.platform.composable.platformClickable
-import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.composekit.settings.ui.SettingsInterface
-import com.toasterofbread.composekit.settings.ui.item.*
-import com.toasterofbread.composekit.utils.common.blendWith
-import com.toasterofbread.composekit.utils.modifier.getHorizontal
-import com.toasterofbread.spmp.ProjectBuildConfig
-import com.toasterofbread.spmp.model.*
-import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
+import com.toasterofbread.spmp.model.settings.Settings
+import com.toasterofbread.spmp.model.settings.category.AuthSettings
+import com.toasterofbread.spmp.model.settings.category.SettingsCategory
+import com.toasterofbread.spmp.model.settings.category.TopBarSettings
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.*
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
-import org.jetbrains.compose.resources.*
 
-private const val PREFS_PAGE_EXTRA_PADDING_DP: Float = 10f
+internal const val PREFS_PAGE_EXTRA_PADDING_DP: Float = 10f
 
 internal enum class PrefsPageScreen {
     ROOT,
@@ -52,80 +53,14 @@ internal enum class PrefsPageScreen {
     DISCORD_LOGIN,
     UI_DEBUG_INFO
 }
-enum class PrefsPageCategory {
-    GENERAL,
-    FILTER,
-    FEED,
-    PLAYER,
-    LIBRARY,
-    THEME,
-    LYRICS,
-    DOWNLOAD,
-    DISCORD_STATUS,
-    SERVER,
-    OTHER,
-    DEVELOPMENT;
-
-    fun shouldShow(): Boolean = when (this) {
-        SERVER -> Platform.DESKTOP.isCurrent()
-        else -> true
-    }
-
-    @OptIn(ExperimentalResourceApi::class)
-    @Composable
-    fun getIcon(filled: Boolean = false): ImageVector = when (this) {
-        GENERAL -> if (filled) Icons.Filled.Settings else Icons.Outlined.Settings
-        FILTER -> if (filled) Icons.Filled.FilterAlt else Icons.Outlined.FilterAlt
-        FEED -> if (filled) Icons.Filled.FormatListBulleted else Icons.Outlined.FormatListBulleted
-        PLAYER -> if (filled) Icons.Filled.PlayArrow else Icons.Outlined.PlayArrow
-        LIBRARY -> if (filled) Icons.Filled.LibraryMusic else Icons.Outlined.LibraryMusic
-        THEME -> if (filled) Icons.Filled.Palette else Icons.Outlined.Palette
-        LYRICS -> if (filled) Icons.Filled.MusicNote else Icons.Outlined.MusicNote
-        DOWNLOAD -> if (filled) Icons.Filled.Download else Icons.Outlined.Download
-        DISCORD_STATUS -> resource("drawable/ic_discord.xml").readBytesSync().toImageVector(LocalDensity.current)
-        SERVER -> if (filled) Icons.Filled.Dns else Icons.Outlined.Dns
-        OTHER -> if (filled) Icons.Filled.MoreHoriz else Icons.Outlined.MoreHoriz
-        DEVELOPMENT -> if (filled) Icons.Filled.Code else Icons.Outlined.Code
-    }
-
-    fun getTitle(): String = when (this) {
-        GENERAL -> getString("s_cat_general")
-        FILTER -> getString("s_cat_filter")
-        FEED -> getString("s_cat_home_page")
-        PLAYER -> getString("s_cat_player")
-        LIBRARY -> getString("s_cat_library")
-        THEME -> getString("s_cat_theming")
-        LYRICS -> getString("s_cat_lyrics")
-        DOWNLOAD -> getString("s_cat_download")
-        DISCORD_STATUS -> getString("s_cat_discord_status")
-        SERVER -> getString("s_cat_server")
-        OTHER -> getString("s_cat_other")
-        DEVELOPMENT -> getString("s_cat_development")
-    }
-
-    fun getDescription(): String = when (this) {
-        GENERAL -> getString("s_cat_desc_general")
-        FILTER -> getString("s_cat_desc_filter")
-        FEED -> getString("s_cat_desc_home_page")
-        PLAYER -> getString("s_cat_desc_player")
-        LIBRARY -> getString("s_cat_desc_library")
-        THEME -> getString("s_cat_desc_theming")
-        LYRICS -> getString("s_cat_desc_lyrics")
-        DOWNLOAD -> getString("s_cat_desc_download")
-        DISCORD_STATUS -> getString("s_cat_desc_discord_status")
-        SERVER -> getString("s_cat_desc_server")
-        OTHER -> getString("s_cat_desc_other")
-        DEVELOPMENT -> ""
-    }
-}
 
 class SettingsAppPage(override val state: AppPageState, footer_modifier: Modifier): AppPage() {
-    private var current_category: PrefsPageCategory? by mutableStateOf(null)
     private val pill_menu: PillMenu = PillMenu(follow_player = true)
-    private val ytm_auth: SettingsValueState<Set<String>> =
+    var current_category: SettingsCategory.Page? by mutableStateOf(null)
+    val ytm_auth: SettingsValueState<Set<String>> =
         SettingsValueState<Set<String>>(
-            Settings.KEY_YTM_AUTH.name
-        ).init(Settings.prefs, Settings.Companion::provideDefault)
+            AuthSettings.Key.YTM_AUTH.getName()
+        ).init(Settings.prefs, Settings::provideDefault)
     val settings_interface: SettingsInterface =
         getPrefsPageSettingsInterface(
             state,
@@ -144,7 +79,6 @@ class SettingsAppPage(override val state: AppPageState, footer_modifier: Modifie
         return false
     }
 
-    @OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
     @Composable
     override fun ColumnScope.SFFPage(
         multiselect_context: MediaItemMultiSelectContext,
@@ -194,9 +128,9 @@ class SettingsAppPage(override val state: AppPageState, footer_modifier: Modifie
         Box(modifier) {
             pill_menu.PillMenu()
 
-            Column(Modifier.fillMaxSize().padding(content_padding.getHorizontal(PREFS_PAGE_EXTRA_PADDING_DP.dp))) {
+            Column(Modifier.fillMaxSize().padding(horizontal = PREFS_PAGE_EXTRA_PADDING_DP.dp)) {
                 val top_padding: Dp = player.top_bar.MusicTopBar(
-                    Settings.KEY_LYRICS_SHOW_IN_SETTINGS,
+                    TopBarSettings.Key.SHOW_IN_SETTINGS,
                     Modifier.fillMaxWidth().zIndex(10f),
                     getBottomBorderColour = if (current_category == null) player.theme.background_provider else null,
                     padding = PaddingValues(top = content_padding.calculateTopPadding())
@@ -204,113 +138,22 @@ class SettingsAppPage(override val state: AppPageState, footer_modifier: Modifie
 
                 Crossfade(category_open || settings_interface.current_page.id!! != PrefsPageScreen.ROOT.ordinal) { open ->
                     if (!open) {
-                        LazyColumn(
-                            contentPadding = PaddingValues(top = top_padding, bottom = content_padding.calculateBottomPadding() + PREFS_PAGE_EXTRA_PADDING_DP.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            item {
-                                Row(
-                                    Modifier.fillMaxWidth().padding(bottom = 10.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(
-                                        getString("s_page_preferences"),
-                                        style = MaterialTheme.typography.displaySmall
-                                    )
-
-                                    val clipboard = LocalClipboardManager.current
-                                    fun copyProjectUrl() {
-                                        clipboard.setText(AnnotatedString(getString("project_url")))
-                                        player.context.sendToast(getString("notif_copied_x_to_clipboard").replace("\$x", getString("project_url_name")))
-                                    }
-
-                                    Icon(
-                                        painterResource("drawable/ic_github.xml"),
-                                        null,
-                                        Modifier.platformClickable(
-                                            onClick = {
-                                                if (player.context.canOpenUrl()) {
-                                                    player.context.openUrl(getString("project_url"))
-                                                }
-                                                else {
-                                                    copyProjectUrl()
-                                                }
-                                            },
-                                            onAltClick = {
-                                                if (player.context.canOpenUrl()) {
-                                                    copyProjectUrl()
-                                                    player.context.vibrateShort()
-                                                }
-                                            }
-                                        )
-                                    )
-                                }
-                            }
-
-                            item {
-                                val item = rememberYtmAuthItem(ytm_auth, true)
-                                item.Item(
-                                    settings_interface,
-                                    settings_interface::openPageById,
-                                    settings_interface::openPage
-                                )
-                            }
-
-                            items(PrefsPageCategory.values()) { category ->
-                                ElevatedCard(
-                                    onClick = { current_category = category },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    colors = CardDefaults.elevatedCardColors(
-                                        containerColor = player.theme.accent.blendWith(player.theme.background, 0.05f),
-                                        contentColor = player.theme.on_background
-                                    )
-                                ) {
-                                    Row(
-                                        Modifier.padding(15.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(15.dp)
-                                    ) {
-                                        Icon(category.getIcon(), null)
-                                        Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                                            Text(category.getTitle(), style = MaterialTheme.typography.titleMedium)
-                                            Text(category.getDescription(), style = MaterialTheme.typography.labelMedium)
-                                        }
-                                    }
-                                }
-                            }
-
-                            item {
-                                val version_string: String = "v${getString("version_string")}"
-                                val on_release_commit: Boolean = ProjectBuildConfig.GIT_TAG == version_string
-
-                                Text(
-                                    if (on_release_commit) {
-                                        getString("info_using_release_\$x")
-                                            .replace("\$x", version_string)
-                                    }
-                                    else {
-                                        getString("info_using_non_release_commit_\$x")
-                                            .replace("\$x", ProjectBuildConfig.GIT_COMMIT_HASH?.take(7).toString())
-                                    },
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .padding(top = 10.dp)
-                                        .alpha(0.5f),
-                                    fontSize = 12.sp,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                        }
+                        SettingsTopPage(content_padding = content_padding, top_padding = top_padding)
                     }
                     else {
                         BoxWithConstraints(
                             Modifier.pointerInput(Unit) {}
                         ) {
+                            val layout_direction: LayoutDirection = LocalLayoutDirection.current
                             CompositionLocalProvider(LocalContentColor provides player.theme.on_background) {
                                 settings_interface.Interface(
                                     Modifier.fillMaxSize(),
-                                    content_padding = PaddingValues(top = top_padding, bottom = content_padding.calculateBottomPadding()),
+                                    content_padding = PaddingValues(
+                                        top = top_padding,
+                                        bottom = content_padding.calculateBottomPadding(),
+                                        start = content_padding.calculateStartPadding(layout_direction),
+                                        end = content_padding.calculateEndPadding(layout_direction)
+                                    ),
                                     titleFooter = {
                                         WaveBorder()
                                     },

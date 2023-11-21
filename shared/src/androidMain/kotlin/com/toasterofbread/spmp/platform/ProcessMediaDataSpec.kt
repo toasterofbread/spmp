@@ -3,12 +3,12 @@ package com.toasterofbread.spmp.platform
 import android.net.Uri
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSpec
-import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.model.mediaitem.db.getPlayCount
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.song.getSongStreamFormat
+import com.toasterofbread.spmp.model.settings.category.StreamingSettings
 import com.toasterofbread.spmp.platform.playerservice.AUTO_DOWNLOAD_SOFT_TIMEOUT
-import com.toasterofbread.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.youtubeapi.YoutubeVideoFormat
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -25,8 +25,8 @@ internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppConte
     }
 
     if (
-        song.getPlayCount(context.database, 7) >= Settings.KEY_AUTO_DOWNLOAD_THRESHOLD.get<Int>(context)
-        && (Settings.KEY_AUTO_DOWNLOAD_ON_METERED.get(context) || !metered)
+        song.getPlayCount(context.database, 7) >= StreamingSettings.Key.AUTO_DOWNLOAD_THRESHOLD.get<Int>(context)
+        && (StreamingSettings.Key.AUTO_DOWNLOAD_ON_METERED.get(context) || !metered)
     ) {
         var done: Boolean = false
         runBlocking {

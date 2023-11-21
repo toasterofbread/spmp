@@ -15,12 +15,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
+import com.toasterofbread.composekit.platform.PlatformPreferences
+import com.toasterofbread.composekit.platform.PlatformPreferencesListener
+import com.toasterofbread.composekit.platform.composable.BackHandler
+import com.toasterofbread.composekit.utils.common.init
+import com.toasterofbread.composekit.utils.composable.getEnd
+import com.toasterofbread.composekit.utils.composable.getStart
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.layout.BrowseParamsData
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.settings.Settings
+import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
+import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
@@ -38,14 +47,8 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNowPlayingVerticalPageCount
-import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
-import com.toasterofbread.composekit.platform.PlatformPreferences
-import com.toasterofbread.composekit.platform.composable.BackHandler
-import com.toasterofbread.composekit.utils.common.init
-import com.toasterofbread.composekit.utils.composable.OnChangedEffect
-import com.toasterofbread.composekit.utils.composable.getEnd
-import com.toasterofbread.composekit.utils.composable.getStart
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NowPlayingMainTabPage
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import kotlinx.coroutines.*
 
 enum class FeedLoadState { PREINIT, NONE, LOADING, CONTINUING }
@@ -66,7 +69,7 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
     private val app_page_undo_stack: MutableList<AppPage?> = mutableStateListOf()
 
     private val low_memory_listener: () -> Unit
-    private val prefs_listener: PlatformPreferences.Listener
+    private val prefs_listener: PlatformPreferencesListener
 
     override fun switchNowPlayingPage(page: Int) {
         coroutine_scope.launch {
@@ -95,7 +98,8 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
 
     override val app_page_state = AppPageState(this)
     override val main_multiselect_context: MediaItemMultiSelectContext = MediaItemMultiSelectContext()
-    override var np_theme_mode: ThemeMode by mutableStateOf(Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE, context.getPrefs()))
+    override var np_theme_mode: ThemeMode by mutableStateOf(
+        Settings.getEnum(ThemeSettings.Key.NOWPLAYING_THEME_MODE, context.getPrefs()))
     override val np_overlay_menu: MutableState<PlayerOverlayMenu?> = mutableStateOf(null)
     override val top_bar: MusicTopBar = MusicTopBar(this)
 
@@ -106,11 +110,11 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
             }
         }
 
-        prefs_listener = object : PlatformPreferences.Listener {
+        prefs_listener = object : PlatformPreferencesListener {
             override fun onChanged(prefs: PlatformPreferences, key: String) {
                 when (key) {
-                    Settings.KEY_NOWPLAYING_THEME_MODE.name -> {
-                        np_theme_mode = Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE, prefs)
+                    ThemeSettings.Key.NOWPLAYING_THEME_MODE.getName() -> {
+                        np_theme_mode = Settings.getEnum(ThemeSettings.Key.NOWPLAYING_THEME_MODE, prefs)
                     }
                 }
             }
@@ -273,7 +277,7 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
     }
 
     override fun onPlayActionOccurred() {
-        if (np_swipe_state.value.targetValue == 0 && Settings.get(Settings.KEY_OPEN_NP_ON_SONG_PLAYED)) {
+        if (np_swipe_state.value.targetValue == 0 && Settings.get(BehaviourSettings.Key.OPEN_NP_ON_SONG_PLAYED)) {
             switchNowPlayingPage(1)
         }
     }
@@ -283,7 +287,7 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
             if (item is Song) {
                 playSong(
                     item,
-                    start_radio = Settings.KEY_START_RADIO_ON_SONG_PRESS.get(context),
+                    start_radio = BehaviourSettings.Key.START_RADIO_ON_SONG_PRESS.get(context),
                     shuffle = shuffle,
                     at_index = at_index
                 )

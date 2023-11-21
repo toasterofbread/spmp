@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import com.google.gson.Gson
 import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.utils.common.launchSingle
-import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
@@ -37,8 +36,8 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
     var socket_load_state: PlayerServiceLoadState by mutableStateOf(PlayerServiceLoadState(true))
         private set
 
-    private fun getServerPort(): Int = Settings.KEY_SERVER_PORT.get(context)
-    private fun getServerIp(): String = Settings.KEY_SERVER_IP.get(context)
+    private fun getServerPort(): Int = ServerSettings.Key.SERVER_PORT.get(context)
+    private fun getServerIp(): String = ServerSettings.Key.SERVER_IP.get(context)
 
     private fun getClientName(): String {
         val host: String = InetAddress.getLocalHost().hostName
@@ -47,11 +46,11 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
         return getString("app_name") + " [$os, $host]"
     }
 
-    private val prefs_listener: PlatformPreferences.Listener = object : PlatformPreferences.Listener {
+    private val prefs_listener: PlatformPreferencesListener = object : PlatformPreferencesListener {
         override fun onChanged(prefs: PlatformPreferences, key: String) {
             when (key) {
-                Settings.KEY_SERVER_IP.name,
-                Settings.KEY_SERVER_PORT.name -> {
+                ServerSettings.Key.SERVER_IP.getName(),
+                ServerSettings.Key.SERVER_PORT.getName() -> {
                     restart_connection = true
                     cancel_connection = true
                 }

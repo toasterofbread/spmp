@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.composekit.utils.composable.OnChangedEffect
 import com.toasterofbread.spmp.model.mediaitem.MEDIA_ITEM_RELATED_CONTENT_ICON
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
@@ -29,9 +30,7 @@ import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
-import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.spmp.youtubeapi.implementedOrNull
-import com.toasterofbread.composekit.utils.composable.OnChangedEffect
 import kotlinx.coroutines.delay
 
 class MainPlayerOverlayMenu(

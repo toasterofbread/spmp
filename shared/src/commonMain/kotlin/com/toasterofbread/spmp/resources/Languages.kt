@@ -1,8 +1,8 @@
 package com.toasterofbread.spmp.resources
 
+import com.toasterofbread.spmp.platform.AppContext
 import org.kobjects.ktxml.api.EventType
 import org.kobjects.ktxml.mini.MiniXmlPullParser
-import com.toasterofbread.spmp.platform.AppContext
 import java.io.InputStream
 import java.util.MissingResourceException
 

@@ -12,12 +12,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
-import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
-import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.composekit.utils.composable.getEnd
 import com.toasterofbread.composekit.utils.composable.getStart
 import com.toasterofbread.composekit.utils.composable.getTop
+import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
+import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
+import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 
 @Composable
 fun MainPageDisplay() {

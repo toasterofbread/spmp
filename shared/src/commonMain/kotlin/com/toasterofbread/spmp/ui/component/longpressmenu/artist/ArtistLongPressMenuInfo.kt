@@ -16,9 +16,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.toasterofbread.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.composekit.utils.composable.WidthShrinkText
 
 @Composable
 fun ColumnScope.ArtistLongPressMenuInfo(artist: Artist, getAccentColour: () -> Color) {

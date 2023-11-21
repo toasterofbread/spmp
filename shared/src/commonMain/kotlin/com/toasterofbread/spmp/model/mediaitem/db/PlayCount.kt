@@ -17,7 +17,6 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter.sa
 import com.toasterofbread.spmp.platform.AppContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.time.Duration
 import java.time.LocalDate
 
 suspend fun MediaItem.incrementPlayCount(context: AppContext, by: Int = 1): Result<Unit> = withContext(Dispatchers.IO) {

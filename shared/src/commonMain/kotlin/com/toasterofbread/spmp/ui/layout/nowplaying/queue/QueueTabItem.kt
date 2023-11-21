@@ -18,15 +18,15 @@ import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewConfiguration
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.composekit.utils.common.getContrasted
+import com.toasterofbread.composekit.utils.modifier.background
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.settings.category.PlayerSettings
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.composekit.utils.common.getContrasted
-import com.toasterofbread.composekit.utils.modifier.background
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.detectReorder
 import kotlin.math.roundToInt
@@ -108,7 +108,7 @@ class QueueTabItem(val song: Song, val key: Int) {
         val anchors = mapOf(-max_offset to 0, 0f to 1, max_offset to 2)
 
         TouchSlopScope({
-            touchSlop * 2f * (2.1f - Settings.KEY_NP_QUEUE_ITEM_SWIPE_SENSITIVITY.get<Float>())
+            touchSlop * 2f * (2.1f - PlayerSettings.Key.QUEUE_ITEM_SWIPE_SENSITIVITY.get<Float>())
         }) { parent_view_configuration ->
             Box(
                 Modifier

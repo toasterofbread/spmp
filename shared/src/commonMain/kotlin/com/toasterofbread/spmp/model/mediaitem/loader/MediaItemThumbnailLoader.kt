@@ -8,13 +8,13 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.ImageBitmap
-import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.composekit.utils.common.addUnique
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.settings.category.MiscSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.toByteArray
 import com.toasterofbread.spmp.platform.toImageBitmap
-import com.toasterofbread.composekit.utils.common.addUnique
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -122,7 +122,7 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
 
         val result: Result<ImageBitmap> = item.downloadThumbnailData(thumbnail_url)
         result.onSuccess { image ->
-            if (!disable_cache_write && Settings.KEY_THUMB_CACHE_ENABLED.get()) {
+            if (!disable_cache_write && MiscSettings.Key.THUMB_CACHE_ENABLED.get()) {
                 try {
                     cache_file.parentFile.mkdirs()
                     cache_file.writeBytes(image.toByteArray())

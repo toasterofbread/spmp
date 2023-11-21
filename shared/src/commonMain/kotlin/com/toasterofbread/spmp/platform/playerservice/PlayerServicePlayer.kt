@@ -8,13 +8,16 @@ import app.cash.sqldelight.Query
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
+import com.toasterofbread.composekit.platform.PlatformPreferences
+import com.toasterofbread.composekit.platform.PlatformPreferencesListener
 import com.toasterofbread.spmp.ProjectBuildConfig
-import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.db.incrementPlayCount
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.settings.category.AuthSettings
+import com.toasterofbread.spmp.model.settings.category.MiscSettings
+import com.toasterofbread.spmp.model.settings.category.SystemSettings
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.service.playercontroller.DiscordStatusHandler
 import com.toasterofbread.spmp.service.playercontroller.PersistentQueueHandler
@@ -67,10 +70,10 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
 
     abstract fun onUndoStateChanged()
 
-    private val prefs_listener = object : PlatformPreferences.Listener {
+    private val prefs_listener = object : PlatformPreferencesListener {
         override fun onChanged(prefs: PlatformPreferences, key: String) {
             when (key) {
-                Settings.KEY_DISCORD_ACCOUNT_TOKEN.name -> {
+                AuthSettings.Key.DISCORD_ACCOUNT_TOKEN.getName() -> {
                     discord_status.onDiscordAccountTokenChanged()
                 }
 //                Settings.KEY_ACC_VOL_INTERCEPT_NOTIFICATION.name -> {
@@ -125,7 +128,7 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
         }
 
         private suspend fun sendStatusWebhook(song: Song?) {
-            val webhook_url: String? = Settings.KEY_STATUS_WEBHOOK_URL.get(context)
+            val webhook_url: String? = MiscSettings.Key.STATUS_WEBHOOK_URL.get(context)
             if (webhook_url.isNullOrBlank()) {
                 return
             }
@@ -134,7 +137,7 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
                 val gson = Gson()
                 val payload: JsonObject
 
-                val user_payload: String? = Settings.KEY_STATUS_WEBHOOK_PAYLOAD.get(context)
+                val user_payload: String? = MiscSettings.Key.STATUS_WEBHOOK_PAYLOAD.get(context)
                 if (!user_payload.isNullOrBlank()) {
                     payload =
                         try {
@@ -552,7 +555,7 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
                                 song.incrementPlayCount(context)
 
                                 val mark_endpoint = context.ytapi.user_auth_state?.MarkSongAsWatched
-                                if (mark_endpoint?.isImplemented() == true && Settings.KEY_ADD_SONGS_TO_HISTORY.get(context)) {
+                                if (mark_endpoint?.isImplemented() == true && SystemSettings.Key.ADD_SONGS_TO_HISTORY.get(context)) {
                                     val result = mark_endpoint.markSongAsWatched(song)
                                     result.onFailure {
                                         context.sendNotification(it)

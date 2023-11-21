@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
+import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewInteractionPressStage
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
@@ -20,7 +21,6 @@ import com.toasterofbread.spmp.ui.component.longpressmenu.playlist.PlaylistLongP
 import com.toasterofbread.spmp.ui.component.longpressmenu.song.SongLongPressMenuActions
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistSubscribeButton
-import com.toasterofbread.composekit.utils.common.getContrasted
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

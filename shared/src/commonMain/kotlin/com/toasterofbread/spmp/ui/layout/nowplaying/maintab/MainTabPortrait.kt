@@ -42,8 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import com.toasterofbread.composekit.platform.composable.composeScope
 import com.toasterofbread.composekit.utils.modifier.bounceOnClick
-import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.settings.category.PlayerSettings
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
@@ -118,7 +118,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(page_height: Dp, to
                 ) {
                     val button_modifier: Modifier = Modifier.alpha(0.35f)
                     val side_button_padding: Dp = 20.dp
-                    val show_shuffle_repeat_buttons: Boolean by Settings.KEY_PLAYER_SHOW_REPEAT_SHUFFLE_BUTTONS.rememberMutableState()
+                    val show_shuffle_repeat_buttons: Boolean by PlayerSettings.Key.SHOW_REPEAT_SHUFFLE_BUTTONS.rememberMutableState()
 
                     Controls(
                         current_song,

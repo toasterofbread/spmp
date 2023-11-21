@@ -38,14 +38,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.composekit.utils.composable.OnChangedEffect
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.generatePalette
 import com.toasterofbread.spmp.platform.isLargeFormFactor
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
-import com.toasterofbread.composekit.utils.composable.OnChangedEffect
 import kotlin.math.roundToInt
 
 val DEFAULT_THUMBNAIL_ROUNDING: Int
@@ -138,7 +138,7 @@ class PaletteSelectorPlayerOverlayMenu(
                 }
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    val gradient_depth = np_gradient_depth ?: Settings.KEY_NOWPLAYING_DEFAULT_GRADIENT_DEPTH.get()
+                    val gradient_depth = np_gradient_depth ?: ThemeSettings.Key.NOWPLAYING_DEFAULT_GRADIENT_DEPTH.get()
                     Text(
                         getString("song_theme_menu_gradient_depth_\$x")
                             .replace("\$x", gradient_depth.toString().padStart(3, ' ')),
@@ -152,7 +152,7 @@ class PaletteSelectorPlayerOverlayMenu(
                             value = gradient_depth,
                             onValueChange = { value ->
                                 np_gradient_depth =
-                                    if (value == Settings.KEY_NOWPLAYING_DEFAULT_GRADIENT_DEPTH.get()) null else value
+                                    if (value == ThemeSettings.Key.NOWPLAYING_DEFAULT_GRADIENT_DEPTH.get()) null else value
                             },
                             colors = SliderDefaults.colors(
                                 thumbColor = background_colour,

@@ -3,7 +3,6 @@ package com.toasterofbread.spmp.model.mediaitem.db
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 
 fun Boolean.toSQLBoolean(): Long? = if (this) 0L else null
 fun Long?.fromSQLBoolean(): Boolean = this != null

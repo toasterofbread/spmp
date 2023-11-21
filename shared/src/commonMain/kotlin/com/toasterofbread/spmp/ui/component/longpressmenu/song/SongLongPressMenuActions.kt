@@ -41,7 +41,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.composable.BackHandler
-import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.composekit.utils.common.getValue
+import com.toasterofbread.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.mediaitem.MEDIA_ITEM_RELATED_CONTENT_ICON
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
@@ -50,14 +51,13 @@ import com.toasterofbread.spmp.model.mediaitem.library.createLocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.getEditorOrNull
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.rememberDownloadStatus
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuActionProvider
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
-import com.toasterofbread.composekit.utils.common.getValue
-import com.toasterofbread.composekit.utils.composable.ShapedIconButton
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 
@@ -206,7 +206,7 @@ private fun LongPressMenuActionProvider.LPMActions(
                     addToQueue(
                         it,
                         active_queue_index + 1,
-                        is_active_queue = Settings.KEY_LPM_INCREMENT_PLAY_AFTER.get(),
+                        is_active_queue = BehaviourSettings.Key.LPM_INCREMENT_PLAY_AFTER.get(),
                         start_radio = false
                     )
                 }
@@ -218,7 +218,7 @@ private fun LongPressMenuActionProvider.LPMActions(
                     addToQueue(
                         it,
                         active_queue_index + 1,
-                        is_active_queue = Settings.KEY_LPM_INCREMENT_PLAY_AFTER.get(),
+                        is_active_queue = BehaviourSettings.Key.LPM_INCREMENT_PLAY_AFTER.get(),
                         start_radio = true
                     )
                 }

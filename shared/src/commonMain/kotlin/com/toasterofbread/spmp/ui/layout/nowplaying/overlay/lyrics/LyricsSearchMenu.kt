@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.CommentsDisabled
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -52,17 +53,15 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.composekit.utils.common.getValue
+import com.toasterofbread.composekit.utils.composable.LargeDropdownMenu
+import com.toasterofbread.composekit.utils.composable.OnChangedEffect
 import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.composekit.utils.composable.LargeDropdownMenu
-import androidx.compose.material3.AlertDialog
+import com.toasterofbread.spmp.model.settings.category.LyricsSettings
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
-import com.toasterofbread.composekit.utils.common.getValue
-import com.toasterofbread.composekit.utils.composable.OnChangedEffect
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
@@ -111,7 +110,7 @@ fun LyricsSearchMenu(
 
     var selected_source: LyricsSource by remember {
         mutableStateOf(
-            LyricsSource.fromIdx(Settings.KEY_LYRICS_DEFAULT_SOURCE.get())
+            LyricsSource.fromIdx(LyricsSettings.Key.DEFAULT_SOURCE.get())
         )
     }
 

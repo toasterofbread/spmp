@@ -8,11 +8,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.composekit.utils.composable.getTop
 import com.toasterofbread.spmp.platform.isLargeFormFactor
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NowPlayingMainTabPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.NowPlayingQueuePage
-import com.toasterofbread.composekit.utils.composable.getTop
 
 const val NOW_PLAYING_MAIN_PADDING_DP = 10f
 const val NOW_PLAYING_MAIN_PADDING_LARGE_DP = 30f

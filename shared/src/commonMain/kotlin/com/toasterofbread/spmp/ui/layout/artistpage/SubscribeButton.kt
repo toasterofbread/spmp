@@ -14,16 +14,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.toasterofbread.composekit.utils.common.getContrasted
+import com.toasterofbread.composekit.utils.composable.ShapedIconButton
+import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.updateSubscribed
 import com.toasterofbread.spmp.model.mediaitem.loader.ArtistSubscribedLoader
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.isOwnChannel
-import com.toasterofbread.composekit.utils.common.getContrasted
-import com.toasterofbread.composekit.utils.common.lazyAssert
-import com.toasterofbread.composekit.utils.composable.ShapedIconButton
-import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.launch
 
 @Composable

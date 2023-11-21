@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.youtubeapi.model
 
-import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
@@ -10,6 +9,8 @@ import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
+import com.toasterofbread.spmp.model.settings.Settings
+import com.toasterofbread.spmp.model.settings.category.FeedSettings
 import com.toasterofbread.spmp.youtubeapi.radio.YoutubeiNextResponse
 
 class MusicTwoRowItemRenderer(
@@ -68,7 +69,7 @@ class MusicTwoRowItemRenderer(
         val item: MediaItemData
 
         if (navigationEndpoint.watchPlaylistEndpoint != null) {
-            if (!Settings.get<Boolean>(Settings.KEY_FEED_SHOW_RADIOS)) {
+            if (!Settings.get<Boolean>(FeedSettings.Key.SHOW_RADIOS)) {
                 return null
             }
 
@@ -87,7 +88,7 @@ class MusicTwoRowItemRenderer(
                 MediaItemType.SONG -> SongData(browse_id)
                 MediaItemType.ARTIST -> ArtistData(browse_id)
                 MediaItemType.PLAYLIST_REM -> {
-                    if (RemotePlaylist.formatYoutubeId(browse_id).startsWith("RDAT") && !Settings.get<Boolean>(Settings.KEY_FEED_SHOW_RADIOS)) {
+                    if (RemotePlaylist.formatYoutubeId(browse_id).startsWith("RDAT") && !Settings.get<Boolean>(FeedSettings.Key.SHOW_RADIOS)) {
                         return null
                     }
 

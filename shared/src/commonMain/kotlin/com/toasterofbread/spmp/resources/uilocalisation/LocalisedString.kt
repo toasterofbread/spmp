@@ -2,11 +2,10 @@ package com.toasterofbread.spmp.resources.uilocalisation
 
 import SpMp
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getDataLanguage
 import com.toasterofbread.spmp.platform.getUiLanguage
-import com.toasterofbread.spmp.resources.getStringTODO
+import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.localised.getByLanguage
 
 sealed interface LocalisedString {

@@ -18,8 +18,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.composekit.utils.composable.AlignableCrossfade
+import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import kotlinx.coroutines.delay
 
 private const val UPDATE_INTERVAL_MS = 100L

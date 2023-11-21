@@ -33,12 +33,20 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
 import com.toasterofbread.composekit.platform.composable.BackHandler
-import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.composekit.platform.composable.rememberKeyboardOpen
+import com.toasterofbread.composekit.utils.*
+import com.toasterofbread.composekit.utils.common.copy
+import com.toasterofbread.composekit.utils.common.launchSingle
+import com.toasterofbread.composekit.utils.composable.AlignableCrossfade
+import com.toasterofbread.composekit.utils.composable.ShapedIconButton
+import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
 import com.toasterofbread.spmp.model.mediaitem.layout.LambdaViewMore
+import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
+import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.resources.getString
@@ -49,14 +57,6 @@ import com.toasterofbread.spmp.youtubeapi.endpoint.SearchFilter
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchResults
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchSuggestion
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchType
-import com.toasterofbread.composekit.utils.*
-import com.toasterofbread.composekit.utils.common.copy
-import com.toasterofbread.composekit.utils.common.launchSingle
-import com.toasterofbread.composekit.utils.composable.AlignableCrossfade
-import com.toasterofbread.composekit.utils.composable.ShapedIconButton
-import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.composekit.platform.composable.rememberKeyboardOpen
-import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
@@ -334,7 +334,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
             }
         }
 
-        val show_suggestions: Boolean by Settings.KEY_SEARCH_SHOW_SUGGESTIONS.rememberMutableState()
+        val show_suggestions: Boolean by BehaviourSettings.Key.SEARCH_SHOW_SUGGESTIONS.rememberMutableState()
         var suggestions: List<SearchSuggestion> by remember { mutableStateOf(emptyList()) }
 
         LaunchedEffect(focus_state.value) {

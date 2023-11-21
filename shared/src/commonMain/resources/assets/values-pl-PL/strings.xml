@@ -255,7 +255,7 @@
     <string name="s_key_filter_apply_to_artist_items">Zastosuj filtr do pozycji artysty</string>
     <string name="s_filter_title_keywords_dialog_title">Dodaj słowo kluczowe</string>
 
-    <string name="s_cat_home_page">Strona główna</string>
+    <string name="s_cat_feed">Strona główna</string>
 
     <string name="s_key_hp_show_visualiser">Pokaż wizualizer muzyki</string>
     <string name="s_sub_hp_show_visualiser">Wyświetl na górnym pasku podczas odtwarzania</string>
@@ -298,11 +298,9 @@
     <string name="s_option_wave_border_mode_none">Brak animacji</string>
     <string name="s_option_wave_border_mode_line">Linia graniczna</string>
 
-    <string name="s_cat_library">Biblioteka</string>
-
     <string name="s_key_show_likes_playlist">Pokaż listę odtwarzania ulubionych</string>
 
-    <string name="s_cat_theming">Projektowanie motywu</string>
+    <string name="s_cat_theme">Projektowanie motywu</string>
 
     <string name="s_key_current_theme">Aktualny motyw</string>
     <string name="s_theme_editor_title">Edytuj motyw</string>
@@ -345,7 +343,6 @@
 
     <string name="s_key_lyrics_font_size">Rozmiar czcionki</string>
 
-    <string name="s_group_top_bar_lyrics">Tekst utworu w górnej belce</string>
     <string name="s_key_top_bar_lyrics_show_furigana">Pokaż furiganę</string>
     <string name="s_key_top_bar_lyrics_show_in_library">Pokaż w bibliotece</string>
     <string name="s_key_top_bar_lyrics_show_in_radiobuilder">Pokaż na ekranie radia</string>
@@ -368,8 +365,6 @@
     <string name="s_option_audio_quality_medium">Średnia</string>
     <string name="s_option_audio_quality_low">Niska</string>
 
-    <string name="s_cat_download">Pobieranie</string>
-
     <string name="s_key_auto_download_enabled">Włącz automatyczne pobieranie utworów</string>
     <string name="s_key_auto_download_threshold">Próg automatycznego pobierania</string>
     <string name="s_sub_auto_download_threshold">Utwory odsłuchane co najmniej tyle razy zostaną automatycznie pobrane</string>
@@ -389,7 +384,7 @@
     <string name="s_button_reset_stats">Resetowanie statystyk słuchania</string>
     <string name="s_confirm_reset_stats">Wszystkie zarejestrowane statystyki zostaną usunięte</string>
 
-    <string name="s_cat_other">Inne</string>
+    <string name="s_cat_misc">Inne</string>
     
     <string name="s_group_caching">Pamięć podręczna</string>
     <string name="s_key_enable_thumbnail_cache">Włącz pamięć podręczną miniatur</string>
@@ -420,7 +415,7 @@
     <string name="s_sub_discord_status_show_button_project">Otwiera repozytorium projektu w serwisie GitHub</string>
     <string name="s_key_discord_status_button_project_text">Tekst przycisku strony projektu</string>
 
-    <string name="s_group_topbar">Górny pasek muzyki</string>
+    <string name="s_cat_topbar">Górny pasek muzyki</string>
     <string name="s_key_topbar_lyrics_linger">Tekst utworu</string>
     <string name="s_sub_topbar_lyrics_linger">Po zakończeniu linii pozostanie ona widoczna do momentu rozpoczęcia następnej linii</string>
     <string name="s_key_topbar_visualiser_width">Szerokość wizualizera</string>
@@ -430,14 +425,12 @@
 
     <string name="s_cat_desc_general">Język, zachowanie i inne opcje</string>
     <string name="s_cat_desc_filter">Ukrywanie utworów i list odtwarzania według słów kluczowych</string>
-    <string name="s_cat_desc_home_page">Rekomendacje dotyczące utworów</string>
+    <string name="s_cat_desc_feed">Rekomendacje dotyczące utworów</string>
     <string name="s_cat_desc_player">Dostosowywanie widoku odtwarzacza muzyki</string>
-    <string name="s_cat_desc_library">Sterowanie sposobem wyświetlania biblioteki</string>
-    <string name="s_cat_desc_theming">Dostosuj kolory aplikacji i zmień źródło akcentów</string>
+    <string name="s_cat_desc_theme">Dostosuj kolory aplikacji i zmień źródło akcentów</string>
     <string name="s_cat_desc_lyrics">Wygląd i zachowanie tekstu</string>
-    <string name="s_cat_desc_download">Jakość pobierania i opcje automatycznego pobierania</string>
     <string name="s_cat_desc_discord_status">Zarządzanie kontem Discord i dostosowywanie wyglądu statusu</string>
-    <string name="s_cat_desc_other">Opcje pamięci podręcznej i usługi dostępności</string>
+    <string name="s_cat_desc_misc">Opcje pamięci podręcznej i usługi dostępności</string>
 
     <string name="discord_status_default_name">$artysta</string>
     <string name="discord_status_default_text_a">$utwór</string>

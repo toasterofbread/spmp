@@ -2,7 +2,6 @@
 package com.toasterofbread.spmp.ui.layout.apppage.mainpage
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
@@ -19,13 +18,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
@@ -50,15 +46,9 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.platform.Platform
-import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 import com.toasterofbread.composekit.utils.common.bitmapResource
-import com.toasterofbread.composekit.utils.composable.ShapedIconButton
-import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.splash.SplashExtraLoadingContent
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.layout.apppage.settingspage.PrefsPageCategory
-import com.toasterofbread.spmp.ui.layout.apppage.settingspage.getCategory
 import kotlinx.coroutines.delay
 
 private const val MESSAGE_DELAY: Long = 2000L

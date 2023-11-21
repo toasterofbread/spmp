@@ -49,10 +49,11 @@ import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.composekit.utils.common.thenWith
 import com.toasterofbread.composekit.utils.composable.getTop
-import com.toasterofbread.spmp.model.NowPlayingQueueRadioInfoPosition
-import com.toasterofbread.spmp.model.NowPlayingQueueWaveBorderMode
-import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueRadioInfoPosition
+import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueWaveBorderMode
+import com.toasterofbread.spmp.model.settings.category.PlayerSettings
+import com.toasterofbread.spmp.model.settings.rememberMutableEnumState
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.ui.component.WaveBorder
@@ -91,7 +92,7 @@ internal fun QueueTab(
     val scroll_coroutine_scope = rememberCoroutineScope()
 
     var key_inc by remember { mutableStateOf(0) }
-    val radio_info_position: NowPlayingQueueRadioInfoPosition by Settings.KEY_NP_QUEUE_RADIO_INFO_POSITION.rememberMutableEnumState()
+    val radio_info_position: NowPlayingQueueRadioInfoPosition by PlayerSettings.Key.QUEUE_RADIO_INFO_POSITION.rememberMutableEnumState()
     val multiselect_context: MediaItemMultiSelectContext = remember { MediaItemMultiSelectContext() }
 
     val song_items: SnapshotStateList<QueueTabItem> = remember { mutableStateListOf<QueueTabItem>().also { list ->
@@ -233,7 +234,7 @@ internal fun QueueTab(
                     CurrentRadioIndicator({ getBackgroundColour(player) }, multiselect_context, Modifier.padding(bottom = 10.dp))
                 }
 
-                val wave_border_mode_state: NowPlayingQueueWaveBorderMode by Settings.KEY_NP_QUEUE_WAVE_BORDER_MODE.rememberMutableEnumState()
+                val wave_border_mode_state: NowPlayingQueueWaveBorderMode by PlayerSettings.Key.QUEUE_WAVE_BORDER_MODE.rememberMutableEnumState()
                 val wave_border_mode: NowPlayingQueueWaveBorderMode = wave_border_mode_override ?: wave_border_mode_state
                 QueueBorder(
                     wave_border_mode,
@@ -261,7 +262,7 @@ internal fun QueueTab(
                             list_position = with(density) { coords.positionInParent().y.toDp() }
                         }
                     ) {
-                        val side_padding: Dp = maxWidth * Settings.KEY_NP_QUEUE_EXTRA_SIDE_PADDING.get<Float>() * 0.25f
+                        val side_padding: Dp = maxWidth * PlayerSettings.Key.QUEUE_EXTRA_SIDE_PADDING.get<Float>() * 0.25f
 
                         LazyColumn(
                             state = queue_list_state.listState,

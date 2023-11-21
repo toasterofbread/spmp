@@ -1,16 +1,12 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 package com.toasterofbread.spmp.ui.layout.nowplaying
 
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
 import androidx.compose.runtime.*
-import androidx.compose.ui.unit.Density
-import com.toasterofbread.spmp.model.MusicTopBarMode
-import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.model.settings.category.MusicTopBarMode
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 interface ExpansionState {

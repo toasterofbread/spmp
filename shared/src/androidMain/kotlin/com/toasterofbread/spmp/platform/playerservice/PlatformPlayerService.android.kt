@@ -66,15 +66,18 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.toasterofbread.composekit.platform.PlatformPreferences
+import com.toasterofbread.composekit.platform.PlatformPreferencesListener
 import com.toasterofbread.spmp.exovisualiser.ExoVisualizer
 import com.toasterofbread.spmp.exovisualiser.FFTAudioProcessor
-import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
+import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
+import com.toasterofbread.spmp.model.settings.category.PlayerSettings
+import com.toasterofbread.spmp.model.settings.category.StreamingSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.PlayerServiceCommand
@@ -161,7 +164,7 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
     }
 
     private fun LoudnessEnhancer.update(song: Song?) {
-        if (song == null || !Settings.KEY_ENABLE_AUDIO_NORMALISATION.get<Boolean>(context)) {
+        if (song == null || !StreamingSettings.Key.ENABLE_AUDIO_NORMALISATION.get<Boolean>(context)) {
             enabled = false
             return
         }
@@ -212,14 +215,14 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
         }
     }
 
-    private val prefs_listener: PlatformPreferences.Listener = object : PlatformPreferences.Listener {
+    private val prefs_listener: PlatformPreferencesListener = object : PlatformPreferencesListener {
         override fun onChanged(prefs: PlatformPreferences, key: String) {
             when (key) {
-                Settings.KEY_ENABLE_AUDIO_NORMALISATION.name -> {
+                StreamingSettings.Key.ENABLE_AUDIO_NORMALISATION.getName() -> {
                     loudness_enhancer?.update(current_song)
                 }
-                Settings.KEY_ENABLE_SILENCE_SKIPPING.name -> {
-                    audio_sink.skipSilenceEnabled = Settings.KEY_ENABLE_SILENCE_SKIPPING.get(context)
+                StreamingSettings.Key.ENABLE_SILENCE_SKIPPING.getName() -> {
+                    audio_sink.skipSilenceEnabled = StreamingSettings.Key.ENABLE_SILENCE_SKIPPING.get(context)
                 }
             }
         }
@@ -246,8 +249,8 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
                 return
             }
 
-            val resume_on_bt: Boolean = Settings.KEY_RESUME_ON_BT_CONNECT.get(context)
-            val resume_on_wired: Boolean = Settings.KEY_RESUME_ON_WIRED_CONNECT.get(context)
+            val resume_on_bt: Boolean = PlayerSettings.Key.RESUME_ON_BT_CONNECT.get(context)
+            val resume_on_wired: Boolean = PlayerSettings.Key.RESUME_ON_WIRED_CONNECT.get(context)
 
             for (device in addedDevices) {
                 if ((resume_on_bt && isBluetoothAudio(device)) || (resume_on_wired && isWiredAudio(device))) {
@@ -262,8 +265,8 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
                 return
             }
 
-            val pause_on_bt: Boolean = Settings.KEY_PAUSE_ON_BT_DISCONNECT.get(context)
-            val pause_on_wired: Boolean = Settings.KEY_PAUSE_ON_WIRED_DISCONNECT.get(context)
+            val pause_on_bt: Boolean = PlayerSettings.Key.PAUSE_ON_BT_DISCONNECT.get(context)
+            val pause_on_wired: Boolean = PlayerSettings.Key.PAUSE_ON_WIRED_DISCONNECT.get(context)
 
             for (device in removedDevices) {
                 if ((pause_on_bt && isBluetoothAudio(device)) || (pause_on_wired && isWiredAudio(device))) {
@@ -430,7 +433,7 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
         if (
             (!player.isPlaying && convertState(player.playbackState) != MediaPlayerState.BUFFERING)
             || (
-                Settings.KEY_STOP_PLAYER_ON_APP_CLOSE.get(context)
+                BehaviourSettings.Key.STOP_PLAYER_ON_APP_CLOSE.get(context)
                 && intent?.component?.packageName == packageName
             )
         ) {
@@ -488,7 +491,7 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
             )
             .build()
 
-        audio_sink.skipSilenceEnabled = Settings.KEY_ENABLE_SILENCE_SKIPPING.get(context)
+        audio_sink.skipSilenceEnabled = StreamingSettings.Key.ENABLE_SILENCE_SKIPPING.get(context)
 
         val renderers_factory = RenderersFactory { handler: Handler?, _, audioListener: AudioRendererEventListener?, _, _ ->
             arrayOf(

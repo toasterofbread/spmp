@@ -6,7 +6,6 @@ import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.layout.ViewMoreType
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
-import com.toasterofbread.spmp.resources.uilocalisation.YoutubeLocalisedString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.Duration

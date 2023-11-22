@@ -454,8 +454,6 @@
     <string name="s_key_top_bar_lyrics_show_in_viewmore">ホームの「もっと見る」画面で表示</string>
     <string name="s_key_top_bar_lyrics_show_in_search">検索画面で表示</string>
 
-    <string name="s_cat_audio_video">音・動画</string>
-
     <string name="s_key_stream_audio_quality">ストリームの音質</string>
     <string name="s_sub_stream_audio_quality">曲をストリーム再生する時の音質</string>
     <string name="s_key_download_audio_quality">ダウンロードの音質</string>
@@ -586,7 +584,7 @@
     <string name="s_cat_filter">フィルター</string>
     <string name="s_cat_desc_filter">キーワードを含む曲やプレイリストを隠す</string>
 
-    <string name="s_desc_streaming">再生</string>
+    <string name="s_cat_streaming">再生</string>
     <string name="s_cat_desc_streaming">音質や再生の調節</string>
 
     <string name="s_cat_server">サーバー</string>
@@ -594,6 +592,9 @@
 
     <string name="s_cat_misc">その他</string>
     <string name="s_cat_desc_misc">キャッシュなどの設定</string>
+
+    <string name="s_cat_youtube_auth">YouTubeの認証情報</string>
+    <string name="s_cat_discord_auth">Discordの認証情報</string>
 
     <string name="song_related_page_no_content">この曲には関係コンテンツがありません</string>
     <string name="song_related_page_empty_row">なにもありません</string>
@@ -659,5 +660,13 @@
     <string name="err_secure_settings_grant_failed"></string> <!--TODO-->
 
     <string name="settings_export_filename_$date">SpMp_設定_$date</string>
+
+    <string name="settings_import_prep_title">設定をインポート</string>
+    <string name="settings_import_category_selection_subtitle">インポートするカテゴリーを選択</string>
+    <string name="settings_import_button_import">決定</string>
+    <string name="settings_import_error_title">インポートが失敗しました</string>
+    <string name="settings_import_result_title">インポートが成功しました</string>
+    <string name="settings_import_result_$x_from_file">$x個の設定をファイルからインポートしました</string>
+    <string name="settings_import_result_$x_from_default">$x個の設定をデフォルトから復元しました</string>
 
 </resources>

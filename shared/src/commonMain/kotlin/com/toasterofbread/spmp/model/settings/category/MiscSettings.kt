@@ -13,8 +13,8 @@ data object MiscSettings: SettingsCategory("misc") {
 
     override fun getPage(): Page? =
         Page(
-            getString("s_cat_desc_misc"),
             getString("s_cat_misc"),
+            getString("s_cat_desc_misc"),
             { getMiscCategoryItems() }
         ) { Icons.Outlined.MoreHoriz }
 

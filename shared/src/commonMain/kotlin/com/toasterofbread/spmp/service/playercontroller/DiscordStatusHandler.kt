@@ -6,7 +6,8 @@ import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.settings.category.AuthSettings
+import com.toasterofbread.spmp.model.settings.category.DiscordAuthSettings
+import com.toasterofbread.spmp.model.settings.category.YoutubeAuthSettings
 import com.toasterofbread.spmp.model.settings.category.DiscordSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.DiscordStatus
@@ -35,7 +36,7 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
     fun onDiscordAccountTokenChanged() {
         discord_rpc?.close()
 
-        val account_token = AuthSettings.Key.DISCORD_ACCOUNT_TOKEN.get<String>(context.getPrefs())
+        val account_token = DiscordAuthSettings.Key.DISCORD_ACCOUNT_TOKEN.get<String>(context.getPrefs())
         if (!DiscordStatus.isSupported() || (account_token.isBlank() && DiscordStatus.isAccountTokenRequired())) {
             discord_rpc = null
             return

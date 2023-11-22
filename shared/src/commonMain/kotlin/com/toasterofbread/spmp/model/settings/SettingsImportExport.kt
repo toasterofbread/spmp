@@ -43,6 +43,7 @@ object SettingsImportExport {
 
         file.outputStream().writer().use { writer ->
             writer.write(Gson().toJson(data))
+            writer.flush()
         }
     }
 
@@ -52,27 +53,46 @@ object SettingsImportExport {
         }
     }
 
-    fun importData(context: AppContext, data: SettingsExportData, categories: List<SettingsCategory>?) {
-        if (data.values == null) {
-            return
-        }
+    data class ImportResult(
+        val directly_imported_count: Int,
+        val default_imported_count: Int
+    )
 
-        context.getPrefs().edit {
-            val all_categories: List<SettingsCategory> = SettingsCategory.all
-            val included_categories: List<SettingsCategory>? = data.included_categories?.map { id ->
-                SettingsCategory.fromId(id)
-            }
+    fun importData(context: AppContext, data: SettingsExportData, categories: List<SettingsCategory>?): ImportResult {
+        var directly_imported: Int = 0
+        var default_imported: Int = 0
 
-            for (category in included_categories ?: all_categories) {
-                if (categories != null && !categories.contains(category)) {
-                    continue
+        if (data.values != null) {
+            context.getPrefs().edit {
+                val all_categories: List<SettingsCategory> = SettingsCategory.all
+                val included_categories: List<SettingsCategory>? = data.included_categories?.map { id ->
+                    SettingsCategory.fromId(id)
                 }
 
-                for (key in category.keys) {
-                    val name: String = key.getName()
-                    putAny(name, data.values[name], key.getDefaultValue())
+                for (category in included_categories ?: all_categories) {
+                    if (categories != null && !categories.contains(category)) {
+                        continue
+                    }
+
+                    for (key in category.keys) {
+                        val name: String = key.getName()
+                        val value: Any? = data.values[name]
+                        putAny(name, data.values[name], key.getDefaultValue())
+
+                        if (value != null) {
+                            directly_imported++
+                        }
+                        else {
+                            default_imported++
+                        }
+                    }
                 }
             }
         }
+
+        return ImportResult(
+            directly_imported,
+            default_imported
+        )
     }
 }

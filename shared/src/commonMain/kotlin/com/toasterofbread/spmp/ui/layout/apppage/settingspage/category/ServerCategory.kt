@@ -1,9 +1,9 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsItemInfoText
-import com.toasterofbread.composekit.settings.ui.item.SettingsTextFieldItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsToggleItem
+import com.toasterofbread.composekit.settings.ui.item.InfoTextSettingsItem
+import com.toasterofbread.composekit.settings.ui.item.TextFieldSettingsItem
+import com.toasterofbread.composekit.settings.ui.item.ToggleSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.settings.category.ServerSettings
 import com.toasterofbread.spmp.resources.getString
@@ -19,22 +19,22 @@ internal fun getServerCategoryItems(): List<SettingsItem> {
     check(port_regex.matches("1111"))
 
     return listOf(
-        SettingsItemInfoText(
+        InfoTextSettingsItem(
             getString("s_info_server")
         ),
 
-        SettingsTextFieldItem(
+        TextFieldSettingsItem(
             SettingsValueState(ServerSettings.Key.IP_ADDRESS.getName()),
             getString("s_key_server_ip"), null,
             getStringError = { input ->
                 if (!ip_regex.matches(input)) {
-                    return@SettingsTextFieldItem getString("settings_value_not_ipv4")
+                    return@TextFieldSettingsItem getString("settings_value_not_ipv4")
                 }
-                return@SettingsTextFieldItem null
+                return@TextFieldSettingsItem null
             }
         ),
 
-        SettingsTextFieldItem(
+        TextFieldSettingsItem(
             SettingsValueState(
                 ServerSettings.Key.PORT.getName(),
                 getValueConverter = {
@@ -47,18 +47,18 @@ internal fun getServerCategoryItems(): List<SettingsItem> {
             getString("s_key_server_port"), null,
             getStringError = { input ->
                 if (!port_regex.matches(input)) {
-                    return@SettingsTextFieldItem getString("settings_value_not_port")
+                    return@TextFieldSettingsItem getString("settings_value_not_port")
                 }
-                return@SettingsTextFieldItem null
+                return@TextFieldSettingsItem null
             }
         ),
 
-        SettingsTextFieldItem(
+        TextFieldSettingsItem(
             SettingsValueState(ServerSettings.Key.LOCAL_COMMAND.getName()),
             getString("s_key_server_command"), getString("s_sub_server_command")
         ),
 
-        SettingsToggleItem(
+        ToggleSettingsItem(
             SettingsValueState(ServerSettings.Key.KILL_CHILD_ON_EXIT.getName()),
             getString("s_key_server_kill_child_on_exit"), null
         )

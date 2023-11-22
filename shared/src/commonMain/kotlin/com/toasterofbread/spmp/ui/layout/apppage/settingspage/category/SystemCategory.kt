@@ -3,11 +3,11 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 import LocalPlayerState
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
-import com.toasterofbread.composekit.settings.ui.item.SettingsComposableItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsDropdownItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsFileItem
+import com.toasterofbread.composekit.settings.ui.item.ComposableSettingsItem
+import com.toasterofbread.composekit.settings.ui.item.DropdownSettingsItem
+import com.toasterofbread.composekit.settings.ui.item.FileSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsToggleItem
+import com.toasterofbread.composekit.settings.ui.item.ToggleSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
@@ -28,7 +28,7 @@ fun getLanguageDropdownItem(
     title: String,
     subtitle: String?
 ): SettingsItem {
-    return SettingsDropdownItem(
+    return DropdownSettingsItem(
         SettingsValueState(
             key.getName(),
             getValueConverter = {
@@ -81,7 +81,7 @@ internal fun getSystemCategoryItems(context: AppContext): List<SettingsItem> {
     val available_languages: List<Languages.LanguageInfo> = Languages.loadAvailableLanugages(context)
 
     return listOf(
-        SettingsComposableItem {
+        ComposableSettingsItem {
             WidthShrinkText(getString("language_change_restart_notice"))
         },
 
@@ -97,7 +97,7 @@ internal fun getSystemCategoryItems(context: AppContext): List<SettingsItem> {
             getString("s_key_data_lang"), getString("s_sub_data_lang")
         ),
 
-        SettingsDropdownItem(
+        DropdownSettingsItem(
             SettingsValueState(SystemSettings.Key.FONT.getName()),
             getString("s_key_font"),
             null,
@@ -106,19 +106,19 @@ internal fun getSystemCategoryItems(context: AppContext): List<SettingsItem> {
             FontMode.values()[index].getReadable(language)
         },
 
-        SettingsToggleItem(
+        ToggleSettingsItem(
             SettingsValueState(SystemSettings.Key.PERSISTENT_QUEUE.getName()),
             getString("s_key_persistent_queue"),
             getString("s_sub_persistent_queue")
         ),
 
-        SettingsToggleItem(
+        ToggleSettingsItem(
             SettingsValueState(SystemSettings.Key.ADD_SONGS_TO_HISTORY.getName()),
             getString("s_key_add_songs_to_history"),
             getString("s_sub_add_songs_to_history")
         ),
 
-        SettingsFileItem(
+        FileSettingsItem(
             SettingsValueState(SystemSettings.Key.LIBRARY_PATH.getName()),
             getString("s_key_library_path"),
             getString("s_sub_library_path"),
@@ -153,7 +153,7 @@ internal fun getSystemCategoryItems(context: AppContext): List<SettingsItem> {
                             val result = old_location.moveDirContentTo(new_location)
                             result.onFailure { error ->
                                 showDialog(
-                                    SettingsFileItem.Dialog(
+                                    FileSettingsItem.Dialog(
                                         getStringTODO("Transfer failed"),
                                         error.toString(),
                                         getString("action_confirm_action"),
@@ -173,7 +173,7 @@ internal fun getSystemCategoryItems(context: AppContext): List<SettingsItem> {
                     }
 
                     showDialog(
-                        SettingsFileItem.Dialog(
+                        FileSettingsItem.Dialog(
                             getStringTODO("Transfer existing library"),
                             getStringTODO("Move the library at ${old_location.path} to ${new_location.path}?"),
                             getString("action_confirm_action"),

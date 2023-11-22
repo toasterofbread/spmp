@@ -31,12 +31,14 @@ import androidx.compose.ui.unit.dp
 import com.google.gson.Gson
 import com.toasterofbread.composekit.utils.composable.LinkifyText
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.platform.WebViewLogin
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.AccountSelectionData
 import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.AccountSelectionPage
 import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.AccountSwitcherEndpoint
@@ -266,7 +268,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
 
     @Composable
     override fun LoginConfirmationDialog(info_only: Boolean, onFinished: (param: Any?) -> Unit) {
-        val player = LocalPlayerState.current
+        val player: PlayerState = LocalPlayerState.current
 
         AlertDialog(
             { onFinished(null) },
@@ -305,15 +307,15 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
     override fun targetsDisabledPadding(confirm_param: Any?): Boolean = false
 
     private fun replaceCookiesInString(base_cookies: String, new_cookies: List<String>): String {
-        var cookie_string = base_cookies
+        var cookie_string: String = base_cookies
 
         for (cookie in new_cookies) {
-            val split = cookie.split('=', limit = 2)
+            val split: List<String> = cookie.split('=', limit = 2)
 
             val name: String = split[0]
             val new_value: String = split[1].split(';', limit = 2)[0]
 
-            val cookie_start = cookie_string.indexOf("$name=") + name.length + 1
+            val cookie_start: Int = cookie_string.indexOf("$name=") + name.length + 1
             if (cookie_start != -1) {
                 val cookie_end = cookie_string.indexOf(';', cookie_start)
                 cookie_string = (
@@ -337,7 +339,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
             val sign_in_url: String =
                 account.serviceEndpoint.selectActiveIdentityEndpoint.supportedTokens.first { it.accountSigninToken != null }.accountSigninToken!!.signinUrl
 
-            val sign_in_request = with(api) {
+            val sign_in_request: Request = with(api) {
                 Request.Builder()
                     .endpointUrl(sign_in_url)
                     .headers(headers)
@@ -345,7 +347,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
                     .build()
             }
 
-            val result = OkHttpClient().executeResult(sign_in_request)
+            val result: Result<Response> = OkHttpClient().executeResult(sign_in_request)
 
             val new_cookies: List<String> = result.fold(
                 {
@@ -361,7 +363,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
                 }
             )
 
-            val cookie_string = replaceCookiesInString(
+            val cookie_string: String = replaceCookiesInString(
                 headers["Cookie"]!!,
                 new_cookies
             )
@@ -389,13 +391,13 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
 
     private suspend fun completeLogin(headers: Headers): Result<YoutubeMusicAuthInfo> = withContext(Dispatchers.IO) {
         with(api) {
-            val account_request = Request.Builder()
+            val account_request: Request = Request.Builder()
                 .endpointUrl("/youtubei/v1/account/account_menu")
                 .headers(headers)
                 .postWithBody()
                 .build()
 
-            val result = api.performRequest(account_request)
+            val result: Result<Response> = api.performRequest(account_request)
             result.fold(
                 { response ->
                     try {
@@ -403,14 +405,14 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
                             api.gson.fromJson(stream)
                         }
 
-                        val headers_builder = headers.newBuilder()
-                        val new_cookies = response.headers.mapNotNull { header ->
+                        val headers_builder: Headers.Builder = headers.newBuilder()
+                        val new_cookies: List<String> = response.headers.mapNotNull { header ->
                             if (header.first == "Set-Cookie") header.second
                             else null
                         }
                         headers_builder["Cookie"] = replaceCookiesInString(headers_builder["Cookie"]!!, new_cookies)
 
-                        val channel = parsed.getAritst()
+                        val channel: Artist? = parsed.getAritst()
                         if (channel == null) {
                             return@withContext Result.failure(YoutubeChannelNotCreatedException(headers_builder.build(), parsed.getChannelCreationToken()))
                         }

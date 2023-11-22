@@ -1,8 +1,8 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
-import com.toasterofbread.composekit.settings.ui.item.SettingsDropdownItem
+import com.toasterofbread.composekit.settings.ui.item.DropdownSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsToggleItem
+import com.toasterofbread.composekit.settings.ui.item.ToggleSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.model.settings.category.StreamingSettings
@@ -12,14 +12,14 @@ import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpointType
 
 internal fun getStreamingCategoryItems(): List<SettingsItem> {
     return listOf(
-        SettingsDropdownItem(
+        DropdownSettingsItem(
             SettingsValueState(StreamingSettings.Key.VIDEO_FORMATS_METHOD.getName()),
             getString("s_key_video_formats_endpoint"), null, VideoFormatsEndpointType.values().size
         ) { i ->
             VideoFormatsEndpointType.values()[i].getReadable()
         },
 
-        SettingsToggleItem(
+        ToggleSettingsItem(
             SettingsValueState(StreamingSettings.Key.AUTO_DOWNLOAD_ENABLED.getName()),
             getString("s_key_auto_download_enabled"), null
         ),
@@ -32,12 +32,12 @@ internal fun getStreamingCategoryItems(): List<SettingsItem> {
             max_label = "10"
         ),
 
-        SettingsToggleItem(
+        ToggleSettingsItem(
             SettingsValueState(StreamingSettings.Key.AUTO_DOWNLOAD_ON_METERED.getName()),
             getString("s_key_auto_download_on_metered"), null
         ),
 
-        SettingsDropdownItem(
+        DropdownSettingsItem(
             SettingsValueState(StreamingSettings.Key.STREAM_AUDIO_QUALITY.getName()),
             getString("s_key_stream_audio_quality"), getString("s_sub_stream_audio_quality"), 3
         ) { i ->
@@ -48,7 +48,7 @@ internal fun getStreamingCategoryItems(): List<SettingsItem> {
             }
         },
 
-        SettingsDropdownItem(
+        DropdownSettingsItem(
             SettingsValueState(StreamingSettings.Key.DOWNLOAD_AUDIO_QUALITY.getName()),
             getString("s_key_download_audio_quality"), getString("s_sub_download_audio_quality"), 3
         ) { i ->
@@ -59,12 +59,12 @@ internal fun getStreamingCategoryItems(): List<SettingsItem> {
             }
         },
 
-        SettingsToggleItem(
+        ToggleSettingsItem(
             SettingsValueState(StreamingSettings.Key.ENABLE_AUDIO_NORMALISATION.getName()),
             getString("s_key_enable_audio_normalisation"), getString("s_sub_enable_audio_normalisation")
         ),
 
-        SettingsToggleItem(
+        ToggleSettingsItem(
             SettingsValueState(StreamingSettings.Key.ENABLE_SILENCE_SKIPPING.getName()),
             getString("s_key_enable_silence_skipping"), null
         )

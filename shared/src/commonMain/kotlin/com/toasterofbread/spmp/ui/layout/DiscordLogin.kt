@@ -59,7 +59,7 @@ private const val DISCORD_DEFAULT_AVATAR = "https://discord.com/assets/1f0bfc086
 @Composable
 fun DiscordLoginConfirmation(info_only: Boolean = false, onFinished: (manual: Boolean?) -> Unit) {
     AlertDialog(
-        { onFinished(false) },
+        { onFinished(null) },
         confirmButton = {
             FilledTonalButton({
                 onFinished(if (info_only) null else false)

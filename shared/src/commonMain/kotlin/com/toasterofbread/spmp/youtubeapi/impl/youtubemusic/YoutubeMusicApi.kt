@@ -10,7 +10,7 @@ import com.toasterofbread.composekit.platform.PlatformPreferencesListener
 import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.settings.Settings
-import com.toasterofbread.spmp.model.settings.category.AuthSettings
+import com.toasterofbread.spmp.model.settings.category.YoutubeAuthSettings
 import com.toasterofbread.spmp.model.settings.category.StreamingSettings
 import com.toasterofbread.spmp.model.settings.category.SystemSettings
 import com.toasterofbread.spmp.platform.AppContext
@@ -85,7 +85,7 @@ data class YoutubeMusicApi(
     private val prefs_change_listener = object : PlatformPreferencesListener {
         override fun onChanged(prefs: PlatformPreferences, key: String) {
             when (key) {
-                AuthSettings.Key.YTM_AUTH.getName() -> onUserAuthStateChanged()
+                YoutubeAuthSettings.Key.YTM_AUTH.getName() -> onUserAuthStateChanged()
                 SystemSettings.Key.LANG_DATA.getName() -> {
                     updateYtmContext()
                 }
@@ -235,14 +235,14 @@ data class YoutubeMusicApi(
     }
 
     private fun onUserAuthStateChanged() {
-        user_auth_state = YoutubeApi.UserAuthState.unpackSetData(AuthSettings.Key.YTM_AUTH.get(context), context).let { data ->
+        user_auth_state = YoutubeApi.UserAuthState.unpackSetData(YoutubeAuthSettings.Key.YTM_AUTH.get(context), context).let { data ->
             if (data.first != null) YoutubeMusicAuthInfo.create(this, data.first!!, data.second)
             else null
         }
     }
 
     override var user_auth_state: YoutubeMusicAuthInfo? by mutableStateOf(
-        YoutubeApi.UserAuthState.unpackSetData(AuthSettings.Key.YTM_AUTH.get(context), context).let { data ->
+        YoutubeApi.UserAuthState.unpackSetData(YoutubeAuthSettings.Key.YTM_AUTH.get(context), context).let { data ->
             if (data.first != null) YoutubeMusicAuthInfo.create(this, data.first!!, data.second)
             else null
         }

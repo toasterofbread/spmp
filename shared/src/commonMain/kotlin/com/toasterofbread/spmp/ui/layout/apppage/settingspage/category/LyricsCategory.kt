@@ -1,8 +1,8 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
-import com.toasterofbread.composekit.settings.ui.item.SettingsDropdownItem
+import com.toasterofbread.composekit.settings.ui.item.DropdownSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsToggleItem
+import com.toasterofbread.composekit.settings.ui.item.ToggleSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.settings.category.LyricsSettings
 import com.toasterofbread.spmp.resources.getString
@@ -11,7 +11,7 @@ import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
 
 internal fun getLyricsCategoryItems(): List<SettingsItem> {
     return listOf(
-        SettingsDropdownItem(
+        DropdownSettingsItem(
             SettingsValueState(LyricsSettings.Key.DEFAULT_SOURCE.getName()),
             getString("s_key_lyrics_default_source"), null,
             LyricsSource.SOURCE_AMOUNT
@@ -19,7 +19,7 @@ internal fun getLyricsCategoryItems(): List<SettingsItem> {
             LyricsSource.fromIdx(i).getReadable()
         },
 
-        SettingsToggleItem(
+        ToggleSettingsItem(
             SettingsValueState(LyricsSettings.Key.FOLLOW_ENABLED.getName()),
             getString("s_key_lyrics_follow_enabled"), getString("s_sub_lyrics_follow_enabled")
         ),
@@ -31,12 +31,12 @@ internal fun getLyricsCategoryItems(): List<SettingsItem> {
             getValueText = null
         ),
 
-        SettingsToggleItem(
+        ToggleSettingsItem(
             SettingsValueState(LyricsSettings.Key.DEFAULT_FURIGANA.getName()),
             getString("s_key_lyrics_default_furigana"), null
         ),
 
-        SettingsDropdownItem(
+        DropdownSettingsItem(
             SettingsValueState(LyricsSettings.Key.TEXT_ALIGNMENT.getName()),
             getString("s_key_lyrics_text_alignment"), null, 3
         ) { i ->
@@ -47,12 +47,12 @@ internal fun getLyricsCategoryItems(): List<SettingsItem> {
             }
         },
 
-        SettingsToggleItem(
+        ToggleSettingsItem(
             SettingsValueState(LyricsSettings.Key.EXTRA_PADDING.getName()),
             getString("s_key_lyrics_extra_padding"), getString("s_sub_lyrics_extra_padding")
         ),
 
-        SettingsToggleItem(
+        ToggleSettingsItem(
             SettingsValueState(LyricsSettings.Key.ENABLE_WORD_SYNC.getName()),
             getString("s_key_lyrics_enable_word_sync"), getString("s_sub_lyrics_enable_word_sync")
         ),

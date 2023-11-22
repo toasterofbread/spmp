@@ -23,7 +23,7 @@ internal fun getDiscordLoginPage(discord_auth: SettingsValueState<String>, manua
             get() = if (manual) getString("discord_manual_login_title") else null
         override val icon: ImageVector?
             @Composable
-            get() = if (manual) DiscordSettings.getPage()?.getIcon() else null
+            get() = if (manual) DiscordSettings.getIcon() else null
 
         @Composable
         override fun PageView(

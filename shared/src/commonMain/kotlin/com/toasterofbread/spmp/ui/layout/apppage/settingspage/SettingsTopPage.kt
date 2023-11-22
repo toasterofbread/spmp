@@ -4,6 +4,7 @@ import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,24 +17,25 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Publish
+import androidx.compose.material.icons.filled.FolderOpen
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -59,9 +61,9 @@ import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 import com.toasterofbread.composekit.utils.common.addUnique
-import com.toasterofbread.composekit.utils.common.blendWith
 import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.composekit.utils.common.toggleItemPresence
+import com.toasterofbread.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.composekit.utils.modifier.horizontal
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.settings.SettingsImportExport
@@ -78,7 +80,6 @@ import org.jetbrains.compose.resources.painterResource
 import java.text.SimpleDateFormat
 import java.util.Date
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, content_padding: PaddingValues = PaddingValues(), top_padding: Dp = 0.dp) {
     val player: PlayerState = LocalPlayerState.current
@@ -91,36 +92,24 @@ internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, cont
     var exporting: Boolean by remember { mutableStateOf(false) }
     val export_categories: MutableList<SettingsCategory> = remember { mutableStateListOf() }
 
-    fun beginExport() {
-        export_categories.clear()
-        exporting = true
-    }
-
-    fun completeExport() {
-        exporting = false
-        peformExport(player.context, export_categories)
-    }
-
     BackHandler(exporting) {
         exporting = false
     }
 
     val horizontal_padding: PaddingValues = content_padding.horizontal
     val category_pages: List<SettingsCategory.Page> = remember { SettingsCategory.pages }
+    val item_spacing: Dp = 10.dp
 
     LazyColumn(
         modifier,
         contentPadding = PaddingValues(
             top = top_padding,
             bottom = content_padding.calculateBottomPadding() + PREFS_PAGE_EXTRA_PADDING_DP.dp
-        ),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        )
     ) {
         item {
-            val export_import_modifier: Modifier = Modifier.alpha(0.5f)
-
             Row(
-                Modifier.fillMaxWidth().padding(bottom = 10.dp).padding(horizontal_padding),
+                Modifier.fillMaxWidth().padding(bottom = item_spacing + 10.dp).padding(horizontal_padding),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -130,46 +119,21 @@ internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, cont
 
                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                AnimatedVisibility(exporting) {
-                    IconButton({
-                        if (export_categories.size == category_pages.size) {
-                            export_categories.clear()
-                        }
-                        else {
-                            for (page in category_pages) {
-                                export_categories.addUnique(page.category)
-                            }
-                        }
-                    }) {
-                        Icon(Icons.Default.SelectAll, null)
-                    }
-                }
-
-                Crossfade(exporting) { ex ->
-                    if (!ex) {
-                        IconButton({ beginExport() }) {
-                            Icon(Icons.Default.Publish, null, export_import_modifier)
-                        }
-                    }
-                    else {
-                        IconButton({ exporting = false }) {
-                            Icon(Icons.Default.Close, null)
-                        }
-                    }
-                }
-
-                Crossfade(exporting) { ex ->
-                    if (!ex) {
-                        IconButton({ importing = true }) {
-                            Icon(Icons.Default.Download, null, export_import_modifier)
-                        }
-                    }
-                    else {
-                        IconButton({ completeExport() }) {
-                            Icon(Icons.Default.Done, null)
-                        }
-                    }
-                }
+                ImportExportButtons(
+                    exporting,
+                    export_categories,
+                    category_pages,
+                    {
+                        export_categories.clear()
+                        exporting = true
+                    },
+                    {
+                        exporting = false
+                        peformExport(player.context, export_categories)
+                    },
+                    { exporting = it },
+                    { importing = it }
+                )
 
                 AnimatedVisibility(!exporting) {
                     ProjectButton(Modifier.padding(start = 20.dp))
@@ -177,15 +141,18 @@ internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, cont
             }
         }
 
-        item {
-            val ytm_auth_populated: Boolean = ytm_auth.get().isNotEmpty()
+        items(category_pages.filter { it.category.showPage(exporting) }) { page ->
+            val title_item: SettingsItem? = remember(page) { page.getTitleItem(player.context) }
+            if (title_item == null) {
+                return@items
+            }
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                AnimatedVisibility(exporting && ytm_auth_populated) {
+            Row(Modifier.padding(bottom = item_spacing), verticalAlignment = Alignment.CenterVertically) {
+                AnimatedVisibility(exporting) {
                     StyledCheckbox(
-                        checked = false,
+                        checked = export_categories.contains(page.category),
                         onCheckedChange = { checked ->
-                            TODO()
+                            export_categories.toggleItemPresence(page.category)
                         }
                     )
                 }
@@ -193,75 +160,29 @@ internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, cont
                 Box(Modifier.fillMaxWidth().padding(horizontal_padding)) {
                     val density: Density = LocalDensity.current
 
-                    // Using IntrinsicHeight breaks animation of item
+                    // Using IntrinsicHeight breaks some item animations
                     var item_height: Dp by remember { mutableStateOf(0.dp) }
 
-                    val item: SettingsItem = remember { getYtmAuthItem(player.context, ytm_auth, true) }
-                    item.Item(
+                    title_item.Item(
                         settings_interface,
                         settings_interface::openPageById,
                         settings_interface::openPage,
-                        Modifier.onSizeChanged {
-                            item_height = with (density) { it.height.toDp() }
-                        }
+                        Modifier
+                            .onSizeChanged {
+                                item_height = with (density) { it.height.toDp() }
+                            }
                     )
 
                     Box(
                         Modifier
                             .fillMaxWidth()
                             .height(item_height)
-                            .thenIf(exporting && ytm_auth_populated) {
+                            .thenIf(exporting) {
                                 clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
-                                    TODO()
+                                    export_categories.toggleItemPresence(page.category)
                                 }
                             }
                     )
-                }
-            }
-        }
-
-        items(category_pages) { page ->
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                AnimatedVisibility(exporting) {
-                    StyledCheckbox(
-                        checked = export_categories.contains(page.category),
-                        onCheckedChange = { checked ->
-                            if (checked) {
-                                export_categories.addUnique(page.category)
-                            }
-                            else {
-                                export_categories.remove(page.category)
-                            }
-                        }
-                    )
-                }
-
-                ElevatedCard(
-                    onClick = {
-                        if (!exporting) {
-                            current_category = page
-                        }
-                        else {
-                            export_categories.toggleItemPresence(page.category)
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal_padding),
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = player.theme.accent.blendWith(player.theme.background, 0.05f),
-                        contentColor = player.theme.on_background
-                    )
-                ) {
-                    Row(
-                        Modifier.padding(15.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(15.dp)
-                    ) {
-                        Icon(page.getIcon(), null)
-                        Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                            Text(page.title, style = MaterialTheme.typography.titleMedium)
-                            Text(page.description, style = MaterialTheme.typography.labelMedium)
-                        }
-                    }
                 }
             }
         }
@@ -297,18 +218,74 @@ internal fun SettingsImportDialog(modifier: Modifier = Modifier, onFinished: () 
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     var import_data: SettingsImportExport.SettingsExportData? by remember { mutableStateOf(null) }
+    var import_error: Throwable? by remember { mutableStateOf(null) }
+    var import_result: SettingsImportExport.ImportResult? by remember { mutableStateOf(null) }
 
     LaunchedEffect(Unit) {
         context.promptUserForFile(setOf("text/plain", "application/json"), persist = false) { path ->
             if (path != null) {
                 coroutine_scope.launch {
-                    import_data = SettingsImportExport.loadSettingsFile(context.getUserDirectoryFile(path))
+                    try {
+                        import_data = SettingsImportExport.loadSettingsFile(context.getUserDirectoryFile(path))
+                    }
+                    catch (e: Throwable) {
+                        import_error = e
+                    }
                 }
             }
             else {
                 onFinished()
             }
         }
+    }
+
+    import_error?.also { error ->
+        AlertDialog(
+            modifier = modifier,
+            onDismissRequest = onFinished,
+            confirmButton = {
+                Button(onFinished) {
+                    Text(getString("action_close"))
+                }
+            },
+            title = {
+                Text(getString("settings_import_error_title"))
+            },
+            text = {
+                Text(
+                    error.stackTraceToString(),
+                    Modifier
+                        .verticalScroll(rememberScrollState())
+                        .horizontalScroll(rememberScrollState()),
+                    softWrap = false
+                )
+            }
+        )
+        return
+    }
+
+    import_result?.also { result ->
+        AlertDialog(
+            modifier = modifier,
+            onDismissRequest = onFinished,
+            confirmButton = {
+                Button(onFinished) {
+                    Text(getString("action_close"))
+                }
+            },
+            title = {
+                WidthShrinkText(getString("settings_import_result_title"))
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                    CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.bodyLarge) {
+                        Text(getString("settings_import_result_\$x_from_file").replace("\$x", result.directly_imported_count.toString()))
+                        Text(getString("settings_import_result_\$x_from_default").replace("\$x", result.default_imported_count.toString()))
+                    }
+                }
+            }
+        )
+        return
     }
 
     import_data?.also { data ->
@@ -325,12 +302,16 @@ internal fun SettingsImportDialog(modifier: Modifier = Modifier, onFinished: () 
             confirmButton = {
                 Button(
                     {
-                        SettingsImportExport.importData(context, data, import_categories)
-                        onFinished()
+                        try {
+                            import_result = SettingsImportExport.importData(context, data, import_categories)
+                        }
+                        catch (e: Throwable) {
+                            import_error = e
+                        }
                     },
                     enabled = import_categories.isNotEmpty()
                 ) {
-                    Text("Import")
+                    Text(getString("settings_import_button_import"))
                 }
             },
             dismissButton = {
@@ -354,14 +335,14 @@ internal fun SettingsImportDialog(modifier: Modifier = Modifier, onFinished: () 
                 }
             },
             title = {
-                Text("Importing settings")
+                Text(getString("settings_import_prep_title"))
             },
             text = {
                 Column {
-                    Text("Select categories to import", style = MaterialTheme.typography.titleMedium)
+                    Text(getString("settings_import_category_selection_subtitle"), style = MaterialTheme.typography.titleMedium)
                     LazyColumn {
                         items(included_categories) { category ->
-                            val title: String = category.getPage()?.title
+                            val title: String = category.getPage()?.name
                                 ?: category.id.lowercase().replaceFirstChar { it.uppercaseChar() }
 
                             Row(
@@ -448,6 +429,60 @@ private fun peformExport(context: AppContext, categories: List<SettingsCategory>
                 file = context.getUserDirectoryFile(path),
                 categories = categories
             )
+        }
+    }
+}
+
+@Composable
+private fun ImportExportButtons(
+    exporting: Boolean,
+    export_categories: MutableList<SettingsCategory>,
+    category_pages: List<SettingsCategory.Page>,
+    beginExport: () -> Unit,
+    completeExport: () -> Unit,
+    setExporting: (Boolean) -> Unit,
+    setImporting: (Boolean) -> Unit
+) {
+    val initial_icon_modifier: Modifier = Modifier.alpha(0.5f)
+
+    AnimatedVisibility(exporting) {
+        IconButton({
+            if (export_categories.size == category_pages.size) {
+                export_categories.clear()
+            }
+            else {
+                for (page in category_pages) {
+                    export_categories.addUnique(page.category)
+                }
+            }
+        }) {
+            Icon(Icons.Default.SelectAll, null)
+        }
+    }
+
+    Crossfade(exporting) { ex ->
+        if (!ex) {
+            IconButton({ beginExport() }) {
+                Icon(Icons.Default.Save, null, initial_icon_modifier)
+            }
+        }
+        else {
+            IconButton({ setExporting(false) }) {
+                Icon(Icons.Default.Close, null)
+            }
+        }
+    }
+
+    Crossfade(exporting) { ex ->
+        if (!ex) {
+            IconButton({ setImporting(true) }) {
+                Icon(Icons.Default.FolderOpen, null, initial_icon_modifier)
+            }
+        }
+        else {
+            IconButton({ completeExport() }) {
+                Icon(Icons.Default.Done, null)
+            }
         }
     }
 }

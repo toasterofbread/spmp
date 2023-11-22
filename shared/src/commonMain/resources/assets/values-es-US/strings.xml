@@ -193,7 +193,6 @@
 	<string name="radios">Radios</string>
 	<string name="report_error">Reportar</string>
 	<string name="s_button_reset_stats">Reiniciar estadísticas de reproducción</string>
-	<string name="s_cat_audio_video">Audio / Video</string>
 	<string name="s_cat_desc_discord_status">Administra la cuenta de Discord y personaliza la apariencia del estado</string>
 	<string name="s_cat_desc_filter">Ocultar canciones y listas de reproducción por palabra clave</string>
 	<string name="s_cat_desc_general">Lenguaje, comportamiento y otras opciones</string>

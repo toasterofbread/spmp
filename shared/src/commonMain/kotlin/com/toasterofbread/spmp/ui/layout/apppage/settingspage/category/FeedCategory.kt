@@ -2,9 +2,9 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
 import LocalPlayerState
 import androidx.compose.runtime.remember
-import com.toasterofbread.composekit.settings.ui.item.SettingsGroupItem
+import com.toasterofbread.composekit.settings.ui.item.GroupSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsToggleItem
+import com.toasterofbread.composekit.settings.ui.item.ToggleSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.settings.category.FeedSettings
 import com.toasterofbread.spmp.resources.getString
@@ -15,14 +15,14 @@ import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppStringSetItem
 
 internal fun getFeedCategoryItems(): List<SettingsItem> {
     return listOf(
-        SettingsGroupItem(getString("s_group_rec_feed")),
+        GroupSettingsItem(getString("s_group_rec_feed")),
 
-        SettingsToggleItem(
+        ToggleSettingsItem(
             SettingsValueState(FeedSettings.Key.SHOW_FILTER_BAR.getName()),
             getString("s_key_feed_show_filter_bar"), getString("s_sub_feed_show_filter_bar")
         ),
 
-        SettingsToggleItem(
+        ToggleSettingsItem(
             SettingsValueState(FeedSettings.Key.SHOW_SONG_DOWNLOAD_INDICATORS.getName()),
             getString("s_key_feed_show_song_download_indicators"), null
         ),
@@ -82,7 +82,7 @@ internal fun getFeedCategoryItems(): List<SettingsItem> {
             range = 1f..10f
         ),
 
-        SettingsToggleItem(
+        ToggleSettingsItem(
             SettingsValueState(FeedSettings.Key.SHOW_RADIOS.getName()),
             getString("s_key_feed_show_radios"), null
         ),

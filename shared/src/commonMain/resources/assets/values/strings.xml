@@ -465,8 +465,6 @@
     <string name="s_key_top_bar_lyrics_show_in_viewmore">Show in home feed view more pages</string>
     <string name="s_key_top_bar_lyrics_show_in_search">Show in search page</string>
 
-    <string name="s_cat_audio_video">Audio / Video</string>
-
     <string name="s_key_stream_audio_quality">Stream audio quality</string>
     <string name="s_sub_stream_audio_quality">Target audio quality when streaming music</string>
     <string name="s_key_download_audio_quality">Download audio quality</string>
@@ -606,6 +604,9 @@
     <string name="s_cat_misc">Other</string>
     <string name="s_cat_desc_misc">Cache and other miscellaneous options</string>
 
+    <string name="s_cat_youtube_auth">YouTube credentials</string>
+    <string name="s_cat_discord_auth">Discord credentials</string>
+
     <string name="song_related_page_no_content">Song has no related content</string>
     <string name="song_related_page_empty_row">No content</string>
 
@@ -670,5 +671,13 @@
     <string name="err_secure_settings_grant_failed">Granting secure settings permission failed</string>
 
     <string name="settings_export_filename_$date">SpMp_settings_$date</string>
+
+    <string name="settings_import_prep_title">Importing settings</string>
+    <string name="settings_import_category_selection_subtitle">Select categories to import</string>
+    <string name="settings_import_button_import">Import</string>
+    <string name="settings_import_error_title">Import failed</string>
+    <string name="settings_import_result_title">Import successful</string>
+    <string name="settings_import_result_$x_from_file">$x value(s) imported from file</string>
+    <string name="settings_import_result_$x_from_default">$x value(s) restored from defaults</string>
 
 </resources>

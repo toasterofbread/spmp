@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import com.toasterofbread.composekit.settings.ui.item.BasicSettingsValueState
-import com.toasterofbread.composekit.settings.ui.item.SettingsSliderItem
+import com.toasterofbread.composekit.settings.ui.item.SliderSettingsItem
 import com.toasterofbread.composekit.utils.common.roundTo
 import com.toasterofbread.spmp.resources.getString
 
@@ -17,8 +17,8 @@ fun AppSliderItem(
         if (it is Float) it.roundTo(2).toString()
         else it.toString()
     }
-): SettingsSliderItem =
-    SettingsSliderItem(
+): SliderSettingsItem =
+    SliderSettingsItem(
         state = state,
         title = title,
         subtitle = subtitle,

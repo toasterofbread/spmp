@@ -9,14 +9,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.composekit.settings.ui.SettingsInterface
 import com.toasterofbread.composekit.settings.ui.SettingsPageWithItems
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.settings.Settings
-import com.toasterofbread.spmp.model.settings.category.AuthSettings
-import com.toasterofbread.spmp.model.settings.category.SettingsCategory
+import com.toasterofbread.spmp.model.settings.category.DiscordAuthSettings
+import com.toasterofbread.spmp.model.settings.category.YoutubeAuthSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
@@ -25,9 +24,7 @@ internal fun getPrefsPageSettingsInterface(
     page_state: AppPageState,
     pill_menu: PillMenu,
     ytm_auth: SettingsValueState<Set<String>>,
-    footer_modifier: Modifier,
-    getCategory: () -> SettingsCategory.Page?,
-    close: () -> Unit
+    footer_modifier: Modifier
 ): SettingsInterface {
     lateinit var settings_interface: SettingsInterface
     val context: AppContext = page_state.context
@@ -54,8 +51,8 @@ internal fun getPrefsPageSettingsInterface(
     }
 
     val discord_auth: SettingsValueState<String> =
-        SettingsValueState<String>(AuthSettings.Key.DISCORD_ACCOUNT_TOKEN.getName()).init(
-            Settings.prefs, Settings::provideDefault)
+        SettingsValueState<String>(DiscordAuthSettings.Key.DISCORD_ACCOUNT_TOKEN.getName())
+            .init(Settings.prefs, Settings::provideDefault)
 
     settings_interface = SettingsInterface(
         { context.theme },
@@ -66,22 +63,8 @@ internal fun getPrefsPageSettingsInterface(
         { index, param ->
             when (PrefsPageScreen.values()[index]) {
                 PrefsPageScreen.ROOT -> SettingsPageWithItems(
-                    { getCategory()?.title },
-                    {
-                        getCategory()?.getItems(context) ?: emptyList()
-                    },
-                    getIcon = {
-                        val icon: ImageVector? = getCategory()?.getIcon()
-                        var current_icon: ImageVector? by remember { mutableStateOf(icon) }
-
-                        LaunchedEffect(icon) {
-                            if (icon != null) {
-                                current_icon = icon
-                            }
-                        }
-
-                        return@SettingsPageWithItems current_icon
-                    }
+                    { null },
+                    { emptyList() }
                 )
                 PrefsPageScreen.YOUTUBE_MUSIC_LOGIN -> getYoutubeMusicLoginPage(ytm_auth, param)
                 PrefsPageScreen.DISCORD_LOGIN -> getDiscordLoginPage(discord_auth, manual = param == true)
@@ -96,7 +79,7 @@ internal fun getPrefsPageSettingsInterface(
                 pill_menu.addActionOverrider(pill_menu_action_overrider)
             }
         },
-        close,
+        { },
         footer_modifier
     )
 

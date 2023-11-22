@@ -20,11 +20,8 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -35,8 +32,7 @@ import androidx.compose.ui.zIndex
 import com.toasterofbread.composekit.settings.ui.SettingsInterface
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.settings.Settings
-import com.toasterofbread.spmp.model.settings.category.AuthSettings
-import com.toasterofbread.spmp.model.settings.category.SettingsCategory
+import com.toasterofbread.spmp.model.settings.category.YoutubeAuthSettings
 import com.toasterofbread.spmp.model.settings.category.TopBarSettings
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
@@ -56,10 +52,9 @@ internal enum class PrefsPageScreen {
 
 class SettingsAppPage(override val state: AppPageState, footer_modifier: Modifier): AppPage() {
     private val pill_menu: PillMenu = PillMenu(follow_player = true)
-    var current_category: SettingsCategory.Page? by mutableStateOf(null)
     val ytm_auth: SettingsValueState<Set<String>> =
         SettingsValueState<Set<String>>(
-            AuthSettings.Key.YTM_AUTH.getName()
+            YoutubeAuthSettings.Key.YTM_AUTH.getName()
         ).init(Settings.prefs, Settings::provideDefault)
     val settings_interface: SettingsInterface =
         getPrefsPageSettingsInterface(
@@ -67,16 +62,10 @@ class SettingsAppPage(override val state: AppPageState, footer_modifier: Modifie
             pill_menu,
             ytm_auth,
             footer_modifier,
-            { current_category },
-            { current_category = null }
         )
 
     override fun onBackNavigation(): Boolean {
-        if (current_category != null) {
-            settings_interface.goBack()
-            return true
-        }
-        return false
+        return settings_interface.goBack()
     }
 
     @Composable
@@ -87,18 +76,12 @@ class SettingsAppPage(override val state: AppPageState, footer_modifier: Modifie
         close: () -> Unit,
     ) {
         val player = LocalPlayerState.current
-        val category_open by remember { derivedStateOf { current_category != null } }
         val show_reset_confirmation = remember { mutableStateOf(false) }
 
         ResetConfirmationDialog(
             show_reset_confirmation,
             {
-                if (category_open) {
-                    settings_interface.current_page.resetKeys()
-                }
-                else {
-                    TODO("Reset keys in all categories (w/ different confirmation text)")
-                }
+                settings_interface.current_page.resetKeys()
             }
         )
 
@@ -132,11 +115,11 @@ class SettingsAppPage(override val state: AppPageState, footer_modifier: Modifie
                 val top_padding: Dp = player.top_bar.MusicTopBar(
                     TopBarSettings.Key.SHOW_IN_SETTINGS,
                     Modifier.fillMaxWidth().zIndex(10f),
-                    getBottomBorderColour = if (current_category == null) player.theme.background_provider else null,
+                    getBottomBorderColour = player.theme.background_provider,
                     padding = PaddingValues(top = content_padding.calculateTopPadding())
                 ).top_padding
 
-                Crossfade(category_open || settings_interface.current_page.id!! != PrefsPageScreen.ROOT.ordinal) { open ->
+                Crossfade(settings_interface.current_page.id != PrefsPageScreen.ROOT.ordinal) { open ->
                     if (!open) {
                         SettingsTopPage(content_padding = content_padding, top_padding = top_padding)
                     }

@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.settings.ui.SettingsPage
 import com.toasterofbread.composekit.settings.ui.SettingsPageWithItems
-import com.toasterofbread.composekit.settings.ui.item.SettingsComposableItem
+import com.toasterofbread.composekit.settings.ui.item.ComposableSettingsItem
 import com.toasterofbread.composekit.utils.common.roundTo
 import com.toasterofbread.composekit.utils.composable.RecomposeOnInterval
 import com.toasterofbread.spmp.platform.AppContext
@@ -79,21 +79,21 @@ fun getUiDebugInfoPage(): SettingsPage =
         { getString("s_subpage_ui_debug_info") },
         {
             listOf(
-                SettingsComposableItem {
+                ComposableSettingsItem {
                     SizeIndicator("Displaying above navigation bar") { context ->
                         context.isDisplayingAboveNavigationBar()
                     }
                 },
 
                 // Window height
-                SettingsComposableItem {
+                ComposableSettingsItem {
                     SizeIndicator("Screen height", show_indicator = false) { context ->
                         LocalPlayerState.current.screen_size.height
                     }
                 },
 
                 // Keyboard height
-                SettingsComposableItem {
+                ComposableSettingsItem {
                     Column(Modifier.fillMaxWidth()) {
                         SizeIndicator("Keyboard height", show_percent_of_screen = true) { context ->
                             WindowInsets.ime.getBottom(this).toDp()

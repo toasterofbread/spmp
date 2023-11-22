@@ -14,7 +14,8 @@ import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.db.incrementPlayCount
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.settings.category.AuthSettings
+import com.toasterofbread.spmp.model.settings.category.DiscordAuthSettings
+import com.toasterofbread.spmp.model.settings.category.YoutubeAuthSettings
 import com.toasterofbread.spmp.model.settings.category.MiscSettings
 import com.toasterofbread.spmp.model.settings.category.SystemSettings
 import com.toasterofbread.spmp.platform.AppContext
@@ -73,7 +74,7 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
     private val prefs_listener = object : PlatformPreferencesListener {
         override fun onChanged(prefs: PlatformPreferences, key: String) {
             when (key) {
-                AuthSettings.Key.DISCORD_ACCOUNT_TOKEN.getName() -> {
+                DiscordAuthSettings.Key.DISCORD_ACCOUNT_TOKEN.getName() -> {
                     discord_status.onDiscordAccountTokenChanged()
                 }
 //                Settings.KEY_ACC_VOL_INTERCEPT_NOTIFICATION.name -> {

@@ -3,9 +3,9 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.composekit.settings.ui.ThemeData
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsMultipleChoiceItem
+import com.toasterofbread.composekit.settings.ui.item.MultipleChoiceSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
-import com.toasterofbread.settings.ui.item.SettingsItemThemeSelector
+import com.toasterofbread.composekit.settings.ui.item.ThemeSelectorSettingsItem
 import com.toasterofbread.spmp.model.settings.category.AccentColourSource
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.AppContext
@@ -16,7 +16,7 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
     val theme: Theme = context.theme
 
     return listOf(
-        SettingsItemThemeSelector(
+        ThemeSelectorSettingsItem(
             SettingsValueState(ThemeSettings.Key.CURRENT_THEME.getName()),
             getString("s_key_current_theme"), null,
             getString("s_theme_editor_title"),
@@ -29,7 +29,7 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
             { theme.removeTheme(it) }
         ),
 
-        SettingsMultipleChoiceItem(
+        MultipleChoiceSettingsItem(
             SettingsValueState(ThemeSettings.Key.ACCENT_COLOUR_SOURCE.getName()),
             getString("s_key_accent_source"), null,
             AccentColourSource.values().size, false
@@ -40,7 +40,7 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
             }
         },
 
-        SettingsMultipleChoiceItem(
+        MultipleChoiceSettingsItem(
             SettingsValueState(ThemeSettings.Key.NOWPLAYING_THEME_MODE.getName()),
             getString("s_key_np_theme_mode"), null,
             3, false

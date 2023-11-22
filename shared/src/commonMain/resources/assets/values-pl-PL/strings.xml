@@ -353,9 +353,6 @@
     <string name="s_key_top_bar_lyrics_show_in_viewmore">Pokaż w widoku więcej na ekranie strony głównej</string>
     <string name="s_key_top_bar_lyrics_show_in_search">Pokaż w oknie wyszukiwania</string>
 
-
-    <string name="s_cat_audio_video">Dźwięk / Film</string>
-
     <string name="s_key_stream_audio_quality">Jakość przesyłanego dźwięku</string>
     <string name="s_sub_stream_audio_quality">Docelowa jakość dźwięku podczas strumieniowego przesyłania muzyki</string>
     <string name="s_key_download_audio_quality">Jakość pobierania dźwięku</string>

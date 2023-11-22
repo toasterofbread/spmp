@@ -1,9 +1,9 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
-import com.toasterofbread.composekit.settings.ui.item.SettingsGroupItem
+import com.toasterofbread.composekit.settings.ui.item.GroupSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsTextFieldItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsToggleItem
+import com.toasterofbread.composekit.settings.ui.item.TextFieldSettingsItem
+import com.toasterofbread.composekit.settings.ui.item.ToggleSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.settings.category.MiscSettings
 import com.toasterofbread.spmp.resources.getString
@@ -17,13 +17,13 @@ internal fun getMiscCategoryItems(): List<SettingsItem> {
             getString("s_sub_navbar_height_multiplier")
         ),
 
-        SettingsTextFieldItem(
+        TextFieldSettingsItem(
             SettingsValueState(MiscSettings.Key.STATUS_WEBHOOK_URL.getName()),
             getString("s_key_status_webhook_url"),
             getString("s_sub_status_webhook_url")
         ),
 
-        SettingsTextFieldItem(
+        TextFieldSettingsItem(
             SettingsValueState(MiscSettings.Key.STATUS_WEBHOOK_PAYLOAD.getName()),
             getString("s_key_status_webhook_payload"),
             getString("s_sub_status_webhook_payload")
@@ -33,8 +33,8 @@ internal fun getMiscCategoryItems(): List<SettingsItem> {
 
 private fun getCachingGroup(): List<SettingsItem> {
     return listOf(
-        SettingsGroupItem(getString("s_group_caching")),
-        SettingsToggleItem(
+        GroupSettingsItem(getString("s_group_caching")),
+        ToggleSettingsItem(
             SettingsValueState(MiscSettings.Key.THUMB_CACHE_ENABLED.getName()),
             getString("s_key_enable_thumbnail_cache"), null
         )

@@ -16,14 +16,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.settings.ui.item.BasicSettingsValueState
-import com.toasterofbread.composekit.settings.ui.item.SettingsComposableItem
+import com.toasterofbread.composekit.settings.ui.item.ComposableSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsLargeToggleItem
+import com.toasterofbread.composekit.settings.ui.item.LargeToggleSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.settings.Settings
-import com.toasterofbread.spmp.model.settings.category.AuthSettings
+import com.toasterofbread.spmp.model.settings.category.YoutubeAuthSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
@@ -38,12 +38,12 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: SettingsValueState<Set<String>
     val login_page: LoginPage = context.ytapi.LoginPage
 
     if (!login_page.isImplemented()) {
-        return SettingsComposableItem {
+        return ComposableSettingsItem {
             login_page.NotImplementedMessage(Modifier.fillMaxSize())
         }
     }
 
-    return SettingsLargeToggleItem(
+    return LargeToggleSettingsItem(
         object : BasicSettingsValueState<Boolean> {
             override fun getKeys(): List<String> = ytm_auth.getKeys()
             override fun get(): Boolean = ytm_auth.get().isNotEmpty()
@@ -59,7 +59,7 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: SettingsValueState<Set<String>
             override fun reset() = ytm_auth.reset()
             override fun PlatformPreferences.Editor.save() = with (ytm_auth) { save() }
             override fun getDefault(defaultProvider: (String) -> Any): Boolean =
-                defaultProvider(AuthSettings.Key.YTM_AUTH.getName()) is YoutubeMusicAuthInfo
+                defaultProvider(YoutubeAuthSettings.Key.YTM_AUTH.getName()) is YoutubeMusicAuthInfo
 
             @Composable
             override fun onChanged(key: Any?, action: (Boolean) -> Unit) {}
@@ -90,7 +90,9 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: SettingsValueState<Set<String>
         warningDialog = { dismiss, openPage ->
             login_page.LoginConfirmationDialog(false) { param ->
                 dismiss()
-                openPage(PrefsPageScreen.YOUTUBE_MUSIC_LOGIN.ordinal, param)
+                if (param != null) {
+                    openPage(PrefsPageScreen.YOUTUBE_MUSIC_LOGIN.ordinal, param)
+                }
             }
         },
         infoButton = { enabled, show_extra_state ->

@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsToggleItem
+import com.toasterofbread.composekit.settings.ui.item.ToggleSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.settings.category.FilterSettings
 import com.toasterofbread.spmp.resources.getString
@@ -9,22 +9,22 @@ import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppStringSetItem
 
 internal fun getFilterCategoryItems(): List<SettingsItem> {
     return listOf(
-        SettingsToggleItem(
+        ToggleSettingsItem(
             SettingsValueState(FilterSettings.Key.ENABLE.getName()),
             getString("s_key_filter_enable"), null
         ),
 
-        SettingsToggleItem(
+        ToggleSettingsItem(
             SettingsValueState(FilterSettings.Key.APPLY_TO_PLAYLIST_ITEMS.getName()),
             getString("s_key_filter_apply_to_playlist_items"), null
         ),
 
-        SettingsToggleItem(
+        ToggleSettingsItem(
             SettingsValueState(FilterSettings.Key.APPLY_TO_ARTISTS.getName()),
             getString("s_key_filter_apply_to_artists"), null
         ),
 
-        SettingsToggleItem(
+        ToggleSettingsItem(
             SettingsValueState(FilterSettings.Key.APPLY_TO_ARTIST_ITEMS.getName()),
             getString("s_key_filter_apply_to_artist_items"), null
         ),

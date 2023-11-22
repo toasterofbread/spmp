@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.settings.ui.item.BasicSettingsValueState
-import com.toasterofbread.composekit.settings.ui.item.SettingsStringSetItem
+import com.toasterofbread.composekit.settings.ui.item.StringSetSettingsItem
 import com.toasterofbread.spmp.resources.getString
 
 fun AppStringSetItem(
@@ -16,8 +16,8 @@ fun AppStringSetItem(
     max_height: Dp = 300.dp,
     itemToText: @Composable (String) -> String = { it },
     textToItem: (String) -> String = { it }
-): SettingsStringSetItem =
-    SettingsStringSetItem(
+): StringSetSettingsItem =
+    StringSetSettingsItem(
         state = state,
         title = title,
         subtitle = subtitle,

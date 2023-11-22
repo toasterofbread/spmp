@@ -1,6 +1,8 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 package com.toasterofbread.spmp.model.settings.category
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.settings.SettingsKey
@@ -16,14 +18,18 @@ import org.jetbrains.compose.resources.toImageVector
 data object DiscordSettings: SettingsCategory("discord") {
     override val keys: List<SettingsKey> = Key.values().toList()
 
-    @OptIn(ExperimentalResourceApi::class)
     override fun getPage(): Page? =
         if (!DiscordStatus.isSupported()) null
         else Page(
             getString("s_cat_discord_status"),
             getString("s_cat_desc_discord_status"),
-            { getDiscordCategoryItems() }
-        ) { resource("drawable/ic_discord.xml").readBytesSync().toImageVector(LocalDensity.current) }
+            { getDiscordCategoryItems(it) }
+        ) { getIcon() }
+
+    @OptIn(ExperimentalResourceApi::class)
+    @Composable
+    fun getIcon(): ImageVector =
+        resource("drawable/ic_discord.xml").readBytesSync().toImageVector(LocalDensity.current)
 
     enum class Key: SettingsKey {
         STATUS_DISABLE_WHEN_INVISIBLE,

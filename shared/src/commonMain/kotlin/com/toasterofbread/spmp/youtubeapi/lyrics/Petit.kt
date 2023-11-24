@@ -28,7 +28,8 @@ private const val ENCODING_END = "'"
 internal class PetitLyricsSource(source_idx: Int): LyricsSource(source_idx) {
     override fun getReadable(): String = getString("lyrics_source_petit")
     override fun getColour(): Color = Color(0xFFBD0A0F)
-    
+    override fun getUrlOfId(id: String): String? = "https://petitlyrics.com/lyrics/$id"
+
     override suspend fun getLyrics(lyrics_id: String, context: AppContext): Result<SongLyrics> {
         var exception: Throwable? = null
 

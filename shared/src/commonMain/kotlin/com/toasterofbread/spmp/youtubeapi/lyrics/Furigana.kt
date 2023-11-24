@@ -1,11 +1,12 @@
 package com.toasterofbread.spmp.youtubeapi.lyrics
 
 import com.atilika.kuromoji.ipadic.Tokenizer
-import com.toasterofbread.composekit.utils.common.hasKanjiAndHiragana
+import com.toasterofbread.composekit.utils.common.hasKanjiAndHiraganaOrKatakana
 import com.toasterofbread.composekit.utils.common.isHiragana
 import com.toasterofbread.composekit.utils.common.isJP
 import com.toasterofbread.composekit.utils.common.isKanji
 import com.toasterofbread.composekit.utils.common.isKatakana
+import com.toasterofbread.composekit.utils.common.toHiragana
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import java.nio.channels.ClosedByInterruptException
 
@@ -193,13 +194,13 @@ private fun removeHiraganaReadings(term: SongLyrics.Term.Text): List<SongLyrics.
 }
 
 private fun trimOkurigana(term: SongLyrics.Term.Text): List<SongLyrics.Term.Text> {
-    if (term.reading == null || !term.text.hasKanjiAndHiragana()) {
+    if (term.reading == null || !term.text.hasKanjiAndHiraganaOrKatakana()) {
         return listOf(term)
     }
 
     var trim_start: Int = 0
     for (i in 0 until term.reading!!.length) {
-        if (term.text[i].isKanji() || term.text[i] != term.reading!![i]) {
+        if (term.text[i].isKanji() || term.text[i].toHiragana() != term.reading!![i]) {
             trim_start = i
             break
         }
@@ -207,7 +208,7 @@ private fun trimOkurigana(term: SongLyrics.Term.Text): List<SongLyrics.Term.Text
 
     var trim_end: Int = 0
     for (i in 1 .. term.reading!!.length) {
-        if (term.text[term.text.length - i].isKanji() || term.text[term.text.length - i] != term.reading!![term.reading!!.length - i]) {
+        if (term.text[term.text.length - i].isKanji() || term.text[term.text.length - i].toHiragana() != term.reading!![term.reading!!.length - i]) {
             trim_end = i - 1
             break
         }

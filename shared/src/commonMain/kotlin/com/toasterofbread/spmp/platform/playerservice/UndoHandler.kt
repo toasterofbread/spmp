@@ -7,10 +7,8 @@ import com.toasterofbread.composekit.utils.common.synchronizedBlock
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 
 interface UndoRedoAction {
-    fun undo(service: PlatformPlayerService)
-    fun redo(service: PlatformPlayerService) {
-        println("Performing action: $this")
-    }
+    fun undo(service: PlatformPlayerService) {}
+    fun redo(service: PlatformPlayerService) {}
 }
 
 internal class UndoHandler(val player: PlayerServicePlayer, val service: PlatformPlayerService) {

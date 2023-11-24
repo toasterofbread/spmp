@@ -26,8 +26,8 @@ import com.toasterofbread.spmp.model.mediaitem.MEDIA_ITEM_RELATED_CONTENT_ICON
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.PlayerDownloadManager
-import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
+import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
+import com.toasterofbread.spmp.platform.download.PlayerDownloadManager.DownloadStatus
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.youtubeapi.implementedOrNull
@@ -220,7 +220,7 @@ class MainPlayerOverlayMenu(
                             .fillMaxSize()
                             .clickable {
                                 if (download_status?.status != DownloadStatus.Status.FINISHED && download_status?.status != DownloadStatus.Status.ALREADY_FINISHED) {
-                                    download_manager.startDownload(getSong().id)
+                                    download_manager.startDownload(getSong())
                                 }
                             },
                         contentAlignment = Alignment.Center

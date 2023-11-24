@@ -123,15 +123,15 @@ object SpMp {
                             Platform.DESKTOP -> if (!player_state.service_connected) SplashMode.SPLASH else null
                         }
 
-                        LoadingSplashView(
-                            splash_mode,
-                            player_state.service_loading_message,
-                            Modifier
-                                .fillMaxSize()
-                                .thenIf(splash_mode != null) {
-                                    pointerInput(Unit) {}
-                                }
-                        )
+//                        LoadingSplashView(
+//                            splash_mode,
+//                            player_state.service_loading_message,
+//                            Modifier
+//                                .fillMaxSize()
+//                                .thenIf(splash_mode != null) {
+//                                    pointerInput(Unit) {}
+//                                }
+//                        )
                     }
                 }
             }

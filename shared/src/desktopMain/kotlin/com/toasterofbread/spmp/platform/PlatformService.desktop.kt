@@ -10,7 +10,7 @@ actual open class PlatformServiceImpl: PlatformService {
     }
     private fun removeConnection(conn: ServiceConnection): Boolean {
         require(conn.service == this)
-        check(!connections.remove(conn))
+        check(connections.remove(conn))
         return connections.isEmpty()
     }
 

@@ -1,19 +1,16 @@
 package com.toasterofbread.spmp.ui.layout.apppage.mainpage
 
 import LocalPlayerState
-import SpMp.isDebugBuild
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpSize
 import com.toasterofbread.composekit.utils.modifier.background
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NowPlayingMainTabPage
-import kotlinx.coroutines.delay
 
 val MINIMISED_NOW_PLAYING_HEIGHT_DP: Float
     @Composable get() = NowPlayingMainTabPage.Mode.getCurrent(LocalPlayerState.current).getMinimisedPlayerHeight().value
@@ -44,21 +41,4 @@ fun RootView(player: PlayerStateImpl) {
     }
 
     player.LongPressMenu()
-
-    LaunchedEffect(Unit) {
-        if (!isDebugBuild()) {
-            return@LaunchedEffect
-        }
-
-        var prev: String? = null
-        while (true) {
-            delay(500)
-
-            val status: String = player.status.toString()
-            if (status != prev) {
-                println("Status: $status")
-                prev = status
-            }
-        }
-    }
 }

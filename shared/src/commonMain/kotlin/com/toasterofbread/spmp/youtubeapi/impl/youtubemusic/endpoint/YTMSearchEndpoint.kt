@@ -14,6 +14,7 @@ import com.toasterofbread.spmp.youtubeapi.endpoint.SearchFilter
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchResults
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchType
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
+import com.toasterofbread.spmp.youtubeapi.model.MusicCardShelfRenderer
 import com.toasterofbread.spmp.youtubeapi.model.NavigationEndpoint
 import com.toasterofbread.spmp.youtubeapi.model.TextRuns
 import com.toasterofbread.spmp.youtubeapi.model.YoutubeiShelf
@@ -38,7 +39,7 @@ class YTMSearchEndpoint(override val api: YoutubeMusicApi): SearchEndpoint() {
         val tab = parsed.contents.tabbedSearchResultsRenderer.tabs.first().tabRenderer
 
         var correction_suggestion: String? = null
-        val categories = tab.content!!.sectionListRenderer.contents!!.filter { shelf ->
+        val categories: List<YoutubeiShelf> = tab.content?.sectionListRenderer?.contents?.filter { shelf ->
             if (shelf.itemSectionRenderer != null) {
                 shelf.itemSectionRenderer.contents.firstOrNull()?.didYouMeanRenderer?.correctedQuery?.first_text?.also {
                     correction_suggestion = it
@@ -48,18 +49,19 @@ class YTMSearchEndpoint(override val api: YoutubeMusicApi): SearchEndpoint() {
             else {
                 true
             }
-        }
+        } ?: emptyList()
 
         val category_layouts: MutableList<Pair<MediaItemLayout, SearchFilter?>> = mutableListOf()
-        val chips = tab.content.sectionListRenderer.header!!.chipCloudRenderer!!.chips
+        val chips = tab.content?.sectionListRenderer?.header?.chipCloudRenderer?.chips
 
         for (category in categories.withIndex()) {
-            val card = category.value.musicCardShelfRenderer
-            if (card != null) {
+            val card: MusicCardShelfRenderer? = category.value.musicCardShelfRenderer
+            val key: String? = card?.header?.musicCardShelfHeaderBasicRenderer?.title?.firstTextOrNull()
+            if (key != null) {
                 category_layouts.add(Pair(
                     MediaItemLayout(
                         mutableListOf(card.getMediaItem()),
-                        YoutubeLocalisedString.Type.SEARCH_PAGE.createFromKey(card.header.musicCardShelfHeaderBasicRenderer!!.title!!.first_text, api.context),
+                        YoutubeLocalisedString.Type.SEARCH_PAGE.createFromKey(key, api.context),
                         null,
                         type = MediaItemLayout.Type.CARD
                     ),
@@ -68,25 +70,28 @@ class YTMSearchEndpoint(override val api: YoutubeMusicApi): SearchEndpoint() {
                 continue
             }
 
-            val shelf = category.value.musicShelfRenderer ?: continue
+            val shelf: YTMGetHomeFeedEndpoint.MusicShelfRenderer = category.value.musicShelfRenderer ?: continue
             val items = shelf.contents?.mapNotNull { it.toMediaItemData(hl)?.first }?.toMutableList() ?: continue
-            val search_params = if (category.index == 0) null else chips[category.index - 1].chipCloudChipRenderer.navigationEndpoint.searchEndpoint!!.params
+            val search_params = if (category.index == 0) null else chips?.get(category.index - 1)?.chipCloudChipRenderer?.navigationEndpoint?.searchEndpoint?.params
 
-            category_layouts.add(Pair(
-                MediaItemLayout(items, YoutubeLocalisedString.Type.SEARCH_PAGE.createFromKey(shelf.title!!.first_text, api.context), null),
-                search_params?.let {
-                    val item = items.firstOrNull() ?: return@let null
-                    SearchFilter(when (item) {
-                        is SongData -> if (item.song_type == SongType.VIDEO) SearchType.VIDEO else SearchType.SONG
-                        is ArtistData -> SearchType.ARTIST
-                        is RemotePlaylistData -> when (item.playlist_type) {
-                            PlaylistType.ALBUM -> SearchType.ALBUM
-                            else -> SearchType.PLAYLIST
-                        }
-                        else -> throw NotImplementedError(item.getType().toString())
-                    }, it)
-                }
-            ))
+            val title: String? = shelf.title?.firstTextOrNull()
+            if (title != null) {
+                category_layouts.add(Pair(
+                    MediaItemLayout(items, YoutubeLocalisedString.Type.SEARCH_PAGE.createFromKey(title, api.context), null),
+                    search_params?.let {
+                        val item = items.firstOrNull() ?: return@let null
+                        SearchFilter(when (item) {
+                            is SongData -> if (item.song_type == SongType.VIDEO) SearchType.VIDEO else SearchType.SONG
+                            is ArtistData -> SearchType.ARTIST
+                            is RemotePlaylistData -> when (item.playlist_type) {
+                                PlaylistType.ALBUM -> SearchType.ALBUM
+                                else -> SearchType.PLAYLIST
+                            }
+                            else -> throw NotImplementedError(item.getType().toString())
+                        }, it)
+                    }
+                ))
+            }
         }
 
         api.database.transaction {

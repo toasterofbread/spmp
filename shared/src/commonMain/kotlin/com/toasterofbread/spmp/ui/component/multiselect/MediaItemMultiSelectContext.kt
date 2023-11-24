@@ -74,8 +74,8 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.isPlaylistEditable
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
-import com.toasterofbread.spmp.platform.PlayerDownloadManager
-import com.toasterofbread.spmp.platform.rememberSongDownloads
+import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
+import com.toasterofbread.spmp.platform.download.rememberSongDownloads
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.multiselect_context.MultiSelectSelectedItemActions
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
@@ -407,7 +407,7 @@ class MediaItemMultiSelectContext(
             IconButton({
                 for (item in getUniqueSelectedItems()) {
                     if (item is Song) {
-                        player.context.download_manager.startDownload(item.id)
+                        player.context.download_manager.startDownload(item)
                     }
                 }
                 onActionPerformed()

@@ -152,6 +152,7 @@ kotlin {
                 implementation("com.github.catppuccin:java:v1.0.0")
                 implementation("com.github.paramsen:noise:2.0.0")
                 implementation("org.kobjects.ktxml:core:0.2.3")
+                implementation("com.github.Adonai:jaudiotagger:2.3.14")
             }
             kotlin.srcDir(buildConfigDir)
         }
@@ -161,6 +162,8 @@ kotlin {
                 api("androidx.activity:activity-compose:1.7.2")
                 api("androidx.core:core-ktx:1.12.0")
                 api("androidx.appcompat:appcompat:1.6.1")
+                implementation("androidx.palette:palette:1.0.0")
+                implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
 
                 val media3_version = "1.1.1"
                 implementation("androidx.media3:media3-exoplayer:$media3_version")
@@ -170,8 +173,6 @@ kotlin {
                 implementation("com.google.accompanist:accompanist-pager:0.21.2-beta")
                 implementation("com.google.accompanist:accompanist-pager-indicators:0.21.2-beta")
                 implementation("com.google.accompanist:accompanist-systemuicontroller:0.21.2-beta")
-                implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
-                implementation("androidx.palette:palette:1.0.0")
                 //noinspection GradleDependency
                 implementation("com.github.andob:android-awt:1.0.0")
                 implementation("com.github.toasterofbread:KizzyRPC:84e79614b4")

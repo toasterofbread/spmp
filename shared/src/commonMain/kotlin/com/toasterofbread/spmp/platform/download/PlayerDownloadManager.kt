@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.platform
+package com.toasterofbread.spmp.platform.download
 
 import LocalPlayerState
 import androidx.compose.runtime.Composable
@@ -11,6 +11,7 @@ import androidx.compose.runtime.remember
 import com.toasterofbread.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
+import com.toasterofbread.spmp.platform.AppContext
 
 expect class PlayerDownloadManager(context: AppContext) {
     class DownloadStatus {
@@ -37,7 +38,7 @@ expect class PlayerDownloadManager(context: AppContext) {
     suspend fun getDownloads(): List<DownloadStatus>
 
     @Synchronized
-    fun startDownload(song_id: String, silent: Boolean = false, onCompleted: ((DownloadStatus) -> Unit)? = null)
+    fun startDownload(song: Song, silent: Boolean = false, onCompleted: ((DownloadStatus) -> Unit)? = null)
 
     suspend fun deleteSongLocalAudioFile(song: Song)
 
@@ -127,5 +128,5 @@ fun rememberSongDownloads(): State<List<PlayerDownloadManager.DownloadStatus>> {
     return download_state
 }
 
-expect fun Song.getLocalSongFile(context: AppContext, allow_partial: Boolean = false): PlatformFile?
+expect suspend fun Song.getLocalSongFile(context: AppContext, allow_partial: Boolean = false): PlatformFile?
 expect fun Song.getLocalLyricsFile(context: AppContext, allow_partial: Boolean = false): PlatformFile?

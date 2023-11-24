@@ -1,8 +1,9 @@
-package com.toasterofbread.spmp.platform
+package com.toasterofbread.spmp.platform.download
 
 import com.toasterofbread.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
+import com.toasterofbread.spmp.platform.AppContext
 
 actual class PlayerDownloadManager actual constructor(context: AppContext) {
     actual class DownloadStatus {
@@ -41,10 +42,11 @@ actual class PlayerDownloadManager actual constructor(context: AppContext) {
 
     @Synchronized
     actual fun startDownload(
-        song_id: String,
+        song: Song,
         silent: Boolean,
         onCompleted: ((DownloadStatus) -> Unit)?,
     ) {
+        TODO()
     }
 
     actual fun release() {
@@ -62,7 +64,7 @@ actual class PlayerDownloadManager actual constructor(context: AppContext) {
     }
 }
 
-actual fun Song.getLocalSongFile(
+actual suspend fun Song.getLocalSongFile(
     context: AppContext,
     allow_partial: Boolean,
 ): PlatformFile? {

@@ -52,8 +52,8 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.getEditorOrNull
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
-import com.toasterofbread.spmp.platform.PlayerDownloadManager
-import com.toasterofbread.spmp.platform.rememberDownloadStatus
+import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
+import com.toasterofbread.spmp.platform.download.rememberDownloadStatus
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuActionProvider
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
@@ -245,7 +245,7 @@ private fun LongPressMenuActionProvider.LPMActions(
     else {
         ActionButton(Icons.Default.Download, getString("lpm_action_download"), onClick = {
             withSong {
-                player.context.download_manager.startDownload(it.id) { status: PlayerDownloadManager.DownloadStatus ->
+                player.context.download_manager.startDownload(it) { status: PlayerDownloadManager.DownloadStatus ->
                     when (status.status) {
                         PlayerDownloadManager.DownloadStatus.Status.FINISHED -> player.context.sendToast(getString("notif_download_finished"))
                         PlayerDownloadManager.DownloadStatus.Status.ALREADY_FINISHED -> player.context.sendToast(getString("notif_download_already_finished"))

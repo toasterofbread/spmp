@@ -12,6 +12,7 @@ import kotlinx.coroutines.withContext
 internal class YoutubeMusicLyricsSource(source_idx: Int): LyricsSource(source_idx) {
     override fun getReadable(): String = getString("lyrics_source_ytm")
     override fun getColour(): Color = Color(0xFE0000)
+    override fun getUrlOfId(id: String): String? = "https://music.youtube.com/watch?v=$id"
 
     override fun supportsLyricsBySong(): Boolean = true
     override fun supportsLyricsBySearching(): Boolean = false

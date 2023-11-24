@@ -12,6 +12,7 @@ import com.toasterofbread.spmp.resources.getStringTODO
 
 data class LyricsReference(val source_index: Int, val id: String, val local_file: PlatformFile? = null) {
     fun isNone(): Boolean = source_index < 0
+    fun getUrl(): String? = LyricsSource.fromIdx(source_index).getUrlOfId(id)
 
     companion object {
         val NONE: LyricsReference = LyricsReference(-1, "")
@@ -33,6 +34,7 @@ sealed class LyricsSource(val source_index: Int) {
     
     abstract fun getReadable(): String
     abstract fun getColour(): Color
+    abstract fun getUrlOfId(id: String): String?
 
     open fun supportsLyricsBySong(): Boolean = false
     open suspend fun getReferenceBySong(song: Song, context: AppContext): Result<LyricsReference?> { throw NotImplementedError() }

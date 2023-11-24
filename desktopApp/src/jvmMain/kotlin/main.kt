@@ -18,8 +18,8 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.composekit.platform.composable.onWindowBackPressed
+import com.toasterofbread.spmp.platform.AppContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -54,11 +54,9 @@ fun main() {
         ) {
             var initialised by remember { mutableStateOf(false) }
             LaunchedEffect(Unit) {
-                context.updateScreenSize()
                 initialised = true
 
                 while (true) {
-                    context.updateScreenSize()
                     delay(SCREEN_SIZE_UPDATE_INTERVAL)
                 }
             }

@@ -10,6 +10,10 @@ data class YoutubeVideoFormat(
     val loudness_db: Float? = null
 ) {
     val audio_only: Boolean get() = mimeType.startsWith("audio")
+
+    override fun toString(): String {
+        return "YoutubeVideoFormat(itag=$itag, mimeType=$mimeType, bitrate=$bitrate, loudness_db=$loudness_db)"
+    }
 }
 
 internal data class YoutubeFormatsResponse(

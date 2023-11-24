@@ -8,9 +8,12 @@ import com.toasterofbread.spmp.model.mediaitem.db.getPlayCount
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.song.getSongStreamFormat
 import com.toasterofbread.spmp.model.settings.category.StreamingSettings
+import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
+import com.toasterofbread.spmp.platform.download.getLocalSongFile
 import com.toasterofbread.spmp.platform.playerservice.AUTO_DOWNLOAD_SOFT_TIMEOUT
 import com.toasterofbread.spmp.youtubeapi.YoutubeVideoFormat
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 @UnstableApi
@@ -33,7 +36,7 @@ internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppConte
             val initial_status: PlayerDownloadManager.DownloadStatus? = download_manager.getDownload(song)
             when (initial_status?.status) {
                 PlayerDownloadManager.DownloadStatus.Status.IDLE, PlayerDownloadManager.DownloadStatus.Status.CANCELLED, PlayerDownloadManager.DownloadStatus.Status.PAUSED, null -> {
-                    download_manager.startDownload(song.id, true) { status ->
+                    download_manager.startDownload(song, true) { status ->
                         local_file = status.file
                         done = true
                     }
@@ -55,8 +58,10 @@ internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppConte
                             done = true
                         }
                         PlayerDownloadManager.DownloadStatus.Status.FINISHED, PlayerDownloadManager.DownloadStatus.Status.ALREADY_FINISHED -> {
-                            local_file = song.getLocalSongFile(context)
-                            done = true
+                            launch {
+                                local_file = song.getLocalSongFile(context)
+                                done = true
+                            }
                         }
                     }
 

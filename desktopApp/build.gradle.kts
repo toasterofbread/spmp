@@ -48,6 +48,7 @@ kotlin {
                 implementation(project(":shared"))
                 implementation(project(":ComposeKit:lib"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.6.4")
+                implementation("io.github.humbleui:jwm:0.4.15")
             }
         }
     }

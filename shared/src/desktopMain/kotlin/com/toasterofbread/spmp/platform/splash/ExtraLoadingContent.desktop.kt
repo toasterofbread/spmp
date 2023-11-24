@@ -30,11 +30,9 @@ import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 import com.toasterofbread.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.ServerSettings
-import com.toasterofbread.spmp.model.settings.category.SettingsCategory
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.spmp.ui.layout.apppage.settingspage.getItems
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -173,7 +171,7 @@ actual fun SplashExtraLoadingContent(modifier: Modifier) {
     }
 
     if (show_config_dialog) {
-        val settings_items: List<SettingsItem> = remember { ServerSettings.getPage(player.context)?.items ?: emptyList() }
+        val settings_items: List<SettingsItem> = remember { ServerSettings.getPage()?.getItems(player.context) ?: emptyList() }
 
         LaunchedEffect(settings_items) {
             for (item in settings_items) {

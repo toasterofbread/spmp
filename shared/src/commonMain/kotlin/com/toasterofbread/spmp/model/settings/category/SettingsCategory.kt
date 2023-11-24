@@ -49,6 +49,7 @@ sealed class SettingsCategory(id: String) {
         val name: String
     ) {
         abstract fun getTitleItem(context: AppContext): SettingsItem?
+        open fun getItems(context: AppContext): List<SettingsItem>? = null
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -62,6 +63,9 @@ sealed class SettingsCategory(id: String) {
             this,
             title
         ) {
+            override fun getItems(context: AppContext): List<SettingsItem>? =
+                getPageItems(context)
+
             override fun getTitleItem(context: AppContext): SettingsItem? =
                 ComposableSettingsItem { modifier ->
                     ElevatedCard(

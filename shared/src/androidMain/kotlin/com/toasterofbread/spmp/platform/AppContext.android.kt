@@ -10,13 +10,14 @@ import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.settings.category.YTApiSettings
 import com.toasterofbread.spmp.model.settings.getEnum
+import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 actual class AppContext(
     context: Context,
-    private val coroutine_scope: CoroutineScope,
+    val coroutine_scope: CoroutineScope,
     application_context: ApplicationContext? = null
 ): PlatformContext(context, coroutine_scope, application_context) {
     companion object {

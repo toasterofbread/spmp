@@ -11,6 +11,7 @@ import com.toasterofbread.spmp.youtubeapi.lyrics.kugou.searchKugouLyrics
 internal class KugouLyricsSource(source_idx: Int): LyricsSource(source_idx) {
     override fun getReadable(): String = getString("lyrics_source_kugou")
     override fun getColour(): Color = Color(0xFF50A6FB)
+    override fun getUrlOfId(id: String): String? = null
 
     override suspend fun getLyrics(lyrics_id: String, context: AppContext): Result<SongLyrics> {
         val load_result = loadKugouLyrics(lyrics_id)

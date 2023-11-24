@@ -30,15 +30,18 @@ import com.toasterofbread.spmp.model.settings.category.StreamingSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlatformBinder
 import com.toasterofbread.spmp.platform.PlatformServiceImpl
-import com.toasterofbread.spmp.platform.PlayerDownloadManager
-import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
-import com.toasterofbread.spmp.platform.getLocalLyricsFile
-import com.toasterofbread.spmp.platform.getLocalSongFile
+import com.toasterofbread.spmp.platform.download.LocalSongMetadataProcessor
+import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
+import com.toasterofbread.spmp.platform.download.PlayerDownloadManager.DownloadStatus
+import com.toasterofbread.spmp.platform.download.getLocalLyricsFile
+import com.toasterofbread.spmp.platform.download.getLocalSongFile
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.initResources
+import com.toasterofbread.spmp.youtubeapi.YoutubeVideoFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.io.InputStream
@@ -63,11 +66,11 @@ class PlayerDownloadService: PlatformServiceImpl() {
         var silent: Boolean,
         val instance: Int,
     ) {
-        var song_file: PlatformFile? = song.getLocalSongFile(context, allow_partial = true)
+        var song_file: PlatformFile? = runBlocking { song.getLocalSongFile(context, allow_partial = true) } // This is fine :)
         var lyrics_file: PlatformFile? = song.getLocalLyricsFile(context, allow_partial = true)
 
         var status: DownloadStatus.Status =
-            if (song_file?.let { fileMatchesDownload(it.name, song)} == true) DownloadStatus.Status.ALREADY_FINISHED
+            if (song_file?.let { isFileDownloadInProgressForSong(it, song) } == false) DownloadStatus.Status.ALREADY_FINISHED
             else DownloadStatus.Status.IDLE
             set(value) {
                 if (field != value) {
@@ -103,7 +106,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
         }
 
         fun generatePath(extension: String, in_progress: Boolean): String {
-            return getDownloadPath(song, quality, extension, in_progress)
+            return getDownloadPath(song, extension, in_progress, context)
         }
 
         fun broadcastResult(result: Result<PlatformFile?>?, instance: Int) {
@@ -171,30 +174,20 @@ class PlayerDownloadService: PlatformServiceImpl() {
     )
 
     companion object {
-        fun getFilenameData(filename: String): FilenameData {
-            val downloading = filename.endsWith(FILE_DOWNLOADING_SUFFIX)
-            val split = (if (downloading) filename.dropLast(FILE_DOWNLOADING_SUFFIX.length) else filename).split('.', limit = 2)
-            require(split.size == 2)
-
-            return FilenameData(
-                split[0],
-                split[1],
-                downloading
-            )
-        }
-
-        // Filename format: id.quality.mediatype(.part)
-        // Return values: true = match, false = match (partial file), null = no match
-        fun fileMatchesDownload(filename: String, song: Song): Boolean? {
-            if (!filename.startsWith("${song.id}.")) {
-                return null
+        fun getDownloadPath(song: Song, extension: String, in_progress: Boolean, context: AppContext): String {
+            if (in_progress) {
+                return "${song.id}.$extension$FILE_DOWNLOADING_SUFFIX"
             }
-            return !filename.endsWith(FILE_DOWNLOADING_SUFFIX)
+            else {
+                return "${song.getActiveTitle(context.database)}.$extension"
+            }
         }
 
-        fun getDownloadPath(song: Song, quality: SongAudioQuality, extension: String, in_progress: Boolean): String {
-            return "${song.id}.$extension${ if (in_progress) FILE_DOWNLOADING_SUFFIX else ""}"
-        }
+        fun isFileDownloadInProgressForSong(file: PlatformFile, song: Song): Boolean =
+            file.name.endsWith(FILE_DOWNLOADING_SUFFIX) && file.name.startsWith("${song.id}.")
+
+        fun getSongIdOfInProgressDownload(file: PlatformFile): String? =
+            if (file.name.endsWith(FILE_DOWNLOADING_SUFFIX)) file.name.split('.', limit = 2).first() else null
     }
 
     private var notification_builder: NotificationCompat.Builder? = null
@@ -403,12 +396,12 @@ class PlayerDownloadService: PlatformServiceImpl() {
     }
 
     private suspend fun performDownload(download: Download): Result<PlatformFile?> = withContext(Dispatchers.IO) {
-        val format = getSongFormatByQuality(download.song.id, download.quality, context).fold(
+        val format: YoutubeVideoFormat = getSongFormatByQuality(download.song.id, download.quality, context).fold(
             { it },
             { return@withContext Result.failure(it) }
         )
 
-        val connection = URL(format.url).openConnection() as HttpURLConnection
+        val connection: HttpURLConnection = URL(format.url).openConnection() as HttpURLConnection
         connection.connectTimeout = 3000
         connection.setRequestProperty("Range", "bytes=${download.downloaded}-")
 
@@ -428,16 +421,18 @@ class PlayerDownloadService: PlatformServiceImpl() {
         var file: PlatformFile? = download.song_file
         check(song_download_dir.mkdirs()) { song_download_dir.toString() }
 
+        val file_extension: String = when (connection.contentType) {
+            "audio/webm" -> "webm"
+            "audio/mp4" -> "mp4"
+            else -> return@withContext Result.failure(NotImplementedError(connection.contentType))
+        }
+
         if (file == null) {
-            val extension = when (connection.contentType) {
-                "audio/webm" -> "webm"
-                "audio/mp4" -> "mp4"
-                else -> return@withContext Result.failure(NotImplementedError(connection.contentType))
-            }
-            file = song_download_dir.resolve(download.generatePath(extension, true))
+            file = song_download_dir.resolve(download.generatePath(file_extension, true))
         }
 
         check(file.name.endsWith(FILE_DOWNLOADING_SUFFIX))
+        val target_filename: String = download.generatePath(file_extension, false)
 
         val data: ByteArray = ByteArray(4096)
         val output: OutputStream = file.outputStream(true)
@@ -482,31 +477,37 @@ class PlayerDownloadService: PlatformServiceImpl() {
                 onDownloadProgress()
             }
 
-            val metadata_retriever = MediaMetadataRetriever()
+            val metadata_retriever: MediaMetadataRetriever = MediaMetadataRetriever()
             metadata_retriever.setDataSource(context.ctx, Uri.parse(file.uri))
 
-            val duration_ms = metadata_retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong()
-            SongRef(download.song.id).Duration.setNotNull(duration_ms, context.database)
+            val duration_ms: Long? = metadata_retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong()
+            download.song.Duration.setNotNull(duration_ms, context.database)
 
-            var lyrics_file: PlatformFile? = download.lyrics_file
-            if (lyrics_file == null) {
-                lyrics_file = MediaItemLibrary.getLocalLyricsFile(download.song, context)
+            runBlocking {
+                launch {
+                    LocalSongMetadataProcessor.addMetadataToLocalSong(download.song, file, target_filename, context)
+                }
+                launch {
+                    if (download.lyrics_file == null) {
+                        val lyrics_file: PlatformFile = MediaItemLibrary.getLocalLyricsFile(download.song, context)
 
-                SongLyricsLoader.loadBySong(download.song, context)?.onSuccess { lyrics ->
-                    with (LyricsFileConverter) {
-                        lyrics.saveToFile(lyrics_file, context)
+                        SongLyricsLoader.loadBySong(download.song, context)?.onSuccess { lyrics ->
+                            with (LyricsFileConverter) {
+                                lyrics.saveToFile(lyrics_file, context)
+                            }
+                        }
                     }
                 }
             }
 
             close(DownloadStatus.Status.FINISHED)
         }
-        catch (_: Throwable) {
+        catch (e: Throwable) {
+            e.printStackTrace()
             close(DownloadStatus.Status.CANCELLED)
         }
 
-        val renamed = file.renameTo(file.name.dropLast(FILE_DOWNLOADING_SUFFIX.length))
-
+        val renamed: PlatformFile = file.renameTo(target_filename)
         download.song_file = renamed
         download.status = DownloadStatus.Status.FINISHED
 

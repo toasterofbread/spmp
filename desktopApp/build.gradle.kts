@@ -7,12 +7,12 @@ import java.nio.file.Files.getPosixFilePermissions
 import java.nio.file.Files.setPosixFilePermissions
 import java.nio.file.attribute.PosixFilePermission
 
-val strings_file: File = rootProject.file("shared/src/commonMain/resources/assets/values/strings.xml")
-
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.compose")
 }
+
+val strings_file: File = rootProject.file("shared/src/commonMain/resources/assets/values/strings.xml")
 
 fun getString(key: String): String {
     val reader = strings_file.reader()
@@ -58,6 +58,10 @@ compose.desktop {
     application {
         mainClass = "MainKt"
 
+        // Required for setting WM_CLASS in main.kt
+        // https://stackoverflow.com/a/69404254
+        jvmArgs += listOf("--add-opens=java.desktop/sun.awt.X11=ALL-UNNAMED")
+
         nativeDistributions {
             packageName = getString("app_name")
             version = getString("version_string")
@@ -69,6 +73,7 @@ compose.desktop {
 
             linux {
                 iconFile.set(rootProject.file("metadata/en-US/images/icon.png"))
+                appRelease = getString("version_code")
             }
         }
     }

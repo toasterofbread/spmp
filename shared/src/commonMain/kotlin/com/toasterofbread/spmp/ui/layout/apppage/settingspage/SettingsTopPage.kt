@@ -378,7 +378,7 @@ private fun ProjectButton(modifier: Modifier = Modifier) {
     }
 
     Icon(
-        painterResource("drawable/ic_github.xml"),
+        painterResource("assets/drawable/ic_github.xml"),
         null,
         modifier.platformClickable(
             onClick = {

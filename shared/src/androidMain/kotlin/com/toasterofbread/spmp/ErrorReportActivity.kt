@@ -175,7 +175,7 @@ class ErrorReportActivity : ComponentActivity() {
                                             }
                                         }
                                     }) {
-                                        Icon(painterResource("drawable/ic_discord.xml"), null)
+                                        Icon(painterResource("assets/drawable/ic_discord.xml"), null)
                                     }
                                 }
                             }

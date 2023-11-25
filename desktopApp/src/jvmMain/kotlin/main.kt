@@ -1,8 +1,4 @@
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -19,14 +15,19 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.toasterofbread.composekit.platform.composable.onWindowBackPressed
+import com.toasterofbread.spmp.model.settings.category.DesktopSettings
 import com.toasterofbread.spmp.platform.AppContext
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
-private const val SCREEN_SIZE_UPDATE_INTERVAL: Long = 100
+import kotlinx.coroutines.withContext
+import org.jetbrains.skiko.OS
+import org.jetbrains.skiko.hostOs
+import java.awt.Toolkit
+import java.lang.reflect.Field
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
@@ -40,6 +41,11 @@ fun main() {
 
     SpMp.onStart()
 
+    val toolkit: Toolkit = Toolkit.getDefaultToolkit()
+    val class_name_field: Field = toolkit.javaClass.getDeclaredField("awtAppClassName")
+    class_name_field.isAccessible = true
+    class_name_field.set(toolkit, SpMp.app_name.lowercase())
+
     application {
         Window(
             title = SpMp.app_name,
@@ -52,25 +58,42 @@ fun main() {
             },
             state = rememberWindowState(size = DpSize(1280.dp, 720.dp), position = WindowPosition(Alignment.Center))
         ) {
-            var initialised by remember { mutableStateOf(false) }
             LaunchedEffect(Unit) {
-                initialised = true
+                val startup_command: String = DesktopSettings.Key.STARTUP_COMMAND.get()
+                if (startup_command.isBlank()) {
+                    return@LaunchedEffect
+                }
 
-                while (true) {
-                    delay(SCREEN_SIZE_UPDATE_INTERVAL)
+                withContext(Dispatchers.IO) {
+                    try {
+                        val process_builder: ProcessBuilder =
+                            when (hostOs) {
+                                OS.Linux -> ProcessBuilder("bash", "-c", startup_command)
+                                OS.Windows -> TODO()
+                                else -> return@withContext
+                            }
+
+                        process_builder.inheritIO().start()
+                    }
+                    catch (e: Throwable) {
+                        e.printStackTrace()
+                    }
+
+                    delay(2000)
+                    context.sendToast("This is a toast")
+                    delay(2000)
+                    context.sendNotification("And this", "Is a goddamn notification")
                 }
             }
 
-            if (initialised) {
-                SpMp.App(
-                    Modifier.onPointerEvent(PointerEventType.Press) { event ->
-                        // Mouse back click
-                        if (event.button?.index == 5) {
-                            onWindowBackPressed()
-                        }
+            SpMp.App(
+                Modifier.onPointerEvent(PointerEventType.Press) { event ->
+                    // Mouse back click
+                    if (event.button?.index == 5) {
+                        onWindowBackPressed()
                     }
-                )
-            }
+                }
+            )
         }
     }
 

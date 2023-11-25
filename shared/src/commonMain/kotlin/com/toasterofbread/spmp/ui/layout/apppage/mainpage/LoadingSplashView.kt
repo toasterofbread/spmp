@@ -71,7 +71,7 @@ fun LoadingSplashView(splash_mode: SplashMode?, loading_message: String?, modifi
         when (mode) {
             null -> {}
             SplashMode.SPLASH -> {
-                val image: ImageBitmap = bitmapResource("drawable/ic_splash.png")
+                val image: ImageBitmap = bitmapResource("assets/drawable/ic_splash.png")
 
                 Column(
                     Modifier.fillMaxSize().background(player.theme.background).padding(10.dp),

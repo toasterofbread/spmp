@@ -159,13 +159,13 @@ kotlin {
 
         val androidMain by getting {
             dependencies {
-                api("androidx.activity:activity-compose:1.7.2")
+                api("androidx.activity:activity-compose:1.8.1")
                 api("androidx.core:core-ktx:1.12.0")
                 api("androidx.appcompat:appcompat:1.6.1")
                 implementation("androidx.palette:palette:1.0.0")
                 implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
 
-                val media3_version = "1.1.1"
+                val media3_version = "1.2.0"
                 implementation("androidx.media3:media3-exoplayer:$media3_version")
                 implementation("androidx.media3:media3-ui:$media3_version")
                 implementation("androidx.media3:media3-session:$media3_version")
@@ -180,7 +180,7 @@ kotlin {
                 implementation("com.anggrayudi:storage:1.5.5")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.6.0")
                 implementation("io.github.jan-tennert.supabase:functions-kt:1.3.2")
-                implementation("io.ktor:ktor-client-cio:2.3.4")
+                implementation("io.ktor:ktor-client-cio:2.3.6")
             }
         }
 

@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 import com.toasterofbread.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.settings.Settings
-import com.toasterofbread.spmp.model.settings.category.ServerSettings
+import com.toasterofbread.spmp.model.settings.category.DesktopSettings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
@@ -42,7 +42,7 @@ import kotlinx.coroutines.withContext
 @OptIn(DelicateCoroutinesApi::class)
 @Suppress("NewApi")
 private fun startLocalServer(port: Int, onExit: (Int) -> Unit): Pair<String, Process>? {
-    var command: String = ServerSettings.Key.LOCAL_COMMAND.get<String>().trim()
+    var command: String = DesktopSettings.Key.SERVER_LOCAL_COMMAND.get<String>().trim()
     if (command.isEmpty()) {
         return null
     }
@@ -63,7 +63,7 @@ private fun startLocalServer(port: Int, onExit: (Int) -> Unit): Pair<String, Pro
     val process: Process = builder.start()
 
     Runtime.getRuntime().addShutdownHook(Thread {
-        if (ServerSettings.Key.KILL_CHILD_ON_EXIT.get()) {
+        if (DesktopSettings.Key.SERVER_KILL_CHILD_ON_EXIT.get()) {
             process.destroy()
         }
     })
@@ -100,7 +100,7 @@ actual fun SplashExtraLoadingContent(modifier: Modifier) {
                     }
 
                     try {
-                        local_server_process = startLocalServer(ServerSettings.Key.PORT.get()) {
+                        local_server_process = startLocalServer(DesktopSettings.Key.SERVER_PORT.get()) {
                             if (local_server_process != null) {
                                 local_server_process = null
                                 local_server_error = RuntimeException(it.toString())
@@ -171,7 +171,7 @@ actual fun SplashExtraLoadingContent(modifier: Modifier) {
     }
 
     if (show_config_dialog) {
-        val settings_items: List<SettingsItem> = remember { ServerSettings.getPage()?.getItems(player.context) ?: emptyList() }
+        val settings_items: List<SettingsItem> = remember { DesktopSettings.getPage()?.getItems(player.context) ?: emptyList() }
 
         LaunchedEffect(settings_items) {
             for (item in settings_items) {

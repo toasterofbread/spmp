@@ -63,8 +63,14 @@ sealed class SettingsCategory(id: String) {
             this,
             title
         ) {
-            override fun getItems(context: AppContext): List<SettingsItem>? =
-                getPageItems(context)
+            private var items: List<SettingsItem>? = null
+
+            override fun getItems(context: AppContext): List<SettingsItem>? {
+                if (items == null) {
+                    items = getPageItems(context)
+                }
+                return items!!
+            }
 
             override fun getTitleItem(context: AppContext): SettingsItem? =
                 ComposableSettingsItem { modifier ->
@@ -73,7 +79,7 @@ sealed class SettingsCategory(id: String) {
                             openPage(
                                 SettingsPageWithItems(
                                     getTitle = { title },
-                                    getItems = { getPageItems(context) },
+                                    getItems = { getItems(context)!! },
                                     getIcon = { getPageIcon() }
                                 )
                             )
@@ -115,7 +121,7 @@ sealed class SettingsCategory(id: String) {
                 DiscordAuthSettings,
                 FilterSettings,
                 StreamingSettings,
-                ServerSettings,
+                DesktopSettings,
                 MiscSettings,
 
                 YTApiSettings,

@@ -6,7 +6,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.settings.SettingsKey
-import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getDiscordCategoryItems
@@ -29,7 +28,7 @@ data object DiscordSettings: SettingsCategory("discord") {
     @OptIn(ExperimentalResourceApi::class)
     @Composable
     fun getIcon(): ImageVector =
-        resource("drawable/ic_discord.xml").readBytesSync().toImageVector(LocalDensity.current)
+        resource("assets/drawable/ic_discord.xml").readBytesSync().toImageVector(LocalDensity.current)
 
     enum class Key: SettingsKey {
         STATUS_DISABLE_WHEN_INVISIBLE,

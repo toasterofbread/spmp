@@ -507,6 +507,9 @@
     <string name="s_discord_status_enable"></string> <!--TODO-->
     <string name="s_discord_status_disable"></string> <!--TODO-->
 
+    <string name="s_key_startup_command">開始コマンド</string>
+    <string name="s_sub_startup_command">プログラム開始時に一回実行されるコマンド</string>
+
     <string name="s_info_server">SpMpのサーバー部分(SpMs)が設定されたIPアドレスとポートで実行されていなければなりません。https://github.com/toasterofbread/spmp-server</string>
 
     <string name="s_key_server_ip">サーバーのIPアドレス</string>
@@ -587,8 +590,8 @@
     <string name="s_cat_streaming">再生</string>
     <string name="s_cat_desc_streaming">音質や再生の調節</string>
 
-    <string name="s_cat_server">サーバー</string>
-    <string name="s_cat_desc_server">SpMsへの接続方法の設定</string>
+    <string name="s_cat_desktop">デスクトップ</string>
+    <string name="s_cat_desc_desktop">SpMpのデスクトップ版のみの設定</string>
 
     <string name="s_cat_misc">その他</string>
     <string name="s_cat_desc_misc">キャッシュなどの設定</string>

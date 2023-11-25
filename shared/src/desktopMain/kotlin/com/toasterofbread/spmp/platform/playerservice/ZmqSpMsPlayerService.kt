@@ -10,7 +10,7 @@ import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
-import com.toasterofbread.spmp.model.settings.category.ServerSettings
+import com.toasterofbread.spmp.model.settings.category.DesktopSettings
 import com.toasterofbread.spmp.platform.PlatformServiceImpl
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.resources.getString
@@ -38,8 +38,8 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
     var socket_load_state: PlayerServiceLoadState by mutableStateOf(PlayerServiceLoadState(true))
         private set
 
-    private fun getServerPort(): Int = ServerSettings.Key.PORT.get(context)
-    private fun getServerIp(): String = ServerSettings.Key.IP_ADDRESS.get(context)
+    private fun getServerPort(): Int = DesktopSettings.Key.SERVER_PORT.get(context)
+    private fun getServerIp(): String = DesktopSettings.Key.SERVER_IP_ADDRESS.get(context)
 
     private fun getClientName(): String {
         val host: String = InetAddress.getLocalHost().hostName
@@ -51,8 +51,8 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
     private val prefs_listener: PlatformPreferencesListener = object : PlatformPreferencesListener {
         override fun onChanged(prefs: PlatformPreferences, key: String) {
             when (key) {
-                ServerSettings.Key.IP_ADDRESS.getName(),
-                ServerSettings.Key.PORT.getName() -> {
+                DesktopSettings.Key.SERVER_IP_ADDRESS.getName(),
+                DesktopSettings.Key.SERVER_PORT.getName() -> {
                     restart_connection = true
                     cancel_connection = true
                 }

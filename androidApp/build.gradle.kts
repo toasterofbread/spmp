@@ -71,7 +71,7 @@ android {
     }
 
     defaultConfig {
-        versionCode = 10
+        versionCode = getString("version_code").toInt()
         versionName = getString("version_string")
 
         applicationId = "com.toasterofbread.spmp"

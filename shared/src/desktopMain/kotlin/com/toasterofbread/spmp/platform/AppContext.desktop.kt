@@ -11,7 +11,7 @@ import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 
-actual class AppContext(app_name: String): PlatformContext(app_name, PlatformPlayerService::class.java) {
+actual class AppContext(app_name: String): PlatformContext(app_name, "drawable/ic_spmp.png", PlatformPlayerService::class.java) {
     actual val database: Database = createDatabase()
     actual val download_manager: PlayerDownloadManager = PlayerDownloadManager(this)
     actual val ytapi: YoutubeApi

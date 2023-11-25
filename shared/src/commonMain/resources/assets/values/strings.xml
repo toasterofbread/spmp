@@ -2,6 +2,8 @@
     <string name="language_name">English</string>
 
     <string name="version_string" translatable="false">0.2.4</string>
+    <string name="version_code" translatable="false">10</string>
+
     <string name="app_name" translatable="false">SpMp</string>
     <string name="app_name_debug" translatable="false">SpMp (debug)</string>
     <string name="project_url" translatable="false">https://github.com/toasterofbread/spmp</string>
@@ -518,6 +520,9 @@
     <string name="s_discord_status_enable">Enable</string>
     <string name="s_discord_status_disable">Disable</string>
 
+    <string name="s_key_startup_command">Startup command</string>
+    <string name="s_sub_startup_command">Command to be executed at program start</string>
+
     <string name="s_info_server">The SpMp server component (SpMs) must be running at the specified port IP address and port. https://github.com/toasterofbread/spmp-server</string>
 
     <string name="s_key_server_ip">Server IP address</string>
@@ -598,8 +603,8 @@
     <string name="s_cat_streaming">Playback</string>
     <string name="s_cat_desc_streaming">Audio quality and playback settings</string>
 
-    <string name="s_cat_server">Server</string>
-    <string name="s_cat_desc_server">Configure the connection to SpMs</string>
+    <string name="s_cat_desktop">Desktop</string>
+    <string name="s_cat_desc_desktop">Platform-specific configuration</string>
 
     <string name="s_cat_misc">Other</string>
     <string name="s_cat_desc_misc">Cache and other miscellaneous options</string>

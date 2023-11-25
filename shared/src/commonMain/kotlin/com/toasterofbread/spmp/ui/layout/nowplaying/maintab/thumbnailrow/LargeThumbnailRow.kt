@@ -215,7 +215,7 @@ fun LargeThumbnailRow(
                     }
                     PlayerOverlayMenuAction.DOWNLOAD -> {
                         current_song?.also { song ->
-                            player.context.download_manager.startDownload(song)
+                            player.onSongDownloadRequested(song)
                         }
                     }
                 }

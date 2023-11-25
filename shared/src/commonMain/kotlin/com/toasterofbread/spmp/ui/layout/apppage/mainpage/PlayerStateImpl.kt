@@ -93,7 +93,7 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
     )
     private var np_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
 
-    private var download_request_song: Song? by mutableStateOf(null)
+    private var download_request_songs: List<Song>? by mutableStateOf(null)
     private var download_request_callback: DownloadRequestCallback? by mutableStateOf(null)
 
     override val expansion = NowPlayingExpansionState(this, np_swipe_state, coroutine_scope)
@@ -384,17 +384,17 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
             )
         }
 
-        download_request_song?.also { song ->
+        download_request_songs?.also { songs ->
             DownloadMethodSelectionDialog(
                 onCancelled = {
-                    download_request_song = null
+                    download_request_songs = null
                     download_request_callback?.invoke(null)
                 },
                 onSelected = { method ->
-                    method.execute(context, song, download_request_callback)
-                    download_request_song = null
+                    method.execute(context, songs, download_request_callback)
+                    download_request_songs = null
                 },
-                song = song
+                songs = songs
             )
         }
     }
@@ -483,8 +483,8 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
         return controller?.has_focus == true
     }
 
-    override fun onSongDownloadRequested(song: Song, callback: DownloadRequestCallback?) {
-        download_request_song = song
+    override fun onSongDownloadRequested(songs: List<Song>, callback: DownloadRequestCallback?) {
+        download_request_songs = songs
         download_request_callback = callback
     }
 }

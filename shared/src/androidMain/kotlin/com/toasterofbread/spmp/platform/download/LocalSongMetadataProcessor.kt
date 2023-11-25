@@ -83,7 +83,13 @@ object LocalSongMetadataProcessor {
     }
 
     suspend fun readLocalSongMetadata(file: PlatformFile, match_id: String? = null, load_data: Boolean = true): SongData? = withContext(Dispatchers.IO) {
-        val tag: Tag = AudioFileIO.read(File(file.absolute_path)).tag
+        val tag: Tag
+        try {
+            tag = AudioFileIO.read(File(file.absolute_path)).tag
+        }
+        catch (e: Throwable) {
+            return@withContext null
+        }
 
         val custom_metadata: CustomMetadata = Json.decodeFromString(tag.getFirst(CUSTOM_METADATA_KEY))
         if (custom_metadata.song_id == null || (match_id != null && custom_metadata.song_id != match_id)) {

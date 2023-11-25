@@ -189,8 +189,11 @@ class PlayerDownloadService: PlatformServiceImpl() {
             }
         }
 
+        fun isFileDownloadInProgress(file: PlatformFile): Boolean =
+            file.name.endsWith(FILE_DOWNLOADING_SUFFIX)
+
         fun isFileDownloadInProgressForSong(file: PlatformFile, song: Song): Boolean =
-            file.name.endsWith(FILE_DOWNLOADING_SUFFIX) && file.name.startsWith("${song.id}.")
+            isFileDownloadInProgress(file) && file.name.startsWith("${song.id}.")
 
         fun getSongIdOfInProgressDownload(file: PlatformFile): String? =
             if (file.name.endsWith(FILE_DOWNLOADING_SUFFIX)) file.name.split('.', limit = 2).first() else null

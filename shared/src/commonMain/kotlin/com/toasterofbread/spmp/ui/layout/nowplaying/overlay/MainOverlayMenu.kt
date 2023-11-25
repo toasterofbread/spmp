@@ -220,7 +220,7 @@ class MainPlayerOverlayMenu(
                             .fillMaxSize()
                             .clickable {
                                 if (download_status?.status != DownloadStatus.Status.FINISHED && download_status?.status != DownloadStatus.Status.ALREADY_FINISHED) {
-                                    download_manager.startDownload(getSong())
+                                    player.onSongDownloadRequested(getSong())
                                 }
                             },
                         contentAlignment = Alignment.Center

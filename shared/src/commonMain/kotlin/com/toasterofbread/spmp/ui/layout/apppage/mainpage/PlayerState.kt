@@ -307,5 +307,6 @@ open class PlayerState protected constructor(
 
     open fun hideLongPressMenu() { upstream!!.hideLongPressMenu() }
 
-    open fun onSongDownloadRequested(song: Song, onCompleted: DownloadRequestCallback? = null) { upstream!!.onSongDownloadRequested(song, onCompleted) }
+    fun onSongDownloadRequested(song: Song, onCompleted: DownloadRequestCallback? = null) { onSongDownloadRequested(listOf(song), onCompleted) }
+    open fun onSongDownloadRequested(songs: List<Song>, onCompleted: DownloadRequestCallback? = null) { upstream!!.onSongDownloadRequested(songs, onCompleted) }
 }

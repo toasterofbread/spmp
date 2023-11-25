@@ -34,7 +34,7 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 
 @Composable
-fun DownloadMethodSelectionDialog(onCancelled: () -> Unit, onSelected: (DownloadMethod) -> Unit, modifier: Modifier = Modifier, song: Song? = null) {
+fun DownloadMethodSelectionDialog(onCancelled: () -> Unit, onSelected: (DownloadMethod) -> Unit, modifier: Modifier = Modifier, songs: List<Song>? = null) {
     var download_method: DownloadMethod by StreamingSettings.Key.DOWNLOAD_METHOD.rememberMutableEnumState()
     var skip_confirmation: Boolean by StreamingSettings.Key.SKIP_DOWNLOAD_METHOD_CONFIRMATION.rememberMutableState()
     var show: Boolean by remember { mutableStateOf(false) }
@@ -86,8 +86,9 @@ fun DownloadMethodSelectionDialog(onCancelled: () -> Unit, onSelected: (Download
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                if (song != null) {
-                    MediaItemPreviewLong(song, Modifier.fillMaxWidth())
+                val first_song: Song? = songs?.firstOrNull()
+                if (first_song != null) {
+                    MediaItemPreviewLong(first_song, Modifier.fillMaxWidth())
                 }
 
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {

@@ -405,11 +405,8 @@ class MediaItemMultiSelectContext(
         // Download
         AnimatedVisibility(any_are_downloadable) {
             IconButton({
-                for (item in getUniqueSelectedItems()) {
-                    if (item is Song) {
-                        player.context.download_manager.startDownload(item)
-                    }
-                }
+                val songs: List<Song> = getUniqueSelectedItems().filterIsInstance<Song>()
+                player.onSongDownloadRequested(songs)
                 onActionPerformed()
             }) {
                 Icon(Icons.Default.Download, null)

@@ -9,6 +9,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import com.toasterofbread.composekit.platform.PlatformFile
+import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.platform.AppContext
@@ -31,22 +32,58 @@ enum class DownloadMethod {
             CUSTOM -> getString("download_method_desc_custom")
         }
 
-    fun execute(context: AppContext, song: Song, callback: DownloadRequestCallback?) =
+    fun execute(context: AppContext, songs: List<Song>, callback: DownloadRequestCallback?) =
         when (this) {
-            LIBRARY -> context.download_manager.startDownload(song, callback = callback)
+            LIBRARY -> {
+                for (song in songs) {
+                    context.download_manager.startDownload(song, callback = callback)
+                }
+            }
             CUSTOM -> {
-                context.promptUserForFileCreation(
-                    // TODO | Remove hardcoded MIME type
-                    "audio/mp4",
-                    song.getActiveTitle(context.database),
-                    false
-                ) { uri ->
-                    if (uri == null) {
-                        callback?.invoke(null)
-                        return@promptUserForFileCreation
-                    }
+                if (songs.size == 1) {
+                    context.promptUserForFileCreation(
+                        // TODO | Remove hardcoded MIME type
+                        "audio/mp4",
+                        songs.single().getActiveTitle(context.database),
+                        false
+                    ) { uri ->
+                        if (uri == null) {
+                            callback?.invoke(null)
+                            return@promptUserForFileCreation
+                        }
 
-                    context.download_manager.startDownload(song, file_uri = uri, callback = callback)
+                        context.download_manager.startDownload(songs.single(), file_uri = uri, callback = callback)
+                    }
+                }
+                else {
+                    context.promptUserForDirectory(persist = true) { uri ->
+                        if (uri == null) {
+                            callback?.invoke(null)
+                            return@promptUserForDirectory
+                        }
+
+                        val directory: PlatformFile = context.getUserDirectoryFile(uri)
+
+                        for (song in songs) {
+                            var file: PlatformFile
+                            val name: String = song.getActiveTitle(context.database) ?: MediaItemType.SONG.getReadable(false)
+
+                            var i: Int = 0
+                            do {
+                                // TODO | Remove hardcoded file type
+                                var file_name = name + ".m4a"
+                                if (i++ >= 1) {
+                                    file_name += " (${i + 1})"
+                                }
+                                file = directory.resolve(file_name)
+                            }
+                            while (file.exists)
+
+                            file.createFile()
+
+                            context.download_manager.startDownload(song, file_uri = file.uri, callback = callback)
+                        }
+                    }
                 }
             }
         }

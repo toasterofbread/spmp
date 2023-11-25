@@ -136,7 +136,11 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
 
         for (file in getSongDownloadDir(context).listFiles() ?: emptyList()) {
             val in_progress: Boolean
-            if (PlayerDownloadService.isFileDownloadInProgressForSong(file, song)) {
+            if (PlayerDownloadService.isFileDownloadInProgress(file)) {
+                if (!PlayerDownloadService.isFileDownloadInProgressForSong(file, song)) {
+                    continue
+                }
+
                 in_progress = true
             }
             else if (LocalSongMetadataProcessor.readLocalSongMetadata(file, match_id = song.id, load_data = false) != null) {

@@ -10,9 +10,9 @@ import com.toasterofbread.composekit.platform.PlatformPreferencesListener
 import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.settings.Settings
-import com.toasterofbread.spmp.model.settings.category.YoutubeAuthSettings
 import com.toasterofbread.spmp.model.settings.category.StreamingSettings
 import com.toasterofbread.spmp.model.settings.category.SystemSettings
+import com.toasterofbread.spmp.model.settings.category.YoutubeAuthSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getDataLanguage
 import com.toasterofbread.spmp.platform.getUiLanguage
@@ -22,6 +22,7 @@ import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi.PostBodyContext
 import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistRadioEndpoint
 import com.toasterofbread.spmp.youtubeapi.executeResult
+import com.toasterofbread.spmp.youtubeapi.formats.CustomDownloader
 import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpoint
 import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpointType
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.composable.YTMLoginPage
@@ -53,6 +54,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import org.apache.commons.text.StringSubstitutor
+import org.schabi.newpipe.extractor.NewPipe
 import java.io.Reader
 import java.time.Duration
 import java.util.logging.Level
@@ -127,6 +129,9 @@ data class YoutubeMusicApi(
                     }
                     launch {
                         updateYtmContext()
+                    }
+                    launch {
+                        NewPipe.init(CustomDownloader.getInstance())
                     }
                 }
             }

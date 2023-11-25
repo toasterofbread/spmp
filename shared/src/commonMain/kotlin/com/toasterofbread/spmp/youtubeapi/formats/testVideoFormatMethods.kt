@@ -16,7 +16,8 @@ suspend fun testVideoFormatMethods(
 
     val methods: Map<String, VideoFormatsEndpoint> = mapOf(
         Pair("Piped", PipedVideoFormatsEndpoint(api)),
-        Pair("Youtubei", YoutubeiVideoFormatsEndpoint(api))
+        Pair("Youtubei", YoutubeiVideoFormatsEndpoint(api)),
+        Pair("NewPipe", NewPipeVideoFormatsEndpoint(api))
     )
 
     println("--- Begin test ---")

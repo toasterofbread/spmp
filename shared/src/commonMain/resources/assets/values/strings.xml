@@ -197,6 +197,7 @@
 
     <string name="video_format_endpoint_piped">Piped API</string>
     <string name="video_format_endpoint_youtubei">Youtubei</string>
+    <string name="video_format_endpoint_newpipe">NewPipe</string>
 
     <string name="error_message_generic">A error occurred</string>
     <string name="error_yt_feed_parse_failed">YouTube feed parsing failed</string>

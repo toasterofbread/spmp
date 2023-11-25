@@ -140,6 +140,10 @@ kotlin {
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
 
+                /* use `com.github.teamnewpipe` and NOT `com.github.TeamNewPipe`
+                 * its case sensitive and the readme notation DOES NOT WORK */
+                implementation("com.github.teamnewpipe:NewPipeExtractor:v0.22.7")
+
                 implementation(project(":ComposeKit:lib"))
 
                 implementation("com.squareup.okhttp3:okhttp:4.10.0")

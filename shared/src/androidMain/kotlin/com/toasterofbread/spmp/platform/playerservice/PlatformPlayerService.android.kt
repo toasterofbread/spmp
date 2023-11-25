@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
@@ -569,7 +570,7 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
                     throw NotImplementedError()
                 }
 
-                override fun loadBitmap(uri: Uri): ListenableFuture<Bitmap> {
+                override fun loadBitmap(uri: Uri, options: BitmapFactory.Options?): ListenableFuture<Bitmap> {
                     return executor.submit<Bitmap> {
                         runBlocking {
                             val song = SongRef(uri.toString())

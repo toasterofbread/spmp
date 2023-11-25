@@ -135,6 +135,9 @@ sealed class SettingsCategory(id: String) {
             all.mapNotNull { it.getPage() }
 
         fun fromId(id: String): SettingsCategory =
-            all.first { it.id == id }
+            all.firstOrNull { it.id == id } ?: throw RuntimeException(id)
+
+        fun fromIdOrNull(id: String): SettingsCategory? =
+            all.firstOrNull { it.id == id }
     }
 }

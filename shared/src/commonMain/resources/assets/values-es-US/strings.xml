@@ -221,7 +221,6 @@
 	<string name="s_group_caching">Almacenamiento en caché</string>
 	<string name="s_group_localisation">Localización</string>
 	<string name="s_group_long_press_menu">Menú de pulsación larga</string>
-	<string name="s_group_rec_feed">Feed recomendado</string>
 	<string name="s_cat_topbar">Barra superior de música</string>
 	<string name="s_key_accent_source">Acento de color </string>
 	<string name="s_key_add_songs_to_history">Añadir canción al historial de YouTube </string>

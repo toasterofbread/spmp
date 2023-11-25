@@ -8,7 +8,6 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist.Companion.getForItemId
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
-import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
@@ -49,7 +48,7 @@ object LocalSongMetadataProcessor {
         return item
     }
 
-    suspend fun addMetadataToLocalSong(song: Song, file: PlatformFile, final_filename: String, context: AppContext) = withContext(Dispatchers.IO) {
+    suspend fun addMetadataToLocalSong(song: Song, file: PlatformFile, file_extension: String, context: AppContext) = withContext(Dispatchers.IO) {
         val tag: Tag = Mp4Tag().apply {
             fun set(key: FieldKey, value: String?) {
                 if (value == null) {
@@ -78,10 +77,7 @@ object LocalSongMetadataProcessor {
             set(CUSTOM_METADATA_KEY, Json.encodeToString(custom_metadata))
         }
 
-        val dot_index: Int = final_filename.lastIndexOf('.')
-        val extension: String = if (dot_index == -1) final_filename else final_filename.substring(dot_index + 1)
-
-        val audio_file: AudioFile = AudioFileIO.readAs(File(file.absolute_path), extension)
+        val audio_file: AudioFile = AudioFileIO.readAs(File(file.absolute_path), file_extension)
         audio_file.tag = tag
         audio_file.commit()
     }

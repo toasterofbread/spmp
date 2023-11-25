@@ -32,7 +32,7 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
         MultipleChoiceSettingsItem(
             SettingsValueState(ThemeSettings.Key.ACCENT_COLOUR_SOURCE.getName()),
             getString("s_key_accent_source"), null,
-            AccentColourSource.values().size, false
+            AccentColourSource.values().size
         ) { choice ->
             when (AccentColourSource.values()[choice]) {
                 AccentColourSource.THEME -> getString("s_option_accent_theme")
@@ -43,7 +43,7 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
         MultipleChoiceSettingsItem(
             SettingsValueState(ThemeSettings.Key.NOWPLAYING_THEME_MODE.getName()),
             getString("s_key_np_theme_mode"), null,
-            3, false
+            3
         ) { choice ->
             when (choice) {
                 0 -> getString("s_option_np_accent_background")

@@ -59,6 +59,7 @@ data class MediaItemLayout(
             content_padding: PaddingValues = PaddingValues()
         ) {
             when (this) {
+                // Why
                 GRID -> MediaItemGrid(layout, modifier, title_modifier, grid_rows, multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators, content_padding = content_padding)
                 GRID_ALT -> MediaItemGrid(layout, modifier, title_modifier, grid_rows, alt_style = true, multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators, content_padding = content_padding)
                 ROW -> MediaItemGrid(layout, modifier, title_modifier, Pair(1, 1), multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators, content_padding = content_padding)

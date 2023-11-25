@@ -17,6 +17,7 @@ import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.composekit.utils.composable.OnChangedEffect
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import kotlinx.coroutines.delay
 
 enum class MediaItemPreviewInteractionPressStage {
@@ -62,24 +63,25 @@ fun Modifier.mediaItemPreviewInteraction(
     onClick: ((item: MediaItem, multiselect_key: Int?) -> Unit)? = null,
     onLongClick: ((item: MediaItem, long_press_menu_data: LongPressMenuData) -> Unit)? = null
 ): Modifier {
-    val player = LocalPlayerState.current
+    val player: PlayerState = LocalPlayerState.current
     
-    val onClick = onClick ?: player::onMediaItemClicked
-    val onLongClick = onLongClick ?: player::onMediaItemLongClicked
+    val onItemClick = onClick ?: player::onMediaItemClicked
+    val onItemLongClick = onLongClick ?: player::onMediaItemLongClicked
 
     if (Platform.DESKTOP.isCurrent()) {
         return platformClickable(
-            onClick = { MediaItemPreviewInteractionPressStage.INSTANT.execute(item, long_press_menu_data, onClick, onLongClick) },
-            onAltClick = { MediaItemPreviewInteractionPressStage.LONG_1.execute(item, long_press_menu_data, onClick, onLongClick) },
+            onClick = { MediaItemPreviewInteractionPressStage.INSTANT.execute(item, long_press_menu_data, onItemClick, onItemLongClick) },
+            onAltClick = { MediaItemPreviewInteractionPressStage.LONG_1.execute(item, long_press_menu_data, onItemClick, onItemLongClick) },
+            onAlt2Click = { MediaItemPreviewInteractionPressStage.LONG_2.execute(item, long_press_menu_data, onItemClick, onItemLongClick) },
             indication = getIndication()
         )
     }
 
     var current_press_stage: MediaItemPreviewInteractionPressStage by remember { mutableStateOf(MediaItemPreviewInteractionPressStage.INSTANT) }
-    val long_press_timeout = LocalViewConfiguration.current.longPressTimeoutMillis
+    val long_press_timeout: Long = LocalViewConfiguration.current.longPressTimeoutMillis
 
-    val interaction_source = remember { MutableInteractionSource() }
-    val pressed by interaction_source.collectIsPressedAsState()
+    val interaction_source: MutableInteractionSource = remember { MutableInteractionSource() }
+    val pressed: Boolean by interaction_source.collectIsPressedAsState()
 
     OnChangedEffect(pressed) {
         if (pressed) {
@@ -100,7 +102,7 @@ fun Modifier.mediaItemPreviewInteraction(
                     player.context.vibrateShort()
 
                     if (stage == MediaItemPreviewInteractionPressStage.values().last { it.isAvailable(long_press_menu_data) }) {
-                        current_press_stage.execute(item, long_press_menu_data, onClick, onLongClick)
+                        current_press_stage.execute(item, long_press_menu_data, onItemClick, onItemLongClick)
                         long_press_menu_data.current_interaction_stage = null
                         break
                     }
@@ -109,7 +111,7 @@ fun Modifier.mediaItemPreviewInteraction(
         }
         else {
             if (current_press_stage != MediaItemPreviewInteractionPressStage.values().last { it.isAvailable(long_press_menu_data) }) {
-                current_press_stage.execute(item, long_press_menu_data, onClick, onLongClick)
+                current_press_stage.execute(item, long_press_menu_data, onItemClick, onItemLongClick)
             }
             current_press_stage = MediaItemPreviewInteractionPressStage.INSTANT
             long_press_menu_data.current_interaction_stage = null
@@ -117,6 +119,6 @@ fun Modifier.mediaItemPreviewInteraction(
     }
 
     return clickable(interaction_source, getIndication(), onClick = {
-        current_press_stage.execute(item, long_press_menu_data, onClick, onLongClick)
+        current_press_stage.execute(item, long_press_menu_data, onItemClick, onItemLongClick)
     })
 }

@@ -418,9 +418,9 @@ private fun peformExport(context: AppContext, categories: List<SettingsCategory>
     val datetime: String = SimpleDateFormat("yyyy-MM-dd_HH:mm:ss").format(Date())
     val filename: String = getString("settings_export_filename_\$date").replace("\$date", datetime)
 
-    context.promptUserForJsonCreation(filename, persist = false) { path ->
+    context.promptUserForFileCreation("application/json", filename, persist = false) { path ->
         if (path == null) {
-            return@promptUserForJsonCreation
+            return@promptUserForFileCreation
         }
 
         GlobalScope.launch {

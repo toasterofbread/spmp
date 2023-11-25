@@ -12,6 +12,50 @@ import com.toasterofbread.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.DownloadRequestCallback
+
+enum class DownloadMethod {
+    LIBRARY, CUSTOM;
+
+    fun isAvailable(): Boolean = true
+
+    fun getTitle(): String =
+        when (this) {
+            LIBRARY -> getString("download_method_title_library")
+            CUSTOM -> getString("download_method_title_custom")
+        }
+    fun getDescription(): String =
+        when (this) {
+            LIBRARY -> getString("download_method_desc_library")
+            CUSTOM -> getString("download_method_desc_custom")
+        }
+
+    fun execute(context: AppContext, song: Song, callback: DownloadRequestCallback?) =
+        when (this) {
+            LIBRARY -> context.download_manager.startDownload(song, callback = callback)
+            CUSTOM -> {
+                context.promptUserForFileCreation(
+                    // TODO | Remove hardcoded MIME type
+                    "audio/mp4",
+                    song.getActiveTitle(context.database),
+                    false
+                ) { uri ->
+                    if (uri == null) {
+                        callback?.invoke(null)
+                        return@promptUserForFileCreation
+                    }
+
+                    context.download_manager.startDownload(song, file_uri = uri, callback = callback)
+                }
+            }
+        }
+
+    companion object {
+        val DEFAULT: DownloadMethod = LIBRARY
+        val available: List<DownloadMethod> get() = values().filter { it.isAvailable() }
+    }
+}
 
 expect class PlayerDownloadManager(context: AppContext) {
     class DownloadStatus {
@@ -38,7 +82,12 @@ expect class PlayerDownloadManager(context: AppContext) {
     suspend fun getDownloads(): List<DownloadStatus>
 
     @Synchronized
-    fun startDownload(song: Song, silent: Boolean = false, onCompleted: ((DownloadStatus) -> Unit)? = null)
+    fun startDownload(
+        song: Song,
+        silent: Boolean = false,
+        file_uri: String? = null,
+        callback: DownloadRequestCallback? = null
+    )
 
     suspend fun deleteSongLocalAudioFile(song: Song)
 

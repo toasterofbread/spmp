@@ -23,6 +23,7 @@ object Settings {
                 is Long -> putLong(enum_key.getName(), value)
                 is String -> putString(enum_key.getName(), value)
                 is Set<*> -> putStringSet(enum_key.getName(), value as Set<String>)
+                is Enum<*> -> putInt(enum_key.getName(), value.ordinal)
                 else -> throw NotImplementedError("$enum_key ${value!!::class.simpleName}")
             }
         }

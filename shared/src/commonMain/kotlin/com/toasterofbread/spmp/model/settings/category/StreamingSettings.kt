@@ -4,7 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Speaker
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.model.settings.SettingsKey
-import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.download.DownloadMethod
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getStreamingCategoryItems
 import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpointType
@@ -27,7 +27,10 @@ data object StreamingSettings: SettingsCategory("streaming") {
         STREAM_AUDIO_QUALITY,
         DOWNLOAD_AUDIO_QUALITY,
         ENABLE_AUDIO_NORMALISATION,
-        ENABLE_SILENCE_SKIPPING;
+        ENABLE_SILENCE_SKIPPING,
+
+        DOWNLOAD_METHOD,
+        SKIP_DOWNLOAD_METHOD_CONFIRMATION;
 
         override val category: SettingsCategory get() = StreamingSettings
 
@@ -42,6 +45,8 @@ data object StreamingSettings: SettingsCategory("streaming") {
                 DOWNLOAD_AUDIO_QUALITY -> SongAudioQuality.MEDIUM.ordinal
                 ENABLE_AUDIO_NORMALISATION -> false
                 ENABLE_SILENCE_SKIPPING -> false
+                DOWNLOAD_METHOD -> DownloadMethod.DEFAULT.ordinal
+                SKIP_DOWNLOAD_METHOD_CONFIRMATION -> false
             } as T
     }
 }

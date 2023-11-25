@@ -35,8 +35,7 @@ internal fun getPlayerCategoryItems(): List<SettingsItem> {
         MultipleChoiceSettingsItem(
             SettingsValueState(PlayerSettings.Key.MINI_OVERSCROLL_CLEAR_MODE.getName()),
             getString("s_key_mini_player_overscroll_clear_mode"), null,
-            choice_amount = OverscrollClearMode.values().size,
-            radio_style = false
+            choice_amount = OverscrollClearMode.values().size
         ) { index ->
             OverscrollClearMode.values()[index].getReadable()
         },
@@ -53,12 +52,10 @@ internal fun getPlayerCategoryItems(): List<SettingsItem> {
             SettingsValueState(PlayerSettings.Key.OVERLAY_CUSTOM_ACTION.getName()),
             getString("s_key_player_overlay_menu_custom_action"),
             getString("s_sub_player_overlay_menu_custom_action"),
-            PlayerOverlayMenuAction.values().size,
-            false,
-            { index ->
-                PlayerOverlayMenuAction.values()[index].getReadable()
-            }
-        ),
+            PlayerOverlayMenuAction.values().size
+        ) { index ->
+            PlayerOverlayMenuAction.values()[index].getReadable()
+        },
 
         ToggleSettingsItem(
             SettingsValueState(PlayerSettings.Key.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.getName()),
@@ -92,28 +89,24 @@ internal fun getPlayerCategoryItems(): List<SettingsItem> {
             SettingsValueState(PlayerSettings.Key.QUEUE_WAVE_BORDER_MODE.getName()),
             getString("s_key_np_queue_wave_border_mode"),
             getString("s_sub_np_queue_wave_border_mode"),
-            NowPlayingQueueWaveBorderMode.values().size,
-            false,
-            { index ->
-                when (NowPlayingQueueWaveBorderMode.values()[index]) {
-                    NowPlayingQueueWaveBorderMode.TIME -> getString("s_option_wave_border_mode_time")
-                    NowPlayingQueueWaveBorderMode.TIME_SYNC -> getString("s_option_wave_border_mode_time_sync")
-                    NowPlayingQueueWaveBorderMode.SCROLL -> getString("s_option_wave_border_mode_scroll")
-                    NowPlayingQueueWaveBorderMode.NONE -> getString("s_option_wave_border_mode_none")
-                    NowPlayingQueueWaveBorderMode.LINE -> getString("s_option_wave_border_mode_line")
-                }
+            NowPlayingQueueWaveBorderMode.values().size
+        ) { index ->
+            when (NowPlayingQueueWaveBorderMode.values()[index]) {
+                NowPlayingQueueWaveBorderMode.TIME -> getString("s_option_wave_border_mode_time")
+                NowPlayingQueueWaveBorderMode.TIME_SYNC -> getString("s_option_wave_border_mode_time_sync")
+                NowPlayingQueueWaveBorderMode.SCROLL -> getString("s_option_wave_border_mode_scroll")
+                NowPlayingQueueWaveBorderMode.NONE -> getString("s_option_wave_border_mode_none")
+                NowPlayingQueueWaveBorderMode.LINE -> getString("s_option_wave_border_mode_line")
             }
-        ),
+        },
 
         MultipleChoiceSettingsItem(
             SettingsValueState(PlayerSettings.Key.QUEUE_RADIO_INFO_POSITION.getName()),
             getString("s_key_np_queue_radio_info_position"), null,
-            NowPlayingQueueRadioInfoPosition.values().size,
-            false,
-            { index ->
-                NowPlayingQueueRadioInfoPosition.values()[index].getReadable()
-            }
-        ),
+            NowPlayingQueueRadioInfoPosition.values().size
+        ) { index ->
+            NowPlayingQueueRadioInfoPosition.values()[index].getReadable()
+        },
 
         ToggleSettingsItem(
             SettingsValueState(PlayerSettings.Key.PAUSE_ON_BT_DISCONNECT.getName()),

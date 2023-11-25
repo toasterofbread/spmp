@@ -75,10 +75,10 @@
     <string name="playlist_create">プレイリストを作成</string>
     <string name="playlist_delete">プレイリストを消去</string>
     <string name="toast_playlist_added">プレイリストに追加しました</string>
-    <string name="playlist_select_image">プレイリスト画像を選択</string>
+    <string name="playlist_select_image">プレイリスト画像の選択</string>
     <string name="playlist_info_local">ローカルプレイリスト</string>
     <string name="playlist_info_account">アカウントプレイリスト</string>
-
+ 
     <string name="feed_row_artists">おすすめのアーティスト</string>
     <string name="feed_row_playlists">プレイリスト</string>
 
@@ -94,6 +94,7 @@
     <string name="prompt_confirm_settings_page_reset">このページのバリューを全てリセットしますか？</string>
     <string name="prompt_hide_feed_rows_with_$title">タイトルが「$title」の行を隠しますか？</string>
 
+    <string name="action_download_start">開始</string>
     <string name="action_download_pause">一時停止</string>
     <string name="action_download_resume">続ける</string>
 
@@ -156,6 +157,12 @@
     <string name="downloading_$x_songs">$x曲をダウンロード中</string>
     <string name="download_just_started">たった今</string>
     <string name="download_started_$x_minutes_ago">$x分前</string>
+
+    <string name="download_method_select_title">ダウンロード方法の選択</string>
+    <string name="download_method_title_library">ライブラリ</string>
+    <string name="download_method_desc_library">SpMpのライブラリフォルダにダウンロード</string>
+    <string name="download_method_title_custom">カスタム</string>
+    <string name="download_method_desc_custom">ユーザーに選択されたフォルダにダウンロード</string>
 
     <string name="search_filter_all">全て</string>
     <string name="search_filter_videos">動画</string>
@@ -252,8 +259,8 @@
     <string name="radio_builder_next_button">次へ</string>
     <string name="radio_builder_play_last_button">以前のラジオを聴く</string>
     <string name="radio_builder_recent_button">最近のラジオ</string>
-    <string name="radio_builder_artists_title">アーティストを選択</string>
-    <string name="radio_builder_modifiers_title">好みを選択</string>
+    <string name="radio_builder_artists_title">アーティストの選択</string>
+    <string name="radio_builder_modifiers_title">好みの選択</string>
     <string name="radio_builder_modifier_selection_type">曲の選択方法</string>
     <string name="radio_builder_modifier_selection_type_familiar">おなじみの曲</string>
     <string name="radio_builder_modifier_selection_type_blend">ブレンド</string>
@@ -310,7 +317,6 @@
     <string name="s_key_hp_show_timed_lyrics">同期可能の歌詞を表示する</string>
     <string name="s_sub_hp_show_timed_lyrics">流れてる曲に同期可能の歌詞があればトップバーに表示されます</string>
 
-    <string name="s_group_rec_feed">おすすめフィード</string>
     <string name="s_key_feed_show_filter_bar">フィルターバーを表示する</string>
     <string name="s_sub_feed_show_filter_bar">バーが無表示でも、検索ページはライブラリの検索ボタンを長押ししてアクセスできます</string>
     <string name="s_key_feed_show_song_download_indicators">曲のダウンロード状態を表示する</string>
@@ -493,6 +499,11 @@
 
     <string name="s_key_enable_silence_skipping">無音部分をスキップ</string>
 
+    <string name="s_key_download_method">ダウンロード方法</string>
+    <string name="s_sub_download_method">手動で曲をダウンロードする時に行われます</string>
+    <string name="s_key_skip_download_method_confirmation">毎回ダウンロード方法を選択しない</string>
+    <string name="s_sub_skip_download_method_confirmation">有効なら、手動ダウンロードの方法選択を表示しません</string>
+
     <string name="s_key_status_webhook_url">ステータスウェブフックのURL</string>
     <string name="s_sub_status_webhook_url">再生中の曲が変わるとこのURLへJSONのPOSTリクエストが送信されます。例：`{"youtube_video_id": "&lt;動画のID&gt;"}`</string>
 
@@ -665,7 +676,7 @@
     <string name="settings_export_filename_$date">SpMp_設定_$date</string>
 
     <string name="settings_import_prep_title">設定をインポート</string>
-    <string name="settings_import_category_selection_subtitle">インポートするカテゴリーを選択</string>
+    <string name="settings_import_category_selection_subtitle">インポートするカテゴリーの選択</string>
     <string name="settings_import_button_import">決定</string>
     <string name="settings_import_error_title">インポートが失敗しました</string>
     <string name="settings_import_result_title">インポートが成功しました</string>

@@ -31,6 +31,7 @@ import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.*
+import com.toasterofbread.spmp.platform.download.DownloadMethodSelectionDialog
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
 import com.toasterofbread.spmp.service.playercontroller.PersistentQueueHandler
@@ -91,6 +92,9 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
         SwipeableState(0)
     )
     private var np_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
+
+    private var download_request_song: Song? by mutableStateOf(null)
+    private var download_request_callback: DownloadRequestCallback? by mutableStateOf(null)
 
     override val expansion = NowPlayingExpansionState(this, np_swipe_state, coroutine_scope)
     override val session_started: Boolean get() = _player?.service_player?.session_started == true
@@ -371,12 +375,26 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
     }
 
     @Composable
-    fun LongPressMenu() {
+    fun PersistentContent() {
         long_press_menu_data?.also { data ->
             LongPressMenu(
                 long_press_menu_showing,
                 { hideLongPressMenu() },
                 data
+            )
+        }
+
+        download_request_song?.also { song ->
+            DownloadMethodSelectionDialog(
+                onCancelled = {
+                    download_request_song = null
+                    download_request_callback?.invoke(null)
+                },
+                onSelected = { method ->
+                    method.execute(context, song, download_request_callback)
+                    download_request_song = null
+                },
+                song = song
             )
         }
     }
@@ -463,5 +481,10 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
 
     override fun isRunningAndFocused(): Boolean {
         return controller?.has_focus == true
+    }
+
+    override fun onSongDownloadRequested(song: Song, callback: DownloadRequestCallback?) {
+        download_request_song = song
+        download_request_callback = callback
     }
 }

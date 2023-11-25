@@ -40,5 +40,5 @@ fun RootView(player: PlayerStateImpl) {
         player.NowPlaying()
     }
 
-    player.LongPressMenu()
+    player.PersistentContent()
 }

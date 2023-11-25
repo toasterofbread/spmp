@@ -89,8 +89,7 @@ abstract class AppPage {
         ScrollBarLazyRow(
             modifier,
             horizontalArrangement = Arrangement.spacedBy(spacing),
-            verticalAlignment = Alignment.CenterVertically,
-            scrollbar_colour = player.theme.accent
+            verticalAlignment = Alignment.CenterVertically
         ) {
             items(chip_count) { index ->
                 Crossfade(isChipSelected(index)) { selected ->

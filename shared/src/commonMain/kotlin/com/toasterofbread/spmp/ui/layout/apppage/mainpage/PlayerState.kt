@@ -22,6 +22,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
+import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.playerservice.MediaPlayerRepeatMode
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
@@ -35,6 +36,8 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import java.net.URI
 import java.net.URISyntaxException
+
+typealias DownloadRequestCallback = (PlayerDownloadManager.DownloadStatus?) -> Unit
 
 class PlayerStatus internal constructor() {
     private var player: PlatformPlayerService? = null
@@ -303,4 +306,6 @@ open class PlayerState protected constructor(
     fun showLongPressMenu(item: MediaItem) { showLongPressMenu(LongPressMenuData(item)) }
 
     open fun hideLongPressMenu() { upstream!!.hideLongPressMenu() }
+
+    open fun onSongDownloadRequested(song: Song, onCompleted: DownloadRequestCallback? = null) { upstream!!.onSongDownloadRequested(song, onCompleted) }
 }

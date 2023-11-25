@@ -1,11 +1,13 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
 import com.toasterofbread.composekit.settings.ui.item.DropdownSettingsItem
+import com.toasterofbread.composekit.settings.ui.item.MultipleChoiceSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 import com.toasterofbread.composekit.settings.ui.item.ToggleSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.model.settings.category.StreamingSettings
+import com.toasterofbread.spmp.platform.download.DownloadMethod
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpointType
@@ -67,6 +69,20 @@ internal fun getStreamingCategoryItems(): List<SettingsItem> {
         ToggleSettingsItem(
             SettingsValueState(StreamingSettings.Key.ENABLE_SILENCE_SKIPPING.getName()),
             getString("s_key_enable_silence_skipping"), null
+        ),
+
+        MultipleChoiceSettingsItem(
+            SettingsValueState(StreamingSettings.Key.DOWNLOAD_METHOD.getName()),
+            getString("s_key_download_method"), getString("s_sub_download_method"),
+            DownloadMethod.available.size
+        ) {
+            val method: DownloadMethod = DownloadMethod.available[it]
+            return@MultipleChoiceSettingsItem method.getTitle() + " - " + method.getDescription()
+        },
+
+        ToggleSettingsItem(
+            SettingsValueState(StreamingSettings.Key.SKIP_DOWNLOAD_METHOD_CONFIRMATION.getName()),
+            getString("s_key_skip_download_method_confirmation"), getString("s_sub_skip_download_method_confirmation")
         )
     )
 }

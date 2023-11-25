@@ -17,6 +17,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
 import androidx.core.graphics.drawable.IconCompat
+import com.google.common.io.Files
 import com.toasterofbread.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.model.lyrics.LyricsFileConverter
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
@@ -44,6 +45,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.ConnectException
@@ -65,8 +67,12 @@ class PlayerDownloadService: PlatformServiceImpl() {
         val quality: SongAudioQuality,
         var silent: Boolean,
         val instance: Int,
+        val file_uri: String?
     ) {
-        var song_file: PlatformFile? = runBlocking { song.getLocalSongFile(context, allow_partial = true) } // This is fine :)
+        var song_file: PlatformFile? = runBlocking {
+            // This is fine :)
+            song.getLocalSongFile(context, allow_partial = true)
+        }
         var lyrics_file: PlatformFile? = song.getLocalLyricsFile(context, allow_partial = true)
 
         var status: DownloadStatus.Status =
@@ -132,14 +138,14 @@ class PlayerDownloadService: PlatformServiceImpl() {
     }
 
     private var download_inc: Int = 0
-    private fun getOrCreateDownload(context: AppContext, song: Song): Download {
+    private fun getOrCreateDownload(context: AppContext, song: Song, silent: Boolean, file_uri: String?): Download {
         synchronized(downloads) {
             for (download in downloads) {
                 if (download.song.id == song.id) {
                     return download
                 }
             }
-            return Download(context, song, Settings.getEnum(StreamingSettings.Key.DOWNLOAD_AUDIO_QUALITY), true, download_inc++)
+            return Download(context, song, Settings.getEnum(StreamingSettings.Key.DOWNLOAD_AUDIO_QUALITY), silent, download_inc++, file_uri)
         }
     }
 
@@ -279,12 +285,12 @@ class PlayerDownloadService: PlatformServiceImpl() {
     private fun startDownload(message: PlayerDownloadManager.PlayerDownloadMessage) {
         require(message.instance != null)
 
-        val download = getOrCreateDownload(context, SongRef(message.data["song_id"] as String))
-
-        val silent = message.data["silent"] as Boolean
-        if (!silent) {
-            download.silent = false
-        }
+        val download: Download = getOrCreateDownload(
+            context,
+            SongRef(message.data["song_id"] as String),
+            silent = message.data["silent"] as Boolean,
+            file_uri = message.data["file_uri"] as String?
+        )
 
         synchronized(download) {
             if (download.finished) {
@@ -418,29 +424,29 @@ class PlayerDownloadService: PlatformServiceImpl() {
             ))
         }
 
+        val format_extension: String =
+            when (connection.contentType) {
+                "audio/webm" -> "webm"
+                "audio/mp4" -> "mp4"
+                else -> return@withContext Result.failure(NotImplementedError(connection.contentType))
+            }
+
         var file: PlatformFile? = download.song_file
         check(song_download_dir.mkdirs()) { song_download_dir.toString() }
 
-        val file_extension: String = when (connection.contentType) {
-            "audio/webm" -> "webm"
-            "audio/mp4" -> "mp4"
-            else -> return@withContext Result.failure(NotImplementedError(connection.contentType))
-        }
-
         if (file == null) {
-            file = song_download_dir.resolve(download.generatePath(file_extension, true))
+            file = song_download_dir.resolve(download.generatePath(format_extension, true))
         }
 
         check(file.name.endsWith(FILE_DOWNLOADING_SUFFIX))
-        val target_filename: String = download.generatePath(file_extension, false)
 
         val data: ByteArray = ByteArray(4096)
-        val output: OutputStream = file.outputStream(true)
-        val input: InputStream = connection.inputStream
+        val input_stream: InputStream = connection.inputStream
+        val output_stream: OutputStream = file.outputStream(true)
 
         fun close(status: DownloadStatus.Status) {
-            input.close()
-            output.close()
+            input_stream.close()
+            output_stream.close()
             connection.disconnect()
             download.status = status
         }
@@ -455,7 +461,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
             download.status = DownloadStatus.Status.DOWNLOADING
 
             while (true) {
-                val size = input.read(data)
+                val size = input_stream.read(data)
                 if (size < 0) {
                     break
                 }
@@ -472,7 +478,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
                 }
 
                 download.downloaded += size
-                output.write(data, 0, size)
+                output_stream.write(data, 0, size)
 
                 onDownloadProgress()
             }
@@ -485,7 +491,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
 
             runBlocking {
                 launch {
-                    LocalSongMetadataProcessor.addMetadataToLocalSong(download.song, file, target_filename, context)
+                    LocalSongMetadataProcessor.addMetadataToLocalSong(download.song, file, format_extension, context)
                 }
                 launch {
                     if (download.lyrics_file == null) {
@@ -507,8 +513,21 @@ class PlayerDownloadService: PlatformServiceImpl() {
             close(DownloadStatus.Status.CANCELLED)
         }
 
-        val renamed: PlatformFile = file.renameTo(target_filename)
-        download.song_file = renamed
+        if (download.file_uri != null) {
+            val uri_file: PlatformFile = context.getUserDirectoryFile(download.file_uri)
+            uri_file.outputStream().use { output ->
+                Files.copy(File(file.absolute_path), output)
+            }
+            file.delete()
+            download.song_file = uri_file
+        }
+        else {
+            val renamed: PlatformFile = file.renameTo(
+                download.generatePath(format_extension, false)
+            )
+            download.song_file = renamed
+        }
+
         download.status = DownloadStatus.Status.FINISHED
 
         return@withContext Result.success(download.song_file)

@@ -15,8 +15,6 @@ import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppStringSetItem
 
 internal fun getFeedCategoryItems(): List<SettingsItem> {
     return listOf(
-        GroupSettingsItem(getString("s_group_rec_feed")),
-
         ToggleSettingsItem(
             SettingsValueState(FeedSettings.Key.SHOW_FILTER_BAR.getName()),
             getString("s_key_feed_show_filter_bar"), getString("s_sub_feed_show_filter_bar")

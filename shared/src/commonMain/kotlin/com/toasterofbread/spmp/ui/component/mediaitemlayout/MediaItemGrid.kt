@@ -18,7 +18,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -35,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.utils.modifier.background
 import com.toasterofbread.composekit.utils.modifier.horizontal
 import com.toasterofbread.composekit.utils.modifier.vertical
@@ -123,6 +126,8 @@ fun MediaItemGrid(
         else itemSizeProvider() + DpSize(0.dp, getMediaItemPreviewSquareAdditionalHeight(square_item_max_text_rows, MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP.sp))
     val horizontal_padding: PaddingValues = content_padding.horizontal
 
+    val grid_state: LazyGridState = rememberLazyGridState()
+
     Column(modifier.padding(content_padding.vertical), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         var expanded: Boolean by remember { mutableStateOf(false) }
         Row(
@@ -154,46 +159,59 @@ fun MediaItemGrid(
                 subtitle,
                 title_modifier,
                 view_more = view_more,
-                multiselect_context = multiselect_context
+                multiselect_context = multiselect_context,
+                scroll_state =
+                    if (Platform.DESKTOP.isCurrent()) grid_state
+                    else null
             )
         }
 
-        BoxWithConstraints(Modifier.fillMaxWidth().animateContentSize(), contentAlignment = Alignment.CenterEnd) {
-            val current_rows: Int = if (expanded) expanded_row_count else row_count
+        Column {
+            BoxWithConstraints(Modifier.fillMaxWidth().animateContentSize(), contentAlignment = Alignment.CenterEnd) {
+                val current_rows: Int = if (expanded) expanded_row_count else row_count
 
-            LazyHorizontalGrid(
-                rows = GridCells.Fixed(current_rows),
-                modifier = Modifier
-                    .height(item_size.height * current_rows + item_spacing.spacing * (current_rows - 1))
-                    .fillMaxWidth(),
-                horizontalArrangement = item_spacing,
-                verticalArrangement = item_spacing,
-                contentPadding = content_padding
-            ) {
-                startContent?.invoke(this)
+                LazyHorizontalGrid(
+                    state = grid_state,
+                    rows = GridCells.Fixed(current_rows),
+                    modifier = Modifier
+                        .height(item_size.height * current_rows + item_spacing.spacing * (current_rows - 1))
+                        .fillMaxWidth(),
+                    horizontalArrangement = item_spacing,
+                    verticalArrangement = item_spacing,
+                    contentPadding = content_padding
+                ) {
+                    startContent?.invoke(this)
 
-                items(filtered_items.size, { filtered_items[it].item.getUid() }) { i ->
-                    val item = filtered_items[i].item
-                    val preview_modifier = Modifier.animateItemPlacement().then(
-                        if (alt_style)
-                            if (player.isLargeFormFactor()) Modifier.width(300.dp)
-                            else Modifier.width(maxWidth * 0.9f)
-                        else Modifier.size(item_size)
-                    )
+                    items(filtered_items.size, { filtered_items[it].item.getUid() }) { i ->
+                        val item = filtered_items[i].item
+                        val preview_modifier = Modifier.animateItemPlacement().then(
+                            if (alt_style)
+                                if (player.isLargeFormFactor()) Modifier.width(300.dp)
+                                else Modifier.width(maxWidth * 0.9f)
+                            else Modifier.size(item_size)
+                        )
 
-                    if (alt_style) {
-                        MediaItemPreviewLong(item, preview_modifier, contentColour = player.theme.on_background_provider, multiselect_context = multiselect_context, show_download_indicator = show_download_indicators)
+                        if (alt_style) {
+                            MediaItemPreviewLong(item, preview_modifier, contentColour = player.theme.on_background_provider, multiselect_context = multiselect_context, show_download_indicator = show_download_indicators)
+                        }
+                        else {
+                            MediaItemPreviewSquare(item, preview_modifier, contentColour = player.theme.on_background_provider, multiselect_context = multiselect_context, max_text_rows = square_item_max_text_rows, show_download_indicator = show_download_indicators)
+                        }
                     }
-                    else {
-                        MediaItemPreviewSquare(item, preview_modifier, contentColour = player.theme.on_background_provider, multiselect_context = multiselect_context, max_text_rows = square_item_max_text_rows, show_download_indicator = show_download_indicators)
+                }
+
+                if (multiselect_context != null && !shouldShowTitleBar(title, subtitle)) {
+                    Box(Modifier.background(CircleShape, player.theme.background_provider).padding(horizontal_padding), contentAlignment = Alignment.Center) {
+                        multiselect_context.CollectionToggleButton(filtered_items)
                     }
                 }
             }
 
-            if (multiselect_context != null && !shouldShowTitleBar(title, subtitle)) {
-                Box(Modifier.background(CircleShape, player.theme.background_provider).padding(horizontal_padding), contentAlignment = Alignment.Center) {
-                    multiselect_context.CollectionToggleButton(filtered_items)
-                }
+            Platform.DESKTOP.only {
+//                GridHorizontalScrollbar(
+//                    grid_state,
+//                    Modifier.fillMaxWidth()
+//                )
             }
         }
     }

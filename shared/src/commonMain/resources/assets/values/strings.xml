@@ -104,6 +104,7 @@
     <string name="prompt_confirm_settings_page_reset">Reset all values on this page?</string>
     <string name="prompt_hide_feed_rows_with_$title">Hide feed rows with title '$title'?</string>
 
+    <string name="action_download_start">Download</string>
     <string name="action_download_pause">Pause</string>
     <string name="action_download_resume">Resume</string>
 
@@ -166,6 +167,12 @@
     <string name="downloading_$x_songs">Downloading $x song(s)</string>
     <string name="download_just_started">Just started</string>
     <string name="download_started_$x_minutes_ago">Started $x min(s) ago</string>
+
+    <string name="download_method_select_title">Select download method</string>
+    <string name="download_method_title_library">Library</string>
+    <string name="download_method_desc_library">Download to SpMp's library folder</string>
+    <string name="download_method_title_custom">Custom</string>
+    <string name="download_method_desc_custom">Download to a user-specified location</string>
 
     <string name="search_filter_all">All</string>
     <string name="search_filter_videos">Videos</string>
@@ -324,7 +331,6 @@
     <string name="s_key_hp_show_timed_lyrics">Show timed lyrics</string>
     <string name="s_sub_hp_show_timed_lyrics">Timed lyrics will appear on the top bar if available</string>
 
-    <string name="s_group_rec_feed">Recommended feed</string>
     <string name="s_key_feed_show_filter_bar">Show filter bar</string>
     <string name="s_sub_feed_show_filter_bar">If hidden, the search page still can be accessed by long-pressing the library search button</string>
     <string name="s_key_feed_show_song_download_indicators">Show song download indicators</string>
@@ -506,6 +512,11 @@
     <string name="s_sub_enable_audio_normalisation">Availability may be limited to certain videos, as loudness data is provided by YouTube</string>
 
     <string name="s_key_enable_silence_skipping">Enable silence skipping</string>
+
+    <string name="s_key_download_method">Download method</string>
+    <string name="s_sub_download_method">The method to use when manually downloading a song</string>
+    <string name="s_key_skip_download_method_confirmation">Skip download method confirmation</string>
+    <string name="s_sub_skip_download_method_confirmation">If true, the default download method will be used immediately when starting a download</string>
 
     <string name="s_key_status_webhook_url">Status webhook URL</string>
     <string name="s_sub_status_webhook_url">When the playing song changes, a JSON post request will be sent to this URL in the following format: `{"youtube_video_id": "&lt;Video ID&gt;"}`</string>

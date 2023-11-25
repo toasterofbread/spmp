@@ -21,7 +21,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.skiko.OS
@@ -76,13 +75,8 @@ fun main() {
                         process_builder.inheritIO().start()
                     }
                     catch (e: Throwable) {
-                        e.printStackTrace()
+                        RuntimeException("Execution of startup command failed", e).printStackTrace()
                     }
-
-                    delay(2000)
-                    context.sendToast("This is a toast")
-                    delay(2000)
-                    context.sendNotification("And this", "Is a goddamn notification")
                 }
             }
 

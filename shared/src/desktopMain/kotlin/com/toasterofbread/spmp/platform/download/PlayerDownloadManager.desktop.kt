@@ -4,6 +4,7 @@ import com.toasterofbread.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.DownloadRequestCallback
 
 actual class PlayerDownloadManager actual constructor(context: AppContext) {
     actual class DownloadStatus {
@@ -44,7 +45,8 @@ actual class PlayerDownloadManager actual constructor(context: AppContext) {
     actual fun startDownload(
         song: Song,
         silent: Boolean,
-        onCompleted: ((DownloadStatus) -> Unit)?,
+        file_uri: String?,
+        callback: DownloadRequestCallback?,
     ) {
         TODO()
     }

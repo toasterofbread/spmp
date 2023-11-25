@@ -37,7 +37,7 @@ internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppConte
             when (initial_status?.status) {
                 PlayerDownloadManager.DownloadStatus.Status.IDLE, PlayerDownloadManager.DownloadStatus.Status.CANCELLED, PlayerDownloadManager.DownloadStatus.Status.PAUSED, null -> {
                     download_manager.startDownload(song, true) { status ->
-                        local_file = status.file
+                        local_file = status?.file
                         done = true
                     }
                 }

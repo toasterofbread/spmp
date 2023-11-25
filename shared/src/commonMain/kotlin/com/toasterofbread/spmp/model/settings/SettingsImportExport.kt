@@ -16,7 +16,7 @@ object SettingsImportExport {
         val values: Map<String, Any>?
     ) {
         fun getCategories(): List<SettingsCategory>? =
-            included_categories?.map { SettingsCategory.fromId(it) }
+            included_categories?.mapNotNull { SettingsCategory.fromIdOrNull(it) }
     }
 
     suspend fun exportSettings(

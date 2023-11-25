@@ -12,6 +12,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.startPlatformService
 import com.toasterofbread.spmp.platform.unbindPlatformService
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.DownloadRequestCallback
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -194,21 +195,21 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
     }
 
     @Synchronized
-    actual fun startDownload(song: Song, silent: Boolean, onCompleted: ((DownloadStatus) -> Unit)?) {
+    actual fun startDownload(song: Song, silent: Boolean, file_uri: String?, callback: DownloadRequestCallback?) {
         // If needed, get notification permission on A13 and above
         if (!silent && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             context.application_context?.requestNotficationPermission() { granted ->
                 if (granted) {
-                    performDownload(song, silent, onCompleted)
+                    performDownload(song, silent, file_uri, callback)
                 }
             }
         }
         else {
-            performDownload(song, silent, onCompleted)
+            performDownload(song, silent, file_uri, callback)
         }
     }
 
-    private fun performDownload(song: Song, silent: Boolean, onCompleted: ((DownloadStatus) -> Unit)?) {
+    private fun performDownload(song: Song, silent: Boolean, file_uri: String?, onCompleted: DownloadRequestCallback?) {
         onService {
             val instance: Int = result_callback_id++
             if (onCompleted != null) {
@@ -222,7 +223,8 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
                     PlayerDownloadService.IntentAction.START_DOWNLOAD,
                     mapOf(
                         "song_id" to song.id,
-                        "silent" to silent
+                        "silent" to silent,
+                        "file_uri" to file_uri
                     ),
                     instance
                 )

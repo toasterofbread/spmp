@@ -30,6 +30,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.download.rememberSongDownloads
 import com.toasterofbread.spmp.resources.getString
@@ -54,7 +55,7 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
     ) {
         val player = LocalPlayerState.current
 
-        val downloads: List<PlayerDownloadManager.DownloadStatus> by rememberSongDownloads()
+        val downloads: List<DownloadStatus> by rememberSongDownloads()
         var sorted_artists: List<Pair<ArtistRef, Int>> by remember { mutableStateOf(emptyList()) }
 
         with(library_page) {

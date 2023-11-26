@@ -27,7 +27,7 @@ data class YoutubeiNextResponse(
     class TabRenderer(val content: Content?, val endpoint: TabRendererEndpoint?)
     class TabRendererEndpoint(val browseEndpoint: BrowseEndpoint)
     class Content(val musicQueueRenderer: MusicQueueRenderer)
-    class MusicQueueRenderer(val content: MusicQueueRendererContent, val subHeaderChipCloud: SubHeaderChipCloud?)
+    class MusicQueueRenderer(val content: MusicQueueRendererContent?, val subHeaderChipCloud: SubHeaderChipCloud?)
 
     class SubHeaderChipCloud(val chipCloudRenderer: ChipCloudRenderer)
     class ChipCloudRenderer(val chips: List<Chip>)

@@ -74,6 +74,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.isPlaylistEditable
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
+import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.download.rememberSongDownloads
 import com.toasterofbread.spmp.resources.getString
@@ -333,7 +334,7 @@ class MediaItemMultiSelectContext(
     private fun RowScope.GeneralSelectedItemActions() {
         val player = LocalPlayerState.current
         val coroutine_scope = rememberCoroutineScope()
-        val downloads: List<PlayerDownloadManager.DownloadStatus> by rememberSongDownloads()
+        val downloads: List<DownloadStatus> by rememberSongDownloads()
 
         val all_are_pinned: Boolean =
             if (selected_items.isEmpty()) false
@@ -376,7 +377,7 @@ class MediaItemMultiSelectContext(
                     return@any false
                 }
 
-                val download: PlayerDownloadManager.DownloadStatus? = downloads.firstOrNull { it.song.id == item.first.id }
+                val download: DownloadStatus? = downloads.firstOrNull { it.song.id == item.first.id }
                 return@any download?.isCompleted() != true
             }
         } }

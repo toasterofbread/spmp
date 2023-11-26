@@ -27,7 +27,7 @@ import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
-import com.toasterofbread.spmp.platform.download.PlayerDownloadManager.DownloadStatus
+import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.youtubeapi.implementedOrNull
@@ -71,7 +71,7 @@ class MainPlayerOverlayMenu(
         }
 
         DisposableEffect(Unit) {
-            val status_listener = object : PlayerDownloadManager.DownloadStatusListener() {
+            val status_listener: PlayerDownloadManager.DownloadStatusListener = object : PlayerDownloadManager.DownloadStatusListener() {
                 override fun onDownloadChanged(status: DownloadStatus) {
                     if (status.song.id == getSong().id) {
                         download_status = status

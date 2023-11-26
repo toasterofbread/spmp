@@ -65,6 +65,11 @@ internal fun getBehaviourCategoryItems(): List<SettingsItem> {
         ToggleSettingsItem(
             SettingsValueState(BehaviourSettings.Key.LPM_INCREMENT_PLAY_AFTER.getName()),
             getString("s_key_lpm_increment_play_after"), null
+        ),
+
+        ToggleSettingsItem(
+            SettingsValueState(BehaviourSettings.Key.DESKTOP_LPM_KEEP_ON_BACKGROUND_SCROLL.getName()),
+            getString("s_key_desktop_lpm_keep_on_background_scroll"), getString("s_sub_desktop_lpm_keep_on_background_scroll")
         )
     )
 }

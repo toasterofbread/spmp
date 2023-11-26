@@ -303,6 +303,8 @@
     <string name="s_group_long_press_menu">長押しメニュー</string>
     <string name="s_key_lpm_close_on_action">アクションを行ったら閉じる</string>
     <string name="s_key_lpm_increment_play_after">「○曲後に再生」使用時に曲数を増加</string>
+    <string name="s_key_desktop_lpm_keep_on_background_scroll">スクロール中にメニューを表示する</string>
+    <string name="s_sub_desktop_lpm_keep_on_background_scroll">メニューの裏にあるの画面をスクロールしても、長押しメニューは隠されません</string>
 
     <string name="s_key_filter_enable">アイテムフィルターを使用</string>
     <string name="s_key_filter_title_keywords">題名フィルターのキーワード</string>
@@ -517,6 +519,8 @@
     <string name="s_discord_status_disabled"></string> <!--TODO-->
     <string name="s_discord_status_enable"></string> <!--TODO-->
     <string name="s_discord_status_disable"></string> <!--TODO-->
+
+    <string name="s_group_desktop_system">システム</string>
 
     <string name="s_key_startup_command">開始コマンド</string>
     <string name="s_sub_startup_command">プログラム開始時に一回実行されるコマンド</string>

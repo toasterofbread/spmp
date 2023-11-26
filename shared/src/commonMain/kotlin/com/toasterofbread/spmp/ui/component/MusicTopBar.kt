@@ -277,7 +277,7 @@ class MusicTopBar(val player: PlayerState) {
             modifier
                 .height(IntrinsicSize.Min)
                 .platformClickable(
-                    onClick = onClick,
+                    onClick = { onClick?.invoke() },
                     onAltClick = {
                         if (current_state is SongLyrics) {
                             player.openNowPlayingPlayerOverlayMenu(PlayerOverlayMenu.getLyricsMenu())

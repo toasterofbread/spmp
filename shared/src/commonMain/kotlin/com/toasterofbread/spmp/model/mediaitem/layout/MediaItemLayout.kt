@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.model.mediaitem.layout
 
 import LocalPlayerState
+import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -22,7 +23,7 @@ import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
 
 @Composable
 fun getDefaultMediaItemPreviewSize(): DpSize =
-    if (LocalPlayerState.current.isLargeFormFactor()) DpSize(180.dp, 250.dp)
+    if (LocalPlayerState.current.isLargeFormFactor()) DpSize(180.dp, 200.dp)
     else DpSize(100.dp, 120.dp)
 
 @Composable
@@ -149,5 +150,6 @@ data class MediaItemLayout(
 internal fun shouldShowTitleBar(
     title: LocalisedString?,
     subtitle: LocalisedString?,
-    view_more: ViewMore? = null
-): Boolean = title != null || subtitle != null || view_more != null
+    view_more: ViewMore? = null,
+    scrollable_state: ScrollableState? = null
+): Boolean = title != null || subtitle != null || view_more != null || scrollable_state != null

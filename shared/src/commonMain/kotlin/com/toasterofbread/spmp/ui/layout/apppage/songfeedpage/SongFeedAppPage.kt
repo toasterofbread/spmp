@@ -39,6 +39,7 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.FeedLoadState
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedLoadResult
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
@@ -83,7 +84,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
 
     @Composable
     override fun TopBarContent(modifier: Modifier, close: () -> Unit) {
-        val player = LocalPlayerState.current
+        val player: PlayerState = LocalPlayerState.current
         val show: Boolean by mutableSettingsState(FeedSettings.Key.SHOW_FILTER_BAR)
         
         AnimatedVisibility(show) {

@@ -49,6 +49,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.isLargeFormFactor
 import com.toasterofbread.spmp.platform.download.rememberDownloadStatus
@@ -183,7 +184,7 @@ fun MediaItemPreviewSquare(
                 textAlign = if (player.isLargeFormFactor()) TextAlign.Start else TextAlign.Center
             )
 
-            val download_status: PlayerDownloadManager.DownloadStatus? by (loaded_item as? Song)?.rememberDownloadStatus()
+            val download_status: DownloadStatus? by (loaded_item as? Song)?.rememberDownloadStatus()
 
             if (show_download_indicator && download_status != null) {
                 Icon(
@@ -233,7 +234,6 @@ fun MediaItemPreviewLong(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .fillMaxWidth()
             .mediaItemPreviewInteraction(loaded_item, long_press_menu_data)
             .height(MEDIA_ITEM_PREVIEW_LONG_HEIGHT_DP.dp)
     ) {
@@ -269,7 +269,7 @@ fun MediaItemPreviewLong(
 
             val artist_title: String? = if (show_artist) (loaded_item as? MediaItem.WithArtist)?.Artist?.observePropertyActiveTitle()?.value else null
             val extra_info: List<String> = getExtraInfo?.invoke() ?: emptyList()
-            val download_status: PlayerDownloadManager.DownloadStatus? by (loaded_item as? Song)?.rememberDownloadStatus()
+            val download_status: DownloadStatus? by (loaded_item as? Song)?.rememberDownloadStatus()
             val is_explicit: Boolean? by (loaded_item as? Song)?.Explicit?.observe(player.database)
 
             if ((show_download_indicator && download_status != null) || show_play_count || show_type || extra_info.isNotEmpty() || artist_title != null || is_explicit == true) {

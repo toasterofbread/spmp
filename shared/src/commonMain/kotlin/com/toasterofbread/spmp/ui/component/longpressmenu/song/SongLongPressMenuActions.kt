@@ -52,7 +52,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.getEditorOrNull
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
-import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
+import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.rememberDownloadStatus
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuActionProvider
@@ -175,7 +175,7 @@ private fun LongPressMenuActionProvider.LPMActions(
     openPlaylistInterface: () -> Unit
 ) {
     val player = LocalPlayerState.current
-    val download: PlayerDownloadManager.DownloadStatus? by (item as? Song)?.rememberDownloadStatus()
+    val download: DownloadStatus? by (item as? Song)?.rememberDownloadStatus()
     val coroutine_scope = rememberCoroutineScope()
 
     ActionButton(
@@ -228,32 +228,31 @@ private fun LongPressMenuActionProvider.LPMActions(
 
     ActionButton(Icons.Default.PlaylistAdd, getString("song_add_to_playlist"), onClick = openPlaylistInterface, onAction = {})
 
-    if (download != null) {
-        if (download?.isCompleted() == true) {
-            ActionButton(
-                Icons.Default.Delete,
-                getString("lpm_action_delete_local_song_file"),
-                onClick = {
-                    val song = download?.song ?: return@ActionButton
-                    coroutine_scope.launch {
-                        player.context.download_manager.deleteSongLocalAudioFile(song)
-                    }
+    if (download?.isCompleted() == true) {
+        ActionButton(
+            Icons.Default.Delete,
+            getString("lpm_action_delete_local_song_file"),
+            onClick = {
+                val song: Song = download?.song ?: return@ActionButton
+                coroutine_scope.launch {
+                    player.context.download_manager.deleteSongLocalAudioFile(song)
                 }
-            )
-        }
+            }
+        )
     }
-    else {
+    else if (download == null || download?.status == DownloadStatus.Status.IDLE) {
         ActionButton(Icons.Default.Download, getString("lpm_action_download"), onClick = {
             withSong {
-                player.onSongDownloadRequested(it) { status: PlayerDownloadManager.DownloadStatus? ->
+                player.onSongDownloadRequested(it) { status: DownloadStatus? ->
                     when (status?.status) {
                         null -> {}
-                        PlayerDownloadManager.DownloadStatus.Status.FINISHED -> player.context.sendToast(getString("notif_download_finished"))
-                        PlayerDownloadManager.DownloadStatus.Status.ALREADY_FINISHED -> player.context.sendToast(getString("notif_download_already_finished"))
-                        PlayerDownloadManager.DownloadStatus.Status.CANCELLED -> player.context.sendToast(getString("notif_download_cancelled"))
+                        DownloadStatus.Status.FINISHED -> player.context.sendToast(getString("notif_download_finished"))
+                        DownloadStatus.Status.ALREADY_FINISHED -> player.context.sendToast(getString("notif_download_already_finished"))
+                        DownloadStatus.Status.CANCELLED -> player.context.sendToast(getString("notif_download_cancelled"))
 
                         // IDLE, DOWNLOADING, PAUSED
                         else -> {
+                            TODO(status.toString())
                             player.context.sendToast(getString("notif_download_already_downloading"))
                         }
                     }

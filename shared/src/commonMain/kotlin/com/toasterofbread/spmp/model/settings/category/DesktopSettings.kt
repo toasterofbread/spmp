@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.model.settings.category
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DesktopWindows
+import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getDesktopCategoryItems
@@ -10,15 +11,16 @@ data object DesktopSettings: SettingsCategory("desktop") {
     override val keys: List<SettingsKey> = Key.values().toList()
 
     override fun getPage(): Page? =
-        Page(
-            getString("s_cat_desktop"),
-            getString("s_cat_desc_desktop"),
-            { getDesktopCategoryItems() }
-        ) { Icons.Outlined.DesktopWindows }
+        if (Platform.DESKTOP.isCurrent())
+            Page(
+                getString("s_cat_desktop"),
+                getString("s_cat_desc_desktop"),
+                { getDesktopCategoryItems() }
+            ) { Icons.Outlined.DesktopWindows }
+        else null
 
     enum class Key: SettingsKey {
         STARTUP_COMMAND,
-
         SERVER_IP_ADDRESS,
         SERVER_PORT,
         SERVER_LOCAL_COMMAND,

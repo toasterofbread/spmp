@@ -2,8 +2,6 @@ package com.toasterofbread.spmp.ui.component.mediaitemlayout
 
 import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.AnimationSpec
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.gestures.animateScrollBy
@@ -25,11 +23,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -58,11 +54,11 @@ fun TitleBar(
     view_more: ViewMore? = null,
     font_size: TextUnit? = null,
     multiselect_context: MediaItemMultiSelectContext? = null,
-    scroll_state: ScrollableState? = null
+    scrollable_state: ScrollableState? = null
 ) {
     val player: PlayerState = LocalPlayerState.current
 
-    AnimatedVisibility(shouldShowTitleBar(title, subtitle, view_more), modifier) {
+    AnimatedVisibility(shouldShowTitleBar(title, subtitle, view_more, scrollable_state), modifier) {
         val title_string: String? = remember { title?.getString(player.context) }
         val subtitle_string: String? = remember { subtitle?.getString(player.context) }
 
@@ -99,7 +95,7 @@ fun TitleBar(
                     }
                 }
 
-                scroll_state?.ScrollButtons()
+                scrollable_state?.ScrollButtons()
 
                 multiselect_context?.CollectionToggleButton(items)
             }

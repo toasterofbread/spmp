@@ -35,7 +35,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -58,6 +62,7 @@ import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getThumbShape
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -67,7 +72,7 @@ fun MediaItemCard(
     multiselect_context: MediaItemMultiSelectContext? = null,
     apply_filter: Boolean = false
 ) {
-    val player = LocalPlayerState.current
+    val player: PlayerState = LocalPlayerState.current
 
     val item: MediaItem = layout.items.first()
     if (apply_filter && isMediaItemHidden(item, player.database)) {
@@ -76,8 +81,8 @@ fun MediaItemCard(
 
     val accent_colour: Color? = item.rememberThemeColour()
 
-    val shape = item.getType().getThumbShape()
-    val long_press_menu_data = remember(item, shape) {
+    val shape: Shape = item.getType().getThumbShape()
+    val long_press_menu_data: LongPressMenuData = remember(item, shape) {
         LongPressMenuData(item, shape, multiselect_context = multiselect_context)
     }
 

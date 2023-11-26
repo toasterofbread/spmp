@@ -317,6 +317,8 @@
     <string name="s_group_long_press_menu">Long-press menu</string>
     <string name="s_key_lpm_close_on_action">Close menu on action</string>
     <string name="s_key_lpm_increment_play_after">Increment 'Play after' action on use</string>
+    <string name="s_key_desktop_lpm_keep_on_background_scroll">Keep menu while scrolling</string>
+    <string name="s_sub_desktop_lpm_keep_on_background_scroll">When scrolling the view behind the menu, the menu will be moved to a corner instead of being hidden</string>
 
     <string name="s_key_filter_enable">Enable item filter</string>
     <string name="s_key_filter_title_keywords">Title filter keywords</string>
@@ -531,6 +533,8 @@
     <string name="s_discord_status_disabled">Discord status is disabled</string>
     <string name="s_discord_status_enable">Enable</string>
     <string name="s_discord_status_disable">Disable</string>
+
+    <string name="s_group_desktop_system">System</string>
 
     <string name="s_key_startup_command">Startup command</string>
     <string name="s_sub_startup_command">Command to be executed at program start</string>

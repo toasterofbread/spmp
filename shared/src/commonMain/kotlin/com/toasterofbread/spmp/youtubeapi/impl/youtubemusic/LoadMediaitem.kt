@@ -49,7 +49,7 @@ suspend fun processSong(song: SongData, response_body: Reader, api: YoutubeApi):
     song.related_browse_id = tabs.getOrNull(2)?.tabRenderer?.endpoint?.browseEndpoint?.browseId
 
     val video: YoutubeiNextResponse.PlaylistPanelVideoRenderer = try {
-        tabs[0].tabRenderer.content!!.musicQueueRenderer.content.playlistPanelRenderer.contents.first().playlistPanelVideoRenderer!!
+        tabs[0].tabRenderer.content!!.musicQueueRenderer.content!!.playlistPanelRenderer.contents.first().playlistPanelVideoRenderer!!
     }
     catch (e: Throwable) {
         return Result.failure(e)

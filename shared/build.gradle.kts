@@ -128,25 +128,19 @@ kotlin {
 
     sourceSets {
         commonMain {
+            @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
             dependencies {
                 implementation(compose.runtime)
                 implementation(compose.foundation)
                 implementation(compose.materialIconsExtended)
                 implementation(compose.ui)
                 implementation(compose.material)
-
-                @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.material3)
-                @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
-
-                /* use `com.github.teamnewpipe` and NOT `com.github.TeamNewPipe`
-                 * its case sensitive and the readme notation DOES NOT WORK */
-                implementation("com.github.teamnewpipe:NewPipeExtractor:v0.22.7")
 
                 implementation(project(":ComposeKit:lib"))
 
-                implementation("com.squareup.okhttp3:okhttp:4.10.0")
+                implementation("com.squareup.okhttp3:okhttp:4.11.0")
                 implementation("com.google.code.gson:gson:2.10.1")
                 implementation("org.apache.commons:commons-text:1.10.0")
                 implementation("com.atilika.kuromoji:kuromoji-ipadic:0.9.0")
@@ -156,7 +150,9 @@ kotlin {
                 implementation("com.github.catppuccin:java:v1.0.0")
                 implementation("com.github.paramsen:noise:2.0.0")
                 implementation("org.kobjects.ktxml:core:0.2.3")
-                implementation("com.github.Adonai:jaudiotagger:2.3.14")
+                implementation("com.github.Kaned1as:jaudiotagger:2.3.15")
+                implementation("com.github.teamnewpipe:NewPipeExtractor:v0.22.7")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
             }
             kotlin.srcDir(buildConfigDir)
         }

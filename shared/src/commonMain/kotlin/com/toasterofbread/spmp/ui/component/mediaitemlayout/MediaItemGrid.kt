@@ -160,7 +160,7 @@ fun MediaItemGrid(
                 title_modifier,
                 view_more = view_more,
                 multiselect_context = multiselect_context,
-                scroll_state =
+                scrollable_state =
                     if (Platform.DESKTOP.isCurrent()) grid_state
                     else null
             )
@@ -205,13 +205,6 @@ fun MediaItemGrid(
                         multiselect_context.CollectionToggleButton(filtered_items)
                     }
                 }
-            }
-
-            Platform.DESKTOP.only {
-//                GridHorizontalScrollbar(
-//                    grid_state,
-//                    Modifier.fillMaxWidth()
-//                )
             }
         }
     }

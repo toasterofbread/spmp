@@ -84,7 +84,7 @@ class YTMSongRadioEndpoint(override val api: YoutubeMusicApi): SongRadioEndpoint
 
         val result: Result<Response> = api.performRequest(request)
 
-        val radio: YoutubeiNextResponse.PlaylistPanelRenderer
+        val radio: YoutubeiNextResponse.PlaylistPanelRenderer?
         val out_filters: List<List<RadioBuilderModifier>>?
 
         if (continuation == null) {
@@ -109,7 +109,7 @@ class YTMSongRadioEndpoint(override val api: YoutubeMusicApi): SongRadioEndpoint
                 .content!!
                 .musicQueueRenderer
 
-            radio = renderer.content.playlistPanelRenderer
+            radio = renderer.content?.playlistPanelRenderer
             out_filters = renderer.subHeaderChipCloud?.chipCloudRenderer?.chips?.mapNotNull { chip ->
                 radioToFilters(chip.getPlaylistId(), video_id)
             }
@@ -133,7 +133,7 @@ class YTMSongRadioEndpoint(override val api: YoutubeMusicApi): SongRadioEndpoint
 
         return@withContext Result.success(
             RadioData(
-                radio.contents.map { item ->
+                radio?.contents?.map { item ->
                     val renderer = item.getRenderer()
                     val song = SongData(renderer.videoId)
 
@@ -149,8 +149,8 @@ class YTMSongRadioEndpoint(override val api: YoutubeMusicApi): SongRadioEndpoint
                     )
 
                     return@map song
-                },
-                radio.continuations?.firstOrNull()?.data?.continuation,
+                } ?: emptyList(),
+                radio?.continuations?.firstOrNull()?.data?.continuation,
                 out_filters
             )
         )

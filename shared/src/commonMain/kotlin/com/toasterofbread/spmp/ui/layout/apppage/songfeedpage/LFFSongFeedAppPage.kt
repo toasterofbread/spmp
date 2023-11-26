@@ -21,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -28,6 +29,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
@@ -36,6 +38,8 @@ import com.toasterofbread.composekit.platform.composable.SwipeRefresh
 import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.composekit.utils.modifier.horizontal
+import com.toasterofbread.composekit.utils.modifier.vertical
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.model.settings.category.FeedSettings
@@ -46,6 +50,7 @@ import com.toasterofbread.spmp.ui.layout.PinnedItemsRow
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.FeedLoadState
 import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SongFeedAppPage.LFFSongFeedAppPage(
     multiselect_context: MediaItemMultiSelectContext,
@@ -130,8 +135,8 @@ fun SongFeedAppPage.LFFSongFeedAppPage(
         }
 
         @Composable
-        fun TopContent() {
-            PinnedItemsRow(Modifier.padding(bottom = 10.dp))
+        fun TopContent(modifier: Modifier = Modifier) {
+            PinnedItemsRow(modifier.padding(bottom = 10.dp))
         }
 
         var hiding_layout: MediaItemLayout? by remember { mutableStateOf(null) }
@@ -169,7 +174,8 @@ fun SongFeedAppPage.LFFSongFeedAppPage(
             )
         }
 
-        val state = current_state
+        val state: Any? = current_state
+        val horizontal_padding = content_padding.horizontal
 
         when (state) {
             // Loaded
@@ -182,16 +188,20 @@ fun SongFeedAppPage.LFFSongFeedAppPage(
                 LazyColumn(
                     Modifier.graphicsLayer { alpha = state_alpha.value },
                     state = scroll_state,
-                    contentPadding = content_padding,
+                    contentPadding = content_padding.vertical,
                     userScrollEnabled = !state_alpha.isRunning
                 ) {
                     item {
-                        TopContent()
+                        TopContent(Modifier.padding(horizontal_padding))
                     }
 
                     item {
                         if (artists_layout.items.isNotEmpty()) {
-                            artists_layout.Layout(multiselect_context = player.main_multiselect_context, apply_filter = true)
+                            artists_layout.Layout(
+                                multiselect_context = player.main_multiselect_context,
+                                apply_filter = true,
+                                content_padding = horizontal_padding
+                            )
                         }
                     }
 
@@ -211,7 +221,7 @@ fun SongFeedAppPage.LFFSongFeedAppPage(
                             }
                         }
 
-                        val type = layout.type ?: MediaItemLayout.Type.GRID
+                        val type: MediaItemLayout.Type = layout.type ?: MediaItemLayout.Type.GRID
 
                         val rows: Int = if (type == MediaItemLayout.Type.GRID_ALT) alt_grid_rows else grid_rows
                         val expanded_rows: Int = if (type == MediaItemLayout.Type.GRID_ALT) alt_grid_rows_expanded else grid_rows_expanded
@@ -230,12 +240,13 @@ fun SongFeedAppPage.LFFSongFeedAppPage(
                             apply_filter = true,
                             square_item_max_text_rows = square_item_max_text_rows,
                             show_download_indicators = show_download_indicators,
-                            grid_rows = Pair(rows, expanded_rows)
+                            grid_rows = Pair(rows, expanded_rows),
+                            content_padding = horizontal_padding
                         )
                     }
 
                     item {
-                        Crossfade(Pair(onContinuationRequested, loading_continuation)) { data ->
+                        Crossfade(Pair(onContinuationRequested, loading_continuation), Modifier.padding(horizontal_padding)) { data ->
                             val (requestContinuation, loading) = data
 
                             if (loading || requestContinuation != null) {

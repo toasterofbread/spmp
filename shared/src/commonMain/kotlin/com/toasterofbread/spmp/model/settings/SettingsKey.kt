@@ -11,6 +11,7 @@ interface SettingsKey {
     fun <T> getDefaultValue(): T
 
     fun getName(): String = category.getNameOfKey(this)
+    fun isHidden(): Boolean = false
 
     fun <T> get(preferences: PlatformPreferences = Settings.prefs): T {
         return Settings.get(this, preferences)

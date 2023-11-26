@@ -8,6 +8,7 @@ import com.toasterofbread.spmp.model.mediaitem.db.getPlayCount
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.song.getSongStreamFormat
 import com.toasterofbread.spmp.model.settings.category.StreamingSettings
+import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.download.getLocalSongFile
 import com.toasterofbread.spmp.platform.playerservice.AUTO_DOWNLOAD_SOFT_TIMEOUT
@@ -33,31 +34,31 @@ internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppConte
     ) {
         var done: Boolean = false
         runBlocking {
-            val initial_status: PlayerDownloadManager.DownloadStatus? = download_manager.getDownload(song)
+            val initial_status: DownloadStatus? = download_manager.getDownload(song)
             when (initial_status?.status) {
-                PlayerDownloadManager.DownloadStatus.Status.IDLE, PlayerDownloadManager.DownloadStatus.Status.CANCELLED, PlayerDownloadManager.DownloadStatus.Status.PAUSED, null -> {
+                DownloadStatus.Status.IDLE, DownloadStatus.Status.CANCELLED, DownloadStatus.Status.PAUSED, null -> {
                     download_manager.startDownload(song, true) { status ->
                         local_file = status?.file
                         done = true
                     }
                 }
-                PlayerDownloadManager.DownloadStatus.Status.ALREADY_FINISHED, PlayerDownloadManager.DownloadStatus.Status.FINISHED -> throw IllegalStateException()
+                DownloadStatus.Status.ALREADY_FINISHED, DownloadStatus.Status.FINISHED -> throw IllegalStateException()
                 else -> {}
             }
 
             val listener: PlayerDownloadManager.DownloadStatusListener = object : PlayerDownloadManager.DownloadStatusListener() {
-                override fun onDownloadChanged(status: PlayerDownloadManager.DownloadStatus) {
+                override fun onDownloadChanged(status: DownloadStatus) {
                     if (status.song.id != song.id) {
                         return
                     }
 
                     when (status.status) {
-                        PlayerDownloadManager.DownloadStatus.Status.IDLE, PlayerDownloadManager.DownloadStatus.Status.DOWNLOADING -> return
-                        PlayerDownloadManager.DownloadStatus.Status.PAUSED -> throw IllegalStateException()
-                        PlayerDownloadManager.DownloadStatus.Status.CANCELLED -> {
+                        DownloadStatus.Status.IDLE, DownloadStatus.Status.DOWNLOADING -> return
+                        DownloadStatus.Status.PAUSED -> throw IllegalStateException()
+                        DownloadStatus.Status.CANCELLED -> {
                             done = true
                         }
-                        PlayerDownloadManager.DownloadStatus.Status.FINISHED, PlayerDownloadManager.DownloadStatus.Status.ALREADY_FINISHED -> {
+                        DownloadStatus.Status.FINISHED, DownloadStatus.Status.ALREADY_FINISHED -> {
                             launch {
                                 local_file = song.getLocalSongFile(context)
                                 done = true

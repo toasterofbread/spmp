@@ -151,6 +151,20 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
         val volume: Float
     )
 
+    private inline fun tryTransaction(transaction: () -> Unit) {
+        while (true) {
+            try {
+                transaction()
+                break
+            }
+            catch (e: Throwable) {
+                if (e.javaClass.name != "org.sqlite.SQLiteException") {
+                    throw e
+                }
+            }
+        }
+    }
+
     private suspend fun ZMQ.Socket.connectToServer(url: String): Boolean = withContext(Dispatchers.IO) {
         val handshake_message = ZMsg()
         handshake_message.add(getClientName())
@@ -195,13 +209,17 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
         state.queue.mapIndexed { i, id ->
             launch {
                 val song: Song = SongRef(id)
-                song.loadData(context).onSuccess { data ->
-                    data.saveToDatabase(context.database)
+                tryTransaction {
+                    song.loadData(context).onSuccess { data ->
+                        data.saveToDatabase(context.database)
 
-                    data.artist?.also { artist ->
-                        this@withContext.launch {
-                            artist.loadData(context).onSuccess { artist_data ->
-                                artist_data.saveToDatabase(context.database)
+                        data.artist?.also { artist ->
+                            this@withContext.launch {
+                                tryTransaction {
+                                    artist.loadData(context).onSuccess { artist_data ->
+                                        artist_data.saveToDatabase(context.database)
+                                    }
+                                }
                             }
                         }
                     }
@@ -290,7 +308,6 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
             catch (e: Throwable) {
                 throw RuntimeException("Parsing event failed '$event_str'", e)
             }
-//            println("Processing event: $event")
 
             try {
                 val type = (event["type"] as String?) ?: continue

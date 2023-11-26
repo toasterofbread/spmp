@@ -12,14 +12,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -42,14 +40,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.input.pointer.PointerEvent
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.composekit.utils.common.copy
+import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.composekit.utils.composable.AlignableCrossfade
 import com.toasterofbread.composekit.utils.composable.Marquee
@@ -64,17 +68,22 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.isActive
 
 @Composable
 internal fun LongPressMenuContent(
     data: LongPressMenuData,
+    shape: Shape,
+    background_colour: Color,
     content_padding: PaddingValues,
     getAccentColour: () -> Color?,
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     onAction: () -> Unit
 ) {
-    val player = LocalPlayerState.current
+    val player: PlayerState = LocalPlayerState.current
     
     @Composable
     fun Thumb(modifier: Modifier) {
@@ -91,183 +100,173 @@ internal fun LongPressMenuContent(
     var item_pinned_to_home: Boolean by data.item.observePinnedToHome()
     val item_title: String? by data.item.observeActiveTitle()
 
-    Column(modifier) {
-        val density = LocalDensity.current
-        var height by remember { mutableStateOf(0.dp) }
+    val density: Density = LocalDensity.current
+    var height: Dp by remember { mutableStateOf(0.dp) }
 
-        var show_info by remember { mutableStateOf(false) }
-        var main_actions_showing by remember { mutableStateOf(true) }
-        var info_showing by remember { mutableStateOf(false) }
+    var show_info: Boolean by remember { mutableStateOf(false) }
+    var main_actions_showing: Boolean by remember { mutableStateOf(true) }
+    var info_showing: Boolean by remember { mutableStateOf(false) }
 
-        Column(
-            Modifier
-                .background(player.theme.background, RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-                .fillMaxWidth()
-                .onSizeChanged {
-                    if (show_info || !main_actions_showing) {
-                        return@onSizeChanged
-                    }
-
-                    val h = with(density) { it.height.toDp() }
-                    if (h > height) {
-                        height = h
-                    }
+    Column(
+        modifier
+            .background(background_colour, shape)
+            .onSizeChanged {
+                if (show_info || !main_actions_showing) {
+                    return@onSizeChanged
                 }
-                .thenIf(show_info || info_showing, Modifier.height(height)),
-        ) {
-            Box(Modifier.height(content_padding.calculateTopPadding()).fillMaxWidth()) {
-                NoRipple {
-                    val pin_button_size = 24.dp
-                    val pin_button_padding = 15.dp
-                    Crossfade(
-                        item_pinned_to_home,
-                        Modifier.align(Alignment.CenterEnd).offset(x = -pin_button_padding, y = pin_button_padding)
-                    ) { pinned ->
-                        IconButton(
-                            {
-                                item_pinned_to_home = !pinned
-                            },
-                            Modifier.size(pin_button_size).bounceOnClick()
-                        ) {
-                            Icon(
-                                if (pinned) Icons.Filled.PushPin
-                                else Icons.Outlined.PushPin,
-                                null
-                            )
-                        }
+
+                val h = with(density) { it.height.toDp() }
+                if (h > height) {
+                    height = h
+                }
+            }
+            .thenIf(show_info || info_showing, Modifier.height(height)),
+    ) {
+        Box(Modifier.height(content_padding.calculateTopPadding()).align(Alignment.End)) {
+            NoRipple {
+                val pin_button_size = 24.dp
+                val pin_button_padding = 15.dp
+                Crossfade(
+                    item_pinned_to_home,
+                    Modifier.align(Alignment.CenterEnd).offset(x = -pin_button_padding, y = pin_button_padding)
+                ) { pinned ->
+                    IconButton(
+                        {
+                            item_pinned_to_home = !pinned
+                        },
+                        Modifier.size(pin_button_size).bounceOnClick()
+                    ) {
+                        Icon(
+                            if (pinned) Icons.Filled.PushPin
+                            else Icons.Outlined.PushPin,
+                            null
+                        )
                     }
                 }
             }
+        }
 
-            Column(
-                Modifier.padding(content_padding.copy(top = 0.dp)).fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(MENU_ITEM_SPACING.dp)
-            ) {
-                CompositionLocalProvider(LocalContentColor provides player.theme.on_background) {
-                    Row(
+        Column(
+            Modifier.padding(content_padding.copy(top = 0.dp)),
+            verticalArrangement = Arrangement.spacedBy(MENU_ITEM_SPACING.dp)
+        ) {
+            CompositionLocalProvider(LocalContentColor provides background_colour.getContrasted()) {
+                Row(Modifier.height(80.dp)) {
+                    Thumb(Modifier.aspectRatio(1f))
+
+                    // Item info
+                    Column(
                         Modifier
-                            .height(80.dp)
                             .fillMaxWidth()
+                            .weight(1f)
+                            .padding(horizontal = 15.dp),
+                        verticalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        Thumb(Modifier.aspectRatio(1f))
-
-                        // Item info
-                        Column(
-                            Modifier
-                                .fillMaxSize()
-                                .weight(1f)
-                                .padding(horizontal = 15.dp),
-                            verticalArrangement = Arrangement.SpaceEvenly
+                        // Title
+                        Marquee(
+                            Modifier.platformClickable(
+                                onAltClick = {
+                                    show_title_edit_dialog = !show_title_edit_dialog
+                                    player.context.vibrateShort()
+                                }
+                            )
                         ) {
-                            // Title
-                            Marquee(
-                                Modifier.platformClickable(
-                                    onAltClick = {
-                                        show_title_edit_dialog = !show_title_edit_dialog
-                                        player.context.vibrateShort()
-                                    }
-                                )
-                            ) {
-                                Text(
-                                    item_title ?: "",
-                                    Modifier.fillMaxWidth(),
-                                    softWrap = false,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                            }
+                            Text(
+                                item_title ?: "",
+                                Modifier.fillMaxWidth(),
+                                softWrap = false,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
 
-                            // Artist
-                            if (data.item is MediaItem.WithArtist) {
-                                val item_artist: Artist? by data.item.Artist.observe(player.database)
-                                item_artist?.also { artist ->
-                                    Marquee {
-                                        val player = LocalPlayerState.current
-                                        CompositionLocalProvider(
-                                            LocalPlayerState provides remember {
-                                                player.copy(
-                                                    onClickedOverride = { item, _ ->
-                                                        onAction()
-                                                        player.onMediaItemClicked(item)
-                                                    }
-                                                )
-                                            }
-                                        ) {
-                                            MediaItemPreviewLong(artist, Modifier.fillMaxWidth())
+                        // Artist
+                        if (data.item is MediaItem.WithArtist) {
+                            val item_artist: Artist? by data.item.Artist.observe(player.database)
+                            item_artist?.also { artist ->
+                                Marquee {
+                                    CompositionLocalProvider(
+                                        LocalPlayerState provides remember {
+                                            player.copy(
+                                                onClickedOverride = { item, _ ->
+                                                    onAction()
+                                                    player.onMediaItemClicked(item)
+                                                }
+                                            )
                                         }
+                                    ) {
+                                        MediaItemPreviewLong(artist)
                                     }
                                 }
                             }
                         }
                     }
+                }
 
-                    // Info header
-                    Row(Modifier.requiredHeight(1.dp), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                        var info_title_width: Int by remember { mutableStateOf(0) }
-                        var box_width: Int by remember { mutableStateOf(-1) }
+                // Info header
+                Row(Modifier.requiredHeight(1.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                    var info_title_width: Int by remember { mutableStateOf(0) }
+
+                    Box(
+                        Modifier.fillMaxWidth().weight(1f),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        AlignableCrossfade(show_info, Modifier.requiredHeight(40.dp), contentAlignment = Alignment.CenterStart) { info ->
+                            val text = if (info) getString("lpm_long_press_actions") else data.getTitle?.invoke()
+                            val current = info == show_info
+                            if (text != null) {
+                                Text(
+                                    text,
+                                    Modifier.onSizeChanged { if (current) info_title_width = it.width },
+                                    overflow = TextOverflow.Visible
+                                )
+                            }
+                            else if (current) {
+                                info_title_width = 0
+                            }
+                        }
 
                         Box(
                             Modifier
-                                .fillMaxWidth()
-                                .weight(1f)
-                                .onSizeChanged { box_width = it.width },
-                            contentAlignment = Alignment.CenterStart
-                        ) {
-                            AlignableCrossfade(show_info, Modifier.requiredHeight(40.dp), contentAlignment = Alignment.CenterStart) { info ->
-                                val text = if (info) getString("lpm_long_press_actions") else data.getTitle?.invoke()
-                                val current = info == show_info
-                                if (text != null) {
-                                    Text(
-                                        text,
-                                        Modifier.onSizeChanged { if (current) info_title_width = it.width },
-                                        overflow = TextOverflow.Visible
+                                .run {
+                                    padding(
+                                        start = animateDpAsState(
+                                            with (density) {
+                                                if (info_title_width == 0) 0.dp else (info_title_width.toDp() + 15.dp)
+                                            }
+                                        ).value
                                     )
                                 }
-                                else if (current) {
-                                    info_title_width = 0
-                                }
-                            }
-
-                            Box(
-                                Modifier
-                                    .run {
-                                        if (box_width < 0) fillMaxWidth()
-                                        else width(animateDpAsState(
-                                            with(LocalDensity.current) {
-                                                if (info_title_width == 0) box_width.toDp() else (box_width - info_title_width).toDp() - 15.dp
-                                            }
-                                        ).value)
-                                    }
-                                    .requiredHeight(20.dp)
-                                    .background(player.theme.background)
-                                    .align(Alignment.CenterEnd),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Divider(
-                                    thickness = Dp.Hairline,
-                                    color = player.theme.on_background
-                                )
-                            }
-                        }
-
-                        data.SideButton(
-                            Modifier.requiredHeight(40.dp),
-                            player.theme.background
-                        )
-
-                        PlatformClickableIconButton(
-                            onClick = {
-                                show_info = !show_info
-                            },
-                            modifier = Modifier.requiredHeight(40.dp),
-                            apply_minimum_size = false
+                                .requiredHeight(20.dp)
+                                .background(background_colour)
+                                .align(Alignment.CenterEnd),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Crossfade(show_info) { info ->
-                                Icon(if (info) Icons.Filled.Close else Icons.Filled.Info, null)
-                            }
+                            Divider(
+                                thickness = Dp.Hairline,
+                                color = background_colour.getContrasted()
+                            )
                         }
                     }
 
-                    // Info/action list
+                    data.SideButton(
+                        Modifier.requiredHeight(40.dp),
+                        background_colour
+                    )
+
+                    PlatformClickableIconButton(
+                        onClick = {
+                            show_info = !show_info
+                        },
+                        modifier = Modifier.requiredHeight(40.dp),
+                        apply_minimum_size = false
+                    ) {
+                        Crossfade(show_info) { info ->
+                            Icon(if (info) Icons.Filled.Close else Icons.Filled.Info, null)
+                        }
+                    }
+                }
+
+                // Info/action list
                     Crossfade(show_info) { info ->
                         Column(verticalArrangement = Arrangement.spacedBy(MENU_ITEM_SPACING.dp)) {
                             if (info) {
@@ -295,7 +294,6 @@ internal fun LongPressMenuContent(
                             }
                         }
                     }
-                }
             }
         }
     }
@@ -304,11 +302,27 @@ internal fun LongPressMenuContent(
 @Composable
 internal fun LongPressMenuBackground(
     modifier: Modifier = Modifier,
+    onScroll: () -> Unit = {},
+    enable_input: Boolean = true,
     close: () -> Unit
 ) {
     Box(
         modifier
             .background(Color.Black.copy(alpha = 0.5f))
-            .clickable(remember { MutableInteractionSource() }, null, onClick = close)
+            .thenIf(enable_input) {
+                pointerInput(Unit) {
+                    while (currentCoroutineContext().isActive) {
+                        awaitPointerEventScope {
+                            val event: PointerEvent = awaitPointerEvent()
+                            if (event.type == PointerEventType.Release) {
+                                close()
+                            }
+                            else if (event.type == PointerEventType.Scroll) {
+                                onScroll()
+                            }
+                        }
+                    }
+                }
+            }
     )
 }

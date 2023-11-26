@@ -67,7 +67,7 @@ sealed class SettingsCategory(id: String) {
 
             override fun getItems(context: AppContext): List<SettingsItem>? {
                 if (items == null) {
-                    items = getPageItems(context)
+                    items = getPageItems(context).filter { it.getKeys().none { category.getKeyOfName(it)!!.isHidden() } }
                 }
                 return items!!
             }

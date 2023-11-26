@@ -9,6 +9,7 @@
 .cxx
 local.properties
 .vscode
+*.log
 
 app/debug/
 app/release/

@@ -1,10 +1,11 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
-import com.toasterofbread.composekit.settings.ui.item.SettingsItem
+import com.toasterofbread.composekit.settings.ui.item.GroupSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.InfoTextSettingsItem
+import com.toasterofbread.composekit.settings.ui.item.SettingsItem
+import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.composekit.settings.ui.item.TextFieldSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.ToggleSettingsItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.settings.category.DesktopSettings
 import com.toasterofbread.spmp.resources.getString
 
@@ -19,6 +20,10 @@ internal fun getDesktopCategoryItems(): List<SettingsItem> {
     check(port_regex.matches("1111"))
 
     return listOf(
+        GroupSettingsItem(
+            getString("s_group_desktop_system")
+        ),
+
         TextFieldSettingsItem(
             SettingsValueState(DesktopSettings.Key.STARTUP_COMMAND.getName()),
             getString("s_key_startup_command"), getString("s_sub_startup_command")

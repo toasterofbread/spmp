@@ -11,12 +11,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalViewConfiguration
 import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.composekit.utils.composable.OnChangedEffect
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
+import com.toasterofbread.spmp.ui.component.longpressmenu.longPressItem
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import kotlinx.coroutines.delay
 
@@ -24,11 +27,13 @@ enum class MediaItemPreviewInteractionPressStage {
     INSTANT, BRIEF, LONG_1, LONG_2;
 
     fun execute(
-        item: MediaItem, 
-        long_press_menu_data: LongPressMenuData, 
+        item: MediaItem,
+        long_press_menu_data: LongPressMenuData,
+        click_offset: Offset,
         onClick: (item: MediaItem, multiselect_key: Int?) -> Unit,
         onLongClick: (item: MediaItem, long_press_menu_data: LongPressMenuData) -> Unit
     ) {
+        long_press_menu_data.click_offset = click_offset
         when (this) {
             INSTANT -> {
                 if (long_press_menu_data.multiselect_context?.is_active == true) {
@@ -54,8 +59,6 @@ enum class MediaItemPreviewInteractionPressStage {
         }
 }
 
-private fun getIndication(): Indication? = null
-
 @Composable
 fun Modifier.mediaItemPreviewInteraction(
     item: MediaItem,
@@ -63,19 +66,43 @@ fun Modifier.mediaItemPreviewInteraction(
     onClick: ((item: MediaItem, multiselect_key: Int?) -> Unit)? = null,
     onLongClick: ((item: MediaItem, long_press_menu_data: LongPressMenuData) -> Unit)? = null
 ): Modifier {
+    val base: Modifier = when (Platform.current) {
+        Platform.ANDROID -> androidMediaItemPreviewInteraction(item, long_press_menu_data, onClick, onLongClick)
+        Platform.DESKTOP -> desktopMediaItemPreviewInteraction(item, long_press_menu_data, onClick, onLongClick)
+    }
+    return base.longPressItem(long_press_menu_data)
+}
+
+@Composable
+private fun Modifier.desktopMediaItemPreviewInteraction(
+    item: MediaItem,
+    long_press_menu_data: LongPressMenuData,
+    onClick: ((item: MediaItem, multiselect_key: Int?) -> Unit)? = null,
+    onLongClick: ((item: MediaItem, long_press_menu_data: LongPressMenuData) -> Unit)? = null
+): Modifier {
     val player: PlayerState = LocalPlayerState.current
-    
     val onItemClick = onClick ?: player::onMediaItemClicked
     val onItemLongClick = onLongClick ?: player::onMediaItemLongClicked
 
-    if (Platform.DESKTOP.isCurrent()) {
-        return platformClickable(
-            onClick = { MediaItemPreviewInteractionPressStage.INSTANT.execute(item, long_press_menu_data, onItemClick, onItemLongClick) },
-            onAltClick = { MediaItemPreviewInteractionPressStage.LONG_1.execute(item, long_press_menu_data, onItemClick, onItemLongClick) },
-            onAlt2Click = { MediaItemPreviewInteractionPressStage.LONG_2.execute(item, long_press_menu_data, onItemClick, onItemLongClick) },
-            indication = getIndication()
-        )
-    }
+    return platformClickable(
+        onClick = { MediaItemPreviewInteractionPressStage.INSTANT.execute(item, long_press_menu_data, it, onItemClick, onItemLongClick) },
+        onAltClick = { MediaItemPreviewInteractionPressStage.LONG_1.execute(item, long_press_menu_data, it, onItemClick, onItemLongClick) },
+        onAlt2Click = { MediaItemPreviewInteractionPressStage.LONG_2.execute(item, long_press_menu_data, it, onItemClick, onItemLongClick) },
+        indication = null
+    )
+}
+
+@Composable
+private fun Modifier.androidMediaItemPreviewInteraction(
+    item: MediaItem,
+    long_press_menu_data: LongPressMenuData,
+    onClick: ((item: MediaItem, multiselect_key: Int?) -> Unit)? = null,
+    onLongClick: ((item: MediaItem, long_press_menu_data: LongPressMenuData) -> Unit)? = null
+): Modifier {
+    val player: PlayerState = LocalPlayerState.current
+
+    val onItemClick = onClick ?: player::onMediaItemClicked
+    val onItemLongClick = onLongClick ?: player::onMediaItemLongClicked
 
     var current_press_stage: MediaItemPreviewInteractionPressStage by remember { mutableStateOf(MediaItemPreviewInteractionPressStage.INSTANT) }
     val long_press_timeout: Long = LocalViewConfiguration.current.longPressTimeoutMillis
@@ -102,7 +129,7 @@ fun Modifier.mediaItemPreviewInteraction(
                     player.context.vibrateShort()
 
                     if (stage == MediaItemPreviewInteractionPressStage.values().last { it.isAvailable(long_press_menu_data) }) {
-                        current_press_stage.execute(item, long_press_menu_data, onItemClick, onItemLongClick)
+                        current_press_stage.execute(item, long_press_menu_data, Offset.Zero, onItemClick, onItemLongClick)
                         long_press_menu_data.current_interaction_stage = null
                         break
                     }
@@ -111,14 +138,14 @@ fun Modifier.mediaItemPreviewInteraction(
         }
         else {
             if (current_press_stage != MediaItemPreviewInteractionPressStage.values().last { it.isAvailable(long_press_menu_data) }) {
-                current_press_stage.execute(item, long_press_menu_data, onItemClick, onItemLongClick)
+                current_press_stage.execute(item, long_press_menu_data, Offset.Zero, onItemClick, onItemLongClick)
             }
             current_press_stage = MediaItemPreviewInteractionPressStage.INSTANT
             long_press_menu_data.current_interaction_stage = null
         }
     }
 
-    return clickable(interaction_source, getIndication(), onClick = {
-        current_press_stage.execute(item, long_press_menu_data, onItemClick, onItemLongClick)
+    return clickable(interaction_source, null, onClick = {
+        current_press_stage.execute(item, long_press_menu_data, Offset.Zero, onItemClick, onItemLongClick)
     })
 }

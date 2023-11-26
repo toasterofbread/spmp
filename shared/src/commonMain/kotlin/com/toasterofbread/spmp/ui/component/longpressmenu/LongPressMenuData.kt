@@ -6,9 +6,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewInteractionPressStage
@@ -24,6 +28,7 @@ import com.toasterofbread.spmp.ui.layout.artistpage.ArtistSubscribeButton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlin.properties.Delegates
 
 data class LongPressMenuData(
     val item: MediaItem,
@@ -33,6 +38,10 @@ data class LongPressMenuData(
     val multiselect_key: Int? = null,
     val playlist_as_song: Boolean = false
 ) {
+    var layout_size: IntSize by Delegates.notNull()
+    var layout_offset: Offset by Delegates.notNull()
+    var click_offset: Offset by Delegates.notNull()
+
     var current_interaction_stage: MediaItemPreviewInteractionPressStage? by mutableStateOf(null)
     private val coroutine_scope = CoroutineScope(Dispatchers.Main)
     private val HINT_MIN_STAGE = MediaItemPreviewInteractionPressStage.LONG_1
@@ -97,3 +106,9 @@ data class LongPressMenuData(
         }
     }
 }
+
+fun Modifier.longPressItem(long_press_menu_data: LongPressMenuData): Modifier =
+    onGloballyPositioned {
+        long_press_menu_data.layout_size = it.size
+        long_press_menu_data.layout_offset = it.positionInRoot()
+    }

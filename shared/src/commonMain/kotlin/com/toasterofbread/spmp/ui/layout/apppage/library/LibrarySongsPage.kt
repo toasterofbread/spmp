@@ -26,6 +26,7 @@ import com.toasterofbread.composekit.utils.composable.EmptyListCrossfade
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.platform.download.rememberSongDownloads
@@ -47,9 +48,9 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
         modifier: Modifier
     ) {
         val player = LocalPlayerState.current
-        val downloads: List<PlayerDownloadManager.DownloadStatus> by rememberSongDownloads()
+        val downloads: List<DownloadStatus> by rememberSongDownloads()
 
-        var sorted_downloads: List<PlayerDownloadManager.DownloadStatus> by remember { mutableStateOf(emptyList()) }
+        var sorted_downloads: List<DownloadStatus> by remember { mutableStateOf(emptyList()) }
 
         with(library_page) {
             LaunchedEffect(downloads, search_filter, sort_type, reverse_sort) {
@@ -121,7 +122,7 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
 }
 
 @Composable
-private fun InfoRow(downloads: List<PlayerDownloadManager.DownloadStatus>, modifier: Modifier = Modifier) {
+private fun InfoRow(downloads: List<DownloadStatus>, modifier: Modifier = Modifier) {
     if (downloads.isEmpty()) {
         return
     }
@@ -153,7 +154,7 @@ private fun InfoRow(downloads: List<PlayerDownloadManager.DownloadStatus>, modif
     }
 }
 
-private fun onSongClicked(downloads: List<PlayerDownloadManager.DownloadStatus>, player: PlayerState, song: Song, index: Int) {
+private fun onSongClicked(downloads: List<DownloadStatus>, player: PlayerState, song: Song, index: Int) {
     player.withPlayer {
         val ADD_BEFORE = 0
         val ADD_AFTER = 9

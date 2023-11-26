@@ -2,11 +2,9 @@ package com.toasterofbread.spmp.platform.download
 
 import android.os.Build
 import com.toasterofbread.composekit.platform.PlatformFile
-import com.toasterofbread.spmp.PlayerDownloadService
 import com.toasterofbread.spmp.model.lyrics.LyricsFileConverter
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.platform.AppContext
@@ -33,19 +31,6 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
     private val result_receiver = { data: Any? ->
         require(data is PlayerDownloadMessage)
         onResultIntentReceived(data)
-    }
-
-    actual data class DownloadStatus(
-        actual val song: Song,
-        actual val status: Status,
-        actual val quality: SongAudioQuality?,
-        actual val progress: Float,
-        actual val id: String,
-        val file: PlatformFile?
-    ) {
-        actual enum class Status { IDLE, PAUSED, DOWNLOADING, CANCELLED, ALREADY_FINISHED, FINISHED }
-
-        actual fun isCompleted(): Boolean = progress >= 1f
     }
 
     actual open class DownloadStatusListener {
@@ -128,79 +113,28 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
 
     actual suspend fun getDownload(song: Song): DownloadStatus? = withContext(Dispatchers.IO) {
         service?.apply {
-            val service_status: DownloadStatus? = getDownloadStatus(song)
+            val service_status: DownloadStatus? = downloader?.getDownloadStatus(song)
             if (service_status != null) {
                 return@withContext service_status
             }
         }
 
-        for (file in getSongDownloadDir(context).listFiles() ?: emptyList()) {
-            val in_progress: Boolean
-            if (PlayerDownloadService.isFileDownloadInProgress(file)) {
-                if (!PlayerDownloadService.isFileDownloadInProgressForSong(file, song)) {
-                    continue
-                }
-
-                in_progress = true
-            }
-            else if (LocalSongMetadataProcessor.readLocalSongMetadata(file, match_id = song.id, load_data = false) != null) {
-                in_progress = false
-            }
-            else {
-                continue
-            }
-
-            return@withContext DownloadStatus(
-                song = song,
-                status = if (in_progress) DownloadStatus.Status.IDLE else DownloadStatus.Status.FINISHED,
-                quality = null,
-                progress = if (in_progress) -1f else 1f,
-                id = file.name,
-                file = file
-            )
-        }
-
-        return@withContext null
+        return@withContext MediaItemLibrary.getLocalSongDownload(song, context)
     }
 
     actual suspend fun getDownloads(): List<DownloadStatus> = withContext(Dispatchers.IO) {
-        val current_downloads: List<DownloadStatus> = service?.run {
-            getAllDownloadsStatus()
-        } ?: emptyList()
+        val current_downloads: List<DownloadStatus> = service?.downloader?.getAllDownloadsStatus() ?: emptyList()
+        val local_downloads: List<DownloadStatus> = MediaItemLibrary.getLocalSongDownloads(context)
 
-        val files: List<PlatformFile> = getSongDownloadDir(context).listFiles() ?: emptyList()
-        return@withContext current_downloads + files.mapNotNull { file ->
-            if (current_downloads.any { it.file?.matches(file) == true }) {
-                return@mapNotNull null
+        return@withContext current_downloads + local_downloads.filter { local ->
+            current_downloads.none { current ->
+                current.file?.matches(local.file!!) == true
             }
-
-            val song: Song
-            val in_progress: Boolean
-
-            val song_id: String? = PlayerDownloadService.getSongIdOfInProgressDownload(file)
-            if (song_id != null) {
-                song = SongRef(song_id)
-                in_progress = true
-            }
-            else {
-                song = LocalSongMetadataProcessor.readLocalSongMetadata(file, load_data = false) ?: return@mapNotNull null
-                in_progress = false
-            }
-
-            DownloadStatus(
-                song = song,
-                status = if (in_progress) DownloadStatus.Status.IDLE else DownloadStatus.Status.FINISHED,
-                quality = null,
-                progress = if (in_progress) -1f else 1f,
-                id = file.name,
-                file = file
-            )
         }
     }
 
     @Synchronized
     actual fun startDownload(song: Song, silent: Boolean, file_uri: String?, callback: DownloadRequestCallback?) {
-        // If needed, get notification permission on A13 and above
         if (!silent && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             context.application_context?.requestNotficationPermission() { granted ->
                 if (granted) {
@@ -278,8 +212,8 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
         )
     }
 
-    actual suspend fun deleteSongLocalAudioFile(song: Song) = withContext(Dispatchers.IO) {
-        val download: DownloadStatus = getDownload(song) ?: return@withContext
+    actual suspend fun deleteSongLocalAudioFile(song: Song) {
+        val download: DownloadStatus = getDownload(song) ?: return
         download.file?.delete()
         forEachDownloadStatusListener { it.onDownloadRemoved(download.id) }
     }
@@ -297,29 +231,4 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
         fun getLyricsDownloadDir(context: AppContext): PlatformFile =
             MediaItemLibrary.getLocalLyricsDir(context)
     }
-}
-
-actual suspend fun Song.getLocalSongFile(context: AppContext, allow_partial: Boolean): PlatformFile? {
-    val files: List<PlatformFile> = PlayerDownloadManager.getSongDownloadDir(context).listFiles() ?: return null
-    for (file in files) {
-        if (PlayerDownloadService.isFileDownloadInProgressForSong(file, this)) {
-            if (allow_partial) {
-                return file
-            }
-            return null
-        }
-
-        val metadata: SongData? = LocalSongMetadataProcessor.readLocalSongMetadata(file, id, load_data = false)
-        if (metadata != null) {
-            return file
-        }
-    }
-    return null
-}
-
-actual fun Song.getLocalLyricsFile(context: AppContext, allow_partial: Boolean): PlatformFile? {
-    val filename: String = LyricsFileConverter.getSongLyricsFileName(this)
-
-    val files: List<PlatformFile> = PlayerDownloadManager.getLyricsDownloadDir(context).listFiles() ?: return null
-    return files.firstOrNull { it.name == filename }
 }

@@ -55,7 +55,8 @@ object LyricsFileConverter {
         file: PlatformFile,
         context: AppContext
     ): Result<Unit> = withContext(Dispatchers.IO) {
-        val temp_file = file.getSibling("${file.name}.tmp")
+        val temp_file: PlatformFile = file.getSibling("${file.name}.tmp")
+        check(temp_file.createFile()) { temp_file.toString() }
 
         return@withContext runCatching {
             temp_file.outputStream().use { stream ->

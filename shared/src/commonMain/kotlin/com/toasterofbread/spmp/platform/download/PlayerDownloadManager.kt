@@ -8,10 +8,14 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.platform.PlatformFile
+import com.toasterofbread.spmp.model.lyrics.LyricsFileConverter
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
+import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
+import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.DownloadRequestCallback
@@ -64,6 +68,10 @@ enum class DownloadMethod {
 
                         val directory: PlatformFile = context.getUserDirectoryFile(uri)
 
+                        Platform.ANDROID.only {
+                            directory.mkdirs()
+                        }
+
                         for (song in songs) {
                             var file: PlatformFile
                             val name: String = song.getActiveTitle(context.database) ?: MediaItemType.SONG.getReadable(false)
@@ -79,7 +87,10 @@ enum class DownloadMethod {
                             }
                             while (file.exists)
 
-                            file.createFile()
+                            Platform.ANDROID.only {
+                                // File must be created at this stage on Android, it will fail if done later
+                                file.createFile()
+                            }
 
                             context.download_manager.startDownload(song, file_uri = file.uri, callback = callback)
                         }
@@ -94,18 +105,19 @@ enum class DownloadMethod {
     }
 }
 
+class DownloadStatus(
+    val song: Song,
+    val status: Status,
+    val quality: SongAudioQuality?,
+    val progress: Float,
+    val id: String,
+    val file: PlatformFile?
+) {
+    enum class Status { IDLE, PAUSED, DOWNLOADING, CANCELLED, ALREADY_FINISHED, FINISHED }
+    fun isCompleted(): Boolean = progress >= 1f
+}
+
 expect class PlayerDownloadManager(context: AppContext) {
-    class DownloadStatus {
-        val song: Song
-        val status: Status
-        val quality: SongAudioQuality?
-        val progress: Float
-        val id: String
-        enum class Status { IDLE, PAUSED, DOWNLOADING, CANCELLED, ALREADY_FINISHED, FINISHED }
-
-        fun isCompleted(): Boolean
-    }
-
     open class DownloadStatusListener() {
         open fun onDownloadAdded(status: DownloadStatus)
         open fun onDownloadRemoved(id: String)
@@ -132,9 +144,9 @@ expect class PlayerDownloadManager(context: AppContext) {
 }
 
 @Composable
-fun Song.rememberDownloadStatus(): State<PlayerDownloadManager.DownloadStatus?> {
+fun Song.rememberDownloadStatus(): State<DownloadStatus?> {
     val download_manager: PlayerDownloadManager = LocalPlayerState.current.context.download_manager
-    val download_state: MutableState<PlayerDownloadManager.DownloadStatus?> = remember { mutableStateOf(null) }
+    val download_state: MutableState<DownloadStatus?> = remember { mutableStateOf(null) }
 
     LaunchedEffect(id) {
         download_state.value = null
@@ -143,7 +155,7 @@ fun Song.rememberDownloadStatus(): State<PlayerDownloadManager.DownloadStatus?> 
 
     DisposableEffect(id) {
         val listener = object : PlayerDownloadManager.DownloadStatusListener() {
-            override fun onDownloadAdded(status: PlayerDownloadManager.DownloadStatus) {
+            override fun onDownloadAdded(status: DownloadStatus) {
                 if (status.song.id == id) {
                     download_state.value = status
                 }
@@ -153,7 +165,7 @@ fun Song.rememberDownloadStatus(): State<PlayerDownloadManager.DownloadStatus?> 
                     download_state.value = null
                 }
             }
-            override fun onDownloadChanged(status: PlayerDownloadManager.DownloadStatus) {
+            override fun onDownloadChanged(status: DownloadStatus) {
                 if (status.song.id == id) {
                     download_state.value = status
                 }
@@ -170,9 +182,9 @@ fun Song.rememberDownloadStatus(): State<PlayerDownloadManager.DownloadStatus?> 
 }
 
 @Composable
-fun rememberSongDownloads(): State<List<PlayerDownloadManager.DownloadStatus>> {
+fun rememberSongDownloads(): State<List<DownloadStatus>> {
     val download_manager = LocalPlayerState.current.context.download_manager
-    val download_state: MutableState<List<PlayerDownloadManager.DownloadStatus>> = remember { mutableStateOf(emptyList()) }
+    val download_state: MutableState<List<DownloadStatus>> = remember { mutableStateOf(emptyList()) }
 
     LaunchedEffect(Unit) {
         download_state.value = download_manager.getDownloads()
@@ -180,7 +192,7 @@ fun rememberSongDownloads(): State<List<PlayerDownloadManager.DownloadStatus>> {
 
     DisposableEffect(Unit) {
         val listener = object : PlayerDownloadManager.DownloadStatusListener() {
-            override fun onDownloadAdded(status: PlayerDownloadManager.DownloadStatus) {
+            override fun onDownloadAdded(status: DownloadStatus) {
                 synchronized(download_state) {
                     download_state.value += status
                 }
@@ -192,7 +204,7 @@ fun rememberSongDownloads(): State<List<PlayerDownloadManager.DownloadStatus>> {
                     }
                 }
             }
-            override fun onDownloadChanged(status: PlayerDownloadManager.DownloadStatus) {
+            override fun onDownloadChanged(status: DownloadStatus) {
                 synchronized(download_state) {
                     val temp = download_state.value.toMutableList()
                     for (i in 0 until download_state.value.size) {
@@ -214,5 +226,28 @@ fun rememberSongDownloads(): State<List<PlayerDownloadManager.DownloadStatus>> {
     return download_state
 }
 
-expect suspend fun Song.getLocalSongFile(context: AppContext, allow_partial: Boolean = false): PlatformFile?
-expect fun Song.getLocalLyricsFile(context: AppContext, allow_partial: Boolean = false): PlatformFile?
+suspend fun Song.getLocalSongFile(context: AppContext, allow_partial: Boolean = false): PlatformFile? {
+    val files: List<PlatformFile> = MediaItemLibrary.getLocalSongsDir(context).listFiles() ?: return null
+    for (file in files) {
+        if (SongDownloader.isFileDownloadInProgressForSong(file, this)) {
+            if (allow_partial) {
+                return file
+            }
+            return null
+        }
+
+        val metadata: SongData? = LocalSongMetadataProcessor.readLocalSongMetadata(file, id, load_data = false)
+        if (metadata != null) {
+            return file
+        }
+    }
+    return null
+}
+
+fun Song.getLocalLyricsFile(context: AppContext, allow_partial: Boolean = false): PlatformFile? {
+    val file: PlatformFile = MediaItemLibrary.getLocalLyricsFile(this, context)
+    if (!file.is_file) {
+        return null
+    }
+    return file
+}

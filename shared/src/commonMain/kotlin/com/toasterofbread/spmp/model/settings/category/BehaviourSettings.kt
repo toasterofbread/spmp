@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.model.settings.category
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.TouchApp
+import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
@@ -27,7 +28,8 @@ data object BehaviourSettings: SettingsCategory("behaviour") {
         SEARCH_SHOW_SUGGESTIONS,
         STOP_PLAYER_ON_APP_CLOSE,
         LPM_CLOSE_ON_ACTION,
-        LPM_INCREMENT_PLAY_AFTER;
+        LPM_INCREMENT_PLAY_AFTER,
+        DESKTOP_LPM_KEEP_ON_BACKGROUND_SCROLL;
 
         override val category: SettingsCategory get() = BehaviourSettings
 
@@ -44,6 +46,13 @@ data object BehaviourSettings: SettingsCategory("behaviour") {
                 STOP_PLAYER_ON_APP_CLOSE -> false
                 LPM_CLOSE_ON_ACTION -> true
                 LPM_INCREMENT_PLAY_AFTER -> true
+                DESKTOP_LPM_KEEP_ON_BACKGROUND_SCROLL -> false
             } as T
+
+        override fun isHidden(): Boolean =
+            when (this) {
+                DESKTOP_LPM_KEEP_ON_BACKGROUND_SCROLL -> !Platform.DESKTOP.isCurrent()
+                else -> false
+            }
     }
 }

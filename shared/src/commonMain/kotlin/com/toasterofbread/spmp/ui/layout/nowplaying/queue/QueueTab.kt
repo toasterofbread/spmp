@@ -85,7 +85,8 @@ internal fun QueueTab(
     wave_border_mode_override: NowPlayingQueueWaveBorderMode? = null,
     button_row_arrangement: Arrangement.Horizontal = Arrangement.SpaceEvenly,
     getBackgroundColour: PlayerState.() -> Color = { getNPAltOnBackground() },
-    getOnBackgroundColour: PlayerState.() -> Color = { getNPBackground() }
+    getOnBackgroundColour: PlayerState.() -> Color = { getNPBackground() },
+    getWaveBorderColour: PlayerState.() -> Color = getOnBackgroundColour
 ) {
     val player = LocalPlayerState.current
     val density = LocalDensity.current
@@ -242,7 +243,7 @@ internal fun QueueTab(
                     queue_list_state,
                     border_thickness,
                     getBackgroundColour = getBackgroundColour,
-                    getBorderColour = getOnBackgroundColour
+                    getBorderColour = getWaveBorderColour
                 )
 
                 CompositionLocalProvider(

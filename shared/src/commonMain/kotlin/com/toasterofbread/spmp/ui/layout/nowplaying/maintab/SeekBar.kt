@@ -45,10 +45,11 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 fun SeekBar(
     seek: (Float) -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     getColour: PlayerState.() -> Color = { getNPOnBackground() },
     getTrackColour: PlayerState.() -> Color = { getNPAltOnBackground() }
 ) {
-    val player = LocalPlayerState.current
+    val player: PlayerState = LocalPlayerState.current
 
     var position_override by remember { mutableStateOf<Float?>(null) }
     var old_position by remember { mutableStateOf<Float?>(null) }
@@ -84,6 +85,7 @@ fun SeekBar(
 
             SliderValueHorizontal(
                 value = getSliderValue(),
+                enabled = enabled,
                 onValueChange = {
                     position_override = it
                 },

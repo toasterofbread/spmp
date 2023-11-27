@@ -525,12 +525,15 @@
     <string name="s_key_startup_command">開始コマンド</string>
     <string name="s_sub_startup_command">プログラム開始時に一回実行されるコマンド</string>
 
+    <string name="s_group_server">サーバー</string>
     <string name="s_info_server">SpMpのサーバー部分(SpMs)が設定されたIPアドレスとポートで実行されていなければなりません。https://github.com/toasterofbread/spmp-server</string>
 
     <string name="s_key_server_ip">サーバーのIPアドレス</string>
     <string name="s_key_server_port">サーバーのポート</string>
-    <string name="s_key_server_command">サーバー実行のコマンド</string>
-    <string name="s_sub_server_command">SpMp内からサーバーを手動で実行するのに使われるコマンド&#xA;「$@」の最初の出現はサーバーへのアーギュメントに置き換えられ、「$@」がなければコマンドに直接追加されます</string>
+    <string name="s_key_local_server_command">サーバー実行のコマンド</string>
+    <string name="s_sub_local_server_command">SpMp内からサーバーを手動で実行するのに使われるコマンド&#xA;「$@」の最初の出現はサーバーへのアーギュメントに置き換えられ、「$@」がなければコマンドに直接追加されます</string>
+    <string name="s_key_server_local_start_automatically">自動的にサーバーを実行する</string>
+    <string name="s_sub_server_local_start_automatically">アプリ開始時にサーバーが見つからなければ、設定されたコマンドで自動的にサーバーを実行します</string>
     <string name="s_key_server_kill_child_on_exit">終了時に子プロセスのサーバーを停止</string>
 
     <string name="s_cat_development">開発</string>

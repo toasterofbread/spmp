@@ -539,12 +539,15 @@
     <string name="s_key_startup_command">Startup command</string>
     <string name="s_sub_startup_command">Command to be executed at program start</string>
 
+    <string name="s_group_server">Server</string>
     <string name="s_info_server">The SpMp server component (SpMs) must be running at the specified port IP address and port. https://github.com/toasterofbread/spmp-server</string>
 
     <string name="s_key_server_ip">Server IP address</string>
     <string name="s_key_server_port">Server port</string>
-    <string name="s_key_server_command">Server command</string>
-    <string name="s_sub_server_command">Command to be run when manually starting the server from within SpMp&#xA;The first occurence of '$@' will be replaced with the server arguments, otherwise they will be appended to the command</string>
+    <string name="s_key_local_server_command">Server command</string>
+    <string name="s_sub_local_server_command">Command to be run when manually starting the server from within SpMp&#xA;The first occurence of '$@' will be replaced with the server arguments, otherwise they will be appended to the command</string>
+    <string name="s_key_server_local_start_automatically">Start local server automatically</string>
+    <string name="s_sub_server_local_start_automatically">On startup, if a server is not found immediately, a server will be started automatically using the specified command</string>
     <string name="s_key_server_kill_child_on_exit">Stop child server on exit</string>
 
     <string name="s_cat_development">Development</string>

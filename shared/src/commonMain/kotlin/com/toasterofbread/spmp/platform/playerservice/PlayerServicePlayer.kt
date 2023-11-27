@@ -8,6 +8,7 @@ import app.cash.sqldelight.Query
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
+import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.platform.PlatformPreferencesListener
 import com.toasterofbread.spmp.ProjectBuildConfig
@@ -204,7 +205,7 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
     }
 
     init {
-        if (ProjectBuildConfig.MUTE_PLAYER == true) {
+        if (ProjectBuildConfig.MUTE_PLAYER == true && !Platform.DESKTOP.isCurrent()) {
             service.volume = 0f
         }
 

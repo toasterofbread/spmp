@@ -1,6 +1,11 @@
+@file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 package com.toasterofbread.spmp.ui.theme
 
 import PlatformTheme
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ColorScheme
@@ -8,8 +13,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.Platform
@@ -18,6 +29,7 @@ import com.toasterofbread.composekit.utils.common.amplifyPercent
 import com.toasterofbread.composekit.utils.common.blendWith
 import com.toasterofbread.composekit.utils.common.contrastAgainst
 import com.toasterofbread.composekit.utils.common.getContrasted
+import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.platform.AppContext
 
 @Composable
@@ -110,4 +122,19 @@ fun Theme.ApplicationTheme(
     ) {
         PlatformTheme(this, content)
     }
+}
+
+fun Modifier.appHover(button: Boolean = false): Modifier = composed {
+    val interaction_source: MutableInteractionSource = remember { MutableInteractionSource() }
+    val hovered: Boolean by interaction_source.collectIsHoveredAsState()
+
+    val hover_scale = if (button) 0.95f else 0.97f
+    val scale by animateFloatAsState(if (hovered) hover_scale else 1f)
+
+    return@composed this
+        .hoverable(interaction_source)
+        .scale(scale)
+        .thenIf(button) {
+            pointerHoverIcon(PointerIcon.Hand)
+        }
 }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Radio
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.SubdirectoryArrowRight
 import androidx.compose.material.ripple.rememberRipple
@@ -27,10 +28,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.composekit.platform.vibrateShort
+import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.ui.theme.appHover
 
 class LongPressMenuActionProvider(
     val getContentColour: () -> Color,
@@ -148,7 +151,7 @@ class LongPressMenuActionProvider(
             onAction: () -> Unit,
             fill_width: Boolean = true
         ) {
-            val player = LocalPlayerState.current
+            val player: PlayerState = LocalPlayerState.current
 
             Row(
                 modifier
@@ -167,7 +170,10 @@ class LongPressMenuActionProvider(
                             }
                         }
                     )
-                    .let { if (fill_width) it.fillMaxWidth() else it },
+                    .appHover(true)
+                    .thenIf(fill_width) {
+                        fillMaxWidth()
+                    },
                 horizontalArrangement = Arrangement.spacedBy(20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {

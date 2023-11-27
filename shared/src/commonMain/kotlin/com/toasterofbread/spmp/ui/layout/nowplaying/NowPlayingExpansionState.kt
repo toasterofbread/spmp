@@ -63,7 +63,7 @@ class NowPlayingExpansionState(
     swipe_state: State<SwipeableState<Int>>,
     private val coroutine_scope: CoroutineScope
 ): ExpansionState {
-    private val swipe_state by swipe_state
+    val swipe_state by swipe_state
 
     override val top_bar_mode: MutableState<MusicTopBarMode> = mutableStateOf(MusicTopBarMode.default)
     

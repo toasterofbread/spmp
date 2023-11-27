@@ -157,8 +157,8 @@ fun LargeThumbnailRow(
 
         var button_row_width: Dp by remember { mutableStateOf(0.dp) }
 
-        MeasureUnconstrainedView({ ButtonRow() }) { width, _ ->
-            button_row_width = with (density) { width.toDp() }
+        MeasureUnconstrainedView({ ButtonRow() }) { size ->
+            button_row_width = with (density) { size.width.toDp() }
             ButtonRow(Modifier.width(button_row_width * (1f - expansion.getBounded())))
         }
 

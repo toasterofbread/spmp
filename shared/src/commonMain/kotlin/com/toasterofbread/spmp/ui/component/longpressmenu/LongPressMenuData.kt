@@ -1,9 +1,15 @@
 package com.toasterofbread.spmp.ui.component.longpressmenu
 
 import LocalPlayerState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -13,6 +19,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewInteractionPressStage
@@ -25,6 +32,7 @@ import com.toasterofbread.spmp.ui.component.longpressmenu.playlist.PlaylistLongP
 import com.toasterofbread.spmp.ui.component.longpressmenu.song.SongLongPressMenuActions
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistSubscribeButton
+import com.toasterofbread.spmp.ui.theme.appHover
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -107,8 +115,12 @@ data class LongPressMenuData(
     }
 }
 
-fun Modifier.longPressItem(long_press_menu_data: LongPressMenuData): Modifier =
-    onGloballyPositioned {
-        long_press_menu_data.layout_size = it.size
-        long_press_menu_data.layout_offset = it.positionInRoot()
-    }
+@Composable
+fun Modifier.longPressItem(long_press_menu_data: LongPressMenuData): Modifier {
+    return this
+        .onGloballyPositioned {
+            long_press_menu_data.layout_size = it.size
+            long_press_menu_data.layout_offset = it.positionInRoot()
+        }
+        .appHover()
+}

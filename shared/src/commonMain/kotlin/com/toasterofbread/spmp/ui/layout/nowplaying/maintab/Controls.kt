@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.ui.layout.nowplaying.maintab
 
 import LocalPlayerState
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -34,6 +35,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.VectorPainter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -58,11 +60,73 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 private const val TITLE_FONT_SIZE_SP: Float = 21f
 private const val ARTIST_FONT_SIZE_SP: Float = 12f
 
+
+@Composable
+fun PlayerButton(
+    image: ImageVector,
+    size: Dp = 60.dp,
+    enabled: Boolean = true,
+    getBackgroundColour: PlayerState.() -> Color = { getNPBackground() },
+    getOnBackgroundColour: PlayerState.() -> Color = { getNPOnBackground() },
+    getAccentColour: (PlayerState.() -> Color)? = null,
+    onClick: () -> Unit
+) {
+    val player: PlayerState = LocalPlayerState.current
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .bounceOnClick()
+            .clickable(
+                onClick = onClick,
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() },
+                enabled = enabled
+            )
+            .alpha(if (enabled) 1.0f else 0.5f)
+    ) {
+        val painter: VectorPainter = rememberVectorPainter(image)
+
+        Canvas(
+            Modifier
+                .requiredSize(size)
+                // https://stackoverflow.com/a/67820996
+                .graphicsLayer { alpha = 0.99f }
+        ) {
+            with(painter) {
+                draw(this@Canvas.size)
+            }
+
+            val gradient_end: Float
+            val gradient_colours: List<Color>
+
+            val accent: Color? = if (player.np_theme_mode != ThemeMode.NONE) getAccentColour?.invoke(player) else null
+            if (accent != null) {
+                gradient_end = this@Canvas.size.width * 0.95f
+                gradient_colours = listOf(getOnBackgroundColour(player), getOnBackgroundColour(player), accent)
+            }
+            else {
+                gradient_end = this@Canvas.size.width * 1.9f
+                gradient_colours = listOf(getOnBackgroundColour(player), getBackgroundColour(player))
+            }
+
+            drawRect(
+                Brush.linearGradient(
+                    gradient_colours,
+                    end = Offset(gradient_end, gradient_end)
+                ),
+                blendMode = BlendMode.SrcAtop
+            )
+        }
+    }
+}
+
 @Composable
 internal fun Controls(
     song: Song?,
     seek: (Float) -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     button_row_arrangement: Arrangement.Horizontal = Arrangement.Center,
     seek_bar_next_to_buttons: Boolean = false,
     disable_text_marquees: Boolean = false,
@@ -79,7 +143,7 @@ internal fun Controls(
     artistRowStartContent: @Composable RowScope.() -> Unit = {},
     artistRowEndContent: @Composable RowScope.() -> Unit = {}
 ) {
-    val player = LocalPlayerState.current
+    val player: PlayerState = LocalPlayerState.current
 
     val song_title: String? by song?.observeActiveTitle()
     val song_artist_title: String? by song?.Artist?.observePropertyActiveTitle()
@@ -92,61 +156,6 @@ internal fun Controls(
 
     if (show_title_edit_dialog && song != null) {
         MediaItemTitleEditDialog(song) { show_title_edit_dialog = false }
-    }
-
-    @Composable
-    fun PlayerButton(
-        image: ImageVector,
-        size: Dp = 60.dp,
-        enabled: Boolean = true,
-        onClick: () -> Unit
-    ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .bounceOnClick()
-                .clickable(
-                    onClick = onClick,
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() },
-                    enabled = enabled
-                )
-                .alpha(if (enabled) 1.0f else 0.5f)
-        ) {
-            val painter = rememberVectorPainter(image)
-
-            Canvas(
-                Modifier
-                    .requiredSize(size)
-                    // https://stackoverflow.com/a/67820996
-                    .graphicsLayer { alpha = 0.99f }
-            ) {
-                with(painter) {
-                    draw(this@Canvas.size)
-                }
-
-                val gradient_end: Float
-                val gradient_colours: List<Color>
-
-                val accent: Color? = if (player.np_theme_mode != ThemeMode.NONE) getAccentColour?.invoke(player) else null
-                if (accent != null) {
-                    gradient_end = this@Canvas.size.width * 0.95f
-                    gradient_colours = listOf(getOnBackgroundColour(player), getOnBackgroundColour(player), accent)
-                }
-                else {
-                    gradient_end = this@Canvas.size.width * 1.9f
-                    gradient_colours = listOf(getOnBackgroundColour(player), getBackgroundColour(player))
-                }
-
-                drawRect(
-                    Brush.linearGradient(
-                        gradient_colours,
-                        end = Offset(gradient_end, gradient_end)
-                    ),
-                    blendMode = BlendMode.SrcAtop
-                )
-            }
-        }
     }
 
     Column(modifier, verticalArrangement = vertical_arrangement) {
@@ -163,6 +172,7 @@ internal fun Controls(
                     modifier = Modifier
                         .fillMaxWidth()
                         .platformClickable(
+                            enabled = enabled,
                             onAltClick = {
                                 show_title_edit_dialog = !show_title_edit_dialog
                                 player.context.vibrateShort()
@@ -182,7 +192,9 @@ internal fun Controls(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
+                        .fillMaxWidth()
                         .platformClickable(
+                            enabled = enabled,
                             onClick = {
                                 val artist: Artist? = song?.Artist?.get(player.database)
                                 if (artist?.isForItem() == false) {
@@ -208,7 +220,7 @@ internal fun Controls(
         }
 
         if (!seek_bar_next_to_buttons) {
-            SeekBar(seek, getColour = getOnBackgroundColour, getTrackColour = getSeekBarTrackColour)
+            SeekBar(seek, getColour = getOnBackgroundColour, getTrackColour = getSeekBarTrackColour, enabled = enabled)
         }
 
         Row(
@@ -221,8 +233,11 @@ internal fun Controls(
             // Previous
             PlayerButton(
                 Icons.Rounded.SkipPrevious,
-                enabled = player.status.m_has_previous,
-                size = 60.dp
+                enabled = enabled && player.status.m_has_previous,
+                size = 60.dp,
+                getBackgroundColour = getBackgroundColour,
+                getOnBackgroundColour = getOnBackgroundColour,
+                getAccentColour = getAccentColour
             ) {
                 player.controller?.seekToPrevious()
             }
@@ -230,8 +245,11 @@ internal fun Controls(
             // Play / pause
             PlayerButton(
                 if (player.status.m_playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                enabled = song != null,
-                size = 75.dp
+                enabled = enabled && song != null,
+                size = 75.dp,
+                getBackgroundColour = getBackgroundColour,
+                getOnBackgroundColour = getOnBackgroundColour,
+                getAccentColour = getAccentColour
             ) {
                 player.controller?.playPause()
             }
@@ -239,14 +257,17 @@ internal fun Controls(
             // Next
             PlayerButton(
                 Icons.Rounded.SkipNext,
-                enabled = player.status.m_has_next,
-                size = 60.dp
+                enabled = enabled && player.status.m_has_next,
+                size = 60.dp,
+                getBackgroundColour = getBackgroundColour,
+                getOnBackgroundColour = getOnBackgroundColour,
+                getAccentColour = getAccentColour
             ) {
                 player.controller?.seekToNext()
             }
 
             if (seek_bar_next_to_buttons) {
-                SeekBar(seek, Modifier.fillMaxWidth().weight(1f), getColour = getOnBackgroundColour, getTrackColour = getSeekBarTrackColour)
+                SeekBar(seek, Modifier.fillMaxWidth().weight(1f), getColour = getOnBackgroundColour, getTrackColour = getSeekBarTrackColour, enabled = enabled)
             }
 
             buttonRowEndContent()

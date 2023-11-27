@@ -254,15 +254,14 @@ fun MediaItemPreviewLong(
         Column(
             Modifier
                 .padding(horizontal = 10.dp)
-                .fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(3.dp)
+                .fillMaxWidth()
         ) {
             val item_title: String? by loaded_item.observeActiveTitle()
             Text(
                 item_title ?: "",
                 color = contentColour?.invoke() ?: Color.Unspecified,
                 fontSize = font_size,
-                lineHeight = font_size,
+//                lineHeight = font_size,
                 maxLines = title_lines,
                 overflow = TextOverflow.Clip
             )

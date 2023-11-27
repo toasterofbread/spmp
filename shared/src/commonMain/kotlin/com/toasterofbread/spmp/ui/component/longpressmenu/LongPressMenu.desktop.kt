@@ -250,7 +250,7 @@ internal fun DesktopLongPressMenu(
                             .width(MENU_WIDTH_DP.dp)
                             .focusRequester(focus_requester)
                             .onFocusChanged {
-                                if (focused && !it.hasFocus) {
+                                if (focused && !it.hasFocus && show_background) {
                                     close()
                                 }
                                 focused = it.hasFocus

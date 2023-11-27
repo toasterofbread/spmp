@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.maintab
 
 import LocalPlayerState
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -10,6 +11,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.utils.common.blendWith
@@ -24,6 +26,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import kotlinx.coroutines.delay
 
 private const val ACCENT_CLEAR_WAIT_TIME_MS: Long = 1000
+private const val NARROW_PLAYER_MAX_SIZE_DP: Float = 120f
 
 class NowPlayingMainTabPage: NowPlayingPage() {
     enum class Mode {
@@ -93,7 +96,8 @@ class NowPlayingMainTabPage: NowPlayingPage() {
 
     override fun getPlayerBackgroundColourOverride(player: PlayerState): Color? {
         if (!player.isPortrait() && player.isLargeFormFactor()) {
-            return player.theme.background.blendWith(player.getNPBackground(), player.expansion.getBounded())
+            return player.theme.accent.blendWith(player.theme.background, 0.05f)
+//            return player.theme.background.blendWith(accented_background, player.expansion.getBounded())
         }
         return null
     }
@@ -125,14 +129,22 @@ class NowPlayingMainTabPage: NowPlayingPage() {
             }
         }
 
-        if (player.isPortrait()) {
-            NowPlayingMainTabPortrait(page_height, top_bar, content_padding, modifier)
-        }
-        else if (player.isLargeFormFactor()) {
-            NowPlayingMainTabLarge(page_height, top_bar, content_padding, modifier)
-        }
-        else {
-            NowPlayingMainTabLandscape(page_height, top_bar, content_padding, modifier)
+        BoxWithConstraints(modifier) {
+            if (maxWidth <= NARROW_PLAYER_MAX_SIZE_DP.dp) {
+                NowPlayingMainTabNarrow(page_height, top_bar, content_padding, true)
+            }
+            else if (maxHeight <= NARROW_PLAYER_MAX_SIZE_DP.dp) {
+                NowPlayingMainTabNarrow(page_height, top_bar, content_padding, false)
+            }
+            else if (player.isPortrait()) {
+                NowPlayingMainTabPortrait(page_height, top_bar, content_padding)
+            }
+            else if (player.isLargeFormFactor()) {
+                NowPlayingMainTabLarge(page_height, top_bar, content_padding)
+            }
+            else {
+                NowPlayingMainTabLandscape(page_height, top_bar, content_padding)
+            }
         }
     }
 }

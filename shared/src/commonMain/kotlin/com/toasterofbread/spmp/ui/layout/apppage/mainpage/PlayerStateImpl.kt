@@ -77,7 +77,7 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
             np_swipe_state.value.animateTo(
                 page,
                 when (NowPlayingMainTabPage.Mode.getCurrent(this@PlayerStateImpl)) {
-                    NowPlayingMainTabPage.Mode.LARGE -> spring(Spring.DampingRatioNoBouncy, Spring.StiffnessMediumLow)
+//                    NowPlayingMainTabPage.Mode.LARGE -> spring(Spring.DampingRatioNoBouncy, Spring.StiffnessMediumLow)
                     else -> spring()
                 }
             )
@@ -321,6 +321,9 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
     }
 
     override fun showLongPressMenu(data: LongPressMenuData) {
+        // Check lateinit
+        data.layout_size
+
         long_press_menu_data = data
 
         if (long_press_menu_showing) {

@@ -10,15 +10,6 @@ import com.toasterofbread.spmp.model.settings.category.DesktopSettings
 import com.toasterofbread.spmp.resources.getString
 
 internal fun getDesktopCategoryItems(): List<SettingsItem> {
-    // (I will never learn regex)
-    // https://stackoverflow.com/a/36760050
-    val ip_regex: Regex = "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}\$".toRegex()
-    // https://stackoverflow.com/a/12968117
-    val port_regex: Regex = "^([1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])\$".toRegex()
-
-    check(ip_regex.matches("127.0.0.1"))
-    check(port_regex.matches("1111"))
-
     return listOf(
         GroupSettingsItem(
             getString("s_group_desktop_system")
@@ -29,6 +20,23 @@ internal fun getDesktopCategoryItems(): List<SettingsItem> {
             getString("s_key_startup_command"), getString("s_sub_startup_command")
         ),
 
+        GroupSettingsItem(
+            getString("s_group_server")
+        )
+    ) + getServerGroupItems()
+}
+
+fun getServerGroupItems(): List<SettingsItem> {
+    // (I will never learn regex)
+    // https://stackoverflow.com/a/36760050
+    val ip_regex: Regex = "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}\$".toRegex()
+    // https://stackoverflow.com/a/12968117
+    val port_regex: Regex = "^([1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])\$".toRegex()
+
+    check(ip_regex.matches("127.0.0.1"))
+    check(port_regex.matches("1111"))
+
+    return listOf(
         InfoTextSettingsItem(
             getString("s_info_server")
         ),
@@ -65,7 +73,12 @@ internal fun getDesktopCategoryItems(): List<SettingsItem> {
 
         TextFieldSettingsItem(
             SettingsValueState(DesktopSettings.Key.SERVER_LOCAL_COMMAND.getName()),
-            getString("s_key_server_command"), getString("s_sub_server_command")
+            getString("s_key_local_server_command"), getString("s_sub_local_server_command")
+        ),
+
+        ToggleSettingsItem(
+            SettingsValueState(DesktopSettings.Key.SERVER_LOCAL_START_AUTOMATICALLY.getName()),
+            getString("s_key_server_local_start_automatically"), getString("s_sub_server_local_start_automatically")
         ),
 
         ToggleSettingsItem(

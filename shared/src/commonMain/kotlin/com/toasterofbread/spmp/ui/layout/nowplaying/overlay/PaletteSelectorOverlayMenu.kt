@@ -50,7 +50,7 @@ import kotlin.math.roundToInt
 
 val DEFAULT_THUMBNAIL_ROUNDING: Int
     @Composable get() =
-        if (LocalPlayerState.current.isLargeFormFactor()) 1
+        if (LocalPlayerState.current.isLargeFormFactor()) 0
         else 5
 
 const val MIN_THUMBNAIL_ROUNDING: Int = 0

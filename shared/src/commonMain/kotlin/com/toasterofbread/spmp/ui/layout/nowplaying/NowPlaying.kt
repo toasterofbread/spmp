@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterialApi::class)
+
 package com.toasterofbread.spmp.ui.layout.nowplaying
 
 import LocalNowPlayingExpansion
@@ -27,6 +29,7 @@ import com.toasterofbread.composekit.platform.composable.composeScope
 import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.composekit.utils.*
 import com.toasterofbread.composekit.utils.common.amplifyPercent
+import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.composable.RecomposeOnInterval
 import com.toasterofbread.composekit.utils.composable.getTop
 import com.toasterofbread.composekit.utils.modifier.brushBackground
@@ -55,14 +58,28 @@ private const val GRADIENT_TOP_START_RATIO = 0.7f
 private const val OVERSCROLL_CLEAR_DISTANCE_THRESHOLD_DP = 5f
 
 internal fun PlayerState.getNPBackground(theme_mode: ThemeMode = np_theme_mode): Color {
+    val pages: List<NowPlayingPage> = NowPlayingPage.ALL.filter { it.shouldShow(this) }
+
+    val override: Color? = pages[expansion.swipe_state.currentValue.coerceAtMost(pages.size - 1)].getPlayerBackgroundColourOverride(this)
+    if (override != null) {
+        return override
+    }
+
     return when (theme_mode) {
         ThemeMode.BACKGROUND -> theme.accent
-        ThemeMode.ELEMENTS -> theme.background
-        ThemeMode.NONE -> theme.background
+        ThemeMode.ELEMENTS -> theme.card
+        ThemeMode.NONE -> theme.card
     }
 }
 
 internal fun PlayerState.getNPOnBackground(): Color {
+    val pages: List<NowPlayingPage> = NowPlayingPage.ALL.filter { it.shouldShow(this) }
+
+    val override: Color? = pages[expansion.swipe_state.currentValue.coerceAtMost(pages.size - 1)].getPlayerBackgroundColourOverride(this)
+    if (override != null) {
+        return override.getContrasted()
+    }
+
     return when (np_theme_mode) {
         ThemeMode.BACKGROUND -> theme.on_accent
         ThemeMode.ELEMENTS -> theme.accent
@@ -189,7 +206,6 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
         val song_gradient_depth: Float? =
             player.status.m_song?.PlayerGradientDepth?.observe(player.database)?.value
 
-        val pages: List<NowPlayingPage> = NowPlayingPage.ALL.filter { it.shouldShow(player) }
         val large_page_showing: Boolean = !player.isPortrait() && player.isLargeFormFactor()
 
         val swipe_modifier: Modifier = remember(swipe_anchors, large_page_showing) {
@@ -232,11 +248,6 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
                 }
                 .brushBackground {
                     with(density) {
-                        val override_colour: Color? = pages[swipe_state.currentValue.coerceAtMost(pages.size - 1)].getPlayerBackgroundColourOverride(player)
-                        if (override_colour != null) {
-                            return@brushBackground Brush.verticalGradient(listOf(override_colour, override_colour))
-                        }
-
                         val screen_height_px = page_height.toPx()
                         val v_offset = (expansion.get() - 1f).coerceAtLeast(0f) * screen_height_px
 

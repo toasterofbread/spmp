@@ -16,17 +16,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewConfiguration
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.modifier.background
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.PlayerSettings
 import com.toasterofbread.spmp.platform.getUiLanguage
+import com.toasterofbread.spmp.platform.isLargeFormFactor
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.ui.theme.appHover
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.detectReorder
 import kotlin.math.roundToInt
@@ -102,10 +107,10 @@ class QueueTabItem(val song: Song, val key: Int) {
         multiselect_context: MediaItemMultiSelectContext,
         requestRemove: () -> Unit
     ) {
-        val player = LocalPlayerState.current
-        val swipe_state = queueElementSwipeState(requestRemove)
-        val max_offset = with(LocalDensity.current) { player.screen_size.width.toPx() }
-        val anchors = mapOf(-max_offset to 0, 0f to 1, max_offset to 2)
+        val player: PlayerState = LocalPlayerState.current
+        val swipe_state: SwipeableState<Int> = queueElementSwipeState(requestRemove)
+        val max_offset: Float = with(LocalDensity.current) { player.screen_size.width.toPx() }
+        val anchors: Map<Float, Int> = mapOf(-max_offset to 0, 0f to 1, max_offset to 2)
 
         TouchSlopScope({
             touchSlop * 2f * (2.1f - PlayerSettings.Key.QUEUE_ITEM_SWIPE_SENSITIVITY.get<Float>())
@@ -113,19 +118,18 @@ class QueueTabItem(val song: Song, val key: Int) {
             Box(
                 Modifier
                     .offset { IntOffset(swipe_state.offset.value.roundToInt(), 0) }
-                    .background(RoundedCornerShape(45), getBackgroundColour)
+                    .background(MaterialTheme.shapes.extraLarge, getBackgroundColour)
             ) {
-                val padding = 7.dp
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(start = padding, end = 10.dp)
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp)
                 ) {
                     MediaItemPreviewLong(
                         song,
                         Modifier
                             .weight(1f)
-                            .padding(vertical = padding)
+                            .padding(top = 5.dp, bottom = 5.dp)
                             .swipeable(
                                 swipe_state,
                                 anchors,
@@ -151,7 +155,8 @@ class QueueTabItem(val song: Song, val key: Int) {
                             null,
                             Modifier
                                 .detectReorder(list_state)
-                                .requiredSize(25.dp),
+                                .requiredSize(25.dp)
+                                .appHover(true),
                             tint = getBackgroundColour().getContrasted()
                         )
                     }

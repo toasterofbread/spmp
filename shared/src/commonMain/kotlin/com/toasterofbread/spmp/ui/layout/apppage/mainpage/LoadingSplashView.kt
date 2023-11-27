@@ -43,10 +43,14 @@ import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.utils.common.bitmapResource
+import com.toasterofbread.composekit.utils.common.blockGestures
+import com.toasterofbread.composekit.utils.common.thenIf
+import com.toasterofbread.composekit.utils.common.toFloat
 import com.toasterofbread.spmp.platform.splash.SplashExtraLoadingContent
 import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.delay
@@ -125,10 +129,17 @@ fun LoadingSplashView(splash_mode: SplashMode?, loading_message: String?, modifi
                                 Text(loading_message, Modifier.padding(horizontal = 20.dp), color = player.theme.on_background)
                             }
                             LinearProgressIndicator(Modifier.fillMaxWidth(), color = player.theme.accent)
-
-                            SplashExtraLoadingContent(Modifier)
                         }
                     }
+
+                    val extra_content_alpha: Float by animateFloatAsState(show_message.toFloat())
+                    SplashExtraLoadingContent(
+                        Modifier
+                            .thenIf(!show_message) {
+                                blockGestures()
+                            }
+                            .graphicsLayer { alpha = extra_content_alpha }
+                    )
                 }
             }
             SplashMode.WARNING -> {

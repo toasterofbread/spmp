@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.outlined.ThumbUp
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,6 +26,7 @@ import com.toasterofbread.spmp.model.mediaitem.loader.SongLikedLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
+import com.toasterofbread.spmp.ui.theme.appHover
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.endpoint.SetSongLikedEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.SongLikedEndpoint
@@ -79,7 +81,8 @@ fun LikeDislikeButton(
                 )
             }
         },
-        modifier.bounceOnClick(),
+        modifier.bounceOnClick().appHover(true),
+        enabled = getEnabled?.invoke() != false,
         apply_minimum_size = false
     ) {
         Crossfade(liked_status) { status ->

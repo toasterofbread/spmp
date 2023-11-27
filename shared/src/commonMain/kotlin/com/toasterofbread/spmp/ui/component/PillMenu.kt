@@ -51,6 +51,7 @@ import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.composekit.utils.composable.NoRipple
 import com.toasterofbread.spmp.platform.AppContext
+import kotlin.math.sign
 
 class PillMenu(
     private val action_count: Int = 0,
@@ -406,12 +407,31 @@ fun RowOrColumn(
     row: Boolean,
     modifier: Modifier = Modifier,
     arrangement: Arrangement.HorizontalOrVertical = Arrangement.SpaceEvenly,
+    alignment: Int = 0,
     content: @Composable (getWeightModifier: (Float) -> Modifier) -> Unit,
 ) {
     if (row) {
-        Row(modifier, horizontalArrangement = arrangement, verticalAlignment = Alignment.CenterVertically) { content { Modifier.weight(it) } }
+        Row(
+            modifier,
+            horizontalArrangement = arrangement,
+            verticalAlignment =
+                when (alignment.sign) {
+                    -1 -> Alignment.Top
+                    0 -> Alignment.CenterVertically
+                    else -> Alignment.Bottom
+                }
+        ) { content { Modifier.weight(it) } }
     }
     else {
-        Column(modifier, verticalArrangement = arrangement, horizontalAlignment = Alignment.CenterHorizontally) { content { Modifier.weight(it) } }
+        Column(
+            modifier,
+            verticalArrangement = arrangement,
+            horizontalAlignment =
+            when (alignment.sign) {
+                -1 -> Alignment.Start
+                0 -> Alignment.CenterHorizontally
+                else -> Alignment.End
+            }
+        ) { content { Modifier.weight(it) } }
     }
 }

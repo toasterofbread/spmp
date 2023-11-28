@@ -232,7 +232,7 @@ internal fun QueueTab(
                 }
 
                 if (radio_info_position == NowPlayingQueueRadioInfoPosition.TOP_BAR) {
-                    CurrentRadioIndicator({ getBackgroundColour(player) }, multiselect_context, Modifier.padding(bottom = 10.dp))
+                    CurrentRadioIndicator({ getOnBackgroundColour(player) }, multiselect_context, Modifier.padding(bottom = 10.dp))
                 }
 
                 val wave_border_mode_state: NowPlayingQueueWaveBorderMode by PlayerSettings.Key.QUEUE_WAVE_BORDER_MODE.rememberMutableEnumState()
@@ -248,7 +248,9 @@ internal fun QueueTab(
 
                 CompositionLocalProvider(
                     LocalPlayerState provides remember { player.copy(onClickedOverride = { song, index: Int? ->
-                        player.controller?.seekToSong(index!!)
+                        if (index != player.status.m_index) {
+                            player.controller?.seekToSong(index!!)
+                        }
                     }) }
                 ) {
                     var list_position by remember { mutableStateOf(0.dp) }

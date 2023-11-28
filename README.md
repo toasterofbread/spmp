@@ -9,19 +9,18 @@
 <img align="left" width="140" src="androidApp/src/main/ic_launcher-playstore.png">
 
 <a href="https://github.com/toasterofbread/spmp/blob/main/LICENSE"><img src="https://img.shields.io/github/license/toasterofbread/spmp?style=for-the-badge&color=624c9a" align="right"></a>
-<a href="https://github.com/toasterofbread/spmp/commits/main"><img src="https://img.shields.io/github/commits-since/toasterofbread/spmp/latest?style=for-the-badge&color=624c9a" align="right"></a>
 <a href="https://github.com/toasterofbread/spmp/releases"><img src="https://img.shields.io/github/v/release/toasterofbread/spmp?logo=github&style=for-the-badge&color=624c9a" align="right"></a>
 
 # SpMp
-A YouTube Music client with a focus on language and metadata customisation, built for Android using Jetpack Compose and Kotlin.
+A YouTube Music client with a focus on customisation of colours and song metadata, built using Compose Multiplatform for Android and desktop
 
 <br>
 <br>
 
 ## Development status
-SpMp is in alpha and still has many bugs, but is very close to being feature-complete. I've been using it instead of YouTube Music for a while now.
+The Android version of SpMp is in beta and is ready for regular use with no major issues, but rough edges are still being actively polished and tweaked.
 
-Support for Compose Multiplatform on [desktop](https://github.com/toasterofbread/spmp-server) is [in-progress](https://github.com/toasterofbread/spmp/pull/170) but will not be a priority until the main project is stable.
+SpMp is being [ported](https://github.com/toasterofbread/spmp-server) to desktop platforms of [Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform), but is still in a pre-alpha state. Some basic features are working but are yet to be tested thoroughly.
 
 <br>
 
@@ -29,12 +28,15 @@ Support for Compose Multiplatform on [desktop](https://github.com/toasterofbread
 
 # Features
 - Edit song, artist, and playlist titles
-- Set separate languages for app UI and metadata like song titles
+- Select multiple songs for batch actions on any screen
+- Customisable colour theming throughout the app
+    - Use a colour from the current song's thumbnail
+    - Or use a custom colour set per-song or globally
+- Display app UI and metadata like song titles in separate languages
 - In-app YouTube Music login
 - Display time-synchronised lyrics from [KuGou](https://www.kugou.com/) and [PetitLyrics](https://petitlyrics.com/)
     - Timed lyrics are displayed in a toggleable bar above every app page
     - Furigana (readings) display above Japanese kanji within lyrics
-- Select multiple songs for batch actions on any screen
 - Pin any song, playlist, album, or artist to the top of the main page
 - Customisable Discord rich presence
 - Easily insert songs at any position in the queue

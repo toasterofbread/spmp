@@ -9,19 +9,18 @@
 <img align="left" width="140" src="../androidApp/src/main/ic_launcher-playstore.png">
 
 <a href="https://github.com/toasterofbread/spmp/blob/main/LICENSE"><img src="https://img.shields.io/github/license/toasterofbread/spmp?style=for-the-badge&color=624c9a&label=%E3%83%A9%E3%82%A4%E3%82%BB%E3%83%B3%E3%82%B9" align="right"></a>
-<a href="https://github.com/toasterofbread/spmp/commits/main"><img src="https://img.shields.io/github/commits-since/toasterofbread/spmp/latest?style=for-the-badge&color=624c9a&label=%E6%9C%80%E6%96%B0%E3%81%AE%E3%83%AA%E3%83%AA%E3%83%BC%E3%82%B9%E3%81%8B%E3%82%89%E3%81%AE%E3%82%B3%E3%83%9F%E3%83%83%E3%83%88" align="right"></a>
 <a href="https://github.com/toasterofbread/spmp/releases"><img src="https://img.shields.io/github/v/release/toasterofbread/spmp?logo=github&style=for-the-badge&color=624c9a&label=%E3%83%AA%E3%83%AA%E3%83%BC%E3%82%B9" align="right"></a>
 
 # SpMp
-言語とメタデータのカスタマイズに特化した YouTube Music のアプリ。Jetpack ComposeとKotlinを使って主にAndroid向けに開発されています。
+UIの色と曲のメタデータのカスタマイズに特化した YouTube Music のアプリ。Androidとデスクトップのプラットフォーム向けに、Compose Multiplatformを使って開発されています。
 
 <br>
 <br>
 
 ## 開発状態
-SpMpはまだアルファ版であり、バグはまだ多く残っていますが、まもなく機能をすべて完成させてベータ版となる予定です。僕はすでにSpMpをYouTube Musicのかわりに使っています。
+SpMpのAndroid版はただいまベータテスティング中です。普段の使用には使えますが、まだ仕上げができていない部分もあります。
 
-Compose Multiplatformでの[デスクトップ上サポート](https://github.com/toasterofbread/spmp-server)は[開発中](https://github.com/toasterofbread/spmp/pull/170)ですが、本プロジェクトが完成するまでは優先されません。
+SpMpはデスクトップのプラットフォーム用にも[開発中](https://github.com/toasterofbread/spmp-server)ですが、まだアルファ未満の状態となっています。最低限の機能は動作していますが、テスティングはまだされていません。
 
 <br>
 
@@ -29,15 +28,18 @@ Compose Multiplatformでの[デスクトップ上サポート](https://github.co
 
 ## 機能
 - 曲、アーティスト、またはプレイリストのタイトルを編集
+- どの画面からでも曲を複数選択
+- アプリ全体のテーマのカスタマイズが可能
+    - 自動的に曲のイメージからの色を使う
+    - もしくはユーザーに選択された色を使用
 - UIとメタデータに別々の言語を設定
 - アプリ内でYouTube Musicにログイン
 - [KuGou](https://www.kugou.com/)と[プチリリ](https://petitlyrics.com/ja/)から同期可能の歌詞を表示
     - 同期可能の歌詞をアプリ内すべての画面の上に表示
     - 歌詞内の漢字の上にふりがなを表示
-- どの画面からでも曲を複数選択
 - 曲、アーティスト、プレイリストをメイン画面に貼り付ける
-- 曲をキューに追加する時、簡単に位置を選択
 - Discordリッチプレゼンス
+- 曲をキューに追加する時、簡単に位置を選択
 
 ##### 他にもあります ([wiki](https://github.com/toasterofbread/spmp/wiki) をご覧ください)
 

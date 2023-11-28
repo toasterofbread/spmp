@@ -67,7 +67,17 @@ sealed class SettingsCategory(id: String) {
 
             override fun getItems(context: AppContext): List<SettingsItem>? {
                 if (items == null) {
-                    items = getPageItems(context).filter { it.getKeys().none { category.getKeyOfName(it)!!.isHidden() } }
+                    items = getPageItems(context).filter { 
+                        it.getKeys().none { key_name ->
+                            for (cat in listOf(category) + SettingsCategory.all) {
+                                val key: SettingsKey? = cat.getKeyOfName(key_name)
+                                if (key != null) {
+                                    return@none key.isHidden()
+                                }
+                            }
+                            throw RuntimeException("Key not found: $key_name (category: $category)")
+                        } 
+                    }
                 }
                 return items!!
             }

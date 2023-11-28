@@ -35,6 +35,9 @@
 # Kuromoji
 -keep class com.atilika.kuromoji.** { *; }
 
+# JAudioTagger
+-dontwarn org.jaudiotagger.**
+-keep class org.jaudiotagger.** { *; }
 
 # From proguard-android-optimize.txt
 

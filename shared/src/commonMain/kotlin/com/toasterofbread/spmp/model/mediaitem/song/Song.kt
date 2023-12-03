@@ -183,7 +183,7 @@ interface Song: MediaItem.WithArtist {
             @Suppress("UNUSED_EXPRESSION")
             settings_delay_bt
 
-            if (player.isPlayingOverRemoteDevice()) {
+            if (player.isPlayingOverLatentDevice()) {
                 delay += settings_delay_bt
             }
 

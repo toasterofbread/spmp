@@ -14,7 +14,6 @@ import com.toasterofbread.spmp.model.settings.category.DesktopSettings
 import com.toasterofbread.spmp.platform.PlatformServiceImpl
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.youtubeapi.fromJson
 import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +23,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.float
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.long
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
@@ -62,6 +68,7 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
 
     private val zmq: ZContext = ZContext()
     private var socket: ZMQ.Socket? = null
+    private val json: Json = Json { ignoreUnknownKeys = true }
     private val queued_messages: MutableList<Pair<String, List<Any>>> = mutableListOf()
     private val poll_coroutine_scope: CoroutineScope = CoroutineScope(Job())
     private val connect_coroutine_scope: CoroutineScope = CoroutineScope(Job())
@@ -140,17 +147,6 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
         context.getPrefs().removeListener(prefs_listener)
     }
 
-    private data class ServerState(
-        val queue: List<String>,
-        val state: Int,
-        val is_playing: Boolean,
-        val current_item_index: Int,
-        val current_position_ms: Int,
-        val duration_ms: Int,
-        val repeat_mode: Int,
-        val volume: Float
-    )
-
     private inline fun tryTransaction(transaction: () -> Unit) {
         while (true) {
             try {
@@ -166,8 +162,9 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
     }
 
     private suspend fun ZMQ.Socket.connectToServer(url: String): Boolean = withContext(Dispatchers.IO) {
-        val handshake_message = ZMsg()
-        handshake_message.add(getClientName())
+        val client_info: SpMsClientInfo = SpMsClientInfo(getClientName(), SpMsClientType.HEADLESS)
+        val handshake_message: ZMsg = ZMsg()
+        handshake_message.add(json.encodeToString(client_info))
         handshake_message.send(this@connectToServer)
 
         socket_load_state = PlayerServiceLoadState(
@@ -189,9 +186,9 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
         val state_data: String = reply.first.data.decodeToString().trimEnd { it == '\u0000' }
         println("Received handshake reply from server with the following state data:\n$state_data")
 
-        val state: ServerState
+        val state: SpMsServerState
         try {
-            state = Gson().fromJson(state_data)
+            state = json.decodeFromString(state_data)
         }
         catch (e: Throwable) {
             throw RuntimeException("Parsing handshake reply data failed '$state_data'", e)
@@ -234,8 +231,8 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
             service_player.session_started = true
         }
 
-        if (state.state != _state.ordinal) {
-            _state = MediaPlayerState.values()[state.state]
+        if (state.state != _state) {
+            _state = state.state
             listeners.forEach {
                 it.onStateChanged(_state)
                 it.onEvents()
@@ -264,8 +261,8 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
                 it.onEvents()
             }
         }
-        if (state.repeat_mode != _repeat_mode.ordinal) {
-            _repeat_mode = MediaPlayerRepeatMode.values()[state.repeat_mode]
+        if (state.repeat_mode != _repeat_mode) {
+            _repeat_mode = state.repeat_mode
             listeners.forEach {
                 it.onRepeatModeChanged(_repeat_mode)
                 it.onEvents()
@@ -301,20 +298,18 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
                 continue
             }
 
-            val event: Map<String, Any>
+            val event: SpMsPlayerEvent
             try {
-                event = Gson().fromJson(event_str) ?: continue
+                event = json.decodeFromString(event_str) ?: continue
             }
             catch (e: Throwable) {
                 throw RuntimeException("Parsing event failed '$event_str'", e)
             }
 
             try {
-                val type = (event["type"] as String?) ?: continue
-                val properties = (event["properties"] as? Map<String, Any>) ?: continue
-                when (type) {
-                    "ItemTransition" -> {
-                        _current_song_index = (properties["index"] as Double).toInt()
+                when (event.type) {
+                    SpMsPlayerEvent.Type.ITEM_TRANSITION -> {
+                        _current_song_index = event.properties["index"]!!.int
                         _duration_ms = -1
                         updateCurrentSongPosition(0)
                         listeners.forEach { 
@@ -322,12 +317,13 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
                             it.onEvents() 
                         }
                     }
-                    "PropertyChanged" -> {
-                        val value: Any? = properties["value"]
-                        when (properties["key"] as String) {
+                    SpMsPlayerEvent.Type.PROPERTY_CHANGED -> {
+                        val key: String = event.properties["key"]!!.content
+                        val value: JsonPrimitive = event.properties["value"]!!
+                        when (key) {
                             "state" -> {
-                                if (value != _state.ordinal) {
-                                    _state = MediaPlayerState.values()[(value as Double).toInt()]
+                                if (value.int != _state.ordinal) {
+                                    _state = MediaPlayerState.values()[value.int]
                                     listeners.forEach { 
                                         it.onStateChanged(_state)
                                         it.onEvents() 
@@ -335,8 +331,8 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
                                 }
                             }
                             "is_playing" -> {
-                                if (value != _is_playing) {
-                                    updateIsPlaying(value as Boolean)
+                                if (value.boolean != _is_playing) {
+                                    updateIsPlaying(value.boolean)
                                     listeners.forEach { 
                                         it.onPlayingChanged(_is_playing)
                                         it.onEvents() 
@@ -344,8 +340,8 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
                                 }
                             }
                             "repeat_mode" -> {
-                                if (value != _repeat_mode.ordinal) {
-                                    _repeat_mode = MediaPlayerRepeatMode.values()[(value as Double).toInt()]
+                                if (value.int != _repeat_mode.ordinal) {
+                                    _repeat_mode = MediaPlayerRepeatMode.values()[value.int]
                                     listeners.forEach { 
                                         it.onRepeatModeChanged(_repeat_mode)
                                         it.onEvents() 
@@ -353,8 +349,8 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
                                 }
                             }
                             "volume" -> {
-                                if (value != _volume) {
-                                    _volume = (value as Double).toFloat()
+                                if (value.float != _volume) {
+                                    _volume = value.float
                                     listeners.forEach { 
                                         it.onVolumeChanged(_volume)
                                         it.onEvents() 
@@ -362,29 +358,28 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
                                 }
                             }
                             "duration_ms" -> {
-                                val duration = (value as Double).toLong()
-                                if (duration != _duration_ms) {
-                                    _duration_ms = duration
+                                if (value.long != _duration_ms) {
+                                    _duration_ms = value.long
                                     listeners.forEach { 
                                         it.onDurationChanged(_duration_ms)
                                         it.onEvents() 
                                     }
                                 }
                             }
-                            else -> throw NotImplementedError(type)
+                            else -> throw NotImplementedError(key)
                         }
                     }
-                    "Seeked" -> {
-                        val position_ms = (properties["position_ms"] as Double).toLong()
+                    SpMsPlayerEvent.Type.SEEKED -> {
+                        val position_ms: Long = event.properties["position_ms"]!!.long
                         updateCurrentSongPosition(position_ms)
                         listeners.forEach { 
                             it.onSeeked(position_ms)
                             it.onEvents() 
                         }
                     }
-                    "ItemAdded" -> {
-                        val song = SongData(properties["item_id"] as String)
-                        val index = (properties["index"] as Double).toInt()
+                    SpMsPlayerEvent.Type.ITEM_ADDED -> {
+                        val song: SongData = SongData(event.properties["item_id"]!!.content)
+                        val index: Int = event.properties["index"]!!.int
                         playlist.add(index, song)
                         listeners.forEach { 
                             it.onSongAdded(index, song)
@@ -392,24 +387,24 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
                         }
                         service_player.session_started = true
                     }
-                    "ItemRemoved" -> {
-                        val index = (properties["index"] as Double).toInt()
+                    SpMsPlayerEvent.Type.ITEM_REMOVED -> {
+                        val index: Int = event.properties["index"]!!.int
                         playlist.removeAt(index)
                         listeners.forEach { 
                             it.onSongRemoved(index)
                             it.onEvents() 
                         }
                     }
-                    "ItemMoved" -> {
-                        val to = (properties["to"] as Double).toInt()
-                        val from = (properties["from"] as Double).toInt()
+                    SpMsPlayerEvent.Type.ITEM_MOVED -> {
+                        val to: Int = event.properties["to"]!!.int
+                        val from: Int = event.properties["from"]!!.int
                         playlist.add(to, playlist.removeAt(from))
                         listeners.forEach { 
                             it.onSongMoved(from, to)
                             it.onEvents() 
                         }
                     }
-                    else -> throw NotImplementedError(type)
+                    else -> throw NotImplementedError(event.toString())
                 }
             }
             catch (e: Throwable) {

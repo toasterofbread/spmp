@@ -68,7 +68,7 @@ actual class PlatformPlayerService: ZmqSpMsPlayerService(), PlayerService {
             sendRequest("setVolume", value)
         }
 
-    actual override fun isPlayingOverRemoteDevice(): Boolean = false // TODO
+    actual override fun isPlayingOverLatentDevice(): Boolean = false // TODO
 
     private fun onEvent(action: (PlayerListener) -> Unit) {
         for (listener in listeners) {

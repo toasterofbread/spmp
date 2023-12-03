@@ -713,7 +713,7 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
     actual override val has_focus: Boolean
         get() = TODO()
 
-    actual override fun isPlayingOverRemoteDevice(): Boolean {
+    actual override fun isPlayingOverLatentDevice(): Boolean {
         val media_router: MediaRouter = (getSystemService(MEDIA_ROUTER_SERVICE) as MediaRouter?) ?: return false
         val selected_route: MediaRouter.RouteInfo = media_router.getSelectedRoute(MediaRouter.ROUTE_TYPE_LIVE_AUDIO)
 

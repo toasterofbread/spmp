@@ -70,7 +70,7 @@ actual fun SplashExtraLoadingContent(modifier: Modifier) {
             local_server_process = startLocalServer(DesktopSettings.Key.SERVER_PORT.get()) {
                 if (local_server_process != null) {
                     local_server_process = null
-                    local_server_error = RuntimeException(it.toString())
+                    local_server_error = RuntimeException("Local server failed ($it)")
                 }
             }
         }
@@ -142,7 +142,7 @@ actual fun SplashExtraLoadingContent(modifier: Modifier) {
                         Text(getString("error_on_server_command_execution"))
                         ErrorInfoDisplay(
                             state,
-                            show_throw_button = false,
+                            show_throw_button = true,
                             onDismiss = { local_server_error = null },
                             modifier = Modifier.fillMaxWidth()
                         )

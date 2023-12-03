@@ -48,7 +48,7 @@ interface PlayerService {
     var repeat_mode: MediaPlayerRepeatMode
     var volume: Float
 
-    fun isPlayingOverRemoteDevice(): Boolean
+    fun isPlayingOverLatentDevice(): Boolean
 
     fun play()
     fun pause()
@@ -110,7 +110,7 @@ expect class PlatformPlayerService: PlayerService {
     override var repeat_mode: MediaPlayerRepeatMode
     override var volume: Float
 
-    override fun isPlayingOverRemoteDevice(): Boolean
+    override fun isPlayingOverLatentDevice(): Boolean
 
     override fun play()
     override fun pause()

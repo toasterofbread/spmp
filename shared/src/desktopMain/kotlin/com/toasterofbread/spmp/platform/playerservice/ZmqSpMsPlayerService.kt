@@ -37,6 +37,7 @@ import org.zeromq.ZMsg
 import java.net.InetAddress
 
 private const val POLL_STATE_INTERVAL: Long = 100
+private const val POLL_TIMEOUT_MS: Long = 10000
 
 abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
     abstract val listeners: List<PlayerListener>
@@ -67,7 +68,7 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
     }
 
     private val zmq: ZContext = ZContext()
-    private var socket: ZMQ.Socket? = null
+    private lateinit var socket: ZMQ.Socket
     private val json: Json = Json { ignoreUnknownKeys = true }
     private val queued_messages: MutableList<Pair<String, List<Any>>> = mutableListOf()
     private val poll_coroutine_scope: CoroutineScope = CoroutineScope(Job())
@@ -119,25 +120,8 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
     override fun onCreate() {
         context.getPrefs().addListener(prefs_listener)
 
-        socket = zmq.createSocket(SocketType.DEALER).apply {
-            suspend fun tryConnection() {
-                val server_url: String = getServerURL()
-                check(connect(getServerURL()))
-
-                if (!connectToServer(server_url)) {
-                    disconnect(server_url)
-                }
-            }
-
-            connect_coroutine_scope.launch {
-                do {
-                    cancel_connection = false
-                    restart_connection = false
-                    tryConnection()
-                }
-                while (restart_connection)
-            }
-        }
+        socket = zmq.createSocket(SocketType.DEALER)
+        socket.connectToServer()
     }
 
     override fun onDestroy() {
@@ -147,25 +131,33 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
         context.getPrefs().removeListener(prefs_listener)
     }
 
-    private inline fun tryTransaction(transaction: () -> Unit) {
-        while (true) {
-            try {
-                transaction()
-                break
-            }
-            catch (e: Throwable) {
-                if (e.javaClass.name != "org.sqlite.SQLiteException") {
-                    throw e
+    private fun onSocketConnectionLost(expired_timeout_ms: Long) {
+        println("Connection to server timed out after ${expired_timeout_ms}ms, reconnecting...")
+        socket.connectToServer()
+    }
+
+    private fun ZMQ.Socket.connectToServer() {
+        connect_coroutine_scope.launch {
+            do {
+                cancel_connection = false
+                restart_connection = false
+
+                val server_url: String = getServerURL()
+                check(connect(getServerURL()))
+
+                if (!tryConnectToServer(server_url)) {
+                    disconnect(server_url)
                 }
             }
+            while (restart_connection)
         }
     }
 
-    private suspend fun ZMQ.Socket.connectToServer(url: String): Boolean = withContext(Dispatchers.IO) {
+    private suspend fun ZMQ.Socket.tryConnectToServer(url: String): Boolean = withContext(Dispatchers.IO) {
         val client_info: SpMsClientInfo = SpMsClientInfo(getClientName(), SpMsClientType.HEADLESS)
         val handshake_message: ZMsg = ZMsg()
         handshake_message.add(json.encodeToString(client_info))
-        handshake_message.send(this@connectToServer)
+        handshake_message.send(this@tryConnectToServer)
 
         socket_load_state = PlayerServiceLoadState(
             true,
@@ -273,9 +265,16 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
         updateCurrentSongPosition(state.current_position_ms.toLong())
 
         poll_coroutine_scope.launchSingle(Dispatchers.IO) {
+            val context: ZMQ.Context = ZMQ.context(1)
+            val poller: ZMQ.Poller = context.poller()
+            poller.register(this@tryConnectToServer, ZMQ.Poller.POLLIN)
+
             while (true) {
                 delay(POLL_STATE_INTERVAL)
-                pollServerState()
+                if (!pollServerState(poller, POLL_TIMEOUT_MS)) {
+                    onSocketConnectionLost(POLL_TIMEOUT_MS)
+                    break
+                }
             }
         }
 
@@ -289,8 +288,14 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
         return@withContext true
     }
 
-    private fun ZMQ.Socket.pollServerState() {
-        val events: ZMsg = ZMsg.recvMsg(socket ?: return)
+    private fun ZMQ.Socket.pollServerState(poller: ZMQ.Poller, timeout: Long = -1): Boolean {
+        val events: ZMsg
+        if (poller.poll(timeout) > 0) {
+            events = ZMsg.recvMsg(this)
+        }
+        else {
+            return false
+        }
 
         for (i in 0 until events.size) {
             val event_str: String = events.pop().data.decodeToString().removeSuffix("\u0000")
@@ -423,9 +428,9 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
                     reply.add(Gson().toJson(message.second))
                 }
             }
-            reply.send(socket!!)
-
             queued_messages.clear()
+
+            return reply.send(socket!!)
         }
     }
 
@@ -434,5 +439,19 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
         val msg: ZMsg? = ZMsg.recvMsg(this)
         receiveTimeOut = -1
         return msg
+    }
+
+    private inline fun tryTransaction(transaction: () -> Unit) {
+        while (true) {
+            try {
+                transaction()
+                break
+            }
+            catch (e: Throwable) {
+                if (e.javaClass.name != "org.sqlite.SQLiteException") {
+                    throw e
+                }
+            }
+        }
     }
 }

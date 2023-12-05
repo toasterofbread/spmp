@@ -148,7 +148,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
 
     @OptIn(ExperimentalComposeUiApi::class)
     @Composable
-    override fun ColumnScope.SFFPage(
+    override fun ColumnScope.Page(
         multiselect_context: MediaItemMultiSelectContext,
         modifier: Modifier,
         content_padding: PaddingValues,

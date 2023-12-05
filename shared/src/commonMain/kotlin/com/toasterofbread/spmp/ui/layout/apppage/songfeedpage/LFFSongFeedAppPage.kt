@@ -50,7 +50,6 @@ import com.toasterofbread.spmp.ui.layout.PinnedItemsRow
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.FeedLoadState
 import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SongFeedAppPage.LFFSongFeedAppPage(
     multiselect_context: MediaItemMultiSelectContext,

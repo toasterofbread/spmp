@@ -3,6 +3,8 @@ package com.toasterofbread.spmp.platform.playerservice
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonPrimitive
 
+const val SERVER_EXPECT_REPLY_CHAR: Char = '!'
+
 @Serializable
 internal data class SpMsPlayerEvent(val type: Type, val properties: Map<String, JsonPrimitive> = emptyMap()) {
     enum class Type {
@@ -30,11 +32,19 @@ internal data class SpMsServerState(
 )
 
 @Serializable
+internal data class SpMsClientHandshake(
+    val name: String,
+    val type: SpMsClientType,
+    val language: String
+)
+
+@Serializable
 internal data class SpMsClientInfo(
     val name: String,
-    val type: SpMsClientType
+    val type: SpMsClientType,
+    val language: String
 )
 
 internal enum class SpMsClientType {
-    HEADLESS, PLAYER
+    PLAYER, HEADLESS_PLAYER
 }

@@ -37,8 +37,8 @@ import com.toasterofbread.spmp.model.settings.category.OverscrollClearMode
 import com.toasterofbread.spmp.model.settings.category.PlayerSettings
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.model.settings.rememberMutableEnumState
-import com.toasterofbread.spmp.platform.isLargeFormFactor
-import com.toasterofbread.spmp.platform.isPortrait
+import com.toasterofbread.spmp.platform.FormFactor
+import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
@@ -57,6 +57,7 @@ private const val GRADIENT_BOTTOM_PADDING_DP = 100
 private const val GRADIENT_TOP_START_RATIO = 0.7f
 private const val OVERSCROLL_CLEAR_DISTANCE_THRESHOLD_DP = 5f
 
+@OptIn(ExperimentalMaterialApi::class)
 internal fun PlayerState.getNPBackground(theme_mode: ThemeMode = np_theme_mode): Color {
     val pages: List<NowPlayingPage> = NowPlayingPage.ALL.filter { it.shouldShow(this) }
 
@@ -206,9 +207,9 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
         val song_gradient_depth: Float? =
             player.status.m_song?.PlayerGradientDepth?.observe(player.database)?.value
 
-        val large_page_showing: Boolean = !player.isPortrait() && player.isLargeFormFactor()
+        val is_desktop: Boolean = player.form_factor == FormFactor.DESKTOP
 
-        val swipe_modifier: Modifier = remember(swipe_anchors, large_page_showing) {
+        val swipe_modifier: Modifier = remember(swipe_anchors, is_desktop) {
             Modifier.swipeable(
                 state = swipe_state,
                 anchors = swipe_anchors,
@@ -216,7 +217,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
                 orientation = Orientation.Vertical,
                 reverseDirection = true,
                 interactionSource = swipe_interaction_source,
-                enabled = !large_page_showing
+                enabled = !is_desktop
             )
         }
 
@@ -330,7 +331,7 @@ private fun NowPlayingCardContent(page_height: Dp, content_padding: PaddingValue
                 val spacer_height: Dp
                 val top_inset: Dp = WindowInsets.statusBars.getTop()
 
-                if (player.isPortrait() || top_inset <= 2.dp) {
+                if (player.form_factor == FormFactor.PORTRAIT || top_inset <= 2.dp) {
                     spacer_height = lerp(MINIMISED_NOW_PLAYING_V_PADDING_DP.dp, WindowInsets.statusBars.getTop(), expansion.get().coerceIn(0f, 1f))
                 }
                 else {

@@ -56,7 +56,7 @@ enum class FeedLoadState { PREINIT, NONE, LOADING, CONTINUING }
 
 @Composable
 fun PlayerState.getMainPageItemSize(): DpSize {
-    val width = if (isLargeFormFactor()) MEDIAITEM_PREVIEW_SQUARE_SIZE_LARGE.dp else MEDIAITEM_PREVIEW_SQUARE_SIZE_SMALL.dp
+    val width = if (form_factor.is_large) MEDIAITEM_PREVIEW_SQUARE_SIZE_LARGE.dp else MEDIAITEM_PREVIEW_SQUARE_SIZE_SMALL.dp
     return DpSize(
         width,
         width + 30.dp
@@ -76,7 +76,7 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
         coroutine_scope.launch {
             np_swipe_state.value.animateTo(
                 page,
-                when (NowPlayingMainTabPage.Mode.getCurrent(this@PlayerStateImpl)) {
+                when (form_factor) {
 //                    NowPlayingMainTabPage.Mode.LARGE -> spring(Spring.DampingRatioNoBouncy, Spring.StiffnessMediumLow)
                     else -> spring()
                 }

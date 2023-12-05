@@ -419,6 +419,12 @@
 
     <string name="s_key_current_theme">Current theme</string>
     <string name="s_theme_editor_title">Edit theme</string>
+    <string name="s_theme_editor_field_name">Name</string>
+    <string name="s_theme_editor_field_background">Background</string>
+    <string name="s_theme_editor_field_on_background">On background</string>
+    <string name="s_theme_editor_field_card">Card</string>
+    <string name="s_theme_editor_field_accent">Accent</string>
+    <string name="s_theme_editor_button_preview">Preview</string>
 
     <string name="s_key_accent_source">Accent colour</string>
     <string name="s_option_accent_theme">From theme</string>

@@ -17,6 +17,7 @@ class AppPageState(val player: PlayerState) {
     val Library = LibraryAppPage(this)
     val Search = SearchAppPage(this, context)
     val RadioBuilder = RadioBuilderAppPage(this)
+    val Notifications = NotificationsAppPage(this)
 
     private var settings: SettingsAppPage? = null
     val Settings: SettingsAppPage

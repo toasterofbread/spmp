@@ -11,46 +11,34 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.utils.common.blendWith
 import com.toasterofbread.composekit.utils.common.getThemeColour
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.isLargeFormFactor
-import com.toasterofbread.spmp.platform.isPortrait
+import com.toasterofbread.spmp.platform.FormFactor
+import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
-import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import kotlinx.coroutines.delay
 
 private const val ACCENT_CLEAR_WAIT_TIME_MS: Long = 1000
 private const val NARROW_PLAYER_MAX_SIZE_DP: Float = 120f
 
-class NowPlayingMainTabPage: NowPlayingPage() {
-    enum class Mode {
-        PORTRAIT, LANDSCAPE, LARGE;
-
-        fun getMinimisedPlayerHeight(): Dp =
-            when (this) {
-                LARGE -> 80.dp
-                else -> 64.dp
-            }
-
-        fun getMinimisedPlayerVPadding(): Dp =
-            when (this) {
-                LARGE -> 10.dp
-                else -> 7.dp
-            }
-
-        companion object {
-            fun getCurrent(player: PlayerState): Mode =
-                if (player.isPortrait()) PORTRAIT
-                else if (player.isLargeFormFactor()) LARGE
-                else LANDSCAPE
-        }
+fun FormFactor.getMinimisedPlayerHeight(): Dp =
+    when (this) {
+        FormFactor.DESKTOP -> 80.dp
+        else -> 64.dp
     }
+
+fun FormFactor.getMinimisedPlayerVPadding(): Dp =
+    when (this) {
+        FormFactor.DESKTOP -> 10.dp
+        else -> 7.dp
+    }
+
+class NowPlayingMainTabPage: NowPlayingPage() {
 
     private var theme_colour by mutableStateOf<Color?>(null)
     private var colour_song: Song? by mutableStateOf(null)
@@ -95,7 +83,7 @@ class NowPlayingMainTabPage: NowPlayingPage() {
     override fun shouldShow(player: PlayerState): Boolean = true
 
     override fun getPlayerBackgroundColourOverride(player: PlayerState): Color? {
-        if (!player.isPortrait() && player.isLargeFormFactor()) {
+        if (player.form_factor == FormFactor.DESKTOP) {
             return player.theme.accent.blendWith(player.theme.background, 0.05f)
 //            return player.theme.background.blendWith(accented_background, player.expansion.getBounded())
         }
@@ -136,14 +124,12 @@ class NowPlayingMainTabPage: NowPlayingPage() {
             else if (maxHeight <= NARROW_PLAYER_MAX_SIZE_DP.dp) {
                 NowPlayingMainTabNarrow(page_height, top_bar, content_padding, false)
             }
-            else if (player.isPortrait()) {
-                NowPlayingMainTabPortrait(page_height, top_bar, content_padding)
-            }
-            else if (player.isLargeFormFactor()) {
-                NowPlayingMainTabLarge(page_height, top_bar, content_padding)
-            }
             else {
-                NowPlayingMainTabLandscape(page_height, top_bar, content_padding)
+                when (player.form_factor) {
+                    FormFactor.PORTRAIT -> NowPlayingMainTabPortrait(page_height, top_bar, content_padding)
+                    FormFactor.LANDSCAPE -> NowPlayingMainTabLandscape(page_height, top_bar, content_padding)
+                    FormFactor.DESKTOP -> NowPlayingMainTabLarge(page_height, top_bar, content_padding)
+                }
             }
         }
     }

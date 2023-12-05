@@ -19,7 +19,13 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
         ThemeSelectorSettingsItem(
             SettingsValueState(ThemeSettings.Key.CURRENT_THEME.getName()),
             getString("s_key_current_theme"), null,
-            getString("s_theme_editor_title"),
+            str_editor_title = getString("s_theme_editor_title"),
+            str_field_name = getString("s_theme_editor_field_name"),
+            str_field_background = getString("s_theme_editor_field_background"),
+            str_field_on_background = getString("s_theme_editor_field_on_background"),
+            str_field_card = getString("s_theme_editor_field_card"),
+            str_field_accent = getString("s_theme_editor_field_accent"),
+            str_button_preview = getString("s_theme_editor_button_preview"),
             { theme.getThemeCount() },
             { theme.getThemes()[it] },
             { index: Int, edited_theme: ThemeData ->

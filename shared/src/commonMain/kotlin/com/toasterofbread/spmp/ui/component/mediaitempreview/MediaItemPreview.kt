@@ -50,9 +50,8 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.download.DownloadStatus
-import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
-import com.toasterofbread.spmp.platform.isLargeFormFactor
 import com.toasterofbread.spmp.platform.download.rememberDownloadStatus
+import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
@@ -61,9 +60,9 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 
 val MEDIA_ITEM_PREVIEW_LONG_HEIGHT_DP: Float
-    @Composable get() = if (LocalPlayerState.current.isLargeFormFactor()) 100f else 50f
+    @Composable get() = if (LocalPlayerState.current.form_factor.is_large) 100f else 50f
 val MEDIA_ITEM_PREVIEW_SQUARE_FONT_SIZE_SP: Float
-    @Composable get() = if (LocalPlayerState.current.isLargeFormFactor()) 15f else 12f
+    @Composable get() = if (LocalPlayerState.current.form_factor.is_large) 15f else 12f
 
 const val MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP: Float = 20f
 private const val INFO_SPLITTER: String = "\u2022"
@@ -171,7 +170,7 @@ fun MediaItemPreviewSquare(
             }
 
             val item_title: String? by loaded_item.observeActiveTitle()
-            val max_lines: Int = max_text_rows ?: if (player.isLargeFormFactor()) 2 else 1
+            val max_lines: Int = max_text_rows ?: if (player.form_factor.is_large) 2 else 1
 
             Text(
                 item_title ?: "",
@@ -181,7 +180,7 @@ fun MediaItemPreviewSquare(
                 lineHeight = line_height,
                 maxLines = max_lines,
                 overflow = if (max_lines == 1) TextOverflow.Ellipsis else TextOverflow.Clip,
-                textAlign = if (player.isLargeFormFactor()) TextAlign.Start else TextAlign.Center
+                textAlign = if (player.form_factor.is_large) TextAlign.Start else TextAlign.Center
             )
 
             val download_status: DownloadStatus? by (loaded_item as? Song)?.rememberDownloadStatus()
@@ -210,7 +209,7 @@ fun MediaItemPreviewLong(
     show_artist: Boolean = true,
     show_download_indicator: Boolean = true,
     title_lines: Int = 1,
-    font_size: TextUnit = if (LocalPlayerState.current.isLargeFormFactor()) 20.sp else 15.sp,
+    font_size: TextUnit = if (LocalPlayerState.current.form_factor.is_large) 20.sp else 15.sp,
     getExtraInfo: (@Composable () -> List<String>)? = null,
     multiselect_context: MediaItemMultiSelectContext? = null,
     multiselect_key: Int? = null,

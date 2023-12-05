@@ -41,8 +41,8 @@ import androidx.compose.ui.unit.sp
 import com.toasterofbread.composekit.utils.composable.OnChangedEffect
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
+import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.platform.generatePalette
-import com.toasterofbread.spmp.platform.isLargeFormFactor
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
@@ -50,7 +50,7 @@ import kotlin.math.roundToInt
 
 val DEFAULT_THUMBNAIL_ROUNDING: Int
     @Composable get() =
-        if (LocalPlayerState.current.isLargeFormFactor()) 0
+        if (LocalPlayerState.current.form_factor.is_large) 0
         else 5
 
 const val MIN_THUMBNAIL_ROUNDING: Int = 0

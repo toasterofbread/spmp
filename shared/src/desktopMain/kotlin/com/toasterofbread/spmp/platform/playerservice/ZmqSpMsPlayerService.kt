@@ -13,6 +13,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.settings.category.DesktopSettings
 import com.toasterofbread.spmp.platform.PlatformServiceImpl
 import com.toasterofbread.spmp.platform.PlayerListener
+import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
 import kotlinx.coroutines.CoroutineScope
@@ -76,17 +77,17 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
     private var cancel_connection: Boolean = false
     private var restart_connection: Boolean = false
 
-    protected var playlist: MutableList<Song> = mutableListOf()
+    internal var playlist: MutableList<Song> = mutableListOf()
         private set
 
-    protected var _state: MediaPlayerState = MediaPlayerState.IDLE
-    protected var _is_playing: Boolean = false
-    protected var _current_song_index: Int = -1
-    protected var _duration_ms: Long = -1
-    protected var _radio_state: RadioInstance.RadioState = RadioInstance.RadioState()
-    protected var _repeat_mode: MediaPlayerRepeatMode = MediaPlayerRepeatMode.NONE
-    protected var _volume: Float = 1f
-    protected var current_song_time: Long = -1
+    internal var _state: MediaPlayerState = MediaPlayerState.IDLE
+    internal var _is_playing: Boolean = false
+    internal var _current_song_index: Int = -1
+    internal var _duration_ms: Long = -1
+    internal var _radio_state: RadioInstance.RadioState = RadioInstance.RadioState()
+    internal var _repeat_mode: MediaPlayerRepeatMode = MediaPlayerRepeatMode.NONE
+    internal var _volume: Float = 1f
+    internal var current_song_time: Long = -1
 
     protected fun sendRequest(action: String, vararg params: Any) {
         synchronized(queued_messages) {
@@ -94,7 +95,7 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
         }
     }
 
-    protected fun updateIsPlaying(playing: Boolean) {
+    internal fun updateIsPlaying(playing: Boolean) {
         if (playing == _is_playing) {
             return
         }
@@ -104,7 +105,7 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
         updateCurrentSongPosition(position_ms)
     }
 
-    protected fun updateCurrentSongPosition(position_ms: Long) {
+    internal fun updateCurrentSongPosition(position_ms: Long) {
         require(position_ms >= 0) { position_ms }
         if (_is_playing) {
             current_song_time = System.currentTimeMillis() - position_ms
@@ -143,149 +144,38 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
                 restart_connection = false
 
                 val server_url: String = getServerURL()
-                check(connect(getServerURL()))
+                val handshake: SpMsClientHandshake = SpMsClientHandshake(getClientName(), SpMsClientType.HEADLESS_PLAYER, context.getUiLanguage())
 
-                if (!tryConnectToServer(server_url)) {
+                if (
+                    !tryConnectToServer(
+                        socket = this@connectToServer,
+                        server_url = server_url,
+                        handshake = handshake,
+                        json = json,
+                        shouldCancelConnection = { cancel_connection },
+                        setLoadState = { socket_load_state = it }
+                    )
+                ) {
                     disconnect(server_url)
+                    continue
+                }
+
+                poll_coroutine_scope.launchSingle(Dispatchers.IO) {
+                    val context: ZMQ.Context = ZMQ.context(1)
+                    val poller: ZMQ.Poller = context.poller()
+                    poller.register(socket, ZMQ.Poller.POLLIN)
+
+                    while (true) {
+                        delay(POLL_STATE_INTERVAL)
+                        if (!pollServerState(poller, POLL_TIMEOUT_MS)) {
+                            onSocketConnectionLost(POLL_TIMEOUT_MS)
+                            break
+                        }
+                    }
                 }
             }
             while (restart_connection)
         }
-    }
-
-    private suspend fun ZMQ.Socket.tryConnectToServer(url: String): Boolean = withContext(Dispatchers.IO) {
-        val client_info: SpMsClientInfo = SpMsClientInfo(getClientName(), SpMsClientType.HEADLESS)
-        val handshake_message: ZMsg = ZMsg()
-        handshake_message.add(json.encodeToString(client_info))
-        handshake_message.send(this@tryConnectToServer)
-
-        socket_load_state = PlayerServiceLoadState(
-            true,
-            getString("desktop_splash_connecting_to_server_at_\$x").replace("\$x", url)
-        )
-
-        println("Waiting for reply from server at $url...")
-
-        var reply: ZMsg? = null
-        while (reply == null) {
-            reply = recvMsg(500)
-
-            if (cancel_connection) {
-                return@withContext false
-            }
-        }
-
-        val state_data: String = reply.first.data.decodeToString().trimEnd { it == '\u0000' }
-        println("Received handshake reply from server with the following state data:\n$state_data")
-
-        val state: SpMsServerState
-        try {
-            state = json.decodeFromString(state_data)
-        }
-        catch (e: Throwable) {
-            throw RuntimeException("Parsing handshake reply data failed '$state_data'", e)
-        }
-
-        socket_load_state = PlayerServiceLoadState(
-            true,
-            getString("desktop_splash_setting_initial_state")
-        )
-
-        assert(playlist.isEmpty())
-
-        val items: Array<Song?> = arrayOfNulls(state.queue.size)
-
-        state.queue.mapIndexed { i, id ->
-            launch {
-                val song: Song = SongRef(id)
-                tryTransaction {
-                    song.loadData(context).onSuccess { data ->
-                        data.saveToDatabase(context.database)
-
-                        data.artist?.also { artist ->
-                            this@withContext.launch {
-                                tryTransaction {
-                                    artist.loadData(context).onSuccess { artist_data ->
-                                        artist_data.saveToDatabase(context.database)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                items[i] = song
-            }
-        }.joinAll()
-
-        playlist.addAll(items.filterNotNull())
-
-        if (playlist.isNotEmpty()) {
-            service_player.session_started = true
-        }
-
-        if (state.state != _state) {
-            _state = state.state
-            listeners.forEach {
-                it.onStateChanged(_state)
-                it.onEvents()
-            }
-        }
-        if (state.is_playing != _is_playing) {
-            _is_playing = state.is_playing
-            listeners.forEach {
-                it.onPlayingChanged(_is_playing)
-                it.onEvents()
-            }
-        }
-        if (state.current_item_index != _current_song_index) {
-            _current_song_index = state.current_item_index
-
-            val song = playlist.getOrNull(_current_song_index)
-            listeners.forEach {
-                it.onSongTransition(song, false)
-                it.onEvents()
-            }
-        }
-        if (state.volume != _volume) {
-            _volume = state.volume
-            listeners.forEach {
-                it.onVolumeChanged(_volume)
-                it.onEvents()
-            }
-        }
-        if (state.repeat_mode != _repeat_mode) {
-            _repeat_mode = state.repeat_mode
-            listeners.forEach {
-                it.onRepeatModeChanged(_repeat_mode)
-                it.onEvents()
-            }
-        }
-
-        _duration_ms = state.duration_ms.toLong()
-        updateCurrentSongPosition(state.current_position_ms.toLong())
-
-        poll_coroutine_scope.launchSingle(Dispatchers.IO) {
-            val context: ZMQ.Context = ZMQ.context(1)
-            val poller: ZMQ.Poller = context.poller()
-            poller.register(this@tryConnectToServer, ZMQ.Poller.POLLIN)
-
-            while (true) {
-                delay(POLL_STATE_INTERVAL)
-                if (!pollServerState(poller, POLL_TIMEOUT_MS)) {
-                    onSocketConnectionLost(POLL_TIMEOUT_MS)
-                    break
-                }
-            }
-        }
-
-        socket_load_state = PlayerServiceLoadState(false)
-
-        listeners.forEach {
-            it.onDurationChanged(_duration_ms)
-            it.onEvents()
-        }
-
-        return@withContext true
     }
 
     private fun ZMQ.Socket.pollServerState(poller: ZMQ.Poller, timeout: Long = -1): Boolean {
@@ -312,105 +202,7 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
             }
 
             try {
-                when (event.type) {
-                    SpMsPlayerEvent.Type.ITEM_TRANSITION -> {
-                        _current_song_index = event.properties["index"]!!.int
-                        _duration_ms = -1
-                        updateCurrentSongPosition(0)
-                        listeners.forEach { 
-                            it.onSongTransition(getSong(_current_song_index), false)
-                            it.onEvents() 
-                        }
-                    }
-                    SpMsPlayerEvent.Type.PROPERTY_CHANGED -> {
-                        val key: String = event.properties["key"]!!.content
-                        val value: JsonPrimitive = event.properties["value"]!!
-                        when (key) {
-                            "state" -> {
-                                if (value.int != _state.ordinal) {
-                                    _state = MediaPlayerState.values()[value.int]
-                                    listeners.forEach { 
-                                        it.onStateChanged(_state)
-                                        it.onEvents() 
-                                    }
-                                }
-                            }
-                            "is_playing" -> {
-                                if (value.boolean != _is_playing) {
-                                    updateIsPlaying(value.boolean)
-                                    listeners.forEach { 
-                                        it.onPlayingChanged(_is_playing)
-                                        it.onEvents() 
-                                    }
-                                }
-                            }
-                            "repeat_mode" -> {
-                                if (value.int != _repeat_mode.ordinal) {
-                                    _repeat_mode = MediaPlayerRepeatMode.values()[value.int]
-                                    listeners.forEach { 
-                                        it.onRepeatModeChanged(_repeat_mode)
-                                        it.onEvents() 
-                                    }
-                                }
-                            }
-                            "volume" -> {
-                                if (value.float != _volume) {
-                                    _volume = value.float
-                                    listeners.forEach { 
-                                        it.onVolumeChanged(_volume)
-                                        it.onEvents() 
-                                    }
-                                }
-                            }
-                            "duration_ms" -> {
-                                if (value.long != _duration_ms) {
-                                    _duration_ms = value.long
-                                    listeners.forEach { 
-                                        it.onDurationChanged(_duration_ms)
-                                        it.onEvents() 
-                                    }
-                                }
-                            }
-                            else -> throw NotImplementedError(key)
-                        }
-                    }
-                    SpMsPlayerEvent.Type.SEEKED -> {
-                        val position_ms: Long = event.properties["position_ms"]!!.long
-                        updateCurrentSongPosition(position_ms)
-                        listeners.forEach { 
-                            it.onSeeked(position_ms)
-                            it.onEvents() 
-                        }
-                    }
-                    SpMsPlayerEvent.Type.ITEM_ADDED -> {
-                        val song: SongData = SongData(event.properties["item_id"]!!.content)
-                        val index: Int = event.properties["index"]!!.int
-                        playlist.add(index, song)
-                        listeners.forEach { 
-                            it.onSongAdded(index, song)
-                            it.onEvents() 
-                        }
-                        service_player.session_started = true
-                    }
-                    SpMsPlayerEvent.Type.ITEM_REMOVED -> {
-                        val index: Int = event.properties["index"]!!.int
-                        playlist.removeAt(index)
-                        listeners.forEach { 
-                            it.onSongRemoved(index)
-                            it.onEvents() 
-                        }
-                    }
-                    SpMsPlayerEvent.Type.ITEM_MOVED -> {
-                        val to: Int = event.properties["to"]!!.int
-                        val from: Int = event.properties["from"]!!.int
-                        playlist.add(to, playlist.removeAt(from))
-                        listeners.forEach { 
-                            it.onSongMoved(from, to)
-                            it.onEvents() 
-                        }
-                    }
-                    else -> throw NotImplementedError(event.toString())
-                }
+                applyPlayerEvent(event)
             }
             catch (e: Throwable) {
                 throw RuntimeException("Processing event $event failed", e)
@@ -430,28 +222,7 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
             }
             queued_messages.clear()
 
-            return reply.send(socket!!)
-        }
-    }
-
-    private fun ZMQ.Socket.recvMsg(timeout_ms: Long?): ZMsg? {
-        receiveTimeOut = timeout_ms?.toInt() ?: -1
-        val msg: ZMsg? = ZMsg.recvMsg(this)
-        receiveTimeOut = -1
-        return msg
-    }
-
-    private inline fun tryTransaction(transaction: () -> Unit) {
-        while (true) {
-            try {
-                transaction()
-                break
-            }
-            catch (e: Throwable) {
-                if (e.javaClass.name != "org.sqlite.SQLiteException") {
-                    throw e
-                }
-            }
+            return reply.send(this@pollServerState)
         }
     }
 }

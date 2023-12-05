@@ -25,8 +25,7 @@ data object YoutubeAuthSettings: SettingsCategory("ytauth") {
             override fun getTitleItem(context: AppContext): SettingsItem? =
                 getYtmAuthItem(
                     context,
-                    SettingsValueState<Set<String>>(Key.YTM_AUTH.getName())
-                        .init(context.getPrefs(), Settings::provideDefault),
+                    SettingsValueState<Set<String>>(Key.YTM_AUTH.getName()).init(context.getPrefs(), Settings::provideDefault),
                     true
                 )
         }

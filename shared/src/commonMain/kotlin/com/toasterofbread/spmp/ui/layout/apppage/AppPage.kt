@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.composable.ScrollBarLazyRow
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
-import com.toasterofbread.spmp.platform.isLargeFormFactor
+import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 
 abstract class AppPageWithItem : AppPage() {
@@ -26,38 +26,12 @@ abstract class AppPage {
     abstract val state: AppPageState
 
     @Composable
-    fun ColumnScope.Page(
-        multiselect_context: MediaItemMultiSelectContext,
-        modifier: Modifier,
-        content_padding: PaddingValues,
-        close: () -> Unit
-    ) {
-        val player = LocalPlayerState.current
-        if (player.isLargeFormFactor()) {
-            LFFPage(multiselect_context, modifier, content_padding, close)
-        }
-        else {
-            SFFPage(multiselect_context, modifier, content_padding, close)
-        }
-    }
-
-    @Composable
-    abstract fun ColumnScope.SFFPage(
+    abstract fun ColumnScope.Page(
         multiselect_context: MediaItemMultiSelectContext,
         modifier: Modifier,
         content_padding: PaddingValues,
         close: () -> Unit
     )
-
-    @Composable
-    open fun ColumnScope.LFFPage(
-        multiselect_context: MediaItemMultiSelectContext,
-        modifier: Modifier,
-        content_padding: PaddingValues,
-        close: () -> Unit
-    ) {
-        SFFPage(multiselect_context, modifier, content_padding, close)
-    }
 
     @Composable
     open fun showTopBar() = false

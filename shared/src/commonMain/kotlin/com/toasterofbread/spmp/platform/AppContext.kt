@@ -14,7 +14,6 @@ import com.google.gson.GsonBuilder
 import com.google.gson.TypeAdapter
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
-import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.platform.PlatformContext
 import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.platform.PlatformPreferencesListener
@@ -31,8 +30,6 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import java.util.Locale
-
-private const val MIN_PORTRAIT_RATIO: Float = 1f / 1.2f
 
 internal class ThemeImpl(private val context: AppContext): Theme(getString("theme_title_system")) {
     private val gson: Gson
@@ -119,21 +116,10 @@ expect class AppContext: PlatformContext {
     fun getPrefs(): PlatformPreferences
 }
 
-fun PlayerState.isPortrait(): Boolean {
-    return (screen_size.width / screen_size.height) <= MIN_PORTRAIT_RATIO
-}
-
-fun PlayerState.isLargeFormFactor(): Boolean {
-    return when (Platform.current) {
-        Platform.ANDROID -> false
-        Platform.DESKTOP -> screen_size.width >= 500.dp && screen_size.height >= 500.dp
-    }
-}
-
 @Composable
-fun PlayerState.getDefaultHorizontalPadding(): Dp = if (isLargeFormFactor()) 30.dp else 10.dp
+fun PlayerState.getDefaultHorizontalPadding(): Dp = if (form_factor.is_large) 30.dp else 10.dp
 @Composable
-fun PlayerState.getDefaultVerticalPadding(): Dp = if (isLargeFormFactor()) 30.dp else 10.dp // TODO
+fun PlayerState.getDefaultVerticalPadding(): Dp = if (form_factor.is_large) 30.dp else 10.dp // TODO
 
 @Composable
 fun PlayerState.getDefaultPaddingValues(): PaddingValues = PaddingValues(horizontal = getDefaultHorizontalPadding(), vertical = getDefaultVerticalPadding())

@@ -405,6 +405,12 @@
 
     <string name="s_key_current_theme">現在のテーマ</string>
     <string name="s_theme_editor_title">テーマを変更する</string>
+    <string name="s_theme_editor_field_name">名前</string>
+    <string name="s_theme_editor_field_background">バックグラウンド</string>
+    <string name="s_theme_editor_field_on_background">バックグラウンドのの上</string>
+    <string name="s_theme_editor_field_card">カード</string>
+    <string name="s_theme_editor_field_accent">アクセント</string>
+    <string name="s_theme_editor_button_preview">プレビュー</string>
 
     <string name="s_key_accent_source">アクセント色</string>
     <string name="s_option_accent_theme">テーマから</string>

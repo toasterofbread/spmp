@@ -35,6 +35,8 @@ import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.FeedSettings
 import com.toasterofbread.spmp.model.settings.mutableSettingsState
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.FormFactor
+import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
@@ -77,7 +79,8 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
     }
 
     @Composable
-    override fun showTopBar(): Boolean = true
+    override fun showTopBar(): Boolean =
+        LocalPlayerState.current.form_factor == FormFactor.PORTRAIT
 
     @Composable
     override fun showTopBarContent(): Boolean = true
@@ -125,23 +128,17 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
     }
 
     @Composable
-    override fun ColumnScope.SFFPage(
+    override fun ColumnScope.Page(
         multiselect_context: MediaItemMultiSelectContext,
         modifier: Modifier,
         content_padding: PaddingValues,
         close: () -> Unit
     ) {
-        SFFSongFeedAppPage(multiselect_context, modifier, content_padding, close)
-    }
-
-    @Composable
-    override fun ColumnScope.LFFPage(
-        multiselect_context: MediaItemMultiSelectContext,
-        modifier: Modifier,
-        content_padding: PaddingValues,
-        close: () -> Unit
-    ) {
-        LFFSongFeedAppPage(multiselect_context, modifier, content_padding, close)
+        val player: PlayerState = LocalPlayerState.current
+        when (player.form_factor) {
+            FormFactor.PORTRAIT -> SFFSongFeedAppPage(multiselect_context, modifier, content_padding, close)
+            FormFactor.LANDSCAPE, FormFactor.DESKTOP -> LFFSongFeedAppPage(multiselect_context, modifier, content_padding, close)
+        }
     }
 
     internal fun loadFeed(continuation: Boolean) {

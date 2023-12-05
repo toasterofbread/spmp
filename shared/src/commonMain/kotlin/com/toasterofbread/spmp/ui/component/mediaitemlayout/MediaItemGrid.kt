@@ -50,7 +50,7 @@ import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreview
 import com.toasterofbread.spmp.model.mediaitem.layout.getMediaItemPreviewSquareAdditionalHeight
 import com.toasterofbread.spmp.model.mediaitem.layout.shouldShowTitleBar
 import com.toasterofbread.spmp.model.mediaitem.rememberFilteredItems
-import com.toasterofbread.spmp.platform.isLargeFormFactor
+import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_LONG_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP
@@ -119,7 +119,7 @@ fun MediaItemGrid(
     val expanded_row_count: Int = rows?.second ?: row_count
 
     val item_spacing: Arrangement.HorizontalOrVertical = Arrangement.spacedBy(
-        (if (alt_style) 7.dp else 15.dp) * (if (player.isLargeFormFactor()) 3f else 1f)
+        (if (alt_style) 7.dp else 15.dp) * (if (player.form_factor.is_large) 3f else 1f)
     )
     val item_size: DpSize =
         if (alt_style) DpSize(0.dp, MEDIA_ITEM_PREVIEW_LONG_HEIGHT_DP.dp)
@@ -186,7 +186,7 @@ fun MediaItemGrid(
                         val item = filtered_items[i].item
                         val preview_modifier = Modifier.animateItemPlacement().then(
                             if (alt_style)
-                                if (player.isLargeFormFactor()) Modifier.width(300.dp)
+                                if (player.form_factor.is_large) Modifier.width(300.dp)
                                 else Modifier.width(maxWidth * 0.9f)
                             else Modifier.size(item_size)
                         )

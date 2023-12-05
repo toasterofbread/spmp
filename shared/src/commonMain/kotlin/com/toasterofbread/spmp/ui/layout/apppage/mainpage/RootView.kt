@@ -1,8 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.apppage.mainpage
 
 import LocalPlayerState
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,26 +8,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.isPrimaryPressed
-import androidx.compose.ui.input.pointer.isSecondaryPressed
-import androidx.compose.ui.input.pointer.isTertiaryPressed
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.DpSize
 import com.toasterofbread.composekit.utils.modifier.background
-import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NowPlayingMainTabPage
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.isActive
+import com.toasterofbread.spmp.platform.form_factor
+import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.getMinimisedPlayerHeight
+import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.getMinimisedPlayerVPadding
 
 val MINIMISED_NOW_PLAYING_HEIGHT_DP: Float
-    @Composable get() = NowPlayingMainTabPage.Mode.getCurrent(LocalPlayerState.current).getMinimisedPlayerHeight().value
+    @Composable get() = LocalPlayerState.current.form_factor.getMinimisedPlayerHeight().value
 val MINIMISED_NOW_PLAYING_V_PADDING_DP: Float
-    @Composable get() = NowPlayingMainTabPage.Mode.getCurrent(LocalPlayerState.current).getMinimisedPlayerVPadding().value
+    @Composable get() = LocalPlayerState.current.form_factor.getMinimisedPlayerVPadding().value
 const val MEDIAITEM_PREVIEW_SQUARE_SIZE_SMALL: Float = 100f
 const val MEDIAITEM_PREVIEW_SQUARE_SIZE_LARGE: Float = 200f
 

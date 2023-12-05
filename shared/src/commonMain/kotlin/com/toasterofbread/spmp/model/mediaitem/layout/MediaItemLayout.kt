@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.isLargeFormFactor
+import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemList
@@ -23,7 +23,7 @@ import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
 
 @Composable
 fun getDefaultMediaItemPreviewSize(): DpSize =
-    if (LocalPlayerState.current.isLargeFormFactor()) DpSize(180.dp, 200.dp)
+    if (LocalPlayerState.current.form_factor.is_large) DpSize(180.dp, 200.dp)
     else DpSize(100.dp, 120.dp)
 
 @Composable

@@ -9,7 +9,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.utils.composable.getTop
-import com.toasterofbread.spmp.platform.isLargeFormFactor
+import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NowPlayingMainTabPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.NowPlayingQueuePage
@@ -27,7 +27,7 @@ abstract class NowPlayingPage {
     companion object {
         @Composable
         private fun getMainPadding(): Dp =
-            if (LocalPlayerState.current.isLargeFormFactor()) NOW_PLAYING_MAIN_PADDING_LARGE_DP.dp
+            if (LocalPlayerState.current.form_factor.is_large) NOW_PLAYING_MAIN_PADDING_LARGE_DP.dp
             else NOW_PLAYING_MAIN_PADDING_DP.dp
 
         val top_padding: Dp

@@ -34,6 +34,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistDefaultThum
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import kotlinx.coroutines.CoroutineScope
 
 private suspend inline fun MediaItem.loadThumb(
     player: PlayerState,
@@ -74,9 +75,9 @@ fun MediaItem.Thumbnail(
 ) {
     require(this !is LocalPlaylistRef) { "LocalPlaylistRef must be loaded and passed as a LocalPlaylistData" }
 
-    val player = LocalPlayerState.current
-    var loading by remember { mutableStateOf(true) }
-    val coroutine_scope = rememberCoroutineScope()
+    val player: PlayerState = LocalPlayerState.current
+    var loading: Boolean by remember { mutableStateOf(true) }
+    val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     val custom_image_url: State<String?>? = (this as? Playlist)?.CustomImageUrl?.observe(player.database)
     val thumbnail_provider: MediaItemThumbnailProvider? by ThumbnailProvider.observe(player.database)
@@ -85,7 +86,7 @@ fun MediaItem.Thumbnail(
         provider_override ?: custom_image_url?.value?.let { MediaItemThumbnailProvider.fromImageUrl(it) } ?: thumbnail_provider
 
     var image: Pair<ImageBitmap, Quality>? by remember(id) {
-        val provider = getThumbnailProvider()
+        val provider: MediaItemThumbnailProvider? = getThumbnailProvider()
         if (provider != null) {
             for (quality in Quality.byQuality(target_quality)) {
                 val loaded_image = MediaItemThumbnailLoader.getLoadedItemThumbnail(this@Thumbnail, quality, provider)

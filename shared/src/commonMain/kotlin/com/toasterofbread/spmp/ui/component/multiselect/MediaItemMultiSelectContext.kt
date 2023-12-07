@@ -7,8 +7,8 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -60,7 +60,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.common.lazyAssert
-import com.toasterofbread.composekit.utils.composable.ScrollabilityIndicatorRow
+import com.toasterofbread.composekit.platform.composable.ScrollabilityIndicatorRow
 import com.toasterofbread.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
@@ -75,7 +75,6 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
 import com.toasterofbread.spmp.platform.download.DownloadStatus
-import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.download.rememberSongDownloads
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.multiselect_context.MultiSelectSelectedItemActions
@@ -229,24 +228,26 @@ class MediaItemMultiSelectContext(
 
             Divider(Modifier.padding(top = 5.dp), color = LocalContentColor.current, thickness = hint_path_thickness)
 
-            val scroll_state = rememberScrollState()
-            ScrollabilityIndicatorRow(scroll_state, Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
-                Row(Modifier.fillMaxWidth().horizontalScroll(scroll_state), verticalAlignment = Alignment.CenterVertically) {
-                    GeneralSelectedItemActions()
+            val scroll_state: ScrollState = rememberScrollState()
+            ScrollabilityIndicatorRow(
+                scroll_state,
+                Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                vertical_alignment = Alignment.CenterVertically
+            ) {
+                GeneralSelectedItemActions()
 
-                    AnimatedVisibility(selected_items.isNotEmpty()) {
-                        Row(Modifier.fillMaxHeight(), verticalAlignment = Alignment.CenterVertically) {
-                            MultiSelectSelectedItemActions(this@MediaItemMultiSelectContext, additionalSelectedItemActions)
-                        }
+                AnimatedVisibility(selected_items.isNotEmpty()) {
+                    Row(Modifier.fillMaxHeight(), verticalAlignment = Alignment.CenterVertically) {
+                        MultiSelectSelectedItemActions(this@MediaItemMultiSelectContext, additionalSelectedItemActions)
                     }
-                    Spacer(Modifier.fillMaxWidth().weight(1f))
+                }
+                Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                    IconButton({ selected_items.clear() }) {
-                        Icon(Icons.Default.Refresh, null)
-                    }
-                    IconButton({ setActive(false) }) {
-                        Icon(Icons.Default.Close, null)
-                    }
+                IconButton({ selected_items.clear() }) {
+                    Icon(Icons.Default.Refresh, null)
+                }
+                IconButton({ setActive(false) }) {
+                    Icon(Icons.Default.Close, null)
                 }
             }
 

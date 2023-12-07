@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -17,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.modifier.horizontal
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
@@ -63,9 +63,7 @@ fun MediaItemList(
     val filtered_items: List<MediaItem> by items.rememberFilteredItems(apply_filter)
     val player: PlayerState = LocalPlayerState.current
 
-    Column(modifier.padding(content_padding.horizontal), verticalArrangement = Arrangement.spacedBy(MEDIAITEM_LIST_DEFAULT_SPACING_DP.dp)) {
-        Spacer(Modifier.height(content_padding.calculateTopPadding()))
-
+    Column(modifier.padding(content_padding), verticalArrangement = Arrangement.spacedBy(MEDIAITEM_LIST_DEFAULT_SPACING_DP.dp)) {
         TitleBar(
             items,
             title,
@@ -76,7 +74,7 @@ fun MediaItemList(
         )
 
         CompositionLocalProvider(LocalPlayerState provides remember(play_as_list) {
-            player.copy(onClickedOverride = { item, index ->  
+            player.copy(onClickedOverride = { item, index ->
                 if (play_as_list && item is Song) {
                     player.withPlayer {
                         undoableAction {
@@ -98,21 +96,19 @@ fun MediaItemList(
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     if (numbered) {
                         Text(
-                            (item.index + 1).toString().padStart((filtered_items.size + 1).toString().length, '0'), 
+                            (item.index + 1).toString().padStart((filtered_items.size + 1).toString().length, '0'),
                             fontWeight = FontWeight.Light
                         )
                     }
 
                     MediaItemPreviewLong(
-                        item.value, 
-                        multiselect_context = multiselect_context, 
-                        show_download_indicator = show_download_indicators, 
+                        item.value,
+                        multiselect_context = multiselect_context,
+                        show_download_indicator = show_download_indicators,
                         multiselect_key = item.index
                     )
                 }
             }
         }
-
-        Spacer(Modifier.height(content_padding.calculateBottomPadding()))
     }
 }

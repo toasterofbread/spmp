@@ -56,7 +56,7 @@ fun LocalArtistPage(
         }
     }
 
-    ArtistLayout(artist, modifier, previous_item, content_padding, multiselect_context) { accent_colour, show_info, content_modifier ->
+    ArtistLayout(artist, modifier, previous_item, content_padding, multiselect_context) { accent_colour, content_modifier ->
         itemsIndexed(songs) { index, song ->
             MediaItemPreviewLong(
                 song,

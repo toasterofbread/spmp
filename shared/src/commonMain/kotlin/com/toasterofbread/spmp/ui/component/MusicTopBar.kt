@@ -183,7 +183,7 @@ class MusicTopBar(val player: PlayerState) {
         can_show_key: SettingsKey,
         modifier: Modifier = Modifier,
         padding: PaddingValues = PaddingValues(),
-        getBottomBorderOffset: ((height: Int) -> Int)? = null,
+        getBottomBorderOffset: ((height: Float) -> Float)? = null,
         getBottomBorderColour: (() -> Color)? = null
     ): MusicTopBarState {
         val can_show: Boolean by can_show_key.rememberMutableState()
@@ -212,7 +212,7 @@ class MusicTopBar(val player: PlayerState) {
         padding: PaddingValues = PaddingValues(),
         alignment: Alignment = Alignment.Center,
         innerContent: (@Composable (MusicTopBarMode) -> Unit)? = null,
-        getBottomBorderOffset: ((height: Int) -> Int)? = null,
+        getBottomBorderOffset: ((height: Float) -> Float)? = null,
         getBottomBorderColour: (() -> Color)? = null,
         onClick: (() -> Unit)? = null
     ): MusicTopBarState {

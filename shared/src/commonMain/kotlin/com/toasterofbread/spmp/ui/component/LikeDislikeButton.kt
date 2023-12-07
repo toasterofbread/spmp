@@ -81,7 +81,7 @@ fun LikeDislikeButton(
                 )
             }
         },
-        modifier.bounceOnClick().appHover(true),
+        modifier = modifier.bounceOnClick().appHover(true),
         enabled = getEnabled?.invoke() != false,
         apply_minimum_size = false
     ) {

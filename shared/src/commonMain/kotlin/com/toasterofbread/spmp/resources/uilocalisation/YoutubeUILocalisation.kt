@@ -12,6 +12,7 @@ class YoutubeUILocalisation(languages: UILanguages) {
         ARTIST_ROW_SINGLES,
         ARTIST_ROW_SONGS,
         ARTIST_ROW_VIDEOS,
+        ARTIST_ROW_ARTISTS,
         ARTIST_ROW_OTHER
     }
 

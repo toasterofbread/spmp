@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.composekit.utils.composable.PlatformClickableIconButton
 import com.toasterofbread.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.layout.ViewMore
@@ -58,7 +59,7 @@ fun TitleBar(
 ) {
     val player: PlayerState = LocalPlayerState.current
 
-    AnimatedVisibility(shouldShowTitleBar(title, subtitle, view_more, scrollable_state), modifier) {
+    AnimatedVisibility(shouldShowTitleBar(title, subtitle, view_more, scrollable_state)) {
         val title_string: String? = remember { title?.getString(player.context) }
         val subtitle_string: String? = remember { subtitle?.getString(player.context) }
 
@@ -69,7 +70,7 @@ fun TitleBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Column(verticalArrangement = Arrangement.Center, modifier = Modifier.weight(1f)) {
+            Column(verticalArrangement = Arrangement.Center, modifier = modifier.weight(1f)) {
                 if (subtitle_string != null) {
                     WidthShrinkText(subtitle_string, style = MaterialTheme.typography.titleSmall.copy(color = player.theme.on_background))
                 }
@@ -134,8 +135,8 @@ private fun ScrollableState.ScrollButtons() {
             else -> null
         }
 
-    IconButton(
-        {
+    PlatformClickableIconButton(
+        onClick = {
             coroutine_scope.launch {
                 scrollToNext(-1, density, current_scroll_direction)
             }
@@ -149,8 +150,8 @@ private fun ScrollableState.ScrollButtons() {
         )
     }
 
-    IconButton(
-        {
+    PlatformClickableIconButton(
+        onClick = {
             coroutine_scope.launch {
                 scrollToNext(1, density, current_scroll_direction)
             }

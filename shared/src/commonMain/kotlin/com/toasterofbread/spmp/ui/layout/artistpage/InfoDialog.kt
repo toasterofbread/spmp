@@ -29,10 +29,11 @@ import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 
 @Composable
-fun InfoDialog(item: MediaItem, close: () -> Unit) {
-    val player = LocalPlayerState.current
+fun ArtistInfoDialog(item: MediaItem, close: () -> Unit) {
+    val player: PlayerState = LocalPlayerState.current
     
     AlertDialog(
         close,

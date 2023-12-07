@@ -29,7 +29,7 @@ class LibraryProfilePage(context: AppContext): LibrarySubPage(context) {
         multiselect_context: MediaItemMultiSelectContext,
         modifier: Modifier
     ) {
-        val channel = own_channel ?: return
+        val channel: Artist = own_channel ?: return
         ArtistPage(
             channel,
             modifier.clipToBounds(),

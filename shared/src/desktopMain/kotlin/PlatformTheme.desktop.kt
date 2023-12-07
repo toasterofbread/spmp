@@ -1,4 +1,5 @@
 import androidx.compose.foundation.LocalScrollbarStyle
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.unit.dp

@@ -57,13 +57,14 @@ data class MediaItemLayout(
             square_item_max_text_rows: Int? = null,
             show_download_indicators: Boolean = true,
             grid_rows: Pair<Int, Int>? = null,
-            content_padding: PaddingValues = PaddingValues()
+            content_padding: PaddingValues = PaddingValues(),
+            itemSizeProvider: @Composable () -> DpSize = { getDefaultMediaItemPreviewSize() }
         ) {
             when (this) {
                 // Why
-                GRID -> MediaItemGrid(layout, modifier, title_modifier, grid_rows, multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators, content_padding = content_padding)
-                GRID_ALT -> MediaItemGrid(layout, modifier, title_modifier, grid_rows, alt_style = true, multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators, content_padding = content_padding)
-                ROW -> MediaItemGrid(layout, modifier, title_modifier, Pair(1, 1), multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators, content_padding = content_padding)
+                GRID -> MediaItemGrid(layout, modifier, title_modifier, grid_rows, multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators, content_padding = content_padding, itemSizeProvider = itemSizeProvider)
+                GRID_ALT -> MediaItemGrid(layout, modifier, title_modifier, grid_rows, alt_style = true, multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators, content_padding = content_padding, itemSizeProvider = itemSizeProvider)
+                ROW -> MediaItemGrid(layout, modifier, title_modifier, Pair(1, 1), multiselect_context = multiselect_context, apply_filter = apply_filter, square_item_max_text_rows = square_item_max_text_rows, show_download_indicators = show_download_indicators, content_padding = content_padding, itemSizeProvider = itemSizeProvider)
                 LIST -> MediaItemList(layout, modifier, title_modifier, false, multiselect_context = multiselect_context, apply_filter = apply_filter, show_download_indicators = show_download_indicators, content_padding = content_padding)
                 NUMBERED_LIST -> MediaItemList(layout, modifier, title_modifier, true, multiselect_context = multiselect_context, apply_filter = apply_filter, show_download_indicators = show_download_indicators, content_padding = content_padding)
                 CARD -> com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemCard(

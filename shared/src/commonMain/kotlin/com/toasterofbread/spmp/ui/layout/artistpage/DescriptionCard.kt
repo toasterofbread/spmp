@@ -5,9 +5,13 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
@@ -25,56 +29,63 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.composekit.utils.common.blendWith
+import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.composekit.utils.composable.LinkifyText
 import com.toasterofbread.composekit.utils.composable.NoRipple
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 
 @Composable
-fun DescriptionCard(description_text: String, getBackgroundColour: () -> Color, getAccentColour: () -> Color?, toggleInfo: () -> Unit) {
-    val player = LocalPlayerState.current
+fun DescriptionCard(description_text: String, expanding: Boolean = true, height: Dp = 200.dp) {
+    val player: PlayerState = LocalPlayerState.current
 
-    var expanded by remember { mutableStateOf(false) }
-    var can_expand by remember { mutableStateOf(false) }
-    val small_text_height = 200.dp
-    val small_text_height_px = with ( LocalDensity.current ) { small_text_height.toPx().toInt() }
+    var expanded: Boolean by remember { mutableStateOf(false) }
+    var can_expand: Boolean by remember { mutableStateOf(false) }
+    val small_text_height: Dp = 200.dp
+    val small_text_height_px: Int = with ( LocalDensity.current ) { small_text_height.toPx().toInt() }
+    val padding: Dp = 10.dp
 
     ElevatedCard(
         Modifier
             .fillMaxWidth()
             .animateContentSize(),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = player.theme.on_background.copy(alpha = 0.05f)
+            containerColor = player.theme.accent.blendWith(player.theme.background, 0.05f)
         )
     ) {
-        Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                AssistChip(
-                    toggleInfo,
-                    {
-                        Text(getString("artist_info_label"), style = MaterialTheme.typography.labelLarge)
-                    },
-                    leadingIcon = {
-                        Icon(Icons.Outlined.Info, null)
-                    },
-                    colors = AssistChipDefaults.assistChipColors(
-                        containerColor = getBackgroundColour(),
-                        labelColor = player.theme.on_background,
-                        leadingIconContentColor = getAccentColour() ?: Color.Unspecified
-                    )
-                )
+        Column(
+            Modifier
+                .padding(horizontal = padding)
+                .thenIf(!expanded) {
+                    heightIn(max = height)
+                }
+                .thenIf(!expanding) {
+                    verticalScroll(rememberScrollState())
+                },
+        ) {
+            Spacer(Modifier.height(padding))
 
-                if (can_expand) {
-                    NoRipple {
-                        IconButton(
-                            { expanded = !expanded }
-                        ) {
-                            Icon(if (expanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,null)
-                        }
+            if (expanding && can_expand) {
+                NoRipple {
+                    IconButton(
+                        { expanded = !expanded },
+                        Modifier
+                            .align(Alignment.End)
+                            .padding(bottom = 5.dp)
+                    ) {
+                        Icon(
+                            if (expanded) Icons.Filled.ArrowDropUp
+                            else Icons.Filled.ArrowDropDown,
+                            null
+                        )
                     }
                 }
             }
@@ -87,14 +98,13 @@ fun DescriptionCard(description_text: String, getBackgroundColour: () -> Color, 
                             can_expand = true
                         }
                     }
-                    .animateContentSize()
-                    .then(
-                        if (expanded) Modifier else Modifier.height(200.dp)
-                    ),
+                    .animateContentSize(),
                 colour = player.theme.on_background.copy(alpha = 0.8f),
                 highlight_colour = player.theme.on_background,
                 style = MaterialTheme.typography.bodyMedium
             )
+
+            Spacer(Modifier.height(padding))
         }
     }
 }

@@ -194,7 +194,7 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
 
         return base
             .offset {
-                val bottom_padding = getNpBottomPadding(system_insets, navigation_insets, keyboard_insets)
+                val bottom_padding: Int = getNpBottomPadding(system_insets, navigation_insets, keyboard_insets)
                 val swipe_offset: Dp =
                     if (session_started) -np_swipe_state.value.offset.value.dp - (screen_height * 0.5f)
                     else 0.dp

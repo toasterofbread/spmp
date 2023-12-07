@@ -269,16 +269,6 @@ internal fun DesktopLongPressMenu(
                     ) {
                         val background_colour = player.theme.accent.blendWith(player.theme.background, 0.1f)
 
-                        ShapedIconButton(
-                            { close() },
-                            IconButtonDefaults.iconButtonColors(
-                                containerColor = background_colour,
-                                contentColor = background_colour.getContrasted()
-                            )
-                        ) {
-                            Icon(Icons.Default.Close, null)
-                        }
-
                         LongPressMenuContent(
                             data,
                             shape,
@@ -297,6 +287,16 @@ internal fun DesktopLongPressMenu(
                                 }
                             }
                         )
+
+                        ShapedIconButton(
+                            { close() },
+                            IconButtonDefaults.iconButtonColors(
+                                containerColor = background_colour,
+                                contentColor = background_colour.getContrasted()
+                            )
+                        ) {
+                            Icon(Icons.Default.Close, null)
+                        }
                     }
                 }
             }

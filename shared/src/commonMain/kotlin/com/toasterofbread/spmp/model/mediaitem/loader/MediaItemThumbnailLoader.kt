@@ -15,6 +15,7 @@ import com.toasterofbread.spmp.model.settings.category.MiscSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.toByteArray
 import com.toasterofbread.spmp.platform.toImageBitmap
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -144,7 +145,7 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
 
     @Composable
     fun rememberItemState(item: MediaItem): ItemState {
-        val player = LocalPlayerState.current
+        val player: PlayerState = LocalPlayerState.current
         val state = remember(item) {
             object : ItemState {
                 override val loaded_images: MutableMap<MediaItemThumbnailProvider.Quality, WeakReference<ImageBitmap>> = mutableStateMapOf()

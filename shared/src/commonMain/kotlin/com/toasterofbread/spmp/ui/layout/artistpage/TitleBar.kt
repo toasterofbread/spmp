@@ -151,7 +151,7 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                 if (item is Artist) {
                     val subscriber_count: Int = item.SubscriberCount.observe(player.database).value ?: 0
                     if (subscriber_count > 0) {
-                        Text(subscriber_count.toReadableSubscriberCount(player.context), style = MaterialTheme.typography.labelLarge )
+                        Text(subscriber_count.toReadableSubscriberCount(player.context), style = MaterialTheme.typography.labelLarge)
                     }
                 }
 
@@ -163,7 +163,7 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                     }
                 }
 
-                var item_pinned by item.observePinnedToHome()
+                var item_pinned: Boolean by item.observePinnedToHome()
                 Crossfade(item_pinned) { pinned ->
                     IconButton({ item_pinned = !pinned }) {
                         Icon(if (pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null)

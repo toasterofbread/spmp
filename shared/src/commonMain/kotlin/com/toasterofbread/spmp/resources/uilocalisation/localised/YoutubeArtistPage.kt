@@ -43,8 +43,11 @@ fun getYoutubeArtistPageLocalisations(languages: UILanguages): YoutubeUILocalisa
             )
             add(
                 en to "Fans might also like",
+                en to "Similar artists",
                 ja to "おすすめのアーティスト" ,
-                es to "A los fans también podrían gustarles"
+                ja to "似てるかも",
+                es to "A los fans también podrían gustarles",
+                id = YoutubeUILocalisation.StringID.ARTIST_ROW_ARTISTS
             )
             add(
                 en to "Featured on",

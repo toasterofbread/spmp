@@ -15,11 +15,11 @@ fun <T, Q: Query<*>> Q.observeAsState(
     mapValue: (Q) -> T = { it as T },
     onExternalChange: (suspend (T) -> Unit)?
 ): MutableState<T> {
-    val state = remember(this) { mutableStateOf(mapValue(this)) }
-    var current_value by remember(state) { mutableStateOf(state.value) }
+    val state: MutableState<T> = remember { mutableStateOf(mapValue(this)) }
+    var current_value: T by remember(state) { mutableStateOf(state.value) }
 
     DisposableEffect(state) {
-        val listener = Query.Listener {
+        val listener: Query.Listener = Query.Listener {
             current_value = mapValue(this@observeAsState)
             state.value = current_value
         }
@@ -38,6 +38,7 @@ fun <T, Q: Query<*>> Q.observeAsState(
                 try {
                     onExternalChange(current_value)
                 } catch (e: Throwable) {
+                    e.printStackTrace()
                     throw RuntimeException("onExternalChange failed for observed query (${this@observeAsState}, $current_value)", e)
                 }
             }

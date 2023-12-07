@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import com.toasterofbread.composekit.utils.common.getValue
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.observePlayCount
 import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
 import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction
@@ -180,7 +181,7 @@ fun MediaItemPreviewSquare(
                 lineHeight = line_height,
                 maxLines = max_lines,
                 overflow = if (max_lines == 1) TextOverflow.Ellipsis else TextOverflow.Clip,
-                textAlign = if (player.form_factor.is_large) TextAlign.Start else TextAlign.Center
+                textAlign = if (player.form_factor.is_large && item !is Artist) TextAlign.Start else TextAlign.Center
             )
 
             val download_status: DownloadStatus? by (loaded_item as? Song)?.rememberDownloadStatus()

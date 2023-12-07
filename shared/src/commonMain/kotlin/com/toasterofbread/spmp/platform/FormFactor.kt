@@ -3,8 +3,6 @@ package com.toasterofbread.spmp.platform
 import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 
-private const val MIN_PORTRAIT_RATIO: Float = 1f / 2f
-
 enum class FormFactor {
     PORTRAIT,
     LANDSCAPE,
@@ -13,17 +11,18 @@ enum class FormFactor {
     val is_large: Boolean get() = this != PORTRAIT
 }
 
-val PlayerState.form_factor: FormFactor
-    get() {
-        if (isPortrait()) {
-            return FormFactor.PORTRAIT
-        }
-
-        return when (Platform.current) {
-            Platform.ANDROID -> FormFactor.LANDSCAPE
-            Platform.DESKTOP -> FormFactor.DESKTOP
-        }
+fun PlayerState.getFormFactor(min_portrait_ratio: Float? = null): FormFactor {
+    if (isPortrait(min_portrait_ratio)) {
+        return FormFactor.PORTRAIT
     }
 
-private fun PlayerState.isPortrait(): Boolean =
-    (screen_size.width / screen_size.height) <= MIN_PORTRAIT_RATIO
+    return when (Platform.current) {
+        Platform.ANDROID -> FormFactor.LANDSCAPE
+        Platform.DESKTOP -> FormFactor.DESKTOP
+    }
+}
+
+val PlayerState.form_factor: FormFactor
+    get() = getFormFactor()
+
+internal expect fun PlayerState.isPortrait(min_portrait_ratio: Float? = null): Boolean

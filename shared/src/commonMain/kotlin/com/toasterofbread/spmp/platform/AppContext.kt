@@ -117,9 +117,9 @@ expect class AppContext: PlatformContext {
 }
 
 @Composable
-fun PlayerState.getDefaultHorizontalPadding(): Dp = if (form_factor.is_large) 30.dp else 10.dp
+fun PlayerState.getDefaultHorizontalPadding(): Dp = if (form_factor == FormFactor.DESKTOP) 30.dp else 10.dp
 @Composable
-fun PlayerState.getDefaultVerticalPadding(): Dp = if (form_factor.is_large) 30.dp else 10.dp // TODO
+fun PlayerState.getDefaultVerticalPadding(): Dp = if (form_factor == FormFactor.DESKTOP) 30.dp else 10.dp // TODO
 
 @Composable
 fun PlayerState.getDefaultPaddingValues(): PaddingValues = PaddingValues(horizontal = getDefaultHorizontalPadding(), vertical = getDefaultVerticalPadding())

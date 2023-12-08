@@ -298,9 +298,9 @@ fun LFFArtistStartPane(
                 val description: String? by artist.Description.observe(player.database)
 
                 if (!long_description) {
-                    description?.also {
-                        if (it.isNotBlank()) {
-                            LinkifyText(it, current_accent_colour, Modifier.padding(start = start_padding), style = MaterialTheme.typography.bodyLarge)
+                    description?.also { desc ->
+                        if (desc.isNotBlank()) {
+                            LinkifyText(desc, current_accent_colour, Modifier.padding(start = start_padding), style = MaterialTheme.typography.bodyLarge)
                         }
                     }
                 }
@@ -336,19 +336,19 @@ fun LFFArtistStartPane(
                 }
 
                 if (long_description) {
-                    Spacer(Modifier.height(WAVE_BORDER_HEIGHT_DP.dp + 10.dp))
+                    description?.also { desc ->
+                        Spacer(Modifier.height(WAVE_BORDER_HEIGHT_DP.dp + 10.dp))
 
-                    WaveBorder(
-                        Modifier.fillMaxWidth(),
-                        waves = 6,
-                        border_colour = LocalContentColor.current.copy(alpha = 0.5f),
-                        border_thickness = 2.dp,
-                        getOffset = { -it }
-                    )
+                        WaveBorder(
+                            Modifier.fillMaxWidth(),
+                            waves = 6,
+                            border_colour = LocalContentColor.current.copy(alpha = 0.5f),
+                            border_thickness = 2.dp,
+                            getOffset = { -it }
+                        )
 
-                    description?.also {
-                        if (it.isNotBlank()) {
-                            LinkifyText(it, current_accent_colour, Modifier.padding(start = start_padding), style = MaterialTheme.typography.bodyLarge)
+                        if (desc.isNotBlank()) {
+                            LinkifyText(desc, current_accent_colour, Modifier.padding(start = start_padding), style = MaterialTheme.typography.bodyLarge)
                         }
                     }
                 }

@@ -71,22 +71,24 @@ fun LFFArtistEndPane(
 
     Column {
         AnimatedVisibility(multiselect_context?.is_active == true) {
-            multiselect_context?.InfoDisplay(
-                Modifier.padding(
-                    top = content_padding.calculateTopPadding(),
-                    end = end_padding
-                ),
-                if (browse_params == null) null
-                else {{
-                    val row: ArtistWithParamsRow? = browse_params_rows?.firstOrNull()
-                    row?.items?.mapIndexed { index, item ->
-                        Pair(item, index)
-                    } ?: emptyList()
-                }}
-            )
-        }
+            Column {
+                multiselect_context?.InfoDisplay(
+                    Modifier.padding(
+                        top = content_padding.calculateTopPadding(),
+                        end = end_padding
+                    ),
+                    if (browse_params == null) null
+                    else {{
+                        val row: ArtistWithParamsRow? = browse_params_rows?.firstOrNull()
+                        row?.items?.mapIndexed { index, item ->
+                            Pair(item, index)
+                        } ?: emptyList()
+                    }}
+                )
 
-        WaveBorder(Modifier.fillMaxWidth().zIndex(1f))
+                WaveBorder(Modifier.fillMaxWidth().zIndex(1f))
+            }
+        }
 
         ScrollBarLazyColumn(
             Modifier.fillMaxWidth(),

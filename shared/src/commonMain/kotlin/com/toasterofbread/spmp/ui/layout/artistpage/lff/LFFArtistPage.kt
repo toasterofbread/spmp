@@ -84,7 +84,7 @@ fun LFFArtistPage(
         LFFArtistStartPane(
             Modifier
                 .widthIn(max = 1500.dp)
-                .fillMaxWidth(0.4f),
+                .fillMaxWidth(0.3f),
             artist,
             multiselect_context ?: own_multiselect_context,
             content_padding,

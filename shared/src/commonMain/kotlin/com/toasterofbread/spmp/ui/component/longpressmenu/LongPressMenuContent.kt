@@ -4,8 +4,6 @@ import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,7 +22,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.outlined.PushPin
-import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -67,6 +64,7 @@ import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
 import com.toasterofbread.spmp.ui.component.Thumbnail
+import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
@@ -241,9 +239,12 @@ internal fun LongPressMenuContent(
                                 .align(Alignment.CenterEnd),
                             contentAlignment = Alignment.Center
                         ) {
-                            Divider(
-                                thickness = Dp.Hairline,
-                                color = background_colour.getContrasted()
+                            WaveBorder(
+                                Modifier.fillMaxWidth(),
+                                border_thickness = 2.dp,
+                                waves = 6,
+                                border_colour = background_colour.getContrasted().copy(alpha = 0.1f),
+                                getOffset = { 0f }
                             )
                         }
                     }

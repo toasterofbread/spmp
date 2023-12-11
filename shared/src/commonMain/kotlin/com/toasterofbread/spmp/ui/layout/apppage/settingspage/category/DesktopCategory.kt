@@ -11,6 +11,11 @@ import com.toasterofbread.spmp.resources.getString
 
 internal fun getDesktopCategoryItems(): List<SettingsItem> {
     return listOf(
+        ToggleSettingsItem(
+            SettingsValueState(DesktopSettings.Key.SHOW_PINNED_IN_SIDEBAR.getName()),
+            getString("s_key_show_pinned_in_sidebar"), null
+        ),
+
         GroupSettingsItem(
             getString("s_group_desktop_system")
         ),

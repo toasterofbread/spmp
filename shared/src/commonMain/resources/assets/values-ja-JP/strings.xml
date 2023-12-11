@@ -526,6 +526,8 @@
     <string name="s_discord_status_enable"></string> <!--TODO-->
     <string name="s_discord_status_disable"></string> <!--TODO-->
 
+    <string name="s_key_show_pinned_in_sidebar">ピンされたアイテムをサイドバーで表示</string>
+
     <string name="s_group_desktop_system">システム</string>
 
     <string name="s_key_startup_command">開始コマンド</string>

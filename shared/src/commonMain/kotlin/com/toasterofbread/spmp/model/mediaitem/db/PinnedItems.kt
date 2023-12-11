@@ -17,6 +17,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.joinAll
@@ -56,26 +57,26 @@ fun rememberAnyItemsArePinned(context: AppContext): Boolean {
 }
 
 @Composable
-fun rememberPinnedItems(context: AppContext): List<MediaItem> {
-    val db = context.database
+fun rememberPinnedItems(): List<MediaItem>? {
+    val player: PlayerState = LocalPlayerState.current
 
-    var pinned_items: List<MediaItem> by remember { mutableStateOf(db.getPinnedItems()) }
-    var loaded_pinned_items: List<MediaItem> by remember { mutableStateOf(emptyList()) }
+    var pinned_items: List<MediaItem> by remember { mutableStateOf(player.database.getPinnedItems()) }
+    var loaded_pinned_items: List<MediaItem>? by remember { mutableStateOf(null) }
 
     DisposableEffect(Unit) {
-        val listener = Query.Listener {
-            pinned_items = db.getPinnedItems()
+        val listener: Query.Listener = Query.Listener {
+            pinned_items = player.database.getPinnedItems()
         }
 
-        db.pinnedItemQueries.getAll().addListener(listener)
+        player.database.pinnedItemQueries.getAll().addListener(listener)
 
         onDispose {
-            db.pinnedItemQueries.getAll().removeListener(listener)
+            player.database.pinnedItemQueries.getAll().removeListener(listener)
         }
     }
 
     LaunchedEffect(pinned_items) {
-        val previous_loaded: List<MediaItem> = loaded_pinned_items
+        val previous_loaded: List<MediaItem>? = loaded_pinned_items
         loaded_pinned_items = emptyList()
 
         val items: MutableList<MediaItem?> = pinned_items.toMutableList()
@@ -84,12 +85,12 @@ fun rememberPinnedItems(context: AppContext): List<MediaItem> {
         for ((i, item) in items.withIndex()) {
             if (item is LocalPlaylistRef) {
                 jobs.add(launch(Dispatchers.IO) {
-                    val existing: MediaItem? = previous_loaded.firstOrNull { it is LocalPlaylistData && it.id == item.id }
+                    val existing: MediaItem? = previous_loaded?.firstOrNull { it is LocalPlaylistData && it.id == item.id }
                     if (existing != null) {
                         items[i] = existing
                     }
                     else {
-                        val data: LocalPlaylistData? = PlaylistFileConverter.loadFromFile(item.getLocalPlaylistFile(context), context)
+                        val data: LocalPlaylistData? = PlaylistFileConverter.loadFromFile(item.getLocalPlaylistFile(player.context), player.context)
                         items[i] = data
                     }
                 })
@@ -111,6 +112,7 @@ fun MediaItem.observePinnedToHome(): MutableState<Boolean> {
     }
 
     return query.observeAsState(
+        Unit,
         {
             it.executeAsOne() > 0
         }

@@ -44,24 +44,16 @@ import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsRow
 import kotlinx.coroutines.*
 
 @Composable
-fun SFFArtistPage(
+internal fun ArtistAppPage.SFFArtistPage(
     artist: Artist,
     modifier: Modifier = Modifier,
-    previous_item: MediaItem? = null,
     content_padding: PaddingValues = PaddingValues(),
-    browse_params: Pair<BrowseParamsData, ArtistWithParamsEndpoint>? = null,
-    multiselect_context: MediaItemMultiSelectContext? = null,
-    show_top_bar: Boolean = true
+    multiselect_context: MediaItemMultiSelectContext? = null
 ) {
-    val player = LocalPlayerState.current
-    val coroutine_scope = rememberCoroutineScope()
+    val player: PlayerState = LocalPlayerState.current
 
     val own_multiselect_context = remember(multiselect_context) { if (multiselect_context != null) null else MediaItemMultiSelectContext() {} }
     val apply_filter: Boolean by FilterSettings.Key.APPLY_TO_ARTIST_ITEMS.rememberMutableState()
-
-    var load_error: Throwable? by remember { mutableStateOf(null) }
-    val loading by artist.loadDataOnChange(player.context, load = browse_params == null) { load_error = it }
-    var refreshed by remember { mutableStateOf(false) }
 
     val item_layouts: List<ArtistLayout>? by artist.Layouts.observe(player.database)
     val single_layout: MediaItemLayout? = item_layouts?.singleOrNull()?.rememberMediaItemLayout(player.database)
@@ -99,7 +91,7 @@ fun SFFArtistPage(
     ArtistLayout(
         artist,
         modifier,
-        previous_item,
+        previous_item?.item,
         content_padding,
         multiselect_context ?: own_multiselect_context,
         show_top_bar = show_top_bar,

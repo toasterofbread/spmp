@@ -10,12 +10,14 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -34,7 +36,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
@@ -44,8 +45,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.isUnspecified
 import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.composekit.utils.common.getInnerSquareSizeOfCircle
@@ -76,6 +79,8 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.RelatedContentPlayer
 import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 import kotlin.math.absoluteValue
 
+internal typealias ColourpickCallback = (Color?) -> Unit
+
 @Composable
 fun LargeThumbnailRow(
     modifier: Modifier = Modifier,
@@ -83,7 +88,9 @@ fun LargeThumbnailRow(
     setThemeColour: (Color?) -> Unit,
     getSeekState: () -> Float,
     disable_parent_scroll_while_menu_open: Boolean = true,
-    overlayContent: (@Composable () -> Unit)? = null
+    center_thumbnail: Boolean = false,
+    thumbnail_modifier: Modifier = Modifier,
+    overlayContent: (@Composable () -> Unit)? = null,
 ) {
     val player: PlayerState = LocalPlayerState.current
     val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
@@ -100,7 +107,7 @@ fun LargeThumbnailRow(
     val thumbnail_shape: RoundedCornerShape = RoundedCornerShape(thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING)
     var image_size: IntSize by remember { mutableStateOf(IntSize(1, 1)) }
 
-    var colourpick_callback by remember { mutableStateOf<((Color?) -> Unit)?>(null) }
+    var colourpick_callback: ColourpickCallback? by remember { mutableStateOf(null) }
     LaunchedEffect(overlay_menu) {
         colourpick_callback = null
     }
@@ -117,237 +124,279 @@ fun LargeThumbnailRow(
         )
     }
 
-    Row(
-        modifier.clip(thumbnail_shape),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        var opened by remember { mutableStateOf(false) }
-        val expanded by remember { derivedStateOf {
-            (expansion.get() - 1f).absoluteValue <= EXPANDED_THRESHOLD
-        } }
+    BoxWithConstraints(modifier.clip(thumbnail_shape)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            var opened by remember { mutableStateOf(false) }
+            val expanded by remember { derivedStateOf {
+                (expansion.get() - 1f).absoluteValue <= EXPANDED_THRESHOLD
+            } }
 
-        OnChangedEffect(expanded) {
-            if (expanded) {
-                opened = true
-            }
-            else if (opened) {
-                overlay_menu = null
-            }
-        }
-
-        val scale_modifier: Modifier =
-            Modifier.scale(
-//                minOf(1f, if (expansion.getAbsolute() < 0.5f) 1f else (1f - ((expansion.getAbsolute() - 0.5f) * 2f))),
-                minOf(1f, 1f - expansion.getAbsolute()),
-                1f
-            )
-
-        @Composable
-        fun ButtonRow(modifier: Modifier = Modifier) {
-            val button_modifier: Modifier = Modifier.size(40.dp)
-            val button_image_modifier: Modifier = button_modifier
-            Row(
-                modifier.padding(horizontal = 10.dp),
-                horizontalArrangement = Arrangement.spacedBy(5.dp)
-            ) {
-                ThumbnailRowControlButtons(button_modifier, button_image_modifier, rounded_icons = false)
-            }
-        }
-
-        var button_row_width: Dp by remember { mutableStateOf(0.dp) }
-
-        MeasureUnconstrainedView({ ButtonRow() }) { size ->
-            button_row_width = with (density) { size.width.toDp() }
-            ButtonRow(Modifier.width(button_row_width * (1f - expansion.getBounded())))
-        }
-
-        Spacer(Modifier.fillMaxWidth().weight(1f))
-
-        Box(Modifier.aspectRatio(1f)) {
-            fun performPressAction(long_press: Boolean) {
-                if (overlay_menu != null || expansion.get() !in 0.9f .. 1.1f) {
-                    return
+            OnChangedEffect(expanded) {
+                if (expanded) {
+                    opened = true
                 }
+                else if (opened) {
+                    overlay_menu = null
+                }
+            }
 
-                val custom_action: Boolean =
-                    if (PlayerSettings.Key.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.get()) !long_press
-                    else long_press
+            @Composable
+            fun ButtonRow(modifier: Modifier = Modifier) {
+                val button_modifier: Modifier = Modifier.size(40.dp)
+                val button_image_modifier: Modifier = button_modifier
+                Row(
+                    modifier.padding(horizontal = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    ThumbnailRowControlButtons(button_modifier, button_image_modifier, rounded_icons = false)
+                }
+            }
 
-                val action: PlayerOverlayMenuAction =
-                    if (custom_action) PlayerSettings.Key.OVERLAY_CUSTOM_ACTION.getEnum()
-                    else PlayerOverlayMenuAction.DEFAULT
+            var button_row_width: Dp by remember { mutableStateOf(0.dp) }
 
-                when (action) {
-                    PlayerOverlayMenuAction.OPEN_MAIN_MENU -> overlay_menu = main_overlay_menu
-                    PlayerOverlayMenuAction.OPEN_THEMING -> {
-                        overlay_menu = PaletteSelectorPlayerOverlayMenu(
-                            { colourpick_callback = it },
-                            {
-                                setThemeColour(it)
-                                overlay_menu = null
-                            }
+            MeasureUnconstrainedView({ ButtonRow() }) { size ->
+                button_row_width = with (density) { size.width.toDp() }
+                ButtonRow(Modifier.width(button_row_width * (1f - expansion.getBounded())))
+            }
+
+            Spacer(Modifier.fillMaxWidth().weight(1f))
+
+            val getTextScale: () -> Float = { minOf(1f, 1f - expansion.getAbsolute()) }
+            var thumb_width: Dp by remember { mutableStateOf(0.dp) }
+
+            Box(
+                thumbnail_modifier
+                    .aspectRatio(1f)
+                    .onSizeChanged {
+                        thumb_width = with (density) {
+                            it.width.toDp()
+                        }
+                    }
+                    .offset {
+                        if (!center_thumbnail) {
+                            return@offset IntOffset(0, 0)
+                        }
+
+                        return@offset IntOffset(
+                            ((this@BoxWithConstraints.maxWidth - thumb_width) * (1f - getTextScale()) / 2).roundToPx(),
+                            0
                         )
                     }
-                    PlayerOverlayMenuAction.PICK_THEME_COLOUR -> {
-                        colourpick_callback = { colour ->
-                            if (colour != null) {
-                                setThemeColour(colour)
-                                overlay_menu = null
-                                colourpick_callback = null
-                            }
-                        }
-                    }
-                    PlayerOverlayMenuAction.ADJUST_NOTIFICATION_IMAGE_OFFSET -> {
-                        overlay_menu = NotifImagePlayerOverlayMenu()
-                    }
-                    PlayerOverlayMenuAction.OPEN_LYRICS -> {
-                        overlay_menu = PlayerOverlayMenu.getLyricsMenu()
-                    }
-                    PlayerOverlayMenuAction.OPEN_RELATED -> {
-                        val related_endpoint = player.context.ytapi.SongRelatedContent
-                        if (related_endpoint.isImplemented()) {
-                            overlay_menu = RelatedContentPlayerOverlayMenu(related_endpoint)
-                        }
-                        else {
-                            throw EndpointNotImplementedException(related_endpoint)
-                        }
-                    }
-                    PlayerOverlayMenuAction.DOWNLOAD -> {
-                        current_song?.also { song ->
-                            player.onSongDownloadRequested(song)
-                        }
-                    }
-                }
-            }
-
-            Crossfade(current_song, animationSpec = tween(250)) { song ->
-                song?.Thumbnail(
-                    MediaItemThumbnailProvider.Quality.HIGH,
-                    getContentColour = { player.getNPOnBackground() },
-                    onLoaded = {
-                        current_thumb_image = it
-                        onThumbnailLoaded(song, it)
-                    },
-                    modifier = Modifier
-                        .aspectRatio(1f)
-                        .clip(thumbnail_shape)
-                        .onSizeChanged {
-                            image_size = it
-                        }
-                        .thenIf(expanded) {
-                            platformClickable(
-                                onClick = {
-                                    performPressAction(false)
-                                },
-                                onAltClick = {
-                                    performPressAction(true)
-                                }
-                            )
-                        }
-                )
-            }
-
-            // Thumbnail overlay menu
-            androidx.compose.animation.AnimatedVisibility(
-                overlay_menu != null || colourpick_callback != null,
-                Modifier.fillMaxSize(),
-                enter = fadeIn(tween(OVERLAY_MENU_ANIMATION_DURATION)),
-                exit = fadeOut(tween(OVERLAY_MENU_ANIMATION_DURATION))
             ) {
-                val overlay_background_alpha by animateFloatAsState(if (colourpick_callback != null) 0.4f else 0.8f)
-
-                Box(
-                    Modifier
-                        .thenIf(disable_parent_scroll_while_menu_open) {
-                            disableParentScroll(child_does_not_scroll = true)
-                        }
-                        .pointerInput(Unit) {
-                            detectTapGestures(
-                                onTap = { offset ->
-                                    colourpick_callback?.also { callback ->
-                                        current_thumb_image?.also { image ->
-                                            handleThumbnailColourPick(image, image_size, offset, callback)
-                                            return@detectTapGestures
+                Crossfade(current_song, animationSpec = tween(250)) { song ->
+                    song?.Thumbnail(
+                        MediaItemThumbnailProvider.Quality.HIGH,
+                        getContentColour = { player.getNPOnBackground() },
+                        onLoaded = {
+                            current_thumb_image = it
+                            onThumbnailLoaded(song, it)
+                        },
+                        modifier = Modifier
+                            .aspectRatio(1f)
+                            .clip(thumbnail_shape)
+                            .onSizeChanged {
+                                image_size = it
+                            }
+                            .thenIf(expanded) {
+                                platformClickable(
+                                    onClick = {
+                                        if (overlay_menu != null || expansion.get() !in 0.9f .. 1.1f) {
+                                            return@platformClickable
                                         }
-                                    }
 
-                                    if (expansion.get() in 0.9f .. 1.1f && overlay_menu?.closeOnTap() == true) {
-                                        overlay_menu = null
+                                        player.performPressAction(
+                                            false,
+                                            main_overlay_menu,
+                                            setThemeColour,
+                                            { colourpick_callback = it },
+                                            { overlay_menu = it }
+                                        )
+                                    },
+                                    onAltClick = {
+                                        if (overlay_menu != null || expansion.get() !in 0.9f .. 1.1f) {
+                                            return@platformClickable
+                                        }
+                                        player.performPressAction(
+                                            true,
+                                            main_overlay_menu,
+                                            setThemeColour,
+                                            { colourpick_callback = it },
+                                            { overlay_menu = it }
+                                        )
                                     }
-                                }
-                            )
-                        }
-                        .graphicsLayer { alpha = expansion.getAbsolute() }
-                        .fillMaxSize()
-                        .background(
-                            thumbnail_shape,
-                            { Color.DarkGray.copy(alpha = overlay_background_alpha) }
-                        ),
-                    contentAlignment = Alignment.Center
+                                )
+                            }
+                    )
+                }
+
+                // Thumbnail overlay menu
+                androidx.compose.animation.AnimatedVisibility(
+                    overlay_menu != null || colourpick_callback != null,
+                    Modifier.fillMaxSize(),
+                    enter = fadeIn(tween(OVERLAY_MENU_ANIMATION_DURATION)),
+                    exit = fadeOut(tween(OVERLAY_MENU_ANIMATION_DURATION))
                 ) {
+                    val overlay_background_alpha by animateFloatAsState(if (colourpick_callback != null) 0.4f else 0.8f)
+
                     Box(
                         Modifier
-                            .size(with(LocalDensity.current) {
-                                getInnerSquareSizeOfCircle(
-                                    radius = image_size.height.toDp().value,
-                                    corner_percent = thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING
-                                ).dp
-                            }),
+                            .thenIf(disable_parent_scroll_while_menu_open) {
+                                disableParentScroll(child_does_not_scroll = true)
+                            }
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onTap = { offset ->
+                                        colourpick_callback?.also { callback ->
+                                            current_thumb_image?.also { image ->
+                                                handleThumbnailColourPick(image, image_size, offset, callback)
+                                                return@detectTapGestures
+                                            }
+                                        }
+
+                                        if (expansion.get() in 0.9f .. 1.1f && overlay_menu?.closeOnTap() == true) {
+                                            overlay_menu = null
+                                        }
+                                    }
+                                )
+                            }
+                            .graphicsLayer { alpha = expansion.getAbsolute() }
+                            .fillMaxSize()
+                            .background(
+                                thumbnail_shape,
+                                { Color.DarkGray.copy(alpha = overlay_background_alpha) }
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
-                        BackHandler(overlay_menu != null) {
-                            if (overlay_menu == main_overlay_menu) {
-                                overlay_menu = null
+                        Box(
+                            Modifier
+                                .size(with(LocalDensity.current) {
+                                    getInnerSquareSizeOfCircle(
+                                        radius = image_size.height.toDp().value,
+                                        corner_percent = thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING
+                                    ).dp
+                                }),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            BackHandler(overlay_menu != null) {
+                                if (overlay_menu == main_overlay_menu) {
+                                    overlay_menu = null
+                                }
+                                else {
+                                    overlay_menu = main_overlay_menu
+                                }
+                                colourpick_callback = null
                             }
-                            else {
-                                overlay_menu = main_overlay_menu
-                            }
-                            colourpick_callback = null
-                        }
 
-                        Crossfade(overlay_menu) { menu ->
-                            CompositionLocalProvider(LocalContentColor provides Color.White) {
-                                menu?.Menu(
-                                    { player.status.m_song!! },
-                                    { expansion.getAbsolute() },
-                                    { overlay_menu = it ?: main_overlay_menu },
-                                    getSeekState
-                                ) { current_thumb_image }
+                            Crossfade(overlay_menu) { menu ->
+                                CompositionLocalProvider(LocalContentColor provides Color.White) {
+                                    menu?.Menu(
+                                        { player.status.m_song!! },
+                                        { expansion.getAbsolute() },
+                                        { overlay_menu = it ?: main_overlay_menu },
+                                        getSeekState
+                                    ) { current_thumb_image }
+                                }
                             }
                         }
                     }
                 }
+
+                overlayContent?.invoke()
             }
 
-            overlayContent?.invoke()
-        }
+            Row(
+                Modifier
+                    .graphicsLayer {
+                        scaleX = getTextScale()
+                    }
+                    .padding(start = 10.dp),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(Modifier, verticalArrangement = Arrangement.SpaceEvenly) {
+                    Text(
+                        song_title ?: "",
+                        maxLines = 1,
+                        color = player.getNPOnBackground(),
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                    Text(
+                        song_artist_title ?: "",
+                        maxLines = 1,
+                        color = player.getNPOnBackground().copy(alpha = 0.5f),
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
 
-        Row(
-            scale_modifier.padding(start = 10.dp),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(Modifier, verticalArrangement = Arrangement.SpaceEvenly) {
-                Text(
-                    song_title ?: "",
-                    maxLines = 1,
-                    color = player.getNPOnBackground(),
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.headlineSmall
+            Spacer(Modifier.fillMaxWidth().weight(1f))
+
+            Spacer(Modifier.width(button_row_width))
+        }
+    }
+}
+
+private fun PlayerState.performPressAction(
+    long_press: Boolean,
+    main_overlay_menu: PlayerOverlayMenu,
+    setThemeColour: (Color) -> Unit,
+    setColourpickCallback: (ColourpickCallback?) -> Unit,
+    setOverlayMenu: (PlayerOverlayMenu?) -> Unit
+) {
+    val custom_action: Boolean =
+        if (PlayerSettings.Key.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.get()) !long_press
+        else long_press
+
+    val action: PlayerOverlayMenuAction =
+        if (custom_action) PlayerSettings.Key.OVERLAY_CUSTOM_ACTION.getEnum()
+        else PlayerOverlayMenuAction.DEFAULT
+
+    when (action) {
+        PlayerOverlayMenuAction.OPEN_MAIN_MENU -> setOverlayMenu(main_overlay_menu)
+        PlayerOverlayMenuAction.OPEN_THEMING -> {
+            setOverlayMenu(
+                PaletteSelectorPlayerOverlayMenu(
+                    setColourpickCallback,
+                    {
+                        setThemeColour(it)
+                        setOverlayMenu(null)
+                    }
                 )
-                Text(
-                    song_artist_title ?: "",
-                    maxLines = 1,
-                    color = player.getNPOnBackground().copy(alpha = 0.5f),
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodyMedium
-                )
+            )
+        }
+        PlayerOverlayMenuAction.PICK_THEME_COLOUR -> {
+            setColourpickCallback { colour ->
+                if (colour != null) {
+                    setThemeColour(colour)
+                    setOverlayMenu(null)
+                    setColourpickCallback(null)
+                }
             }
         }
-
-        Spacer(Modifier.fillMaxWidth().weight(1f))
-
-        Spacer(Modifier.width(button_row_width))
+        PlayerOverlayMenuAction.ADJUST_NOTIFICATION_IMAGE_OFFSET -> {
+            setOverlayMenu(NotifImagePlayerOverlayMenu())
+        }
+        PlayerOverlayMenuAction.OPEN_LYRICS -> {
+            setOverlayMenu(PlayerOverlayMenu.getLyricsMenu())
+        }
+        PlayerOverlayMenuAction.OPEN_RELATED -> {
+            val related_endpoint = context.ytapi.SongRelatedContent
+            if (related_endpoint.isImplemented()) {
+                setOverlayMenu(RelatedContentPlayerOverlayMenu(related_endpoint))
+            }
+            else {
+                throw EndpointNotImplementedException(related_endpoint)
+            }
+        }
+        PlayerOverlayMenuAction.DOWNLOAD -> {
+            status.m_song?.also { song ->
+                onSongDownloadRequested(song)
+            }
+        }
     }
 }

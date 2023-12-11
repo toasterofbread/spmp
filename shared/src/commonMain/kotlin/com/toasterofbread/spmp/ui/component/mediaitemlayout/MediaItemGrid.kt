@@ -5,6 +5,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -127,6 +128,9 @@ fun MediaItemGrid(
     val horizontal_padding: PaddingValues = content_padding.horizontal
 
     val grid_state: LazyGridState = rememberLazyGridState()
+    val scrollable_state: ScrollableState? =
+        if (Platform.DESKTOP.isCurrent()) grid_state
+        else null
 
     Column(modifier.padding(content_padding.vertical), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         var expanded: Boolean by remember { mutableStateOf(false) }
@@ -160,9 +164,7 @@ fun MediaItemGrid(
                 title_modifier,
                 view_more = view_more,
                 multiselect_context = multiselect_context,
-                scrollable_state =
-                    if (Platform.DESKTOP.isCurrent()) grid_state
-                    else null
+                scrollable_state = scrollable_state
             )
         }
 
@@ -200,8 +202,13 @@ fun MediaItemGrid(
                     }
                 }
 
-                if (multiselect_context != null && !shouldShowTitleBar(title, subtitle)) {
-                    Box(Modifier.background(CircleShape, player.theme.background_provider).padding(horizontal_padding), contentAlignment = Alignment.Center) {
+                if (multiselect_context != null && !shouldShowTitleBar(title, subtitle, view_more, scrollable_state)) {
+                    Box(
+                        Modifier
+                            .background(CircleShape, player.theme.background_provider)
+                            .padding(horizontal_padding),
+                        contentAlignment = Alignment.Center
+                    ) {
                         multiselect_context.CollectionToggleButton(filtered_items)
                     }
                 }

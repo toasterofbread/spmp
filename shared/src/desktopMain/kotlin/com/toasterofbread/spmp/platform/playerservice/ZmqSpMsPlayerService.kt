@@ -8,8 +8,6 @@ import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.platform.PlatformPreferencesListener
 import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.mediaitem.song.SongData
-import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.settings.category.DesktopSettings
 import com.toasterofbread.spmp.platform.PlatformServiceImpl
 import com.toasterofbread.spmp.platform.PlayerListener
@@ -21,16 +19,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.boolean
-import kotlinx.serialization.json.float
-import kotlinx.serialization.json.int
-import kotlinx.serialization.json.long
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
@@ -73,7 +63,7 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
     private val json: Json = Json { ignoreUnknownKeys = true }
     private val queued_messages: MutableList<Pair<String, List<Any>>> = mutableListOf()
     private val poll_coroutine_scope: CoroutineScope = CoroutineScope(Job())
-    private val connect_coroutine_scope: CoroutineScope = CoroutineScope(Job())
+    private val connect_coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
     private var cancel_connection: Boolean = false
     private var restart_connection: Boolean = false
 
@@ -146,44 +136,82 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
                 val server_url: String = getServerURL()
                 val handshake: SpMsClientHandshake = SpMsClientHandshake(getClientName(), SpMsClientType.HEADLESS_PLAYER, context.getUiLanguage())
 
-                if (
-                    !tryConnectToServer(
-                        socket = this@connectToServer,
-                        server_url = server_url,
-                        handshake = handshake,
-                        json = json,
-                        shouldCancelConnection = { cancel_connection },
-                        setLoadState = { socket_load_state = it }
-                    )
-                ) {
+                val server_state: SpMsServerState? = tryConnectToServer(
+                    socket = this@connectToServer,
+                    server_url = server_url,
+                    handshake = handshake,
+                    json = json,
+                    shouldCancelConnection = { cancel_connection },
+                    setLoadState = { socket_load_state = it }
+                )
+
+                if (server_state == null) {
                     disconnect(server_url)
                     continue
                 }
+
+                var server_state_applied: Boolean = false
 
                 poll_coroutine_scope.launchSingle(Dispatchers.IO) {
                     val context: ZMQ.Context = ZMQ.context(1)
                     val poller: ZMQ.Poller = context.poller()
                     poller.register(socket, ZMQ.Poller.POLLIN)
 
+                    var queued_events: MutableList<SpMsPlayerEvent>? = mutableListOf()
+
                     while (true) {
                         delay(POLL_STATE_INTERVAL)
-                        if (!pollServerState(poller, POLL_TIMEOUT_MS)) {
+
+                        synchronized(this@launch) {
+                            if (server_state_applied && queued_events != null) {
+                                for (event in queued_events!!) {
+                                    applyPlayerEvent(event)
+                                }
+                                queued_events = null
+                            }
+                        }
+
+                        val poll_successful: Boolean = pollServerState(poller, POLL_TIMEOUT_MS) { event ->
+                            queued_events?.also {
+                                it.add(event)
+                                return@also
+                            }
+
+                            applyPlayerEvent(event)
+                        }
+
+                        if (!poll_successful) {
                             onSocketConnectionLost(POLL_TIMEOUT_MS)
                             break
                         }
                     }
+                }
+
+                socket_load_state =
+                    PlayerServiceLoadState(
+                        true,
+                        getString("desktop_splash_setting_initial_state")
+                    )
+
+                applyServerState(server_state, this)
+
+                socket_load_state = PlayerServiceLoadState(false)
+
+                synchronized(this) {
+                    server_state_applied = true
                 }
             }
             while (restart_connection)
         }
     }
 
-    private fun ZMQ.Socket.pollServerState(poller: ZMQ.Poller, timeout: Long = -1): Boolean {
+    private fun ZMQ.Socket.pollServerState(poller: ZMQ.Poller, timeout: Long = -1, onEvent: (SpMsPlayerEvent) -> Unit): Boolean {
         val events: ZMsg
         if (poller.poll(timeout) > 0) {
             events = ZMsg.recvMsg(this)
         }
         else {
+            println("Polling server timed out after ${timeout}ms")
             return false
         }
 
@@ -202,7 +230,7 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
             }
 
             try {
-                applyPlayerEvent(event)
+                onEvent(event)
             }
             catch (e: Throwable) {
                 throw RuntimeException("Processing event $event failed", e)

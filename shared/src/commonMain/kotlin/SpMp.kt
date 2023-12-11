@@ -116,8 +116,6 @@ object SpMp {
             Surface(modifier = modifier.fillMaxSize()) {
                 if (player_created) {
                     CompositionLocalProvider(LocalPlayerState provides player_state) {
-                        RootView(player_state)
-
                         val splash_mode: SplashMode? = when (Platform.current) {
                             Platform.ANDROID -> null
                             Platform.DESKTOP -> if (!player_state.service_connected) SplashMode.SPLASH else null
@@ -132,6 +130,10 @@ object SpMp {
                                     pointerInput(Unit) {}
                                 }
                         )
+
+                        if (splash_mode == null) {
+                            RootView(player_state)
+                        }
                     }
                 }
             }

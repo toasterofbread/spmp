@@ -12,10 +12,11 @@ import app.cash.sqldelight.Query
 
 @Composable
 fun <T, Q: Query<*>> Q.observeAsState(
+    key: Any,
     mapValue: (Q) -> T = { it as T },
     onExternalChange: (suspend (T) -> Unit)?
 ): MutableState<T> {
-    val state: MutableState<T> = remember { mutableStateOf(mapValue(this)) }
+    val state: MutableState<T> = remember(key) { mutableStateOf(mapValue(this)) }
     var current_value: T by remember(state) { mutableStateOf(state.value) }
 
     DisposableEffect(state) {

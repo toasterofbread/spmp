@@ -82,7 +82,7 @@ fun MediaItem.getLongPressMenuData(
     )
 
 @Composable
-private fun MediaItem.loadIfLocalPlaylist(): MediaItem? {
+fun MediaItem.loadIfLocalPlaylist(): MediaItem? {
     val context: AppContext = LocalPlayerState.current.context
     val state: MutableState<MediaItem?> = remember { mutableStateOf(if (this !is LocalPlaylistRef) this else null) }
 
@@ -135,15 +135,21 @@ fun MediaItemPreviewSquare(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxWidth().longPressMenuIcon(long_press_menu_data, enable_long_press_menu), contentAlignment = Alignment.Center) {
             loaded_item.Thumbnail(
                 MediaItemThumbnailProvider.Quality.LOW,
-                Modifier.longPressMenuIcon(long_press_menu_data, enable_long_press_menu).aspectRatio(1f),
+                Modifier.aspectRatio(1f),
                 getContentColour = contentColour
             )
 
             multiselect_context?.also { ctx ->
-                ctx.SelectableItemOverlay(loaded_item, Modifier.fillMaxWidth().aspectRatio(1f), key = long_press_menu_data.multiselect_key)
+                ctx.SelectableItemOverlay(
+                    loaded_item,
+                    Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f),
+                    key = long_press_menu_data.multiselect_key
+                )
             }
 
             if (loaded_item is Playlist) {

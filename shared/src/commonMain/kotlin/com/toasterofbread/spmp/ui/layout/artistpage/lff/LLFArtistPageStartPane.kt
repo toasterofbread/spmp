@@ -30,7 +30,6 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.PushPin
@@ -57,6 +56,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -66,14 +66,12 @@ import com.toasterofbread.composekit.utils.common.blendWith
 import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.composable.LinkifyText
 import com.toasterofbread.composekit.utils.composable.ShapedIconButton
-import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
 import com.toasterofbread.spmp.model.mediaitem.artist.toReadableSubscriberCount
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
-import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.resources.uilocalisation.YoutubeLocalisedString
 import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
 import com.toasterofbread.spmp.ui.component.Thumbnail
@@ -84,7 +82,6 @@ import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistInfoDialog
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistSubscribeButton
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 @Composable
 fun LFFArtistStartPane(
@@ -93,20 +90,13 @@ fun LFFArtistStartPane(
     multiselect_context: MediaItemMultiSelectContext?,
     content_padding: PaddingValues,
     current_accent_colour: Color,
-    loading: Boolean,
     item_layouts: List<ArtistLayout>?,
     apply_filter: Boolean
 ) {
     val player: PlayerState = LocalPlayerState.current
-    val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     val start_padding: Dp = content_padding.calculateStartPadding(LocalLayoutDirection.current)
     val primary_shape: Shape = RoundedCornerShape(15.dp)
-
-    var show_info: Boolean by remember { mutableStateOf(false) }
-    if (show_info) {
-        ArtistInfoDialog(artist) { show_info = false }
-    }
 
     Column(modifier) {
         BoxWithConstraints(
@@ -146,27 +136,6 @@ fun LFFArtistStartPane(
                         )
                         val icon_button_shape: Shape = CircleShape
 
-                        Crossfade(loading) { l ->
-                            ShapedIconButton(
-                                {
-                                    if (!loading) {
-                                        coroutine_scope.launch {
-                                            MediaItemLoader.loadArtist(artist.getEmptyData(), player.context)
-                                        }
-                                    }
-                                },
-                                icon_button_colours,
-                                shape = icon_button_shape
-                            ) {
-                                if (l) {
-                                    SubtleLoadingIndicator()
-                                }
-                                else {
-                                    Icon(Icons.Default.Refresh, null)
-                                }
-                            }
-                        }
-
                         Spacer(Modifier.fillMaxWidth().weight(1f))
 
                         ShapedIconButton(
@@ -193,7 +162,7 @@ fun LFFArtistStartPane(
                 var editing_title: Boolean by remember { mutableStateOf(false) }
                 var edited_title: String by remember { mutableStateOf(title ?: "") }
 
-                val title_style: TextStyle = MaterialTheme.typography.displaySmall
+                val title_style: TextStyle = MaterialTheme.typography.displaySmall.copy(textAlign = TextAlign.Center)
                 val title_padding: PaddingValues = PaddingValues(10.dp)
 
                 LaunchedEffect(editing_title) {
@@ -241,10 +210,13 @@ fun LFFArtistStartPane(
                     }
                 }
 
-                val subscriber_count: Int = artist.SubscriberCount.observe(player.database).value ?: 0
+                val subscriber_count: Int? = artist.SubscriberCount.observe(player.database).value
                 Row(Modifier.padding(start = start_padding), verticalAlignment = Alignment.CenterVertically) {
-                    if (subscriber_count > 0) {
+                    if (subscriber_count != null) {
                         Text(subscriber_count.toReadableSubscriberCount(player.context), style = MaterialTheme.typography.bodyLarge)
+                    }
+                    else {
+                        InfoButtons(artist)
                     }
 
                     Spacer(Modifier.fillMaxWidth().weight(1f))
@@ -305,33 +277,12 @@ fun LFFArtistStartPane(
                     }
                 }
 
-                Row(
-                    Modifier.padding(start = start_padding).align(Alignment.End),
-                    horizontalArrangement = Arrangement.spacedBy(0.dp)
-                ) {
-                    if (player.context.canShare()) {
-                        IconButton({
-                            player.context.shareText(
-                                artist.getURL(player.context),
-                                artist.getActiveTitle(player.database) ?: ""
-                            )
-                        }) {
-                            Icon(Icons.Outlined.Share, null)
-                        }
-                    }
-
-                    if (player.context.canOpenUrl()) {
-                        IconButton({
-                            player.context.openUrl(
-                                artist.getURL(player.context)
-                            )
-                        }) {
-                            Icon(Icons.Outlined.OpenInNew, null)
-                        }
-                    }
-
-                    IconButton({ show_info = !show_info }) {
-                        Icon(Icons.Default.Info, null)
+                if (subscriber_count != null) {
+                    Row(
+                        Modifier.padding(start = start_padding).align(Alignment.End),
+                        horizontalArrangement = Arrangement.spacedBy(0.dp)
+                    ) {
+                        InfoButtons(artist)
                     }
                 }
 
@@ -356,5 +307,40 @@ fun LFFArtistStartPane(
                 Spacer(Modifier.height(content_padding.calculateBottomPadding()))
             }
         }
+    }
+}
+
+@Composable
+private fun InfoButtons(artist: Artist) {
+    val player: PlayerState = LocalPlayerState.current
+
+    var show_info: Boolean by remember { mutableStateOf(false) }
+    if (show_info) {
+        ArtistInfoDialog(artist) { show_info = false }
+    }
+
+    if (player.context.canShare()) {
+        IconButton({
+            player.context.shareText(
+                artist.getURL(player.context),
+                artist.getActiveTitle(player.database) ?: ""
+            )
+        }) {
+            Icon(Icons.Outlined.Share, null)
+        }
+    }
+
+    if (player.context.canOpenUrl()) {
+        IconButton({
+            player.context.openUrl(
+                artist.getURL(player.context)
+            )
+        }) {
+            Icon(Icons.Outlined.OpenInNew, null)
+        }
+    }
+
+    IconButton({ show_info = !show_info }) {
+        Icon(Icons.Default.Info, null)
     }
 }

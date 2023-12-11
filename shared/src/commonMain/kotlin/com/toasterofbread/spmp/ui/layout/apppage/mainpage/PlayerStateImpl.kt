@@ -43,7 +43,9 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 import com.toasterofbread.spmp.ui.layout.*
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
+import com.toasterofbread.spmp.ui.layout.apppage.AppPageWithItem
 import com.toasterofbread.spmp.ui.layout.apppage.MediaItemAppPage
+import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
@@ -56,7 +58,7 @@ enum class FeedLoadState { PREINIT, NONE, LOADING, CONTINUING }
 
 @Composable
 fun PlayerState.getMainPageItemSize(): DpSize {
-    val width = if (form_factor.is_large) MEDIAITEM_PREVIEW_SQUARE_SIZE_LARGE.dp else MEDIAITEM_PREVIEW_SQUARE_SIZE_SMALL.dp
+    val width: Dp = if (form_factor.is_large) MEDIAITEM_PREVIEW_SQUARE_SIZE_LARGE.dp else MEDIAITEM_PREVIEW_SQUARE_SIZE_SMALL.dp
     return DpSize(
         width,
         width + 30.dp
@@ -268,7 +270,19 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
         if (item is Artist && item.isForItem()) {
             return
         }
-        openAppPage(MediaItemAppPage(app_page_state, item.getHolder(), browse_params), from_current, replace_current)
+
+        val page: AppPageWithItem =
+            if (item is Artist)
+                ArtistAppPage(
+                    app_page_state,
+                    item,
+                    browse_params = browse_params?.let { params ->
+                        Pair(params, context.ytapi.ArtistWithParams)
+                    }
+                )
+            else MediaItemAppPage(app_page_state, item.getHolder(), browse_params)
+
+        openAppPage(page, from_current, replace_current)
     }
 
     override fun openViewMorePage(browse_id: String, title: String?) {

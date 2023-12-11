@@ -4,8 +4,12 @@ import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
@@ -452,7 +456,7 @@ class MediaItemMultiSelectContext(
 
     @Composable
     fun CollectionToggleButton(items: List<MediaItemHolder>) {
-        AnimatedVisibility(is_active) {
+        AnimatedVisibility(is_active, enter = expandHorizontally(), exit = shrinkHorizontally()) {
             val all_selected by remember { derivedStateOf {
                 items.all {
                     it.item?.let { item -> isItemSelected(item) } ?: false

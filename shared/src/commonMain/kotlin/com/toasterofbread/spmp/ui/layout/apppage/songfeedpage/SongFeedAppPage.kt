@@ -17,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -49,6 +50,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 
@@ -84,6 +86,13 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
 
     @Composable
     override fun showTopBarContent(): Boolean = true
+
+    override fun canReload(): Boolean = true
+    override fun onReload() {
+        loadFeed(false)
+    }
+    @Composable
+    override fun isReloading(): Boolean = load_state == FeedLoadState.LOADING
 
     @Composable
     override fun TopBarContent(modifier: Modifier, close: () -> Unit) {

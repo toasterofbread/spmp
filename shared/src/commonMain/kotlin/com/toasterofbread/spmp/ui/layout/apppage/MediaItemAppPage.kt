@@ -17,7 +17,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.SongRelatedPage
-import com.toasterofbread.spmp.ui.layout.artistpage.ArtistPage
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.playlistpage.PlaylistPage
 
 data class MediaItemAppPage(
@@ -40,7 +40,7 @@ data class MediaItemAppPage(
         content_padding: PaddingValues,
         close: () -> Unit,
     ) {
-        val player = LocalPlayerState.current
+        val player: PlayerState = LocalPlayerState.current
 
         when (val item = item.item) {
             null -> close()
@@ -59,22 +59,15 @@ data class MediaItemAppPage(
                     Page(multiselect_context, modifier, content_padding, close)
                 }
             }
-            is Artist -> ArtistPage(
-                item,
-                previous_item = previous_item?.item,
-                content_padding = content_padding,
-                browse_params = browse_params?.let { params ->
-                    Pair(params, player.context.ytapi.ArtistWithParams)
-                }
-            )
-            is Song -> SongRelatedPage(
-                item,
-                player.context.ytapi.SongRelatedContent,
-                Modifier.fillMaxSize(),
-                previous_item?.item,
-                content_padding,
-                close = close
-            )
+            is Song ->
+                SongRelatedPage(
+                    item,
+                    player.context.ytapi.SongRelatedContent,
+                    Modifier.fillMaxSize(),
+                    previous_item?.item,
+                    content_padding,
+                    close = close
+                )
             else -> throw NotImplementedError(item::class.toString())
         }
     }

@@ -12,6 +12,8 @@ import com.toasterofbread.spmp.platform.download.getLocalLyricsFile
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
 import com.toasterofbread.spmp.youtubeapi.lyrics.loadLyrics
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.lang.ref.WeakReference
 
 internal object SongLyricsLoader: Loader<SongLyrics>() {
@@ -56,7 +58,7 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
             song.id,
             loading_by_id
         ) {
-            val result = LyricsSource.searchSongLyricsByPriority(song, context)
+            val result: Result<SongLyrics> = LyricsSource.searchSongLyricsByPriority(song, context)
             result.onSuccess { lyrics ->
                 loaded_by_reference[lyrics.reference] = WeakReference(lyrics)
                 song.Lyrics.set(lyrics.reference, context.database)
@@ -67,7 +69,7 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
     suspend fun loadByLyrics(lyrics_reference: LyricsReference, context: AppContext): Result<SongLyrics> {
         require(!lyrics_reference.isNone())
 
-        val loaded = loaded_by_reference[lyrics_reference]?.get()
+        val loaded: SongLyrics? = withContext(Dispatchers.Main) { loaded_by_reference[lyrics_reference]?.get() }
         if (loaded != null) {
             return Result.success(loaded)
         }
@@ -77,7 +79,7 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
             lock,
             loading_by_reference
         ) {
-            val result = loadLyrics(lyrics_reference, context)
+            val result: Result<SongLyrics> = loadLyrics(lyrics_reference, context)
             result.onSuccess { lyrics ->
                 loaded_by_reference[lyrics_reference] = WeakReference(lyrics)
             }
@@ -96,13 +98,20 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
             private val song_lyrics_reference: MutableState<LyricsReference?> = mutableStateOf(song.Lyrics.get(context.database))
             init {
                 context.database.songQueries.lyricsById(song.id).addListener {
-                    song_lyrics_reference.value = song.Lyrics.get(context.database)
+                    try {
+                        song_lyrics_reference.value = song.Lyrics.get(context.database)
+                    }
+                    catch (_: IllegalStateException) {}
                 }
             }
 
             override val song_id: String = song.id
             override val lyrics: SongLyrics?
-                get() = loaded_by_song[song.id]?.get() ?: loaded_by_reference[song_lyrics_reference.value]?.get()
+                get() =
+                    try {
+                        loaded_by_song[song.id]?.get() ?: loaded_by_reference[song_lyrics_reference.value]?.get()
+                    }
+                    catch (_: IllegalStateException) { null }
             override val loading: Boolean
                 get() = loading_by_id.containsKey(song_id) || loading_by_reference.containsKey(song_lyrics_reference.value)
             override val is_none: Boolean

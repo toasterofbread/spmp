@@ -244,7 +244,8 @@ internal fun LongPressMenuContent(
                                 border_thickness = 2.dp,
                                 waves = 6,
                                 border_colour = background_colour.getContrasted().copy(alpha = 0.1f),
-                                getOffset = { 0f }
+                                getOffset = { 0f },
+                                getColour = { background_colour }
                             )
                         }
                     }

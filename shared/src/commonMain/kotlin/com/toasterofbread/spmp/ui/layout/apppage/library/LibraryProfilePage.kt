@@ -1,16 +1,21 @@
 package com.toasterofbread.spmp.ui.layout.apppage.library
 
+import LocalPlayerState
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.artistpage.ArtistPage
+import com.toasterofbread.spmp.ui.layout.apppage.AppPage
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
 
 class LibraryProfilePage(context: AppContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =
@@ -30,12 +35,16 @@ class LibraryProfilePage(context: AppContext): LibrarySubPage(context) {
         modifier: Modifier
     ) {
         val channel: Artist = own_channel ?: return
-        ArtistPage(
-            channel,
-            modifier.clipToBounds(),
-            content_padding = content_padding,
-            multiselect_context = multiselect_context,
-            show_top_bar = false
-        )
+        val player: PlayerState = LocalPlayerState.current
+
+        val page: AppPage = remember {
+            ArtistAppPage(player.app_page_state, channel, show_top_bar = false)
+        }
+
+        Column {
+            with (page) {
+                Page(multiselect_context, modifier.clipToBounds(), content_padding) {}
+            }
+        }
     }
 }

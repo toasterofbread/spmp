@@ -44,6 +44,7 @@ import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemList
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
 import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsRow
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -53,16 +54,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun LFFArtistEndPane(
+internal fun ArtistAppPage.LFFArtistEndPane(
     multiselect_context: MediaItemMultiSelectContext?,
     content_padding: PaddingValues,
-    browse_params: Pair<BrowseParamsData, ArtistWithParamsEndpoint>?,
     browse_params_rows: List<ArtistWithParamsRow>?,
     current_accent_colour: Color,
-    load_error: Throwable?,
-    loading: Boolean,
     item_layouts: List<ArtistLayout>?,
-    previous_item: MediaItem?,
     apply_filter: Boolean
 ) {
     val player: PlayerState = LocalPlayerState.current

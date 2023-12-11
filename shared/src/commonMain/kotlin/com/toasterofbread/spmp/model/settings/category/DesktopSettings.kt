@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.model.settings.category
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DesktopWindows
 import com.toasterofbread.composekit.platform.Platform
+import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getDesktopCategoryItems
@@ -20,6 +21,8 @@ data object DesktopSettings: SettingsCategory("desktop") {
         else null
 
     enum class Key: SettingsKey {
+        SHOW_PINNED_IN_SIDEBAR,
+
         STARTUP_COMMAND,
         SERVER_IP_ADDRESS,
         SERVER_PORT,
@@ -32,9 +35,11 @@ data object DesktopSettings: SettingsCategory("desktop") {
         @Suppress("UNCHECKED_CAST")
         override fun <T> getDefaultValue(): T =
             when (this) {
+                SHOW_PINNED_IN_SIDEBAR -> true
+
                 STARTUP_COMMAND -> ""
                 SERVER_IP_ADDRESS -> "127.0.0.1"
-                SERVER_PORT -> 3973
+                SERVER_PORT -> ProjectBuildConfig.SERVER_PORT ?: 3973
                 SERVER_LOCAL_COMMAND -> "spms"
                 SERVER_LOCAL_START_AUTOMATICALLY -> false
                 SERVER_KILL_CHILD_ON_EXIT -> true

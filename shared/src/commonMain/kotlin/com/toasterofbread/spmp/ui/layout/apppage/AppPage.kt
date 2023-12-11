@@ -48,6 +48,12 @@ abstract class AppPage {
     open fun onClosed(next_page: AppPage?) {}
     open fun onBackNavigation(): Boolean = false
 
+    open fun canReload(): Boolean = false
+    open fun onReload() {}
+
+    @Composable
+    open fun isReloading(): Boolean = false
+
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun FilterChipsRow(

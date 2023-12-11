@@ -90,9 +90,9 @@ internal open class PropertyImpl<T, Q: Query<*>>(
     @Composable
     override fun observe(db: Database): MutableState<T> =
         remember(this) { getQuery(db) }.observeAsState(
-            { getValue(it) },
-            { setValue(db, it) }
-        )
+            Unit,
+            { getValue(it) }
+        ) { setValue(db, it) }
 }
 
 internal open class SingleProperty<T, Q: Any>(
@@ -162,6 +162,7 @@ open class ListPropertyImpl<T, Q: Any>(
     @Composable
     override fun observe(db: Database): State<List<T>?> {
         val value_state = getQuery(db).observeAsState(
+            Unit,
             { getValue(it.executeAsList()) },
             null
         )

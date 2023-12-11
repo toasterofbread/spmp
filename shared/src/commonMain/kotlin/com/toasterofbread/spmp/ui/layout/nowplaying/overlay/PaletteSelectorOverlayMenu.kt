@@ -46,6 +46,7 @@ import com.toasterofbread.spmp.platform.generatePalette
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
+import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.ColourpickCallback
 import kotlin.math.roundToInt
 
 val DEFAULT_THUMBNAIL_ROUNDING: Int
@@ -57,7 +58,7 @@ const val MIN_THUMBNAIL_ROUNDING: Int = 0
 const val MAX_THUMBNAIL_ROUNDING: Int = 50
 
 class PaletteSelectorPlayerOverlayMenu(
-    val requestColourPicker: ((Color?) -> Unit) -> Unit,
+    val requestColourPicker: (ColourpickCallback) -> Unit,
     val onColourSelected: (Color) -> Unit
 ): PlayerOverlayMenu() {
 

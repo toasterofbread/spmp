@@ -71,6 +71,7 @@ fun MediaItem.Thumbnail(
     load_failed_icon: ImageVector? = Icons.Default.CloudOff,
     provider_override: MediaItemThumbnailProvider? = null,
     getContentColour: (() -> Color)? = null,
+    container_modifier: Modifier = Modifier,
     onLoaded: ((ImageBitmap?) -> Unit)? = null
 ) {
     require(this !is LocalPlaylistRef) { "LocalPlaylistRef must be loaded and passed as a LocalPlaylistData" }
@@ -131,7 +132,7 @@ fun MediaItem.Thumbnail(
         }
     }
 
-    Crossfade(image?.first ?: loading) { state ->
+    Crossfade(image?.first ?: loading, container_modifier) { state ->
         if (state is ImageBitmap) {
             Image(
                 state,

@@ -83,7 +83,6 @@ fun PlayerButton(
                 interactionSource = remember { MutableInteractionSource() },
                 enabled = enabled
             )
-            .alpha(if (enabled) 1.0f else 0.5f)
     ) {
         val painter: VectorPainter = rememberVectorPainter(image)
 

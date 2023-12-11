@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -41,6 +42,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -49,6 +51,7 @@ import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.composekit.utils.common.thenWith
 import com.toasterofbread.composekit.utils.composable.getTop
+import com.toasterofbread.composekit.utils.modifier.horizontal
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueRadioInfoPosition
 import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueWaveBorderMode
@@ -215,10 +218,9 @@ internal fun QueueTab(
                     )
                 }
                 .background(queue_background_colour, shape)
-                .padding(content_padding)
                 .clip(shape)
         ) {
-            val list_padding = 10.dp
+            val list_padding: Dp = 10.dp
 
             Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
                 QueueButtonsRow(
@@ -270,9 +272,10 @@ internal fun QueueTab(
                         LazyColumn(
                             state = queue_list_state.listState,
                             contentPadding = PaddingValues(
-                                top = top_padding,
-                                start = side_padding,
-                                end = side_padding
+                                top = top_padding + content_padding.calculateTopPadding(),
+                                bottom = content_padding.calculateBottomPadding(),
+                                start = side_padding + content_padding.calculateStartPadding(LocalLayoutDirection.current),
+                                end = side_padding + content_padding.calculateStartPadding(LocalLayoutDirection.current)
                             ),
                             modifier = Modifier.reorderable(queue_list_state),
                             horizontalAlignment = Alignment.CenterHorizontally

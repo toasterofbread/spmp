@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.platform.playerservice
 
 import com.toasterofbread.spmp.resources.getString
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
@@ -15,7 +16,7 @@ internal suspend fun ZmqSpMsPlayerService.tryConnectToServer(
     json: Json,
     shouldCancelConnection: () -> Boolean,
     setLoadState: (PlayerServiceLoadState) -> Unit
-): Boolean = withContext(Dispatchers.IO) {
+): SpMsServerState? = withContext(Dispatchers.IO) {
     check(socket.connect(server_url))
 
     val handshake_message: ZMsg = ZMsg()
@@ -36,7 +37,7 @@ internal suspend fun ZmqSpMsPlayerService.tryConnectToServer(
         reply = socket.recvMsg(500)
 
         if (shouldCancelConnection()) {
-            return@withContext false
+            return@withContext null
         }
     }
 
@@ -51,18 +52,7 @@ internal suspend fun ZmqSpMsPlayerService.tryConnectToServer(
         throw RuntimeException("Parsing handshake reply data failed '$state_data'", e)
     }
 
-    setLoadState(
-        PlayerServiceLoadState(
-            true,
-            getString("desktop_splash_setting_initial_state")
-        )
-    )
-
-    applyServerState(state, this@withContext)
-
-    setLoadState(PlayerServiceLoadState(false))
-
-    return@withContext true
+    return@withContext state
 }
 
 private fun Socket.recvMsg(timeout_ms: Long?): ZMsg? {

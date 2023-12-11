@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.composable.BackHandler
+import com.toasterofbread.composekit.platform.composable.ScrollBarLazyColumn
 import com.toasterofbread.composekit.platform.composable.SwipeRefresh
 import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.composekit.utils.common.launchSingle
@@ -179,12 +180,12 @@ fun SongFeedAppPage.LFFSongFeedAppPage(
         when (state) {
             // Loaded
             is List<*> -> {
-                val onContinuationRequested = if (continuation != null) {
-                    { loadFeed(true) }
-                } else null
-                val loading_continuation = load_state != FeedLoadState.NONE
+                val onContinuationRequested: (() -> Unit)? =
+                    if (continuation != null) {{ loadFeed(true) }}
+                    else null
+                val loading_continuation: Boolean = load_state != FeedLoadState.NONE
 
-                LazyColumn(
+                ScrollBarLazyColumn(
                     Modifier.graphicsLayer { alpha = state_alpha.value },
                     state = scroll_state,
                     contentPadding = content_padding.vertical,

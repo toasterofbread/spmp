@@ -58,13 +58,13 @@ interface MediaItem: MediaItemHolder {
         val player: PlayerState = LocalPlayerState.current
         return player.database.mediaItemQueries.activeTitleById(id)
             .observeAsState(
+                key = id,
                 mapValue = {
                     it.executeAsOneOrNull()?.IFNULL?.let { formatActiveTitle(it) }
-                },
-                onExternalChange = { title ->
-                    setActiveTitle(title, player.context)
                 }
-            )
+            ) { title ->
+                setActiveTitle(title, player.context)
+            }
     }
 
     suspend fun setActiveTitle(value: String?, context: AppContext) = withContext(Dispatchers.IO) {

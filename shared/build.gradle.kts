@@ -1,3 +1,4 @@
+import org.jetbrains.compose.experimental.uikit.internal.registerSimulatorTasks
 import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
 import java.util.*
@@ -30,13 +31,14 @@ val DEBUG_KEY_NAMES = mapOf(
     "MUTE_PLAYER" to "Boolean",
     "DISABLE_PERSISTENT_QUEUE" to "Boolean",
     "STATUS_WEBHOOK_URL" to "String",
-    "STATUS_WEBHOOK_PAYLOAD" to "String"
+    "STATUS_WEBHOOK_PAYLOAD" to "String",
+    "SERVER_PORT" to "Int"
 )
 
 val buildConfigDir: Provider<Directory> get() = project.layout.buildDirectory.dir("generated/buildconfig")
 
 fun GenerateBuildConfig.buildConfig(debug: Boolean) {
-    val keys = Properties()
+    val keys: Properties = Properties()
 
     fun loadKeys(file: File, getType: (key: String) -> String, key_names: Collection<String>, debug_only: Boolean = true) {
         if (file.isFile) {
@@ -113,11 +115,19 @@ val buildConfigDebug: TaskProvider<GenerateBuildConfig> = tasks.register("buildC
 val buildConfigRelease: TaskProvider<GenerateBuildConfig> = tasks.register("buildConfigRelease", GenerateBuildConfig::class.java) {
     buildConfig(debug = false)
 }
+val buildConfigDesktop: TaskProvider<GenerateBuildConfig> = tasks.register("buildConfigDesktop", GenerateBuildConfig::class.java) {
+    gradle.taskGraph.whenReady {
+        val debug: Boolean = !gradle.taskGraph.hasTask(":desktopApp:checkRuntime")
+        println("buildConfigDesktop will be configured with debug=$debug")
+        buildConfig(debug = debug)
+    }
+}
 
 tasks.all {
     when (name) {
-        "preDebugBuild", "compileKotlinDesktop" -> dependsOn(buildConfigDebug)
+        "preDebugBuild" -> dependsOn(buildConfigDebug)
         "preReleaseBuild" -> dependsOn(buildConfigRelease)
+        "compileKotlinDesktop" -> dependsOn(buildConfigDesktop)
     }
 }
 
@@ -246,15 +256,15 @@ open class GenerateBuildConfig : DefaultTask() {
 
     @TaskAction
     fun execute() {
-        val dir = generated_output_dir.get().asFile
+        val dir: File = generated_output_dir.get().asFile
         dir.deleteRecursively()
         dir.mkdirs()
 
-        val class_parts = class_fq_name.get().split(".")
-        val class_name = class_parts.last()
-        val file = dir.resolve("$class_name.kt")
+        val class_parts: List<String> = class_fq_name.get().split(".")
+        val class_name: String = class_parts.last()
+        val file: File = dir.resolve("$class_name.kt")
 
-        val content = buildString {
+        val content: String = buildString {
             if (class_parts.size > 1) {
                 appendLine("@file:Suppress(\"RedundantNullableReturnType\", \"MayBeConstant\")\n")
                 appendLine("package ${class_parts.dropLast(1).joinToString(".")}")

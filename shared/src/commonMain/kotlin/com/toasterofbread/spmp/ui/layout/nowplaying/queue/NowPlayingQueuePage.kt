@@ -12,7 +12,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 
 class NowPlayingQueuePage: NowPlayingPage() {
     override fun shouldShow(player: PlayerState): Boolean =
-        player.form_factor == FormFactor.PORTRAIT
+        getFormFactor(player) == FormFactor.PORTRAIT
 
     @Composable
     override fun Page(page_height: Dp, top_bar: NowPlayingTopBar, content_padding: PaddingValues, swipe_modifier: Modifier, modifier: Modifier) {

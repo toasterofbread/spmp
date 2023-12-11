@@ -16,6 +16,7 @@ import kotlinx.coroutines.withContext
 fun rememberOwnedPlaylists(owner: Artist, context: AppContext): List<RemotePlaylistRef> {
     return context.database.playlistQueries.byOwner(owner.id)
         .observeAsState(
+            Unit,
             {
                 it.executeAsList().map { playlist_id ->
                     RemotePlaylistRef(playlist_id)

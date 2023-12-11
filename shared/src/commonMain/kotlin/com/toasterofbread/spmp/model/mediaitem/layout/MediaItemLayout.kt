@@ -23,8 +23,8 @@ import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
 
 @Composable
 fun getDefaultMediaItemPreviewSize(): DpSize =
-    if (LocalPlayerState.current.form_factor.is_large) DpSize(180.dp, 200.dp)
-    else DpSize(100.dp, 120.dp)
+    if (LocalPlayerState.current.form_factor.is_large) DpSize(180.dp, 210.dp)
+    else DpSize(100.dp, 130.dp)
 
 @Composable
 fun getMediaItemPreviewSquareAdditionalHeight(text_rows: Int?, line_height: TextUnit): Dp {
@@ -153,4 +153,4 @@ internal fun shouldShowTitleBar(
     subtitle: LocalisedString?,
     view_more: ViewMore? = null,
     scrollable_state: ScrollableState? = null
-): Boolean = title != null || subtitle != null || view_more != null || scrollable_state != null
+): Boolean = title != null || subtitle != null || view_more != null || (scrollable_state != null && (scrollable_state.canScrollForward || scrollable_state.canScrollBackward))

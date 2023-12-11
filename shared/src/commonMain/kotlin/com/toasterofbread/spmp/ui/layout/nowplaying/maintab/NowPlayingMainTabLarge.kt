@@ -2,10 +2,8 @@ package com.toasterofbread.spmp.ui.layout.nowplaying.maintab
 
 import LocalNowPlayingExpansion
 import LocalPlayerState
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -88,10 +86,6 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.queue.QueueTab
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 
-private enum class ControlsPosition {
-    ABOVE_IMAGE, ABOVE_QUEUE
-}
-
 @Composable
 private fun MainTabControls(
     onSeek: (Float) -> Unit,
@@ -100,7 +94,6 @@ private fun MainTabControls(
 ) {
     val player: PlayerState = LocalPlayerState.current
     val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
-    val absolute_expansion: Float = expansion.getAbsolute()
 
     Controls(
         player.status.m_song,
@@ -158,8 +151,6 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
 
     var controls_y_position: Float by remember { mutableStateOf(0f) }
     var thumbnail_y_position: Float by remember { mutableStateOf(0f) }
-    var display_mode: ControlsPosition by remember { mutableStateOf(ControlsPosition.ABOVE_IMAGE) }
-    val display_mode_transition: Float by animateFloatAsState((display_mode == ControlsPosition.ABOVE_IMAGE).toFloat())
 
     val bar_background_colour: Color = player.theme.card
     val stroke_width: Dp = 1.dp
@@ -168,20 +159,6 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
     BoxWithConstraints(
         modifier = modifier.height(height)
     ) {
-        LargeTopBar(
-            Modifier
-                .fillMaxWidth()
-                .height(bottom_bar_height)
-                .graphicsLayer { alpha = absolute_expansion }
-                .align(Alignment.TopStart)
-                .background(bar_background_colour)
-                .drawWithContent {
-                    drawContent()
-                    drawLine(stroke_colour, Offset(0f, size.height), Offset(size.width, size.height), stroke_width.toPx())
-                }
-                .zIndex(1f)
-        )
-
         Row(
             Modifier
                 .fillMaxSize()
@@ -242,78 +219,60 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                     Modifier.fillMaxHeight().zIndex(2f),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Column(
-                        Modifier.fillMaxHeight().weight(1f),
-                        verticalArrangement = Arrangement.Center
+                    BoxWithConstraints(
+                        Modifier.fillMaxHeight().weight(1f)
                     ) {
-                        Spacer(Modifier.requiredHeight(inner_bottom_padding).weight(1f, false))
+                        val controls_height: Dp = 200.dp
 
-                        var controls_height: Int by remember { mutableStateOf(0) }
+                        Column(
+                            Modifier.width(
+                                lerp(
+                                    parent_max_width,
+                                    minOf(
+                                        this@BoxWithConstraints.maxHeight - controls_height,
+                                        thumb_size
+                                    ),
+                                    absolute_expansion
+                                )
+                            ),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Spacer(Modifier.requiredHeight(inner_bottom_padding).weight(1f, false))
 
-                        MainTabControls(
-                            { seek_state = it },
-                            expanded && display_mode == ControlsPosition.ABOVE_IMAGE,
-                            Modifier
-                                .thenIf(!expanded) {
-                                    requiredHeight(with (density) {
-                                        controls_height.toDp() * ((absolute_expansion - 0.5f) * 2f)
-                                    })
-                                }
-                                .onGloballyPositioned {
-                                    controls_y_position = it.positionInParent().y
-                                }
-                                .onSizeChanged {
-                                    if (expanded) {
-                                        controls_height = it.height
+                            MainTabControls(
+                                { seek_state = it },
+                                expanded,
+                                Modifier
+                                    .requiredHeight(controls_height * ((absolute_expansion - 0.5f) * 2f))
+                                    .onGloballyPositioned {
+                                        controls_y_position = it.positionInParent().y
                                     }
-                                }
-                                .graphicsLayer {
-                                    alpha = display_mode_transition
-                                }
-                                .scale(1f, absolute_expansion)
-                                .padding(bottom = 20.dp)
-                                .width(lerp(parent_max_width, thumb_size, absolute_expansion))
-                        )
+                                    .scale(1f, absolute_expansion)
+                                    .padding(bottom = 20.dp)
+                            )
 
-                        LargeThumbnailRow(
-                            Modifier
-                                .height(thumb_size)
-                                .padding(start = (extra_width * absolute_expansion / 2).coerceAtLeast(0.dp))
-                                .width(lerp(parent_max_width, thumb_size, absolute_expansion))
-                                .onGloballyPositioned {
-                                    thumbnail_y_position = with (density) {(
-                                        it.positionInParent().y
-                                        + lerp(-controls_height / 2f, 0f, maxOf(display_mode_transition, 1f - absolute_expansion))
-                                        - 50.dp.toPx()
-                                    )}
-                                }
-                                .offset {
-                                    IntOffset(
-                                        0,
-                                        lerp(-controls_height / 2f, 0f, maxOf(display_mode_transition, 1f - absolute_expansion)).roundToInt()
-                                    )
+                            LargeThumbnailRow(
+                                Modifier
+                                    .height(thumb_size)
+                                    .padding(start = (extra_width * absolute_expansion / 2).coerceAtLeast(0.dp))
+                                    .onGloballyPositioned {
+                                        thumbnail_y_position = with (density) {(
+                                            it.positionInParent().y
+                                            + lerp(-controls_height.toPx() / 2f, 0f, 1f - absolute_expansion)
+                                            - 50.dp.toPx()
+                                        )}
+                                    },
+                                onThumbnailLoaded = { song, image ->
+                                    onThumbnailLoaded(song, image)
                                 },
-                            onThumbnailLoaded = { song, image ->
-                                onThumbnailLoaded(song, image)
-                            },
-                            setThemeColour = {
-                                setThemeColour(it, true)
-                            },
-                            getSeekState = { seek_state },
-                            disable_parent_scroll_while_menu_open = false
-                        )
-
-                        Spacer(
-                            Modifier.onGloballyPositioned {
-                                with (density) {
-                                    if (expanded) {
-                                        display_mode =
-                                            if (it.positionInWindow().y.toDp() > (page_height - bottom_bar_height - inner_bottom_padding)) ControlsPosition.ABOVE_QUEUE
-                                            else ControlsPosition.ABOVE_IMAGE
-                                    }
-                                }
-                            }
-                        )
+                                setThemeColour = {
+                                    setThemeColour(it, true)
+                                },
+                                getSeekState = { seek_state },
+                                disable_parent_scroll_while_menu_open = false
+                            )
+                        }
                     }
 
                     Spacer(Modifier.requiredHeight(lerp(0.dp, inner_bottom_padding, proportion_exp)))
@@ -354,24 +313,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                                 .fillMaxSize(),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-
-                            AnimatedVisibility(
-                                display_mode == ControlsPosition.ABOVE_QUEUE,
-                                Modifier.offset {
-                                    IntOffset(
-                                        0,
-                                        thumbnail_y_position.roundToInt()
-                                    )
-                                }
-                            ) {
-                                MainTabControls(
-                                    { seek_state = it },
-                                    expanded
-                                )
-                            }
-
                             val queue_shape: Shape = RoundedCornerShape(10.dp)
-                            val getVerticalOffset: () -> Int = remember {{ lerp(thumbnail_y_position, controls_y_position, display_mode_transition).roundToInt() }}
 
                             QueueTab(
                                 null,
@@ -381,7 +323,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                                     .offset {
                                         IntOffset(
                                             0,
-                                            getVerticalOffset()
+                                            controls_y_position.roundToInt()
                                         )
                                     }
                                     .thenIf(player.np_theme_mode != ThemeMode.BACKGROUND) {
@@ -397,7 +339,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                                 shape = queue_shape,
                                 button_row_arrangement = Arrangement.spacedBy(5.dp),
                                 content_padding = PaddingValues(
-                                    bottom = inner_bottom_padding + with (density) { getVerticalOffset().toDp() }
+                                    bottom = (inner_bottom_padding + with (density) { controls_y_position.toDp() }).coerceAtLeast(0.dp)
                                 ),
                                 getBackgroundColour = {
                                     getNPAltBackground()

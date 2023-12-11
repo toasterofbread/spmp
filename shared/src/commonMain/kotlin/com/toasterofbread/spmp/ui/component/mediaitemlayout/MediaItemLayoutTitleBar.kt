@@ -2,6 +2,8 @@ package com.toasterofbread.spmp.ui.component.mediaitemlayout
 
 import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.gestures.animateScrollBy
@@ -59,7 +61,11 @@ fun TitleBar(
 ) {
     val player: PlayerState = LocalPlayerState.current
 
-    AnimatedVisibility(shouldShowTitleBar(title, subtitle, view_more, scrollable_state)) {
+    AnimatedVisibility(
+        shouldShowTitleBar(title, subtitle, view_more, scrollable_state),
+        enter = slideInVertically(),
+        exit = slideOutVertically()
+    ) {
         val title_string: String? = remember { title?.getString(player.context) }
         val subtitle_string: String? = remember { subtitle?.getString(player.context) }
 

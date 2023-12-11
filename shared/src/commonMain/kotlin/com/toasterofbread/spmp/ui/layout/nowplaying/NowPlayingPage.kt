@@ -9,7 +9,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.utils.composable.getTop
+import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.form_factor
+import com.toasterofbread.spmp.platform.getFormFactor
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NowPlayingMainTabPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.NowPlayingQueuePage
@@ -25,6 +27,8 @@ abstract class NowPlayingPage {
     open fun getPlayerBackgroundColourOverride(player: PlayerState): Color? = null
 
     companion object {
+        internal fun getFormFactor(player: PlayerState): FormFactor = player.getFormFactor(0.75f)
+
         @Composable
         private fun getMainPadding(): Dp =
             if (LocalPlayerState.current.form_factor.is_large) NOW_PLAYING_MAIN_PADDING_LARGE_DP.dp

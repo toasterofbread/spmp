@@ -30,12 +30,13 @@ import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
+import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.ColourpickCallback
 import com.toasterofbread.spmp.youtubeapi.implementedOrNull
 import kotlinx.coroutines.delay
 
 class MainPlayerOverlayMenu(
     val setPlayerOverlayMenu: (PlayerOverlayMenu?) -> Unit,
-    val requestColourPicker: ((Color?) -> Unit) -> Unit,
+    val requestColourPicker: (ColourpickCallback) -> Unit,
     val onColourSelected: (Color) -> Unit,
     val getScreenWidth: @Composable () -> Dp
 ): PlayerOverlayMenu() {

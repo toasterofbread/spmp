@@ -31,20 +31,19 @@ import com.toasterofbread.spmp.ui.layout.apppage.AppPageSidebar
 
 @Composable
 fun MainPageDisplay() {
-    val player = LocalPlayerState.current
-    val horizontal_padding by animateDpAsState(player.getDefaultHorizontalPadding())
+    val player: PlayerState = LocalPlayerState.current
+    val horizontal_padding: Dp by animateDpAsState(player.getDefaultHorizontalPadding())
 
-    Crossfade(player.app_page) { page ->
+    Row {
+        if (player.form_factor == FormFactor.DESKTOP) {
+            AppPageSidebar(
+                Modifier.fillMaxHeight().zIndex(1f),
+                content_padding = PaddingValues(10.dp)
+            )
+        }
 
-        Row {
-            if (player.form_factor == FormFactor.DESKTOP) {
-                AppPageSidebar(
-                    Modifier.fillMaxHeight().zIndex(1f),
-                    content_padding = PaddingValues(10.dp)
-                )
-            }
-
-            Column(Modifier.fillMaxWidth().weight(1f)) {
+        Crossfade(player.app_page, Modifier.fillMaxWidth().weight(1f)) { page ->
+            Column {
                 val vertical_padding: Dp = player.getDefaultVerticalPadding()
                 val top_padding: Dp = WindowInsets.getTop()
 

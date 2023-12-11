@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.model.mediaitem.loader
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -134,7 +135,7 @@ fun MediaItem.loadDataOnChange(
     onLoadSucceeded: ((MediaItemData) -> Unit)? = null,
     onLoadFailed: ((Throwable?) -> Unit)? = null,
 ): State<Boolean> {
-    val loading_state = remember(this) {
+    val loading_state: MutableState<Boolean> = remember(this) {
         mutableStateOf(MediaItemLoader.isUnknownLoading(this))
     }
 

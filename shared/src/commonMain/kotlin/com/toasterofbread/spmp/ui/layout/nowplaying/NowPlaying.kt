@@ -24,11 +24,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
+import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.composekit.platform.composable.composeScope
 import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.composekit.utils.*
 import com.toasterofbread.composekit.utils.common.amplifyPercent
+import com.toasterofbread.composekit.utils.common.blendWith
 import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.composable.RecomposeOnInterval
 import com.toasterofbread.composekit.utils.composable.getTop
@@ -57,35 +59,52 @@ private const val GRADIENT_BOTTOM_PADDING_DP = 100
 private const val GRADIENT_TOP_START_RATIO = 0.7f
 private const val OVERSCROLL_CLEAR_DISTANCE_THRESHOLD_DP = 5f
 
+val SwipeableState<Int>.actualCurrentValue: Int get() = if (direction < 0) progress.to else progress.from
+val SwipeableState<Int>.actualTargetValue: Int get() = if (direction < 0) progress.from else progress.to
+
 @OptIn(ExperimentalMaterialApi::class)
-internal fun PlayerState.getNPBackground(theme_mode: ThemeMode = np_theme_mode): Color {
+private fun PlayerState.getBackgroundColourOverride(theme_mode: ThemeMode): Color {
     val pages: List<NowPlayingPage> = NowPlayingPage.ALL.filter { it.shouldShow(this) }
 
-    val override: Color? = pages[expansion.swipe_state.currentValue.coerceAtMost(pages.size - 1)].getPlayerBackgroundColourOverride(this)
-    if (override != null) {
-        return override
-    }
+    var current: Color? = pages.getOrNull(expansion.swipe_state.actualCurrentValue - 1)?.getPlayerBackgroundColourOverride(this)
+    var target: Color? = pages.getOrNull(expansion.swipe_state.actualTargetValue - 1)?.getPlayerBackgroundColourOverride(this)
 
-    return when (theme_mode) {
+    val default: Color = when (theme_mode) {
         ThemeMode.BACKGROUND -> theme.accent
         ThemeMode.ELEMENTS -> theme.card
         ThemeMode.NONE -> theme.card
     }
+
+    if (current == null && target == null) {
+        return default
+    }
+
+    if (current == null) {
+        current = default
+    }
+    else if (target == null) {
+        target = default
+    }
+
+    return target!!.blendWith(current, if (expansion.swipe_state.direction < 0 ) 1f - expansion.swipe_state.progress.fraction else expansion.swipe_state.progress.fraction)
+}
+
+internal fun PlayerState.getNPBackground(theme_mode: ThemeMode = np_theme_mode): Color {
+    return getBackgroundColourOverride(theme_mode)
 }
 
 internal fun PlayerState.getNPOnBackground(): Color {
-    val pages: List<NowPlayingPage> = NowPlayingPage.ALL.filter { it.shouldShow(this) }
-
-    val override: Color? = pages[expansion.swipe_state.currentValue.coerceAtMost(pages.size - 1)].getPlayerBackgroundColourOverride(this)
-    if (override != null) {
-        return override.getContrasted()
-    }
-
-    return when (np_theme_mode) {
-        ThemeMode.BACKGROUND -> theme.on_accent
-        ThemeMode.ELEMENTS -> theme.accent
-        ThemeMode.NONE -> theme.on_background
-    }
+    return getBackgroundColourOverride(np_theme_mode).getContrasted()
+//    val override: Color? = getBackgroundColourOverride()?.getPlayerBackgroundColourOverride(this)
+//    if (override != null) {
+//        return override.getContrasted()
+//    }
+//
+//    return when (np_theme_mode) {
+//        ThemeMode.BACKGROUND -> theme.on_accent
+//        ThemeMode.ELEMENTS -> theme.accent
+//        ThemeMode.NONE -> theme.on_background
+//    }
 }
 
 internal fun PlayerState.getNPAltBackground(theme_mode: ThemeMode = np_theme_mode): Color {
@@ -207,9 +226,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
         val song_gradient_depth: Float? =
             player.status.m_song?.PlayerGradientDepth?.observe(player.database)?.value
 
-        val is_desktop: Boolean = player.form_factor == FormFactor.DESKTOP
-
-        val swipe_modifier: Modifier = remember(swipe_anchors, is_desktop) {
+        val swipe_modifier: Modifier = remember(swipe_anchors) {
             Modifier.swipeable(
                 state = swipe_state,
                 anchors = swipe_anchors,
@@ -217,7 +234,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
                 orientation = Orientation.Vertical,
                 reverseDirection = true,
                 interactionSource = swipe_interaction_source,
-                enabled = !is_desktop
+                enabled = !Platform.DESKTOP.isCurrent()
             )
         }
 

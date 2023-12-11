@@ -13,11 +13,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.utils.common.blendWith
 import com.toasterofbread.composekit.utils.common.getThemeColour
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.form_factor
+import com.toasterofbread.spmp.platform.getFormFactor
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
@@ -83,9 +85,8 @@ class NowPlayingMainTabPage: NowPlayingPage() {
     override fun shouldShow(player: PlayerState): Boolean = true
 
     override fun getPlayerBackgroundColourOverride(player: PlayerState): Color? {
-        if (player.form_factor == FormFactor.DESKTOP) {
+        if (Platform.DESKTOP.isCurrent()) {
             return player.theme.accent.blendWith(player.theme.background, 0.05f)
-//            return player.theme.background.blendWith(accented_background, player.expansion.getBounded())
         }
         return null
     }
@@ -125,7 +126,7 @@ class NowPlayingMainTabPage: NowPlayingPage() {
                 NowPlayingMainTabNarrow(page_height, top_bar, content_padding, false)
             }
             else {
-                when (player.form_factor) {
+                when (getFormFactor(player)) {
                     FormFactor.PORTRAIT -> NowPlayingMainTabPortrait(page_height, top_bar, content_padding)
                     FormFactor.LANDSCAPE -> NowPlayingMainTabLandscape(page_height, top_bar, content_padding)
                     FormFactor.DESKTOP -> NowPlayingMainTabLarge(page_height, top_bar, content_padding)

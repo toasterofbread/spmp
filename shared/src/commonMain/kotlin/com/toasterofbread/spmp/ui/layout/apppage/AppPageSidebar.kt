@@ -1,26 +1,35 @@
 package com.toasterofbread.spmp.ui.layout.apppage
 
 import LocalPlayerState
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.QueueMusic
+import androidx.compose.material.icons.filled.Radio
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,13 +52,20 @@ import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.utils.common.amplify
+import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.db.rememberPinnedItems
+import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction
+import com.toasterofbread.spmp.model.settings.category.DesktopSettings
 import com.toasterofbread.spmp.ui.component.Thumbnail
-import com.toasterofbread.spmp.ui.layout.apppage.library.LibraryAppPage
+import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
+import com.toasterofbread.spmp.ui.component.mediaitempreview.getLongPressMenuData
+import com.toasterofbread.spmp.ui.component.mediaitempreview.getThumbShape
+import com.toasterofbread.spmp.ui.component.mediaitempreview.loadIfLocalPlaylist
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.spmp.ui.layout.apppage.settingspage.SettingsAppPage
-import com.toasterofbread.spmp.ui.layout.apppage.songfeedpage.SongFeedAppPage
+import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
 import kotlin.math.roundToInt
 
 @Composable
@@ -58,6 +74,9 @@ private fun getOwnChannel(): Artist? = LocalPlayerState.current.context.ytapi.us
 private enum class SidebarButton {
     FEED,
     LIBRARY,
+    SEARCH,
+    RADIOBUILDER,
+    RELOAD,
     NOTIFICATIONS,
     SETTINGS,
     PROFILE;
@@ -72,10 +91,25 @@ private enum class SidebarButton {
             return
         }
 
+        if (this == RELOAD) {
+            val player = LocalPlayerState.current
+            Crossfade(player.app_page.isReloading()) { reloading ->
+                if (reloading) {
+                    SubtleLoadingIndicator()
+                }
+                else {
+                    Icon(Icons.Default.Refresh, null)
+                }
+            }
+            return
+        }
+
         Icon(
             when (this) {
                 FEED -> Icons.Default.QueueMusic
                 LIBRARY -> Icons.Default.LibraryMusic
+                SEARCH -> Icons.Default.Search
+                RADIOBUILDER -> Icons.Default.Radio
                 NOTIFICATIONS -> Icons.Default.Notifications
                 SETTINGS -> Icons.Default.Settings
                 else -> throw IllegalStateException(name)
@@ -84,22 +118,42 @@ private enum class SidebarButton {
         )
     }
 
+    @Composable
+    fun shouldShow(page: AppPage?) = when (this) {
+        RELOAD -> LocalPlayerState.current.app_page.canReload()
+        else -> page != null
+    }
+
     val page: AppPage?
         @Composable
         get() = with (LocalPlayerState.current.app_page_state) {
             when (this@SidebarButton) {
                 FEED -> SongFeed
                 LIBRARY -> Library
+                SEARCH -> Search
+                RADIOBUILDER -> RadioBuilder
+                RELOAD -> null
                 NOTIFICATIONS -> Notifications
                 SETTINGS -> Settings
-                PROFILE -> getOwnChannel()?.let { MediaItemAppPage(this, it) }
+                PROFILE -> getOwnChannel()?.let { ArtistAppPage(this, it) }
             }
         }
+
+    fun PlayerState.onButtonClicked(page: AppPage?) {
+        if (this@SidebarButton == RELOAD) {
+            app_page.onReload()
+            return
+        }
+        openAppPage(page!!)
+    }
 
     companion object {
         val buttons: List<SidebarButton?> = listOf(
             FEED,
             LIBRARY,
+            SEARCH,
+            RADIOBUILDER,
+            RELOAD,
             null,
             NOTIFICATIONS,
             PROFILE,
@@ -107,19 +161,23 @@ private enum class SidebarButton {
         )
 
         val current: SidebarButton?
-            @Composable get() =
-                when (val page = LocalPlayerState.current.app_page) {
-                    is SongFeedAppPage -> FEED
-                    is LibraryAppPage -> LIBRARY
-                    is NotificationsAppPage -> NOTIFICATIONS
-                    is SettingsAppPage -> SETTINGS
+            @Composable get() = with (LocalPlayerState.current.app_page_state) {
+                when (val page: AppPage = current_page) {
+                    SongFeed -> FEED
+                    Library -> LIBRARY
+                    Search -> SEARCH
+                    RadioBuilder -> RADIOBUILDER
+                    Notifications -> NOTIFICATIONS
+                    Settings -> SETTINGS
                     is MediaItemAppPage ->
                         if (page.item.item?.id == getOwnChannel()?.id) PROFILE
                         else null
                     else -> null
                 }
+            }
     }
 }
+
 
 @Composable
 fun AppPageSidebar(modifier: Modifier = Modifier, content_padding: PaddingValues = PaddingValues()) {
@@ -178,7 +236,7 @@ fun AppPageSidebar(modifier: Modifier = Modifier, content_padding: PaddingValues
         modifier
             .background(player.theme.background.amplify(0.05f))
             .padding(content_padding)
-            .width(IntrinsicSize.Min),
+            .width(50.dp),
         contentAlignment = Alignment.TopCenter
     ) {
         Box(
@@ -200,7 +258,7 @@ fun AppPageSidebar(modifier: Modifier = Modifier, content_padding: PaddingValues
         )
 
         Column(
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(1.dp)
         ) {
             val icon_button_colours: IconButtonColors =
                 IconButtonDefaults.iconButtonColors(
@@ -210,30 +268,76 @@ fun AppPageSidebar(modifier: Modifier = Modifier, content_padding: PaddingValues
 
             for (button in SidebarButton.buttons) {
                 if (button == null) {
-                    Spacer(Modifier.fillMaxHeight().weight(1f))
+
+                    Column(Modifier.fillMaxHeight().weight(1f)) {
+                        Spacer(Modifier.fillMaxHeight().weight(1f))
+
+                        if (DesktopSettings.Key.SHOW_PINNED_IN_SIDEBAR.get()) {
+                            PinnedItems()
+                        }
+                    }
+
                     continue
                 }
 
-                val page: AppPage = button.page ?: continue
-                IconButton(
-                    {
-                        player.openAppPage(page)
-                    },
+                val page: AppPage? = button.page
+                AnimatedVisibility(
+                    button.shouldShow(page),
                     Modifier.onGloballyPositioned {
                         button_positions[button] = it.positionInParent().y
-                    },
-                    colors =
-                        if (button == current_button) IconButtonDefaults.iconButtonColors(
-                            containerColor = Color.Transparent,
-                            contentColor = player.theme.on_accent
-                        )
-                        else icon_button_colours
+                    }
                 ) {
-                    button.ButtonContent()
+                    IconButton(
+                        {
+                            with (button) {
+                                player.onButtonClicked(page)
+                            }
+                        },
+                        colors =
+                            if (button == current_button) IconButtonDefaults.iconButtonColors(
+                                containerColor = Color.Transparent,
+                                contentColor = player.theme.on_accent
+                            )
+                            else icon_button_colours
+                    ) {
+                        button.ButtonContent()
+                    }
                 }
             }
 
             Spacer(Modifier.height(player.nowPlayingBottomPadding(true)))
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun PinnedItems(modifier: Modifier = Modifier) {
+    val pinned_items: List<MediaItem> = rememberPinnedItems() ?: emptyList()
+
+    LazyColumn(
+        modifier,
+        verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top)
+    ) {
+        items(pinned_items) { item ->
+            val long_press_menu_data: LongPressMenuData = remember(item) {
+                item.getLongPressMenuData()
+            }
+
+            val loaded_item: MediaItem? = item.loadIfLocalPlaylist()
+            if (loaded_item == null) {
+                return@items
+            }
+
+            item.Thumbnail(
+                MediaItemThumbnailProvider.Quality.LOW,
+                Modifier
+                    .mediaItemPreviewInteraction(loaded_item, long_press_menu_data)
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .clip(item.getType().getThumbShape()),
+                container_modifier = Modifier.animateItemPlacement()
+            )
         }
     }
 }

@@ -2,16 +2,16 @@ package com.toasterofbread.spmp.platform.download
 
 import android.os.Build
 import com.toasterofbread.composekit.platform.PlatformFile
-import com.toasterofbread.spmp.model.lyrics.LyricsFileConverter
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.mediaitem.song.SongData
-import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.startPlatformService
 import com.toasterofbread.spmp.platform.unbindPlatformService
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.DownloadRequestCallback
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 actual class PlayerDownloadManager actual constructor(val context: AppContext) {
@@ -60,7 +60,7 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
     }
 
     private fun onResultIntentReceived(result: PlayerDownloadMessage) {
-        val data = result.data
+        val data: Map<String, Any?> = result.data
         val status: DownloadStatus = data["status"] as DownloadStatus
 
         val instance: Int? = result.instance
@@ -96,7 +96,7 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
 
     private fun addResultCallback(action: PlayerDownloadService.IntentAction, song_id: String, instance: Int, callback: (data: Map<String, Any?>) -> Unit) {
         synchronized(result_callbacks) {
-            val callbacks = result_callbacks
+            val callbacks: MutableMap<Int, (Map<String, Any?>) -> Unit> = result_callbacks
                 .getOrPut(action) { mutableMapOf() }
                 .getOrPut(song_id) { mutableMapOf() }
             callbacks[instance] = callback
@@ -119,19 +119,11 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
             }
         }
 
-        return@withContext MediaItemLibrary.getLocalSongDownload(song, context)
+        return@withContext MediaItemLibrary.getLocalSong(song, context)
     }
 
-    actual suspend fun getDownloads(): List<DownloadStatus> = withContext(Dispatchers.IO) {
-        val current_downloads: List<DownloadStatus> = service?.downloader?.getAllDownloadsStatus() ?: emptyList()
-        val local_downloads: List<DownloadStatus> = MediaItemLibrary.getLocalSongDownloads(context)
-
-        return@withContext current_downloads + local_downloads.filter { local ->
-            current_downloads.none { current ->
-                current.file?.matches(local.file!!) == true
-            }
-        }
-    }
+    actual suspend fun getDownloads(): List<DownloadStatus> =
+        service?.downloader?.getAllDownloadsStatus() ?: emptyList()
 
     @Synchronized
     actual fun startDownload(song: Song, silent: Boolean, file_uri: String?, callback: DownloadRequestCallback?) {
@@ -150,9 +142,11 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
     private fun performDownload(song: Song, silent: Boolean, file_uri: String?, onCompleted: DownloadRequestCallback?) {
         onService {
             val instance: Int = result_callback_id++
-            if (onCompleted != null) {
-                addResultCallback(PlayerDownloadService.IntentAction.START_DOWNLOAD, song.id, instance) { data ->
-                    onCompleted(data["status"] as DownloadStatus)
+            addResultCallback(PlayerDownloadService.IntentAction.START_DOWNLOAD, song.id, instance) { data ->
+                val status: DownloadStatus = data["status"] as DownloadStatus
+                context.coroutine_scope.launch {
+                    MediaItemLibrary.onSongFileAdded(status)
+                    onCompleted?.invoke(status)
                 }
             }
 
@@ -215,6 +209,7 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
     actual suspend fun deleteSongLocalAudioFile(song: Song) {
         val download: DownloadStatus = getDownload(song) ?: return
         download.file?.delete()
+        MediaItemLibrary.onSongFileDeleted(song)
         forEachDownloadStatusListener { it.onDownloadRemoved(download.id) }
     }
 

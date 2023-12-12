@@ -6,16 +6,17 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.platform.PlatformFile
-import com.toasterofbread.spmp.model.lyrics.LyricsFileConverter
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
-import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.DownloadRequestCallback
@@ -183,36 +184,38 @@ fun Song.rememberDownloadStatus(): State<DownloadStatus?> {
 
 @Composable
 fun rememberSongDownloads(): State<List<DownloadStatus>> {
-    val download_manager = LocalPlayerState.current.context.download_manager
-    val download_state: MutableState<List<DownloadStatus>> = remember { mutableStateOf(emptyList()) }
+    val download_manager: PlayerDownloadManager = LocalPlayerState.current.context.download_manager
+    var downloads: List<DownloadStatus> by remember { mutableStateOf(emptyList()) }
+
+    val synced: Iterable<DownloadStatus> = MediaItemLibrary.synced_songs?.values ?: emptyList()
 
     LaunchedEffect(Unit) {
-        download_state.value = download_manager.getDownloads()
+        downloads = download_manager.getDownloads()
     }
 
     DisposableEffect(Unit) {
         val listener = object : PlayerDownloadManager.DownloadStatusListener() {
             override fun onDownloadAdded(status: DownloadStatus) {
-                synchronized(download_state) {
-                    download_state.value += status
+                synchronized(downloads) {
+                    downloads += status
                 }
             }
             override fun onDownloadRemoved(id: String) {
-                synchronized(download_state) {
-                    download_state.value = download_state.value.toMutableList().apply {
+                synchronized(downloads) {
+                    downloads = downloads.toMutableList().apply {
                         removeAll { it.id == id }
                     }
                 }
             }
             override fun onDownloadChanged(status: DownloadStatus) {
-                synchronized(download_state) {
-                    val temp = download_state.value.toMutableList()
-                    for (i in 0 until download_state.value.size) {
-                        if (download_state.value[i].id == status.id) {
+                synchronized(downloads) {
+                    val temp = downloads.toMutableList()
+                    for (i in 0 until downloads.size) {
+                        if (downloads[i].id == status.id) {
                             temp[i] = status
                         }
                     }
-                    download_state.value = temp
+                    downloads = temp
                 }
             }
         }
@@ -223,31 +226,14 @@ fun rememberSongDownloads(): State<List<DownloadStatus>> {
         }
     }
 
-    return download_state
-}
-
-suspend fun Song.getLocalSongFile(context: AppContext, allow_partial: Boolean = false): PlatformFile? {
-    val files: List<PlatformFile> = MediaItemLibrary.getLocalSongsDir(context).listFiles() ?: return null
-    for (file in files) {
-        if (SongDownloader.isFileDownloadInProgressForSong(file, this)) {
-            if (allow_partial) {
-                return file
+    return remember(synced) { derivedStateOf {
+        downloads + synced.filter { local ->
+            downloads.none { current ->
+                if (current.isCompleted() != local.isCompleted()) {
+                    return@none false
+                }
+                return@none current.file?.matches(local.file!!) == true
             }
-            return null
         }
-
-        val metadata: SongData? = LocalSongMetadataProcessor.readLocalSongMetadata(file, id, load_data = false)
-        if (metadata != null) {
-            return file
-        }
-    }
-    return null
-}
-
-fun Song.getLocalLyricsFile(context: AppContext, allow_partial: Boolean = false): PlatformFile? {
-    val file: PlatformFile = MediaItemLibrary.getLocalLyricsFile(this, context)
-    if (!file.is_file) {
-        return null
-    }
-    return file
+    } }
 }

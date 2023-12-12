@@ -30,10 +30,11 @@ import java.lang.reflect.Field
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
-    val context = AppContext(SpMp.app_name)
+    val coroutine_scope: CoroutineScope = CoroutineScope(Job())
+
+    val context: AppContext = AppContext(SpMp.app_name, coroutine_scope)
     SpMp.init(context)
 
-    val coroutine_scope = CoroutineScope(Job())
     coroutine_scope.launch {
         context.init()
     }
@@ -91,8 +92,8 @@ fun main() {
         }
     }
 
+    coroutine_scope.cancel()
+
     SpMp.onStop()
     SpMp.release()
-
-    coroutine_scope.cancel()
 }

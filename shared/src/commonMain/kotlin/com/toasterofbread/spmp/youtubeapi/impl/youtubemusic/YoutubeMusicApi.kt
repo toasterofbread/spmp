@@ -141,10 +141,10 @@ data class YoutubeMusicApi(
     }
 
     private fun updateYtmContext() {
-        val context_substitutor = StringSubstitutor(
+        val context_substitutor: StringSubstitutor = StringSubstitutor(
             mapOf(
                 "user_agent" to getUserAgent(),
-                "hl" to context.getDataLanguage().split("-", limit = 2).firstOrNull()
+                "hl" to context.getDataLanguage().split('-', limit = 2).firstOrNull()
             ),
             "\${", "}"
         )
@@ -165,7 +165,7 @@ data class YoutubeMusicApi(
             StringSubstitutor(
                 mapOf(
                     "user_agent" to getUserAgent(),
-                    "hl" to context.getUiLanguage()
+                    "hl" to context.getUiLanguage().split('-', limit = 2).firstOrNull()
                 ),
                 "\${", "}"
             ).replace(getStringSafe("ytm_context", context)).reader(),

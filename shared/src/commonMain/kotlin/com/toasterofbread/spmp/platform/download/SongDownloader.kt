@@ -12,7 +12,6 @@ import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.StreamingSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.YoutubeVideoFormat
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrThrowHere
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -22,10 +21,7 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.net.ConnectException
 import java.net.HttpURLConnection
-import java.net.URI
 import java.net.URL
-import java.nio.file.Files
-import java.nio.file.Path
 import java.util.concurrent.ExecutorService
 
 private const val FILE_DOWNLOADING_SUFFIX = ".part"
@@ -51,12 +47,12 @@ abstract class SongDownloader(
     ) {
         var song_file: PlatformFile? = runBlocking {
             // This is fine :)
-            song.getLocalSongFile(context, allow_partial = true)
+            MediaItemLibrary.getLocalSong(song, context)?.file
         }
-        var lyrics_file: PlatformFile? = song.getLocalLyricsFile(context, allow_partial = true)
+        var lyrics_file: PlatformFile? = MediaItemLibrary.getLocalLyrics(context, song, allow_partial = true)
 
         var status: DownloadStatus.Status =
-            if (song_file?.let { isFileDownloadInProgressForSong(it, song) } == false) DownloadStatus.Status.ALREADY_FINISHED
+            if (song_file?.let { getFileDownloadInfo(it).is_partial } == false) DownloadStatus.Status.ALREADY_FINISHED
             else DownloadStatus.Status.IDLE
             set(value) {
                 if (field != value) {
@@ -148,17 +144,20 @@ abstract class SongDownloader(
             }
         }
 
-        fun isFileDownloadInProgress(file: PlatformFile): Boolean =
-            file.name.endsWith(FILE_DOWNLOADING_SUFFIX)
+        data class DownloadFileInfo(val id: String?, val is_partial: Boolean, val file: PlatformFile)
 
-        fun isFileDownloadInProgressForSong(file: PlatformFile, song: Song): Boolean =
-            isFileDownloadInProgress(file) && file.name.startsWith("${song.id}.")
-
-        fun getSongIdOfInProgressDownload(file: PlatformFile): String? =
-            if (file.name.endsWith(FILE_DOWNLOADING_SUFFIX)) file.name.split('.', limit = 2).first() else null
+        fun getFileDownloadInfo(file: PlatformFile): DownloadFileInfo {
+            val is_partial: Boolean = file.name.endsWith(FILE_DOWNLOADING_SUFFIX)
+            return DownloadFileInfo(
+                if (is_partial) file.name.split('.', limit = 2).first() else null,
+                is_partial,
+                file
+            )
+        }
     }
 
-    private val song_download_dir: PlatformFile get() = MediaItemLibrary.getLocalSongsDir(context)
+    private val song_download_dir: PlatformFile get() = MediaItemLibrary.getSongDownloadsDir(context)
+    private val song_storage_dir: PlatformFile get() = MediaItemLibrary.getLocalSongsDir(context)
 
     val downloads: MutableList<Download> = mutableListOf()
     private var stopping: Boolean = false
@@ -383,30 +382,21 @@ abstract class SongDownloader(
                 }
             }
 
+            val destination_file: PlatformFile = download.file_uri?.let { context.getUserDirectoryFile(it) }
+                ?: song_storage_dir.resolve(download.generatePath(format_extension, false))
+
+            file.moveTo(destination_file)
+            download.song_file = destination_file
+
+            download.status = DownloadStatus.Status.FINISHED
             close(DownloadStatus.Status.FINISHED)
+
+            return@withContext Result.success(download.song_file)
         }
         catch (e: Throwable) {
             e.printStackTrace()
             close(DownloadStatus.Status.CANCELLED)
+            return@withContext Result.failure(e)
         }
-
-        if (download.file_uri != null) {
-            val uri_file: PlatformFile = context.getUserDirectoryFile(download.file_uri)
-            uri_file.outputStream().use { output ->
-                Files.copy(Path.of(URI.create(file.absolute_path)), output)
-            }
-            file.delete()
-            download.song_file = uri_file
-        }
-        else {
-            val renamed: PlatformFile = file.renameTo(
-                download.generatePath(format_extension, false)
-            )
-            download.song_file = renamed
-        }
-
-        download.status = DownloadStatus.Status.FINISHED
-
-        return@withContext Result.success(download.song_file)
     }
 }

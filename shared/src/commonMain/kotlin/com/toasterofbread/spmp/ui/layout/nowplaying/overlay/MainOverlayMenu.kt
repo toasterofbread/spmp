@@ -106,9 +106,9 @@ class MainPlayerOverlayMenu(
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            val button_colour = player.theme.on_accent
-            val button_size = 42.dp
-            val button_modifier = Modifier
+            val button_colour: Color = player.theme.on_accent
+            val button_size: Dp = 42.dp
+            val button_modifier: Modifier = Modifier
                 .background(
                     player.theme.accent,
                     CircleShape
@@ -138,9 +138,15 @@ class MainPlayerOverlayMenu(
                     song_title = edited_song_title
                 }),
                 colors = OutlinedTextFieldDefaults.colors(
-                    cursorColor = button_colour,
-                    focusedBorderColor = button_colour,
-                    focusedLabelColor = button_colour,
+                    cursorColor = Color.White,
+                    focusedBorderColor = Color.White,
+                    unfocusedBorderColor = player.theme.accent,
+                    focusedLabelColor = Color.White,
+                    unfocusedLabelColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedTrailingIconColor = Color.White,
+                    unfocusedTrailingIconColor = Color.White
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -190,7 +196,7 @@ class MainPlayerOverlayMenu(
 
                 Box(
                     button_modifier
-                        .clickable { 
+                        .clickable {
                             setPlayerOverlayMenu(getLyricsMenu())
                         },
                     contentAlignment = Alignment.Center

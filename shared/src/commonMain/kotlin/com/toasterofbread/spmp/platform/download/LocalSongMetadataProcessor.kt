@@ -18,48 +18,63 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jaudiotagger.audio.AudioFile
 import org.jaudiotagger.audio.AudioFileIO
+import org.jaudiotagger.audio.exceptions.CannotWriteException
 import org.jaudiotagger.audio.mp4.Mp4TagReader
 import org.jaudiotagger.tag.FieldKey
 import org.jaudiotagger.tag.Tag
 import org.jaudiotagger.tag.mp4.Mp4Tag
 import java.io.File
+import java.net.URI
 import java.util.logging.Level
 
-private val CUSTOM_METADATA_KEY: FieldKey = FieldKey.CUSTOM1
+expect val LocalSongMetadataProcessor: MetadataProcessor
 
-object LocalSongMetadataProcessor {
+internal fun <T: MediaItemData> MediaItem.getItemWithOrForTitle(item_id: String?, item_title: String?, createItem: (String) -> T): T? {
+    val item: T
+    if (item_id != null) {
+        item = createItem(item_id)
+    }
+    else if (item_title != null) {
+        // TODO
+        item = createItem(Artist.getForItemId(this))
+    }
+    else {
+        return null
+    }
+
+    item.title = item_title
+    return item
+}
+
+interface MetadataProcessor {
+    suspend fun addMetadataToLocalSong(song: Song, file: PlatformFile, file_extension: String, context: AppContext)
+    suspend fun readLocalSongMetadata(file: PlatformFile, context: AppContext, match_id: String? = null, load_data: Boolean = true): SongData?
+}
+
+object JAudioTaggerMetadataProcessor: MetadataProcessor {
+    val CUSTOM_METADATA_KEY: FieldKey = FieldKey.ALBUM_ARTIST
+
+    @Serializable
+    data class CustomMetadata(
+        val song_id: String?, val artist_id: String?, val album_id: String?
+    )
+
     init {
         Mp4TagReader.logger.level = Level.OFF
     }
 
-    @Serializable
-    private data class CustomMetadata(
-        val song_id: String?, val artist_id: String?, val album_id: String?
-    )
-
-    private fun <T: MediaItemData> MediaItem.getItemWithOrForTitle(item_id: String?, item_title: String?, createItem: (String) -> T): T? {
-        val item: T
-        if (item_id != null) {
-            item = createItem(item_id)
-        }
-        else if (item_title != null) {
-            // TODO
-            item = createItem(Artist.getForItemId(this))
-        }
-        else {
-            return null
-        }
-
-        item.title = item_title
-        return item
-    }
-
-    suspend fun addMetadataToLocalSong(song: Song, file: PlatformFile, file_extension: String, context: AppContext) = withContext(Dispatchers.IO) {
+    override suspend fun addMetadataToLocalSong(
+        song: Song,
+        file: PlatformFile,
+        file_extension: String,
+        context: AppContext
+    ) = withContext(Dispatchers.IO) {
         val tag: Tag = Mp4Tag().apply {
             fun set(key: FieldKey, value: String?) {
                 if (value == null) {
                     deleteField(key)
-                } else {
+                }
+                else {
                     setField(key, value)
                 }
             }
@@ -84,14 +99,25 @@ object LocalSongMetadataProcessor {
 
         val audio_file: AudioFile = AudioFileIO.readAs(File(file.absolute_path), file_extension)
         audio_file.tag = tag
-        audio_file.commit()
+
+        try {
+            audio_file.commit()
+        }
+        catch (e: CannotWriteException) {
+            // No idea why it throws this considering it seems to write the metadata just fine
+            if (e.message?.startsWith("Unable to make changes to Mp4 file, incorrect offsets written difference was ") == true) {
+                return@withContext
+            }
+
+            throw e
+        }
     }
 
-    suspend fun readLocalSongMetadata(file: PlatformFile, match_id: String? = null, load_data: Boolean = true): SongData? =
+    override suspend fun readLocalSongMetadata(file: PlatformFile, context: AppContext, match_id: String?, load_data: Boolean): SongData? =
         withContext(Dispatchers.IO) {
             val tag: Tag =
                 try {
-                    AudioFileIO.read(File(file.absolute_path)).tag
+                    AudioFileIO.read(File(URI.create(file.uri))).tag
                 }
                 catch (e: Throwable) {
                     e.printStackTrace()

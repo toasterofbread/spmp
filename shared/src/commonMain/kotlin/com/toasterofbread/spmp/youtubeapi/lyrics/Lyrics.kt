@@ -151,7 +151,7 @@ sealed class LyricsSource(val source_index: Int) {
 suspend fun loadLyrics(reference: LyricsReference, context: AppContext): Result<SongLyrics> {
     require(!reference.isNone())
 
-    val source = LyricsSource.fromIdx(reference.source_index)
+    val source: LyricsSource = LyricsSource.fromIdx(reference.source_index)
     return source.getLyrics(reference.id, context)
 }
 

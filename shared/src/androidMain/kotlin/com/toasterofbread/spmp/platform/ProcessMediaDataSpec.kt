@@ -5,12 +5,12 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSpec
 import com.toasterofbread.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.model.mediaitem.db.getPlayCount
+import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.song.getSongStreamFormat
 import com.toasterofbread.spmp.model.settings.category.StreamingSettings
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
-import com.toasterofbread.spmp.platform.download.getLocalSongFile
 import com.toasterofbread.spmp.platform.playerservice.AUTO_DOWNLOAD_SOFT_TIMEOUT
 import com.toasterofbread.spmp.youtubeapi.YoutubeVideoFormat
 import kotlinx.coroutines.delay
@@ -22,7 +22,7 @@ internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppConte
     val song: SongRef = SongRef(data_spec.uri.toString())
 
     val download_manager: PlayerDownloadManager = context.download_manager
-    var local_file: PlatformFile? = song.getLocalSongFile(context)
+    var local_file: PlatformFile? = MediaItemLibrary.getLocalSong(song, context)?.file
     if (local_file != null) {
         println("Playing song ${song.id} from local file $local_file")
         return data_spec.withUri(Uri.parse(local_file.uri))
@@ -60,7 +60,7 @@ internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppConte
                         }
                         DownloadStatus.Status.FINISHED, DownloadStatus.Status.ALREADY_FINISHED -> {
                             launch {
-                                local_file = song.getLocalSongFile(context)
+                                local_file = MediaItemLibrary.getLocalSong(song, context)?.file
                                 done = true
                             }
                         }

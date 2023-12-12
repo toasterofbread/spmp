@@ -2,20 +2,25 @@ package com.toasterofbread.spmp.ui.layout
 
 import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -25,12 +30,8 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.db.rememberPinnedItems
 import com.toasterofbread.spmp.model.mediaitem.db.setPinned
-import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MEDIAITEM_PREVIEW_SQUARE_SIZE_LARGE
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MEDIAITEM_PREVIEW_SQUARE_SIZE_SMALL
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.getMainPageItemSize
 
 @Composable
 fun PinnedItemsRow(
@@ -39,7 +40,21 @@ fun PinnedItemsRow(
     val player: PlayerState = LocalPlayerState.current
     val pinned_items: List<MediaItem>? = rememberPinnedItems()
 
-    AnimatedVisibility(pinned_items == null || pinned_items.isNotEmpty(), enter = slideInVertically(), exit = slideOutVertically()) {
+    var shown: Boolean by remember { mutableStateOf(false) }
+    var prev_pinned_items: List<MediaItem>? by remember { mutableStateOf(null) }
+
+    LaunchedEffect(pinned_items) {
+        if (prev_pinned_items != null) {
+            shown = true
+        }
+        prev_pinned_items = pinned_items
+    }
+
+    AnimatedVisibility(
+        !pinned_items.isNullOrEmpty(),
+        enter = if (shown) expandVertically() else EnterTransition.None,
+        exit = shrinkVertically()
+    ) {
         if (pinned_items == null) {
             return@AnimatedVisibility
         }
@@ -58,6 +73,7 @@ fun PinnedItemsRow(
                         Box(Modifier.size(30.dp), contentAlignment = Alignment.Center) {
                             Icon(Icons.Filled.PushPin, null, Modifier.alpha(0.5f))
                         }
+
                         IconButton(
                             {
                                 player.database.transaction {

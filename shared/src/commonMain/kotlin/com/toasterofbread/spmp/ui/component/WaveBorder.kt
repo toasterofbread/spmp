@@ -86,8 +86,8 @@ fun WaveBorder(
                     with(density) {
                         val user_offset: Dp = getOffset?.invoke(height.toPx())?.toDp()
                             ?: (
-                                if (invert) -height / 2
-                                else height / 2
+                                if (invert) (-height / 2) + 0.1.dp
+                                else (height / 2) - 0.1.dp
                             )
                         user_offset + border_thickness
                     }

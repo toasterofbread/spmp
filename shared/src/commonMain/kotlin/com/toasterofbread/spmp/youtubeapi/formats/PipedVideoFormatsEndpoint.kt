@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 import okhttp3.Response
+import java.io.Reader
 
 class PipedVideoFormatsEndpoint(override val api: YoutubeApi): VideoFormatsEndpoint() {
     override suspend fun getVideoFormats(id: String, filter: ((YoutubeVideoFormat) -> Boolean)?): Result<List<YoutubeVideoFormat>> = withContext(Dispatchers.IO) {
@@ -18,7 +19,7 @@ class PipedVideoFormatsEndpoint(override val api: YoutubeApi): VideoFormatsEndpo
             { return@withContext Result.failure(it) }
         )
 
-        val stream = response.body?.charStream() ?: return@withContext Result.failure(NullPointerException())
+        val stream: Reader = response.body?.charStream() ?: return@withContext Result.failure(NullPointerException())
         stream.use {
             val parsed: PipedStreamsResponse = api.gson.fromJson(it)
             if (!response.isSuccessful) {

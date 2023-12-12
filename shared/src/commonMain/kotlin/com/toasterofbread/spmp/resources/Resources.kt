@@ -28,8 +28,8 @@ fun initResources(language: String, context: AppContext) {
         }
 
         runBlocking {
-            val strs = mutableMapOf<String, String>()
-            val str_arrays = mutableMapOf<String, List<String>>()
+            val strs: MutableMap<String, String> = mutableMapOf<String, String>()
+            val str_arrays: MutableMap<String, List<String>> = mutableMapOf<String, List<String>>()
 
             fun loadFile(path: String) {
                 val stream: InputStream

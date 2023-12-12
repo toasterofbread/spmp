@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.apppage.library
 
 import LocalPlayerState
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,6 +11,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -17,13 +22,17 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.utils.composable.EmptyListCrossfade
+import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
+import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.download.DownloadStatus
@@ -35,6 +44,8 @@ import com.toasterofbread.spmp.resources.uilocalisation.durationToString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =
@@ -47,15 +58,15 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
         multiselect_context: MediaItemMultiSelectContext,
         modifier: Modifier
     ) {
-        val player = LocalPlayerState.current
+        val player: PlayerState = LocalPlayerState.current
         val downloads: List<DownloadStatus> by rememberSongDownloads()
 
         var sorted_downloads: List<DownloadStatus> by remember { mutableStateOf(emptyList()) }
 
         with(library_page) {
             LaunchedEffect(downloads, search_filter, sort_type, reverse_sort) {
-                val filter = if (search_filter?.isNotEmpty() == true) search_filter else null
-                val filtered = downloads.mapNotNull {  download ->
+                val filter: String? = if (search_filter?.isNotEmpty() == true) search_filter else null
+                val filtered: List<DownloadStatus> = downloads.mapNotNull { download ->
                     if (download.progress != 1f) return@mapNotNull null
 
                     if (filter != null && download.song.getActiveTitle(player.database)?.contains(filter, true) != true) {
@@ -127,7 +138,8 @@ private fun InfoRow(downloads: List<DownloadStatus>, modifier: Modifier = Modifi
         return
     }
 
-    val player = LocalPlayerState.current
+    val player: PlayerState = LocalPlayerState.current
+    val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     var total_duration_string: String? by remember { mutableStateOf(null) }
     LaunchedEffect(downloads) {
@@ -143,13 +155,37 @@ private fun InfoRow(downloads: List<DownloadStatus>, modifier: Modifier = Modifi
         total_duration_string = durationToString(duration, hl = player.context.getUiLanguage())
     }
 
-    Row(modifier) {
+    Row(
+        modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
         Text(getString("library_\$x_songs").replace("\$x", downloads.size.toString()))
+
+        total_duration_string?.also { duration ->
+            Text("\u2022")
+            Text(duration)
+        }
 
         Spacer(Modifier.fillMaxWidth().weight(1f))
 
-        total_duration_string?.also { duration ->
-            Text(duration)
+        IconButton({
+            if (MediaItemLibrary.song_sync_in_progress) {
+                return@IconButton
+            }
+
+            coroutine_scope.launch {
+                MediaItemLibrary.syncLocalSongs(player.context)
+            }
+        }) {
+            Crossfade(MediaItemLibrary.song_sync_in_progress) { syncing ->
+                if (syncing) {
+                    SubtleLoadingIndicator()
+                }
+                else {
+                    Icon(Icons.Default.Sync, null)
+                }
+            }
         }
     }
 }

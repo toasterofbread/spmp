@@ -1,5 +1,8 @@
 package com.toasterofbread.spmp.model.mediaitem.library
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.toasterofbread.composekit.platform.PlatformFile
 import com.toasterofbread.composekit.utils.common.addUnique
 import com.toasterofbread.spmp.model.lyrics.LyricsFileConverter
@@ -14,9 +17,16 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.LocalSongMetadataProcessor
 import com.toasterofbread.spmp.platform.download.SongDownloader
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
+@Suppress("DeferredResultUnused")
 object MediaItemLibrary {
     fun getLibraryDir(
         context: AppContext,
@@ -30,6 +40,9 @@ object MediaItemLibrary {
 
     fun getDefaultLibraryDir(context: AppContext): PlatformFile =
         PlatformFile.fromFile(context.getFilesDir(), context).resolve("library")
+
+    fun getSongDownloadsDir(context: AppContext): PlatformFile =
+        PlatformFile.fromFile(context.getFilesDir(), context).resolve("downloads")
 
     fun getLocalSongsDir(context: AppContext): PlatformFile =
         getLibraryDir(context).resolve("songs")
@@ -79,60 +92,132 @@ object MediaItemLibrary {
         }
     }
 
-    suspend fun getLocalSongDownload(song: Song, context: AppContext): DownloadStatus? = withContext(Dispatchers.IO) {
-        for (file in getLocalSongsDir(context).listFiles() ?: emptyList()) {
-            val in_progress: Boolean
-            if (SongDownloader.isFileDownloadInProgress(file)) {
-                if (!SongDownloader.isFileDownloadInProgressForSong(file, song)) {
-                    continue
-                }
-
-                in_progress = true
-            }
-            else if (LocalSongMetadataProcessor.readLocalSongMetadata(file, match_id = song.id, load_data = false) != null) {
-                in_progress = false
-            }
-            else {
-                continue
-            }
-
-            return@withContext DownloadStatus(
-                song = song,
-                status = if (in_progress) DownloadStatus.Status.IDLE else DownloadStatus.Status.FINISHED,
-                quality = null,
-                progress = if (in_progress) -1f else 1f,
-                id = file.name,
-                file = file
-            )
+    fun getLocalLyrics(context: AppContext, song: Song, allow_partial: Boolean = false): PlatformFile? {
+        val file: PlatformFile = getLocalLyricsFile(song, context)
+        if (!file.is_file) {
+            return null
         }
-
-        return@withContext null
+        return file
     }
 
-    suspend fun getLocalSongDownloads(context: AppContext): List<DownloadStatus> = withContext(Dispatchers.IO) {
-        val files: List<PlatformFile> = getLocalSongsDir(context).listFiles() ?: emptyList()
-        return@withContext files.mapNotNull { file ->
-            val song: Song
-            val in_progress: Boolean
+    private val song_sync_lock: Mutex = Mutex()
+    private var song_sync_job: Deferred<Map<String, DownloadStatus>>? = null
+    var synced_songs: Map<String, DownloadStatus>? by mutableStateOf(null)
+        private set
+    var song_sync_in_progress: Boolean by mutableStateOf(false)
+        private set
 
-            val song_id: String? = SongDownloader.getSongIdOfInProgressDownload(file)
-            if (song_id != null) {
-                song = SongRef(song_id)
-                in_progress = true
-            }
-            else {
-                song = LocalSongMetadataProcessor.readLocalSongMetadata(file, load_data = false) ?: return@mapNotNull null
-                in_progress = false
+    suspend fun syncLocalSongs(context: AppContext, skip_if_synced: Boolean = false): Map<String, DownloadStatus> = coroutineScope {
+        val loader: Deferred<Map<String, DownloadStatus>>
+        song_sync_lock.withLock {
+            if (skip_if_synced) {
+                synced_songs?.also {
+                    return@coroutineScope it
+                }
             }
 
-            DownloadStatus(
-                song = song,
-                status = if (in_progress) DownloadStatus.Status.IDLE else DownloadStatus.Status.FINISHED,
-                quality = null,
-                progress = if (in_progress) -1f else 1f,
-                id = file.name,
-                file = file
-            )
+            song_sync_job?.also { job ->
+                if (job.isActive) {
+                    loader = job
+                    return@withLock
+                }
+            }
+
+            loader = async(start = CoroutineStart.LAZY) {
+                song_sync_in_progress = true
+                val songs: Map<String, DownloadStatus> =
+                    getAllLocalSongFiles(context, true)
+                    .associateBy { it.song.id }
+
+                synced_songs = songs
+                song_sync_in_progress = false
+                return@async songs
+            }
+        }
+
+        loader.start()
+        return@coroutineScope loader.await()
+    }
+
+    suspend fun getLocalSong(song: Song, context: AppContext): DownloadStatus? =
+        syncLocalSongs(context, true)[song.id]
+
+    suspend fun getLocalSongs(context: AppContext): List<DownloadStatus> =
+        syncLocalSongs(context, true).values.toList()
+
+    suspend fun onSongFileAdded(download_status: DownloadStatus) {
+        song_sync_lock.withLock {
+            song_sync_job?.also { job ->
+                if (job.isActive) {
+                    return
+                }
+            }
+
+            synced_songs = synced_songs?.toMutableMap()?.apply {
+                put(download_status.song.id, download_status)
+            }
+        }
+    }
+
+    suspend fun onSongFileDeleted(song: Song) {
+        song_sync_lock.withLock {
+            song_sync_job?.also { job ->
+                if (job.isActive) {
+                    return
+                }
+            }
+
+            synced_songs = synced_songs?.toMutableMap()?.apply {
+                remove(song.id)
+            }
         }
     }
 }
+
+private suspend fun getAllLocalSongFiles(context: AppContext, allow_partial: Boolean = false): List<DownloadStatus> = withContext(Dispatchers.IO) {
+    val files: List<PlatformFile> = (
+        MediaItemLibrary.getLocalSongsDir(context).listFiles().orEmpty()
+        + if (allow_partial) MediaItemLibrary.getSongDownloadsDir(context).listFiles().orEmpty() else emptyList()
+    )
+
+    return@withContext files.mapNotNull {  file ->
+        val file_info: SongDownloader.Companion.DownloadFileInfo = SongDownloader.getFileDownloadInfo(file)
+        if (!allow_partial && file_info.is_partial) {
+            return@mapNotNull null
+        }
+
+        val song: Song =
+            file_info.id?.let { SongRef(it) }
+            ?: LocalSongMetadataProcessor.readLocalSongMetadata(file, context, load_data = true)?.apply { saveToDatabase(context.database) }
+            ?: return@mapNotNull null
+
+        return@mapNotNull DownloadStatus(
+            song = song,
+            status = if (file_info.is_partial) DownloadStatus.Status.IDLE else DownloadStatus.Status.FINISHED,
+            quality = null,
+            progress = if (file_info.is_partial) -1f else 1f,
+            id = file_info.file.name,
+            file = file_info.file
+        )
+    }
+}
+
+//private suspend fun Song.getLocalSongFile(context: AppContext, files: List<PlatformFile>?): SongDownloader.Companion.DownloadFileInfo? {
+//    if (files == null) {
+//        return null
+//    }
+//
+//    for (file in files) {
+//        val file_info: SongDownloader.Companion.DownloadFileInfo = SongDownloader.getFileDownloadInfo(file)
+//        if (!file_info.is_partial) {
+//            if (LocalSongMetadataProcessor.readLocalSongMetadata(file, context, id, load_data = false) != null) {
+//                return file_info
+//            }
+//        }
+//        else if (file_info.id == id) {
+//            return file_info
+//        }
+//    }
+//
+//    return null
+//}

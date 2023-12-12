@@ -14,8 +14,8 @@ internal class KugouLyricsSource(source_idx: Int): LyricsSource(source_idx) {
     override fun getUrlOfId(id: String): String? = null
 
     override suspend fun getLyrics(lyrics_id: String, context: AppContext): Result<SongLyrics> {
-        val load_result = loadKugouLyrics(lyrics_id)
-        val lines = load_result.getOrNull() ?: return load_result.cast()
+        val load_result: Result<List<List<SongLyrics.Term>>> = loadKugouLyrics(lyrics_id)
+        val lines: List<List<SongLyrics.Term>> = load_result.getOrNull() ?: return load_result.cast()
 
         return Result.success(
             SongLyrics(

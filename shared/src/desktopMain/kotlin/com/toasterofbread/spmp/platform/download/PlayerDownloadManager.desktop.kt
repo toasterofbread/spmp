@@ -6,6 +6,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.DownloadRequestCallback
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.Executors
 
@@ -57,7 +58,11 @@ actual class PlayerDownloadManager actual constructor(private val context: AppCo
         callback: DownloadRequestCallback?,
     ) {
         downloader.startDownload(song, silent, file_uri) { download, result ->
-            callback?.invoke(download.getStatusObject())
+            val status: DownloadStatus = download.getStatusObject()
+            context.coroutine_scope.launch {
+                MediaItemLibrary.onSongFileAdded(status)
+                callback?.invoke(status)
+            }
         }
     }
 
@@ -73,23 +78,16 @@ actual class PlayerDownloadManager actual constructor(private val context: AppCo
             return@withContext service_status
         }
 
-        return@withContext MediaItemLibrary.getLocalSongDownload(song, context)
+        return@withContext MediaItemLibrary.getLocalSong(song, context)
     }
 
-    actual suspend fun getDownloads(): List<DownloadStatus> = withContext(Dispatchers.IO) {
-        val current_downloads: List<DownloadStatus> = downloader.getAllDownloadsStatus()
-        val local_downloads: List<DownloadStatus> = MediaItemLibrary.getLocalSongDownloads(context)
-
-        return@withContext current_downloads + local_downloads.filter { local ->
-            current_downloads.none { current ->
-                current.file?.matches(local.file!!) == true
-            }
-        }
-    }
+    actual suspend fun getDownloads(): List<DownloadStatus> =
+        downloader.getAllDownloadsStatus()
 
     actual suspend fun deleteSongLocalAudioFile(song: Song) {
         val download: DownloadStatus = getDownload(song) ?: return
         download.file?.delete()
+        MediaItemLibrary.onSongFileDeleted(song)
         synchronized(listeners) {
             for (listener in listeners) {
                 listener.onDownloadRemoved(download.id)

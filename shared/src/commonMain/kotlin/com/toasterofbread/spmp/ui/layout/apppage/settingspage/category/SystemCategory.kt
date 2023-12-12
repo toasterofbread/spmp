@@ -1,14 +1,22 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
 import LocalPlayerState
+import androidx.compose.animation.Crossfade
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
+import com.toasterofbread.composekit.platform.PlatformFile
 import com.toasterofbread.composekit.settings.ui.item.ComposableSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.DropdownSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.FileSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 import com.toasterofbread.composekit.settings.ui.item.ToggleSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
+import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.settings.SettingsKey
@@ -19,6 +27,9 @@ import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.Languages
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import java.net.URI
 
 // TODO Allow setting to any language
@@ -119,57 +130,82 @@ internal fun getSystemCategoryItems(context: AppContext): List<SettingsItem> {
         ),
 
         FileSettingsItem(
-            SettingsValueState(SystemSettings.Key.LIBRARY_PATH.getName()),
-            getString("s_key_library_path"),
-            getString("s_sub_library_path"),
-            { path ->
-                val player = LocalPlayerState.current
-                if (path.isBlank()) MediaItemLibrary.getDefaultLibraryDir(player.context).let { location ->
-                    location.absolute_path ?: location.path
+            state = SettingsValueState(key = SystemSettings.Key.LIBRARY_PATH.getName()),
+            title = getString("s_key_library_path"),
+            subtitle = getString("s_sub_library_path"),
+            getPathLabel = { path ->
+                if (path.isBlank()) {
+                    return@FileSettingsItem MediaItemLibrary.getDefaultLibraryDir(context).absolute_path
                 }
                 else {
                     // Format Android documents tree URI to standard path
-                    val split_path = URI.create(path).path.split(':')
+                    val split_path: List<String> = URI.create(path).path.split(':')
                     if (split_path.size == 1) {
-                        split_path.first().removePrefix("/tree/")
+                        return@FileSettingsItem split_path.first().removePrefix("/tree/")
                     }
                     else {
-                        val storage = split_path.first().split('/').last().capitalize(Locale(player.context.getUiLanguage()))
-                        "($storage) ~/${split_path.last()}"
+                        val storage: String = split_path.first().split('/').last().capitalize(Locale(context.getUiLanguage()))
+                        return@FileSettingsItem "($storage) ~/${split_path.last()}"
                     }
                 }
             },
-            { setValue, showDialog ->
+            extraContent = {
+                val coroutine_scope: CoroutineScope = rememberCoroutineScope()
+
+                IconButton({
+                    if (MediaItemLibrary.song_sync_in_progress) {
+                        return@IconButton
+                    }
+
+                    coroutine_scope.launch {
+                        MediaItemLibrary.syncLocalSongs(context)
+                    }
+                }) {
+                    Crossfade(MediaItemLibrary.song_sync_in_progress) { syncing ->
+                        if (syncing) {
+                            SubtleLoadingIndicator()
+                        }
+                        else {
+                            Icon(Icons.Default.Sync, null)
+                        }
+                    }
+                }
+            },
+            onSelectRequested = { setValue, showDialog ->
                 context.promptUserForDirectory(true) { path ->
-                    val old_location = MediaItemLibrary.getLibraryDir(context, SystemSettings.Key.LIBRARY_PATH.get())
-                    val new_location = MediaItemLibrary.getLibraryDir(context, path ?: "")
+                    val old_location: PlatformFile = MediaItemLibrary.getLibraryDir(context, SystemSettings.Key.LIBRARY_PATH.get())
+                    val new_location: PlatformFile = MediaItemLibrary.getLibraryDir(context, path ?: "")
+
+                    fun processDialogSelection(accepted: Boolean, is_retry: Boolean = false) {
+                        if (accepted) {
+                            if (old_location.is_directory) {
+                                val result: Result<PlatformFile> = old_location.moveDirContentTo(new_location)
+                                result.onFailure { error ->
+                                    showDialog(
+                                        FileSettingsItem.Dialog(
+                                            getStringTODO("Transfer failed"),
+                                            error.toString(),
+                                            getString("action_confirm_action"),
+                                            null
+                                        ) {}
+                                    )
+                                    return@onFailure
+                                }
+                            }
+                        } else if (is_retry) {
+                            return
+                        }
+
+                        setValue(path ?: "")
+                    }
 
                     if (old_location.uri == new_location.uri) {
                         return@promptUserForDirectory
                     }
 
-                    fun processDialogSelection(accepted: Boolean, is_retry: Boolean = false) {
-                        if (accepted) {
-                            val result = old_location.moveDirContentTo(new_location)
-                            result.onFailure { error ->
-                                showDialog(
-                                    FileSettingsItem.Dialog(
-                                        getStringTODO("Transfer failed"),
-                                        error.toString(),
-                                        getString("action_confirm_action"),
-                                        getString("action_cancel")
-                                    ) { accepted ->
-                                        processDialogSelection(accepted, true)
-                                    }
-                                )
-                                return@onFailure
-                            }
-                        }
-                        else if (is_retry) {
-                            return
-                        }
-
-                        setValue(path ?: "")
+                    if (!old_location.is_directory) {
+                        processDialogSelection(true)
+                        return@promptUserForDirectory
                     }
 
                     showDialog(

@@ -160,7 +160,7 @@ kotlin {
                 implementation("com.github.catppuccin:java:v1.0.0")
                 implementation("com.github.paramsen:noise:2.0.0")
                 implementation("org.kobjects.ktxml:core:0.2.3")
-                implementation("com.github.Kaned1as:jaudiotagger:2.3.15")
+                implementation("org.bitbucket.ijabz:jaudiotagger:v3.0.1")
                 implementation("com.github.teamnewpipe:NewPipeExtractor:v0.22.7")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
             }

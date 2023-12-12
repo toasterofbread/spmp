@@ -185,8 +185,8 @@ fun MediaItemGrid(
                     startContent?.invoke(this)
 
                     items(filtered_items.size, { filtered_items[it].item.getUid() }) { i ->
-                        val item = filtered_items[i].item
-                        val preview_modifier = Modifier.animateItemPlacement().then(
+                        val item: MediaItem = filtered_items[i].item
+                        val preview_modifier: Modifier = Modifier.animateItemPlacement().then(
                             if (alt_style)
                                 if (player.form_factor.is_large) Modifier.width(300.dp)
                                 else Modifier.width(maxWidth * 0.9f)
@@ -194,10 +194,10 @@ fun MediaItemGrid(
                         )
 
                         if (alt_style) {
-                            MediaItemPreviewLong(item, preview_modifier, contentColour = player.theme.on_background_provider, multiselect_context = multiselect_context, show_download_indicator = show_download_indicators)
+                            MediaItemPreviewLong(item, preview_modifier, multiselect_context = multiselect_context, show_download_indicator = show_download_indicators)
                         }
                         else {
-                            MediaItemPreviewSquare(item, preview_modifier, contentColour = player.theme.on_background_provider, multiselect_context = multiselect_context, max_text_rows = square_item_max_text_rows, show_download_indicator = show_download_indicators)
+                            MediaItemPreviewSquare(item, preview_modifier, multiselect_context = multiselect_context, max_text_rows = square_item_max_text_rows, show_download_indicator = show_download_indicators)
                         }
                     }
                 }

@@ -6,9 +6,9 @@ import androidx.compose.runtime.mutableStateOf
 import com.toasterofbread.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.model.lyrics.LyricsFileConverter
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
+import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.download.getLocalLyricsFile
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
 import com.toasterofbread.spmp.youtubeapi.lyrics.loadLyrics
@@ -35,7 +35,7 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
             return Result.success(it)
         }
 
-        val local_file: PlatformFile? = song.getLocalLyricsFile(context)
+        val local_file: PlatformFile? = MediaItemLibrary.getLocalLyrics(context, song)
         if (local_file != null) {
             val lyrics: SongLyrics? = LyricsFileConverter.loadFromFile(local_file, context)?.second
             if (lyrics != null) {

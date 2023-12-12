@@ -137,7 +137,8 @@ internal fun LongPressMenuContent(
                         Icon(
                             if (pinned) Icons.Filled.PushPin
                             else Icons.Outlined.PushPin,
-                            null
+                            null,
+                            tint = background_colour.getContrasted()
                         )
                     }
                 }
@@ -292,7 +293,7 @@ internal fun LongPressMenuContent(
                                         main_actions_showing = false
                                     }
                                 }
-                                LongPressMenuActions(data, { getAccentColour() ?: player.theme.accent }, onAction = onAction)
+                                LongPressMenuActions(data, background_colour, { getAccentColour() ?: player.theme.accent }, onAction = onAction)
                             }
                         }
                     }

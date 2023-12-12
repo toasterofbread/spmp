@@ -10,10 +10,11 @@ import androidx.compose.runtime.remember
 import app.cash.sqldelight.Query
 import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 
 @Composable
 fun <T: MediaItem?> Property<T>.observePropertyActiveTitle(): State<String?>? {
-    val player = LocalPlayerState.current
+    val player: PlayerState = LocalPlayerState.current
     val item: MediaItem? by observe(player.database)
     return item?.observeActiveTitle()
 }
@@ -88,11 +89,16 @@ internal open class PropertyImpl<T, Q: Query<*>>(
     override fun set(value: T, db: Database) = setValue(db, value)
 
     @Composable
-    override fun observe(db: Database): MutableState<T> =
-        remember(this) { getQuery(db) }.observeAsState(
-            Unit,
-            { getValue(it) }
-        ) { setValue(db, it) }
+    override fun observe(db: Database): MutableState<T> {
+        return remember(this) { getQuery(db) }
+            .observeAsState(
+                key = this,
+                mapValue = { getValue(it) },
+                onExternalChange = {
+                    setValue(db, it)
+                }
+            )
+    }
 }
 
 internal open class SingleProperty<T, Q: Any>(

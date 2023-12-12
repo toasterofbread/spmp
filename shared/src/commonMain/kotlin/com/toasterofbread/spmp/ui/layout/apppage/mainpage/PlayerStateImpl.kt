@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
+import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.platform.PlatformPreferencesListener
 import com.toasterofbread.composekit.platform.composable.BackHandler
@@ -189,16 +190,15 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
 
     @Composable
     override fun nowPlayingTopOffset(base: Modifier): Modifier {
-        val system_insets = WindowInsets.systemBars
-        val navigation_insets = WindowInsets.navigationBars
-        val keyboard_insets = WindowInsets.ime
-        val screen_height: Dp = screen_size.height
+        val system_insets: WindowInsets = WindowInsets.systemBars
+        val navigation_insets: WindowInsets = WindowInsets.navigationBars
+        val keyboard_insets: WindowInsets = WindowInsets.ime
 
         return base
             .offset {
                 val bottom_padding: Int = getNpBottomPadding(system_insets, navigation_insets, keyboard_insets)
                 val swipe_offset: Dp =
-                    if (session_started) -np_swipe_state.value.offset.value.dp - (screen_height * 0.5f)
+                    if (session_started) -np_swipe_state.value.offset.value.dp - (screen_size.height * 0.5f)
                     else 0.dp
 
                 IntOffset(
@@ -335,8 +335,10 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
     }
 
     override fun showLongPressMenu(data: LongPressMenuData) {
-        // Check lateinit
-        data.layout_size
+        if (Platform.DESKTOP.isCurrent()) {
+            // Check lateinit
+            data.layout_size
+        }
 
         long_press_menu_data = data
 

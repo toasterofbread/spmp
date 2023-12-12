@@ -56,7 +56,7 @@ fun Response.getReader(api: YoutubeApi?): Reader {
 
 fun OkHttpClient.executeResult(request: Request, allow_fail_response: Boolean = false, api: YoutubeApi? = null): Result<Response> {
     try {
-        val response = newCall(request).execute()
+        val response: Response = newCall(request).execute()
         if (response.isSuccessful || allow_fail_response) {
             return Result.success(response)
         }

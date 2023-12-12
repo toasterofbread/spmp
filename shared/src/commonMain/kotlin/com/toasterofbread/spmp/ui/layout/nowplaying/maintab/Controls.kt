@@ -2,7 +2,6 @@ package com.toasterofbread.spmp.ui.layout.nowplaying.maintab
 
 import LocalPlayerState
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -27,7 +26,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
@@ -59,7 +57,6 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 
 private const val TITLE_FONT_SIZE_SP: Float = 21f
 private const val ARTIST_FONT_SIZE_SP: Float = 12f
-
 
 @Composable
 fun PlayerButton(
@@ -189,7 +186,8 @@ internal fun Controls(
                     color = getOnBackgroundColour(player),
                     textAlign = text_align,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    softWrap = false,
+//                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
                         .fillMaxWidth()
                         .platformClickable(

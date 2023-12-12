@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
@@ -99,15 +100,15 @@ internal fun ColumnScope.LongPressMenuInfoActions(
 }
 
 @Composable
-internal fun ColumnScope.LongPressMenuActions(data: LongPressMenuData, getAccentColour: () -> Color, onAction: () -> Unit) {
+internal fun ColumnScope.LongPressMenuActions(data: LongPressMenuData, background_colour: Color, getAccentColour: () -> Color, onAction: () -> Unit) {
     val player = LocalPlayerState.current
 
     // Data-provided actions
     data.Actions(
         LongPressMenuActionProvider(
-            player.theme.on_background_provider,
+            { background_colour.getContrasted() },
             getAccentColour,
-            player.theme.background_provider,
+            { background_colour },
             onAction
         ),
         MENU_ITEM_SPACING.dp

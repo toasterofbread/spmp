@@ -186,7 +186,8 @@ fun MediaItemPreviewSquare(
                 color = contentColour?.invoke() ?: Color.Unspecified,
                 lineHeight = line_height,
                 maxLines = max_lines,
-                overflow = if (max_lines == 1) TextOverflow.Ellipsis else TextOverflow.Clip,
+                softWrap = max_lines > 1,
+                overflow = TextOverflow.Clip,
                 textAlign = if (player.form_factor.is_large && item !is Artist) TextAlign.Start else TextAlign.Center
             )
 
@@ -269,6 +270,7 @@ fun MediaItemPreviewLong(
                 fontSize = font_size,
 //                lineHeight = font_size,
                 maxLines = title_lines,
+                softWrap = title_lines > 1,
                 overflow = TextOverflow.Clip
             )
 
@@ -345,6 +347,7 @@ private fun InfoText(text: String, contentColour: (() -> Color)?) {
         fontSize = 12.sp,
         color = contentColour?.invoke() ?: Color.Unspecified,
         maxLines = 1,
-        overflow = TextOverflow.Ellipsis
+        softWrap = false,
+        overflow = TextOverflow.Clip
     )
 }

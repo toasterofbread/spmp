@@ -11,6 +11,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.Response
 import java.io.IOException
 import java.nio.charset.Charset
 import java.util.Base64
@@ -19,7 +20,7 @@ private const val START_SKIP_LINES: Int = 0
 
 suspend fun loadKugouLyrics(hash: String): Result<List<List<SongLyrics.Term>>> =
     withContext(Dispatchers.IO) { kotlin.runCatching {
-        val request = Request.Builder()
+        val request: Request = Request.Builder()
             .url(
                 "https://krcs.kugou.com/search"
                     .toHttpUrl().newBuilder()
@@ -31,7 +32,7 @@ suspend fun loadKugouLyrics(hash: String): Result<List<List<SongLyrics.Term>>> =
             )
             .build()
 
-        val response = OkHttpClient().executeResult(request).getOrThrow()
+        val response: Response = OkHttpClient().executeResult(request).getOrThrow()
         val search_response: KugouHashSearchResponse = response.body!!.charStream().use { stream ->
             Gson().fromJson(stream)
         }

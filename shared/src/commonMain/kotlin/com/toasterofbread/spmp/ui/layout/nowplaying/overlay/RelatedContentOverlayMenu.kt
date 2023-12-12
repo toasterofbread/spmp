@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.layout.SongRelatedPage
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.youtubeapi.SongRelatedContentEndpoint
 
@@ -32,7 +33,7 @@ class RelatedContentPlayerOverlayMenu(
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
-        val player = LocalPlayerState.current
+        val player: PlayerState = LocalPlayerState.current
 
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomEnd) {
             SongRelatedPage(
@@ -46,7 +47,7 @@ class RelatedContentPlayerOverlayMenu(
                 accent_colour = player.getNPBackground()
             )
 
-            val pill_menu = remember { PillMenu(
+            val pill_menu: PillMenu = remember { PillMenu(
                 _background_colour = { player.getNPBackground() }
             ) }
             pill_menu.PillMenu(

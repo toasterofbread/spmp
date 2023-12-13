@@ -38,15 +38,15 @@ suspend fun loadKugouLyrics(hash: String): Result<List<List<SongLyrics.Term>>> =
         }
 
         if (search_response.status != 200) {
-            return@withContext Result.failure(IOException("Fetching lyrics for has $hash failed: ${search_response.status} ${search_response.errmsg}"))
+            return@withContext Result.failure(IOException("Fetching lyrics for hash $hash failed: ${search_response.status} ${search_response.errmsg}"))
         }
 
-        val candidate = search_response.getBestCandidate()
+        val candidate: KugouHashSearchResponse.Candidate? = search_response.getBestCandidate()
         if (candidate == null) {
             return@withContext Result.failure(RuntimeException("No candidates for hash $hash"))
         }
 
-        val lyrics_data = downloadSearchCandidate(candidate).getOrThrow()
+        val lyrics_data: String = downloadSearchCandidate(candidate).getOrThrow()
 
         val reverse_lines: MutableList<SongLyrics.Term> = mutableListOf()
         var previous_time: Long? = null
@@ -56,12 +56,12 @@ suspend fun loadKugouLyrics(hash: String): Result<List<List<SongLyrics.Term>>> =
                 continue
             }
 
-            val split = line.split(']', limit = 2)
-            val time = parseTimeString(split[0].substring(1))
+            val split: List<String> = line.split(']', limit = 2)
+            val time: Long = parseTimeString(split[0].substring(1))
 
             reverse_lines.add(
                 SongLyrics.Term(
-                    listOf(SongLyrics.Term.Text(split[1])),
+                    listOf(SongLyrics.Term.Text(formatLyricsLine(split[1]))),
                     -1,
                     start = time,
                     end = previous_time ?: Long.MAX_VALUE
@@ -82,6 +82,38 @@ suspend fun loadKugouLyrics(hash: String): Result<List<List<SongLyrics.Term>>> =
             else mergeAndFuriganiseTerms(tokeniser, listOf(line))
         }
     }}
+
+private fun formatLyricsLine(line: String): String {
+    val formatted: StringBuilder = StringBuilder()
+    for ((i, c) in line.withIndex()) {
+        formatted.append(when (c) {
+            '仆' -> '僕'
+            '飞' -> '飛'
+            '词' -> '詞'
+            '头' -> '頭'
+            '顷' -> '頃'
+            '颜' -> '顔'
+            '贪' -> '貪'
+            '马' -> '馬'
+            '赞' -> '賛'
+            '杀' -> '殺'
+            '别' -> '別'
+            '颔' -> '頷'
+            '瞒' -> '瞞'
+            '爱' -> '愛'
+            '叶' -> if (line.getOrNull(i - 1) == '言') '葉' else c
+            '长' -> '長'
+            '语' -> '語'
+            '过' -> '過'
+            '梦' -> '夢'
+            '优' -> '優'
+            '伪' -> '偽'
+            '风' -> '風'
+            else -> c
+        })
+    }
+    return formatted.toString()
+}
 
 private fun parseTimeString(string: String): Long {
     var time: Long = 0L

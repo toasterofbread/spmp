@@ -48,7 +48,7 @@ fun SongRelatedPage(
     related_endpoint: SongRelatedContentEndpoint,
     modifier: Modifier = Modifier,
     previous_item: MediaItem? = null,
-    padding: PaddingValues = PaddingValues(),
+    content_padding: PaddingValues = PaddingValues(),
     title_text_style: TextStyle = MaterialTheme.typography.headlineMedium,
     description_text_style: TextStyle = MaterialTheme.typography.bodyLarge,
     accent_colour: Color = LocalContentColor.current,
@@ -56,10 +56,12 @@ fun SongRelatedPage(
 ) {
     require(related_endpoint.isImplemented())
 
-    val multiselect_context = remember { MediaItemMultiSelectContext() }
+    val multiselect_context: MediaItemMultiSelectContext = remember { MediaItemMultiSelectContext() }
 
     var related_result: Result<List<RelatedGroup>>? by remember { mutableStateOf(null) }
-    LaunchedEffect(song) {
+    var retry: Boolean by remember { mutableStateOf(false) }
+    
+    LaunchedEffect(song, retry) {
         related_result = null
         related_result = related_endpoint.getSongRelated(song)
     }
@@ -71,29 +73,35 @@ fun SongRelatedPage(
                 SubtleLoadingIndicator()
             }
             else if (related == null) {
-                ErrorInfoDisplay(result.exceptionOrNull()!!, isDebugBuild(), onDismiss = null)
+                ErrorInfoDisplay(result.exceptionOrNull()!!, isDebugBuild(), onDismiss = null, onRetry = { retry = !retry })
             }
             else if (related.isEmpty()) {
                 Text(getString("song_related_page_no_content"))
             }
             else {
-                Column(Modifier.padding(padding.horizontal)) {
+                val horizontal_padding: PaddingValues = content_padding.horizontal
+
+                Column {
                     AnimatedVisibility(multiselect_context.is_active) {
                         multiselect_context.InfoDisplay(
-                            Modifier.padding(top = padding.calculateTopPadding() + 5.dp)
+                            Modifier.padding(horizontal_padding).padding(top = content_padding.calculateTopPadding())
                         )
                     }
 
                     LazyColumn(
                         Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(20.dp),
-                        contentPadding = padding.vertical
+                        contentPadding =
+                            if (multiselect_context.is_active) PaddingValues(top = 10.dp, bottom = content_padding.calculateBottomPadding())
+                            else content_padding.vertical
                     ) {
                         item {
-                            Box(Modifier.background(accent_colour, RoundedCornerShape(16.dp))) {
+                            Box(Modifier.padding(horizontal_padding).background(accent_colour, RoundedCornerShape(16.dp))) {
                                 MediaItemPreviewLong(
                                     song,
-                                    Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 3.dp),
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 6.dp, vertical = 3.dp),
                                     contentColour = { accent_colour.getContrasted() }
                                 )
                             }
@@ -101,16 +109,16 @@ fun SongRelatedPage(
 
                         items(related) { group ->
                             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                Text(group.title, style = title_text_style)
+                                Text(group.title, Modifier.padding(horizontal_padding), style = title_text_style)
 
                                 if (group.items != null) {
-                                    MediaItemGrid(group.items, multiselect_context = multiselect_context)
+                                    MediaItemGrid(group.items, multiselect_context = multiselect_context, content_padding = horizontal_padding)
                                 }
                                 else if (group.description != null) {
-                                    Text(group.description, style = description_text_style)
+                                    Text(group.description, Modifier.padding(horizontal_padding), style = description_text_style)
                                 }
                                 else {
-                                    Text(getString("song_related_page_empty_row"))
+                                    Text(getString("song_related_page_empty_row"), Modifier.padding(horizontal_padding))
                                 }
                             }
                         }

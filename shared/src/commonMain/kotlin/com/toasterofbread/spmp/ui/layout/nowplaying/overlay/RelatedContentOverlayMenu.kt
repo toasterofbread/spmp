@@ -43,7 +43,7 @@ class RelatedContentPlayerOverlayMenu(
                 title_text_style = MaterialTheme.typography.headlineSmall,
                 description_text_style = MaterialTheme.typography.bodyMedium,
                 close = { openMenu(null) },
-                padding = PaddingValues(10.dp),
+                content_padding = PaddingValues(10.dp),
                 accent_colour = player.getNPBackground()
             )
 

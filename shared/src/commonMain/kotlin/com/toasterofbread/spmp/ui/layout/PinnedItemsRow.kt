@@ -67,7 +67,7 @@ fun PinnedItemsRow(
                 item {
                     Column(
                         Modifier.fillMaxHeight(),
-                        verticalArrangement = Arrangement.SpaceEvenly,
+                        verticalArrangement = Arrangement.Top,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Box(Modifier.size(30.dp), contentAlignment = Alignment.Center) {

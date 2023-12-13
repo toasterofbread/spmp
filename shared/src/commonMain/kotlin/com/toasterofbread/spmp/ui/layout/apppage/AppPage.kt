@@ -15,7 +15,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.composable.ScrollBarLazyRow
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
-import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 
 abstract class AppPageWithItem : AppPage() {

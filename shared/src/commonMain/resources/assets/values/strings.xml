@@ -81,6 +81,7 @@
     <string name="new_playlist_title">New playlist</string>
     <string name="playlist_empty">Playlist is empty</string>
     <string name="song_add_to_playlist">Add to playlist</string>
+    <string name="song_remove_from_playlist">Remove from playlist</string>
     <string name="playlist_create">Create playlist</string>
     <string name="playlist_delete">Delete playlist</string>
     <string name="toast_playlist_added">Added to playlist</string>

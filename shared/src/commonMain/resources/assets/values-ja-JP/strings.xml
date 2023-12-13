@@ -72,6 +72,7 @@
     <string name="new_playlist_title">新しいプレイリスト</string>
     <string name="playlist_empty">プレイリストに曲が入ってません</string>
     <string name="song_add_to_playlist">プレイリストに追加する</string>
+    <string name="song_remove_from_playlist">プレイリストから削除する</string>
     <string name="playlist_create">プレイリストを作成</string>
     <string name="playlist_delete">プレイリストを消去</string>
     <string name="toast_playlist_added">プレイリストに追加しました</string>

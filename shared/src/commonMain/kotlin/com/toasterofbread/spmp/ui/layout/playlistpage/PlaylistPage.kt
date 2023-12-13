@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlaylistRemove
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -58,6 +59,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.FilterSettings
 import com.toasterofbread.spmp.model.settings.category.LyricsSettings
 import com.toasterofbread.spmp.model.settings.category.TopBarSettings
+import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -69,6 +71,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 
@@ -122,7 +125,7 @@ class PlaylistPage(
         val editor = playlist_editor ?: return@MediaItemMultiSelectContext
 
         // Remove selected items from playlist
-        IconButton({
+        Button({
             coroutine_scope.launch {
                 val selected_items = context.getSelectedItems().sortedByDescending { it.second!! }
                 for (item in selected_items) {
@@ -133,6 +136,7 @@ class PlaylistPage(
             }
         }) {
             Icon(Icons.Default.PlaylistRemove, null)
+            Text(getString("song_remove_from_playlist"))
         }
     }
 
@@ -318,9 +322,9 @@ class PlaylistPage(
             }
         }
 
-        Column(Modifier.fillMaxSize()) {
-            val items_above = if (previous_item != null) 4 else 3
-            val list_state = rememberReorderableLazyListState(
+        Column(modifier) {
+            val items_above: Int = if (previous_item != null) 4 else 3
+            val list_state: ReorderableLazyListState = rememberReorderableLazyListState(
                 onMove = { from, to ->
                     check(reordering)
                     check(current_filter == null)

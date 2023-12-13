@@ -55,8 +55,8 @@ private fun _mergeAndFuriganiseTerms(tokeniser: Tokenizer, terms: List<SongLyric
     }
 
     val ret: MutableList<SongLyrics.Term> = mutableListOf()
-    val line_range = terms.first().line_range
-    val line_index = terms.first().line_index
+    val line_range: LongRange? = terms.first().line_range
+    val line_index: Int = terms.first().line_index
 
     var terms_text: String = ""
     for (term in terms) {
@@ -105,6 +105,9 @@ private fun _mergeAndFuriganiseTerms(tokeniser: Tokenizer, terms: List<SongLyric
                 }
                 .flatMap {
                     splitCombinedReading(it)
+                }
+                .flatMap {
+                    applyCustomReadings(it)
                 },
             line_index,
             start,
@@ -117,8 +120,34 @@ private fun _mergeAndFuriganiseTerms(tokeniser: Tokenizer, terms: List<SongLyric
     return ret
 }
 
+private fun applyCustomReadings(term: SongLyrics.Term.Text): List<SongLyrics.Term.Text> {
+    if (term.reading != null) {
+        return listOf(term)
+    }
+
+    val reading: String
+    if (term.reading == null) {
+        reading = when (term.text) {
+            "哀", "藍" -> "あい"
+            "煩" -> "うるさ"
+            else -> return listOf(term)
+        }
+    }
+    else {
+        reading = when (term.text) {
+            // TODO | Check if adjacent terms are hiragana
+            // "心" && term.reading == "しん" -> "こころ"
+            else -> return listOf(term)
+        }
+    }
+
+    return listOf(
+        SongLyrics.Term.Text(term.text, reading)
+    )
+}
+
 private fun splitCombinedReading(term: SongLyrics.Term.Text): List<SongLyrics.Term.Text> {
-    val reading = term.reading ?: return listOf(term)
+    val reading: String = term.reading ?: return listOf(term)
 
     if (term.text.length != reading.length || !term.text.all { it.isKanji() }) {
         return listOf(term)
@@ -130,7 +159,7 @@ private fun splitCombinedReading(term: SongLyrics.Term.Text): List<SongLyrics.Te
 }
 
 private fun removeHiraganaReadings(term: SongLyrics.Term.Text): List<SongLyrics.Term.Text> {
-    val reading = term.reading ?: return listOf(term)
+    val reading: String = term.reading ?: return listOf(term)
 
     val terms: MutableList<SongLyrics.Term.Text> = mutableListOf()
     var reading_head: Int = 0

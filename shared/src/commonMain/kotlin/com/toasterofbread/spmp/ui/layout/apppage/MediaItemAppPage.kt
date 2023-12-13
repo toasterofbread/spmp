@@ -63,7 +63,7 @@ data class MediaItemAppPage(
                 SongRelatedPage(
                     item,
                     player.context.ytapi.SongRelatedContent,
-                    Modifier.fillMaxSize(),
+                    modifier,
                     previous_item?.item,
                     content_padding,
                     close = close

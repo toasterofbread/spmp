@@ -7,6 +7,7 @@ import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemViewMore
 import com.toasterofbread.spmp.model.mediaitem.layout.PlainViewMore
 import com.toasterofbread.spmp.model.mediaitem.layout.ViewMore
+import com.toasterofbread.spmp.model.sortFilterChips
 import com.toasterofbread.spmp.platform.getDataLanguage
 import com.toasterofbread.spmp.resources.uilocalisation.AppLocalisedString
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
@@ -67,7 +68,7 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
 
         try {
             var data: YoutubeiBrowseResponse = performRequest(continuation).getOrThrow()
-            val header_chips: List<FilterChip>? = data.getHeaderChips(api.context)
+            val header_chips: List<FilterChip>? = data.getHeaderChips(api.context)?.sortFilterChips()
 
             val rows: MutableList<MediaItemLayout> = processRows(data.getShelves(continuation != null), hl).toMutableList()
 

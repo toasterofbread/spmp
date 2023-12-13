@@ -35,9 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.unit.DpSize
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.*
 import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.utils.modifier.background
 import com.toasterofbread.composekit.utils.modifier.horizontal
@@ -108,7 +106,7 @@ fun MediaItemGrid(
     square_item_max_text_rows: Int? = null,
     apply_filter: Boolean = false,
     show_download_indicators: Boolean = true,
-    itemSizeProvider: @Composable () -> DpSize = { getDefaultMediaItemPreviewSize() },
+    itemSizeProvider: @Composable () -> DpSize = { DpSize.Unspecified },
     multiselect_context: MediaItemMultiSelectContext? = null,
     content_padding: PaddingValues = PaddingValues(),
     startContent: (LazyGridScope.() -> Unit)? = null
@@ -122,9 +120,12 @@ fun MediaItemGrid(
     val item_spacing: Arrangement.HorizontalOrVertical = Arrangement.spacedBy(
         (if (alt_style) 7.dp else 15.dp) * (if (player.form_factor.is_large) 3f else 1f)
     )
+
+    val provided_item_size: DpSize? = itemSizeProvider().takeIf { it.isSpecified }
     val item_size: DpSize =
-        if (alt_style) DpSize(0.dp, MEDIA_ITEM_PREVIEW_LONG_HEIGHT_DP.dp)
-        else itemSizeProvider() + DpSize(0.dp, getMediaItemPreviewSquareAdditionalHeight(square_item_max_text_rows, MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP.sp))
+        if (alt_style) provided_item_size ?: DpSize(0.dp, MEDIA_ITEM_PREVIEW_LONG_HEIGHT_DP.dp)
+        else (provided_item_size ?: getDefaultMediaItemPreviewSize()) + DpSize(0.dp, getMediaItemPreviewSquareAdditionalHeight(square_item_max_text_rows, MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP.sp))
+
     val horizontal_padding: PaddingValues = content_padding.horizontal
 
     val grid_state: LazyGridState = rememberLazyGridState()
@@ -186,12 +187,7 @@ fun MediaItemGrid(
 
                     items(filtered_items.size, { filtered_items[it].item.getUid() }) { i ->
                         val item: MediaItem = filtered_items[i].item
-                        val preview_modifier: Modifier = Modifier.animateItemPlacement().then(
-                            if (alt_style)
-                                if (player.form_factor.is_large) Modifier.width(300.dp)
-                                else Modifier.width(maxWidth * 0.9f)
-                            else Modifier.size(item_size)
-                        )
+                        val preview_modifier: Modifier = Modifier.animateItemPlacement().size(item_size)
 
                         if (alt_style) {
                             MediaItemPreviewLong(item, preview_modifier, multiselect_context = multiselect_context, show_download_indicator = show_download_indicators)

@@ -117,10 +117,10 @@ object JAudioTaggerMetadataProcessor: MetadataProcessor {
         withContext(Dispatchers.IO) {
             val tag: Tag =
                 try {
-                    AudioFileIO.read(File(URI.create(file.uri))).tag
+                    AudioFileIO.read(File(file.absolute_path)).tag
                 }
                 catch (e: Throwable) {
-                    e.printStackTrace()
+                    RuntimeException(file.absolute_path, e).printStackTrace()
                     return@withContext null
                 }
 

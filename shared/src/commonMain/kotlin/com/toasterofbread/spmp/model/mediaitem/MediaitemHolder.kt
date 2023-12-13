@@ -28,7 +28,7 @@ private fun List<MediaItemHolder>.filterItems(apply_filter: Boolean, hidden_item
 }
 
 @Composable
-fun List<MediaItemHolder>.rememberFilteredItems(apply_filter: Boolean): State<List<MediaItem>> {
+fun List<MediaItemHolder>.rememberFilteredItems(apply_filter: Boolean = true): State<List<MediaItem>> {
     val player: PlayerState = LocalPlayerState.current
     val hidden_items: List<MediaItem> = rememberHiddenItems()
     val items_state: MutableState<List<MediaItem>> = remember { mutableStateOf(filterItems(apply_filter, hidden_items, player.database)) }

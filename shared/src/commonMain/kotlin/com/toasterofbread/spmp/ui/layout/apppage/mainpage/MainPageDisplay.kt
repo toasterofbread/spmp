@@ -26,7 +26,7 @@ fun MainPageDisplay() {
     val horizontal_padding: Dp by animateDpAsState(player.getDefaultHorizontalPadding())
 
     Row {
-        if (player.form_factor == FormFactor.DESKTOP) {
+        if (player.form_factor == FormFactor.LANDSCAPE) {
             AppPageSidebar(
                 Modifier.fillMaxHeight().zIndex(1f),
                 content_padding = PaddingValues(10.dp)

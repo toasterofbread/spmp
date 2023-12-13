@@ -41,8 +41,8 @@ data object FeedSettings: SettingsCategory("feed") {
                 SQUARE_PREVIEW_TEXT_LINES -> if (Platform.DESKTOP.isCurrent()) 2 else 2
                 GRID_ROW_COUNT -> if (Platform.DESKTOP.isCurrent()) 1 else 2
                 GRID_ROW_COUNT_EXPANDED -> if (Platform.DESKTOP.isCurrent()) 1 else 2
-                ALT_GRID_ROW_COUNT -> if (Platform.DESKTOP.isCurrent()) 2 else 4
-                ALT_GRID_ROW_COUNT_EXPANDED -> if (Platform.DESKTOP.isCurrent()) 2 else 4
+                ALT_GRID_ROW_COUNT -> if (Platform.DESKTOP.isCurrent()) 3 else 4
+                ALT_GRID_ROW_COUNT_EXPANDED -> if (Platform.DESKTOP.isCurrent()) 3 else 4
                 SHOW_RADIOS -> false
                 HIDDEN_ROWS -> emptySet<String>()
             } as T

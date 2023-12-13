@@ -21,8 +21,6 @@ data object DesktopSettings: SettingsCategory("desktop") {
         else null
 
     enum class Key: SettingsKey {
-        SHOW_PINNED_IN_SIDEBAR,
-
         STARTUP_COMMAND,
         SERVER_IP_ADDRESS,
         SERVER_PORT,
@@ -35,8 +33,6 @@ data object DesktopSettings: SettingsCategory("desktop") {
         @Suppress("UNCHECKED_CAST")
         override fun <T> getDefaultValue(): T =
             when (this) {
-                SHOW_PINNED_IN_SIDEBAR -> true
-
                 STARTUP_COMMAND -> ""
                 SERVER_IP_ADDRESS -> "127.0.0.1"
                 SERVER_PORT -> ProjectBuildConfig.SERVER_PORT ?: 3973

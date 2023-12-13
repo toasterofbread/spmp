@@ -18,8 +18,6 @@ import com.toasterofbread.composekit.utils.common.blendWith
 import com.toasterofbread.composekit.utils.common.getThemeColour
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.platform.form_factor
-import com.toasterofbread.spmp.platform.getFormFactor
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
@@ -30,13 +28,13 @@ private const val NARROW_PLAYER_MAX_SIZE_DP: Float = 120f
 
 fun FormFactor.getMinimisedPlayerHeight(): Dp =
     when (this) {
-        FormFactor.DESKTOP -> 80.dp
+        FormFactor.LANDSCAPE -> 80.dp
         else -> 64.dp
     }
 
 fun FormFactor.getMinimisedPlayerVPadding(): Dp =
     when (this) {
-        FormFactor.DESKTOP -> 10.dp
+        FormFactor.LANDSCAPE -> 10.dp
         else -> 7.dp
     }
 
@@ -128,8 +126,7 @@ class NowPlayingMainTabPage: NowPlayingPage() {
             else {
                 when (getFormFactor(player)) {
                     FormFactor.PORTRAIT -> NowPlayingMainTabPortrait(page_height, top_bar, content_padding)
-                    FormFactor.LANDSCAPE -> NowPlayingMainTabLandscape(page_height, top_bar, content_padding)
-                    FormFactor.DESKTOP -> NowPlayingMainTabLarge(page_height, top_bar, content_padding)
+                    FormFactor.LANDSCAPE -> NowPlayingMainTabLarge(page_height, top_bar, content_padding)
                 }
             }
         }

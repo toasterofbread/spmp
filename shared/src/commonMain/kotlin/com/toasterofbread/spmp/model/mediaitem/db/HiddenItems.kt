@@ -22,6 +22,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.settings.category.FilterSettings
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 
 fun isMediaItemHidden(item: MediaItem, db: Database, hidden_items: List<MediaItem>? = null): Boolean {
     if (hidden_items?.any { it.id == item.id } ?: item.Hidden.get(db)) {
@@ -50,8 +51,8 @@ fun isMediaItemHidden(item: MediaItem, db: Database, hidden_items: List<MediaIte
 
 @Composable
 fun rememberHiddenItems(hidden: Boolean = true): List<MediaItem> {
-    val player = LocalPlayerState.current
-    val db = player.database
+    val player: PlayerState = LocalPlayerState.current
+    val db: Database = player.database
 
     var hidden_songs: List<Song> by remember { mutableStateOf(
         db.songQueries.getByHidden(hidden)

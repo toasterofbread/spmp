@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.composable.ScrollBarLazyRow
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 
 abstract class AppPageWithItem : AppPage() {
     abstract val item: MediaItemHolder
@@ -60,13 +61,15 @@ abstract class AppPage {
         isChipSelected: (Int) -> Boolean,
         onChipSelected: (Int) -> Unit,
         modifier: Modifier = Modifier,
+        show_scrollbar: Boolean = false,
         spacing: Dp = 10.dp,
         chipContent: @Composable (Int) -> Unit
     ) {
-        val player = LocalPlayerState.current
+        val player: PlayerState = LocalPlayerState.current
 
         ScrollBarLazyRow(
             modifier,
+            show_scrollbar = show_scrollbar,
             horizontalArrangement = Arrangement.spacedBy(spacing),
             verticalAlignment = Alignment.CenterVertically
         ) {

@@ -183,7 +183,7 @@ internal fun Controls(
                 Text(
                     song_artist_title ?: "",
                     fontSize = artist_font_size,
-                    color = getOnBackgroundColour(player),
+                    color = getOnBackgroundColour(player).copy(alpha = 0.5f),
                     textAlign = text_align,
                     maxLines = 1,
                     softWrap = false,

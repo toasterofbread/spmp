@@ -268,15 +268,10 @@ fun AppPageSidebar(modifier: Modifier = Modifier, content_padding: PaddingValues
 
             for (button in SidebarButton.buttons) {
                 if (button == null) {
-
                     Column(Modifier.fillMaxHeight().weight(1f)) {
                         Spacer(Modifier.fillMaxHeight().weight(1f))
-
-                        if (DesktopSettings.Key.SHOW_PINNED_IN_SIDEBAR.get()) {
-                            PinnedItems()
-                        }
+                        PinnedItems()
                     }
-
                     continue
                 }
 

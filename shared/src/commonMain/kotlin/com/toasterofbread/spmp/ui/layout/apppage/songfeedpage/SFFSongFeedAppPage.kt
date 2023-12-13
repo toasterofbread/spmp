@@ -94,11 +94,14 @@ fun SongFeedAppPage.SFFSongFeedAppPage(
     }
 
     LaunchedEffect(layouts) {
-        populateArtistsLayout(
-            artists_layout.items as MutableList<MediaItem>,
-            layouts,
-            player.context.ytapi.user_auth_state?.own_channel,
-            player.context
+        val items = artists_layout.items as MutableList<MediaItem>
+        items.clear()
+        items.addAll(
+            populateArtistsLayout(
+                layouts,
+                player.context.ytapi.user_auth_state?.own_channel,
+                player.context
+            )
         )
     }
 

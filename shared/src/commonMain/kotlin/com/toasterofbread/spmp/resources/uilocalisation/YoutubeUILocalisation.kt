@@ -13,7 +13,19 @@ class YoutubeUILocalisation(languages: UILanguages) {
         ARTIST_ROW_SONGS,
         ARTIST_ROW_VIDEOS,
         ARTIST_ROW_ARTISTS,
-        ARTIST_ROW_OTHER
+        ARTIST_ROW_OTHER,
+
+        SONG_FEED_RELAX,
+        SONG_FEED_ENERGISE,
+        SONG_FEED_WORKOUT,
+        SONG_FEED_COMMUTE,
+        SONG_FEED_FOCUS,
+        SONG_FEED_PODCASTS,
+        SONG_FEED_PARTY,
+        SONG_FEED_ROMANCE,
+        SONG_FEED_SAD,
+        SONG_FEED_FEEL_GOOD,
+        SONG_FEED_SLEEP
     }
 
     class LocalisationSet {

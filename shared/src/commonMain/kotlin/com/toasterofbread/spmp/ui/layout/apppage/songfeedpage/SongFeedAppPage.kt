@@ -17,7 +17,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -50,7 +49,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 
@@ -94,44 +92,55 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
     @Composable
     override fun isReloading(): Boolean = load_state == FeedLoadState.LOADING
 
+    internal fun selectFilterChip(chip: Int?) {
+        if (chip == selected_filter_chip) {
+            selected_filter_chip = null
+        }
+        else {
+            selected_filter_chip = chip
+        }
+        loadFeed(false)
+    }
+
+    @Composable
+    fun FeedFiltersRow(modifier: Modifier = Modifier, show_scrollbar: Boolean = true, onSelected: (Int?) -> Unit = {}) {
+        val player: PlayerState = LocalPlayerState.current
+        
+        Crossfade(filter_chips, modifier) { chips ->
+            if (chips.isNullOrEmpty()) {
+                if (load_state != FeedLoadState.LOADING && load_state != FeedLoadState.CONTINUING) {
+                    Box(Modifier.padding(end = 40.dp), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Default.CloudOff, null)
+                    }
+                }
+            }
+            else {
+                FilterChipsRow(
+                    chips.size,
+                    { it == selected_filter_chip },
+                    {
+                        selectFilterChip(it)
+                        onSelected(selected_filter_chip)
+                    }
+                ) { index ->
+                    Text(chips[index].text.getString(player.context))
+                }
+            }
+        }
+    }
+
     @Composable
     override fun TopBarContent(modifier: Modifier, close: () -> Unit) {
         val player: PlayerState = LocalPlayerState.current
         val show: Boolean by mutableSettingsState(FeedSettings.Key.SHOW_FILTER_BAR)
-        
+
         AnimatedVisibility(show) {
             Row(modifier, verticalAlignment = Alignment.CenterVertically) {
                 IconButton({ player.openAppPage(player.app_page_state.Search) }) {
                     Icon(Icons.Default.Search, null)
                 }
 
-                Crossfade(filter_chips, modifier) { chips ->
-                    if (chips.isNullOrEmpty()) {
-                        if (load_state != FeedLoadState.LOADING && load_state != FeedLoadState.CONTINUING) {
-                            Box(Modifier.fillMaxWidth().padding(end = 40.dp), contentAlignment = Alignment.Center) {
-                                Icon(Icons.Default.CloudOff, null)
-                            }
-                        }
-                    }
-                    else {
-                        FilterChipsRow(
-                            chips.size,
-                            { it == selected_filter_chip },
-                            {
-                                if (it == selected_filter_chip) {
-                                    selected_filter_chip = null
-                                }
-                                else {
-                                    selected_filter_chip = it
-                                }
-                                loadFeed(false)
-                            },
-                            Modifier.fillMaxWidth()
-                        ) { index ->
-                            Text(chips[index].text.getString(player.context))
-                        }
-                    }
-                }
+                FeedFiltersRow()
             }
         }
     }
@@ -146,7 +155,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
         val player: PlayerState = LocalPlayerState.current
         when (player.form_factor) {
             FormFactor.PORTRAIT -> SFFSongFeedAppPage(multiselect_context, modifier, content_padding, close)
-            FormFactor.LANDSCAPE, FormFactor.DESKTOP -> LFFSongFeedAppPage(multiselect_context, modifier, content_padding, close)
+            FormFactor.LANDSCAPE -> LFFSongFeedAppPage(multiselect_context, modifier, content_padding, close)
         }
     }
 
@@ -268,11 +277,10 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
 }
 
 internal fun populateArtistsLayout(
-    artists_layout_items: MutableList<MediaItem>,
     layouts: List<MediaItemLayout>?,
     own_channel: Artist?,
     context: AppContext
-) {
+): List<MediaItem> {
     val artists_map: MutableMap<String, Int?> = mutableMapOf()
     for (layout in layouts.orEmpty()) {
         for (item in layout.items) {
@@ -321,8 +329,5 @@ internal fun populateArtistsLayout(
         else Pair(artist.key, artist.value)
     }.sortedByDescending { it.second }
 
-    artists_layout_items.clear()
-    for (artist in artists) {
-        artists_layout_items.add(ArtistRef(artist.first))
-    }
+    return artists.map { ArtistRef(it.first) }
 }

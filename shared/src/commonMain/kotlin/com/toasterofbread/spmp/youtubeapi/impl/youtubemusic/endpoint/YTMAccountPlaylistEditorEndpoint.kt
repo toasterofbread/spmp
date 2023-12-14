@@ -92,7 +92,8 @@ private class AccountPlaylistEditor(playlist: RemotePlaylist, val auth: YoutubeM
                 )
             }
             is Action.Move -> {
-                check(playlist is RemotePlaylistData && playlist.item_set_ids != null)
+                check(playlist is RemotePlaylistData) { "$playlist is not a RemotePlaylistData" }
+                checkNotNull(playlist.item_set_ids) { "$playlist item set IDs have not been loaded" }
 
                 val set_ids = playlist.item_set_ids!!.toMutableList()
                 check(set_ids.size == playlist.items!!.size)
@@ -116,7 +117,7 @@ private class AccountPlaylistEditor(playlist: RemotePlaylist, val auth: YoutubeM
                 return data
             }
             is Action.Remove -> {
-                check(playlist is RemotePlaylistData) { "$playlist is not a remote playlist" }
+                check(playlist is RemotePlaylistData) { "$playlist is not a RemotePlaylistData" }
                 checkNotNull(playlist.item_set_ids) { "$playlist item set IDs have not been loaded" }
 
                 playlist.Items.removeItem(action.index, context.database)

@@ -227,10 +227,10 @@ fun SongFeedAppPage.LFFSongFeedAppPage(
                                 show_download_indicators = show_download_indicators,
                                 grid_rows = Pair(rows, expanded_rows),
                                 content_padding = PaddingValues(end = content_padding.calculateEndPadding(LocalLayoutDirection.current)),
-                                itemSizeProvider = {
-                                    if (type == MediaItemLayout.Type.GRID_ALT) DpSize(450.dp, 75.dp)
-                                    else DpSize(150.dp, 180.dp)
-                                }
+//                                itemSizeProvider = {
+//                                    if (type == MediaItemLayout.Type.GRID_ALT) DpSize(450.dp, 75.dp)
+//                                    else DpSize(150.dp, 180.dp)
+//                                }
                             )
                         }
 

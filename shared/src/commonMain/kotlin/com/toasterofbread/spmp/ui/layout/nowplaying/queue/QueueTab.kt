@@ -43,6 +43,7 @@ import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -61,6 +62,7 @@ import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
@@ -91,8 +93,8 @@ internal fun QueueTab(
     getOnBackgroundColour: PlayerState.() -> Color = { getNPBackground() },
     getWaveBorderColour: PlayerState.() -> Color = getOnBackgroundColour
 ) {
-    val player = LocalPlayerState.current
-    val density = LocalDensity.current
+    val player: PlayerState = LocalPlayerState.current
+    val density: Density = LocalDensity.current
     val scroll_coroutine_scope = rememberCoroutineScope()
 
     var key_inc by remember { mutableStateOf(0) }
@@ -234,7 +236,9 @@ internal fun QueueTab(
                 }
 
                 if (radio_info_position == NowPlayingQueueRadioInfoPosition.TOP_BAR) {
-                    CurrentRadioIndicator({ getOnBackgroundColour(player) }, multiselect_context, Modifier.padding(bottom = 10.dp))
+                    CurrentRadioIndicator({ getOnBackgroundColour(player) }, multiselect_context, Modifier.padding(bottom = 10.dp)) {
+                        song_items.map { MultiSelectItem(it.song, it.key) }
+                    }
                 }
 
                 val wave_border_mode_state: NowPlayingQueueWaveBorderMode by PlayerSettings.Key.QUEUE_WAVE_BORDER_MODE.rememberMutableEnumState()
@@ -282,7 +286,9 @@ internal fun QueueTab(
                         ) {
                             if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) {
                                 item {
-                                    CurrentRadioIndicator({ getBackgroundColour(player) }, multiselect_context, Modifier.padding(bottom = 15.dp))
+                                    CurrentRadioIndicator({ getBackgroundColour(player) }, multiselect_context, Modifier.padding(bottom = 15.dp)) {
+                                        song_items.map { MultiSelectItem(it.song, it.key) }
+                                    }
                                 }
                             }
 

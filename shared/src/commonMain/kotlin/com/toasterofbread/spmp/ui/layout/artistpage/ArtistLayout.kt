@@ -56,6 +56,7 @@ import com.toasterofbread.spmp.model.settings.category.TopBarSettings
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 
 private const val ARTIST_IMAGE_SCROLL_MODIFIER = 0.25f
@@ -70,7 +71,7 @@ fun ArtistLayout(
     show_top_bar: Boolean = true,
     loading: Boolean = false,
     onReload: (() -> Unit)? = null,
-    getAllSelectableItems: (() -> List<Pair<MediaItem, Int?>>)? = null,
+    getAllSelectableItems: (() -> List<MultiSelectItem>)? = null,
     content: LazyListScope.(accent_colour: Color?, Modifier) -> Unit
 ) {
     val player: PlayerState = LocalPlayerState.current

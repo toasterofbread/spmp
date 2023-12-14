@@ -1,9 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.queue
 
 import LocalPlayerState
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -17,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.modifier.background
@@ -27,16 +26,19 @@ import com.toasterofbread.spmp.model.mediaitem.getMediaItemFromUid
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
 
 @Composable
 internal fun CurrentRadioIndicator(
     getAccentColour: () -> Color,
     multiselect_context: MediaItemMultiSelectContext,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    getAllSelectableItems: () -> List<MultiSelectItem>
 ) {
-    val player = LocalPlayerState.current
-    val horizontal_padding = 15.dp
+    val player: PlayerState = LocalPlayerState.current
+    val horizontal_padding: Dp = 15.dp
 
     val filters: List<List<RadioBuilderModifier>>? = player.controller?.radio_state?.filters
     var show_radio_info: Boolean by remember { mutableStateOf(false) }
@@ -55,7 +57,11 @@ internal fun CurrentRadioIndicator(
         }
     }
 
-    if (filters != null || radio_item != null) {
+    AnimatedVisibility(
+        filters != null || radio_item != null || multiselect_context.is_active,
+        enter = expandVertically(),
+        exit = shrinkVertically()
+    ) {
         Row(modifier.animateContentSize()) {
             AnimatedVisibility(radio_item != null && filters != null) {
                 IconButton(
@@ -103,7 +109,8 @@ internal fun CurrentRadioIndicator(
                             multiselect_context.InfoDisplay(
                                 Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = horizontal_padding)
+                                    .padding(horizontal = horizontal_padding),
+                                getAllSelectableItems
                             )
                         is List<*> ->
                             FiltersRow(

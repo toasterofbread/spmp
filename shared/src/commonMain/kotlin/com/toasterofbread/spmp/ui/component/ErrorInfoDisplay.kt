@@ -6,6 +6,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -46,6 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -58,6 +60,7 @@ import com.toasterofbread.composekit.utils.modifier.background
 import com.toasterofbread.composekit.utils.modifier.disableParentScroll
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.youtubeapi.fromJson
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
@@ -82,20 +85,21 @@ fun ErrorInfoDisplay(
     expanded_content_modifier: Modifier = Modifier.height(ERROR_INFO_DISPLAY_DEFAULT_EXPANDED_HEIGHT_DP.dp),
     disable_parent_scroll: Boolean = true,
     start_expanded: Boolean = false,
+    getAccentColour: @Composable PlayerState.() -> Color = { theme.accent },
     extraButtonContent: (@Composable () -> Unit)? = null,
     onExtraButtonPressed: (() -> Unit)? = null,
     onRetry: (() -> Unit)? = null,
     onDismiss: (() -> Unit)?
 ) {
+    val player: PlayerState = LocalPlayerState.current
     var expanded: Boolean by remember { mutableStateOf(start_expanded) }
-    val shape = RoundedCornerShape(20.dp)
-    val player = LocalPlayerState.current
+    val shape: Shape = RoundedCornerShape(20.dp)
 
     CompositionLocalProvider(LocalContentColor provides player.theme.background) {
         Column(
             modifier
                 .animateContentSize()
-                .background(shape, player.theme.accent_provider)
+                .background(getAccentColour(player), shape)
                 .padding(horizontal = 10.dp),
             verticalArrangement = Arrangement.Center
         ) {

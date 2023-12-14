@@ -8,8 +8,11 @@ import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.platform.AppContext
 
-class RemotePlaylistData(id: String): PlaylistData(id), RemotePlaylist {
+class RemotePlaylistData(
+    id: String,
+    var item_set_ids: List<String>? = null,
     var continuation: MediaItemLayout.Continuation? = null
+): PlaylistData(id), RemotePlaylist {
     var playlist_url: String? = null
 
     override fun toString(): String = "RemotePlaylistData($id, type=$playlist_type, title=$title)"
@@ -18,7 +21,8 @@ class RemotePlaylistData(id: String): PlaylistData(id), RemotePlaylist {
 
     override fun getDataValues(): Map<String, Any?> =
         super.getDataValues() + mapOf(
-            "continuation" to continuation
+            "continuation" to continuation,
+            "item_set_ids" to item_set_ids
         )
 
     override val property_rememberer: PropertyRememberer = PropertyRememberer()

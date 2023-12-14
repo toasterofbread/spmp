@@ -41,6 +41,7 @@ import com.toasterofbread.composekit.utils.common.copy
 import com.toasterofbread.composekit.utils.common.getThemeColour
 import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.composekit.utils.composable.stickyHeaderWithTopPadding
+import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
@@ -118,7 +119,7 @@ class PlaylistPage(
         private set
 
     var accent_colour: Color? by mutableStateOf(null)
-    val coroutine_scope = CoroutineScope(Job())
+    val coroutine_scope: CoroutineScope = CoroutineScope(Job())
 
     var playlist_editor: PlaylistEditor? by mutableStateOf(null)
     val multiselect_context = MediaItemMultiSelectContext() { context ->
@@ -155,7 +156,7 @@ class PlaylistPage(
 
         var changes_made: Boolean = false
 
-        val editor = playlist_editor
+        val editor: PlaylistEditor? = playlist_editor
         val data: PlaylistData? = if (editor == null) playlist.getEmptyData() else null
 
         if (edited_title != playlist.getActiveTitle(player.database)) {
@@ -261,7 +262,7 @@ class PlaylistPage(
         content_padding: PaddingValues,
         close: () -> Unit
     ) {
-        val db = player.database
+        val db: Database = player.database
 
         val playlist_items: List<MediaItem>? by playlist.Items.observe(db)
         var sorted_items: List<Pair<MediaItem, Int>>? by remember { mutableStateOf(null) }
@@ -270,7 +271,7 @@ class PlaylistPage(
         var load_error: Throwable? by remember { mutableStateOf(null) }
         var loaded_data: RemotePlaylistData? by remember { mutableStateOf(null) }
 
-        val loading by playlist.loadDataOnChange(
+        val loading: Boolean by playlist.loadDataOnChange(
             player.context,
             onLoadFailed = { error ->
                 load_error = error
@@ -282,7 +283,7 @@ class PlaylistPage(
             }
         )
 
-        val playlist_data = loaded_data ?: playlist
+        val playlist_data: Playlist = loaded_data ?: playlist
         
         LaunchedEffect(playlist_data) {
             if (playlist_editor?.playlist == playlist_data) {
@@ -464,6 +465,7 @@ class PlaylistPage(
                         item {
                             PlaylistFooter(
                                 sorted_items,
+                                getAccentColour(),
                                 loading && load_type != LoadType.REFRESH && sorted_items == null,
                                 load_error,
                                 Modifier.fillMaxWidth().padding(top = 15.dp),

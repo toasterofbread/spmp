@@ -14,6 +14,7 @@ import com.google.gson.GsonBuilder
 import com.google.gson.TypeAdapter
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
+import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.platform.PlatformContext
 import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.platform.PlatformPreferencesListener
@@ -117,9 +118,11 @@ expect class AppContext: PlatformContext {
 }
 
 @Composable
-fun PlayerState.getDefaultHorizontalPadding(): Dp = if (form_factor == FormFactor.LANDSCAPE) 30.dp else 10.dp
+fun PlayerState.getDefaultHorizontalPadding(): Dp =
+    if (Platform.DESKTOP.isCurrent() && form_factor == FormFactor.LANDSCAPE) 30.dp else 10.dp
 @Composable
-fun PlayerState.getDefaultVerticalPadding(): Dp = if (form_factor == FormFactor.LANDSCAPE) 30.dp else 10.dp // TODO
+fun PlayerState.getDefaultVerticalPadding(): Dp =
+    if (Platform.DESKTOP.isCurrent() && form_factor == FormFactor.LANDSCAPE) 30.dp else 10.dp // TODO
 
 @Composable
 fun PlayerState.getDefaultPaddingValues(): PaddingValues = PaddingValues(horizontal = getDefaultHorizontalPadding(), vertical = getDefaultVerticalPadding())

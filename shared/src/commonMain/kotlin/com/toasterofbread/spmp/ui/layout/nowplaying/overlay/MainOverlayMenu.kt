@@ -24,12 +24,14 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.utils.composable.OnChangedEffect
 import com.toasterofbread.spmp.model.mediaitem.MEDIA_ITEM_RELATED_CONTENT_ICON
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.db.observePlayCount
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.ColourpickCallback
 import com.toasterofbread.spmp.youtubeapi.implementedOrNull
 import kotlinx.coroutines.delay
@@ -52,12 +54,11 @@ class MainPlayerOverlayMenu(
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
-        val player = LocalPlayerState.current
-        val db = player.database
-        val song = getSong()
+        val player: PlayerState = LocalPlayerState.current
         val download_manager = player.context.download_manager
+        val song: Song = getSong()
 
-        val song_artist: Artist? by song.Artist.observe(db)
+        val song_artist: Artist? by song.Artist.observe(player.database)
 
         val download_progress = remember { Animatable(0f) }
         var download_progress_target: Float by remember { mutableStateOf(0f) }
@@ -156,7 +157,7 @@ class MainPlayerOverlayMenu(
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.End)) {
                 Box(
                     button_modifier.clickable {
-                        edited_song_title = song.CustomTitle.get(db) ?: ""
+                        edited_song_title = song.Title.get(player.database) ?: ""
                     },
                     contentAlignment = Alignment.Center
                 ) {
@@ -174,6 +175,9 @@ class MainPlayerOverlayMenu(
             }
 
             Spacer(Modifier.fillMaxHeight().weight(1f))
+
+            val play_count: Int = song.observePlayCount(player.context) ?: 0
+            Text(getString("mediaitem_play_count_\$x_short").replace("\$x", play_count.toString()))
 
             Row(
                 Modifier.fillMaxWidth(),

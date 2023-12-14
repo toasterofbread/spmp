@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
@@ -28,6 +29,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun PlaylistPage.PlaylistFooter(
     items: List<Pair<MediaItem, Int>>?,
+    accent_colour: Color,
     loading: Boolean,
     load_error: Throwable?,
     modifier: Modifier = Modifier,
@@ -53,7 +55,8 @@ fun PlaylistPage.PlaylistFooter(
                     expanded_content_modifier = Modifier.height(500.dp),
                     message = "Playlist load failed",
                     onDismiss = null,
-                    onRetry = onRetry
+                    onRetry = onRetry,
+                    getAccentColour = { accent_colour }
                 )
             }
             false -> {

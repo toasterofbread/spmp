@@ -21,9 +21,7 @@ abstract class PlaylistData(
 
     var custom_image_url: String? = null,
     var image_width: Float? = null,
-    var sort_type: MediaItemSortType? = null,
-
-    var item_set_ids: List<String>? = null
+    var sort_type: MediaItemSortType? = null
 ): MediaItem.DataWithArtist(), Playlist {
     abstract suspend fun savePlaylist(context: AppContext)
 
@@ -38,7 +36,6 @@ abstract class PlaylistData(
             "owner" to owner,
             "custom_image_provider" to custom_image_url,
             "image_width" to image_width,
-            "sort_type" to sort_type,
-            "item_set_ids" to item_set_ids
+            "sort_type" to sort_type
         )
 }

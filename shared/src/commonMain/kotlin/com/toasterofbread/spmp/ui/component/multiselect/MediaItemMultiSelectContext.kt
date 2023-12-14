@@ -42,6 +42,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.composekit.utils.common.getContrasted
@@ -72,12 +73,16 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 
+typealias MultiSelectItem = Pair<MediaItem, Int?>
+
 class MediaItemMultiSelectContext(
     val additionalSelectedItemActions: (@Composable ColumnScope.(MediaItemMultiSelectContext) -> Unit)? = null
 ) {
-    internal val selected_items: MutableList<Pair<MediaItem, Int?>> = mutableStateListOf()
+    internal val selected_items: MutableList<MultiSelectItem> = mutableStateListOf()
     var is_active: Boolean by mutableStateOf(false)
         private set
+    
+    private val ordered_selectable_items: MutableList<List<MediaItemHolder>> = mutableStateListOf()
 
     @Composable
     fun getActiveHintBorder(): BorderStroke? = if (is_active) BorderStroke(hint_path_thickness, LocalContentColor.current) else null
@@ -94,7 +99,7 @@ class MediaItemMultiSelectContext(
         if (!is_active) {
             return false
         }
-        return selected_items.any { it.first == item && it.second == key }
+        return selected_items.any { it.first.id == item.id && it.second == key }
     }
 
     fun onActionPerformed() {
@@ -109,8 +114,8 @@ class MediaItemMultiSelectContext(
         }
     }
 
-    fun getSelectedItems(): List<Pair<MediaItem, Int?>> = selected_items
-    fun getUniqueSelectedItems(): Set<MediaItem> = selected_items.map { it.first }.toSet()
+    fun getSelectedItems(): List<MultiSelectItem> = selected_items
+    fun getUniqueSelectedItems(): Set<MediaItem> = selected_items.map { it.first }.distinctBy { it.id }.toSet()
 
     fun updateKey(index: Int, key: Int?) {
         selected_items[index] = selected_items[index].copy(second = key)
@@ -133,20 +138,22 @@ class MediaItemMultiSelectContext(
         onSelectedItemsChanged()
     }
 
-    fun setItemSelected(item: MediaItem, selected: Boolean, key: Int? = null): Boolean {
+    fun setItemSelected(item: MultiSelectItem, selected: Boolean): Boolean {
         if (selected) {
+            if (selected_items.any { it.first.id == item.first.id && it.second == item.second }) {
+                return false
+            }
+
             if (!is_active) {
                 setActive(true)
             }
-
-            if (selected_items.any { it.first == item && it.second == key }) {
-                return false
-            }
-            selected_items.add(Pair(item, key))
+            
+            selected_items.add(item)
             onSelectedItemsChanged()
+            
             return true
         }
-        else if (selected_items.removeIf { it.first == item && it.second == key }) {
+        else if (selected_items.removeIf { it.first == item.first && it.second == item.second }) {
             onSelectedItemsChanged()
             return true
         }
@@ -155,10 +162,13 @@ class MediaItemMultiSelectContext(
         }
     }
 
+    fun setItemSelected(item: MediaItem, selected: Boolean, key: Int? = null): Boolean =
+        setItemSelected(MultiSelectItem(item, key), selected)
+
     @Composable
     fun SelectableItemOverlay(item: MediaItem, modifier: Modifier = Modifier, key: Int? = null) {
-        val selected by remember(item, key) { derivedStateOf { isItemSelected(item, key) } }
-        val background_colour = LocalContentColor.current.getContrasted().copy(alpha = 0.5f)
+        val selected: Boolean by remember(item, key) { derivedStateOf { isItemSelected(item, key) } }
+        val background_colour: Color = LocalContentColor.current.getContrasted().copy(alpha = 0.5f)
 
         AnimatedVisibility(selected, modifier, enter = fadeIn(), exit = fadeOut()) {
             Box(Modifier.background(background_colour), contentAlignment = Alignment.Center) {
@@ -168,7 +178,7 @@ class MediaItemMultiSelectContext(
     }
 
     @Composable
-    fun InfoDisplay(modifier: Modifier = Modifier, getAllSelectableItems: (() -> List<Pair<MediaItem, Int?>>)? = null) {
+    fun InfoDisplay(modifier: Modifier = Modifier, getAllSelectableItems: (() -> List<MultiSelectItem>)? = null) {
         DisposableEffect(Unit) {
             onDispose {
                 if (!is_active) {
@@ -186,20 +196,33 @@ class MediaItemMultiSelectContext(
             
             Row(
                 Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     title_text, 
                     style = MaterialTheme.typography.labelLarge
                 )
 
-                getAllSelectableItems?.also { getSelectable ->
+                Spacer(Modifier.fillMaxWidth().weight(1f))
+
+                // Select between
+                AnimatedVisibility(ordered_selectable_items.isNotEmpty() || getAllSelectableItems != null) {
+                    IconButton({
+                        for (item in getItemsBetweenSelectableItems(getAllSelectableItems?.invoke() ?: emptyList())) {
+                            setItemSelected(item, true)
+                        }
+                    }) {
+                        Icon(Icons.Default.Expand, null)
+                    }
+                }
+
+                // Select all
+                AnimatedVisibility(getAllSelectableItems != null) {
                     IconButton(
                         {
-                            var changed = false
-                            for (item in getSelectable()) {
-                                if (setItemSelected(item.first, true, item.second)) {
+                            var changed: Boolean = false
+                            for (item in getAllSelectableItems?.invoke() ?: emptyList()) {
+                                if (setItemSelected(item, true)) {
                                     changed = true
                                 }
                             }
@@ -228,10 +251,12 @@ class MediaItemMultiSelectContext(
 
                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
+                // Open overflow menu
                 IconButton({ show_overflow_menu = !show_overflow_menu }) {
                     Icon(Icons.Default.MoreVert, null)
                 }
 
+                // Close
                 IconButton({ setActive(false) }) {
                     Icon(Icons.Default.Close, null)
                 }
@@ -260,10 +285,58 @@ class MediaItemMultiSelectContext(
         }
     }
 
+    private fun getItemsBetweenSelectableItems(additional: List<MultiSelectItem> = emptyList()): List<MultiSelectItem> {
+        val selected: Set<MediaItem> = getUniqueSelectedItems()
+        
+        val selectable_items: List<List<MultiSelectItem>> =
+            ordered_selectable_items.map { items -> items.mapNotNull { it.item?.let { MultiSelectItem(it, null) } } } + listOf(additional)
+        
+        return selectable_items.flatMap { items ->
+            var max: Int = -1
+            var min: Int = -1
+            for (item in selected) {
+                val index: Int = items.indexOfFirst { it.first.id == item.id }
+                if (index == -1) {
+                    continue
+                }
+
+                if (max == -1) {
+                    max = index
+                    min = index
+                }
+                else if (index > max) {
+                    max = index
+                }
+                else if (index < min) {
+                    min = index
+                }
+            }
+
+            if (max == -1) {
+                return@flatMap emptyList()
+            }
+
+            return@flatMap items.subList(min, max + 1)
+        }
+    }
+
     @Composable
-    fun CollectionToggleButton(items: List<MediaItemHolder>) {
+    fun CollectionToggleButton(
+        items: List<MediaItemHolder>,
+        ordered: Boolean = true
+    ) {
+        DisposableEffect(items, true) {
+            if (ordered) {
+                ordered_selectable_items.add(items)
+            }
+            
+            onDispose {
+                ordered_selectable_items.remove(items)
+            }
+        }
+
         AnimatedVisibility(is_active, enter = expandHorizontally(), exit = shrinkHorizontally()) {
-            val all_selected by remember { derivedStateOf {
+            val all_selected: Boolean by remember { derivedStateOf {
                 items.all {
                     it.item?.let { item -> isItemSelected(item) } ?: false
                 }
@@ -283,9 +356,9 @@ class MediaItemMultiSelectContext(
     }
 
     private fun areItemsValid(): Boolean {
-        val keys = mutableMapOf<MediaItem, MutableList<Int?>>()
+        val keys: MutableMap<MediaItem, MutableList<Int?>> = mutableMapOf()
         for (item in selected_items) {
-            val item_keys = keys[item.first]
+            val item_keys: MutableList<Int?>? = keys[item.first]
             if (item_keys == null) {
                 keys[item.first] = mutableListOf(item.second)
                 continue

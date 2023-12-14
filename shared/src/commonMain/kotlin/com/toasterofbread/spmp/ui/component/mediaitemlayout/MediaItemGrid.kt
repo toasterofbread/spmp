@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyGridState
@@ -51,7 +50,6 @@ import com.toasterofbread.spmp.model.mediaitem.layout.shouldShowTitleBar
 import com.toasterofbread.spmp.model.mediaitem.rememberFilteredItems
 import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
-import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_LONG_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
@@ -70,7 +68,7 @@ fun MediaItemGrid(
     square_item_max_text_rows: Int? = null,
     show_download_indicators: Boolean = true,
     content_padding: PaddingValues = PaddingValues(),
-    itemSizeProvider: @Composable () -> DpSize = { getDefaultMediaItemPreviewSize() },
+    itemSizeProvider: @Composable () -> DpSize = { DpSize.Unspecified },
     startContent: (LazyGridScope.() -> Unit)? = null
 ) {
     MediaItemGrid(
@@ -118,13 +116,13 @@ fun MediaItemGrid(
     val expanded_row_count: Int = rows?.second ?: row_count
 
     val item_spacing: Arrangement.HorizontalOrVertical = Arrangement.spacedBy(
-        (if (alt_style) 7.dp else 15.dp) * (if (player.form_factor.is_large) 3f else 1f)
+        (if (alt_style) 7.dp else 15.dp) * (if (Platform.DESKTOP.isCurrent()) 3f else 1f)
     )
 
     val provided_item_size: DpSize? = itemSizeProvider().takeIf { it.isSpecified }
     val item_size: DpSize =
-        if (alt_style) provided_item_size ?: DpSize(0.dp, MEDIA_ITEM_PREVIEW_LONG_HEIGHT_DP.dp)
-        else (provided_item_size ?: getDefaultMediaItemPreviewSize()) + DpSize(0.dp, getMediaItemPreviewSquareAdditionalHeight(square_item_max_text_rows, MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP.sp))
+        if (alt_style) provided_item_size ?: getDefaultMediaItemPreviewSize(true)
+        else (provided_item_size ?: getDefaultMediaItemPreviewSize(false)) + DpSize(0.dp, getMediaItemPreviewSquareAdditionalHeight(square_item_max_text_rows, MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP.sp))
 
     val horizontal_padding: PaddingValues = content_padding.horizontal
 

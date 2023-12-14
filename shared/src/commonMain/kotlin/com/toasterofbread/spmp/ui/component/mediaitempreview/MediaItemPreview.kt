@@ -60,8 +60,6 @@ import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 
-val MEDIA_ITEM_PREVIEW_LONG_HEIGHT_DP: Float
-    @Composable get() = if (LocalPlayerState.current.form_factor.is_large) 100f else 50f
 val MEDIA_ITEM_PREVIEW_SQUARE_FONT_SIZE_SP: Float
     @Composable get() = if (LocalPlayerState.current.form_factor.is_large) 15f else 12f
 
@@ -242,7 +240,6 @@ fun MediaItemPreviewLong(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .mediaItemPreviewInteraction(loaded_item, long_press_menu_data)
-            .height(MEDIA_ITEM_PREVIEW_LONG_HEIGHT_DP.dp)
     ) {
         Box(Modifier.fillMaxHeight().aspectRatio(1f), contentAlignment = Alignment.Center) {
             loaded_item.Thumbnail(
@@ -315,7 +312,7 @@ fun MediaItemPreviewLong(
                     }
 
                     if (show_play_count) {
-                        val play_count = loaded_item.observePlayCount(player.context)
+                        val play_count: Int? = loaded_item.observePlayCount(player.context)
                         InfoText(
                             getString("mediaitem_play_count_\$x_short")
                                 .replace("\$x", play_count?.toString() ?: "?")

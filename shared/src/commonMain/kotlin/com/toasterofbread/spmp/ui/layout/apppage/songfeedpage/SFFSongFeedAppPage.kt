@@ -217,7 +217,7 @@ fun SongFeedAppPage.SFFSongFeedAppPage(
                             }
                         }
 
-                        val type = layout.type ?: MediaItemLayout.Type.GRID
+                        val type: MediaItemLayout.Type = layout.type ?: MediaItemLayout.Type.GRID
 
                         val rows: Int = if (type == MediaItemLayout.Type.GRID_ALT) alt_grid_rows else grid_rows
                         val expanded_rows: Int = if (type == MediaItemLayout.Type.GRID_ALT) alt_grid_rows_expanded else grid_rows_expanded

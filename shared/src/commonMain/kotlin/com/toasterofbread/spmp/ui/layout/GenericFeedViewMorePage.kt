@@ -69,7 +69,7 @@ fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, co
             { items ->
                 val multiselect_context = remember { MediaItemMultiSelectContext() }
 
-                val item_size = getDefaultMediaItemPreviewSize()
+                val item_size = getDefaultMediaItemPreviewSize(false)
                 val item_spacing = (item_size.width - item_size.height).value.absoluteValue.dp
                 val item_arrangement = Arrangement.spacedBy(item_spacing)
 

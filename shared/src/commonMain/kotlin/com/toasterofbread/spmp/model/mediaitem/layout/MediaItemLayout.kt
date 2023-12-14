@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.platform.AppContext
@@ -22,9 +23,28 @@ import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
 
 @Composable
-fun getDefaultMediaItemPreviewSize(): DpSize =
-    if (LocalPlayerState.current.form_factor.is_large) DpSize(180.dp, 210.dp)
-    else DpSize(100.dp, 130.dp)
+fun getDefaultMediaItemPreviewSize(long: Boolean): DpSize =
+    when (Platform.current) {
+        Platform.ANDROID -> {
+            if (long) DpSize(
+                if (LocalPlayerState.current.form_factor.is_large) 450.dp
+                else 300.dp,
+                50.dp
+            )
+            else DpSize(100.dp, 100.dp)
+        }
+        Platform.DESKTOP -> {
+            if (long) {
+                if (LocalPlayerState.current.form_factor.is_large) DpSize(300.dp, 100.dp)
+                else DpSize(200.dp, 50.dp)
+            }
+            else {
+                if (LocalPlayerState.current.form_factor.is_large) DpSize(180.dp, 180.dp)
+                else DpSize(100.dp, 100.dp)
+            }
+        }
+    }
+
 
 @Composable
 fun getMediaItemPreviewSquareAdditionalHeight(text_rows: Int?, line_height: TextUnit): Dp {
@@ -58,7 +78,7 @@ data class MediaItemLayout(
             show_download_indicators: Boolean = true,
             grid_rows: Pair<Int, Int>? = null,
             content_padding: PaddingValues = PaddingValues(),
-            itemSizeProvider: @Composable () -> DpSize = { getDefaultMediaItemPreviewSize() }
+            itemSizeProvider: @Composable () -> DpSize = { DpSize.Unspecified }
         ) {
             when (this) {
                 // Why

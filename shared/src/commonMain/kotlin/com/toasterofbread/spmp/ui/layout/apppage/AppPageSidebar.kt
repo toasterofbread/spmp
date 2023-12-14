@@ -51,6 +51,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.utils.common.amplify
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
@@ -120,7 +121,7 @@ private enum class SidebarButton {
 
     @Composable
     fun shouldShow(page: AppPage?) = when (this) {
-        RELOAD -> LocalPlayerState.current.app_page.canReload()
+        RELOAD -> Platform.ANDROID.isCurrent() && LocalPlayerState.current.app_page.canReload()
         else -> page != null
     }
 

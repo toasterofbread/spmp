@@ -54,11 +54,8 @@ internal fun PlaylistPage.PlaylistInteractionBar(
     var opened_menu: Int? by remember { mutableStateOf(null) }
 
     Column(modifier) {
-        Crossfade(multiselect_context.is_active) { selecting ->
-            if (selecting) {
-                multiselect_context.InfoDisplay()
-            }
-            else {
+        multiselect_context.InfoDisplay(
+            altContent = {
                 Row {
                     // Filter button
                     IconButton(
@@ -159,7 +156,7 @@ internal fun PlaylistPage.PlaylistInteractionBar(
                     }
                 }
             }
-        }
+        )
 
         WaveBorder(Modifier.fillMaxWidth())
     }

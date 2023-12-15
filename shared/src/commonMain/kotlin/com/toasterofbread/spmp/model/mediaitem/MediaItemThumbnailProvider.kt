@@ -19,7 +19,7 @@ interface MediaItemThumbnailProvider {
         }
 
         companion object {
-            fun byQuality(max: Quality = values().last()): Iterable<Quality> =
+            fun byQuality(max: Quality = entries.last()): Iterable<Quality> =
                 if (max == HIGH) listOf(HIGH, LOW)
                 else listOf(LOW)
         }

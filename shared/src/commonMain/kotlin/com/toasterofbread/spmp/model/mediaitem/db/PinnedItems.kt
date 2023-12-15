@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
 
 private fun Database.getPinnedItems(): List<MediaItem> {
     return pinnedItemQueries.getAll().executeAsList().map { item ->
-        MediaItemType.values()[item.type.toInt()].referenceFromId(item.id)
+        MediaItemType.entries[item.type.toInt()].referenceFromId(item.id)
     }
 }
 private fun Database.isItemPinned(item: MediaItem): Boolean {

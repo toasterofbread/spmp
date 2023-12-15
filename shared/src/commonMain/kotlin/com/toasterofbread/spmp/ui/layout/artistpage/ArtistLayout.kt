@@ -2,9 +2,7 @@ package com.toasterofbread.spmp.ui.layout.artistpage
 
 import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,9 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
@@ -71,7 +67,7 @@ fun ArtistLayout(
     show_top_bar: Boolean = true,
     loading: Boolean = false,
     onReload: (() -> Unit)? = null,
-    getAllSelectableItems: (() -> List<MultiSelectItem>)? = null,
+    getAllSelectableItems: (() -> List<List<MultiSelectItem>>)? = null,
     content: LazyListScope.(accent_colour: Color?, Modifier) -> Unit
 ) {
     val player: PlayerState = LocalPlayerState.current
@@ -132,9 +128,10 @@ fun ArtistLayout(
                 padding = content_padding.horizontal
             ).showing
 
-            AnimatedVisibility(multiselect_context?.is_active == true) {
-                multiselect_context?.InfoDisplay(Modifier.padding(top = 10.dp).padding(content_padding.horizontal), getAllSelectableItems)
-            }
+            multiselect_context?.InfoDisplay(
+                Modifier.padding(top = 10.dp).padding(content_padding.horizontal),
+                getAllItems = getAllSelectableItems
+            )
 
             AnimatedVisibility(showing) {
                 WaveBorder(Modifier.fillMaxWidth(), getColour = { getBackgroundColour() })

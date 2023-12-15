@@ -116,7 +116,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
             }
 
             FilterChipsRow(
-                SearchType.values().size + 1,
+                SearchType.entries.size + 1,
                 { index ->
                     if (current_filter == null) index == 0 else current_filter!!.ordinal == index - 1
                 },
@@ -125,7 +125,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
                         setFilter(null)
                     }
                     else {
-                        setFilter(SearchType.values()[index - 1])
+                        setFilter(SearchType.entries[index - 1])
                     }
                 },
                 Modifier
@@ -134,7 +134,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
                     .height(SEARCH_BAR_HEIGHT_DP.dp),
                 spacing = 5.dp
             ) { index ->
-                Text(when (if (index == 0) null else SearchType.values()[index - 1]) {
+                Text(when (if (index == 0) null else SearchType.entries[index - 1]) {
                     null -> getString("search_filter_all")
                     SearchType.VIDEO -> getString("search_filter_videos")
                     SearchType.SONG -> MediaItemType.SONG.getReadable(true)
@@ -373,7 +373,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
         }
 
         Column(modifier) {
-            AnimatedVisibility(show_suggestions && suggestions.isNotEmpty()) {
+            AnimatedVisibility(show_suggestions && suggestions.isNotEmpty(), Modifier.weight(1f)) {
                 var current_suggestions: List<SearchSuggestion> by remember { mutableStateOf(suggestions) }
                 LaunchedEffect(suggestions) {
                     if (suggestions.isNotEmpty()) {

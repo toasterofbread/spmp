@@ -9,7 +9,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getPlayer
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
 
 data object PlayerSettings: SettingsCategory("player") {
-    override val keys: List<SettingsKey> = Key.values().toList()
+    override val keys: List<SettingsKey> = Key.entries.toList()
 
     override fun getPage(): Page? =
         Page(

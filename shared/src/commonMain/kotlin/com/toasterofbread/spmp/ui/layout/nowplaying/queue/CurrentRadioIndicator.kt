@@ -87,40 +87,41 @@ internal fun CurrentRadioIndicator(
                 }
             }
 
-            Crossfade(
-                if (show_radio_info) radio_item
-                else if (multiselect_context.is_active) true
-                else filters ?: radio_item,
-                Modifier.fillMaxWidth()
-            ) { state ->
-                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    when (state) {
-                        is MediaItem ->
-                            Box(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = horizontal_padding)
-                                    .background(RoundedCornerShape(45), getAccentColour)
-                                    .padding(horizontal = 10.dp, vertical = 7.dp)
-                            ) {
-                                MediaItemPreviewLong(state, Modifier.height(35.dp))
+            multiselect_context.InfoDisplay(
+                getAllItems = { listOf(getAllSelectableItems()) },
+                content_modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = horizontal_padding),
+                show_alt_content = radio_item != null || filters != null,
+                altContent = {
+                    Crossfade(
+                        if (show_radio_info) radio_item
+                        else filters ?: radio_item,
+                        Modifier.fillMaxWidth()
+                    ) { state ->
+                        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            when (state) {
+                                is MediaItem ->
+                                    Box(
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = horizontal_padding)
+                                            .background(RoundedCornerShape(45), getAccentColour)
+                                            .padding(horizontal = 10.dp, vertical = 7.dp)
+                                    ) {
+                                        MediaItemPreviewLong(state, Modifier.height(35.dp))
+                                    }
+                                is List<*> ->
+                                    FiltersRow(
+                                        state as List<List<RadioBuilderModifier>>,
+                                        getAccentColour,
+                                        content_padding = PaddingValues(horizontal = horizontal_padding)
+                                    )
                             }
-                        true ->
-                            multiselect_context.InfoDisplay(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = horizontal_padding),
-                                getAllSelectableItems
-                            )
-                        is List<*> ->
-                            FiltersRow(
-                                state as List<List<RadioBuilderModifier>>,
-                                getAccentColour,
-                                content_padding = PaddingValues(horizontal = horizontal_padding)
-                            )
+                        }
                     }
                 }
-            }
+            )
         }
     }
 }

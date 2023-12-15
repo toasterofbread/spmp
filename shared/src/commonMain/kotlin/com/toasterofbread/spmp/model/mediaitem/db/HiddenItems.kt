@@ -101,7 +101,7 @@ fun ArtistQueries.getByHidden(hidden: Boolean): List<Artist> =
 
 fun PlaylistQueries.getByHidden(hidden: Boolean): List<Playlist> =
     byHidden(hidden.toSQLBoolean()).executeAsList().map { playlist ->
-        val type = playlist.playlist_type?.let { PlaylistType.values()[it.toInt()] }
+        val type = playlist.playlist_type?.let { PlaylistType.entries[it.toInt()] }
         if (type == PlaylistType.LOCAL) LocalPlaylistRef(playlist.id)
         else RemotePlaylistRef(playlist.id)
     }

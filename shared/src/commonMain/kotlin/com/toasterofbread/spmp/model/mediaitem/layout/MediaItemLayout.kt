@@ -35,11 +35,11 @@ fun getDefaultMediaItemPreviewSize(long: Boolean): DpSize =
         }
         Platform.DESKTOP -> {
             if (long) {
-                if (LocalPlayerState.current.form_factor.is_large) DpSize(300.dp, 100.dp)
+                if (LocalPlayerState.current.form_factor.is_large) DpSize(400.dp, 75.dp)
                 else DpSize(200.dp, 50.dp)
             }
             else {
-                if (LocalPlayerState.current.form_factor.is_large) DpSize(180.dp, 180.dp)
+                if (LocalPlayerState.current.form_factor.is_large) DpSize(150.dp, 150.dp)
                 else DpSize(100.dp, 100.dp)
             }
         }
@@ -47,9 +47,10 @@ fun getDefaultMediaItemPreviewSize(long: Boolean): DpSize =
 
 
 @Composable
-fun getMediaItemPreviewSquareAdditionalHeight(text_rows: Int?, line_height: TextUnit): Dp {
-    return with(LocalDensity.current) { line_height.toDp() } * ((text_rows ?: 1) - 1)
-}
+fun getMediaItemPreviewSquareAdditionalHeight(text_rows: Int?, line_height: TextUnit): Dp =
+    with(LocalDensity.current) {
+        line_height.toDp()  * (text_rows ?: 1)
+    } + 5.dp
 
 data class MediaItemLayout(
     val items: List<MediaItem>,

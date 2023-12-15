@@ -91,7 +91,7 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
     }
 
     suspend fun invalidateCache(item: MediaItem, context: AppContext) = withContext(Dispatchers.IO) {
-        for (quality in MediaItemThumbnailProvider.Quality.values()) {
+        for (quality in MediaItemThumbnailProvider.Quality.entries) {
             val file = getCacheFile(item, quality, context)
             file.delete()
         }
@@ -158,7 +158,7 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
                 MediaItemThumbnailLoader.lock.withLock {
                     val provider = item.ThumbnailProvider.get(player.database) ?: return@withContext
 
-                    for (quality in MediaItemThumbnailProvider.Quality.values()) {
+                    for (quality in MediaItemThumbnailProvider.Quality.entries) {
                         val key = MediaItemThumbnailLoaderKey(provider, quality, item.id)
 
                         val loaded = loaded_images[key]

@@ -16,7 +16,7 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.getDiscordAuthItem
 
 data object DiscordAuthSettings: SettingsCategory("discordauth") {
-    override val keys: List<SettingsKey> = Key.values().toList()
+    override val keys: List<SettingsKey> = Key.entries.toList()
 
     override fun getPage(): Page? =
         object : Page(

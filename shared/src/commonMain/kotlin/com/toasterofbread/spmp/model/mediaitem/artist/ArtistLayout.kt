@@ -79,7 +79,7 @@ sealed interface ArtistLayout {
     val Items get() = ListPropertyImpl(
         getValue = {
             this.map { item ->
-                MediaItemType.values()[item.item_type.toInt()].referenceFromId(item.item_id)
+                MediaItemType.entries[item.item_type.toInt()].referenceFromId(item.item_id)
             }
         },
         getQuery = { artistLayoutItemQueries.byLayoutIndex(artist_id, layout_index!!) },
@@ -113,13 +113,13 @@ sealed interface ArtistLayout {
     val Type: Property<MediaItemLayout.Type?>
         get() = SingleProperty(
         { artistLayoutQueries.typeByIndex(artist_id, layout_index!!) },
-        { type?.let { MediaItemLayout.Type.values()[it.toInt()] } },
+        { type?.let { MediaItemLayout.Type.entries[it.toInt()] } },
         { artistLayoutQueries.updateTypeByIndex(it?.ordinal?.toLong(), artist_id, layout_index!!) }
     )
     val ViewMore: Property<ViewMore?>
         get() = SingleProperty(
         { artistLayoutQueries.viewMoreByIndex(artist_id, layout_index!!) },
-        { view_more_type?.let { ViewMoreType.values()[it.toInt()].getViewMore(view_more_data!!) } },
+        { view_more_type?.let { ViewMoreType.entries[it.toInt()].getViewMore(view_more_data!!) } },
         { view_more ->
             val serialised = view_more?.let { ViewMoreType.fromViewMore(view_more) }
             artistLayoutQueries.updateViewMoreByIndex(serialised?.first, serialised?.second, artist_id, layout_index!!)

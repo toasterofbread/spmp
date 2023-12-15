@@ -92,7 +92,7 @@ object SongFeedCache {
                         .byRowIndex(row.row_index)
                         .executeAsList()
                         .map { item ->
-                            MediaItemType.values()[item.item_type.toInt()].referenceFromId(item.item_id)
+                            MediaItemType.entries[item.item_type.toInt()].referenceFromId(item.item_id)
                         }
 
                     MediaItemLayout(
@@ -101,10 +101,10 @@ object SongFeedCache {
                             LocalisedString.deserialise(it)
                         },
                         null,
-                        row.layout_type?.let { MediaItemLayout.Type.values()[it.toInt()] },
+                        row.layout_type?.let { MediaItemLayout.Type.entries[it.toInt()] },
                         view_more = row.view_more_type?.let { type ->
                             row.view_more_data?.let { data ->
-                                ViewMoreType.values()[type.toInt()].getViewMore(data)
+                                ViewMoreType.entries[type.toInt()].getViewMore(data)
                             }
                         }
                     )

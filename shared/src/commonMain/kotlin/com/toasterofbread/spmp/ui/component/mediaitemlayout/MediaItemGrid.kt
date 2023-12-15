@@ -157,7 +157,7 @@ fun MediaItemGrid(
             }
 
             TitleBar(
-                items,
+                filtered_items,
                 title,
                 subtitle,
                 title_modifier,

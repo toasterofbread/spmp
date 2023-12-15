@@ -72,17 +72,17 @@ internal fun SelectionTypeRow(state: MutableState<RadioBuilderModifier.Selection
             Text(getString("radio_builder_modifier_selection_type"))
 
             MultiSelectRow(
-                amount = RadioBuilderModifier.SelectionType.values().size,
+                amount = RadioBuilderModifier.SelectionType.entries.size,
                 isSelected = { it == state.value.ordinal },
-                onSelected = { state.value =  RadioBuilderModifier.SelectionType.values()[it!!] },
+                onSelected = { state.value =  RadioBuilderModifier.SelectionType.entries[it!!] },
                 getText = {
-                    RadioBuilderModifier.SelectionType.values()[it].getReadable()
+                    RadioBuilderModifier.SelectionType.entries[it].getReadable()
                 },
                 button_padding = PaddingValues(0.dp)
             )
         }
 
-//            for (type in RadioBuilderModifier.SelectionType.values()) {
+//            for (type in RadioBuilderModifier.SelectionType.entries) {
 //                var animate by remember { mutableStateOf(false) }
 //                Column(
 //                    Modifier
@@ -109,11 +109,11 @@ internal fun ArtistVarietyRow(state: MutableState<RadioBuilderModifier.Variety>)
     Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
         Text(getString("radio_builder_modifier_variety"))
         MultiSelectRow(
-            RadioBuilderModifier.Variety.values().size,
+            RadioBuilderModifier.Variety.entries.size,
             isSelected = { state.value.ordinal == it },
-            onSelected = { state.value = RadioBuilderModifier.Variety.values()[it!!] },
+            onSelected = { state.value = RadioBuilderModifier.Variety.entries[it!!] },
             getText = {
-                RadioBuilderModifier.Variety.values()[it].getReadable()
+                RadioBuilderModifier.Variety.entries[it].getReadable()
             }
         )
     }
@@ -124,11 +124,11 @@ internal fun FilterARow(state: MutableState<RadioBuilderModifier.FilterA?>) {
     Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
         Text(getString("radio_builder_modifier_filter_a"))
         MultiSelectRow(
-            RadioBuilderModifier.FilterA.values().size,
+            RadioBuilderModifier.FilterA.entries.size,
             isSelected = { state.value?.ordinal == it },
-            onSelected = { state.value = it?.let { RadioBuilderModifier.FilterA.values()[it] } },
+            onSelected = { state.value = it?.let { RadioBuilderModifier.FilterA.entries[it] } },
             getText = {
-                RadioBuilderModifier.FilterA.values()[it].getReadable()
+                RadioBuilderModifier.FilterA.entries[it].getReadable()
             },
             nullable = true
         )
@@ -140,11 +140,11 @@ internal fun FilterBRow(state: MutableState<RadioBuilderModifier.FilterB?>) {
     Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
         Text(getString("radio_builder_modifier_filter_b"))
         MultiSelectRow(
-            RadioBuilderModifier.FilterB.values().size,
+            RadioBuilderModifier.FilterB.entries.size,
             isSelected = { state.value?.ordinal == it },
-            onSelected = { state.value = it?.let { RadioBuilderModifier.FilterB.values()[it] } },
+            onSelected = { state.value = it?.let { RadioBuilderModifier.FilterB.entries[it] } },
             getText = {
-                RadioBuilderModifier.FilterB.values()[it].getReadable()
+                RadioBuilderModifier.FilterB.entries[it].getReadable()
             },
             nullable = true,
             button_padding = PaddingValues(0.dp),

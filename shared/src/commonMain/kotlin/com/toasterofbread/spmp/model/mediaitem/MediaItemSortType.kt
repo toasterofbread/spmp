@@ -71,11 +71,11 @@ enum class MediaItemSortType {
             LargeDropdownMenu(
                 expanded,
                 onDismissed,
-                values().size - index_offset,
+                entries.size - index_offset,
                 selected_option.ordinal - index_offset,
-                { values()[it + index_offset].getReadable(native_string_key) }
+                { entries[it + index_offset].getReadable(native_string_key) }
             ) {
-                onSelected(values()[it + index_offset])
+                onSelected(entries[it + index_offset])
                 onDismissed()
             }
         }

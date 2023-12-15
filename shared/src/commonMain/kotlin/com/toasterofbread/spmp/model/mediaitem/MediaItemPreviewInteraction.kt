@@ -113,7 +113,7 @@ private fun Modifier.androidMediaItemPreviewInteraction(
     OnChangedEffect(pressed) {
         if (pressed) {
             var delays = 0
-            for (stage in MediaItemPreviewInteractionPressStage.values()) {
+            for (stage in MediaItemPreviewInteractionPressStage.entries) {
                 if (stage.ordinal == 0 || !stage.isAvailable(long_press_menu_data)) {
                     continue
                 }
@@ -128,7 +128,7 @@ private fun Modifier.androidMediaItemPreviewInteraction(
                     long_press_menu_data.current_interaction_stage = stage
                     player.context.vibrateShort()
 
-                    if (stage == MediaItemPreviewInteractionPressStage.values().last { it.isAvailable(long_press_menu_data) }) {
+                    if (stage == MediaItemPreviewInteractionPressStage.entries.last { it.isAvailable(long_press_menu_data) }) {
                         current_press_stage.execute(item, long_press_menu_data, Offset.Zero, onItemClick, onItemLongClick)
                         long_press_menu_data.current_interaction_stage = null
                         break
@@ -137,7 +137,7 @@ private fun Modifier.androidMediaItemPreviewInteraction(
             }
         }
         else {
-            if (current_press_stage != MediaItemPreviewInteractionPressStage.values().last { it.isAvailable(long_press_menu_data) }) {
+            if (current_press_stage != MediaItemPreviewInteractionPressStage.entries.last { it.isAvailable(long_press_menu_data) }) {
                 current_press_stage.execute(item, long_press_menu_data, Offset.Zero, onItemClick, onItemLongClick)
             }
             current_press_stage = MediaItemPreviewInteractionPressStage.INSTANT

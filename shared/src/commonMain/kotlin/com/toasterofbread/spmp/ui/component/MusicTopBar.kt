@@ -229,7 +229,7 @@ class MusicTopBar(val player: PlayerState) {
             derivedStateOf {
                 val target = getTargetMode()
                 for (mode_i in target.ordinal downTo 0) {
-                    val mode = MusicTopBarMode.values()[mode_i]
+                    val mode = MusicTopBarMode.entries[mode_i]
                     val state = getModeState(mode, if (lyrics_enabled) lyrics else null)
                     if (state != null) {
                         mode_state = mode

@@ -28,21 +28,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.vibrateShort
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun ColumnScope.MultiSelectNextRowActions(multiselect_context: MediaItemMultiSelectContext) {
-    val player = LocalPlayerState.current
+    val player: PlayerState = LocalPlayerState.current
 
     AnimatedVisibility(player.status.m_song_count > 0) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            val active_queue_item =
+            val active_queue_item: Song? =
                 player.controller?.service_player?.run {
                     if (active_queue_index < song_count)
                         getSong(active_queue_index)
                     else null
                 }
+
             CompositionLocalProvider(LocalPlayerState provides remember {
                 player.copy(onClickedOverride = { _, _ ->  })
             }) {
@@ -53,7 +56,7 @@ internal fun ColumnScope.MultiSelectNextRowActions(multiselect_context: MediaIte
                 }
             }
 
-            val button_modifier = Modifier
+            val button_modifier: Modifier = Modifier
                 .size(30.dp)
                 .fillMaxHeight()
                 .aspectRatio(1f)

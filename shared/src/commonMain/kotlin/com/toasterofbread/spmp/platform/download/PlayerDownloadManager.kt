@@ -102,7 +102,7 @@ enum class DownloadMethod {
 
     companion object {
         val DEFAULT: DownloadMethod = LIBRARY
-        val available: List<DownloadMethod> get() = values().filter { it.isAvailable() }
+        val available: List<DownloadMethod> get() = entries.filter { it.isAvailable() }
     }
 }
 

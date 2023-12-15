@@ -46,7 +46,7 @@ sealed interface Playlist: MediaItem.WithArtist {
         get() = property_rememberer.rememberSingleQueryProperty(
             "TypeOfPlaylist",
             { playlistQueries.playlistTypeById(id) },
-            { playlist_type?.let { PlaylistType.values()[it.toInt()] } },
+            { playlist_type?.let { PlaylistType.entries[it.toInt()] } },
             { playlistQueries.updatePlaylistTypeById(it?.ordinal?.toLong(), id) }
         )
     val TotalDuration: Property<Long?>
@@ -79,7 +79,7 @@ sealed interface Playlist: MediaItem.WithArtist {
         )
     val SortType: Property<MediaItemSortType?>
         get() = property_rememberer.rememberSingleQueryProperty(
-            "SortType", { playlistQueries.sortTypeById(id) }, { sort_type?.let { MediaItemSortType.values()[it.toInt()] } }, { playlistQueries.updateSortTypeById(it?.ordinal?.toLong(), id) }
+            "SortType", { playlistQueries.sortTypeById(id) }, { sort_type?.let { MediaItemSortType.entries[it.toInt()] } }, { playlistQueries.updateSortTypeById(it?.ordinal?.toLong(), id) }
         )
 
     override fun populateData(data: MediaItemData, db: Database) {

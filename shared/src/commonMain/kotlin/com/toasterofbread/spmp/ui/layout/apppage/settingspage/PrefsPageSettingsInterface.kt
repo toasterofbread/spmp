@@ -61,7 +61,7 @@ internal fun getPrefsPageSettingsInterface(
         Settings::provideDefault,
         { context.vibrateShort() },
         { index, param ->
-            when (PrefsPageScreen.values()[index]) {
+            when (PrefsPageScreen.entries[index]) {
                 PrefsPageScreen.ROOT -> SettingsPageWithItems(
                     { null },
                     { emptyList() }

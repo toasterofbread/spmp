@@ -90,7 +90,7 @@ interface Song: MediaItem.WithArtist {
         get() = property_rememberer.rememberSingleQueryProperty(
         "TypeOfSong",
         { songQueries.songTypeById(id) },
-        { song_type?.let { SongType.values()[it.toInt()] } },
+        { song_type?.let { SongType.entries[it.toInt()] } },
         { songQueries.updateSongTypeById(it?.ordinal?.toLong(), id) }
     )
     val Duration: Property<Long?>

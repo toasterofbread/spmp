@@ -2,19 +2,24 @@ package com.toasterofbread.spmp.ui.layout.apppage.mainpage
 
 import LocalPlayerState
 import SpMp
-import androidx.compose.animation.core.Spring
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
+import androidx.compose.ui.window.Dialog
 import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.platform.PlatformPreferencesListener
@@ -22,7 +27,6 @@ import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.composekit.utils.common.init
 import com.toasterofbread.composekit.utils.composable.getEnd
 import com.toasterofbread.composekit.utils.composable.getStart
-import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.layout.BrowseParamsData
@@ -41,7 +45,8 @@ import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenu
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.mediaitempreview.*
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.*
+import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectInfoDisplayContent
+import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageWithItem
@@ -51,21 +56,12 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNowPlayingVerticalPageCount
-import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NowPlayingMainTabPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import kotlinx.coroutines.*
 
 enum class FeedLoadState { PREINIT, NONE, LOADING, CONTINUING }
 
-@Composable
-fun PlayerState.getMainPageItemSize(): DpSize {
-    val width: Dp = if (form_factor.is_large) MEDIAITEM_PREVIEW_SQUARE_SIZE_LARGE.dp else MEDIAITEM_PREVIEW_SQUARE_SIZE_SMALL.dp
-    return DpSize(
-        width,
-        width + 30.dp
-    )
-}
-
+// TODO | There is almost zero reason for this to be two classes
 @OptIn(ExperimentalMaterialApi::class)
 class PlayerStateImpl(override val context: AppContext, private val coroutine_scope: CoroutineScope): PlayerState(null, null, null) {
     private var _player: PlatformPlayerService? by mutableStateOf(null)
@@ -104,7 +100,7 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
     override var screen_size: DpSize by mutableStateOf(DpSize.Zero)
 
     override val app_page_state = AppPageState(this)
-    override val main_multiselect_context: MediaItemMultiSelectContext = MediaItemMultiSelectContext()
+    override val main_multiselect_context: MediaItemMultiSelectContext = AppPageMultiSelectContext(this)
     override var np_theme_mode: ThemeMode by mutableStateOf(
         Settings.getEnum(ThemeSettings.Key.NOWPLAYING_THEME_MODE, context.getPrefs()))
     override val np_overlay_menu: MutableState<PlayerOverlayMenu?> = mutableStateOf(null)
@@ -335,11 +331,6 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
     }
 
     override fun showLongPressMenu(data: LongPressMenuData) {
-        if (Platform.DESKTOP.isCurrent()) {
-            // Check lateinit
-            data.layout_size
-        }
-
         long_press_menu_data = data
 
         if (long_press_menu_showing) {
@@ -393,6 +384,9 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
         }
     }
 
+    private var multiselect_info_display_height: Dp by mutableStateOf(0.dp)
+    internal val multiselect_info_all_items_getters: MutableList<() -> List<List<MultiSelectItem>>> = mutableListOf()
+
     @Composable
     fun PersistentContent() {
         long_press_menu_data?.also { data ->
@@ -416,6 +410,33 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
                 songs = songs
             )
         }
+
+        if (form_factor.is_large) {
+            val density: Density = LocalDensity.current
+
+            AnimatedVisibility(main_multiselect_context.is_active, enter = fadeIn(), exit = fadeOut()) {
+                Box(Modifier.fillMaxSize().padding(15.dp)) {
+                    CompositionLocalProvider(LocalContentColor provides theme.on_accent) {
+                        main_multiselect_context.MultiSelectInfoDisplayContent(
+                            Modifier
+                                .width(IntrinsicSize.Min)
+                                .align(Alignment.BottomEnd)
+                                .then(nowPlayingTopOffset(Modifier))
+                                .background(theme.accent.copy(alpha = 0.9f), MaterialTheme.shapes.small)
+                                .padding(10.dp)
+                                .onSizeChanged {
+                                    multiselect_info_display_height = with (density) {
+                                        it.height.toDp()
+                                    }
+                                },
+                            getAllItems = {
+                                multiselect_info_all_items_getters.flatMap { it() }
+                            }
+                        )
+                    }
+                }
+            }
+        }
     }
 
     @Composable
@@ -425,11 +446,14 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
         }
 
         CompositionLocalProvider(LocalContentColor provides context.theme.on_background) {
-            MainPageDisplay()
+            val bottom_padding: Dp by animateDpAsState(
+                if (form_factor.is_large && main_multiselect_context.is_active) multiselect_info_display_height
+                else 0.dp
+            )
+
+            MainPageDisplay(bottom_padding)
         }
     }
-
-    // PlayerServiceHost
 
     override val controller: PlatformPlayerService? get() = _player
     override fun withPlayer(action: PlayerServicePlayer.() -> Unit) {
@@ -505,5 +529,40 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
     override fun onSongDownloadRequested(songs: List<Song>, callback: DownloadRequestCallback?) {
         download_request_songs = songs
         download_request_callback = callback
+    }
+}
+
+private class AppPageMultiSelectContext(private val player: PlayerStateImpl): MediaItemMultiSelectContext() {
+    @Composable
+    override fun InfoDisplayContent(
+        modifier: Modifier,
+        content_modifier: Modifier,
+        getAllItems: (() -> List<List<MultiSelectItem>>)?,
+        wrapContent: @Composable (@Composable () -> Unit) -> Unit,
+        show_alt_content: Boolean,
+        altContent: (@Composable () -> Unit)?
+    ): Boolean {
+        if (player.form_factor.is_large) {
+            // Displayed in PlayerStateImpl.PersistentContent()
+
+            DisposableEffect(is_active, getAllItems) {
+                if (!is_active) {
+                    return@DisposableEffect onDispose {}
+                }
+
+                if (getAllItems != null) {
+                    player.multiselect_info_all_items_getters.add(getAllItems)
+                }
+
+                onDispose {
+                    if (getAllItems != null) {
+                        player.multiselect_info_all_items_getters.remove(getAllItems)
+                    }
+                }
+            }
+
+            return false
+        }
+        return super.InfoDisplayContent(modifier, content_modifier, getAllItems, wrapContent, show_alt_content, altContent)
     }
 }

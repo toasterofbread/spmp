@@ -33,7 +33,7 @@ sealed interface LocalisedString {
             val split: List<String> = data.split(",", limit = 2)
 
             try {
-                val type = Type.values()[split[0].toInt()]
+                val type = Type.entries[split[0].toInt()]
 
                 when (type) {
                     Type.RAW -> return RawLocalisedString(split[1])
@@ -45,7 +45,7 @@ sealed interface LocalisedString {
 
                         val (youtube_type_index, index) = split[1].split(",", limit = 2)
                         return YoutubeLocalisedString(
-                            YoutubeLocalisedString.Type.values()[youtube_type_index.toInt()],
+                            YoutubeLocalisedString.Type.entries[youtube_type_index.toInt()],
                             index.toInt()
                         )
                     }

@@ -79,15 +79,6 @@ internal fun ArtistAppPage.SFFArtistPage(
         )
     }
 
-    val getAllSelectableItems =
-        if (browse_params == null) null
-        else {{
-            val row = browse_params_rows?.firstOrNull()
-            row?.items?.mapIndexed { index, item ->
-                Pair(item, index)
-            } ?: emptyList()
-        }}
-
     ArtistLayout(
         artist,
         modifier,
@@ -103,7 +94,7 @@ internal fun ArtistAppPage.SFFArtistPage(
                 MediaItemLoader.loadArtist(artist.getEmptyData(), player.context)
             }
         },
-        getAllSelectableItems = getAllSelectableItems
+        getAllSelectableItems = { artistPageGetAllItems(player, browse_params_rows, item_layouts) }
     ) { accent_colour, content_modifier ->
         if (load_error != null) {
             item {
@@ -125,7 +116,7 @@ internal fun ArtistAppPage.SFFArtistPage(
             }
         }
         else if (browse_params != null) {
-            val row = browse_params_rows?.firstOrNull()
+            val row: ArtistWithParamsRow? = browse_params_rows?.firstOrNull()
             if (row != null) {
                 item {
                     MediaItemList(
@@ -198,7 +189,7 @@ internal fun ArtistAppPage.SFFArtistPage(
                                 }
                             )
                         }) {
-                            val type =
+                            val type: MediaItemLayout.Type =
                                 if (layout.type == null) MediaItemLayout.Type.GRID
                                 else if (layout.type == MediaItemLayout.Type.NUMBERED_LIST && artist is Artist) MediaItemLayout.Type.LIST
                                 else layout.type

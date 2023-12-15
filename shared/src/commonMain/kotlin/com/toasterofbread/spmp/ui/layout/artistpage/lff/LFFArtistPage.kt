@@ -95,7 +95,7 @@ internal fun ArtistAppPage.LFFArtistPage(
         )
 
         LFFArtistEndPane(
-            multiselect_context ?: own_multiselect_context,
+            multiselect_context ?: own_multiselect_context!!,
             content_padding,
             browse_params_rows,
             current_accent_colour,

@@ -196,9 +196,7 @@ fun FilterSelectionPage(
                             }
 
                             Column(Modifier.fillMaxWidth()) {
-                                AnimatedVisibility(multiselect_context.is_active) {
-                                    multiselect_context.InfoDisplay()
-                                }
+                                multiselect_context.InfoDisplay()
 
                                 LazyColumn(
                                     Modifier.fillMaxSize(),

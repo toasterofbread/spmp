@@ -127,7 +127,7 @@ object PlaylistFileConverter {
                         when (line_split[0]) {
                             "#PLAYLIST" -> playlist.title = line_split[1]
                             "#PLAYCOUNT" -> playlist.play_count = line_split[1].toInt()
-                            "#SORTTYPE" -> playlist.sort_type = MediaItemSortType.values()[line_split[1].toInt()]
+                            "#SORTTYPE" -> playlist.sort_type = MediaItemSortType.entries[line_split[1].toInt()]
                             "#IMAGE" -> playlist.custom_image_url = line_split[1]
                             "#IMAGEWIDTH" -> playlist.image_width = line_split[1].toFloat()
                             "#EXTINF" -> {

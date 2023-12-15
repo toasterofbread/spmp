@@ -35,15 +35,19 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.composekit.utils.common.getValue
+import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.observePlayCount
 import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
+import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
+import com.toasterofbread.spmp.model.mediaitem.layout.getMediaItemPreviewSquareAdditionalHeight
 import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
@@ -62,6 +66,8 @@ import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 
 val MEDIA_ITEM_PREVIEW_SQUARE_FONT_SIZE_SP: Float
     @Composable get() = if (LocalPlayerState.current.form_factor.is_large) 15f else 12f
+val MEDIA_ITEM_PREVIEW_SQUARE_DEFAULT_MAX_LINES: Int
+    @Composable get() = if (LocalPlayerState.current.form_factor.is_large) 2 else 1
 
 const val MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP: Float = 20f
 private const val INFO_SPLITTER: String = "\u2022"
@@ -119,7 +125,8 @@ fun MediaItemPreviewSquare(
                 multiselect_key,
                 getTitle
             )
-        }
+        },
+    apply_size: Boolean = true
 ) {
     val loaded_item: MediaItem? = item.loadIfLocalPlaylist()
     if (loaded_item == null) {
@@ -127,9 +134,17 @@ fun MediaItemPreviewSquare(
     }
 
     val player: PlayerState = LocalPlayerState.current
+    val max_lines: Int = max_text_rows ?: MEDIA_ITEM_PREVIEW_SQUARE_DEFAULT_MAX_LINES
 
     Column(
-        modifier.mediaItemPreviewInteraction(loaded_item, long_press_menu_data),
+        modifier
+            .thenIf(apply_size) {
+                size(
+                    getDefaultMediaItemPreviewSize(false)
+                    + DpSize(0.dp, getMediaItemPreviewSquareAdditionalHeight(max_lines, line_height))
+                )
+            }
+            .mediaItemPreviewInteraction(loaded_item, long_press_menu_data),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
@@ -175,7 +190,6 @@ fun MediaItemPreviewSquare(
             }
 
             val item_title: String? by loaded_item.observeActiveTitle()
-            val max_lines: Int = max_text_rows ?: if (player.form_factor.is_large) 2 else 1
 
             Text(
                 item_title ?: "",
@@ -239,6 +253,7 @@ fun MediaItemPreviewLong(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
+            .size(getDefaultMediaItemPreviewSize(true))
             .mediaItemPreviewInteraction(loaded_item, long_press_menu_data)
     ) {
         Box(Modifier.fillMaxHeight().aspectRatio(1f), contentAlignment = Alignment.Center) {

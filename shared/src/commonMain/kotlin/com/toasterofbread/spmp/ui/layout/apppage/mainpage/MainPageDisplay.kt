@@ -21,22 +21,28 @@ import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageSidebar
 
 @Composable
-fun MainPageDisplay() {
+fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
     val player: PlayerState = LocalPlayerState.current
     val horizontal_padding: Dp by animateDpAsState(player.getDefaultHorizontalPadding())
 
     Row {
+        val top_padding: Dp = WindowInsets.getTop()
+
         if (player.form_factor == FormFactor.LANDSCAPE) {
             AppPageSidebar(
                 Modifier.fillMaxHeight().zIndex(1f),
-                content_padding = PaddingValues(10.dp)
+                content_padding = PaddingValues(
+                    top = 10.dp + top_padding,
+                    bottom = 10.dp,
+                    start = 10.dp,
+                    end = 10.dp
+                )
             )
         }
 
         Crossfade(player.app_page, Modifier.fillMaxWidth().weight(1f)) { page ->
             Column {
                 val vertical_padding: Dp = player.getDefaultVerticalPadding()
-                val top_padding: Dp = WindowInsets.getTop()
 
                 if (page.showTopBar()) {
                     MainPageTopBar(PaddingValues(horizontal = horizontal_padding), Modifier.padding(top = top_padding).zIndex(1f))
@@ -48,7 +54,7 @@ fun MainPageDisplay() {
                         Modifier,
                         PaddingValues(
                             top = if (page.showTopBar()) WAVE_BORDER_HEIGHT_DP.dp else (top_padding + vertical_padding),
-                            bottom = player.nowPlayingBottomPadding(true) + vertical_padding,
+                            bottom = player.nowPlayingBottomPadding(true) + vertical_padding + bottom_padding,
                             start = horizontal_padding + WindowInsets.getStart(),
                             end = horizontal_padding + WindowInsets.getEnd()
                         )

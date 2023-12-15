@@ -35,9 +35,9 @@ internal fun getPlayerCategoryItems(): List<SettingsItem> {
         MultipleChoiceSettingsItem(
             SettingsValueState(PlayerSettings.Key.MINI_OVERSCROLL_CLEAR_MODE.getName()),
             getString("s_key_mini_player_overscroll_clear_mode"), null,
-            choice_amount = OverscrollClearMode.values().size
+            choice_amount = OverscrollClearMode.entries.size
         ) { index ->
-            OverscrollClearMode.values()[index].getReadable()
+            OverscrollClearMode.entries[index].getReadable()
         },
 
         GroupSettingsItem(null),
@@ -52,9 +52,9 @@ internal fun getPlayerCategoryItems(): List<SettingsItem> {
             SettingsValueState(PlayerSettings.Key.OVERLAY_CUSTOM_ACTION.getName()),
             getString("s_key_player_overlay_menu_custom_action"),
             getString("s_sub_player_overlay_menu_custom_action"),
-            PlayerOverlayMenuAction.values().size
+            PlayerOverlayMenuAction.entries.size
         ) { index ->
-            PlayerOverlayMenuAction.values()[index].getReadable()
+            PlayerOverlayMenuAction.entries[index].getReadable()
         },
 
         ToggleSettingsItem(
@@ -89,9 +89,9 @@ internal fun getPlayerCategoryItems(): List<SettingsItem> {
             SettingsValueState(PlayerSettings.Key.QUEUE_WAVE_BORDER_MODE.getName()),
             getString("s_key_np_queue_wave_border_mode"),
             getString("s_sub_np_queue_wave_border_mode"),
-            NowPlayingQueueWaveBorderMode.values().size
+            NowPlayingQueueWaveBorderMode.entries.size
         ) { index ->
-            when (NowPlayingQueueWaveBorderMode.values()[index]) {
+            when (NowPlayingQueueWaveBorderMode.entries[index]) {
                 NowPlayingQueueWaveBorderMode.TIME -> getString("s_option_wave_border_mode_time")
                 NowPlayingQueueWaveBorderMode.TIME_SYNC -> getString("s_option_wave_border_mode_time_sync")
                 NowPlayingQueueWaveBorderMode.SCROLL -> getString("s_option_wave_border_mode_scroll")
@@ -103,9 +103,9 @@ internal fun getPlayerCategoryItems(): List<SettingsItem> {
         MultipleChoiceSettingsItem(
             SettingsValueState(PlayerSettings.Key.QUEUE_RADIO_INFO_POSITION.getName()),
             getString("s_key_np_queue_radio_info_position"), null,
-            NowPlayingQueueRadioInfoPosition.values().size
+            NowPlayingQueueRadioInfoPosition.entries.size
         ) { index ->
-            NowPlayingQueueRadioInfoPosition.values()[index].getReadable()
+            NowPlayingQueueRadioInfoPosition.entries[index].getReadable()
         },
 
         ToggleSettingsItem(

@@ -5,7 +5,7 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 
 data object YTApiSettings: SettingsCategory("ytapi") {
-    override val keys: List<SettingsKey> = Key.values().toList()
+    override val keys: List<SettingsKey> = Key.entries.toList()
 
     override fun getPage(): Page? = null // TODO
 

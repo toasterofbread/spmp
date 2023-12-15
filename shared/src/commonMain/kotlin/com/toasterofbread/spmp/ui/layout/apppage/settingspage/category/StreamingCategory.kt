@@ -16,9 +16,9 @@ internal fun getStreamingCategoryItems(): List<SettingsItem> {
     return listOf(
         DropdownSettingsItem(
             SettingsValueState(StreamingSettings.Key.VIDEO_FORMATS_METHOD.getName()),
-            getString("s_key_video_formats_endpoint"), null, VideoFormatsEndpointType.values().size
+            getString("s_key_video_formats_endpoint"), null, VideoFormatsEndpointType.entries.size
         ) { i ->
-            VideoFormatsEndpointType.values()[i].getReadable()
+            VideoFormatsEndpointType.entries[i].getReadable()
         },
 
         ToggleSettingsItem(

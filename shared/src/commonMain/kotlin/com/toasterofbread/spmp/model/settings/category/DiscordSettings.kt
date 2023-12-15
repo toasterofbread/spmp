@@ -15,7 +15,7 @@ import org.jetbrains.compose.resources.resource
 import org.jetbrains.compose.resources.toImageVector
 
 data object DiscordSettings: SettingsCategory("discord") {
-    override val keys: List<SettingsKey> = Key.values().toList()
+    override val keys: List<SettingsKey> = Key.entries.toList()
 
     override fun getPage(): Page? =
         if (!DiscordStatus.isSupported()) null

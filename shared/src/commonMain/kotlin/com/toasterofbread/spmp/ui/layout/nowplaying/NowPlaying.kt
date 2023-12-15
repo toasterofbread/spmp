@@ -28,7 +28,6 @@ import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.composekit.platform.composable.composeScope
 import com.toasterofbread.composekit.platform.vibrateShort
-import com.toasterofbread.composekit.utils.*
 import com.toasterofbread.composekit.utils.common.amplifyPercent
 import com.toasterofbread.composekit.utils.common.blendWith
 import com.toasterofbread.composekit.utils.common.getContrasted
@@ -89,8 +88,13 @@ private fun PlayerState.getBackgroundColourOverride(theme_mode: ThemeMode): Colo
     return target!!.blendWith(current, if (expansion.swipe_state.direction < 0 ) 1f - expansion.swipe_state.progress.fraction else expansion.swipe_state.progress.fraction)
 }
 
+private var derived_np_background: State<Color>? = null
+
 internal fun PlayerState.getNPBackground(theme_mode: ThemeMode = np_theme_mode): Color {
-    return getBackgroundColourOverride(theme_mode)
+    if (derived_np_background == null) {
+        derived_np_background = derivedStateOf { getBackgroundColourOverride(theme_mode) }
+    }
+    return derived_np_background!!.value
 }
 
 internal fun PlayerState.getNPOnBackground(): Color {

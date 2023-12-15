@@ -82,11 +82,11 @@ fun SongRelatedPage(
                 val horizontal_padding: PaddingValues = content_padding.horizontal
 
                 Column {
-                    AnimatedVisibility(multiselect_context.is_active) {
-                        multiselect_context.InfoDisplay(
-                            Modifier.padding(horizontal_padding).padding(top = content_padding.calculateTopPadding())
-                        )
-                    }
+                    multiselect_context.InfoDisplay(
+                        Modifier
+                            .padding(horizontal_padding)
+                            .padding(top = content_padding.calculateTopPadding())
+                    )
 
                     LazyColumn(
                         Modifier.fillMaxSize(),

@@ -4,12 +4,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FormatListBulleted
 import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.spmp.model.settings.SettingsKey
-import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getFeedCategoryItems
 
 data object FeedSettings: SettingsCategory("feed") {
-    override val keys: List<SettingsKey> = Key.values().toList()
+    override val keys: List<SettingsKey> = Key.entries.toList()
 
     override fun getPage(): Page? =
         Page(
@@ -25,8 +24,8 @@ data object FeedSettings: SettingsCategory("feed") {
         SQUARE_PREVIEW_TEXT_LINES,
         GRID_ROW_COUNT,
         GRID_ROW_COUNT_EXPANDED,
-        ALT_GRID_ROW_COUNT,
-        ALT_GRID_ROW_COUNT_EXPANDED,
+        LANDSCAPE_GRID_ROW_COUNT,
+        LANDSCAPE_GRID_ROW_COUNT_EXPANDED,
         SHOW_RADIOS,
         HIDDEN_ROWS;
 
@@ -41,8 +40,8 @@ data object FeedSettings: SettingsCategory("feed") {
                 SQUARE_PREVIEW_TEXT_LINES -> if (Platform.DESKTOP.isCurrent()) 2 else 2
                 GRID_ROW_COUNT -> if (Platform.DESKTOP.isCurrent()) 1 else 2
                 GRID_ROW_COUNT_EXPANDED -> if (Platform.DESKTOP.isCurrent()) 1 else 2
-                ALT_GRID_ROW_COUNT -> if (Platform.DESKTOP.isCurrent()) 3 else 4
-                ALT_GRID_ROW_COUNT_EXPANDED -> if (Platform.DESKTOP.isCurrent()) 3 else 4
+                LANDSCAPE_GRID_ROW_COUNT -> if (Platform.DESKTOP.isCurrent()) 1 else 1
+                LANDSCAPE_GRID_ROW_COUNT_EXPANDED -> if (Platform.DESKTOP.isCurrent()) 1 else 1
                 SHOW_RADIOS -> false
                 HIDDEN_ROWS -> emptySet<String>()
             } as T

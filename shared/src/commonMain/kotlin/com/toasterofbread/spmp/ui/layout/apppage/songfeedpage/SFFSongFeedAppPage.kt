@@ -41,6 +41,8 @@ import com.toasterofbread.composekit.utils.modifier.vertical
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.model.settings.category.FeedSettings
+import com.toasterofbread.spmp.platform.FormFactor
+import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -79,10 +81,16 @@ fun SongFeedAppPage.SFFSongFeedAppPage(
     val square_item_max_text_rows: Int by FeedSettings.Key.SQUARE_PREVIEW_TEXT_LINES.rememberMutableState()
     val show_download_indicators: Boolean by FeedSettings.Key.SHOW_SONG_DOWNLOAD_INDICATORS.rememberMutableState()
 
-    val grid_rows: Int by FeedSettings.Key.GRID_ROW_COUNT.rememberMutableState()
-    val grid_rows_expanded: Int by FeedSettings.Key.GRID_ROW_COUNT_EXPANDED.rememberMutableState()
-    val alt_grid_rows: Int by FeedSettings.Key.ALT_GRID_ROW_COUNT.rememberMutableState()
-    val alt_grid_rows_expanded: Int by FeedSettings.Key.ALT_GRID_ROW_COUNT_EXPANDED.rememberMutableState()
+    val grid_rows: Int by
+        when (player.form_factor) {
+            FormFactor.PORTRAIT -> FeedSettings.Key.GRID_ROW_COUNT
+            FormFactor.LANDSCAPE -> FeedSettings.Key.LANDSCAPE_GRID_ROW_COUNT
+        }.rememberMutableState()
+    val grid_rows_expanded: Int by
+        when (player.form_factor) {
+            FormFactor.PORTRAIT -> FeedSettings.Key.GRID_ROW_COUNT_EXPANDED
+            FormFactor.LANDSCAPE -> FeedSettings.Key.LANDSCAPE_GRID_ROW_COUNT_EXPANDED
+        }.rememberMutableState()
 
     LaunchedEffect(Unit) {
         if (layouts.isNullOrEmpty()) {
@@ -219,8 +227,8 @@ fun SongFeedAppPage.SFFSongFeedAppPage(
 
                         val type: MediaItemLayout.Type = layout.type ?: MediaItemLayout.Type.GRID
 
-                        val rows: Int = if (type == MediaItemLayout.Type.GRID_ALT) alt_grid_rows else grid_rows
-                        val expanded_rows: Int = if (type == MediaItemLayout.Type.GRID_ALT) alt_grid_rows_expanded else grid_rows_expanded
+                        val rows: Int = if (type == MediaItemLayout.Type.GRID_ALT) grid_rows * 2 else grid_rows
+                        val expanded_rows: Int = if (type == MediaItemLayout.Type.GRID_ALT) grid_rows_expanded * 2 else grid_rows_expanded
 
                         type.Layout(
                             layout,

@@ -112,9 +112,9 @@ internal fun getSystemCategoryItems(context: AppContext): List<SettingsItem> {
             SettingsValueState(SystemSettings.Key.FONT.getName()),
             getString("s_key_font"),
             null,
-            FontMode.values().size,
+            FontMode.entries.size,
         ) { index ->
-            FontMode.values()[index].getReadable(language)
+            FontMode.entries[index].getReadable(language)
         },
 
         ToggleSettingsItem(

@@ -23,16 +23,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,12 +39,10 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.toasterofbread.composekit.utils.common.getContrasted
-import com.toasterofbread.composekit.utils.common.launchSingle
-import com.toasterofbread.composekit.utils.common.thenIf
-import com.toasterofbread.composekit.utils.common.thenWith
+import com.toasterofbread.composekit.platform.composable.composeScope
+import com.toasterofbread.composekit.utils.common.*
 import com.toasterofbread.composekit.utils.composable.getTop
-import com.toasterofbread.composekit.utils.modifier.horizontal
+import com.toasterofbread.composekit.utils.modifier.background
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueRadioInfoPosition
 import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueWaveBorderMode
@@ -161,10 +151,8 @@ internal fun QueueTab(
         }
     }
 
-    val queue_background_colour = getBackgroundColour(player)
-
-    val items_above_queue = if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) 1 else 0
-    val queue_list_state = rememberReorderableLazyListState(
+    val items_above_queue: Int = if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) 1 else 0
+    val queue_list_state: ReorderableLazyListState = rememberReorderableLazyListState(
         onMove = { base_from, base_to ->
             val from = base_from.index - items_above_queue
             val to = base_to.index - items_above_queue
@@ -190,21 +178,23 @@ internal fun QueueTab(
     )
 
     val show_top_bar: Boolean = rememberTopBarShouldShowInQueue(player.expansion.top_bar_mode.value)
-    val top_bar_height by animateDpAsState(
+    val top_bar_height: Dp by animateDpAsState(
         if (show_top_bar && top_bar != null) top_bar.height else 0.dp
     )
 
-//    composeScope {
-//        val expanded by remember { derivedStateOf { player.expansion.get() > 1f } }
-//        LaunchedEffect(expanded) {
-//            val index = player.status.m_index
-//            if (expanded && index >= 0) {
-//                queue_list_state.listState.scrollToItem(index)
-//            }
-//        }
-//    }
+    composeScope {
+        val expanded: Boolean by remember { derivedStateOf { player.expansion.get() > 1f } }
+        LaunchedEffect(expanded) {
+            val index = player.status.m_index
+            if (expanded && index >= 0) {
+                queue_list_state.listState.scrollToItem(index)
+            }
+        }
+    }
 
-    CompositionLocalProvider(LocalContentColor provides queue_background_colour.getContrasted()) {
+    val content_colour: Color by remember { derivedStateOf { getBackgroundColour(player).getContrasted() } }
+
+    CompositionLocalProvider(LocalContentColor provides content_colour) {
         Box(
             modifier
                 .thenIf(!inline) {
@@ -219,7 +209,7 @@ internal fun QueueTab(
                             + MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
                     )
                 }
-                .background(queue_background_colour, shape)
+                .background(shape) { getBackgroundColour(player) }
                 .clip(shape)
         ) {
             val list_padding: Dp = 10.dp

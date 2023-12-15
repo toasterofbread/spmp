@@ -47,6 +47,8 @@ import com.toasterofbread.spmp.model.settings.category.PlayerSettings
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.bottom_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.horizontal_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.top_padding
@@ -69,8 +71,8 @@ private fun BoxWithConstraintsScope.getThumbnailSize(): Dp {
 
 @Composable
 internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(page_height: Dp, top_bar: NowPlayingTopBar, content_padding: PaddingValues, modifier: Modifier = Modifier) {
-    val player = LocalPlayerState.current
-    val expansion = LocalNowPlayingExpansion.current
+    val player: PlayerState = LocalPlayerState.current
+    val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
 
     val current_song: Song? by player.status.song_state
 
@@ -132,73 +134,73 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(page_height: Dp, to
                             .graphicsLayer {
                                 alpha = 1f - (1f - expansion.getBounded()).absoluteValue
                             },
-                        buttonRowStartContent = {
-                            Box(
-                                Modifier
-                                    .padding(10.dp)
-                                    .padding(end = side_button_padding)
-                                    .then(button_modifier)
-                            ) {
-                                current_song?.let { song ->
-                                    val auth_state: YoutubeApi.UserAuthState? = player.context.ytapi.user_auth_state
-                                    if (auth_state != null) {
-                                        LikeDislikeButton(
-                                            song,
-                                            auth_state,
-                                            getColour = { player.getNPOnBackground() }
-                                        )
+                            buttonRowStartContent = {
+                                Box(
+                                    Modifier
+                                        .padding(10.dp)
+                                        .padding(end = side_button_padding)
+                                        .then(button_modifier)
+                                ) {
+                                    current_song?.let { song ->
+                                        val auth_state: YoutubeApi.UserAuthState? = player.context.ytapi.user_auth_state
+                                        if (auth_state != null) {
+                                            LikeDislikeButton(
+                                                song,
+                                                auth_state,
+                                                getColour = { player.getNPOnBackground() }
+                                            )
+                                        }
                                     }
                                 }
-                            }
-                        },
-                        buttonRowEndContent = {
-                            Box(
-                                contentAlignment = Alignment.CenterEnd
-                            ) {
-                                IconButton(
-                                    {
-                                        current_song?.let { song ->
+                            },
+                            buttonRowEndContent = {
+                                Box(
+                                    contentAlignment = Alignment.CenterEnd
+                                ) {
+                                    IconButton(
+                                        {
+                                            current_song?.let { song ->
+                                                player.withPlayer {
+                                                    undoableAction {
+                                                        startRadioAtIndex(current_song_index + 1, song, current_song_index, skip_first = true)
+                                                    }
+                                                }
+                                                player.expansion.scrollTo(2)
+                                            }
+                                        },
+                                        button_modifier.padding(start = side_button_padding).bounceOnClick()
+                                    ) {
+                                        Icon(Icons.Rounded.Radio, null, tint = player.getNPOnBackground())
+                                    }
+                                }
+                            },
+                            artistRowStartContent = {
+                                if (show_shuffle_repeat_buttons) {
+                                    RepeatButton({ player.getNPBackground() }, button_modifier)
+                                }
+                                else {
+                                    Spacer(Modifier.height(40.dp))
+                                }
+                            },
+                            artistRowEndContent = {
+                                if (show_shuffle_repeat_buttons) {
+                                    IconButton(
+                                        {
                                             player.withPlayer {
                                                 undoableAction {
-                                                    startRadioAtIndex(current_song_index + 1, song, current_song_index, skip_first = true)
+                                                    shuffleQueue(start = current_song_index + 1)
                                                 }
                                             }
-                                            player.expansion.scrollTo(2)
-                                        }
-                                    },
-                                    button_modifier.padding(start = side_button_padding).bounceOnClick()
-                                ) {
-                                    Icon(Icons.Rounded.Radio, null, tint = player.getNPOnBackground())
+                                        },
+                                        button_modifier
+                                    ) {
+                                        Icon(Icons.Rounded.Shuffle, null)
+                                    }
+                                }
+                                else {
+                                    Spacer(Modifier.height(40.dp))
                                 }
                             }
-                        },
-                        artistRowStartContent = {
-                            if (show_shuffle_repeat_buttons) {
-                                RepeatButton({ player.getNPBackground() }, button_modifier)
-                            }
-                            else {
-                                Spacer(Modifier.height(40.dp))
-                            }
-                        },
-                        artistRowEndContent = {
-                            if (show_shuffle_repeat_buttons) {
-                                IconButton(
-                                    {
-                                        player.withPlayer {
-                                            undoableAction {
-                                                shuffleQueue(start = current_song_index + 1)
-                                            }
-                                        }
-                                    },
-                                    button_modifier
-                                ) {
-                                    Icon(Icons.Rounded.Shuffle, null)
-                                }
-                            }
-                            else {
-                                Spacer(Modifier.height(40.dp))
-                            }
-                        }
                     )
 
                     BoxWithConstraints(Modifier.fillMaxWidth()) {

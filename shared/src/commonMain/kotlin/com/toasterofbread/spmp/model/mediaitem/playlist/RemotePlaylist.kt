@@ -19,7 +19,7 @@ sealed interface RemotePlaylist: Playlist {
             { continuation_token?.let {
                 MediaItemLayout.Continuation(
                     it,
-                    MediaItemLayout.Continuation.Type.values()[continuation_type!!.toInt()]
+                    MediaItemLayout.Continuation.Type.entries[continuation_type!!.toInt()]
                 )
             }},
             { playlistQueries.updateContinuationById(it?.token, it?.type?.ordinal?.toLong(), id) }

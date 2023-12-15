@@ -1,13 +1,7 @@
 package com.toasterofbread.spmp.ui.component.mediaitemlayout
 
 import LocalPlayerState
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,6 +16,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.layout.ViewMore
+import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
 import com.toasterofbread.spmp.model.mediaitem.rememberFilteredItems
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
@@ -65,7 +60,7 @@ fun MediaItemList(
 
     Column(modifier.padding(content_padding), verticalArrangement = Arrangement.spacedBy(MEDIAITEM_LIST_DEFAULT_SPACING_DP.dp)) {
         TitleBar(
-            items,
+            filtered_items,
             title,
             subtitle,
             title_modifier.padding(bottom = 5.dp),
@@ -103,6 +98,7 @@ fun MediaItemList(
 
                     MediaItemPreviewLong(
                         item.value,
+                        Modifier.size(getDefaultMediaItemPreviewSize(true)),
                         multiselect_context = multiselect_context,
                         show_download_indicator = show_download_indicators,
                         multiselect_key = item.index

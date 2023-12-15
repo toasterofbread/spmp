@@ -15,7 +15,7 @@ import com.toasterofbread.spmp.youtubeapi.fromJson
 import okhttp3.Headers.Companion.toHeaders
 
 data object YoutubeAuthSettings: SettingsCategory("ytauth") {
-    override val keys: List<SettingsKey> = Key.values().toList()
+    override val keys: List<SettingsKey> = Key.entries.toList()
 
     override fun getPage(): Page? =
         object : Page(

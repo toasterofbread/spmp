@@ -10,7 +10,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getStream
 import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpointType
 
 data object StreamingSettings: SettingsCategory("streaming") {
-    override val keys: List<SettingsKey> = Key.values().toList()
+    override val keys: List<SettingsKey> = Key.entries.toList()
 
     override fun getPage(): Page? =
         Page(

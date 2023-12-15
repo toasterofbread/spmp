@@ -41,7 +41,7 @@ actual abstract class PlayerListener {
             onPlayingChanged(is_playing)
         }
         override fun onRepeatModeChanged(repeat_mode: Int) {
-            onRepeatModeChanged(MediaPlayerRepeatMode.values()[repeat_mode])
+            onRepeatModeChanged(MediaPlayerRepeatMode.entries[repeat_mode])
         }
         override fun onVolumeChanged(volume: Float) {
             this@PlayerListener.onVolumeChanged(volume)

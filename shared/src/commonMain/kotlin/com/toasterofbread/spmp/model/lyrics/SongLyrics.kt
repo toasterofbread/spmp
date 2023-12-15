@@ -37,7 +37,7 @@ data class SongLyrics(
             }
 
             fun byPriority(): List<SyncType> {
-                return values().toList().reversed()
+                return entries.toList().reversed()
             }
         }
     }

@@ -24,7 +24,7 @@ internal fun ZmqSpMsPlayerService.applyPlayerEvent(event: SpMsPlayerEvent) {
             when (key) {
                 "state" -> {
                     if (value.int != _state.ordinal) {
-                        _state = MediaPlayerState.values()[value.int]
+                        _state = MediaPlayerState.entries[value.int]
                         listeners.forEach {
                             it.onStateChanged(_state)
                             it.onEvents()
@@ -42,7 +42,7 @@ internal fun ZmqSpMsPlayerService.applyPlayerEvent(event: SpMsPlayerEvent) {
                 }
                 "repeat_mode" -> {
                     if (value.int != _repeat_mode.ordinal) {
-                        _repeat_mode = MediaPlayerRepeatMode.values()[value.int]
+                        _repeat_mode = MediaPlayerRepeatMode.entries[value.int]
                         listeners.forEach {
                             it.onRepeatModeChanged(_repeat_mode)
                             it.onEvents()

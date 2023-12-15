@@ -2,7 +2,6 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
 import LocalPlayerState
 import androidx.compose.runtime.remember
-import com.toasterofbread.composekit.settings.ui.item.GroupSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 import com.toasterofbread.composekit.settings.ui.item.ToggleSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
@@ -63,7 +62,7 @@ internal fun getFeedCategoryItems(): List<SettingsItem> {
         ),
 
         AppSliderItem(
-            SettingsValueState<Int>(FeedSettings.Key.ALT_GRID_ROW_COUNT.getName()),
+            SettingsValueState<Int>(FeedSettings.Key.LANDSCAPE_GRID_ROW_COUNT.getName()),
             getString("s_key_feed_alt_grid_row_count"),
             null,
             "1",
@@ -72,7 +71,7 @@ internal fun getFeedCategoryItems(): List<SettingsItem> {
         ),
 
         AppSliderItem(
-            SettingsValueState<Int>(FeedSettings.Key.ALT_GRID_ROW_COUNT_EXPANDED.getName()),
+            SettingsValueState<Int>(FeedSettings.Key.LANDSCAPE_GRID_ROW_COUNT_EXPANDED.getName()),
             getString("s_key_feed_alt_grid_row_count_expanded"),
             null,
             "1",

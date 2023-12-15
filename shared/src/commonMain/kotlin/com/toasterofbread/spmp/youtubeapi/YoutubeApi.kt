@@ -290,7 +290,7 @@ interface YoutubeApi {
 
                 for (item in set) {
                     val value = item.substring(1)
-                    when (ValueType.values()[item.take(1).toInt()]) {
+                    when (ValueType.entries[item.take(1).toInt()]) {
                         ValueType.CHANNEL -> {
                             if (artist == null) {
                                 artist = ArtistRef(value).apply {

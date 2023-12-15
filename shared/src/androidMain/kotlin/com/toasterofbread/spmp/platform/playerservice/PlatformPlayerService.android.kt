@@ -701,7 +701,7 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
     actual override val duration_ms: Long get() = player.duration
     actual override val radio_state: RadioInstance.RadioState get() = service_player.radio_state
     actual override var repeat_mode: MediaPlayerRepeatMode
-        get() = MediaPlayerRepeatMode.values()[player.repeatMode]
+        get() = MediaPlayerRepeatMode.entries[player.repeatMode]
         set(value) {
             player.repeatMode = value.ordinal
         }
@@ -820,7 +820,7 @@ private fun Song.buildExoMediaItem(context: AppContext): MediaItem =
 
 
 fun convertState(exo_state: Int): MediaPlayerState {
-    return MediaPlayerState.values()[exo_state - 1]
+    return MediaPlayerState.entries[exo_state - 1]
 }
 
 fun MediaItem.getSong(): Song {

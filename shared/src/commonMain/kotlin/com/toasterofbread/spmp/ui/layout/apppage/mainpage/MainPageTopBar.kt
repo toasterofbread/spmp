@@ -85,17 +85,12 @@ fun MainPageTopBar(content_padding: PaddingValues, modifier: Modifier = Modifier
             }
         }
 
-        val multiselect_context = player.main_multiselect_context
-        AnimatedVisibility(multiselect_context.is_active || player.app_page.showTopBarContent(), Modifier.animateContentSize()) {
-            Crossfade(if (multiselect_context.is_active) null else player.app_page) { page ->
-                if (page == null) {
-                    multiselect_context.InfoDisplay(Modifier.fillMaxWidth())
-                }
-                else {
-                    page.TopBarContent(Modifier.fillMaxWidth()) { player.navigateBack() }
-                }
+        player.main_multiselect_context.InfoDisplay(
+            show_alt_content = player.app_page.showTopBarContent(),
+            altContent = {
+                player.app_page.TopBarContent(Modifier.fillMaxWidth()) { player.navigateBack() }
             }
-        }
+        )
 
         WaveBorder(Modifier.requiredWidth(player.screen_size.width))
     }

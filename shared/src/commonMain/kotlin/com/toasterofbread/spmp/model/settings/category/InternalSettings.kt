@@ -8,7 +8,7 @@ import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.platform.AppContext
 
 data object InternalSettings: SettingsCategory("internal") {
-    override val keys: List<SettingsKey> = Key.values().toList()
+    override val keys: List<SettingsKey> = Key.entries.toList()
 
     override fun getPage(): Page? = null
 
@@ -39,8 +39,8 @@ enum class MusicTopBarMode {
 
     fun getNext(can_show_visualiser: Boolean): MusicTopBarMode {
         val next =
-            if (ordinal == 0) values().last()
-            else values()[ordinal - 1]
+            if (ordinal == 0) entries.last()
+            else entries[ordinal - 1]
 
         if (!can_show_visualiser && next == VISUALISER) {
             return next.getNext(false)

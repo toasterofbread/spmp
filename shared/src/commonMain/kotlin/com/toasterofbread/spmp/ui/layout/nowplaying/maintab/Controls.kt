@@ -4,14 +4,7 @@ import LocalPlayerState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -131,13 +124,15 @@ internal fun Controls(
     artist_font_size: TextUnit = ARTIST_FONT_SIZE_SP.sp,
     text_align: TextAlign = TextAlign.Center,
     title_text_max_lines: Int = 1,
+    button_size: Dp = 60.dp,
     getBackgroundColour: PlayerState.() -> Color = { getNPBackground() },
     getOnBackgroundColour: PlayerState.() -> Color = { getNPOnBackground() },
     getAccentColour: (PlayerState.() -> Color)? = null,
     buttonRowStartContent: @Composable RowScope.() -> Unit = {},
     buttonRowEndContent: @Composable RowScope.() -> Unit = {},
     artistRowStartContent: @Composable RowScope.() -> Unit = {},
-    artistRowEndContent: @Composable RowScope.() -> Unit = {}
+    artistRowEndContent: @Composable RowScope.() -> Unit = {},
+    textRowStartContent: @Composable RowScope.() -> Unit = {}
 ) {
     val player: PlayerState = LocalPlayerState.current
 
@@ -155,60 +150,66 @@ internal fun Controls(
     }
 
     Column(modifier, verticalArrangement = vertical_arrangement) {
-        Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-            Marquee(Modifier.fillMaxWidth(), disable = disable_text_marquees) {
-                Text(
-                    song_title ?: "",
-                    fontSize = title_font_size,
-                    color = getOnBackgroundColour(player),
-                    textAlign = text_align,
-                    maxLines = title_text_max_lines,
-                    // Using ellipsis makes this go weird, no clue why
-                    overflow = TextOverflow.Clip,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .platformClickable(
-                            enabled = enabled,
-                            onAltClick = {
-                                show_title_edit_dialog = !show_title_edit_dialog
-                                player.context.vibrateShort()
-                            }
-                        )
-                )
-            }
 
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                artistRowStartContent()
-                Spacer(Modifier)
-                Text(
-                    song_artist_title ?: "",
-                    fontSize = artist_font_size,
-                    color = getOnBackgroundColour(player).copy(alpha = 0.5f),
-                    textAlign = text_align,
-                    maxLines = 1,
-                    softWrap = false,
-//                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .platformClickable(
-                            enabled = enabled,
-                            onClick = {
-                                val artist: Artist? = song?.Artist?.get(player.database)
-                                if (artist?.isForItem() == false) {
-                                    player.onMediaItemClicked(artist)
-                                }
-                            },
-                            onAltClick = {
-                                val artist: Artist? = song?.Artist?.get(player.database)
-                                if (artist?.isForItem() == false) {
-                                    player.onMediaItemLongClicked(artist)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            textRowStartContent()
+
+            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Marquee(Modifier.fillMaxWidth(), disable = disable_text_marquees) {
+                    Text(
+                        song_title ?: "",
+                        fontSize = title_font_size,
+                        color = getOnBackgroundColour(player),
+                        textAlign = text_align,
+                        maxLines = title_text_max_lines,
+                        // Using ellipsis makes this go weird, no clue why
+                        overflow = TextOverflow.Clip,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .platformClickable(
+                                enabled = enabled,
+                                onAltClick = {
+                                    show_title_edit_dialog = !show_title_edit_dialog
                                     player.context.vibrateShort()
                                 }
-                            }
-                        )
-                )
-                Spacer(Modifier)
-                artistRowEndContent()
+                            )
+                    )
+                }
+
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    artistRowStartContent()
+                    Spacer(Modifier)
+                    Text(
+                        song_artist_title ?: "",
+                        fontSize = artist_font_size,
+                        color = getOnBackgroundColour(player).copy(alpha = 0.5f),
+                        textAlign = text_align,
+                        maxLines = 1,
+                        softWrap = false,
+                        // Using ellipsis makes this go weird, no clue why
+                        overflow = TextOverflow.Clip,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .platformClickable(
+                                enabled = enabled,
+                                onClick = {
+                                    val artist: Artist? = song?.Artist?.get(player.database)
+                                    if (artist?.isForItem() == false) {
+                                        player.onMediaItemClicked(artist)
+                                    }
+                                },
+                                onAltClick = {
+                                    val artist: Artist? = song?.Artist?.get(player.database)
+                                    if (artist?.isForItem() == false) {
+                                        player.onMediaItemLongClicked(artist)
+                                        player.context.vibrateShort()
+                                    }
+                                }
+                            )
+                    )
+                    Spacer(Modifier)
+                    artistRowEndContent()
+                }
             }
         }
 
@@ -231,7 +232,7 @@ internal fun Controls(
             PlayerButton(
                 Icons.Rounded.SkipPrevious,
                 enabled = enabled && player.status.m_has_previous,
-                size = 60.dp,
+                size = button_size,
                 getBackgroundColour = getBackgroundColour,
                 getOnBackgroundColour = getOnBackgroundColour,
                 getAccentColour = getAccentColour
@@ -243,7 +244,7 @@ internal fun Controls(
             PlayerButton(
                 if (player.status.m_playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                 enabled = enabled && song != null,
-                size = 75.dp,
+                size = button_size + 15.dp,
                 getBackgroundColour = getBackgroundColour,
                 getOnBackgroundColour = getOnBackgroundColour,
                 getAccentColour = getAccentColour
@@ -255,7 +256,7 @@ internal fun Controls(
             PlayerButton(
                 Icons.Rounded.SkipNext,
                 enabled = enabled && player.status.m_has_next,
-                size = 60.dp,
+                size = button_size,
                 getBackgroundColour = getBackgroundColour,
                 getOnBackgroundColour = getOnBackgroundColour,
                 getAccentColour = getAccentColour
@@ -264,7 +265,13 @@ internal fun Controls(
             }
 
             if (seek_bar_next_to_buttons) {
-                SeekBar(seek, Modifier.fillMaxWidth().weight(1f), getColour = getOnBackgroundColour, getTrackColour = getSeekBarTrackColour, enabled = enabled)
+                SeekBar(
+                    seek,
+                    Modifier.fillMaxWidth().weight(1f).padding(start = 10.dp),
+                    getColour = getOnBackgroundColour,
+                    getTrackColour = getSeekBarTrackColour,
+                    enabled = enabled
+                )
             }
 
             buttonRowEndContent()

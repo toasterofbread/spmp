@@ -1,9 +1,6 @@
 package com.toasterofbread.spmp.ui.component
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.*
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.composekit.utils.composable.AlignableCrossfade
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
+import com.toasterofbread.spmp.model.settings.category.TopBarSettings
 import kotlinx.coroutines.delay
 
 private const val UPDATE_INTERVAL_MS = 100L
@@ -43,15 +41,16 @@ private fun getCurrentLine(lyrics: SongLyrics, time: Long, linger: Boolean): Int
 fun LyricsLineDisplay(
     lyrics: SongLyrics,
     getTime: () -> Long,
-    lyrics_linger: Boolean = true,
-    show_furigana: Boolean = true,
-    max_lines: Int = 1,
-    preallocate_needed_space: Boolean = false,
     modifier: Modifier = Modifier,
     text_colour: Color = LocalContentColor.current,
     emptyContent: (@Composable () -> Unit)? = null
 ) {
     require(lyrics.synced)
+
+    val lyrics_linger: Boolean by TopBarSettings.Key.LYRICS_LINGER.rememberMutableState()
+    val show_furigana: Boolean by TopBarSettings.Key.LYRICS_SHOW_FURIGANA.rememberMutableState()
+    val max_lines: Int by TopBarSettings.Key.LYRICS_MAX_LINES.rememberMutableState()
+    val preallocate_max_space: Boolean by TopBarSettings.Key.LYRICS_PREAPPLY_MAX_LINES.rememberMutableState()
 
     var current_line: Int? by remember { mutableStateOf(getCurrentLine(lyrics, getTime(), lyrics_linger)) }
     var line_a: Int? by remember { mutableStateOf(current_line) }
@@ -62,7 +61,7 @@ fun LyricsLineDisplay(
         while (true) {
             delay(UPDATE_INTERVAL_MS)
 
-            val line = getCurrentLine(lyrics, getTime(), lyrics_linger)
+            val line: Int? = getCurrentLine(lyrics, getTime(), lyrics_linger)
             if (lyrics_linger && line == null) {
                 continue
             }
@@ -80,17 +79,17 @@ fun LyricsLineDisplay(
         }
     }
 
-    val enter = slideInVertically { it }
-    val exit = slideOutVertically { -it } + fadeOut()
+    val enter: EnterTransition = slideInVertically { it }
+    val exit: ExitTransition = slideOutVertically { -it } + fadeOut()
 
     Box(modifier.height(IntrinsicSize.Min), contentAlignment = Alignment.Center) {
-        val show_a = line_a != null && show_line_a
-        val show_b = line_b != null && !show_line_a
+        val show_a: Boolean = line_a != null && show_line_a
+        val show_b: Boolean = line_b != null && !show_line_a
 
         @Composable
         fun phase(show: Boolean, index: Int?) {
             AnimatedVisibility(show, Modifier.height(IntrinsicSize.Min).fillMaxWidth(), enter = enter, exit = exit) {
-                var line by remember { mutableStateOf(index) }
+                var line: Int? by remember { mutableStateOf(index) }
                 LaunchedEffect(index) {
                     if (index != null) {
                         line = index
@@ -103,7 +102,7 @@ fun LyricsLineDisplay(
                         show_readings = show_furigana,
                         text_colour = text_colour,
                         max_lines = max_lines,
-                        preallocate_needed_space = preallocate_needed_space
+                        preallocate_needed_space = preallocate_max_space
                     )
                 }
             }

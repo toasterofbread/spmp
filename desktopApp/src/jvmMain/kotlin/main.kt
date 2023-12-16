@@ -17,12 +17,7 @@ import androidx.compose.ui.window.rememberWindowState
 import com.toasterofbread.composekit.platform.composable.onWindowBackPressed
 import com.toasterofbread.spmp.model.settings.category.DesktopSettings
 import com.toasterofbread.spmp.platform.AppContext
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import org.jetbrains.skiko.OS
 import org.jetbrains.skiko.hostOs
 import java.awt.Toolkit
@@ -56,7 +51,10 @@ fun main() {
                 }
                 return@Window false
             },
-            state = rememberWindowState(size = DpSize(1280.dp, 720.dp), position = WindowPosition(Alignment.Center))
+            state = rememberWindowState(
+                size = DpSize(1280.dp, 720.dp),
+                position = WindowPosition(Alignment.Center)
+            )
         ) {
             LaunchedEffect(Unit) {
                 val startup_command: String = DesktopSettings.Key.STARTUP_COMMAND.get()

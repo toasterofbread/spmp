@@ -4,29 +4,13 @@ import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -48,6 +32,7 @@ import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.PinnedItemsRow
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.FeedLoadState
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
 
 @Composable
@@ -67,7 +52,7 @@ fun SongFeedAppPage.SFFSongFeedAppPage(
         loadFeed(false)
     }
 
-    val player = LocalPlayerState.current
+    val player: PlayerState = LocalPlayerState.current
     val artists_layout: MediaItemLayout = remember {
         MediaItemLayout(
             mutableStateListOf(),
@@ -121,8 +106,8 @@ fun SongFeedAppPage.SFFSongFeedAppPage(
         indicator = false,
         modifier = Modifier.fillMaxSize()
     ) {
-        val target_state = if (load_state == FeedLoadState.LOADING || load_state == FeedLoadState.PREINIT) null else layouts ?: false
-        var current_state by remember { mutableStateOf(target_state) }
+        val target_state: Any? = if (load_state == FeedLoadState.LOADING || load_state == FeedLoadState.PREINIT) null else layouts ?: false
+        var current_state: Any? by remember { mutableStateOf(target_state) }
         val state_alpha = remember { Animatable(1f) }
 
         LaunchedEffect(target_state) {
@@ -144,7 +129,7 @@ fun SongFeedAppPage.SFFSongFeedAppPage(
 
         @Composable
         fun TopContent(modifier: Modifier = Modifier) {
-            PinnedItemsRow(modifier.padding(bottom = 10.dp))
+            PinnedItemsRow(modifier, multiselect_context = multiselect_context)
         }
 
         var hiding_layout: MediaItemLayout? by remember { mutableStateOf(null) }
@@ -182,15 +167,15 @@ fun SongFeedAppPage.SFFSongFeedAppPage(
             )
         }
 
-        val state = current_state
+        val state: Any? = current_state
 
         when (state) {
             // Loaded
             is List<*> -> {
-                val onContinuationRequested = if (continuation != null) {
-                    { loadFeed(true) }
-                } else null
-                val loading_continuation = load_state != FeedLoadState.NONE
+                val onContinuationRequested: (() -> Unit)? =
+                    if (continuation != null) {{ loadFeed(true) }}
+                    else null
+                val loading_continuation: Boolean = load_state != FeedLoadState.NONE
                 val horizontal_padding: PaddingValues = content_padding.horizontal
 
                 LazyColumn(
@@ -205,7 +190,7 @@ fun SongFeedAppPage.SFFSongFeedAppPage(
 
                     item {
                         if (artists_layout.items.isNotEmpty()) {
-                            artists_layout.Layout(multiselect_context = player.main_multiselect_context, apply_filter = true, content_padding = horizontal_padding)
+                            artists_layout.Layout(multiselect_context = multiselect_context, apply_filter = true, content_padding = horizontal_padding)
                         }
                     }
 
@@ -240,7 +225,7 @@ fun SongFeedAppPage.SFFSongFeedAppPage(
                                     }
                                 }
                             ),
-                            multiselect_context = player.main_multiselect_context,
+                            multiselect_context = multiselect_context,
                             apply_filter = true,
                             square_item_max_text_rows = square_item_max_text_rows,
                             show_download_indicators = show_download_indicators,

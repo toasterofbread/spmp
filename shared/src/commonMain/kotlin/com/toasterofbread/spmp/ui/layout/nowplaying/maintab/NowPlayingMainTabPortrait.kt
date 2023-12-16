@@ -44,7 +44,6 @@ import com.toasterofbread.composekit.platform.composable.composeScope
 import com.toasterofbread.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.PlayerSettings
-import com.toasterofbread.spmp.ui.component.LikeDislikeButton
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
@@ -57,7 +56,6 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.SmallThumbnailRow
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.RepeatButton
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import kotlin.math.absoluteValue
 
 internal const val MINIMISED_NOW_PLAYING_HORIZ_PADDING: Float = 10f
@@ -141,37 +139,14 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(page_height: Dp, to
                                         .padding(end = side_button_padding)
                                         .then(button_modifier)
                                 ) {
-                                    current_song?.let { song ->
-                                        val auth_state: YoutubeApi.UserAuthState? = player.context.ytapi.user_auth_state
-                                        if (auth_state != null) {
-                                            LikeDislikeButton(
-                                                song,
-                                                auth_state,
-                                                getColour = { player.getNPOnBackground() }
-                                            )
-                                        }
-                                    }
+                                    NowPlayingMainTabActionButtons.LikeDislikeButton(current_song, button_modifier, colour = player.getNPOnBackground())
                                 }
                             },
                             buttonRowEndContent = {
                                 Box(
                                     contentAlignment = Alignment.CenterEnd
                                 ) {
-                                    IconButton(
-                                        {
-                                            current_song?.let { song ->
-                                                player.withPlayer {
-                                                    undoableAction {
-                                                        startRadioAtIndex(current_song_index + 1, song, current_song_index, skip_first = true)
-                                                    }
-                                                }
-                                                player.expansion.scrollTo(2)
-                                            }
-                                        },
-                                        button_modifier.padding(start = side_button_padding).bounceOnClick()
-                                    ) {
-                                        Icon(Icons.Rounded.Radio, null, tint = player.getNPOnBackground())
-                                    }
+                                    NowPlayingMainTabActionButtons.RadioButton(current_song, button_modifier.padding(start = side_button_padding).bounceOnClick())
                                 }
                             },
                             artistRowStartContent = {
@@ -184,18 +159,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(page_height: Dp, to
                             },
                             artistRowEndContent = {
                                 if (show_shuffle_repeat_buttons) {
-                                    IconButton(
-                                        {
-                                            player.withPlayer {
-                                                undoableAction {
-                                                    shuffleQueue(start = current_song_index + 1)
-                                                }
-                                            }
-                                        },
-                                        button_modifier
-                                    ) {
-                                        Icon(Icons.Rounded.Shuffle, null)
-                                    }
+                                    NowPlayingMainTabActionButtons.ShuffleButton(button_modifier, colour = player.getNPOnBackground())
                                 }
                                 else {
                                     Spacer(Modifier.height(40.dp))

@@ -198,7 +198,7 @@
     <string name="error_player_service_not_connected">プレイヤーサービスとの接続がありません&#xA;バグが発生してる可能性があります</string>
     <string name="error_on_server_command_execution">サーバーコマンドの実行中にエラーが発生しました</string>
 
-    <string name="desktop_splash_connecting_to_server_at_$x">$xのサーバーに接続中</string>
+    <string name="desktop_splash_connecting_to_server_at_$x">$x のサーバーに接続中</string>
     <string name="desktop_splash_setting_initial_state">初期状態の準備中</string>
     <string name="desktop_splash_button_configure_connection">接続設定</string>
     <string name="desktop_splash_title_configure_server_connection">サーバーの接続設定</string>

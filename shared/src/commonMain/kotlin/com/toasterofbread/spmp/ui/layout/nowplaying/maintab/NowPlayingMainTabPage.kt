@@ -14,7 +14,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.Platform
-import com.toasterofbread.composekit.utils.common.blendWith
 import com.toasterofbread.composekit.utils.common.getThemeColour
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.FormFactor
@@ -28,14 +27,18 @@ private const val NARROW_PLAYER_MAX_SIZE_DP: Float = 120f
 
 fun FormFactor.getMinimisedPlayerHeight(): Dp =
     when (this) {
-        FormFactor.LANDSCAPE -> 80.dp
-        else -> 64.dp
+        FormFactor.PORTRAIT -> 64.dp
+        FormFactor.LANDSCAPE ->
+            if (Platform.DESKTOP.isCurrent()) 80.dp
+            else 70.dp
     }
 
 fun FormFactor.getMinimisedPlayerVPadding(): Dp =
     when (this) {
-        FormFactor.LANDSCAPE -> 10.dp
-        else -> 7.dp
+        FormFactor.PORTRAIT -> 7.dp
+        FormFactor.LANDSCAPE ->
+            if (Platform.DESKTOP.isCurrent()) 10.dp
+            else 8.dp
     }
 
 class NowPlayingMainTabPage: NowPlayingPage() {
@@ -83,9 +86,9 @@ class NowPlayingMainTabPage: NowPlayingPage() {
     override fun shouldShow(player: PlayerState): Boolean = true
 
     override fun getPlayerBackgroundColourOverride(player: PlayerState): Color? {
-        if (Platform.DESKTOP.isCurrent()) {
-            return player.theme.accent.blendWith(player.theme.background, 0.05f)
-        }
+//        if (Platform.DESKTOP.isCurrent()) {
+//            return player.theme.accent.blendWith(player.theme.background, 0.05f)
+//        }
         return null
     }
 

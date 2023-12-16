@@ -32,11 +32,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.times
+import androidx.compose.ui.unit.*
 import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
@@ -45,7 +41,9 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.LyricsSettings
 import com.toasterofbread.spmp.ui.component.AnnotatedReadingTerm
+import com.toasterofbread.spmp.ui.component.ReadingTextData
 import com.toasterofbread.spmp.ui.component.calculateReadingsAnnotatedString
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING_DP
 import kotlinx.coroutines.delay
 
@@ -60,22 +58,22 @@ fun CoreLyricsDisplay(
     enable_autoscroll: Boolean = true,
     getOnLongClick: () -> ((line_data: Pair<Int, List<AnnotatedReadingTerm>>) -> Unit)?
 ) {
-    val player = LocalPlayerState.current
-    val density = LocalDensity.current
+    val player: PlayerState = LocalPlayerState.current
+    val density: Density = LocalDensity.current
     val lyrics_sync_offset: Long? by song.getLyricsSyncOffset(player.database, false)
 
     var area_size: Dp by remember { mutableStateOf(0.dp) }
-    val size_px = with(LocalDensity.current) { ((area_size - (NOW_PLAYING_MAIN_PADDING_DP.dp * 2) - (15.dp * getExpansion() * 2)).value * 0.9.dp).toPx() }
-    val line_height = with (LocalDensity.current) { 20.sp.toPx() }
-    val line_spacing = with (LocalDensity.current) { 25.dp.toPx() }
+    val size_px: Float = with(LocalDensity.current) { ((area_size - (NOW_PLAYING_MAIN_PADDING_DP.dp * 2) - (15.dp * getExpansion() * 2)).value * 0.9.dp).toPx() }
+    val line_height: Float = with (LocalDensity.current) { 20.sp.toPx() }
+    val line_spacing: Float = with (LocalDensity.current) { 25.dp.toPx() }
 
     val add_padding: Boolean = Settings.get(LyricsSettings.Key.EXTRA_PADDING)
-    val static_scroll_offset = with(LocalDensity.current) { 2.dp.toPx().toInt() }
-    val padding_height =
+    val static_scroll_offset: Int = with(LocalDensity.current) { 2.dp.toPx().toInt() }
+    val padding_height: Int =
         if (add_padding) (size_px + line_height + line_spacing).toInt() + static_scroll_offset
         else line_height.toInt() + static_scroll_offset
 
-    val terms = remember(lyrics) { lyrics.getReadingTerms() }
+    val terms: MutableList<ReadingTextData> = remember(lyrics) { lyrics.getReadingTerms() }
     var current_range: IntRange? by remember { mutableStateOf(null) }
 
     fun getScrollOffset(follow_offset: Float = LyricsSettings.Key.FOLLOW_OFFSET.get()): Int =

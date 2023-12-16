@@ -47,7 +47,17 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-enum class ThemeMode { BACKGROUND, ELEMENTS, NONE }
+enum class ThemeMode {
+    BACKGROUND, ELEMENTS, NONE;
+
+    companion object {
+        val DEFAULT: ThemeMode =
+            when (Platform.current) {
+                Platform.ANDROID -> BACKGROUND
+                Platform.DESKTOP -> NONE
+            }
+    }
+}
 
 fun getNowPlayingVerticalPageCount(player: PlayerState): Int =
     NowPlayingPage.ALL.count { it.shouldShow(player) }
@@ -62,13 +72,13 @@ val SwipeableState<Int>.actualCurrentValue: Int get() = if (direction < 0) progr
 val SwipeableState<Int>.actualTargetValue: Int get() = if (direction < 0) progress.from else progress.to
 
 @OptIn(ExperimentalMaterialApi::class)
-private fun PlayerState.getBackgroundColourOverride(theme_mode: ThemeMode): Color {
+private fun PlayerState.getBackgroundColourOverride(): Color {
     val pages: List<NowPlayingPage> = NowPlayingPage.ALL.filter { it.shouldShow(this) }
 
     var current: Color? = pages.getOrNull(expansion.swipe_state.actualCurrentValue - 1)?.getPlayerBackgroundColourOverride(this)
     var target: Color? = pages.getOrNull(expansion.swipe_state.actualTargetValue - 1)?.getPlayerBackgroundColourOverride(this)
 
-    val default: Color = when (theme_mode) {
+    val default: Color = when (np_theme_mode) {
         ThemeMode.BACKGROUND -> theme.accent
         ThemeMode.ELEMENTS -> theme.card
         ThemeMode.NONE -> theme.card
@@ -90,15 +100,15 @@ private fun PlayerState.getBackgroundColourOverride(theme_mode: ThemeMode): Colo
 
 private var derived_np_background: State<Color>? = null
 
-internal fun PlayerState.getNPBackground(theme_mode: ThemeMode = np_theme_mode): Color {
+internal fun PlayerState.getNPBackground(): Color {
     if (derived_np_background == null) {
-        derived_np_background = derivedStateOf { getBackgroundColourOverride(theme_mode) }
+        derived_np_background = derivedStateOf { getBackgroundColourOverride() }
     }
     return derived_np_background!!.value
 }
 
 internal fun PlayerState.getNPOnBackground(): Color {
-    return getBackgroundColourOverride(np_theme_mode).getContrasted()
+    return getBackgroundColourOverride().getContrasted()
 //    val override: Color? = getBackgroundColourOverride()?.getPlayerBackgroundColourOverride(this)
 //    if (override != null) {
 //        return override.getContrasted()
@@ -118,8 +128,8 @@ internal fun PlayerState.getNPAltBackground(theme_mode: ThemeMode = np_theme_mod
     }
 }
 
-internal fun PlayerState.getNPAltOnBackground(theme_mode: ThemeMode = np_theme_mode): Color =
-    getNPBackground(theme_mode).amplifyPercent(-0.4f, opposite_percent = -0.1f)
+internal fun PlayerState.getNPAltOnBackground(): Color =
+    getNPBackground().amplifyPercent(-0.4f, opposite_percent = -0.1f)
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -229,8 +239,9 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
 
         val song_gradient_depth: Float? =
             player.status.m_song?.PlayerGradientDepth?.observe(player.database)?.value
+        val large_form_factor: Boolean = player.form_factor.is_large
 
-        val swipe_modifier: Modifier = remember(swipe_anchors) {
+        val swipe_modifier: Modifier = remember(swipe_anchors, large_form_factor) {
             Modifier.swipeable(
                 state = swipe_state,
                 anchors = swipe_anchors,
@@ -238,7 +249,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
                 orientation = Orientation.Vertical,
                 reverseDirection = true,
                 interactionSource = swipe_interaction_source,
-                enabled = !Platform.DESKTOP.isCurrent()
+                enabled = !large_form_factor
             )
         }
 

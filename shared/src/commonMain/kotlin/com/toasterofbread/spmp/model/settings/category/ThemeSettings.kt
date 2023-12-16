@@ -3,9 +3,9 @@ package com.toasterofbread.spmp.model.settings.category
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Palette
 import com.toasterofbread.spmp.model.settings.SettingsKey
-import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getThemeCategoryItems
+import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 
 data object ThemeSettings: SettingsCategory("theme") {
     override val keys: List<SettingsKey> = Key.entries.toList()
@@ -32,7 +32,7 @@ data object ThemeSettings: SettingsCategory("theme") {
                 ACCENT_COLOUR_SOURCE -> AccentColourSource.THUMBNAIL.ordinal
                 CURRENT_THEME -> 0
                 THEMES -> "[]"
-                NOWPLAYING_THEME_MODE -> 0
+                NOWPLAYING_THEME_MODE -> ThemeMode.DEFAULT.ordinal
                 NOWPLAYING_DEFAULT_GRADIENT_DEPTH -> 1f
             } as T
     }

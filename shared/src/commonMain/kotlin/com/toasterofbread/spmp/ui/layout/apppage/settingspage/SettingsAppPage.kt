@@ -112,7 +112,8 @@ class SettingsAppPage(override val state: AppPageState, footer_modifier: Modifie
             pill_menu.PillMenu()
 
             Column(Modifier.fillMaxSize().padding(horizontal = PREFS_PAGE_EXTRA_PADDING_DP.dp)) {
-                val top_padding: Dp = player.top_bar.MusicTopBar(
+                val top_padding: Dp = 0.dp
+                player.top_bar.MusicTopBar(
                     TopBarSettings.Key.SHOW_IN_SETTINGS,
                     Modifier.fillMaxWidth().zIndex(10f),
                     getBottomBorderColour = player.theme.background_provider,

@@ -24,18 +24,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.db.rememberPinnedItems
 import com.toasterofbread.spmp.model.mediaitem.db.setPinned
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
+import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 
 @Composable
 fun PinnedItemsRow(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    multiselect_context: MediaItemMultiSelectContext? = null
 ) {
     val player: PlayerState = LocalPlayerState.current
     val pinned_items: List<MediaItem>? = rememberPinnedItems()
@@ -89,13 +90,9 @@ fun PinnedItemsRow(
                     }
                 }
             },
-            multiselect_context = player.main_multiselect_context,
+            multiselect_context = multiselect_context,
             itemSizeProvider = {
-                val width: Dp = 100.dp
-                return@MediaItemGrid DpSize(
-                    width,
-                    width + 50.dp
-                )
+                DpSize(100.dp, 100.dp)
             }
         )
     }

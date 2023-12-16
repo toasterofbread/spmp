@@ -100,11 +100,11 @@ fun LargeThumbnailRow(
     val song_title: String? by current_song?.observeActiveTitle()
     val song_artist_title: String? by current_song?.Artist?.observePropertyActiveTitle()
 
-    val thumbnail_rounding: Int? = current_song?.ThumbnailRounding?.observe(player.context.database)?.value
+    val thumbnail_rounding: Int? by current_song?.ThumbnailRounding?.observe(player.context.database)
+    val thumbnail_shape: RoundedCornerShape = RoundedCornerShape(thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING)
 
     var overlay_menu: PlayerOverlayMenu? by player.np_overlay_menu
     var current_thumb_image: ImageBitmap? by remember { mutableStateOf(null) }
-    val thumbnail_shape: RoundedCornerShape = RoundedCornerShape(thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING)
     var image_size: IntSize by remember { mutableStateOf(IntSize(1, 1)) }
 
     var colourpick_callback: ColourpickCallback? by remember { mutableStateOf(null) }

@@ -388,7 +388,8 @@ private fun QueueBorder(
                 }
             },
             border_thickness = border_thickness,
-            border_colour = getBorderColour(player)
+            border_colour = getBorderColour(player),
+            width_multiplier = 2f
         )
     }
 }

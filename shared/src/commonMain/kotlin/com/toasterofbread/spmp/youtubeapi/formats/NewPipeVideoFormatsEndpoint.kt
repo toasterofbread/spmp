@@ -11,8 +11,10 @@ import org.schabi.newpipe.extractor.downloader.Request
 import org.schabi.newpipe.extractor.downloader.Response
 import org.schabi.newpipe.extractor.exceptions.ParsingException
 import org.schabi.newpipe.extractor.exceptions.ReCaptchaException
+import org.schabi.newpipe.extractor.linkhandler.LinkHandler
 import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeStreamLinkHandlerFactory
 import org.schabi.newpipe.extractor.stream.AudioStream
+import org.schabi.newpipe.extractor.stream.StreamExtractor
 import org.schabi.newpipe.extractor.stream.StreamInfo
 import org.schabi.newpipe.extractor.stream.VideoStream
 import java.io.IOException
@@ -28,27 +30,27 @@ class NewPipeVideoFormatsEndpoint(override val api: YoutubeApi): VideoFormatsEnd
         return YoutubeVideoFormat(itag, format!!.mimeType, bitrate, url = content)
     }
 
-
     override suspend fun getVideoFormats(id: String, filter: ((YoutubeVideoFormat) -> Boolean)?): Result<List<YoutubeVideoFormat>> {
+        val link_handler: LinkHandler = YoutubeStreamLinkHandlerFactory.getInstance().fromId(id)
+        val youtube_stream_extractor: StreamExtractor = NewPipe.getService(ServiceList.YouTube.serviceId).getStreamExtractor(link_handler)
 
-        val linkHandler = YoutubeStreamLinkHandlerFactory.getInstance().fromId(id)
-        val youtubeStreamExtractor = NewPipe.getService(ServiceList.YouTube.serviceId).getStreamExtractor(linkHandler)
-
-        val streamInfo = try {
-            StreamInfo.getInfo(youtubeStreamExtractor)
-        } catch (e: ParsingException) {
+        val stream_info: StreamInfo
+        try {
+            stream_info = StreamInfo.getInfo(youtube_stream_extractor)
+        }
+        catch (e: ParsingException) {
             return Result.failure(e)
         }
 
-        val filteredAudio = streamInfo.audioStreams
+        val audio_streams: List<YoutubeVideoFormat> = stream_info.audioStreams
             .map { it.toYoutubeVideoFormat() }
             .filter { filter?.invoke(it) ?: true }
 
-        val filteredVideo = streamInfo.videoStreams
+        val video_streams: List<YoutubeVideoFormat> = stream_info.videoStreams
             .map { it.toYoutubeVideoFormat() }
             .filter { filter?.invoke(it) ?: true }
 
-        return Result.success(filteredAudio + filteredVideo)
+        return Result.success(audio_streams + video_streams)
     }
 }
 

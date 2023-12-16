@@ -299,21 +299,12 @@ class MusicTopBar(val player: PlayerState) {
                             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 when (state) {
                                     is SongLyrics -> {
-                                        val linger: Boolean by TopBarSettings.Key.LYRICS_LINGER.rememberMutableState()
-                                        val show_furigana: Boolean by TopBarSettings.Key.LYRICS_SHOW_FURIGANA.rememberMutableState()
-                                        val max_lines: Int by TopBarSettings.Key.LYRICS_MAX_LINES.rememberMutableState()
-                                        val preallocate_max_space: Boolean by TopBarSettings.Key.LYRICS_PREAPPLY_MAX_LINES.rememberMutableState()
-
                                         LyricsLineDisplay(
                                             lyrics = state,
                                             getTime = {
                                                 (player.controller?.current_position_ms ?: 0) +
                                                     (sync_offset_state?.value ?: 0)
                                             },
-                                            lyrics_linger = linger,
-                                            show_furigana = show_furigana,
-                                            max_lines = max_lines,
-                                            preallocate_needed_space = preallocate_max_space,
                                             modifier = Modifier.fillMaxWidth(),
                                             emptyContent = {
                                                 TopBarEmptyContent()

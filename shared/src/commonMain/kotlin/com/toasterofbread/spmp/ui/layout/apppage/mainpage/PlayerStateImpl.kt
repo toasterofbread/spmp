@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.ui.layout.apppage.mainpage
 import LocalPlayerState
 import SpMp
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
@@ -19,8 +20,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
-import androidx.compose.ui.window.Dialog
-import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.platform.PlatformPreferencesListener
 import com.toasterofbread.composekit.platform.composable.BackHandler
@@ -76,7 +75,7 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
             np_swipe_state.value.animateTo(
                 page,
                 when (form_factor) {
-//                    NowPlayingMainTabPage.Mode.LARGE -> spring(Spring.DampingRatioNoBouncy, Spring.StiffnessMediumLow)
+                    FormFactor.LANDSCAPE -> spring(Spring.DampingRatioNoBouncy, Spring.StiffnessMediumLow)
                     else -> spring()
                 }
             )
@@ -101,8 +100,7 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
 
     override val app_page_state = AppPageState(this)
     override val main_multiselect_context: MediaItemMultiSelectContext = AppPageMultiSelectContext(this)
-    override var np_theme_mode: ThemeMode by mutableStateOf(
-        Settings.getEnum(ThemeSettings.Key.NOWPLAYING_THEME_MODE, context.getPrefs()))
+    override var np_theme_mode: ThemeMode by mutableStateOf(Settings.getEnum(ThemeSettings.Key.NOWPLAYING_THEME_MODE, context.getPrefs()))
     override val np_overlay_menu: MutableState<PlayerOverlayMenu?> = mutableStateOf(null)
     override val top_bar: MusicTopBar = MusicTopBar(this)
 

@@ -14,6 +14,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.toasterofbread.composekit.platform.vibrateShort
+import com.toasterofbread.composekit.utils.composable.PlatformClickableButton
 import com.toasterofbread.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.model.mediaitem.db.setPinned
@@ -81,17 +83,24 @@ internal fun ColumnScope.MultiSelectOverflowActions(
 
     // Download
     AnimatedVisibility(any_are_downloadable) {
-        Button({
-            val songs: List<Song> = multiselect_context.getUniqueSelectedItems().filterIsInstance<Song>()
-            player.onSongDownloadRequested(songs)
-            multiselect_context.onActionPerformed()
-        }) {
+        PlatformClickableButton(
+            onClick = {
+                val songs: List<Song> = multiselect_context.getUniqueSelectedItems().filterIsInstance<Song>()
+                player.onSongDownloadRequested(songs)
+                multiselect_context.onActionPerformed()
+            },
+            onAltClick = {
+                val songs: List<Song> = multiselect_context.getUniqueSelectedItems().filterIsInstance<Song>()
+                player.onSongDownloadRequested(songs, always_show_options = true)
+                multiselect_context.onActionPerformed()
+                player.context.vibrateShort()
+            }
+        ) {
             Icon(Icons.Default.Download, null)
             Text(getString("lpm_action_download"))
         }
     }
 
-    println("OVERFLOW $additionalSelectedItemActions")
     additionalSelectedItemActions?.invoke(this, multiselect_context)
 }
 

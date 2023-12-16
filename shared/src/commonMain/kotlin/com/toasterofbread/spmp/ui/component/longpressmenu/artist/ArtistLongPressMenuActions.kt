@@ -21,7 +21,7 @@ fun LongPressMenuActionProvider.ArtistLongPressMenuActions(artist: MediaItem) {
         onClick = {
             player.playMediaItem(artist)
         },
-        onLongClick = {
+        onAltClick = {
             player.playMediaItem(artist, shuffle = true)
         }
     )

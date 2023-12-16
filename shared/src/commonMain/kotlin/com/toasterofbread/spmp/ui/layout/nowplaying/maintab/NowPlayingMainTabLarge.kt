@@ -280,7 +280,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                                     .height(thumbnail_row_height)
                                     .offset {
                                         IntOffset(
-                                            (((column_width - minOf(current_thumb_size, thumbnail_row_height)).toPx() / 2) * absolute_expansion).roundToInt(),
+                                            (((column_width - actual_thumb_size.width).toPx() / 2) * absolute_expansion).roundToInt(),
                                             0
                                         )
                                     }

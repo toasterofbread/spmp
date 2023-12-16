@@ -2,18 +2,21 @@ package com.toasterofbread.spmp.ui.layout.nowplaying.maintab
 
 import LocalPlayerState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Download
-import androidx.compose.material.icons.rounded.OpenInNew
-import androidx.compose.material.icons.rounded.Radio
-import androidx.compose.material.icons.rounded.Shuffle
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ClipboardManager
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
+import com.toasterofbread.composekit.platform.vibrateShort
+import com.toasterofbread.composekit.utils.composable.PlatformClickableIconButton
 import com.toasterofbread.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.theme.appHover
@@ -80,20 +83,38 @@ internal object NowPlayingMainTabActionButtons {
     @Composable
     fun OpenExternalButton(song: Song?, modifier: Modifier = Modifier) {
         val player: PlayerState = LocalPlayerState.current
-        if (!player.context.canOpenUrl()) {
+
+        if (!(player.context.canShare() || player.context.canOpenUrl())) {
             return
         }
+
+        val clipboard: ClipboardManager = LocalClipboardManager.current
         
-        IconButton(
-            {
-                if (song == null) {
-                    return@IconButton
+        PlatformClickableIconButton(
+            onClick = {
+                val url: String = song?.getURL(player.context) ?: return@PlatformClickableIconButton
+
+                if (player.context.canShare()) {
+                    player.context.shareText(url, song.getActiveTitle(player.database))
                 }
-                player.context.openUrl(song.getURL(player.context))
+                else if (player.context.canOpenUrl()) {
+                    player.context.openUrl(url)
+                }
             },
-            modifier.bounceOnClick().appHover(true)
+            onAltClick = {
+                song?.getURL(player.context)?.also {
+                    clipboard.setText(AnnotatedString((it)))
+                    player.context.vibrateShort()
+                    player.context.sendToast(getString("notif_copied_to_clipboard"))
+                }
+            },
+            modifier = modifier.bounceOnClick().appHover(true)
         ) {
-            Icon(Icons.Rounded.OpenInNew, null)
+            Icon(
+                if (player.context.canShare()) Icons.Rounded.Share
+                else Icons.Rounded.OpenInNew,
+                null
+            )
         }
     }
     
@@ -101,14 +122,19 @@ internal object NowPlayingMainTabActionButtons {
     fun DownloadButton(song: Song?, modifier: Modifier = Modifier) {
         val player: PlayerState = LocalPlayerState.current
         
-        IconButton(
-            {
-                if (song == null) {
-                    return@IconButton
+        PlatformClickableIconButton(
+            onClick = {
+                song?.also {
+                    player.onSongDownloadRequested(it)
                 }
-                player.onSongDownloadRequested(song, null)
             },
-            modifier.bounceOnClick().appHover(true)
+            onAltClick = {
+                song?.also {
+                    player.onSongDownloadRequested(it, always_show_options = true)
+                    player.context.vibrateShort()
+                }
+            },
+            modifier = modifier.bounceOnClick().appHover(true)
         ) {
             Icon(Icons.Rounded.Download, null)
         }

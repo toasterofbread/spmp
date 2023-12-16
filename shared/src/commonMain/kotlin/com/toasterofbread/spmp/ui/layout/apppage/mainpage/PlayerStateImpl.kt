@@ -92,6 +92,7 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
     private var np_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
 
     private var download_request_songs: List<Song>? by mutableStateOf(null)
+    private var download_request_always_show_options: Boolean by mutableStateOf(false)
     private var download_request_callback: DownloadRequestCallback? by mutableStateOf(null)
 
     override val expansion = NowPlayingExpansionState(this, np_swipe_state, coroutine_scope)
@@ -434,7 +435,8 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
                     method.execute(context, songs, download_request_callback)
                     download_request_songs = null
                 },
-                songs = songs
+                songs = songs,
+                always_show_options = download_request_always_show_options
             )
         }
 
@@ -553,8 +555,9 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
         return controller?.has_focus == true
     }
 
-    override fun onSongDownloadRequested(songs: List<Song>, callback: DownloadRequestCallback?) {
+    override fun onSongDownloadRequested(songs: List<Song>, always_show_options: Boolean, callback: DownloadRequestCallback?) {
         download_request_songs = songs
+        download_request_always_show_options = always_show_options
         download_request_callback = callback
     }
 }

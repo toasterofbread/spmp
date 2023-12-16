@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Radio
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.SubdirectoryArrowRight
 import androidx.compose.material.ripple.rememberRipple
@@ -27,6 +26,7 @@ import androidx.compose.ui.graphics.isUnspecified
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.model.mediaitem.song.Song
@@ -42,8 +42,8 @@ class LongPressMenuActionProvider(
     val onAction: () -> Unit
 ) {
     @Composable
-    fun ActionButton(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit, onLongClick: (() -> Unit)? = null, onAction: () -> Unit = this.onAction, fill_width: Boolean = true) =
-        ActionButton(icon, label, getAccentColour, modifier = modifier, onClick = onClick, onLongClick = onLongClick, onAction = onAction, fill_width = fill_width)
+    fun ActionButton(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit, onAltClick: (() -> Unit)? = null, onAction: () -> Unit = this.onAction, fill_width: Boolean = true) =
+        ActionButton(icon, label, getAccentColour, modifier = modifier, onClick = onClick, onAltClick = onAltClick, onAction = onAction, fill_width = fill_width)
 
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
@@ -76,7 +76,7 @@ class LongPressMenuActionProvider(
                         getText(distance),
                         fill_width = false,
                         onClick = { onClick(service.service_player.active_queue_index) },
-                        onLongClick = onLongClick?.let { { it.invoke(service.service_player.active_queue_index) } }
+                        onAltClick = onLongClick?.let { { it.invoke(service.service_player.active_queue_index) } }
                     )
 
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -147,7 +147,7 @@ class LongPressMenuActionProvider(
             text_colour: () -> Color = { Color.Unspecified },
             modifier: Modifier = Modifier,
             onClick: () -> Unit,
-            onLongClick: (() -> Unit)? = null,
+            onAltClick: (() -> Unit)? = null,
             onAction: () -> Unit,
             fill_width: Boolean = true
         ) {
@@ -155,17 +155,15 @@ class LongPressMenuActionProvider(
 
             Row(
                 modifier
-                    .combinedClickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
+                    .platformClickable(
                         onClick = {
                             onClick()
                             onAction()
                         },
-                        onLongClick = if (onLongClick == null) null else {
+                        onAltClick = if (onAltClick == null) null else {
                             {
                                 player.context.vibrateShort()
-                                onLongClick()
+                                onAltClick()
                                 onAction()
                             }
                         }

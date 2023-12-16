@@ -34,7 +34,13 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 
 @Composable
-fun DownloadMethodSelectionDialog(onCancelled: () -> Unit, onSelected: (DownloadMethod) -> Unit, modifier: Modifier = Modifier, songs: List<Song>? = null) {
+fun DownloadMethodSelectionDialog(
+    onCancelled: () -> Unit,
+    onSelected: (DownloadMethod) -> Unit,
+    modifier: Modifier = Modifier,
+    always_show_options: Boolean = false,
+    songs: List<Song>? = null
+) {
     var download_method: DownloadMethod by StreamingSettings.Key.DOWNLOAD_METHOD.rememberMutableEnumState()
     var skip_confirmation: Boolean by StreamingSettings.Key.SKIP_DOWNLOAD_METHOD_CONFIRMATION.rememberMutableState()
     var show: Boolean by remember { mutableStateOf(false) }
@@ -49,7 +55,7 @@ fun DownloadMethodSelectionDialog(onCancelled: () -> Unit, onSelected: (Download
     }
 
     LaunchedEffect(Unit) {
-        if (skip_confirmation) {
+        if (!always_show_options && skip_confirmation) {
             onSelected(download_method)
         }
         else {

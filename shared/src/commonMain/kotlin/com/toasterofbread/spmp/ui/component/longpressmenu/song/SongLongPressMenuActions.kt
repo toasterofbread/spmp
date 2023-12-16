@@ -41,6 +41,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.composable.BackHandler
+import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.composekit.utils.common.getValue
 import com.toasterofbread.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.mediaitem.MEDIA_ITEM_RELATED_CONTENT_ICON
@@ -187,7 +188,7 @@ private fun LongPressMenuActionProvider.LPMActions(
                 }
             }
         },
-        onLongClick = queue_index?.let { index -> {
+        onAltClick = queue_index?.let { index -> {
             withSong {
                 player.withPlayer {
                     startRadioAtIndex(index + 1, it, index, skip_first = true)
@@ -241,24 +242,36 @@ private fun LongPressMenuActionProvider.LPMActions(
         )
     }
     else if (download == null || download?.status == DownloadStatus.Status.IDLE) {
-        ActionButton(Icons.Default.Download, getString("lpm_action_download"), onClick = {
-            withSong {
-                player.onSongDownloadRequested(it) { status: DownloadStatus? ->
-                    when (status?.status) {
-                        null -> {}
-                        DownloadStatus.Status.FINISHED -> player.context.sendToast(getString("notif_download_finished"))
-                        DownloadStatus.Status.ALREADY_FINISHED -> player.context.sendToast(getString("notif_download_already_finished"))
-                        DownloadStatus.Status.CANCELLED -> player.context.sendToast(getString("notif_download_cancelled"))
+        fun downloadCallback(status: DownloadStatus?) {
+            when (status?.status) {
+                null -> {}
+                DownloadStatus.Status.FINISHED -> player.context.sendToast(getString("notif_download_finished"))
+                DownloadStatus.Status.ALREADY_FINISHED -> player.context.sendToast(getString("notif_download_already_finished"))
+                DownloadStatus.Status.CANCELLED -> player.context.sendToast(getString("notif_download_cancelled"))
 
-                        // IDLE, DOWNLOADING, PAUSED
-                        else -> {
-                            TODO(status.toString())
-                            player.context.sendToast(getString("notif_download_already_downloading"))
-                        }
-                    }
+                // IDLE, DOWNLOADING, PAUSED
+                else -> {
+                    TODO(status.toString())
+                    player.context.sendToast(getString("notif_download_already_downloading"))
                 }
             }
-        })
+        }
+
+        ActionButton(
+            Icons.Default.Download,
+            getString("lpm_action_download"),
+            onClick = {
+                withSong {
+                    player.onSongDownloadRequested(it) { status -> downloadCallback(status) }
+                }
+            },
+            onAltClick = {
+                withSong {
+                    player.onSongDownloadRequested(it, always_show_options = true) { status -> downloadCallback(status) }
+                    player.context.vibrateShort()
+                }
+            }
+        )
     }
 
     if (item is MediaItem.WithArtist) {

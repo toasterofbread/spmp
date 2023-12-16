@@ -75,7 +75,7 @@ internal fun LargeBottomBar(
                 val lyrics_sync_offset: Long? by current_song?.getLyricsSyncOffset(player.database, false)
 
                 Crossfade(lyrics_state?.lyrics, Modifier.fillMaxWidth().weight(1f)) { lyrics ->
-                    if (lyrics == null) {
+                    if (lyrics?.synced != true) {
                         return@Crossfade
                     }
 

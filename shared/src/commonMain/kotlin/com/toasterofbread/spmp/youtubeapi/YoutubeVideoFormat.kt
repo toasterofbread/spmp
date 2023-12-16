@@ -31,6 +31,7 @@ internal data class YoutubeFormatsResponse(
 internal suspend fun YoutubeApi.Endpoint.buildVideoFormatsRequest(id: String): Request {
     return Request.Builder()
         .endpointUrl("/youtubei/v1/player")
+        .addAuthApiHeaders()
         .postWithBody(
             mapOf(
                 "videoId" to id,

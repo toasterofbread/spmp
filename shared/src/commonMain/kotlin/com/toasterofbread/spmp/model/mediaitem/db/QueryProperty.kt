@@ -216,9 +216,9 @@ open class ListPropertyImpl<T, Q: Any>(
         require(index >= 0)
 
         with(db) { db.transaction {
-            val size = getSize(db)
+            val size: Long = getSize(db)
             removeItem(index.toLong())
-            for (i in size - 1 downTo index + 1) {
+            for (i in index + 1 until size) {
                 setItemIndex(i, i - 1)
             }
         }}

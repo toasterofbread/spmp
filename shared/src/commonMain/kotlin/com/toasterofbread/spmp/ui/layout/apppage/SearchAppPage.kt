@@ -3,7 +3,8 @@ package com.toasterofbread.spmp.ui.layout.apppage
 import LocalNowPlayingExpansion
 import LocalPlayerState
 import SpMp.isDebugBuild
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -14,7 +15,10 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,16 +34,18 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.composekit.platform.composable.rememberKeyboardOpen
-import com.toasterofbread.composekit.utils.*
 import com.toasterofbread.composekit.utils.common.copy
 import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.composekit.utils.composable.AlignableCrossfade
 import com.toasterofbread.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
@@ -52,7 +58,8 @@ import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.youtubeapi.*
+import com.toasterofbread.spmp.ui.theme.appHover
+import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchFilter
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchResults
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchSuggestion
@@ -437,9 +444,8 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
                             horizontalArrangement = Arrangement.End,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-
                             // Search field
-                            Box(Modifier.fillMaxWidth(0.9f), contentAlignment = Alignment.CenterStart) {
+                            Box(Modifier.fillMaxWidth(1f).weight(1f), contentAlignment = Alignment.CenterStart) {
 
                                 // Query hint
                                 if (current_query.isEmpty()) {
@@ -451,24 +457,8 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
                             }
 
                             // Clear field button
-                            IconButton(onClick = { current_query = "" }, Modifier.fillMaxWidth()) {
+                            IconButton({ current_query = "" }, Modifier.bounceOnClick().appHover(true)) {
                                 Icon(Icons.Filled.Clear, null, Modifier, context.theme.on_accent)
-                            }
-
-                            // Search button / search indicator
-                            Crossfade(search_in_progress) { in_progress ->
-                                if (!in_progress) {
-                                    IconButton(onClick = {
-                                        if (!search_in_progress) {
-                                            performSearch()
-                                        }
-                                    }) {
-                                        Icon(Icons.Filled.Search, null)
-                                    }
-                                }
-                                else {
-                                    CircularProgressIndicator(Modifier.size(30.dp))
-                                }
                             }
                         }
                     },
@@ -491,6 +481,8 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
                     Modifier
                         .fillMaxHeight()
                         .aspectRatio(1f)
+                        .bounceOnClick()
+                        .appHover(true)
                 ) {
                     Icon(Icons.Filled.Search, null)
                 }

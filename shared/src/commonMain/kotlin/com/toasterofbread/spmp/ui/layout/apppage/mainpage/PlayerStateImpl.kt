@@ -182,11 +182,35 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
         return system_insets.getBottom(this) + ime_padding
     }
 
+    private var now_playing_top_offset_id: Int = 0
+    private var now_playing_top_offset_item_sizes: MutableMap<Int, Dp> = mutableStateMapOf()
+
     @Composable
-    override fun nowPlayingTopOffset(base: Modifier): Modifier {
+    override fun nowPlayingTopOffset(base: Modifier, force_top: Boolean): Modifier {
         val system_insets: WindowInsets = WindowInsets.systemBars
         val navigation_insets: WindowInsets = WindowInsets.navigationBars
         val keyboard_insets: WindowInsets = WindowInsets.ime
+
+        val id: Int = remember {
+            if (force_top) -(now_playing_top_offset_id++)
+            else now_playing_top_offset_id++
+        }
+        val density: Density = LocalDensity.current
+
+        DisposableEffect(Unit) {
+            onDispose {
+                now_playing_top_offset_item_sizes.remove(id)
+            }
+        }
+
+        val additional_offset: Dp by animateDpAsState(
+            if (force_top)
+                now_playing_top_offset_item_sizes.entries.sumOf {
+                    if (it.key <= id) 0.0
+                    else it.value.value + 15.0
+                }.dp
+            else 0.dp
+        )
 
         return base
             .offset {
@@ -197,10 +221,15 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
 
                 IntOffset(
                     0,
-                    swipe_offset.toPx().toInt() - bottom_padding
+                    swipe_offset.roundToPx() - bottom_padding - additional_offset.roundToPx()
                 )
             }
             .padding(start = system_insets.getStart(), end = system_insets.getEnd())
+            .onSizeChanged {
+                with (density) {
+                    now_playing_top_offset_item_sizes[id] = it.height.toDp()
+                }
+            }
     }
 
     @Composable
@@ -417,9 +446,9 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
                     CompositionLocalProvider(LocalContentColor provides theme.on_accent) {
                         main_multiselect_context.MultiSelectInfoDisplayContent(
                             Modifier
-                                .width(IntrinsicSize.Min)
+                                .width(IntrinsicSize.Max)
                                 .align(Alignment.BottomEnd)
-                                .then(nowPlayingTopOffset(Modifier))
+                                .then(nowPlayingTopOffset(Modifier, true))
                                 .background(theme.accent.copy(alpha = 0.9f), MaterialTheme.shapes.small)
                                 .padding(10.dp)
                                 .onSizeChanged {

@@ -69,7 +69,7 @@ enum class MediaItemType {
                     PLAYLIST_REM
                 "USER_CHANNEL" ->
                     ARTIST
-                "NON_MUSIC_AUDIO_TRACK_PAGE" ->
+                "NON_MUSIC_AUDIO_TRACK_PAGE", "UNKNOWN" ->
                     SONG
                 else -> throw NotImplementedError(page_type)
             }

@@ -138,10 +138,11 @@ internal fun RowScope.MultiSelectGeneralActions(multiselect_context: MediaItemMu
             player.withPlayerComposable {
                 val distance: Int = active_queue_index - player.status.m_index + 1
                 Text(
-                    getString(if (distance == 1) "lpm_action_play_after_1_song" else "lpm_action_play_after_x_songs").replace(
-                        "\$x",
-                        distance.toString()
-                    ), fontSize = 15.sp
+                    getString(
+                        if (distance == 1) "lpm_action_play_after_1_song"
+                        else "lpm_action_play_after_x_songs").replace("\$x", distance.toString()
+                    ),
+                    fontSize = 15.sp
                 )
             }
         }

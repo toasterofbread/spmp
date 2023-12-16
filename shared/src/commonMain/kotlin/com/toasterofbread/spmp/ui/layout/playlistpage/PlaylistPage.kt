@@ -122,8 +122,8 @@ class PlaylistPage(
     val coroutine_scope: CoroutineScope = CoroutineScope(Job())
 
     var playlist_editor: PlaylistEditor? by mutableStateOf(null)
-    val multiselect_context = MediaItemMultiSelectContext() { context ->
-        val editor = playlist_editor ?: return@MediaItemMultiSelectContext
+    val multiselect_context = MediaItemMultiSelectContext { context ->
+        val editor: PlaylistEditor = playlist_editor ?: return@MediaItemMultiSelectContext
 
         // Remove selected items from playlist
         Button({

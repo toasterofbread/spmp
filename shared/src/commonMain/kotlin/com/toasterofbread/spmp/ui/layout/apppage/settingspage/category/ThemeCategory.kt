@@ -27,7 +27,7 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
             str_field_accent = getString("s_theme_editor_field_accent"),
             str_button_preview = getString("s_theme_editor_button_preview"),
             { theme.getThemeCount() },
-            { theme.getThemes()[it] },
+            { theme.getThemes().getOrNull(it) },
             { index: Int, edited_theme: ThemeData ->
                 theme.updateTheme(index, edited_theme)
             },

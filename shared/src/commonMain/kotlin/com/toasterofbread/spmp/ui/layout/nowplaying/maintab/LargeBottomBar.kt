@@ -8,6 +8,7 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -58,7 +59,7 @@ internal fun LargeBottomBar(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 NowPlayingMainTabActionButtons.OpenExternalButton(current_song)
-                NowPlayingMainTabActionButtons.LikeDislikeButton(current_song)
+                NowPlayingMainTabActionButtons.LikeDislikeButton(current_song, Modifier.minimumInteractiveComponentSize())
 
                 Spacer(Modifier.fillMaxWidth().weight(1f))
 

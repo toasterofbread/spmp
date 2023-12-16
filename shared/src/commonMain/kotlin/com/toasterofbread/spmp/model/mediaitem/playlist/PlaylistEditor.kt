@@ -15,6 +15,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
+import com.toasterofbread.spmp.youtubeapi.endpoint.AccountPlaylistEditorEndpoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
@@ -127,7 +128,7 @@ abstract class PlaylistEditor(open val playlist: Playlist, val context: AppConte
                     return@withContext Result.success(LocalPlaylistEditor(playlist, context))
                 }
                 is RemotePlaylist -> {
-                    val editor_endpoint = context.ytapi.user_auth_state?.AccountPlaylistEditor
+                    val editor_endpoint: AccountPlaylistEditorEndpoint? = context.ytapi.user_auth_state?.AccountPlaylistEditor
                     if (editor_endpoint == null) {
                         return@withContext Result.success(null)
                     }
@@ -135,7 +136,12 @@ abstract class PlaylistEditor(open val playlist: Playlist, val context: AppConte
                         return@withContext Result.failure(EndpointNotImplementedException(editor_endpoint))
                     }
 
-                    return@withContext Result.success(editor_endpoint.getEditor(playlist))
+                    val playlist_data: Result<RemotePlaylistData> = playlist.loadData(context, force = true)
+
+                    return@withContext playlist_data.fold(
+                        { Result.success(editor_endpoint.getEditor(it)) },
+                        { Result.failure(it) }
+                    )
                 }
                 else -> {
                     return@withContext Result.failure(NotImplementedError(this::class.toString()))

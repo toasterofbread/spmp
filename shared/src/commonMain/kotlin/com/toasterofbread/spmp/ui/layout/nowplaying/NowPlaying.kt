@@ -326,7 +326,7 @@ private fun StatusBarColourHandler(page_height: Dp) {
     val under_status_bar by remember { derivedStateOf { 1f - expansion.get() < status_bar_height_percent } }
 
     DisposableEffect(under_status_bar, background_colour) {
-        val colour = if (under_status_bar) background_colour else player.theme.background
+        val colour: Color = if (under_status_bar) background_colour else player.theme.background
         player.context.setStatusBarColour(colour)
 
         onDispose {

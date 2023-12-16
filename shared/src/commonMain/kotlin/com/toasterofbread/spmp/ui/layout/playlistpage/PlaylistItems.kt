@@ -55,7 +55,8 @@ internal fun PlaylistPage.PlaylistItems(
                             )
                         }
                     },
-                    multiselect_key = i
+                    multiselect_key = i,
+                    multiselect_context = multiselect_context
                 )
 
                 AnimatedVisibility(reordering) {

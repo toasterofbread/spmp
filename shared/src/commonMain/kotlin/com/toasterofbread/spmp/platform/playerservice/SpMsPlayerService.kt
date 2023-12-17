@@ -18,9 +18,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromJsonElement
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
@@ -30,9 +32,25 @@ import java.net.InetAddress
 private const val POLL_STATE_INTERVAL: Long = 100
 private const val POLL_TIMEOUT_MS: Long = 10000
 
-abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
-    abstract val listeners: List<PlayerListener>
-
+abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerService {
+    override var connected_server: ClientServerPlayerService.ServerInfo? by mutableStateOf(null)
+    
+    private val clients_result_channel: Channel<SpMsActionReply> = Channel()
+    override suspend fun getPeers(): Result<List<SpMsClientInfo>> {
+        sendRequest(SERVER_EXPECT_REPLY_CHAR + "clients")
+        
+        val result: SpMsActionReply = clients_result_channel.receive()
+        if (!result.success) {
+            return Result.failure(RuntimeException(result.error, result.error_cause?.let { RuntimeException(it) }))
+        }
+        
+        if (result.result == null) {
+            return Result.failure(NullPointerException("Result is null"))
+        }
+        
+        return Result.success(Json.decodeFromJsonElement(result.result))
+    }
+    
     var socket_load_state: PlayerServiceLoadState by mutableStateOf(PlayerServiceLoadState(true))
         private set
 
@@ -67,9 +85,10 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
     private var cancel_connection: Boolean = false
     private var restart_connection: Boolean = false
 
+    internal abstract val listeners: List<PlayerListener>
     internal var playlist: MutableList<Song> = mutableListOf()
         private set
-
+    
     internal var _state: MediaPlayerState = MediaPlayerState.IDLE
     internal var _is_playing: Boolean = false
     internal var _current_song_index: Int = -1
@@ -105,9 +124,6 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
         }
     }
 
-    private fun getServerURL(): String =
-        "tcp://${getServerIp()}:${getServerPort()}"
-
     override fun onCreate() {
         context.getPrefs().addListener(prefs_listener)
 
@@ -130,15 +146,16 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
     private fun ZMQ.Socket.connectToServer() {
         connect_coroutine_scope.launch {
             do {
+                connected_server = null
                 cancel_connection = false
                 restart_connection = false
-
-                val server_url: String = getServerURL()
-                val handshake: SpMsClientHandshake = SpMsClientHandshake(getClientName(), SpMsClientType.HEADLESS_PLAYER, context.getUiLanguage())
+                
+                val server_info = ClientServerPlayerService.ServerInfo(getServerIp(), getServerPort(), "tcp")
+                val handshake: SpMsClientHandshake = SpMsClientHandshake(getClientName(), SpMsClientType.SPMP_STANDALONE, context.getUiLanguage())
 
                 val server_state: SpMsServerState? = tryConnectToServer(
                     socket = this@connectToServer,
-                    server_url = server_url,
+                    server_url = server_info.getUrl(),
                     handshake = handshake,
                     json = json,
                     shouldCancelConnection = { cancel_connection },
@@ -146,9 +163,11 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
                 )
 
                 if (server_state == null) {
-                    disconnect(server_url)
+                    disconnect(server_info.getUrl())
                     continue
                 }
+
+                connected_server = server_info
 
                 var server_state_applied: Boolean = false
 
@@ -171,14 +190,15 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
                             }
                         }
 
-                        val poll_successful: Boolean = pollServerState(poller, POLL_TIMEOUT_MS) { event ->
-                            queued_events?.also {
-                                it.add(event)
-                                return@also
-                            }
+                        val poll_successful: Boolean =
+                            pollServerState(poller, POLL_TIMEOUT_MS) { event ->
+                                queued_events?.also {
+                                    it.add(event)
+                                    return@also
+                                }
 
-                            applyPlayerEvent(event)
-                        }
+                                applyPlayerEvent(event)
+                            }
 
                         if (!poll_successful) {
                             onSocketConnectionLost(POLL_TIMEOUT_MS)
@@ -220,7 +240,7 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
             if (event_str.isEmpty()) {
                 continue
             }
-
+            
             val event: SpMsPlayerEvent
             try {
                 event = json.decodeFromString(event_str) ?: continue
@@ -248,9 +268,48 @@ abstract class ZmqSpMsPlayerService: PlatformServiceImpl(), PlayerService {
                     reply.add(Gson().toJson(message.second))
                 }
             }
-            queued_messages.clear()
 
-            return reply.send(this@pollServerState)
+            val actions_expecting_result: List<Pair<String, List<Any>>> =
+                queued_messages.filter { it.first.firstOrNull() == SERVER_EXPECT_REPLY_CHAR }
+            
+            queued_messages.clear()
+            
+            val reply_result: Boolean = reply.send(this@pollServerState)
+            if (!reply_result || actions_expecting_result.isEmpty()) {
+                return reply_result
+            }
+            
+            val results: ZMsg
+            if (poller.poll(timeout) > 0) {
+                results = ZMsg.recvMsg(this)
+            }
+            else {
+                println("Getting results timed out after ${timeout}ms")
+                return false
+            }
+            
+            val result_str: String = results.joinToString { it.data.decodeToString().removeSuffix("\u0000") }
+            if (result_str.isEmpty()) {
+                throw NullPointerException("Result string is empty")
+            }
+
+            val parsed_results: List<SpMsActionReply>
+            try {
+                parsed_results = json.decodeFromString(result_str)!!
+            }
+            catch (e: Throwable) {
+                throw RuntimeException("Parsing result failed '$result_str'", e)
+            }
+            
+            for ((i, result) in parsed_results.withIndex()) {
+                val action: Pair<String, List<Any>> = actions_expecting_result[i]
+                when (action.first.drop(1)) {
+                    "clients" -> clients_result_channel.trySend(result)
+                    else -> throw NotImplementedError("Action: '$action' Result: '$result'")
+                }
+            }
+            
+            return true
         }
     }
 }

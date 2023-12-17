@@ -23,7 +23,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 
-private fun Database.getPinnedItems(): List<MediaItem> {
+fun Database.getPinnedItems(): List<MediaItem> {
     return pinnedItemQueries.getAll().executeAsList().map { item ->
         MediaItemType.entries[item.type.toInt()].referenceFromId(item.id)
     }

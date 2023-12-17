@@ -1,13 +1,7 @@
 package com.toasterofbread.spmp.model.mediaitem.song
 
 import LocalPlayerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.IntOffset
 import app.cash.sqldelight.Query
@@ -18,11 +12,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
-import com.toasterofbread.spmp.model.mediaitem.db.AltSetterProperty
-import com.toasterofbread.spmp.model.mediaitem.db.Property
-import com.toasterofbread.spmp.model.mediaitem.db.PropertyImpl
-import com.toasterofbread.spmp.model.mediaitem.db.fromNullableSQLBoolean
-import com.toasterofbread.spmp.model.mediaitem.db.toNullableSQLBoolean
+import com.toasterofbread.spmp.model.mediaitem.db.*
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
@@ -32,11 +22,13 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.crop
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.platform.toImageBitmap
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.toLyricsReference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.URL
+import kotlin.math.roundToInt
 
 private const val STATIC_LYRICS_SYNC_OFFSET: Long = 1000
 
@@ -140,9 +132,9 @@ interface Song: MediaItem.WithArtist {
         get() = property_rememberer.rememberSingleQueryProperty(
         "PlayerGradientDepth", { songQueries.npGradientDepthById(id) }, { np_gradient_depth?.toFloat() }, { songQueries.updateNpGradientDepthById(it?.toDouble(), id) }
     )
-    val ThumbnailRounding: Property<Int?>
+    val ThumbnailRounding: Property<Float?>
         get() = property_rememberer.rememberSingleQueryProperty(
-        "ThumbnailRounding", { songQueries.thumbnailRoundingById(id) }, { thumbnail_rounding?.toInt() }, { songQueries.updateThumbnailRoundingById(it?.toLong(), id) }
+        "ThumbnailRounding", { songQueries.thumbnailRoundingById(id) }, { thumbnail_rounding?.toFloat() }, { songQueries.updateThumbnailRoundingById(it?.toDouble(), id) }
     )
     val NotificationImageOffset: Property<IntOffset?>
         get() = property_rememberer.rememberSingleQueryProperty(
@@ -158,6 +150,14 @@ interface Song: MediaItem.WithArtist {
         },
         { songQueries.updateNotifImageOffsetById(it?.x?.toLong(), it?.y?.toLong(), id) }
     )
+    val BackgroundImageOpacity: Property<Float?>
+        get() = property_rememberer.rememberSingleQueryProperty(
+            "BackgroundImageOpacity", { songQueries.backgroundImageOpacityById(id) }, { background_image_opacity?.toFloat() }, { songQueries.updateBackgroundImageOpacityById(it?.toDouble(), id) }
+        )
+    val ImageShadowRadius: Property<Float?>
+        get() = property_rememberer.rememberSingleQueryProperty(
+            "ImageShadowRadius", { songQueries.imageShadowRadiusById(id) }, { image_shadow_radius?.toFloat() }, { songQueries.updateImageShadowRadiusById(it?.toDouble(), id) }
+        )
     val Liked: Property<SongLikedStatus?>
         get() = property_rememberer.rememberSingleQueryProperty(
         "Liked", { songQueries.likedById(id) }, { liked.toSongLikedStatus() }, { songQueries.updatelikedById(it.toLong(), id) }
@@ -216,4 +216,10 @@ private data class SongThumbnailProvider(val id: String): MediaItemThumbnailProv
             MediaItemThumbnailProvider.Quality.LOW -> "https://img.youtube.com/vi/$id/0.jpg"
             MediaItemThumbnailProvider.Quality.HIGH -> "https://img.youtube.com/vi/$id/maxresdefault.jpg"
         }
+}
+
+@Composable
+fun Song?.observeThumbnailRounding(default: Float): Int {
+    val player: PlayerState = LocalPlayerState.current
+    return ((this?.ThumbnailRounding?.observe(player.database)?.value?.div(2) ?: default) * 100).roundToInt()
 }

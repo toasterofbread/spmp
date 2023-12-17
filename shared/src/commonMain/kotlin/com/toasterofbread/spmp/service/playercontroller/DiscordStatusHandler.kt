@@ -93,10 +93,10 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
                     return@apply
                 }
 
-                val name = formatText(DiscordSettings.Key.STATUS_NAME.get(), status_song, song_title)
-                val text_a = formatText(DiscordSettings.Key.STATUS_TEXT_A.get(), status_song, song_title)
-                val text_b = formatText(DiscordSettings.Key.STATUS_TEXT_B.get(), status_song, song_title)
-                val text_c = formatText(DiscordSettings.Key.STATUS_TEXT_C.get(), status_song, song_title)
+                val name = formatText(DiscordSettings.Key.STATUS_NAME.get(context), status_song, song_title)
+                val text_a = formatText(DiscordSettings.Key.STATUS_TEXT_A.get(context), status_song, song_title)
+                val text_b = formatText(DiscordSettings.Key.STATUS_TEXT_B.get(context), status_song, song_title)
+                val text_c = formatText(DiscordSettings.Key.STATUS_TEXT_C.get(context), status_song, song_title)
 
                 val large_image: String?
                 val small_image: String?
@@ -116,11 +116,11 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
                     return@apply
                 }
 
-                val buttons = mutableListOf<Pair<String, String>>().apply {
-                    if (DiscordSettings.Key.SHOW_SONG_BUTTON.get()) {
+                val buttons: MutableList<Pair<String, String>> = mutableListOf<Pair<String, String>>().apply {
+                    if (DiscordSettings.Key.SHOW_SONG_BUTTON.get(context)) {
                         add(DiscordSettings.Key.SONG_BUTTON_TEXT.get<String>() to status_song.getURL(context))
                     }
-                    if (DiscordSettings.Key.SHOW_PROJECT_BUTTON.get()) {
+                    if (DiscordSettings.Key.SHOW_PROJECT_BUTTON.get(context)) {
                         add(DiscordSettings.Key.PROJECT_BUTTON_TEXT.get<String>() to getString("project_url"))
                     }
                 }

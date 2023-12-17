@@ -23,8 +23,14 @@ actual class PlayerDownloadManager actual constructor(private val context: AppCo
 
         override fun onDownloadStatusChanged(download: Download, started: Boolean) {
             synchronized(listeners) {
+                val status: DownloadStatus = download.getStatusObject()
                 for (listener in listeners) {
-                    listener.onDownloadChanged(download.getStatusObject())
+                    if (started) {
+                        listener.onDownloadAdded(status)
+                    }
+                    else {
+                        listener.onDownloadChanged(status)
+                    }
                 }
             }
         }

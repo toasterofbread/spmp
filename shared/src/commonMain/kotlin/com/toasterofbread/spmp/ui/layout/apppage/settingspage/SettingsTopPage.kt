@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -191,23 +192,25 @@ internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, cont
             val version_string: String = "v${getString("version_string")}"
             val on_release_commit: Boolean = ProjectBuildConfig.GIT_TAG == version_string
 
-            Text(
-                if (on_release_commit) {
-                    getString("info_using_release_\$x")
-                        .replace("\$x", version_string)
-                }
-                else {
-                    getString("info_using_non_release_commit_\$x")
-                        .replace("\$x", ProjectBuildConfig.GIT_COMMIT_HASH?.take(7).toString())
-                },
-                Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp)
-                    .padding(horizontal_padding)
-                    .alpha(0.5f),
-                fontSize = 12.sp,
-                textAlign = TextAlign.Center
-            )
+            SelectionContainer {
+                Text(
+                    if (on_release_commit) {
+                        getString("info_using_release_\$x")
+                            .replace("\$x", version_string)
+                    }
+                    else {
+                        getString("info_using_non_release_commit_\$x")
+                            .replace("\$x", ProjectBuildConfig.GIT_COMMIT_HASH?.take(7).toString())
+                    },
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(top = 10.dp)
+                        .padding(horizontal_padding)
+                        .alpha(0.5f),
+                    fontSize = 12.sp,
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 }

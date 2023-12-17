@@ -3,6 +3,15 @@
 
     <string name="project_url_name">プロジェクトのURL</string>
 
+    <string name="spms_client_type_spmp_player">SpMp（プレイヤー）</string>
+    <string name="spms_client_type_info_spmp_player">独自のオーディオを再生するSpMpのグラフィカル インスタンス</string>
+    <string name="spms_client_type_spmp_standalone">SpMp（単独）</string>
+    <string name="spms_client_type_info_spmp_standalone">オーディオ用の外部プレーヤーに依存するSpMpのグラフィカル インスタンス</string>
+    <string name="spms_client_type_player">プレイヤー</string>
+    <string name="spms_client_type_info_player">GUIなしの単独オーディオプライヤー</string>
+    <string name="spms_client_type_command_line">コマンドライン</string>
+    <string name="spms_client_type_info_command_line">サーバーを使用するツールやスクリプト</string>
+
     <string name="font_option_default_$x">デフォルト（$x）</string>
     <string name="font_option_system">システムフォント</string>
     <string name="font_option_hc_maru_gothic">HC Maru Gothic</string>
@@ -107,9 +116,10 @@
     <string name="player_overlay_menu_action_open_related">関係コンテンツを開く</string>
     <string name="player_overlay_menu_action_download">ダウンロード</string>
 
-    <string name="song_theme_menu_pick_colour_from_thumb">サムネールから選ぶ</string>
-    <string name="song_theme_menu_corner_radius_$x">コーナーの半径: $x</string>
-    <string name="song_theme_menu_gradient_depth_$x">グラデーションの深さ</string>
+    <string name="song_theme_menu_corner_radius">コーナーの半径</string>
+    <string name="song_theme_menu_gradient_depth">グラデーションの深さ</string>
+    <string name="song_theme_menu_background_image_opacity">バックグラウンド画像の不透明度</string>
+    <string name="song_theme_menu_image_shadow_radius">画像シャドウのサイズ</string>
 
     <string name="song_notif_image_menu_open">通知イメージの調整</string>
     <string name="song_notif_image_menu_adjust_offset">イメージの位置を変える</string>
@@ -423,6 +433,8 @@
     <string name="s_option_np_accent_none">アクセント色不使用</string>
 
     <string name="s_key_np_default_gradient_depth">グラデーションのデフォルトの深さ</string>
+    <string name="s_key_np_default_background_image_opacity">ランドスケープバックグラウンド画像のデフォルトの不透明度</string>
+    <string name="s_key_np_default_image_shadow_radius">画像シャドウのデフォルトのサイズ</string>
 
     <string name="s_key_lyrics_default_source">デフォルトの歌詞源</string>
 
@@ -634,6 +646,21 @@
     <string name="discord_status_default_button_song">Open song on YouTube</string>
     <string name="discord_status_default_button_project">Visit project page</string>
     <string name="discord_status_unknown_artist_replacement">不明</string>
+
+    <string name="control_panel_downloads_label">ダウンロード</string>
+    <string name="control_panel_downloads_title">現在のダウンロード</string>
+    <string name="control_panel_downloads_in_progress">実行中</string>
+    <string name="control_panel_downloads_completed">完了済み</string>
+
+    <string name="control_panel_server_label">サーバー</string>
+    <string name="control_panel_server_title">サーバー状態</string>
+    <string name="control_panel_server_connected_to_server">サーバーに接続されています</string>
+    <string name="control_panel_server_ip_address_$x">IP アドレス：$x</string>
+    <string name="control_panel_server_port_$x">ポート：$x</string>
+    <string name="control_panel_server_connected_clients">接続されたクライアント</string>
+    <string name="control_panel_server_connected_clients_loading">ロード中</string>
+    <string name="control_panel_server_this_client">このクライアント</string>
+    <string name="control_panel_server_client_more_info">もっと詳しく</string>gedi
 
     <string name="action_login_manually">手動でログインする</string>
     <string name="auth_not_signed_in">ログインされていません</string>

@@ -163,6 +163,7 @@ kotlin {
                 implementation("org.bitbucket.ijabz:jaudiotagger:v3.0.1")
                 implementation("com.github.teamnewpipe:NewPipeExtractor:v0.22.7")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+                implementation("org.zeromq:jeromq:0.5.3")
             }
             kotlin.srcDir(buildConfigDir)
         }
@@ -197,7 +198,6 @@ kotlin {
         val desktopMain by getting {
             dependencies {
                 implementation(compose.desktop.common)
-                implementation("org.zeromq:jeromq:0.5.3")
                 implementation("com.github.ltttttttttttt:load-the-image:1.0.5")
                 implementation("app.cash.sqldelight:sqlite-driver:2.0.0")
             }

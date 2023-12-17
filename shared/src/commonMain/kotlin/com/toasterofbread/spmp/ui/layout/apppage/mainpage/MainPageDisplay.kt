@@ -36,7 +36,8 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
                     bottom = 10.dp,
                     start = 10.dp,
                     end = 10.dp
-                )
+                ),
+                multiselect_context = player.main_multiselect_context
             )
         }
 

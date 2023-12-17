@@ -17,7 +17,7 @@ interface PlatformService {
     fun removeMessageReceiver(receiver: (Any?) -> Unit)
 }
 
-expect class PlatformServiceImpl: PlatformService {
+expect open class PlatformServiceImpl(): PlatformService {
     override val context: AppContext
 
     override fun onCreate()

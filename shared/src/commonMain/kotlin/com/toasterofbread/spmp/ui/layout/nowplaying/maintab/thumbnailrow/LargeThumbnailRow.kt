@@ -8,47 +8,25 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.isUnspecified
+import androidx.compose.ui.unit.*
 import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.composekit.utils.common.getInnerSquareSizeOfCircle
@@ -61,6 +39,7 @@ import com.toasterofbread.composekit.utils.modifier.disableParentScroll
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.song.observeThumbnailRounding
 import com.toasterofbread.spmp.model.settings.category.PlayerSettings
 import com.toasterofbread.spmp.model.settings.getEnum
 import com.toasterofbread.spmp.ui.component.Thumbnail
@@ -69,13 +48,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.EXPANDED_THRESHOLD
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.OVERLAY_MENU_ANIMATION_DURATION
-import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
-import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.MainPlayerOverlayMenu
-import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.NotifImagePlayerOverlayMenu
-import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PaletteSelectorPlayerOverlayMenu
-import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
-import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
-import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.RelatedContentPlayerOverlayMenu
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.*
 import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 import kotlin.math.absoluteValue
 
@@ -100,8 +73,8 @@ fun LargeThumbnailRow(
     val song_title: String? by current_song?.observeActiveTitle()
     val song_artist_title: String? by current_song?.Artist?.observePropertyActiveTitle()
 
-    val thumbnail_rounding: Int? by current_song?.ThumbnailRounding?.observe(player.context.database)
-    val thumbnail_shape: RoundedCornerShape = RoundedCornerShape(thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING)
+    val thumbnail_rounding: Int = current_song.observeThumbnailRounding(DEFAULT_THUMBNAIL_ROUNDING)
+    val thumbnail_shape: RoundedCornerShape = RoundedCornerShape(thumbnail_rounding)
 
     var overlay_menu: PlayerOverlayMenu? by player.np_overlay_menu
     var current_thumb_image: ImageBitmap? by remember { mutableStateOf(null) }
@@ -112,19 +85,16 @@ fun LargeThumbnailRow(
         colourpick_callback = null
     }
 
-    val main_overlay_menu = remember {
+    val main_overlay_menu: MainPlayerOverlayMenu = remember {
         MainPlayerOverlayMenu(
             { overlay_menu = it },
             { colourpick_callback = it },
-            {
-                setThemeColour(it)
-                overlay_menu = null
-            },
+            setThemeColour,
             { player.screen_size.width }
         )
     }
 
-    BoxWithConstraints(modifier.clip(thumbnail_shape)) {
+    BoxWithConstraints(modifier) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -187,7 +157,11 @@ fun LargeThumbnailRow(
                     }
             ) {
                 Crossfade(current_song, animationSpec = tween(250)) { song ->
-                    song?.Thumbnail(
+                    if (song == null) {
+                        return@Crossfade
+                    }
+
+                    song.Thumbnail(
                         MediaItemThumbnailProvider.Quality.HIGH,
                         getContentColour = { player.getNPOnBackground() },
                         onLoaded = {
@@ -196,10 +170,10 @@ fun LargeThumbnailRow(
                         },
                         modifier = Modifier
                             .aspectRatio(1f)
-                            .clip(thumbnail_shape)
                             .onSizeChanged {
                                 image_size = it
                             }
+                            .songThumbnailShadow(song, thumbnail_shape)
                             .thenIf(expanded) {
                                 platformClickable(
                                     onClick = {
@@ -239,7 +213,7 @@ fun LargeThumbnailRow(
                     enter = fadeIn(tween(OVERLAY_MENU_ANIMATION_DURATION)),
                     exit = fadeOut(tween(OVERLAY_MENU_ANIMATION_DURATION))
                 ) {
-                    val overlay_background_alpha by animateFloatAsState(if (colourpick_callback != null) 0.4f else 0.8f)
+                    val overlay_background_alpha: Float by animateFloatAsState(if (colourpick_callback != null) 0.4f else 0.8f)
 
                     Box(
                         Modifier
@@ -252,6 +226,7 @@ fun LargeThumbnailRow(
                                         colourpick_callback?.also { callback ->
                                             current_thumb_image?.also { image ->
                                                 handleThumbnailColourPick(image, image_size, offset, callback)
+                                                colourpick_callback = null
                                                 return@detectTapGestures
                                             }
                                         }
@@ -261,6 +236,9 @@ fun LargeThumbnailRow(
                                         }
                                     }
                                 )
+                            }
+                            .thenIf(colourpick_callback != null) {
+                                pointerHoverIcon(PointerIcon.Crosshair)
                             }
                             .graphicsLayer { alpha = expansion.getAbsolute() }
                             .fillMaxSize()
@@ -275,7 +253,7 @@ fun LargeThumbnailRow(
                                 .size(with(LocalDensity.current) {
                                     getInnerSquareSizeOfCircle(
                                         radius = image_size.height.toDp().value,
-                                        corner_percent = thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING
+                                        corner_percent = thumbnail_rounding
                                     ).dp
                                 }),
                             contentAlignment = Alignment.Center
@@ -360,12 +338,9 @@ private fun PlayerState.performPressAction(
         PlayerOverlayMenuAction.OPEN_MAIN_MENU -> setOverlayMenu(main_overlay_menu)
         PlayerOverlayMenuAction.OPEN_THEMING -> {
             setOverlayMenu(
-                PaletteSelectorPlayerOverlayMenu(
+                SongThemePlayerOverlayMenu(
                     setColourpickCallback,
-                    {
-                        setThemeColour(it)
-                        setOverlayMenu(null)
-                    }
+                    setThemeColour
                 )
             )
         }
@@ -373,7 +348,6 @@ private fun PlayerState.performPressAction(
             setColourpickCallback { colour ->
                 if (colour != null) {
                     setThemeColour(colour)
-                    setOverlayMenu(null)
                     setColourpickCallback(null)
                 }
             }

@@ -7,9 +7,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -45,7 +47,6 @@ class MainPlayerOverlayMenu(
 
     override fun closeOnTap(): Boolean = true
 
-    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Menu(
         getSong: () -> Song,
@@ -103,7 +104,8 @@ class MainPlayerOverlayMenu(
         Column(
             Modifier
                 .fillMaxSize()
-                .padding(20.dp),
+                .padding(20.dp)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -187,7 +189,7 @@ class MainPlayerOverlayMenu(
                     button_modifier
                         .clickable {
                             setPlayerOverlayMenu(
-                                PaletteSelectorPlayerOverlayMenu(
+                                SongThemePlayerOverlayMenu(
                                     requestColourPicker,
                                     onColourSelected
                                 )

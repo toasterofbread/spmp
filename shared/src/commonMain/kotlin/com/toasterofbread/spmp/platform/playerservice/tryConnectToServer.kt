@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.platform.playerservice
 
 import com.toasterofbread.spmp.resources.getString
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
@@ -9,7 +8,7 @@ import kotlinx.serialization.json.Json
 import org.zeromq.ZMQ.Socket
 import org.zeromq.ZMsg
 
-internal suspend fun ZmqSpMsPlayerService.tryConnectToServer(
+internal suspend fun SpMsPlayerService.tryConnectToServer(
     socket: Socket,
     server_url: String,
     handshake: SpMsClientHandshake,

@@ -13,7 +13,7 @@ import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
 
 private class PlayerServiceBinder(val service: PlatformPlayerService): PlatformBinder()
 
-actual class PlatformPlayerService: ZmqSpMsPlayerService(), PlayerService {
+actual class PlatformPlayerService: SpMsPlayerService(), PlayerService {
     actual val load_state: PlayerServiceLoadState get() = socket_load_state
     actual override val context: AppContext get() = super.context
 

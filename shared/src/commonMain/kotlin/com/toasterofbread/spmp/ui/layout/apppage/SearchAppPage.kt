@@ -41,6 +41,7 @@ import androidx.compose.ui.zIndex
 import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.composekit.platform.composable.rememberKeyboardOpen
 import com.toasterofbread.composekit.utils.common.copy
+import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.composekit.utils.composable.AlignableCrossfade
 import com.toasterofbread.composekit.utils.composable.ShapedIconButton
@@ -423,7 +424,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
                     singleLine = true,
                     textStyle = LocalTextStyle.current.copy(
                         fontSize = SEARCH_FIELD_FONT_SIZE,
-                        color = context.theme.on_accent
+                        color = context.theme.vibrant_accent.getContrasted()
                     ),
                     modifier = Modifier
                         .height(SEARCH_BAR_HEIGHT_DP.dp)
@@ -436,7 +437,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
                         Row(
                             Modifier
                                 .background(
-                                    context.theme.accent,
+                                    context.theme.vibrant_accent,
                                     shape
                                 )
                                 .padding(horizontal = 10.dp)
@@ -475,8 +476,8 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
                 ShapedIconButton(
                     { performSearch() },
                     IconButtonDefaults.iconButtonColors(
-                        containerColor = context.theme.accent,
-                        contentColor = context.theme.on_accent
+                        containerColor = context.theme.vibrant_accent,
+                        contentColor = context.theme.vibrant_accent.getContrasted()
                     ),
                     Modifier
                         .fillMaxHeight()

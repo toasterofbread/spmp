@@ -294,7 +294,7 @@ fun MediaItemPreviewLong(
             if ((show_download_indicator && download_status != null) || show_play_count || show_type || extra_info.isNotEmpty() || artist_title != null || is_explicit == true) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
-                    verticalAlignment = Alignment.Top
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (is_explicit == true) {
                         Icon(

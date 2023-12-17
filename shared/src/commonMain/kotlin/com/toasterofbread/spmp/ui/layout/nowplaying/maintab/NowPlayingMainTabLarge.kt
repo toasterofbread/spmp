@@ -12,6 +12,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.scale
@@ -35,6 +36,7 @@ import com.toasterofbread.composekit.utils.common.*
 import com.toasterofbread.composekit.utils.composable.getTop
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.song.observeThumbnailRounding
 import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueWaveBorderMode
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
@@ -257,8 +259,8 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                                     if (compact_mode) {
                                         val song: Song? by player.status.song_state
 
-                                        val thumbnail_rounding: Int? by song?.ThumbnailRounding?.observe(player.context.database)
-                                        val thumbnail_shape: RoundedCornerShape = RoundedCornerShape(thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING)
+                                        val thumbnail_rounding: Int = song.observeThumbnailRounding(DEFAULT_THUMBNAIL_ROUNDING)
+                                        val thumbnail_shape: RoundedCornerShape = RoundedCornerShape(thumbnail_rounding)
 
                                         song?.Thumbnail(
                                             MediaItemThumbnailProvider.Quality.HIGH,
@@ -278,6 +280,9 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                             LargeThumbnailRow(
                                 Modifier
                                     .height(thumbnail_row_height)
+                                    .graphicsLayer {
+                                        alpha = if (compact_mode) 1f - absolute_expansion else 1f
+                                    }
                                     .offset {
                                         IntOffset(
                                             (((column_width - actual_thumb_size.width).toPx() / 2) * absolute_expansion).roundToInt(),

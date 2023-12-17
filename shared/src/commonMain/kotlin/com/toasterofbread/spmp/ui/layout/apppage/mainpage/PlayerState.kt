@@ -216,7 +216,7 @@ open class PlayerState protected constructor(
         val path_parts = uri.path.split('/').filter { it.isNotBlank() }
         when (path_parts.firstOrNull()) {
             "channel" -> {
-                val channel_id = path_parts.elementAtOrNull(1) ?: return failure("No channel ID")
+                val channel_id: String = path_parts.elementAtOrNull(1) ?: return failure("No channel ID")
 
                 interactService {
                     val artist = ArtistRef(channel_id)
@@ -225,8 +225,8 @@ open class PlayerState protected constructor(
                 }
             }
             "watch" -> {
-                val v_start = (uri.query.indexOfOrNull("v=") ?: return failure("'v' query parameter not found")) + 2
-                val v_end = uri.query.indexOfOrNull("&", v_start) ?: uri.query.length
+                val v_start: Int = (uri.query.indexOfOrNull("v=") ?: return failure("'v' query parameter not found")) + 2
+                val v_end: Int = uri.query.indexOfOrNull("&", v_start) ?: uri.query.length
 
                 interactService {
                     val song = SongRef(uri.query.substring(v_start, v_end))
@@ -235,8 +235,8 @@ open class PlayerState protected constructor(
                 }
             }
             "playlist" -> {
-                val list_start = (uri.query.indexOfOrNull("list=") ?: return failure("'list' query parameter not found")) + 5
-                val list_end = uri.query.indexOfOrNull("&", list_start) ?: uri.query.length
+                val list_start: Int = (uri.query.indexOfOrNull("list=") ?: return failure("'list' query parameter not found")) + 5
+                val list_end: Int = uri.query.indexOfOrNull("&", list_start) ?: uri.query.length
 
                 interactService {
                     val playlist = RemotePlaylistRef(uri.query.substring(list_start, list_end))

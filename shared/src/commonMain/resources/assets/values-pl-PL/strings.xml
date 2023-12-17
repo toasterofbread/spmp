@@ -80,7 +80,6 @@
     <string name="prompt_confirm_action">Proszę potwierdzić</string>
     <string name="prompt_confirm_settings_page_reset">Wyzerować wszystkie wartości na tej stronie?</string>
 
-    <string name="song_theme_menu_pick_colour_from_thumb">Wybierz z miniatury</string>
     <string name="song_theme_menu_corner_radius_$x">Promień narożnika: $x</string>
     <string name="song_theme_menu_gradient_depth_$x">Głębia gradientu: $x</string>
 

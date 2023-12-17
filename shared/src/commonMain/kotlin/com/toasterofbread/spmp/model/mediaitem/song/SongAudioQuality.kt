@@ -26,9 +26,10 @@ suspend fun getSongStreamFormat(song_id: String, context: AppContext): Result<Yo
     getSongFormatByQuality(song_id, getSongTargetStreamQuality(), context)
 
 private suspend fun getAudioFormats(song_id: String, context: AppContext): Result<List<YoutubeVideoFormat>> {
-    val result = context.ytapi.VideoFormats.getVideoFormats(song_id) {
-        it.mimeType.startsWith("audio/mp4")
-    }
+    val result: Result<List<YoutubeVideoFormat>> =
+        context.ytapi.VideoFormats.getVideoFormats(song_id) {
+            it.mimeType.startsWith("audio/mp4")
+        }
 
     val formats: List<YoutubeVideoFormat> = result.fold(
         { it },

@@ -22,7 +22,9 @@ data object ThemeSettings: SettingsCategory("theme") {
         THEMES,
         ACCENT_COLOUR_SOURCE,
         NOWPLAYING_THEME_MODE,
-        NOWPLAYING_DEFAULT_GRADIENT_DEPTH;
+        NOWPLAYING_DEFAULT_GRADIENT_DEPTH,
+        NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY,
+        NOWPLAYING_DEFAULT_IMAGE_SHADOW_RADIUS;
 
         override val category: SettingsCategory get() = ThemeSettings
 
@@ -34,6 +36,8 @@ data object ThemeSettings: SettingsCategory("theme") {
                 THEMES -> "[]"
                 NOWPLAYING_THEME_MODE -> ThemeMode.DEFAULT.ordinal
                 NOWPLAYING_DEFAULT_GRADIENT_DEPTH -> 1f
+                NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY -> 0.0f
+                NOWPLAYING_DEFAULT_IMAGE_SHADOW_RADIUS -> 0.5f
             } as T
     }
 }

@@ -6,7 +6,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 
-internal suspend fun ZmqSpMsPlayerService.applyServerState(state: SpMsServerState, coroutine_scope: CoroutineScope) {
+internal suspend fun SpMsPlayerService.applyServerState(state: SpMsServerState, coroutine_scope: CoroutineScope) {
     assert(playlist.isEmpty())
 
     val items: Array<Song?> = arrayOfNulls(state.queue.size)

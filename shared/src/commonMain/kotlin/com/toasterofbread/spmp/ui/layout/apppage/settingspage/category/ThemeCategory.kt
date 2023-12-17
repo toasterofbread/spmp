@@ -44,7 +44,7 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
                 AccentColourSource.THEME -> getString("s_option_accent_theme")
                 AccentColourSource.THUMBNAIL -> getString("s_option_accent_thumbnail")
             }
-        },
+          },
 
         MultipleChoiceSettingsItem(
             SettingsValueState(ThemeSettings.Key.NOWPLAYING_THEME_MODE.getName()),
@@ -56,11 +56,21 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
                 1 -> getString("s_option_np_accent_elements")
                 else -> getString("s_option_np_accent_none")
             }
-        },
+          },
 
         AppSliderItem(
             SettingsValueState(ThemeSettings.Key.NOWPLAYING_DEFAULT_GRADIENT_DEPTH.getName()),
             getString("s_key_np_default_gradient_depth"), null
+        ),
+
+        AppSliderItem(
+            SettingsValueState(ThemeSettings.Key.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.getName()),
+            getString("s_key_np_default_background_image_opacity"), null
+        ),
+
+        AppSliderItem(
+            SettingsValueState(ThemeSettings.Key.NOWPLAYING_DEFAULT_IMAGE_SHADOW_RADIUS.getName()),
+            getString("s_key_np_default_image_shadow_radius"), null
         )
     )
 }

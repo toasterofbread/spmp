@@ -21,6 +21,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
@@ -34,6 +36,8 @@ import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.composable.RecomposeOnInterval
 import com.toasterofbread.composekit.utils.composable.getTop
 import com.toasterofbread.composekit.utils.modifier.brushBackground
+import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.OverscrollClearMode
 import com.toasterofbread.spmp.model.settings.category.PlayerSettings
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
@@ -41,6 +45,7 @@ import com.toasterofbread.spmp.model.settings.rememberMutableEnumState
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
+import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import kotlinx.coroutines.CoroutineScope
@@ -54,7 +59,7 @@ enum class ThemeMode {
         val DEFAULT: ThemeMode =
             when (Platform.current) {
                 Platform.ANDROID -> BACKGROUND
-                Platform.DESKTOP -> NONE
+                Platform.DESKTOP -> BACKGROUND
             }
     }
 }
@@ -253,7 +258,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
             )
         }
 
-        Box(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
                 .requiredHeight((player.screen_size.height * (getNowPlayingVerticalPageCount(player) + 1)))
@@ -281,10 +286,10 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
                 }
                 .brushBackground {
                     with(density) {
-                        val screen_height_px = page_height.toPx()
-                        val v_offset = (expansion.get() - 1f).coerceAtLeast(0f) * screen_height_px
+                        val screen_height_px: Float = page_height.toPx()
+                        val v_offset: Float = (expansion.get() - 1f).coerceAtLeast(0f) * screen_height_px
 
-                        val gradient_depth = 1f - (song_gradient_depth ?: default_gradient_depth)
+                        val gradient_depth: Float = 1f - (song_gradient_depth ?: default_gradient_depth)
                         check(gradient_depth in 0f .. 1f)
 
                         return@brushBackground Brush.verticalGradient(
@@ -297,6 +302,30 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
                     }
                 }
         ) {
+            if (NowPlayingPage.getFormFactor(player) == FormFactor.LANDSCAPE) {
+                val default_background_image_opacity: Float by ThemeSettings.Key.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.rememberMutableState()
+                val current_song: Song? by player.status.song_state
+
+                current_song?.also { song ->
+                    val background_image_opacity: Float? by song.BackgroundImageOpacity.observe(player.database)
+                    val opacity: Float = background_image_opacity ?: default_background_image_opacity
+                    if (opacity <= 0f) {
+                        return@also
+                    }
+
+                    song.Thumbnail(
+                        MediaItemThumbnailProvider.Quality.HIGH,
+                        Modifier
+                            .requiredSize(maxOf(player.screen_size.height, player.screen_size.width))
+                            .blur(5.dp)
+                            .alpha(opacity)
+                            .graphicsLayer {
+                                alpha = expansion.get().coerceIn(0f, 1f)
+                            }
+                    )
+                }
+            }
+
             BackHandler({ !is_shut }) {
                 coroutine_scope.launch {
                     expansion.scroll(-1)

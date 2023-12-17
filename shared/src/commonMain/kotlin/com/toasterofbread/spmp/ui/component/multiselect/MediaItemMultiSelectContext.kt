@@ -169,7 +169,9 @@ open class MediaItemMultiSelectContext {
     @Composable
     fun CollectionToggleButton(
         items: List<MediaItemHolder>,
-        ordered: Boolean = true
+        ordered: Boolean = true,
+        enter: EnterTransition = expandHorizontally(),
+        exit: ExitTransition = shrinkHorizontally()
     ) {
         DisposableEffect(items, true) {
             if (ordered) {
@@ -181,9 +183,9 @@ open class MediaItemMultiSelectContext {
             }
         }
 
-        AnimatedVisibility(is_active, enter = expandHorizontally(), exit = shrinkHorizontally()) {
+        AnimatedVisibility(is_active, enter = enter, exit = exit) {
             val all_selected: Boolean by remember { derivedStateOf {
-                items.all {
+                items.isNotEmpty() && items.all {
                     it.item?.let { item -> isItemSelected(item) } ?: false
                 }
             } }

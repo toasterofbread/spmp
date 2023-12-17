@@ -17,9 +17,11 @@ CREATE TABLE Song (
     lyrics_id TEXT,
     lyrics_sync_offset INTEGER,
     np_gradient_depth REAL,
-    thumbnail_rounding INTEGER,
+    thumbnail_rounding REAL,
     notif_image_offset_x INTEGER,
     notif_image_offset_y INTEGER,
+    background_image_opacity REAL,
+    image_shadow_radius REAL,
 
     FOREIGN KEY (artist) REFERENCES Artist(id),
     FOREIGN KEY (album) REFERENCES Playlist(id),
@@ -87,3 +89,9 @@ updateThumbnailRoundingById: UPDATE Song SET thumbnail_rounding = :thumbnail_rou
 
 notifImageOffsetById: SELECT notif_image_offset_x, notif_image_offset_y FROM Song WHERE id == :id;
 updateNotifImageOffsetById: UPDATE Song SET notif_image_offset_x = :notif_image_offset_x, notif_image_offset_y = :notif_image_offset_y WHERE id == :id;
+
+backgroundImageOpacityById: SELECT background_image_opacity FROM Song WHERE id == :id;
+updateBackgroundImageOpacityById: UPDATE Song SET background_image_opacity = :background_image_opacity WHERE id == :id;
+
+imageShadowRadiusById: SELECT image_shadow_radius FROM Song WHERE id == :id;
+updateImageShadowRadiusById: UPDATE Song SET image_shadow_radius = :image_shadow_radius WHERE id == :id;

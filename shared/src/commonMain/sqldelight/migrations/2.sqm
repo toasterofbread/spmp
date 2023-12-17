@@ -8,3 +8,12 @@ BEGIN
     ALTER TABLE Song ADD COLUMN explicit INTEGER;
 END
 
+IF COL_LENGTH("Song", "background_image_opacity") IS NULL
+BEGIN
+    ALTER TABLE Song ADD COLUMN background_image_opacity REAL;
+END
+
+IF COL_LENGTH("Song", "image_shadow_radius") IS NULL
+BEGIN
+    ALTER TABLE Song ADD COLUMN image_shadow_radius REAL;
+END

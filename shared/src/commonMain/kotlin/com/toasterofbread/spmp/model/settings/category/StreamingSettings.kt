@@ -41,8 +41,8 @@ data object StreamingSettings: SettingsCategory("streaming") {
                 AUTO_DOWNLOAD_ENABLED -> true
                 AUTO_DOWNLOAD_THRESHOLD -> 1 // Listens
                 AUTO_DOWNLOAD_ON_METERED -> false
-                STREAM_AUDIO_QUALITY -> SongAudioQuality.MEDIUM.ordinal
-                DOWNLOAD_AUDIO_QUALITY -> SongAudioQuality.MEDIUM.ordinal
+                STREAM_AUDIO_QUALITY -> SongAudioQuality.HIGH.ordinal
+                DOWNLOAD_AUDIO_QUALITY -> SongAudioQuality.HIGH.ordinal
                 ENABLE_AUDIO_NORMALISATION -> false
                 ENABLE_SILENCE_SKIPPING -> false
                 DOWNLOAD_METHOD -> DownloadMethod.DEFAULT.ordinal

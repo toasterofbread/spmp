@@ -150,24 +150,35 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
                 cancel_connection = false
                 restart_connection = false
                 
-                val server_info = ClientServerPlayerService.ServerInfo(getServerIp(), getServerPort(), "tcp")
+                val ip: String = getServerIp()
+                val port: Int = getServerPort()
+                val protocol: String = "tcp"
+                val server_url = "$protocol://$ip:$port"
+
                 val handshake: SpMsClientHandshake = SpMsClientHandshake(getClientName(), SpMsClientType.SPMP_STANDALONE, context.getUiLanguage())
 
-                val server_state: SpMsServerState? = tryConnectToServer(
+                val server_handshake: SpMsServerHandshake? = tryConnectToServer(
                     socket = this@connectToServer,
-                    server_url = server_info.getUrl(),
+                    server_url = server_url,
                     handshake = handshake,
                     json = json,
                     shouldCancelConnection = { cancel_connection },
                     setLoadState = { socket_load_state = it }
                 )
 
-                if (server_state == null) {
-                    disconnect(server_info.getUrl())
+                if (server_handshake == null) {
+                    disconnect(server_url)
                     continue
                 }
 
-                connected_server = server_info
+                connected_server = ClientServerPlayerService.ServerInfo(
+                    ip,
+                    port,
+                    protocol,
+                    server_handshake.name,
+                    server_handshake.device_name,
+                    server_handshake.spms_commit_hash
+                )
 
                 var server_state_applied: Boolean = false
 
@@ -213,7 +224,7 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
                         getString("desktop_splash_setting_initial_state")
                     )
 
-                applyServerState(server_state, this)
+                applyServerState(server_handshake.server_state, this)
 
                 socket_load_state = PlayerServiceLoadState(false)
 

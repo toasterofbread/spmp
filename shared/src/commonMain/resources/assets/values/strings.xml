@@ -117,6 +117,7 @@
     <string name="action_warning_accept">Accept</string>
     <string name="action_load_retry">Retry</string>
     <string name="action_save">Save</string>
+    <string name="action_open_documentation">Open documentation</string>
     <string name="prompt_confirm_action">Please confirm</string>
     <string name="prompt_confirm_settings_page_reset">Reset all values on this page?</string>
     <string name="prompt_hide_feed_rows_with_$title">Hide feed rows with title '$title'?</string>
@@ -678,7 +679,10 @@
     <string name="control_panel_server_connected_to_server">Connected to server</string>
     <string name="control_panel_server_ip_address_$x">IP address: $x</string>
     <string name="control_panel_server_port_$x">Port: $x</string>
-    <string name="control_panel_server_connected_clients">Connected clients</string>
+    <string name="control_panel_server_name_$x">Name: $x</string>
+    <string name="control_panel_server_device_name_$x">Host device: $x</string>
+    <string name="control_panel_server_spms_git_commit_hash_$x">SpMs commit hash: $x</string>
+    <string name="control_panel_server_connected_clients">Other connected clients</string>
     <string name="control_panel_server_connected_clients_loading">Loading</string>
     <string name="control_panel_server_this_client">This client</string>
     <string name="control_panel_server_client_more_info">More info</string>

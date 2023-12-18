@@ -44,6 +44,14 @@ internal data class SpMsClientHandshake(
 )
 
 @Serializable
+internal data class SpMsServerHandshake(
+    val name: String,
+    val device_name: String,
+    val spms_commit_hash: String,
+    val server_state: SpMsServerState
+)
+
+@Serializable
 data class SpMsClientInfo(
     val name: String,
     val type: SpMsClientType,

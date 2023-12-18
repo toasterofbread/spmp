@@ -100,6 +100,7 @@
     <string name="action_warning_accept">同意する</string>
     <string name="action_load_retry">再試行</string>
     <string name="action_save">保存</string>
+    <string name="action_open_documentation">ドキュメンテーションを開く</string>
     <string name="prompt_confirm_action">確認してください</string>
     <string name="prompt_confirm_settings_page_reset">このページのバリューを全てリセットしますか？</string>
     <string name="prompt_hide_feed_rows_with_$title">タイトルが「$title」の行を隠しますか？</string>
@@ -657,7 +658,10 @@
     <string name="control_panel_server_connected_to_server">サーバーに接続されています</string>
     <string name="control_panel_server_ip_address_$x">IP アドレス：$x</string>
     <string name="control_panel_server_port_$x">ポート：$x</string>
-    <string name="control_panel_server_connected_clients">接続されたクライアント</string>
+    <string name="control_panel_server_name_$x">名前：$x</string>
+    <string name="control_panel_server_device_name_$x">ホストデバイス：$x</string>
+    <string name="control_panel_server_spms_git_commit_hash_$x">SpMsコミットハッシュ：$x</string>
+    <string name="control_panel_server_connected_clients">他に接続されているクライアント</string>
     <string name="control_panel_server_connected_clients_loading">ロード中</string>
     <string name="control_panel_server_this_client">このクライアント</string>
     <string name="control_panel_server_client_more_info">もっと詳しく</string>gedi

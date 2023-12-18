@@ -15,7 +15,7 @@ internal suspend fun SpMsPlayerService.tryConnectToServer(
     json: Json,
     shouldCancelConnection: () -> Boolean,
     setLoadState: (PlayerServiceLoadState) -> Unit
-): SpMsServerState? = withContext(Dispatchers.IO) {
+): SpMsServerHandshake? = withContext(Dispatchers.IO) {
     check(socket.connect(server_url))
 
     val handshake_message: ZMsg = ZMsg()
@@ -40,18 +40,19 @@ internal suspend fun SpMsPlayerService.tryConnectToServer(
         }
     }
 
-    val state_data: String = reply.first.data.decodeToString().trimEnd { it == '\u0000' }
-    println("Received handshake reply from server with the following state data:\n$state_data")
+    val server_handshake_data: String = reply.first.data.decodeToString().trimEnd { it == '\u0000' }
 
-    val state: SpMsServerState
+    println("Received reply handshake from server with the following content:\n$server_handshake_data")
+
+    val server_handshake: SpMsServerHandshake
     try {
-        state = json.decodeFromString(state_data)
+        server_handshake = json.decodeFromString(server_handshake_data)
     }
     catch (e: Throwable) {
-        throw RuntimeException("Parsing handshake reply data failed '$state_data'", e)
+        throw RuntimeException("Parsing reply handshake failed '$server_handshake_data'", e)
     }
 
-    return@withContext state
+    return@withContext server_handshake
 }
 
 private fun Socket.recvMsg(timeout_ms: Long?): ZMsg? {

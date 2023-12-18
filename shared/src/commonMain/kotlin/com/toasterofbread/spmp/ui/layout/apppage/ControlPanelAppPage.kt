@@ -99,7 +99,7 @@ class ControlPanelAppPage(override val state: AppPageState): AppPage() {
             }
             
             Crossfade(current_page, Modifier.fillMaxHeight().weight(1f).padding(top = 20.dp)) { page ->
-                page.Page(Modifier, multiselect_context, content_padding.copy(top = 0.dp))
+                page.Page(Modifier.fillMaxSize(), multiselect_context, content_padding.copy(top = 0.dp))
             }
         }
     }

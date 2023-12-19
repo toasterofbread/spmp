@@ -104,14 +104,6 @@ abstract class ActuallyPackageAppImage: DefaultTask() {
     @get:OutputFile
     val icon_dst_file: RegularFileProperty = project.objects.fileProperty()
 
-    enum class CompressionMethod {
-        GZIP, XZ;
-
-        val arg_value: String get() = name.lowercase()
-    }
-    @get:Input
-    abstract val compression_method: Property<CompressionMethod>
-
     @TaskAction
     fun prepareAppImageFiles() {
         val appimage_src: File = appimage_src_dir.get().asFile
@@ -140,16 +132,15 @@ abstract class ActuallyPackageAppImage: DefaultTask() {
         icon_src.copyTo(icon_dst, overwrite = true)
 
         val arch: String = appimage_arch.get()
-        val comp_method: String = compression_method.get().arg_value
         val appimage_output: File = appimage_output_file.get().asFile
 
         runBlocking {
-            project.logger.lifecycle("Executing appimagetool with arch $arch, compression method $comp_method, and output file ${appimage_output.relativeTo(project.rootDir)}")
+            project.logger.lifecycle("Executing appimagetool with arch $arch and output file ${appimage_output.relativeTo(project.rootDir)}")
             project.exec {
                 environment("ARCH", arch)
                 workingDir = appimage_dst
                 executable = "appimagetool"
-                args = listOf("--comp", comp_method, ".", appimage_output.absolutePath)
+                args = listOf(".", appimage_output.absolutePath)
             }
 
             delay(100)
@@ -171,6 +162,4 @@ tasks.register<ActuallyPackageAppImage>("actuallyPackageAppImage") {
 
     icon_src_file = rootDir.resolve("metadata/en-US/images/icon.png")
     icon_dst_file = appimage_dst_dir.get().asFile.resolve("${rootProject.name}.png")
-
-    compression_method = ActuallyPackageAppImage.CompressionMethod.GZIP
 }

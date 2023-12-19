@@ -36,10 +36,16 @@ fun main() {
 
     SpMp.onStart()
 
-    val toolkit: Toolkit = Toolkit.getDefaultToolkit()
-    val class_name_field: Field = toolkit.javaClass.getDeclaredField("awtAppClassName")
-    class_name_field.isAccessible = true
-    class_name_field.set(toolkit, SpMp.app_name.lowercase())
+
+    if (hostOs == OS.Linux) {
+        try {
+            val toolkit: Toolkit = Toolkit.getDefaultToolkit()
+            val class_name_field: Field = toolkit.javaClass.getDeclaredField("awtAppClassName")
+            class_name_field.isAccessible = true
+            class_name_field.set(toolkit, SpMp.app_name.lowercase())
+        }
+        catch (_: Throwable) {}
+    }
 
     application {
         Window(

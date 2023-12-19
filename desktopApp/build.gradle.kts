@@ -48,7 +48,6 @@ kotlin {
                 implementation(project(":shared"))
                 implementation(project(":ComposeKit:lib"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.6.4")
-                implementation("io.github.humbleui:jwm:0.4.15")
             }
         }
     }
@@ -58,22 +57,29 @@ compose.desktop {
     application {
         mainClass = "MainKt"
 
-        // Required for setting WM_CLASS in main.kt
-        // https://stackoverflow.com/a/69404254
-        jvmArgs += listOf("--add-opens=java.desktop/sun.awt.X11=ALL-UNNAMED")
-
         nativeDistributions {
             packageName = getString("app_name")
             version = getString("version_string")
             packageVersion = getString("version_string")
             licenseFile.set(rootProject.file("LICENSE"))
 
-            targetFormats(TargetFormat.AppImage, TargetFormat.Deb, TargetFormat.Rpm)
+            targetFormats(TargetFormat.AppImage, TargetFormat.Deb, TargetFormat.Exe)
             includeAllModules = true
 
             linux {
                 iconFile.set(rootProject.file("metadata/en-US/images/icon.png"))
                 appRelease = getString("version_code")
+
+                // Required for setting WM_CLASS in main.kt
+                // https://stackoverflow.com/a/69404254
+                jvmArgs += listOf("--add-opens=java.desktop/sun.awt.X11=ALL-UNNAMED")
+            }
+        }
+
+        buildTypes.release {
+            proguard {
+                // TODO
+                isEnabled = false
             }
         }
     }

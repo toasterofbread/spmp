@@ -381,21 +381,27 @@ abstract class SongDownloader(
                     }
                 }
             }
+        }
+        catch (e: Throwable) {
+            e.printStackTrace()
+            close(DownloadStatus.Status.CANCELLED)
+            return@withContext Result.failure(e)
+        }
+
+        try {
+            close(DownloadStatus.Status.FINISHED)
 
             val destination_file: PlatformFile = download.file_uri?.let { context.getUserDirectoryFile(it) }
-                ?: song_storage_dir.resolve(download.generatePath(format_extension, false))
+                    ?: song_storage_dir.resolve(download.generatePath(format_extension, false))
 
             file.moveTo(destination_file)
             download.song_file = destination_file
-
-            download.status = DownloadStatus.Status.FINISHED
-            close(DownloadStatus.Status.FINISHED)
 
             return@withContext Result.success(download.song_file)
         }
         catch (e: Throwable) {
             e.printStackTrace()
-            close(DownloadStatus.Status.CANCELLED)
+            download.status = DownloadStatus.Status.CANCELLED
             return@withContext Result.failure(e)
         }
     }

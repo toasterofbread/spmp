@@ -104,10 +104,14 @@ fun GenerateBuildConfig.buildConfig(debug: Boolean) {
         debug_only = true
     )
 
-    fields_to_generate.add(Triple("GIT_COMMIT_HASH", "String?", "\"${getCurrentGitCommitHash()}\""))
-    fields_to_generate.add(Triple("GIT_TAG", "String?", "\"${getCurrentGitTag()}\""))
+    fields_to_generate.add(Triple("GIT_COMMIT_HASH", "String?", getCurrentGitCommitHash().stringify()))
+    fields_to_generate.add(Triple("GIT_TAG", "String?", getCurrentGitTag().stringify()))
     fields_to_generate.add(Triple("IS_DEBUG", "Boolean", debug.toString()))
 }
+
+fun String?.stringify(): String =
+    if (this == null) null.toString()
+    else "\"$this\""
 
 val buildConfigDebug: TaskProvider<GenerateBuildConfig> = tasks.register("buildConfigDebug", GenerateBuildConfig::class.java) {
     buildConfig(debug = true)
@@ -300,7 +304,6 @@ fun getCurrentGitTag(): String? {
         return cmd("git", "tag", "--points-at", "HEAD").ifBlank { null }
     }
     catch (e: Throwable) {
-        RuntimeException("Getting Git tag failed", e).printStackTrace()
         return null
     }
 }
@@ -310,7 +313,6 @@ fun getCurrentGitCommitHash(): String? {
         return cmd("git", "rev-parse", "HEAD").ifBlank { null }
     }
     catch (e: Throwable) {
-        RuntimeException("Getting Git commit hash failed", e).printStackTrace()
         return null
     }
 }

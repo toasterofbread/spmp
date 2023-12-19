@@ -8,6 +8,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.model.settings.category.SystemSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
+import com.toasterofbread.composekit.platform.Platform
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.joinAll
@@ -99,6 +100,11 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
     }
 
     suspend fun loadPersistentQueue() {
+        if (Platform.DESKTOP.isCurrent()) {
+            // TODO
+            return
+        }
+
         if (ProjectBuildConfig.DISABLE_PERSISTENT_QUEUE == true) {
             return
         }

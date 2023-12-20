@@ -1,4 +1,4 @@
-name: Build [APK]
+name: Build [Android]
 
 on:
   push:
@@ -26,9 +26,9 @@ jobs:
       run: chmod +x gradlew
 
     - name: Build debug APK
-      run: ./gradlew packageDebug
+      run: ./gradlew androidApp:packageDebug
     - name: Build release APK
-      run: ./gradlew packageRelease
+      run: ./gradlew androidApp:packageRelease
 
     - name: Upload universal debug APK artifact
       uses: actions/upload-artifact@v3

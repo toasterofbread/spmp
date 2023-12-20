@@ -1,4 +1,4 @@
-name: Build [AppImage]
+name: Build [Linux]
 
 on:
   push:
@@ -35,7 +35,7 @@ jobs:
       run: chmod +x /usr/local/bin/appimagetool
 
     - name: Build AppImage
-      run: ./gradlew actuallyPackageAppImage
+      run: ./gradlew desktopApp:actuallyPackageAppImage
 
     - name: Upload AppImage artifact
       uses: actions/upload-artifact@v3

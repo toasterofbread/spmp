@@ -74,6 +74,11 @@ compose.desktop {
                 // https://stackoverflow.com/a/69404254
                 jvmArgs += listOf("--add-opens=java.desktop/sun.awt.X11=ALL-UNNAMED")
             }
+
+            windows {
+                iconFile.set(rootProject.file("metadata/en-US/images/icon.ico"))
+                shortcut = true
+            }
         }
 
         buildTypes.release {

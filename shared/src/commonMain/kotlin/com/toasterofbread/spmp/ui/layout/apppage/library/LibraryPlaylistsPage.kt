@@ -98,13 +98,17 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
                 sorted_local_playlists,
                 multiselect_context,
                 cornerContent = {
-                    LoadActionIconButton({
-                        MediaItemLibrary.createLocalPlaylist(player.context)
-                            .onFailure {
-                                load_error = it
-                            }
-                    }) {
-                        Icon(Icons.Default.Add, null)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        LoadActionIconButton({
+                            MediaItemLibrary.createLocalPlaylist(player.context)
+                                .onFailure {
+                                    load_error = it
+                                }
+                        }) {
+                            Icon(Icons.Default.Add, null)
+                        }
+
+                        multiselect_context.CollectionToggleButton(sorted_local_playlists)
                     }
                 }
             )
@@ -141,6 +145,8 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
                                     Icon(Icons.Default.Add, null)
                                 }
                             }
+
+                            multiselect_context.CollectionToggleButton(sorted_account_playlists)
                         }
                     }
                 )

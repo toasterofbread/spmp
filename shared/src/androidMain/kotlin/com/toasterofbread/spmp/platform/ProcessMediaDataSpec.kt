@@ -28,8 +28,11 @@ internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppConte
         return data_spec.withUri(Uri.parse(local_file.uri))
     }
 
+    val auto_download_enabled: Boolean = StreamingSettings.Key.AUTO_DOWNLOAD_ENABLED.get(context)
+
     if (
-        song.getPlayCount(context.database, 7) >= StreamingSettings.Key.AUTO_DOWNLOAD_THRESHOLD.get<Int>(context)
+        auto_download_enabled
+        && song.getPlayCount(context.database, 7) >= StreamingSettings.Key.AUTO_DOWNLOAD_THRESHOLD.get<Int>(context)
         && (StreamingSettings.Key.AUTO_DOWNLOAD_ON_METERED.get(context) || !metered)
     ) {
         var done: Boolean = false

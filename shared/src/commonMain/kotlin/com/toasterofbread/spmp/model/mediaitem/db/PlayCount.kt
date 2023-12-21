@@ -34,11 +34,10 @@ suspend fun MediaItem.incrementPlayCount(context: AppContext, by: Int = 1): Resu
             return@withContext data.saveToFile(file, context)
         }
 
-        val db = context.database
-        db.mediaItemPlayCountQueries.transaction {
+        context.database.mediaItemPlayCountQueries.transaction {
             val day = LocalDate.now().toEpochDay()
-            db.mediaItemPlayCountQueries.insertOrIgnore(day, id)
-            db.mediaItemPlayCountQueries.increment(by.toLong(), id, day)
+            context.database.mediaItemPlayCountQueries.insertOrIgnore(day, id)
+            context.database.mediaItemPlayCountQueries.increment(by.toLong(), id, day)
         }
 
         return@withContext Result.success(Unit)

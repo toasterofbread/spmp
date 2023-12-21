@@ -129,6 +129,11 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
         }) }) {
             Column(modifier) {
                 EmptyListCrossfade(sorted_artists) { artists ->
+                    multiselect_context.CollectionToggleButton(
+                        artists?.mapIndexed { index, item -> Pair(item.first, index) } ?: emptyList(), 
+                        show = false
+                    )
+                
                     LazyColumn(
                         Modifier.fillMaxSize(),
                         contentPadding = content_padding,
@@ -150,11 +155,11 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
 
                                 MediaItemPreviewLong(
                                     artist,
+                                    Modifier.height(75.dp).fillMaxWidth(),
                                     multiselect_context = multiselect_context,
                                     multiselect_key = index,
                                     show_type = false,
                                     show_play_count = true,
-                                    modifier = Modifier.height(75.dp),
                                     font_size = 18.sp,
                                     title_lines = 3,
                                     getExtraInfo = {

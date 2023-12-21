@@ -104,7 +104,11 @@ fun TitleBar(
 
                 scrollable_state?.ScrollButtons()
 
-                multiselect_context?.CollectionToggleButton(items)
+                multiselect_context?.CollectionToggleButton(
+                    remember(items) {
+                        items.mapIndexedNotNull { index, item -> item.item?.let { Pair(it, index) } }
+                    }
+                )
             }
         }
     }

@@ -159,7 +159,7 @@ fun MediaItemMultiSelectContext.MultiSelectInfoDisplayContent(modifier: Modifier
 }
 
 private fun MediaItemMultiSelectContext.getAllSelectableItems(): List<List<MultiSelectItem>> =
-    ordered_selectable_items.map { items -> items.mapNotNull { it.item?.let { MultiSelectItem(it, null) } } }
+    ordered_selectable_items
 
 private fun MediaItemMultiSelectContext.getItemsBetweenSelectableItems(selectable_items: List<List<MultiSelectItem>>): List<MultiSelectItem> {
     val selected: Set<MediaItem> = getUniqueSelectedItems()

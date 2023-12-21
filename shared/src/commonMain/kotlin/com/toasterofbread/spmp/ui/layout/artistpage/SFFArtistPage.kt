@@ -110,7 +110,7 @@ internal fun ArtistAppPage.SFFArtistPage(
         }
         else if (loading || (browse_params != null && browse_params_rows == null) || (browse_params == null && item_layouts == null)) {
             item {
-                Box(content_modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Box(content_modifier, contentAlignment = Alignment.Center) {
                     SubtleLoadingIndicator()
                 }
             }

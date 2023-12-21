@@ -55,6 +55,9 @@ internal fun PlaylistPage.PlaylistInteractionBar(
 
     Column(modifier) {
         multiselect_context.InfoDisplay(
+            getAllItems = {
+                listOfNotNull(items)
+            },
             altContent = {
                 Row {
                     // Filter button

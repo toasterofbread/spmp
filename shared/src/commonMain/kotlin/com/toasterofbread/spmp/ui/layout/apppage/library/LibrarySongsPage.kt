@@ -102,12 +102,23 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
                         }
                         else {
                             item {
-                                InfoRow(current_songs, Modifier.fillMaxWidth())
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    InfoRow(current_songs, Modifier.fillMaxWidth().weight(1f))
+                                    
+                                    multiselect_context.CollectionToggleButton(
+                                        remember(current_songs) { 
+                                            current_songs.mapIndexed { index, item -> 
+                                                Pair(item.song, index) 
+                                            } 
+                                        }
+                                    )
+                                }
                             }
 
                             itemsIndexed(current_songs, { _, item -> item.id }) { index, download ->
                                 MediaItemPreviewLong(
                                     download.song,
+                                    Modifier.fillMaxWidth(),
                                     multiselect_context = multiselect_context,
                                     multiselect_key = index,
                                     show_type = false,

@@ -36,7 +36,6 @@ fun main() {
 
     SpMp.onStart()
 
-
     if (hostOs == OS.Linux) {
         try {
             val toolkit: Toolkit = Toolkit.getDefaultToolkit()

@@ -40,7 +40,7 @@ open class MediaItemMultiSelectContext {
     var is_active: Boolean by mutableStateOf(false)
         private set
     
-    internal val ordered_selectable_items: MutableList<List<MediaItemHolder>> = mutableStateListOf()
+    internal val ordered_selectable_items: MutableList<List<MultiSelectItem>> = mutableStateListOf()
 
     @Composable
     fun getActiveHintBorder(): BorderStroke? = if (is_active) BorderStroke(hint_path_thickness, LocalContentColor.current) else null
@@ -168,8 +168,26 @@ open class MediaItemMultiSelectContext {
 
     @Composable
     fun CollectionToggleButton(
-        items: List<MediaItemHolder>,
+        items: Collection<MediaItemHolder>,
         ordered: Boolean = true,
+        show: Boolean = true,
+        enter: EnterTransition = expandHorizontally(),
+        exit: ExitTransition = shrinkHorizontally()
+    ) {
+        CollectionToggleButton(
+            remember(items) { items.mapNotNull { it.item?.let { MultiSelectItem(it, null) } } },
+            ordered,
+            show,
+            enter,
+            exit
+        )
+    }
+    
+    @Composable
+    fun CollectionToggleButton(
+        items: List<MultiSelectItem>,
+        ordered: Boolean = true,
+        show: Boolean = true,
         enter: EnterTransition = expandHorizontally(),
         exit: ExitTransition = shrinkHorizontally()
     ) {
@@ -183,18 +201,16 @@ open class MediaItemMultiSelectContext {
             }
         }
 
-        AnimatedVisibility(is_active, enter = enter, exit = exit) {
+        AnimatedVisibility(show && is_active, enter = enter, exit = exit) {
             val all_selected: Boolean by remember { derivedStateOf {
                 items.isNotEmpty() && items.all {
-                    it.item?.let { item -> isItemSelected(item) } ?: false
+                    isItemSelected(it.first, it.second)
                 }
             } }
             Crossfade(all_selected) { selected ->
                 IconButton({
                     for (item in items) {
-                        item.item?.also {
-                            setItemSelected(it, !selected)
-                        }
+                        setItemSelected(item, !selected)
                     }
                 }) {
                     Icon(if (selected) Icons.Default.RadioButtonChecked else Icons.Default.RadioButtonUnchecked, null)

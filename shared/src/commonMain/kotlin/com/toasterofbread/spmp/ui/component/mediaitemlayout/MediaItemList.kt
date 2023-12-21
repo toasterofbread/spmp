@@ -98,7 +98,7 @@ fun MediaItemList(
 
                     MediaItemPreviewLong(
                         item.value,
-                        Modifier.size(getDefaultMediaItemPreviewSize(true)),
+                        Modifier.height(getDefaultMediaItemPreviewSize(true).height).fillMaxWidth(),
                         multiselect_context = multiselect_context,
                         show_download_indicator = show_download_indicators,
                         multiselect_key = item.index

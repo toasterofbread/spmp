@@ -229,7 +229,7 @@ fun ArtistLayout(
                         )
                     }
 
-                    content(accent_colour, background_modifier)
+                    content(accent_colour, background_modifier.fillMaxWidth())
                 }
             }
         }

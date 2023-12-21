@@ -291,8 +291,8 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
             synchronized(radio) {
                 clearQueue(from = index, keep_current = false, save = false, cancel_radio = false)
 
-                val final_item = item ?: getSong(index)!!
-                val final_index = if (item != null) item_index else index
+                val final_item: MediaItem = item ?: getSong(index)!!
+                val final_index: Int? = if (item != null) item_index else index
 
                 if (final_item !is Song) {
                     coroutine_scope.launch {
@@ -551,7 +551,7 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
                         ) {
                             song_marked_as_watched = true
 
-                            val song = getSong() ?: return@withContext
+                            val song: Song = getSong() ?: return@withContext
 
                             withContext(Dispatchers.IO) {
                                 song.incrementPlayCount(context)

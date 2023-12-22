@@ -11,6 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.utils.common.thenIf
@@ -56,15 +57,39 @@ fun LocalArtistPage(
         }
     }
 
-    ArtistLayout(artist, modifier, previous_item, content_padding, multiselect_context) { accent_colour, content_modifier ->
-        itemsIndexed(songs) { index, song ->
-            MediaItemPreviewLong(
-                song,
-                content_modifier
-                    .fillMaxWidth()
-                    .padding(content_padding.horizontal)
-                    .thenIf(index != 0) { padding(top = MEDIAITEM_LIST_DEFAULT_SPACING_DP.dp) }
-            )
+    multiselect_context?.CollectionToggleButton(
+        songs.mapIndexed { index, item -> Pair(item, index) },
+        show = false
+    )
+
+    CompositionLocalProvider(LocalPlayerState provides remember {
+        player.copy(
+            onClickedOverride = { item, multiselect_key ->
+                if (multiselect_key != null) {
+                    player.withPlayer {
+                        addMultipleToQueue(songs, clear = true)
+                        seekToSong(multiselect_key)
+                        player.onPlayActionOccurred()
+                    }
+                }
+                else {
+                    player.onMediaItemClicked(item)
+                }
+            }
+        )
+    }) {
+        ArtistLayout(artist, modifier, previous_item, content_padding, multiselect_context) { accent_colour, content_modifier ->
+            itemsIndexed(songs) { index, song ->
+                MediaItemPreviewLong(
+                    song,
+                    content_modifier
+                        .fillMaxWidth()
+                        .padding(content_padding.horizontal)
+                        .thenIf(index != 0) { padding(top = MEDIAITEM_LIST_DEFAULT_SPACING_DP.dp) },
+                    multiselect_context = multiselect_context,
+                    multiselect_key = index
+                )
+            }
         }
     }
 }

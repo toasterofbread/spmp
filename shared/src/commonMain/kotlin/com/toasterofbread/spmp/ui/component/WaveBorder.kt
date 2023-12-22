@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import kotlin.math.ceil
+import com.toasterofbread.composekit.utils.common.thenIf
+import androidx.compose.ui.draw.clipToBounds
 
 const val WAVE_BORDER_HEIGHT_DP: Float = 20f
 
@@ -65,6 +67,7 @@ fun WaveBorder(
     waves: Int = 3,
     invert: Boolean = false,
     width_multiplier: Float = 1f,
+    clip_content: Boolean = false,
     getWaveOffset: (Density.() -> Float)? = null,
     border_thickness: Dp = 0.dp,
     border_colour: Color = LocalContentColor.current
@@ -97,6 +100,9 @@ fun WaveBorder(
                 .background(border_colour, shape)
                 .offset(0.dp, -border_thickness)
                 .background(colour, shape)
+                .thenIf(clip_content) {
+                    clipToBounds()
+                }
         )
     }
 }

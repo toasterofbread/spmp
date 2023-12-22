@@ -12,11 +12,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
 import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.multiselect_context.MultiSelectGeneralActions
 import com.toasterofbread.spmp.ui.component.multiselect_context.MultiSelectOverflowActions
+import com.toasterofbread.spmp.ui.component.WaveBorder
+import com.toasterofbread.spmp.ui.layout.nowplaying.queue.WAVE_BORDER_TIME_SPEED
+import kotlinx.coroutines.delay
 
 @Composable
 internal fun MediaItemMultiSelectContext.MultiSelectInfoDisplay(
@@ -57,17 +61,31 @@ internal fun MediaItemMultiSelectContext.MultiSelectInfoDisplay(
 fun MediaItemMultiSelectContext.MultiSelectInfoDisplayContent(modifier: Modifier, getAllItems: (() -> List<List<MultiSelectItem>>)? = null) {
     Column(modifier.animateContentSize()) {
         val title_text: String = getString("multiselect_x_items_selected").replace("\$x", selected_items.size.toString())
+        
+        var wave_border_offset: Float by remember { mutableStateOf(0f) }
+        LaunchedEffect(Unit) {
+            val update_interval: Long = 1000 / 30
+            while (true) {
+                wave_border_offset += update_interval * WAVE_BORDER_TIME_SPEED
+                delay(update_interval)
+            }
+        }
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 title_text, 
                 style = MaterialTheme.typography.labelLarge
             )
 
-            Spacer(Modifier.fillMaxWidth().weight(1f))
+            WaveBorder(
+                Modifier.fillMaxWidth().weight(1f), 
+                waves = 6,
+                border_thickness = hint_path_thickness + 1.dp, 
+                border_colour = LocalContentColor.current.copy(alpha = 0.5f),
+                getOffset = { 0f },
+                getWaveOffset = { wave_border_offset },
+                width_multiplier = 2f,
+            )
 
             // Select between
             AnimatedVisibility(ordered_selectable_items.isNotEmpty() || getAllItems != null) {
@@ -78,7 +96,7 @@ fun MediaItemMultiSelectContext.MultiSelectInfoDisplayContent(modifier: Modifier
                             setItemSelected(item, true)
                         }
                     },
-                    Modifier.size(24.dp)
+                    // Modifier.size(24.dp)
                 ) {
                     Icon(Icons.Default.Expand, null)
                 }
@@ -104,14 +122,14 @@ fun MediaItemMultiSelectContext.MultiSelectInfoDisplayContent(modifier: Modifier
                             selected_items.clear()
                         }
                     },
-                    Modifier.size(24.dp)
+                    // Modifier.size(24.dp)
                 ) {
                     Icon(Icons.Default.SelectAll, null)
                 }
             }
         }
 
-        Divider(Modifier.padding(top = 5.dp), color = LocalContentColor.current, thickness = hint_path_thickness)
+        // Divider(Modifier.padding(top = 5.dp), color = local_content_colour, thickness = hint_path_thickness)
 
         Row(
             Modifier.height(IntrinsicSize.Min),

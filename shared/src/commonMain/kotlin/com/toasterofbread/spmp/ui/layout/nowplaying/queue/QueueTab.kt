@@ -338,7 +338,7 @@ internal fun QueueTab(
     }
 }
 
-private const val WAVE_BORDER_TIME_SPEED: Float = 0.15f
+const val WAVE_BORDER_TIME_SPEED: Float = 0.15f
 
 @Composable
 private fun QueueBorder(
@@ -349,7 +349,7 @@ private fun QueueBorder(
     getBackgroundColour: PlayerState.() -> Color,
     getBorderColour: PlayerState.() -> Color
 ) {
-    val player = LocalPlayerState.current
+    val player: PlayerState = LocalPlayerState.current
 
     if (wave_border_mode == NowPlayingQueueWaveBorderMode.LINE) {
         Divider(Modifier.padding(horizontal = list_padding), border_thickness, getBorderColour(player))

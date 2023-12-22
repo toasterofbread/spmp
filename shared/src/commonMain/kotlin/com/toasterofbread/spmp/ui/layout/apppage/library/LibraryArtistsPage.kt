@@ -122,7 +122,12 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
                         content_padding: PaddingValues,
                         close: () -> Unit,
                     ) {
-                        LocalArtistPage(item.item as Artist, previous_item = previous_item?.item, content_padding = content_padding)
+                        LocalArtistPage(
+                            item.item as Artist, 
+                            previous_item = previous_item?.item, 
+                            content_padding = content_padding,
+                            multiselect_context = multiselect_context
+                        )
                     }
                 }
             )

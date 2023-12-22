@@ -267,7 +267,10 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                                             Modifier
                                                 .padding(end = 10.dp)
                                                 .size(controls_target_height - 100.dp)
-                                                .clip(thumbnail_shape)
+                                                .clip(thumbnail_shape),
+                                            onLoaded = {
+                                                onThumbnailLoaded(song, it)
+                                            }
                                         )
                                     }
                                 }
@@ -276,42 +279,44 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                             val thumbnail_row_height: Dp =
                                 if (compact_mode) (1f - absolute_expansion) * thumb_size
                                 else thumb_size
-
-                            LargeThumbnailRow(
-                                Modifier
-                                    .height(thumbnail_row_height)
-                                    .graphicsLayer {
-                                        alpha = if (compact_mode) 1f - absolute_expansion else 1f
-                                    }
-                                    .offset {
-                                        IntOffset(
-                                            (((column_width - actual_thumb_size.width).toPx() / 2) * absolute_expansion).roundToInt(),
-                                            0
-                                        )
-                                    }
-                                    .onGloballyPositioned {
-                                        thumbnail_y_position = with (density) {(
-                                            it.positionInParent().y
-                                            + lerp(-controls_target_height.toPx() / 2f, 0f, 1f - absolute_expansion)
-                                            - 50.dp.toPx()
-                                        )}
+                            
+                            if (!compact_mode || absolute_expansion < 1f) {
+                                LargeThumbnailRow(
+                                    Modifier
+                                        .height(thumbnail_row_height)
+                                        .graphicsLayer {
+                                            alpha = if (compact_mode) 1f - absolute_expansion else 1f
+                                        }
+                                        .offset {
+                                            IntOffset(
+                                                (((column_width - actual_thumb_size.width).toPx() / 2) * absolute_expansion).roundToInt(),
+                                                0
+                                            )
+                                        }
+                                        .onGloballyPositioned {
+                                            thumbnail_y_position = with (density) {(
+                                                it.positionInParent().y
+                                                + lerp(-controls_target_height.toPx() / 2f, 0f, 1f - absolute_expansion)
+                                                - 50.dp.toPx()
+                                            )}
+                                        },
+                                    onThumbnailLoaded = { song, image ->
+                                        onThumbnailLoaded(song, image)
                                     },
-                                onThumbnailLoaded = { song, image ->
-                                    onThumbnailLoaded(song, image)
-                                },
-                                setThemeColour = {
-                                    setThemeColour(it, true)
-                                },
-                                getSeekState = { seek_state },
-                                disable_parent_scroll_while_menu_open = false,
-                                thumbnail_modifier = Modifier.onGloballyPositioned {
-                                    with (density) {
-                                        val position: Offset = it.positionInRoot()
-                                        actual_thumb_position = DpOffset(position.x.toDp(), position.y.toDp())
-                                        actual_thumb_size = DpSize(it.size.width.toDp(), it.size.height.toDp())
+                                    setThemeColour = {
+                                        setThemeColour(it, true)
+                                    },
+                                    getSeekState = { seek_state },
+                                    disable_parent_scroll_while_menu_open = false,
+                                    thumbnail_modifier = Modifier.onGloballyPositioned {
+                                        with (density) {
+                                            val position: Offset = it.positionInRoot()
+                                            actual_thumb_position = DpOffset(position.x.toDp(), position.y.toDp())
+                                            actual_thumb_size = DpSize(it.size.width.toDp(), it.size.height.toDp())
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            }
 
                             Spacer(Modifier.requiredHeight(animateDpAsState(inner_bottom_padding * compact_mode.toInt()).value).weight(1f, false))
 

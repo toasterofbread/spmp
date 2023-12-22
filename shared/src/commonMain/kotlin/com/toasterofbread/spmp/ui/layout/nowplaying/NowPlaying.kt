@@ -104,10 +104,12 @@ private fun PlayerState.getBackgroundColourOverride(): Color {
 }
 
 private var derived_np_background: State<Color>? = null
+private var derived_np_background_player: PlayerState? = null
 
 internal fun PlayerState.getNPBackground(): Color {
-    if (derived_np_background == null) {
+    if (derived_np_background == null || derived_np_background_player != this) {
         derived_np_background = derivedStateOf { getBackgroundColourOverride() }
+        derived_np_background_player = this
     }
     return derived_np_background!!.value
 }

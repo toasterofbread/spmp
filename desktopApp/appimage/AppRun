@@ -1,8 +1,16 @@
 #!/bin/sh
 
+# Check if Java is installed
+if ! command -v java > /dev/null; then
+    echo "Java does not appear to be installed on this system. See https://spmp.toastbits.dev/docs/client/installation/ for more information."
+    exit 1
+fi
+
 SELF=$(readlink -f "$0")
 HERE=${SELF%/*}
 EXEC=$(grep -e '^Exec=.*' "${HERE}"/*.desktop | head -n 1 | cut -d "=" -f 2 | cut -d " " -f 1)
 
 cd $HERE
+
+echo "Running SpMp..."
 exec "${EXEC}" "$@"

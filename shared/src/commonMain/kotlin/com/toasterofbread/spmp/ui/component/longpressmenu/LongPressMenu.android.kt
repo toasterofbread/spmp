@@ -110,7 +110,7 @@ internal fun AndroidLongPressMenu(
             DisposableEffect(Unit) {
                 val theme_colour = data.item.ThemeColour.get(player.database)
                 if (theme_colour != null) {
-                    accent_colour = theme_colour
+                    accent_colour = theme_colour.contrastAgainst(player.theme.background)
                 }
 
                 player.onNavigationBarTargetColourChanged(player.theme.background, true)

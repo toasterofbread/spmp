@@ -97,12 +97,12 @@ fun WaveBorder(
                         user_offset + border_thickness
                     }
                 )
-                .background(border_colour, shape)
-                .offset(0.dp, -border_thickness)
-                .background(colour, shape)
                 .thenIf(clip_content) {
                     clipToBounds()
                 }
+                .background(border_colour, shape)
+                .offset(0.dp, -border_thickness)
+                .background(colour, shape)
         )
     }
 }

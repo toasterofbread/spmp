@@ -19,7 +19,6 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.multiselect_context.MultiSelectGeneralActions
 import com.toasterofbread.spmp.ui.component.multiselect_context.MultiSelectOverflowActions
 import com.toasterofbread.spmp.ui.component.WaveBorder
-import com.toasterofbread.spmp.ui.layout.nowplaying.queue.WAVE_BORDER_TIME_SPEED
 import kotlinx.coroutines.delay
 
 @Composable
@@ -66,12 +65,12 @@ fun MediaItemMultiSelectContext.MultiSelectInfoDisplayContent(modifier: Modifier
         LaunchedEffect(Unit) {
             val update_interval: Long = 1000 / 30
             while (true) {
-                wave_border_offset += update_interval * WAVE_BORDER_TIME_SPEED
+                wave_border_offset += update_interval * 0.05f
                 delay(update_interval)
             }
         }
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(
                 title_text, 
                 style = MaterialTheme.typography.labelLarge
@@ -79,12 +78,13 @@ fun MediaItemMultiSelectContext.MultiSelectInfoDisplayContent(modifier: Modifier
 
             WaveBorder(
                 Modifier.fillMaxWidth().weight(1f), 
-                waves = 6,
+                waves = 4,
                 border_thickness = hint_path_thickness + 1.dp, 
                 border_colour = LocalContentColor.current.copy(alpha = 0.5f),
                 getOffset = { 0f },
                 getWaveOffset = { wave_border_offset },
                 width_multiplier = 2f,
+                clip_content = true
             )
 
             // Select between

@@ -200,7 +200,9 @@ fun SmallThumbnailRow(
                         .onSizeChanged {
                             image_size = it
                         }
-                        .songThumbnailShadow(song, thumbnail_shape)
+                        .thenIf(current_thumb_image != null) {
+                            songThumbnailShadow(song, thumbnail_shape)
+                        }
                         .platformClickable(
                             onClick = {
                                 performPressAction(false)

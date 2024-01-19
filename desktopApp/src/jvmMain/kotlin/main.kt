@@ -2,6 +2,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -10,10 +11,7 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.WindowPosition
-import androidx.compose.ui.window.application
-import androidx.compose.ui.window.rememberWindowState
+import androidx.compose.ui.window.*
 import com.toasterofbread.composekit.platform.composable.onWindowBackPressed
 import com.toasterofbread.spmp.model.settings.category.DesktopSettings
 import com.toasterofbread.spmp.platform.AppContext
@@ -38,6 +36,7 @@ fun main() {
 
     if (hostOs == OS.Linux) {
         try {
+            // Set AWT class name of window
             val toolkit: Toolkit = Toolkit.getDefaultToolkit()
             val class_name_field: Field = toolkit.javaClass.getDeclaredField("awtAppClassName")
             class_name_field.isAccessible = true
@@ -46,13 +45,27 @@ fun main() {
         catch (_: Throwable) {}
     }
 
+    lateinit var window: ComposeWindow
+    var prev_window_placement: WindowPlacement? = null
+
     application {
         Window(
             title = SpMp.app_name,
             onCloseRequest = ::exitApplication,
             onKeyEvent = { event ->
-                if (event.key == Key.Escape && event.type == KeyEventType.KeyDown) {
-                    return@Window onWindowBackPressed()
+                if (event.type == KeyEventType.KeyDown) {
+                    when (event.key) {
+                        Key.Escape -> return@Window onWindowBackPressed()
+                        Key.F11 -> {
+                            if (window.placement == WindowPlacement.Fullscreen) {
+                                window.placement = prev_window_placement ?: WindowPlacement.Floating
+                            }
+                            else {
+                                prev_window_placement = window.placement
+                                window.placement = WindowPlacement.Fullscreen
+                            }
+                        }
+                    }
                 }
                 return@Window false
             },
@@ -62,6 +75,8 @@ fun main() {
             )
         ) {
             LaunchedEffect(Unit) {
+                window = this@Window.window
+
                 val startup_command: String = DesktopSettings.Key.STARTUP_COMMAND.get()
                 if (startup_command.isBlank()) {
                     return@LaunchedEffect

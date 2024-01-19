@@ -30,6 +30,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.db.SongFeedCache
+import com.toasterofbread.spmp.model.mediaitem.db.SongFeedData
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.FeedSettings
@@ -176,13 +177,13 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
 
         try {
             if (load_state != FeedLoadState.PREINIT && load_state != FeedLoadState.NONE) {
-                val error = IllegalStateException("Illegal load state $load_state")
+                val error: Throwable = IllegalStateException("Illegal load state $load_state")
                 load_error = error
                 return@withContext Result.failure(error)
             }
 
             if (allow_cached && !continue_feed && filter_chip == null) {
-                val cached = SongFeedCache.loadFeedLayouts(state.context.database)
+                val cached: SongFeedData? = SongFeedCache.loadFeedLayouts(state.context.database)
                 if (cached?.layouts?.isNotEmpty() == true) {
                     layouts = cached.layouts
                     filter_chips = cached.filter_chips
@@ -191,12 +192,11 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
                 }
             }
 
-            val filter_params = filter_chip?.let { filter_chips!![it].params }
+            val filter_params: String? = filter_chip?.let { filter_chips!![it].params }
             load_state = if (continue_feed) FeedLoadState.CONTINUING else FeedLoadState.LOADING
 
-            val result = loadFeedLayouts(
-                if (continue_feed && continuation != null) -1 else Settings.get(
-                    FeedSettings.Key.INITIAL_ROWS),
+            val result: Result<HomeFeedLoadResult> = loadFeedLayouts(
+                if (continue_feed && continuation != null) -1 else Settings.get(FeedSettings.Key.INITIAL_ROWS),
                 allow_cached,
                 filter_params,
                 if (continue_feed) continuation else null

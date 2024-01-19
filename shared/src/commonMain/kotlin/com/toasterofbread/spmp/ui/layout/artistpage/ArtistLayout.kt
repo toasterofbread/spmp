@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
@@ -100,12 +101,12 @@ fun ArtistLayout(
     var music_top_bar_showing: Boolean by remember { mutableStateOf(false) }
     val top_bar_alpha: Float by animateFloatAsState(if (!top_bar_over_image || music_top_bar_showing || multiselect_context?.is_active == true) 1f else 0f)
 
-    fun Theme.getBackgroundColour(): Color = with(density) {
-        background.copy(alpha = 
-            if (!top_bar_over_image || main_column_state.firstVisibleItemIndex > 0) top_bar_alpha
-            else (0.5f + ((main_column_state.firstVisibleItemScrollOffset / screen_width.toPx()) * 0.5f)) * top_bar_alpha
-        )
+    fun getBackgroundAlpha(): Float = with (density) {
+        if (!top_bar_over_image || main_column_state.firstVisibleItemIndex > 0) top_bar_alpha
+        else (0.5f + ((main_column_state.firstVisibleItemScrollOffset / screen_width.toPx()) * 0.5f)) * top_bar_alpha
     }
+
+    fun Theme.getBackgroundColour(): Color = background.copy(alpha = getBackgroundAlpha())
 
     @Composable
     fun TopBar() {
@@ -134,7 +135,11 @@ fun ArtistLayout(
             )
 
             AnimatedVisibility(showing) {
-                WaveBorder(Modifier.fillMaxWidth(), getColour = { getBackgroundColour() })
+                WaveBorder(
+                    Modifier.fillMaxWidth(),
+                    getColour = { background },
+                    getAlpha = { getBackgroundAlpha() }
+                )
             }
         }
     }

@@ -11,11 +11,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Matrix
-import androidx.compose.ui.graphics.Outline
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
@@ -28,6 +23,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import kotlin.math.ceil
 import com.toasterofbread.composekit.utils.common.thenIf
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.*
 
 const val WAVE_BORDER_HEIGHT_DP: Float = 20f
 
@@ -70,7 +66,8 @@ fun WaveBorder(
     clip_content: Boolean = false,
     getWaveOffset: (Density.() -> Float)? = null,
     border_thickness: Dp = 0.dp,
-    border_colour: Color = LocalContentColor.current
+    border_colour: Color = LocalContentColor.current,
+    getAlpha: () -> Float = { 1f }
 ) {
     val player: PlayerState = LocalPlayerState.current
     val density: Density = LocalDensity.current
@@ -100,6 +97,7 @@ fun WaveBorder(
                 .thenIf(clip_content) {
                     clipToBounds()
                 }
+                .graphicsLayer { alpha = getAlpha() }
                 .background(border_colour, shape)
                 .offset(0.dp, -border_thickness)
                 .background(colour, shape)

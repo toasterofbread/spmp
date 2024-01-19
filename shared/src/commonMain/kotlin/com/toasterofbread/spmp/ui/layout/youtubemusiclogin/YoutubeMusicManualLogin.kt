@@ -8,21 +8,28 @@ import com.toasterofbread.composekit.utils.common.indexOfOrNull
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringArray
 import com.toasterofbread.spmp.ui.layout.ManualLoginPage
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import okhttp3.Headers
 
 @Composable
-fun YoutubeMusicManualLogin(modifier: Modifier = Modifier, onFinished: (Result<YoutubeApi.UserAuthState>?) -> Unit) {
-    val player = LocalPlayerState.current
-    val coroutine_scope = rememberCoroutineScope()
+fun YoutubeMusicManualLogin(
+    login_url: String,
+    modifier: Modifier = Modifier,
+    onFinished: (Result<YoutubeApi.UserAuthState>?) -> Unit
+) {
+    val player: PlayerState = LocalPlayerState.current
+    val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     ManualLoginPage(
         steps = getStringArray("youtube_manual_login_steps"),
         suffix = getString("youtube_manual_login_suffix"),
         entry_label = getString("youtube_manual_login_field"),
-        modifier = modifier
+        modifier = modifier,
+        login_url = login_url
     ) { entry ->
         if (entry == null) {
             onFinished(null)

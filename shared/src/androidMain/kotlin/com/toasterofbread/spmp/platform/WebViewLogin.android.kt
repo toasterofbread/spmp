@@ -57,8 +57,6 @@ actual fun WebViewLogin(
     var web_view: WebView? by remember { mutableStateOf(null) }
     val is_dark: Boolean by remember { derivedStateOf { player.theme.background.isDark() } }
 
-    val test = player.theme.background
-
     var requested_url: String? by remember { mutableStateOf(null) }
     OnChangedEffect(requested_url) {
         requested_url?.also {

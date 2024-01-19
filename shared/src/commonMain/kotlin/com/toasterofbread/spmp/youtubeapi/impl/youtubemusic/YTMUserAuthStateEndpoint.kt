@@ -11,7 +11,7 @@ class YTMUserAuthStateEndpoint(
     override val api: YoutubeMusicApi
 ): UserAuthStateEndpoint() {
     override suspend fun byHeaders(headers: Headers): Result<YoutubeMusicAuthInfo> {
-        val names = headers.names()
+        val names: Set<String> = headers.names()
         val missing_headers: MutableList<String> = mutableListOf()
 
         for (header in YoutubeMusicAuthInfo.REQUIRED_HEADERS) {

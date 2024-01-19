@@ -54,6 +54,7 @@ import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeChannelNotCreatedException
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -73,9 +74,8 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
         content_padding: PaddingValues,
         onFinished: (Result<YoutubeApi.UserAuthState>?) -> Unit
     ) {
-        val player = LocalPlayerState.current
-        val coroutine_scope = rememberCoroutineScope()
-        val manual = confirm_param == true
+        val coroutine_scope: CoroutineScope = rememberCoroutineScope()
+        val manual: Boolean = confirm_param == true
 
         var channel_not_created_error: YoutubeChannelNotCreatedException? by remember { mutableStateOf(null) }
         var channel_creation_form: Result<ChannelCreationForm>? by remember { mutableStateOf(null) }
@@ -157,7 +157,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
                 }
             }
             else if (manual) {
-                YoutubeMusicManualLogin(Modifier.fillMaxSize().padding(content_padding), onFinished)
+                YoutubeMusicManualLogin(MUSIC_LOGIN_URL, Modifier.fillMaxSize().padding(content_padding), onFinished)
             }
             else if (isWebViewLoginSupported()) {
                 var finished: Boolean by remember { mutableStateOf(false) }
@@ -257,11 +257,16 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
                 }
             }
             else {
-                // TODO
-                LaunchedEffect(Unit) {
-                    player.context.openUrl(MUSIC_LOGIN_URL)
+                YoutubeMusicManualLogin(MUSIC_LOGIN_URL, Modifier.fillMaxSize()) { result ->
+                    result?.onFailure { error ->
+                        if (error is YoutubeChannelNotCreatedException) {
+                            channel_not_created_error = error
+                            return@YoutubeMusicManualLogin
+                        }
+                    }
+
+                    onFinished(result)
                 }
-                YoutubeMusicManualLogin(Modifier.fillMaxSize(), onFinished)
             }
         }
     }

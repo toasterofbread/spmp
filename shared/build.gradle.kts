@@ -1,4 +1,3 @@
-import org.jetbrains.compose.experimental.uikit.internal.registerSimulatorTasks
 import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
 import java.util.*

@@ -3,7 +3,6 @@ package com.toasterofbread.spmp.model.settings.category
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Tune
 import com.toasterofbread.spmp.model.settings.SettingsKey
-import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getSystemCategoryItems
 

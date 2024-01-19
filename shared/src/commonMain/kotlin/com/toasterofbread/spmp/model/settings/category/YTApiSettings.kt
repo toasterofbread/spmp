@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.model.settings.category
 
 import com.toasterofbread.spmp.model.settings.SettingsKey
-import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 
 data object YTApiSettings: SettingsCategory("ytapi") {

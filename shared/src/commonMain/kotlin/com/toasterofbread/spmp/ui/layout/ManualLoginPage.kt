@@ -2,17 +2,14 @@ package com.toasterofbread.spmp.ui.layout
 
 import LocalPlayerState
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -29,14 +26,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.composekit.utils.composable.Marquee
 import com.toasterofbread.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 
 @Composable
 fun ManualLoginPage(
@@ -44,25 +47,43 @@ fun ManualLoginPage(
     suffix: String,
     entry_label: String,
     modifier: Modifier = Modifier,
+    login_url: String? = null,
     desktop_browser_needed: Boolean = true,
     onFinished: (String?) -> Pair<String, String>?,
 ) {
-    val player = LocalPlayerState.current
+    val player: PlayerState = LocalPlayerState.current
+    val density: Density = LocalDensity.current
 
     Box(modifier) {
+        var info_entry_position: Dp by remember { mutableStateOf(0.dp) }
+
         Column(
             Modifier
                 .padding(horizontal = player.getDefaultHorizontalPadding())
-                .padding(top = 30.dp)
-                .fillMaxSize(),
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(30.dp)
         ) {
-            if (desktop_browser_needed) {
-                Text(
-                    getString("manual_login_desktop_browser_may_be_needed"),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold
-                )
+            Spacer(Modifier.height(10.dp))
+
+            if (desktop_browser_needed || login_url != null) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    if (desktop_browser_needed) {
+                        Text(
+                            getString("manual_login_desktop_browser_may_be_needed"),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    if (login_url != null) {
+                        IconButton({
+                            player.context.openUrl(login_url)
+                        }) {
+                            Icon(Icons.Default.OpenInNew, null)
+                        }
+                    }
+                }
             }
 
             @Composable
@@ -118,14 +139,23 @@ fun ManualLoginPage(
                     )
                 }
             }
+
+            Spacer(Modifier.height((player.screen_size.height - info_entry_position).coerceAtLeast(0.dp)))
         }
 
         InfoEntry(
             entry_label,
-            Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 20.dp),
+            player.nowPlayingTopOffset(
+                Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 20.dp)
+            )
+            .onGloballyPositioned {
+                info_entry_position = with (density) {
+                    it.positionInWindow().y.toDp()
+                }
+            },
             onFinished
         )
     }

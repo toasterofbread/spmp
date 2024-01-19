@@ -102,8 +102,27 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
     override val app_page_state = AppPageState(this)
     override val main_multiselect_context: MediaItemMultiSelectContext = AppPageMultiSelectContext(this)
     override var np_theme_mode: ThemeMode by mutableStateOf(Settings.getEnum(ThemeSettings.Key.NOWPLAYING_THEME_MODE, context.getPrefs()))
-    override val np_overlay_menu: MutableState<PlayerOverlayMenu?> = mutableStateOf(null)
     override val top_bar: MusicTopBar = MusicTopBar(this)
+
+    override val np_overlay_menu: MutableState<PlayerOverlayMenu?> = mutableStateOf(null)
+    private val np_overlay_menu_queue: MutableList<PlayerOverlayMenu> = mutableListOf()
+
+    override fun navigateNpOverlayMenuBack() {
+        np_overlay_menu.value = np_overlay_menu_queue.removeLastOrNull()
+    }
+
+    override fun openNpOverlayMenu(menu: PlayerOverlayMenu?) {
+        if (menu == null) {
+            np_overlay_menu.value = null
+            np_overlay_menu_queue.clear()
+            return
+        }
+
+        np_overlay_menu.value?.also {
+            np_overlay_menu_queue.add(it)
+        }
+        np_overlay_menu.value = menu
+    }
 
     init {
         low_memory_listener = {

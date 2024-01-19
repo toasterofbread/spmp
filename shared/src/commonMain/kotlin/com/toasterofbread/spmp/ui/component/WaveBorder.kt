@@ -140,7 +140,7 @@ inline fun wavePath(
     val y_offset: Float = size.height / 2
     val half_period: Float = size.width / waves
     val offset_px: Float = getOffset().let { offset ->
-        offset % size.width - (if (offset > 0f) size.width else 0f)
+        (offset % (size.width)) - (if (offset > 0f) size.width else 0f)
     }
 
     path.moveTo(x = offset_px, y = y_offset)

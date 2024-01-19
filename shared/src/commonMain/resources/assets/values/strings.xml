@@ -8,7 +8,7 @@
     <string name="app_name_debug" translatable="false">SpMp (debug)</string>
     <string name="project_url" translatable="false">https://github.com/toasterofbread/spmp</string>
     <string name="report_issue_url" translatable="false">https://github.com/toasterofbread/spmp/issues/new?labels=Bug&amp;template=bug_report.md&amp;title=%5BBug%5D+</string>
-    <string name="server_info_url" translatable="false">https://github.com/toasterofbread/spmp-server</string>
+    <string name="server_info_url" translatable="false">https://spmp.toastbits.dev/docs/server/about/</string>
     <string name="documentation_url" translatable="false">https://spmp.toastbits.dev/docs/about</string>
     <string name="server_documentation_url" translatable="false">https://spmp.toastbits.dev/docs/server/about</string>
 

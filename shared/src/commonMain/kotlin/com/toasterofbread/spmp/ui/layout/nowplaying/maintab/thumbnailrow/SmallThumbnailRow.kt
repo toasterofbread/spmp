@@ -90,7 +90,7 @@ fun SmallThumbnailRow(
     val thumbnail_rounding: Int = current_song.observeThumbnailRounding(DEFAULT_THUMBNAIL_ROUNDING)
     val thumbnail_shape: RoundedCornerShape = RoundedCornerShape(thumbnail_rounding)
 
-    var overlay_menu: PlayerOverlayMenu? by player.np_overlay_menu
+    val overlay_menu: PlayerOverlayMenu? by player.np_overlay_menu
     var current_thumb_image: ImageBitmap? by remember { mutableStateOf(null) }
     var image_size: IntSize by remember { mutableStateOf(IntSize(1, 1)) }
 
@@ -101,7 +101,7 @@ fun SmallThumbnailRow(
 
     val main_overlay_menu = remember {
         MainPlayerOverlayMenu(
-            { overlay_menu = it },
+            { player.openNpOverlayMenu(it) },
             { colourpick_callback = it },
             setThemeColour,
             { player.screen_size.width }
@@ -123,7 +123,7 @@ fun SmallThumbnailRow(
                 opened = true
             }
             else if (opened) {
-                overlay_menu = null
+                player.openNpOverlayMenu(null)
             }
         }
 
@@ -145,11 +145,13 @@ fun SmallThumbnailRow(
                     else PlayerOverlayMenuAction.DEFAULT
 
                 when (action) {
-                    PlayerOverlayMenuAction.OPEN_MAIN_MENU -> overlay_menu = main_overlay_menu
+                    PlayerOverlayMenuAction.OPEN_MAIN_MENU -> player.openNpOverlayMenu(main_overlay_menu)
                     PlayerOverlayMenuAction.OPEN_THEMING -> {
-                        overlay_menu = SongThemePlayerOverlayMenu(
-                            { colourpick_callback = it },
-                            setThemeColour
+                        player.openNpOverlayMenu(
+                            SongThemePlayerOverlayMenu(
+                                { colourpick_callback = it },
+                                setThemeColour
+                            )
                         )
                     }
                     PlayerOverlayMenuAction.PICK_THEME_COLOUR -> {
@@ -161,15 +163,15 @@ fun SmallThumbnailRow(
                         }
                     }
                     PlayerOverlayMenuAction.ADJUST_NOTIFICATION_IMAGE_OFFSET -> {
-                        overlay_menu = NotifImagePlayerOverlayMenu()
+                        player.openNpOverlayMenu(NotifImagePlayerOverlayMenu())
                     }
                     PlayerOverlayMenuAction.OPEN_LYRICS -> {
-                        overlay_menu = PlayerOverlayMenu.getLyricsMenu()
+                        player.openNpOverlayMenu(PlayerOverlayMenu.getLyricsMenu())
                     }
                     PlayerOverlayMenuAction.OPEN_RELATED -> {
                         val related_endpoint = player.context.ytapi.SongRelatedContent
                         if (related_endpoint.isImplemented()) {
-                            overlay_menu = RelatedContentPlayerOverlayMenu(related_endpoint)
+                            player.openNpOverlayMenu(RelatedContentPlayerOverlayMenu(related_endpoint))
                         }
                         else {
                             throw EndpointNotImplementedException(related_endpoint)
@@ -240,7 +242,7 @@ fun SmallThumbnailRow(
                                     }
 
                                     if (expansion.get() in 0.9f .. 1.1f && overlay_menu?.closeOnTap() == true) {
-                                        overlay_menu = null
+                                        player.openNpOverlayMenu(null)
                                     }
                                 }
                             )
@@ -264,12 +266,7 @@ fun SmallThumbnailRow(
                         contentAlignment = Alignment.Center
                     ) {
                         BackHandler(overlay_menu != null) {
-                            if (overlay_menu == main_overlay_menu) {
-                                overlay_menu = null
-                            }
-                            else {
-                                overlay_menu = main_overlay_menu
-                            }
+                            player.navigateNpOverlayMenuBack()
                             colourpick_callback = null
                         }
 
@@ -278,7 +275,7 @@ fun SmallThumbnailRow(
                                 menu?.Menu(
                                     { player.status.m_song!! },
                                     { expansion.getAbsolute() },
-                                    { overlay_menu = it ?: main_overlay_menu },
+                                    { player.openNpOverlayMenu(main_overlay_menu) },
                                     getSeekState
                                 ) { current_thumb_image }
                             }

@@ -182,8 +182,11 @@ open class PlayerState protected constructor(
 
     open val main_multiselect_context: MediaItemMultiSelectContext get() = upstream!!.main_multiselect_context
     open val np_theme_mode: ThemeMode get() = upstream!!.np_theme_mode
-    open val np_overlay_menu: MutableState<PlayerOverlayMenu?> get() = upstream!!.np_overlay_menu
     open val top_bar: MusicTopBar get() = upstream!!.top_bar
+
+    open val np_overlay_menu: State<PlayerOverlayMenu?> get() = upstream!!.np_overlay_menu
+    open fun navigateNpOverlayMenuBack() { upstream!!.navigateNpOverlayMenuBack() }
+    open fun openNpOverlayMenu(menu: PlayerOverlayMenu?) { upstream!!.openNpOverlayMenu(menu) }
 
     open val controller: PlatformPlayerService? get() = upstream!!.controller
     open fun withPlayer(action: PlayerServicePlayer.() -> Unit): Unit = upstream!!.withPlayer(action)

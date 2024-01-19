@@ -76,7 +76,7 @@ fun LargeThumbnailRow(
     val thumbnail_rounding: Int = current_song.observeThumbnailRounding(DEFAULT_THUMBNAIL_ROUNDING)
     val thumbnail_shape: RoundedCornerShape = RoundedCornerShape(thumbnail_rounding)
 
-    var overlay_menu: PlayerOverlayMenu? by player.np_overlay_menu
+    val overlay_menu: PlayerOverlayMenu? by player.np_overlay_menu
     var current_thumb_image: ImageBitmap? by remember { mutableStateOf(null) }
     var image_size: IntSize by remember { mutableStateOf(IntSize(1, 1)) }
 
@@ -87,7 +87,7 @@ fun LargeThumbnailRow(
 
     val main_overlay_menu: MainPlayerOverlayMenu = remember {
         MainPlayerOverlayMenu(
-            { overlay_menu = it },
+            player::openNpOverlayMenu,
             { colourpick_callback = it },
             setThemeColour,
             { player.screen_size.width }
@@ -109,7 +109,7 @@ fun LargeThumbnailRow(
                     opened = true
                 }
                 else if (opened) {
-                    overlay_menu = null
+                    player.openNpOverlayMenu(null)
                 }
             }
 
@@ -188,7 +188,7 @@ fun LargeThumbnailRow(
                                             main_overlay_menu,
                                             setThemeColour,
                                             { colourpick_callback = it },
-                                            { overlay_menu = it }
+                                            { player.openNpOverlayMenu(it) }
                                         )
                                     },
                                     onAltClick = {
@@ -200,7 +200,7 @@ fun LargeThumbnailRow(
                                             main_overlay_menu,
                                             setThemeColour,
                                             { colourpick_callback = it },
-                                            { overlay_menu = it }
+                                            { player.openNpOverlayMenu(it) }
                                         )
                                     }
                                 )
@@ -234,7 +234,7 @@ fun LargeThumbnailRow(
                                         }
 
                                         if (expansion.get() in 0.9f .. 1.1f && overlay_menu?.closeOnTap() == true) {
-                                            overlay_menu = null
+                                            player.openNpOverlayMenu(null)
                                         }
                                     }
                                 )
@@ -261,12 +261,7 @@ fun LargeThumbnailRow(
                             contentAlignment = Alignment.Center
                         ) {
                             BackHandler(overlay_menu != null) {
-                                if (overlay_menu == main_overlay_menu) {
-                                    overlay_menu = null
-                                }
-                                else {
-                                    overlay_menu = main_overlay_menu
-                                }
+                                player.navigateNpOverlayMenuBack()
                                 colourpick_callback = null
                             }
 
@@ -275,7 +270,7 @@ fun LargeThumbnailRow(
                                     menu?.Menu(
                                         { player.status.m_song!! },
                                         { expansion.getAbsolute() },
-                                        { overlay_menu = it ?: main_overlay_menu },
+                                        { player.openNpOverlayMenu(it ?: main_overlay_menu) },
                                         getSeekState
                                     ) { current_thumb_image }
                                 }

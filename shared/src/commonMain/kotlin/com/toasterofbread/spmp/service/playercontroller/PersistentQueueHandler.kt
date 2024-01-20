@@ -136,7 +136,7 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
                     return@withContext
                 }
 
-                val queue = getSavedQueue(context)
+                val queue: Pair<List<SongData>, PersistentQueueMetadata> = getSavedQueue(context)
                 songs = queue.first
                 metadata = queue.second
 
@@ -169,7 +169,8 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
             }
             catch (e: Throwable) {
                 SpMp.Log.info("loadPersistentQueue: Failed with $e")
-                throw RuntimeException(e)
+                persistent_queue_loaded = true
+                return@withContext
             }
             finally {
                 queue_lock.unlock()

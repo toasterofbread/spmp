@@ -10,6 +10,7 @@ import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.processDefaultRespon
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
+import okhttp3.Response
 
 class YTMLoadArtistEndpoint(override val api: YoutubeMusicApi): LoadArtistEndpoint() {
     override suspend fun loadArtist(artist_data: ArtistData): Result<ArtistData> = withContext(Dispatchers.IO) {
@@ -25,7 +26,7 @@ class YTMLoadArtistEndpoint(override val api: YoutubeMusicApi): LoadArtistEndpoi
             )
             .build()
 
-        val response = api.performRequest(request).getOrElse {
+        val response: Response = api.performRequest(request).getOrElse {
             return@withContext Result.failure(DataParseException.ofYoutubeJsonRequest(request, api, cause = it))
         }
 

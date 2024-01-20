@@ -46,7 +46,7 @@ actual class PlatformPlayerService: SpMsPlayerService(), PlayerService {
     actual override val has_focus: Boolean
         get() = true // TODO
     actual override val radio_state: RadioInstance.RadioState
-        get() = _radio_state
+        get() = service_player.radio_state
     actual override var repeat_mode: MediaPlayerRepeatMode
         get() = _repeat_mode
         set(value) {

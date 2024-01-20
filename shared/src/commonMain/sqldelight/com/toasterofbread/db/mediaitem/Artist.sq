@@ -2,6 +2,7 @@ CREATE TABLE Artist (
     id TEXT NOT NULL PRIMARY KEY,
 
     subscribe_channel_id TEXT,
+    shuffle_playlist_id TEXT,
     subscriber_count INTEGER,
 
     --
@@ -25,6 +26,9 @@ removeById {
 
 subscribeChannelIdById: SELECT subscribe_channel_id FROM Artist WHERE id == :id;
 updateSubscribeChannelIdById: UPDATE Artist SET subscribe_channel_id = :subscribe_channel_id WHERE id == :id;
+
+shufflePlaylistIdById: SELECT shuffle_playlist_id FROM Artist WHERE id == :id;
+updateShufflePlaylistIdById: UPDATE Artist SET shuffle_playlist_id = :shuffle_playlist_id WHERE id == :id;
 
 subscriberCountById: SELECT subscriber_count FROM Artist WHERE id == :id;
 updateSubscriberCountById: UPDATE Artist SET subscriber_count = :subscriber_count WHERE id == :id;

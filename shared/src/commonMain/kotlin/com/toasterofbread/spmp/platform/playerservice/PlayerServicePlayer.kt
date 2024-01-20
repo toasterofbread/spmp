@@ -16,7 +16,6 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.db.incrementPlayCount
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.DiscordAuthSettings
-import com.toasterofbread.spmp.model.settings.category.YoutubeAuthSettings
 import com.toasterofbread.spmp.model.settings.category.MiscSettings
 import com.toasterofbread.spmp.model.settings.category.SystemSettings
 import com.toasterofbread.spmp.platform.AppContext
@@ -119,7 +118,7 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
             tracking_song_index = current_song_index
             song_marked_as_watched = false
 
-            radio.checkRadioContinuation()
+            radio.checkAutoRadioContinuation()
             discord_status.updateDiscordStatus(song)
 
             coroutine_scope.launch {
@@ -179,12 +178,12 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
         }
 
         override fun onSongMoved(from: Int, to: Int) {
-            radio.checkRadioContinuation()
+            radio.checkAutoRadioContinuation()
             radio.instance.onSongMoved(from, to)
         }
 
         override fun onSongRemoved(index: Int) {
-            radio.checkRadioContinuation()
+            radio.checkAutoRadioContinuation()
             radio.instance.onSongRemoved(index)
         }
 

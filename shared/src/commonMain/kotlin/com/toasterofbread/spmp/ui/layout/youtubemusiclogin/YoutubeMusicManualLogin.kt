@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.youtubemusiclogin
 
 import LocalPlayerState
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -18,6 +19,7 @@ import okhttp3.Headers
 @Composable
 fun YoutubeMusicManualLogin(
     login_url: String,
+    content_padding: PaddingValues,
     modifier: Modifier = Modifier,
     onFinished: (Result<YoutubeApi.UserAuthState>?) -> Unit
 ) {
@@ -29,7 +31,8 @@ fun YoutubeMusicManualLogin(
         suffix = getString("youtube_manual_login_suffix"),
         entry_label = getString("youtube_manual_login_field"),
         modifier = modifier,
-        login_url = login_url
+        login_url = login_url,
+        content_padding = content_padding
     ) { entry ->
         if (entry == null) {
             onFinished(null)
@@ -66,8 +69,8 @@ fun YoutubeMusicManualLogin(
 private class MissingHeadersException(val keys: List<String>): RuntimeException()
 
 private fun getHeadersFromManualEntry(headers_text: String): Result<Headers> {
-    val headers_builder = Headers.Builder()
-    val required_keys = YoutubeMusicAuthInfo.REQUIRED_HEADERS.toMutableList()
+    val headers_builder: Headers.Builder = Headers.Builder()
+    val required_keys: MutableList<String> = YoutubeMusicAuthInfo.REQUIRED_HEADERS.toMutableList()
 
     for (line in headers_text.lines()) {
         val colon = line.indexOfOrNull(':') ?: continue
@@ -77,7 +80,11 @@ private fun getHeadersFromManualEntry(headers_text: String): Result<Headers> {
             continue
         }
 
-        val key = line.substring(0, colon).lowercase()
+        val key: String = line.substring(0, colon).lowercase()
+        if (key == "x-goog-authuser") {
+            continue
+        }
+
         headers_builder.add(key, line.substring(colon + 1).trim())
         required_keys.remove(key)
     }

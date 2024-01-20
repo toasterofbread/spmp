@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic
 
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.platform.getDataLanguage
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
@@ -20,6 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Headers
 import okhttp3.Request
+import okhttp3.Response
 
 class YoutubeChannelNotCreatedException(
     val headers: Headers,
@@ -32,7 +34,7 @@ class YoutubeMusicAuthInfo private constructor(
     headers: Headers
 ): YoutubeApi.UserAuthState(headers) {
     companion object {
-        val REQUIRED_HEADERS = listOf("authorization", "cookie")
+        val REQUIRED_HEADERS: List<String> = listOf("authorization", "cookie")
 
         fun create(api: YoutubeMusicApi, own_channel: Artist, headers: Headers): YoutubeMusicAuthInfo {
             own_channel.createDbEntry(api.database)
@@ -54,8 +56,8 @@ class YoutubeMusicAuthInfo private constructor(
 
 class YTMGenericFeedViewMorePageEndpoint(override val api: YoutubeApi): GenericFeedViewMorePageEndpoint() {
     override suspend fun getGenericFeedViewMorePage(browse_id: String): Result<List<MediaItem>> = withContext(Dispatchers.IO) {
-        val hl = api.context.getDataLanguage()
-        val request = Request.Builder()
+        val hl: String = api.context.getDataLanguage()
+        val request: Request = Request.Builder()
             .endpointUrl("/youtubei/v1/browse")
             .addAuthApiHeaders()
             .postWithBody(
@@ -63,12 +65,12 @@ class YTMGenericFeedViewMorePageEndpoint(override val api: YoutubeApi): GenericF
             )
             .build()
 
-        val result = api.performRequest(request)
+        val result: Result<Response> = api.performRequest(request)
         val data: YoutubeiBrowseResponse = result.parseJsonResponse {
             return@withContext Result.failure(it)
         }
 
-        val items = try {
+        val items: List<MediaItemData> = try {
             data.contents!!
                 .singleColumnBrowseResultsRenderer!!
                 .tabs

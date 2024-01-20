@@ -7,31 +7,7 @@ import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.composable.LoginPage
-import com.toasterofbread.spmp.youtubeapi.endpoint.AccountPlaylistAddSongsEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.AccountPlaylistEditorEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.AccountPlaylistsEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistRadioEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.CreateAccountPlaylistEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.CreateYoutubeChannelEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.DeleteAccountPlaylistEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.GenericFeedViewMorePageEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.LoadArtistEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.LoadPlaylistEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.LoadSongEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.MarkSongAsWatchedEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.PlaylistContinuationEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.SearchEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.SearchSuggestionsEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.SetSongLikedEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.SetSubscribedToArtistEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.SongLikedEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.SongLyricsEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.SongRadioEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.SubscribedToArtistEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.UserAuthStateEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.YoutubeChannelCreationFormEndpoint
+import com.toasterofbread.spmp.youtubeapi.endpoint.*
 import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.unimplemented.UnimplementedYoutubeApi
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
@@ -224,6 +200,7 @@ interface YoutubeApi {
     // --- Artists ---
     val ArtistWithParams: ArtistWithParamsEndpoint
     val ArtistRadio: ArtistRadioEndpoint
+    val ArtistShuffle: ArtistShuffleEndpoint
 
     // --- Playlists ---
     val PlaylistContinuation: PlaylistContinuationEndpoint

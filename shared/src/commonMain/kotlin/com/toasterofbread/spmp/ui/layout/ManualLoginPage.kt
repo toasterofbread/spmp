@@ -37,7 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.composekit.utils.composable.Marquee
 import com.toasterofbread.composekit.utils.composable.WidthShrinkText
-import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
+import com.toasterofbread.composekit.utils.modifier.horizontal
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 
@@ -49,6 +49,7 @@ fun ManualLoginPage(
     modifier: Modifier = Modifier,
     login_url: String? = null,
     desktop_browser_needed: Boolean = true,
+    content_padding: PaddingValues = PaddingValues(),
     onFinished: (String?) -> Pair<String, String>?,
 ) {
     val player: PlayerState = LocalPlayerState.current
@@ -59,7 +60,7 @@ fun ManualLoginPage(
 
         Column(
             Modifier
-                .padding(horizontal = player.getDefaultHorizontalPadding())
+                .padding(content_padding.horizontal)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(30.dp)
@@ -140,7 +141,11 @@ fun ManualLoginPage(
                 }
             }
 
-            Spacer(Modifier.height((player.screen_size.height - info_entry_position).coerceAtLeast(0.dp)))
+            Spacer(
+                Modifier.height(
+                    (player.screen_size.height - info_entry_position + content_padding.calculateBottomPadding()).coerceAtLeast(0.dp)
+                )
+            )
         }
 
         InfoEntry(

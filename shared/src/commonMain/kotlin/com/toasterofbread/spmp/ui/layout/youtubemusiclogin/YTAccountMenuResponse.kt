@@ -28,7 +28,10 @@ data class YTAccountMenuResponse(val actions: List<Action>) {
     data class ActiveAccountHeaderRenderer(val accountName: TextRuns, val accountPhoto: MusicThumbnailRenderer.Thumbnail)
 
     fun getAritst(): Artist? {
-        val account = actions.first().openPopupAction.popup.multiPageMenuRenderer.header!!.activeAccountHeaderRenderer
+        val account: ActiveAccountHeaderRenderer =
+            actions.first().openPopupAction.popup.multiPageMenuRenderer.header?.activeAccountHeaderRenderer
+            ?: return null
+
         return ArtistData(getChannelId() ?: return null).apply {
             title = account.accountName.first_text
             thumbnail_provider = MediaItemThumbnailProvider.fromThumbnails(account.accountPhoto.thumbnails)

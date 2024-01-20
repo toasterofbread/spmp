@@ -88,7 +88,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
                 channel_creation_form = api.YoutubeChannelCreationForm.getForm(error.headers, error.channel_creation_token)
             }
             else {
-                channel_creation_form = Result.failure(RuntimeException(getStringTODO("No channel creation token")))
+                channel_creation_form = Result.failure(RuntimeException(getStringTODO("No channel creation token"), error))
             }
         }
 
@@ -157,7 +157,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
                 }
             }
             else if (manual) {
-                YoutubeMusicManualLogin(MUSIC_LOGIN_URL, Modifier.fillMaxSize().padding(content_padding), onFinished)
+                YoutubeMusicManualLogin(MUSIC_LOGIN_URL, content_padding, Modifier.fillMaxSize(), onFinished)
             }
             else if (isWebViewLoginSupported()) {
                 var finished: Boolean by remember { mutableStateOf(false) }
@@ -185,8 +185,8 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
 
                                 finished = true
 
-                                val cookie = getCookie(api.api_url)
-                                val headers_builder = Headers.Builder()
+                                val cookie: String = getCookie(api.api_url)
+                                val headers_builder: Headers.Builder = Headers.Builder()
                                     .add("Cookie", cookie)
                                     .apply {
                                         for (header in request.requestHeaders) {
@@ -257,7 +257,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
                 }
             }
             else {
-                YoutubeMusicManualLogin(MUSIC_LOGIN_URL, Modifier.fillMaxSize()) { result ->
+                YoutubeMusicManualLogin(MUSIC_LOGIN_URL, content_padding, Modifier.fillMaxSize()) { result ->
                     result?.onFailure { error ->
                         if (error is YoutubeChannelNotCreatedException) {
                             channel_not_created_error = error

@@ -93,7 +93,7 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
     internal var _is_playing: Boolean = false
     internal var _current_song_index: Int = -1
     internal var _duration_ms: Long = -1
-    internal var _radio_state: RadioInstance.RadioState = RadioInstance.RadioState()
+    internal var _radio_state: RadioInstance.RadioState = RadioInstance.RadioState() // TODO
     internal var _repeat_mode: MediaPlayerRepeatMode = MediaPlayerRepeatMode.NONE
     internal var _volume: Float = 1f
     internal var current_song_time: Long = -1

@@ -111,7 +111,7 @@ class RadioHandler(val player: PlayerServicePlayer, val context: AppContext) {
         }
     }
 
-    fun checkRadioContinuation() {
+    fun checkAutoRadioContinuation() {
         if (!instance.active || instance.loading) {
             return
         }

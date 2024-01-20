@@ -159,14 +159,18 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                         }
                     }
 
-                    if (header_renderer.subscriptionButton != null && item is ArtistData) {
-                        val subscribe_button = header_renderer.subscriptionButton.subscribeButtonRenderer
-                        item.subscribe_channel_id = subscribe_button.channelId
-                        item.subscriber_count = parseYoutubeSubscribersString(subscribe_button.subscriberCountText.first_text, hl)
-                        item.subscribed = subscribe_button.subscribed
+                    if (item is ArtistData) {
+                        if (header_renderer.subscriptionButton != null) {
+                            val subscribe_button = header_renderer.subscriptionButton.subscribeButtonRenderer
+                            item.subscribe_channel_id = subscribe_button.channelId
+                            item.subscriber_count = parseYoutubeSubscribersString(subscribe_button.subscriberCountText.first_text, hl)
+                            item.subscribed = subscribe_button.subscribed
+                        }
+                        if (header_renderer.playButton?.buttonRenderer?.icon?.iconType == "MUSIC_SHUFFLE") {
+                            item.shuffle_playlist_id = header_renderer.playButton.buttonRenderer.navigationEndpoint.watchEndpoint?.playlistId
+                        }
                     }
                 }
-
 
                 if (item is RemotePlaylistData) {
                     val menu_buttons: List<Header.TopLevelButton>? =
@@ -178,7 +182,7 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                     }
                 }
 
-                val section_list_renderer = with (parsed.contents!!) {
+                val section_list_renderer: YoutubeiBrowseResponse.SectionListRenderer? = with (parsed.contents!!) {
                     if (singleColumnBrowseResultsRenderer != null) {
                         singleColumnBrowseResultsRenderer.tabs.firstOrNull()?.tabRenderer?.content?.sectionListRenderer
                     }

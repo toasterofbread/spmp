@@ -64,6 +64,7 @@ fun main() {
                                 prev_window_placement = window.placement
                                 window.placement = WindowPlacement.Fullscreen
                             }
+                            return@Window true
                         }
                     }
                 }

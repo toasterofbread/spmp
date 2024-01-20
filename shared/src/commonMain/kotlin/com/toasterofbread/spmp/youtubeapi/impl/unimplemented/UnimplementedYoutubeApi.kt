@@ -23,25 +23,7 @@ import com.toasterofbread.spmp.youtubeapi.SongRelatedContentEndpoint
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.YoutubeVideoFormat
 import com.toasterofbread.spmp.youtubeapi.composable.LoginPage
-import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistRadioEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsRow
-import com.toasterofbread.spmp.youtubeapi.endpoint.CreateYoutubeChannelEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.GenericFeedViewMorePageEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedLoadResult
-import com.toasterofbread.spmp.youtubeapi.endpoint.LoadArtistEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.LoadPlaylistEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.LoadSongEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.PlaylistContinuationEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.SearchEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.SearchResults
-import com.toasterofbread.spmp.youtubeapi.endpoint.SearchSuggestion
-import com.toasterofbread.spmp.youtubeapi.endpoint.SearchSuggestionsEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.SongLyricsEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.SongRadioEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.UserAuthStateEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.YoutubeChannelCreationFormEndpoint
+import com.toasterofbread.spmp.youtubeapi.endpoint.*
 import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.RelatedGroup
 import okhttp3.Headers
@@ -182,6 +164,12 @@ class UnimplementedYoutubeApi(
     }
     override val ArtistRadio: ArtistRadioEndpoint = object : ArtistRadioEndpoint() {
         override suspend fun getArtistRadio(artist: Artist, continuation: String?): Result<RadioData> {
+            throw NotImplementedError()
+        }
+        override val api: YoutubeApi = this@UnimplementedYoutubeApi
+    }
+    override val ArtistShuffle: ArtistShuffleEndpoint = object : ArtistShuffleEndpoint() {
+        override suspend fun getArtistShuffle(artist: Artist, continuation: String?): Result<RadioData> {
             throw NotImplementedError()
         }
         override val api: YoutubeApi = this@UnimplementedYoutubeApi

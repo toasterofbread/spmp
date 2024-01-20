@@ -1,66 +1,101 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
-import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
-import com.toasterofbread.spmp.model.mediaitem.layout.LambdaViewMore
-import com.toasterofbread.spmp.model.mediaitem.layout.ListPageBrowseIdViewMore
-import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemViewMore
-import com.toasterofbread.spmp.model.mediaitem.layout.PlainViewMore
-import com.toasterofbread.spmp.model.mediaitem.layout.ViewMore
-import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
-import com.toasterofbread.spmp.resources.uilocalisation.YoutubeLocalisedString
-import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
-import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistRadioEndpoint
+import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistShuffleEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
+import com.toasterofbread.spmp.youtubeapi.radio.YoutubeiNextContinuationResponse
+import com.toasterofbread.spmp.youtubeapi.radio.YoutubeiNextResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.IOException
+import okhttp3.Request
+import okhttp3.Response
 
-class YTMArtistRadioEndpoint(override val api: YoutubeMusicApi): ArtistRadioEndpoint() {
-    override suspend fun getArtistRadio(artist: Artist, continuation: String?): Result<RadioData> = withContext(Dispatchers.IO) {
-        var layouts: List<ArtistLayout>? = artist.Layouts.get(api.database)
-        if (layouts == null) {
-            artist.loadData(api.context, populate_data = false).onFailure {
-                return@withContext Result.failure(IOException(it))
-            }
-            layouts = artist.Layouts.get(api.database)
+class YTMArtistShuffleEndpoint(override val api: YoutubeMusicApi): ArtistShuffleEndpoint() {
+    override suspend fun getArtistShuffle(artist: Artist, continuation: String?): Result<RadioData> = withContext(Dispatchers.IO) {
+        val shuffle_playlist_id: String = artist.ShufflePlaylistId.get(api.database)
+                ?: return@withContext Result.failure(RuntimeException("ShufflePlaylistId not loaded for artist $artist"))
 
-            if (layouts == null) {
-                return@withContext Result.failure(NullPointerException("$artist layouts is null"))
+        val request: Request = Request.Builder()
+            .endpointUrl("/youtubei/v1/next")
+            .addAuthApiHeaders()
+            .postWithBody(
+                mutableMapOf(
+                    "enablePersistentPlaylistPanel" to true,
+                    "playlistId" to shuffle_playlist_id
+                )
+                .also {
+                    if (continuation != null) {
+                        it["continuation"] = continuation
+                    }
+                }
+            )
+            .build()
+
+        val result: Result<Response> = api.performRequest(request)
+        val radio: YoutubeiNextResponse.PlaylistPanelRenderer?
+
+        if (continuation == null) {
+            val data: YoutubeiNextResponse = result.parseJsonResponse {
+                return@withContext Result.failure(
+                    com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException.ofYoutubeJsonRequest(
+                        request,
+                        api,
+                        cause = it
+                    )
+                )
             }
+
+            val renderer: YoutubeiNextResponse.MusicQueueRenderer = data
+                .contents
+                .singleColumnMusicWatchNextResultsRenderer
+                .tabbedRenderer
+                .watchNextTabbedResultsRenderer
+                .tabs
+                .first()
+                .tabRenderer
+                .content!!
+                .musicQueueRenderer
+
+            radio = renderer.content?.playlistPanelRenderer
+        }
+        else {
+            val data: YoutubeiNextContinuationResponse = result.parseJsonResponse {
+                return@withContext Result.failure(
+                    com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException.ofYoutubeJsonRequest(
+                        request,
+                        api,
+                        cause = it
+                    )
+                )
+            }
+
+            radio = data
+                .continuationContents
+                .playlistPanelContinuation
         }
 
-        for (string_id in listOf(YoutubeUILocalisation.StringID.ARTIST_ROW_SONGS, YoutubeUILocalisation.StringID.ARTIST_ROW_VIDEOS)) {
-            for (layout in layouts) {
-                val title: YoutubeLocalisedString = (layout.Title.get(api.database) as? YoutubeLocalisedString) ?: continue
-                if (title.getYoutubeStringId() != string_id) {
-                    continue
-                }
+        return@withContext Result.success(
+            RadioData(
+                radio?.contents?.map { item ->
+                    val renderer = item.getRenderer()
+                    val song = SongData(renderer.videoId)
 
-                val view_more: ViewMore = layout.ViewMore.get(api.database) ?: continue
-                when (view_more) {
-                    is MediaItemViewMore -> {
-                        val songs_playlist: RemotePlaylist = (view_more.browse_media_item as? RemotePlaylist) ?: continue
-                        val items = songs_playlist.loadData(api.context).getOrNull()?.items ?: continue
+                    song.title = renderer.title.first_text
 
-                        return@withContext Result.success(
-                            RadioData(items, null)
-                        )
-                    }
-                    is ListPageBrowseIdViewMore -> {
-                        val artist_endpoint = api.ArtistWithParams.implementedOrNull() ?: continue
-                        val rows = artist_endpoint.loadArtistWithParams(view_more.getBrowseParamsData(title, api.context)).getOrNull() ?: continue
+                    renderer.getArtist(song, api.context).fold(
+                        { artist ->
+                            if (artist != null) {
+                                song.artist = artist
+                            }
+                        },
+                        { return@withContext Result.failure(it) }
+                    )
 
-                        return@withContext Result.success(
-                            RadioData(rows.flatMap { it.items.filterIsInstance<SongData>() }, null)
-                        )
-                    }
-                    is PlainViewMore, is LambdaViewMore -> continue
-                }
-            }
-        }
-
-        return@withContext Result.failure(RuntimeException("Could not find items layout for $artist"))
+                    return@map song
+                } ?: emptyList(),
+                radio?.continuations?.firstOrNull()?.data?.continuation
+            )
+        )
     }
 }

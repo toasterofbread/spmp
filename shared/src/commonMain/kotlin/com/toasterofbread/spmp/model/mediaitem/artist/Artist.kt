@@ -27,6 +27,10 @@ sealed interface Artist: MediaItem {
         get() = property_rememberer.rememberSingleQueryProperty(
             "SubscribeChannelId", { artistQueries.subscribeChannelIdById(id) }, { subscribe_channel_id }, { artistQueries.updateSubscribeChannelIdById(it, id) }
         )
+    val ShufflePlaylistId: Property<String?>
+        get() = property_rememberer.rememberSingleQueryProperty(
+            "ShufflePlaylistId", { artistQueries.shufflePlaylistIdById(id) }, { shuffle_playlist_id }, { artistQueries.updateShufflePlaylistIdById(it, id) }
+        )
     val Layouts: ListPropertyImpl<ArtistLayout, Long>
         get() = property_rememberer.rememberListQueryProperty(
             "Layouts",
@@ -75,6 +79,7 @@ sealed interface Artist: MediaItem {
         super.populateData(data, db)
 
         data.subscribe_channel_id = SubscribeChannelId.get(db)
+        data.shuffle_playlist_id = ShufflePlaylistId.get(db)
         data.layouts = mutableListOf<ArtistLayoutData>().apply {
             for (layout in Layouts.get(db).orEmpty()) {
                 add(ArtistLayoutData(layout.layout_index, layout.artist_id))

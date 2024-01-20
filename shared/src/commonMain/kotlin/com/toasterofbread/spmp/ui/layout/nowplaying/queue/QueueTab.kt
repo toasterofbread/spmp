@@ -2,7 +2,6 @@ package com.toasterofbread.spmp.ui.layout.nowplaying.queue
 
 import LocalPlayerState
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -23,7 +22,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.runtime.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -59,7 +57,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.rememberTopBarShouldShowInQueue
-import com.toasterofbread.spmp.youtubeapi.radio.LoadStatus
+import com.toasterofbread.spmp.youtubeapi.radio.StatusDisplay
 import kotlinx.coroutines.delay
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
@@ -295,7 +293,7 @@ internal fun QueueTab(
                             )
 
                             item {
-                                player.controller?.radio_state?.LoadStatus(
+                                player.controller?.radio_state?.StatusDisplay(
                                     Modifier
                                         .heightIn(min = 50.dp)
                                         .padding(top = list_padding, start = list_padding, end = list_padding)

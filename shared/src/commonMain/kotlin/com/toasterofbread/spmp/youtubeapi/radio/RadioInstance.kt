@@ -4,15 +4,30 @@ import LocalPlayerState
 import SpMp.isDebugBuild
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.unit.dp
+import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.composekit.utils.common.synchronizedBlock
+import com.toasterofbread.composekit.utils.composable.AlignableCrossfade
+import com.toasterofbread.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
@@ -27,6 +42,8 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.ui.theme.appHover
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
 import kotlinx.coroutines.CancellationException
@@ -177,6 +194,9 @@ class RadioInstance(val context: AppContext) {
         state = state.copy(loading = false)
     }
 
+    fun isContinuationAvailable(): Boolean =
+        state.continuation != null
+
     fun loadContinuation(
         context: AppContext,
         onStart: (suspend () -> Unit)? = null,
@@ -306,7 +326,24 @@ class RadioInstance(val context: AppContext) {
                     { Result.failure(it) }
                 )
             }
-            is Artist -> TODO()
+            is Artist -> {
+                val result = context.ytapi.ArtistShuffle.getArtistShuffle(
+                    item,
+                    null
+                )
+                return result.fold(
+                    { data ->
+                        state = state.copy(
+                            continuation = data.continuation?.let { continuation ->
+                                MediaItemLayout.Continuation(continuation, MediaItemLayout.Continuation.Type.SONG, item.id)
+                            },
+                            filters = null
+                        )
+                        Result.success(data.items)
+                    },
+                    { Result.failure(it) }
+                )
+            }
             is RemotePlaylist -> {
                 val (items, continuation) = context.database.transactionWithResult {
                     Pair(item.Items.get(context.database), item.Continuation.get(context.database))
@@ -360,35 +397,61 @@ class RadioInstance(val context: AppContext) {
 
 
 @Composable
-fun RadioInstance.RadioState.LoadStatus(
+fun RadioInstance.RadioState.StatusDisplay(
     modifier: Modifier = Modifier,
     expanded_modifier: Modifier = Modifier,
     disable_parent_scroll: Boolean = false
 ) {
-    val player = LocalPlayerState.current
+    val player: PlayerState = LocalPlayerState.current
 
-    Box(modifier, contentAlignment = Alignment.Center) {
-        Crossfade(Pair(loading, load_error)) {
-            if (it.first) {
-                SubtleLoadingIndicator()
-            }
-            else if (it.second != null) {
-                val (message, stack_trace, can_retry) = it.second ?: return@Crossfade
-                ErrorInfoDisplay(
-                    null,
-                    isDebugBuild(),
-                    pair_error = Pair(message, stack_trace),
-                    expanded_content_modifier = expanded_modifier,
-                    disable_parent_scroll = disable_parent_scroll,
-                    onRetry =
-                        if (can_retry) {{
-                            player.controller?.service_player?.continueRadio(is_retry = true)
-                        }}
-                        else null,
-                    onDismiss = {
-                        player.controller?.service_player?.radio?.instance?.dismissRadioLoadError()
+    AlignableCrossfade(
+        Triple(loading, load_error, continuation),
+        modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        if (it.first) {
+            SubtleLoadingIndicator()
+        }
+        else if (it.second != null) {
+            val (message, stack_trace, can_retry) = it.second ?: return@AlignableCrossfade
+            ErrorInfoDisplay(
+                null,
+                isDebugBuild(),
+                pair_error = Pair(message, stack_trace),
+                expanded_content_modifier = expanded_modifier,
+                disable_parent_scroll = disable_parent_scroll,
+                onRetry =
+                    if (can_retry) {{
+                        player.controller?.service_player?.continueRadio(is_retry = true)
+                    }}
+                    else null,
+                onDismiss = {
+                    player.controller?.service_player?.radio?.instance?.dismissRadioLoadError()
+                }
+            )
+        }
+        else if (it.third != null) {
+            ShapedIconButton(
+                {
+                    player.controller?.service_player?.radio?.instance?.loadContinuation(player.context) { result, _ ->
+                        result.onSuccess {
+                            player.withPlayer {
+                                addMultipleToQueue(it, player.status.song_count, skip_existing = true)
+                            }
+                        }
                     }
-                )
+                },
+                modifier = Modifier
+                    .width(80.dp)
+                    .bounceOnClick()
+                    .appHover(true),
+                colours = IconButtonDefaults.iconButtonColors(
+                    containerColor = LocalContentColor.current.copy(alpha = 0.3f),
+                    contentColor = LocalContentColor.current.getContrasted()
+                ),
+                indication = null
+            ) {
+                Icon(Icons.Default.ArrowDownward, null)
             }
         }
     }

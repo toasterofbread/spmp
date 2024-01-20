@@ -6,7 +6,7 @@
         <item>content-type</item> <item>application/json</item>
         <item>x-youtube-client-name</item> <item>67</item>
         <item>x-youtube-client-version</item> <item>1.20221019.01.00</item>
-        <item>x-goog-authuser</item> <item>1</item>
+        <item>x-goog-authuser</item> <item>0</item>
         <item>x-origin</item> <item>https://music.youtube.com</item>
         <item>origin</item> <item>https://music.youtube.com</item>
     </string-array>

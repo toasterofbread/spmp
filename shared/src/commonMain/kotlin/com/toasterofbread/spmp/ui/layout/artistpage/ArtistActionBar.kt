@@ -16,10 +16,9 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.OpenInNew
-import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Shuffle
 import androidx.compose.material3.AssistChipDefaults
@@ -99,10 +98,8 @@ fun ArtistActionBar(
             }
 
             if (play_button_size == null) {
-                Chip(getString("artist_chip_play"), Icons.Outlined.PlayArrow) { player.playMediaItem(artist) }
+                Chip(getString("artist_chip_shuffle"), Icons.Outlined.Shuffle) { player.playMediaItem(artist, true) }
             }
-
-            Chip(getString("artist_chip_shuffle"), Icons.Outlined.Shuffle) { player.playMediaItem(artist, true) }
 
             if (player.context.canShare()) {
                 Chip(
@@ -139,14 +136,14 @@ fun ArtistActionBar(
         if (play_button_size != null) {
             Box(Modifier.requiredHeight(height)) {
                 ShapedIconButton(
-                    { player.playMediaItem(artist) },
+                    { player.playMediaItem(artist, true) },
                     IconButtonDefaults.iconButtonColors(
                         containerColor = accent_colour ?: LocalContentColor.current,
                         contentColor = (accent_colour ?: LocalContentColor.current).getContrasted()
                     ),
                     Modifier.requiredSize(play_button_size)
                 ) {
-                    Icon(Icons.Default.PlayArrow, null)
+                    Icon(Icons.Default.Shuffle, null)
                 }
             }
         }

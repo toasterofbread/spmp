@@ -87,10 +87,6 @@ compose.desktop {
                 isEnabled = false
             }
         }
-
-        // Required for KevinnZou/compose-webview-multiplatform
-        jvmArgs("--add-opens", "java.desktop/sun.awt=ALL-UNNAMED")
-        jvmArgs("--add-opens", "java.desktop/java.awt.peer=ALL-UNNAMED")
     }
 }
 

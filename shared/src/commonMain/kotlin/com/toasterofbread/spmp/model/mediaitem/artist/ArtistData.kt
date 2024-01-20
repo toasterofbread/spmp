@@ -8,6 +8,7 @@ import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer
 class ArtistData(
     override var id: String,
     var subscribe_channel_id: String? = null,
+    var shuffle_playlist_id: String? = null,
     var layouts: MutableList<ArtistLayoutData>? = null,
     var subscriber_count: Int? = null,
 
@@ -16,6 +17,7 @@ class ArtistData(
     override fun getDataValues(): Map<String, Any?> =
         super.getDataValues() + mapOf(
             "subscribe_channel_id" to subscribe_channel_id,
+            "shuffle_playlist_id" to shuffle_playlist_id,
             "layouts" to layouts,
             "subscriber_count" to subscriber_count
         )
@@ -41,6 +43,7 @@ class ArtistData(
             }
 
             SubscribeChannelId.setNotNull(subscribe_channel_id, db, uncertain)
+            ShufflePlaylistId.setNotNull(shuffle_playlist_id, db, uncertain)
             SubscriberCount.setNotNull(subscriber_count, db, uncertain)
         }}
     }

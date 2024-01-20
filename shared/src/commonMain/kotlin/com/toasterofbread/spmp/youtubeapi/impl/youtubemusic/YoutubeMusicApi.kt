@@ -21,26 +21,13 @@ import com.toasterofbread.spmp.resources.getStringSafe
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi.PostBodyContext
 import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistRadioEndpoint
+import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistShuffleEndpoint
 import com.toasterofbread.spmp.youtubeapi.executeResult
 import com.toasterofbread.spmp.youtubeapi.formats.CustomDownloader
 import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpoint
 import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpointType
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.composable.YTMLoginPage
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMArtistRadioEndpoint
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMArtistWithParamsEndpoint
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMCreateYoutubeChannelEndpoint
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMGetHomeFeedEndpoint
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMLoadArtistEndpoint
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMLoadPlaylistEndpoint
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMLoadSongEndpoint
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMPlaylistContinuationEndpoint
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMRadioBuilderEndpoint
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMSearchEndpoint
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMSearchSuggestionsEndpoint
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMSongLyricsEndpoint
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMSongRadioEndpoint
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMSongRelatedContentEndpoint
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMYoutubeChannelCreationFormEndpoint
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -96,13 +83,13 @@ data class YoutubeMusicApi(
     }
 
     private fun buildHeaders() {
-        val headers_builder = Headers.Builder()
+        val headers_builder: Headers.Builder = Headers.Builder()
 
-        val headers = getStringArraySafe("ytm_headers", context)
+        val headers: List<String> = getStringArraySafe("ytm_headers", context)
         var i = 0
         while (i < headers.size) {
-            val key = headers[i++]
-            val value = headers[i++]
+            val key: String = headers[i++]
+            val value: String = headers[i++]
             headers_builder.add(key, value)
         }
 
@@ -272,6 +259,7 @@ data class YoutubeMusicApi(
 
     override val ArtistWithParams = YTMArtistWithParamsEndpoint(this)
     override val ArtistRadio: ArtistRadioEndpoint = YTMArtistRadioEndpoint(this)
+    override val ArtistShuffle: ArtistShuffleEndpoint = YTMArtistShuffleEndpoint(this)
 
     override val PlaylistContinuation = YTMPlaylistContinuationEndpoint(this)
 

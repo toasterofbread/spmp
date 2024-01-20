@@ -382,7 +382,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                                 shape = queue_shape,
                                 button_row_arrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally),
                                 content_padding = PaddingValues(
-                                    bottom = inner_bottom_padding.coerceAtLeast(0.dp)
+                                    bottom = inner_bottom_padding.coerceAtLeast(0.dp) + 35.dp
                                 ),
                                 getBackgroundColour = {
                                     getNPAltBackground()

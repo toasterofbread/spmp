@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
+import androidx.compose.ui.Modifier
 import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.composekit.settings.ui.ThemeData
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
@@ -10,6 +11,7 @@ import com.toasterofbread.spmp.model.settings.category.AccentColourSource
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 
 internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
@@ -32,7 +34,8 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
                 theme.updateTheme(index, edited_theme)
             },
             { theme.addTheme(theme.getCurrentTheme().toStaticThemeData(getString("theme_title_new")), it) },
-            { theme.removeTheme(it) }
+            { theme.removeTheme(it) },
+            getFieldModifier = { Modifier.appTextField() }
         ),
 
         MultipleChoiceSettingsItem(

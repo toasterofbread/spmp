@@ -17,12 +17,13 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.composekit.platform.composable.ScrollBarLazyColumn
-import com.toasterofbread.composekit.utils.common.copy
 import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.platform.playerservice.ClientServerPlayerService
 import com.toasterofbread.spmp.platform.playerservice.SpMsClientInfo
+import com.toasterofbread.spmp.platform.playerservice.SpMsClientType
+import com.toasterofbread.spmp.platform.playerservice.getSpMsMachineId
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -178,6 +179,10 @@ fun ControlPanelServerPage(
                             }
 
                             items(peers ?: emptyList()) { peer ->
+                                if (peer.type == SpMsClientType.SERVER) {
+                                    return@items
+                                }
+
                                 ClientInfoDisplay(peer)
                             }
                         }
@@ -212,6 +217,8 @@ private fun ClientInfoDisplay(client: SpMsClientInfo, modifier: Modifier = Modif
     val player: PlayerState = LocalPlayerState.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
+    val machine_id: String = remember { getSpMsMachineId() }
+
     Card(
         modifier,
         colors = CardDefaults.cardColors(
@@ -223,10 +230,27 @@ private fun ClientInfoDisplay(client: SpMsClientInfo, modifier: Modifier = Modif
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Text(client.name, fontSize = 18.sp)
 
-                Row(Modifier.alpha(0.75f), verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    Modifier.alpha(0.75f),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     if (client.is_caller) {
                         Icon(Icons.Default.Person, null)
                         Text(getString("control_panel_server_this_client"), style = MaterialTheme.typography.labelMedium)
+                        Spacer(Modifier.width(10.dp))
+                    }
+                    else if (client.machine_id == machine_id) {
+                        Icon(Icons.Default.Dns, null)
+                        Text(getString("control_panel_server_same_machine"), style = MaterialTheme.typography.labelMedium)
+                        Spacer(Modifier.width(10.dp))
+                    }
+
+                    if (client.player_port != null) {
+                        Text(
+                            getString("control_panel_server_client_player_port_\$x")
+                                .replace("\$x", client.player_port.toString()),
+                            style = MaterialTheme.typography.labelMedium
+                        )
                     }
                 }
             }
@@ -260,7 +284,7 @@ private fun ClientInfoDisplay(client: SpMsClientInfo, modifier: Modifier = Modif
                                 }
                             }
                         }
-                             },
+                    },
                     text = { Text(client.type.getInfoText()) },
                     tooltipState = tooltip_state
                 ) {

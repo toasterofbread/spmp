@@ -12,12 +12,6 @@ fun getYoutubeFilterChipsLocalisations(languages: UILanguages): YoutubeUILocalis
                 id = YoutubeUILocalisation.StringID.SONG_FEED_RELAX
             )
             add(
-                en to "Energize",
-                ja to "エナジー",
-                es to "Energía",
-                id = YoutubeUILocalisation.StringID.SONG_FEED_ENERGISE
-            )
-            add(
                 en to "Energise",
                 ja to "エナジー",
                 es to "Energía",

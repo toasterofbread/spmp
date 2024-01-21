@@ -39,6 +39,7 @@ import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.youtubeapi.endpoint.YoutubeChannelCreationFormEndpoint.YoutubeAccountCreationForm.ChannelCreationForm
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import kotlinx.coroutines.job
@@ -133,6 +134,7 @@ fun YoutubeChannelCreateDialog(
                         TextField(
                             params[field.key]!!,
                             { params[field.key] = it },
+                            Modifier.appTextField(),         
                             label = {
                                 Text(field.label ?: field.key)
                             },

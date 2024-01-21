@@ -2,16 +2,7 @@
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.ProvidableCompositionLocal
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontFamily
@@ -30,11 +21,7 @@ import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.resources.uilocalisation.UnlocalisedStringCollector
 import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
 import com.toasterofbread.spmp.resources.uilocalisation.localised.UILanguages
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.LoadingSplashView
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerStateImpl
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.RootView
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.SplashMode
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.*
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.theme.ApplicationTheme
 import kotlinx.coroutines.CoroutineScope
@@ -55,7 +42,8 @@ object SpMp {
 
     private lateinit var context: AppContext
 
-    private var _player_state: PlayerStateImpl? = null
+    var _player_state: PlayerStateImpl? = null
+        private set
     val player_state: PlayerStateImpl get() = _player_state!!
 
     val prefs: PlatformPreferences get() = context.getPrefs()

@@ -34,6 +34,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 
 @Composable
 internal fun PlaylistPage.ThumbnailSelectionDialog(
@@ -94,6 +95,7 @@ internal fun PlaylistPage.ThumbnailSelectionDialog(
                         {
                             url_input = it
                         },
+                        Modifier.appTextField(),
                         label = {
                             Text(getString("playlist_image_url_field_label"))
                         }

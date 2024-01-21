@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.component.multiselect
 
+import LocalPlayerState
 import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -44,7 +45,7 @@ internal fun MediaItemMultiSelectContext.MultiSelectInfoDisplay(
         wrapContent {
             Crossfade(is_active || altContent == null || !show_alt_content, modifier) { active ->
                 if (active) {
-                    MultiSelectInfoDisplayContent(content_modifier, getAllItems)
+                    MultiSelectInfoDisplayContent(content_modifier, getAllItems = getAllItems)
                 }
                 else {
                     altContent?.invoke()
@@ -57,7 +58,11 @@ internal fun MediaItemMultiSelectContext.MultiSelectInfoDisplay(
 }
 
 @Composable
-fun MediaItemMultiSelectContext.MultiSelectInfoDisplayContent(modifier: Modifier, getAllItems: (() -> List<List<MultiSelectItem>>)? = null) {
+fun MediaItemMultiSelectContext.MultiSelectInfoDisplayContent(
+    modifier: Modifier,
+    background_colour: Color = LocalPlayerState.current.theme.background,
+    getAllItems: (() -> List<List<MultiSelectItem>>)? = null
+) {
     Column(modifier.animateContentSize()) {
         val title_text: String = getString("multiselect_x_items_selected").replace("\$x", selected_items.size.toString())
         
@@ -65,7 +70,7 @@ fun MediaItemMultiSelectContext.MultiSelectInfoDisplayContent(modifier: Modifier
         LaunchedEffect(Unit) {
             val update_interval: Long = 1000 / 30
             while (true) {
-                wave_border_offset += update_interval * 0.05f
+                wave_border_offset += update_interval * 0.02f
                 delay(update_interval)
             }
         }
@@ -81,6 +86,7 @@ fun MediaItemMultiSelectContext.MultiSelectInfoDisplayContent(modifier: Modifier
                 waves = 4,
                 border_thickness = hint_path_thickness + 1.dp, 
                 border_colour = LocalContentColor.current.copy(alpha = 0.5f),
+                getColour = { background_colour },
                 getOffset = { 0f },
                 getWaveOffset = { wave_border_offset },
                 width_multiplier = 2f,

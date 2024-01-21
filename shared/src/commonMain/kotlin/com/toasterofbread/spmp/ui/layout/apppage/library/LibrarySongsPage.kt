@@ -92,12 +92,19 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
                     ) {
                         if (current_songs == null) {
                             item {
-                                Text(
-                                    if (library_page.search_filter != null) getString("library_no_items_match_filter")
-                                    else getString("library_no_local_songs"),
+                                Row(
                                     Modifier.fillMaxWidth(),
-                                    textAlign = TextAlign.Center
-                                )
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    LibrarySyncButton()
+
+                                    Text(
+                                        if (library_page.search_filter != null) getString("library_no_items_match_filter")
+                                        else getString("library_no_local_songs"),
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
                             }
                         }
                         else {
@@ -150,7 +157,6 @@ private fun InfoRow(downloads: List<DownloadStatus>, modifier: Modifier = Modifi
     }
 
     val player: PlayerState = LocalPlayerState.current
-    val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     var total_duration_string: String? by remember { mutableStateOf(null) }
     LaunchedEffect(downloads) {
@@ -180,22 +186,30 @@ private fun InfoRow(downloads: List<DownloadStatus>, modifier: Modifier = Modifi
 
         Spacer(Modifier.fillMaxWidth().weight(1f))
 
-        IconButton({
-            if (MediaItemLibrary.song_sync_in_progress) {
-                return@IconButton
-            }
+        LibrarySyncButton()
+    }
+}
 
-            coroutine_scope.launch {
-                MediaItemLibrary.syncLocalSongs(player.context)
+@Composable
+private fun LibrarySyncButton() {
+    val player: PlayerState = LocalPlayerState.current
+    val coroutine_scope: CoroutineScope = rememberCoroutineScope()
+
+    IconButton({
+        if (MediaItemLibrary.song_sync_in_progress) {
+            return@IconButton
+        }
+
+        coroutine_scope.launch {
+            MediaItemLibrary.syncLocalSongs(player.context)
+        }
+    }) {
+        Crossfade(MediaItemLibrary.song_sync_in_progress) { syncing ->
+            if (syncing) {
+                SubtleLoadingIndicator()
             }
-        }) {
-            Crossfade(MediaItemLibrary.song_sync_in_progress) { syncing ->
-                if (syncing) {
-                    SubtleLoadingIndicator()
-                }
-                else {
-                    Icon(Icons.Default.Sync, null)
-                }
+            else {
+                Icon(Icons.Default.Sync, null)
             }
         }
     }

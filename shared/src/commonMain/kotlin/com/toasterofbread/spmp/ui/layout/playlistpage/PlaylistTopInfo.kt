@@ -62,6 +62,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.Thumbnail
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 
 private const val PLAYLIST_IMAGE_MIN_HEIGHT_DP: Float = 120f
 
@@ -211,6 +212,7 @@ internal fun PlaylistPage.PlaylistTopInfo(items: List<Pair<MediaItem, Int>>?, mo
                             },
                             Modifier
                                 .fillMaxWidth()
+                                .appTextField()
                                 .drawBehind {
                                     drawLine(
                                         colour,

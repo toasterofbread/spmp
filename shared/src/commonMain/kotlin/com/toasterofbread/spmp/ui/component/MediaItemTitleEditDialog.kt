@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 
 @Composable
 fun MediaItemTitleEditDialog(item: MediaItem, modifier: Modifier = Modifier, close: () -> Unit) {
@@ -47,7 +48,8 @@ fun MediaItemTitleEditDialog(item: MediaItem, modifier: Modifier = Modifier, clo
         text = {
             TextField(
                 edited_title,
-                { edited_title = it }
+                { edited_title = it },
+                Modifier.appTextField()
             )
         }
     )

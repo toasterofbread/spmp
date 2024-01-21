@@ -40,6 +40,7 @@ import com.toasterofbread.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.composekit.utils.modifier.horizontal
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 
 @Composable
 fun ManualLoginPage(
@@ -186,7 +187,7 @@ private fun InfoEntry(label: String, modifier: Modifier = Modifier, onFinished: 
         TextField(
             headers_value,
             { headers_value = it },
-            Modifier.fillMaxWidth().weight(1f),
+            Modifier.fillMaxWidth().weight(1f).appTextField(),
             label = {
                 Text(label)
             },

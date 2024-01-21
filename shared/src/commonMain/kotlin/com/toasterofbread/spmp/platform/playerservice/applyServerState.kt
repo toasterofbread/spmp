@@ -15,12 +15,20 @@ internal suspend fun SpMsPlayerService.applyServerState(state: SpMsServerState, 
         coroutine_scope.launch {
             val song: Song = SongRef(id)
             tryTransaction {
+                if (song.Loaded.get(context.database)) {
+                    return@tryTransaction
+                }
+
                 song.loadData(context).onSuccess { data ->
                     data.saveToDatabase(context.database)
 
                     data.artist?.also { artist ->
                         coroutine_scope.launch {
                             tryTransaction {
+                                if (artist.Loaded.get(context.database)) {
+                                    return@tryTransaction
+                                }
+
                                 artist.loadData(context).onSuccess { artist_data ->
                                     artist_data.saveToDatabase(context.database)
                                 }

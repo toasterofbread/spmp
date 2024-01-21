@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
+import androidx.compose.ui.Modifier
 import com.toasterofbread.composekit.settings.ui.item.GroupSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 import com.toasterofbread.composekit.settings.ui.item.TextFieldSettingsItem
@@ -7,6 +8,7 @@ import com.toasterofbread.composekit.settings.ui.item.ToggleSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.settings.category.MiscSettings
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 
 internal fun getMiscCategoryItems(): List<SettingsItem> {
@@ -20,13 +22,15 @@ internal fun getMiscCategoryItems(): List<SettingsItem> {
         TextFieldSettingsItem(
             SettingsValueState(MiscSettings.Key.STATUS_WEBHOOK_URL.getName()),
             getString("s_key_status_webhook_url"),
-            getString("s_sub_status_webhook_url")
+            getString("s_sub_status_webhook_url"),
+            getFieldModifier = { Modifier.appTextField() }
         ),
 
         TextFieldSettingsItem(
             SettingsValueState(MiscSettings.Key.STATUS_WEBHOOK_PAYLOAD.getName()),
             getString("s_key_status_webhook_payload"),
-            getString("s_sub_status_webhook_payload")
+            getString("s_sub_status_webhook_payload"),
+            getFieldModifier = { Modifier.appTextField() }
         )
     ) + getCachingGroup()
 }

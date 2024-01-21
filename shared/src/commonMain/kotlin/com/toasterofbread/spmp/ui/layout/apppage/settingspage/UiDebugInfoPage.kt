@@ -28,6 +28,7 @@ import com.toasterofbread.composekit.utils.common.roundTo
 import com.toasterofbread.composekit.utils.composable.RecomposeOnInterval
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 
 @Composable
 private fun SizeIndicator(
@@ -101,7 +102,7 @@ fun getUiDebugInfoPage(): SettingsPage =
                         OutlinedTextField(
                             "",
                             {},
-                            Modifier.fillMaxWidth(),
+                            Modifier.fillMaxWidth().appTextField(),
                             placeholder = {
                                 Text("Test field")
                             }

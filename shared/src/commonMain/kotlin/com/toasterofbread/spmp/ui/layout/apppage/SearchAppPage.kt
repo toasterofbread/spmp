@@ -27,7 +27,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalFocusManager
@@ -65,6 +64,7 @@ import com.toasterofbread.spmp.youtubeapi.endpoint.SearchFilter
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchResults
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchSuggestion
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchType
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
@@ -429,7 +429,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
                     modifier = Modifier
                         .height(SEARCH_BAR_HEIGHT_DP.dp)
                         .weight(1f)
-                        .focusRequester(focus_requester)
+                        .appTextField(focus_requester)
                         .onFocusChanged {
                             focus_state.value = it.isFocused
                         },

@@ -36,6 +36,7 @@ import com.github.krottv.compose.sliders.SliderValueHorizontal
 import com.toasterofbread.composekit.utils.common.formatElapsedTime
 import com.toasterofbread.composekit.utils.composable.RecomposeOnInterval
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.spmp.model.settings.category.PlayerSettings
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.POSITION_UPDATE_INTERVAL_MS
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
@@ -132,24 +133,25 @@ private fun SeekTrack(
     height: Dp = 4.dp
 ) {
     val visual_progress by animateFloatAsState(progress, spring(stiffness = Spring.StiffnessLow))
+    val show_gradient: Boolean by PlayerSettings.Key.SHOW_SEEK_BAR_GRADIENT.rememberMutableState()
 
     Canvas(
         Modifier
             .then(modifier)
             .height(height)
     ) {
-        val left = Offset(0f, center.y)
-        val right = Offset(size.width, center.y)
-        val start = if (layoutDirection == LayoutDirection.Rtl) right else left
-        val end = if (layoutDirection == LayoutDirection.Rtl) left else right
+        val left: Offset = Offset(0f, center.y)
+        val right: Offset = Offset(size.width, center.y)
+        val start: Offset = if (layoutDirection == LayoutDirection.Rtl) right else left
+        val end: Offset = if (layoutDirection == LayoutDirection.Rtl) left else right
 
-        val progress_width = (end.x - start.x) * visual_progress
+        val progress_width: Float = (end.x - start.x) * visual_progress
 
         drawLine(
             Brush.horizontalGradient(
                 listOf(progress_colour, track_colour),
                 startX = progress_width,
-                endX = progress_width + ((size.width - progress_width) * SEEK_BAR_GRADIENT_OVERFLOW_RATIO)
+                endX = progress_width + (if (show_gradient) (size.width - progress_width) * SEEK_BAR_GRADIENT_OVERFLOW_RATIO else 0f)
             ),
             start,
             end,

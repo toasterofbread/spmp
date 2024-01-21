@@ -34,6 +34,7 @@ import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.ColourpickCallback
 import com.toasterofbread.spmp.youtubeapi.implementedOrNull
 import kotlinx.coroutines.delay
@@ -154,6 +155,7 @@ class MainPlayerOverlayMenu(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {} // Field interaction doesn't work without this for some reason
+                    .appTextField()
             )
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.End)) {

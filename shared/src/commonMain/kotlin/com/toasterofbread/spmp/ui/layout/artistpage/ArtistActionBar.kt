@@ -59,6 +59,8 @@ fun ArtistActionBar(
 ) {
     val player: PlayerState = LocalPlayerState.current
 
+    val shuffle_playlist_id: String? by artist.ShufflePlaylistId.observe(player.database)
+
     var show_info by remember { mutableStateOf(false) }
     if (show_info) {
         ArtistInfoDialog(artist) { show_info = false }
@@ -97,7 +99,7 @@ fun ArtistActionBar(
                 )
             }
 
-            if (play_button_size == null) {
+            if (play_button_size == null && shuffle_playlist_id != null) {
                 Chip(getString("artist_chip_shuffle"), Icons.Outlined.Shuffle) { player.playMediaItem(artist, true) }
             }
 
@@ -133,7 +135,7 @@ fun ArtistActionBar(
             Spacer(Modifier.width(content_padding.calculateEndPadding(LocalLayoutDirection.current)))
         }
 
-        if (play_button_size != null) {
+        if (play_button_size != null && shuffle_playlist_id != null) {
             Box(Modifier.requiredHeight(height)) {
                 ShapedIconButton(
                     { player.playMediaItem(artist, true) },

@@ -2,11 +2,9 @@ package com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow
 
 import LocalNowPlayingExpansion
 import LocalPlayerState
-import androidx.compose.animation.Crossfade
+import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,6 +27,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.composekit.platform.composable.platformClickable
+import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.common.getInnerSquareSizeOfCircle
 import com.toasterofbread.composekit.utils.common.getValue
 import com.toasterofbread.composekit.utils.common.thenIf
@@ -38,10 +37,12 @@ import com.toasterofbread.composekit.utils.modifier.background
 import com.toasterofbread.composekit.utils.modifier.disableParentScroll
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
+import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.observeThumbnailRounding
 import com.toasterofbread.spmp.model.settings.category.PlayerSettings
 import com.toasterofbread.spmp.model.settings.getEnum
+import com.toasterofbread.spmp.ui.component.LyricsLineDisplay
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.EXPANDED_THRESHOLD
@@ -309,9 +310,25 @@ fun LargeThumbnailRow(
                 }
             }
 
-            Spacer(Modifier.fillMaxWidth().weight(1f))
+            val lyrics_state: SongLyricsLoader.ItemState? = remember(current_song?.id) { current_song?.let { SongLyricsLoader.getItemState(it, player.context) } }
+            val lyrics_sync_offset: Long? by current_song?.getLyricsSyncOffset(player.database, false)
 
-            Spacer(Modifier.width(button_row_width))
+            AnimatedVisibility(lyrics_state?.lyrics?.synced == true, Modifier.fillMaxWidth(), enter = expandHorizontally(), exit = shrinkHorizontally()) {
+                lyrics_state?.lyrics?.also { lyrics ->
+                    LyricsLineDisplay(
+                        lyrics = lyrics,
+                        getTime = {
+                            (player.controller?.current_position_ms ?: 0) + (lyrics_sync_offset ?: 0)
+                        },
+                        text_colour = player.theme.vibrant_accent.getContrasted().copy(alpha = 0.75f),
+                        modifier = Modifier.padding(top = 5.dp)
+                    )
+                }
+            }
+
+            if (lyrics_state?.lyrics?.synced != true) {
+                Spacer(Modifier.fillMaxWidth().weight(1f))
+            }
         }
     }
 }

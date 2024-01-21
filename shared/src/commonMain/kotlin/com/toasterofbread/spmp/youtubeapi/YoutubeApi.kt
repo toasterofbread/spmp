@@ -276,7 +276,7 @@ interface YoutubeApi {
                             }
                         }
                         ValueType.HEADER -> {
-                            val split = value.split('=', limit = 2)
+                            val split: List<String> = value.split('=', limit = 2)
                             headers_builder.add(split[0], split[1])
                         }
                     }

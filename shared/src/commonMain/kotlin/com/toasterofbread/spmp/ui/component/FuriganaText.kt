@@ -34,11 +34,8 @@ import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.*
+import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.utils.common.isFullWidth
 import com.toasterofbread.composekit.utils.common.putIfAbsent
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
@@ -106,13 +103,13 @@ fun BasicFuriganaText(
     text_colour: Color = LocalContentColor.current,
     style: TextStyle = LocalTextStyle.current
 ) {
-    val reading_font_size = font_size / 2
-    val line_height = with(LocalDensity.current) { (font_size.value + (reading_font_size.value * 2)).sp.toDp() }
+    val reading_font_size: TextUnit = font_size / 2
+    val line_height: Dp = with(LocalDensity.current) { (font_size.value + (reading_font_size.value * 2)).sp.toDp() }
 
     var annotated_string: AnnotatedString by remember { mutableStateOf(AnnotatedString("")) }
     var inline_content: Map<String, InlineTextContent> by remember { mutableStateOf(emptyMap()) }
 
-    val density = LocalDensity.current
+    val density: Density = LocalDensity.current
     var box_width: Dp by remember { mutableStateOf(Dp.Unspecified) }
 
     var line_count: Int by remember { mutableStateOf(1) }
@@ -122,7 +119,7 @@ fun BasicFuriganaText(
     )
 
     LaunchedEffect(terms, max_lines) {
-        val string_builder = AnnotatedString.Builder()
+        val string_builder: AnnotatedString.Builder = AnnotatedString.Builder()
         val content: MutableMap<String, InlineTextContent> = mutableMapOf()
 
         for (term in terms) {
@@ -143,14 +140,20 @@ fun BasicFuriganaText(
                         Text(
                             text,
                             modifier.widthIn(max = box_width),
-                            fontSize = font_size,
+                            fontSize = font_size * (
+                                when (Platform.current) {
+                                    Platform.ANDROID -> 1f
+                                    Platform.DESKTOP -> 0.95f
+                                }
+                            ),
                             softWrap = true,
                             overflow = TextOverflow.Visible,
                             maxLines = max_lines,
                             textAlign = TextAlign.Center,
                             onTextLayout = { layout_result ->
                                 line_count = maxOf(line_count, layout_result.lineCount)
-                            }
+                            },
+                            color = text_colour
                         )
                     }
                 }
@@ -255,7 +258,12 @@ private fun getLyricsInlineTextContent(
                             .wrapContentWidth(unbounded = true)
                             .offset(
                                 y = with(LocalDensity.current) {
-                                    (font_size.toDp() * -0.5f) - reading_font_size.toDp() + 3.dp
+                                    (font_size.toDp() * -0.5f) - reading_font_size.toDp() + (
+                                        when (Platform.current) {
+                                            Platform.ANDROID -> 3.dp
+                                            Platform.DESKTOP -> (-2).dp
+                                        }
+                                    )
                                 }
                             )
                     )

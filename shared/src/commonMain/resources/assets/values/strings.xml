@@ -22,11 +22,14 @@
     <string name="spms_client_type_info_player">A standalone audio player with no GUI</string>
     <string name="spms_client_type_command_line">Command-line</string>
     <string name="spms_client_type_info_command_line">A tool or script communicating with the server</string>
+    <string name="spms_client_type_server">Server</string>
+    <string name="spms_client_type_info_server">The server that this client is connected to</string>
 
     <string name="spms_client_type_info_url_spmp_player">https://spmp.toastbits.dev/docs/client/about</string>
     <string name="spms_client_type_info_url_spmp_standalone">https://spmp.toastbits.dev/docs/client/about</string>
     <string name="spms_client_type_info_url_player">https://spmp.toastbits.dev/docs/player/about</string>
     <string name="spms_client_type_info_url_command_line">https://spmp.toastbits.dev/docs/server/cli</string>
+    <string name="spms_client_type_info_url_server">https://spmp.toastbits.dev/docs/server/about/</string>
 
     <string name="font_option_default_$x">Default ($x)</string>
     <string name="font_option_system">System font</string>
@@ -403,6 +406,8 @@
     <string name="s_key_player_show_repeat_shuffle_buttons">Show repeat and shuffle buttons in player</string>
     <string name="s_sub_player_show_repeat_shuffle_buttons">They will be shown in the queue regardless of this option</string>
 
+    <string name="s_key_player_show_progress_bar_gradient">Show gradient in seek bar</string>
+
     <string name="s_key_player_overlay_menu_custom_action">Overlay menu custom action</string>
     <string name="s_sub_player_overlay_menu_custom_action">By default, triggers on long press</string>
     <string name="s_key_player_overlay_menu_swap_long_short_press_actions">Swap overlay menu long and short press actions</string>
@@ -686,6 +691,8 @@
     <string name="control_panel_server_connected_clients_loading">Loading</string>
     <string name="control_panel_server_this_client">This client</string>
     <string name="control_panel_server_client_more_info">More info</string>
+    <string name="control_panel_server_client_player_port_$x">Player port: $x</string>
+    <string name="control_panel_server_same_machine">Same device</string>
 
     <string name="action_login_manually">Log in manually</string>
     <string name="auth_not_signed_in">Not signed in</string>

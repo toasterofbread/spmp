@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
+import androidx.compose.ui.Modifier
 import com.toasterofbread.composekit.settings.ui.item.GroupSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.InfoTextSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
@@ -8,6 +9,7 @@ import com.toasterofbread.composekit.settings.ui.item.TextFieldSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.ToggleSettingsItem
 import com.toasterofbread.spmp.model.settings.category.DesktopSettings
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 
 internal fun getDesktopCategoryItems(): List<SettingsItem> {
     return listOf(
@@ -17,7 +19,8 @@ internal fun getDesktopCategoryItems(): List<SettingsItem> {
 
         TextFieldSettingsItem(
             SettingsValueState(DesktopSettings.Key.STARTUP_COMMAND.getName()),
-            getString("s_key_startup_command"), getString("s_sub_startup_command")
+            getString("s_key_startup_command"), getString("s_sub_startup_command"),
+            getFieldModifier = { Modifier.appTextField() }
         ),
 
         GroupSettingsItem(
@@ -49,7 +52,8 @@ fun getServerGroupItems(): List<SettingsItem> {
                     return@TextFieldSettingsItem getString("settings_value_not_ipv4")
                 }
                 return@TextFieldSettingsItem null
-            }
+            },
+            getFieldModifier = { Modifier.appTextField() }
         ),
 
         TextFieldSettingsItem(
@@ -68,12 +72,14 @@ fun getServerGroupItems(): List<SettingsItem> {
                     return@TextFieldSettingsItem getString("settings_value_not_port")
                 }
                 return@TextFieldSettingsItem null
-            }
+            },
+            getFieldModifier = { Modifier.appTextField() }
         ),
 
         TextFieldSettingsItem(
             SettingsValueState(DesktopSettings.Key.SERVER_LOCAL_COMMAND.getName()),
-            getString("s_key_local_server_command"), getString("s_sub_local_server_command")
+            getString("s_key_local_server_command"), getString("s_sub_local_server_command"),
+            getFieldModifier = { Modifier.appTextField() }
         ),
 
         ToggleSettingsItem(

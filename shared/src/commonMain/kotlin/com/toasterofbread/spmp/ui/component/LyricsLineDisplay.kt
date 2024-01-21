@@ -6,15 +6,12 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.sp
+import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.utils.composable.AlignableCrossfade
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.settings.category.TopBarSettings
@@ -102,7 +99,11 @@ fun LyricsLineDisplay(
                         show_readings = show_furigana,
                         text_colour = text_colour,
                         max_lines = max_lines,
-                        preallocate_needed_space = preallocate_max_space
+                        preallocate_needed_space = preallocate_max_space,
+                        font_size = when (Platform.current) {
+                            Platform.ANDROID -> 16.sp
+                            Platform.DESKTOP -> 20.sp
+                        }
                     )
                 }
             }

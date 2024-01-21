@@ -1,9 +1,11 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
+import androidx.compose.ui.Modifier
 import com.toasterofbread.composekit.settings.ui.item.BasicSettingsValueState
 import com.toasterofbread.composekit.settings.ui.item.SliderSettingsItem
 import com.toasterofbread.composekit.utils.common.roundTo
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 
 fun AppSliderItem(
     state: BasicSettingsValueState<out Number>,
@@ -31,5 +33,6 @@ fun AppSliderItem(
         max_label = max_label,
         steps = steps,
         range = range,
-        getValueText = getValueText
+        getValueText = getValueText,
+        getFieldModifier = { Modifier.appTextField() }
     )

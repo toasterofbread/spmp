@@ -3,7 +3,6 @@ package com.toasterofbread.spmp.model.settings.category
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PlayArrow
 import com.toasterofbread.spmp.model.settings.SettingsKey
-import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getPlayerCategoryItems
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
@@ -24,6 +23,7 @@ data object PlayerSettings: SettingsCategory("player") {
         MINI_OVERSCROLL_CLEAR_TIME,
         MINI_OVERSCROLL_CLEAR_MODE,
         SHOW_REPEAT_SHUFFLE_BUTTONS,
+        SHOW_SEEK_BAR_GRADIENT,
         OVERLAY_CUSTOM_ACTION,
         OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS,
         QUEUE_ITEM_SWIPE_SENSITIVITY,
@@ -45,6 +45,7 @@ data object PlayerSettings: SettingsCategory("player") {
                 MINI_OVERSCROLL_CLEAR_TIME -> 0.2f
                 MINI_OVERSCROLL_CLEAR_MODE -> OverscrollClearMode.HIDE_IF_QUEUE_EMPTY.ordinal
                 SHOW_REPEAT_SHUFFLE_BUTTONS -> false
+                SHOW_SEEK_BAR_GRADIENT -> true
                 OVERLAY_CUSTOM_ACTION -> PlayerOverlayMenuAction.DEFAULT_CUSTOM.ordinal
                 OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS -> false
                 QUEUE_ITEM_SWIPE_SENSITIVITY -> 1f

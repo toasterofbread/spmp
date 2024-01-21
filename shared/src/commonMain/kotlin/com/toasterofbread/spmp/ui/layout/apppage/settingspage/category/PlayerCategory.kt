@@ -48,6 +48,12 @@ internal fun getPlayerCategoryItems(): List<SettingsItem> {
             title_max_lines = 2
         ),
 
+        ToggleSettingsItem(
+            SettingsValueState(PlayerSettings.Key.SHOW_SEEK_BAR_GRADIENT.getName()),
+            getString("s_key_player_show_progress_bar_gradient"), null,
+            title_max_lines = 2
+        ),
+
         MultipleChoiceSettingsItem(
             SettingsValueState(PlayerSettings.Key.OVERLAY_CUSTOM_ACTION.getName()),
             getString("s_key_player_overlay_menu_custom_action"),

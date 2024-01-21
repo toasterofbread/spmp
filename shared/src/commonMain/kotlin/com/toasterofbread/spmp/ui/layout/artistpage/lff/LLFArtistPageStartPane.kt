@@ -49,6 +49,7 @@ import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistInfoDialog
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistSubscribeButton
 
@@ -107,12 +108,15 @@ fun LFFArtistStartPane(
 
                         Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                        ShapedIconButton(
-                            { player.playMediaItem(artist, shuffle = true) },
-                            icon_button_colours,
-                            shape = icon_button_shape
-                        ) {
-                            Icon(Icons.Default.Shuffle, null)
+                        val shuffle_playlist_id: String? by artist.ShufflePlaylistId.observe(player.database)
+                        if (shuffle_playlist_id != null) {
+                            ShapedIconButton(
+                                { player.playMediaItem(artist, shuffle = true) },
+                                icon_button_colours,
+                                shape = icon_button_shape
+                            ) {
+                                Icon(Icons.Default.Shuffle, null)
+                            }
                         }
                     }
                 }
@@ -161,7 +165,7 @@ fun LFFArtistStartPane(
 
                                     edited_title = edited
                                 },
-                                Modifier.fillMaxWidth(),
+                                Modifier.fillMaxWidth().appTextField(),
                                 text_style = title_style,
                                 background_colour = current_accent_colour.blendWith(player.theme.background, 0.2f),
                                 shape = primary_shape,

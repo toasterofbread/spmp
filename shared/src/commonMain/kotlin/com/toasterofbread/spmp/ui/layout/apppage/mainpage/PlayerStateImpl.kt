@@ -12,7 +12,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
-import androidx.compose.material3.*
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,7 +27,7 @@ import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.composekit.utils.common.init
 import com.toasterofbread.composekit.utils.composable.getEnd
 import com.toasterofbread.composekit.utils.composable.getStart
-import com.toasterofbread.spmp.model.mediaitem.*
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.layout.BrowseParamsData
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
@@ -34,15 +35,17 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
-import com.toasterofbread.spmp.platform.*
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.download.DownloadMethodSelectionDialog
+import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
 import com.toasterofbread.spmp.service.playercontroller.PersistentQueueHandler
-import com.toasterofbread.spmp.ui.component.*
+import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenu
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
-import com.toasterofbread.spmp.ui.component.mediaitempreview.*
+import com.toasterofbread.spmp.ui.component.mediaitempreview.getLongPressMenuData
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectInfoDisplayContent
 import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
@@ -56,7 +59,10 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNowPlayingVerticalPageCount
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 enum class FeedLoadState { PREINIT, NONE, LOADING, CONTINUING }
 
@@ -464,19 +470,22 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
 
             AnimatedVisibility(main_multiselect_context.is_active, enter = fadeIn(), exit = fadeOut()) {
                 Box(Modifier.fillMaxSize().padding(15.dp)) {
+                    val background_colour: Color = theme.accent
+
                     CompositionLocalProvider(LocalContentColor provides theme.on_accent) {
                         main_multiselect_context.MultiSelectInfoDisplayContent(
                             Modifier
                                 .width(IntrinsicSize.Max)
                                 .align(Alignment.BottomEnd)
                                 .then(nowPlayingTopOffset(Modifier, true))
-                                .background(theme.accent.copy(alpha = 0.9f), MaterialTheme.shapes.small)
+                                .background(background_colour, MaterialTheme.shapes.small)
                                 .padding(10.dp)
                                 .onSizeChanged {
                                     multiselect_info_display_height = with (density) {
                                         it.height.toDp()
                                     }
                                 },
+                            background_colour,
                             getAllItems = {
                                 multiselect_info_all_items_getters.flatMap { it() }
                             }

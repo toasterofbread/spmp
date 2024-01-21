@@ -13,8 +13,12 @@ import okhttp3.Response
 
 class YTMArtistShuffleEndpoint(override val api: YoutubeMusicApi): ArtistShuffleEndpoint() {
     override suspend fun getArtistShuffle(artist: Artist, continuation: String?): Result<RadioData> = withContext(Dispatchers.IO) {
-        val shuffle_playlist_id: String = artist.ShufflePlaylistId.get(api.database)
-                ?: return@withContext Result.failure(RuntimeException("ShufflePlaylistId not loaded for artist $artist"))
+        artist.loadData(api.context, populate_data = false).onFailure {
+            return@withContext Result.failure(RuntimeException(it))
+        }
+
+        val shuffle_playlist_id: String? = artist.ShufflePlaylistId.get(api.database)
+            ?: return@withContext Result.failure(RuntimeException("ShufflePlaylistId not loaded for artist $artist"))
 
         val request: Request = Request.Builder()
             .endpointUrl("/youtubei/v1/next")

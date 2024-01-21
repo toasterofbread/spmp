@@ -6,23 +6,31 @@ import androidx.compose.runtime.setValue
 import com.google.gson.Gson
 import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.platform.PlatformPreferencesListener
+import com.toasterofbread.composekit.utils.common.associateNotNull
 import com.toasterofbread.composekit.utils.common.launchSingle
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.DesktopSettings
+import com.toasterofbread.spmp.model.settings.category.YoutubeAuthSettings
 import com.toasterofbread.spmp.platform.PlatformServiceImpl
 import com.toasterofbread.spmp.platform.PlayerListener
+import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
+import okhttp3.Headers
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
@@ -36,20 +44,6 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
     override var connected_server: ClientServerPlayerService.ServerInfo? by mutableStateOf(null)
     
     private val clients_result_channel: Channel<SpMsActionReply> = Channel()
-    override suspend fun getPeers(): Result<List<SpMsClientInfo>> {
-        sendRequest(SERVER_EXPECT_REPLY_CHAR + "clients")
-        
-        val result: SpMsActionReply = clients_result_channel.receive()
-        if (!result.success) {
-            return Result.failure(RuntimeException(result.error, result.error_cause?.let { RuntimeException(it) }))
-        }
-        
-        if (result.result == null) {
-            return Result.failure(NullPointerException("Result is null"))
-        }
-        
-        return Result.success(Json.decodeFromJsonElement(result.result))
-    }
     
     var socket_load_state: PlayerServiceLoadState by mutableStateOf(PlayerServiceLoadState(true))
         private set
@@ -72,18 +66,24 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
                     restart_connection = true
                     cancel_connection = true
                 }
+                YoutubeAuthSettings.Key.YTM_AUTH.getName() -> {
+                    sendYtmAuthToPlayers()
+                }
             }
         }
     }
 
     private val zmq: ZContext = ZContext()
     private lateinit var socket: ZMQ.Socket
+    private val http_client: OkHttpClient = OkHttpClient()
     private val json: Json = Json { ignoreUnknownKeys = true }
     private val queued_messages: MutableList<Pair<String, List<Any>>> = mutableListOf()
-    private val poll_coroutine_scope: CoroutineScope = CoroutineScope(Job())
-    private val connect_coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
     private var cancel_connection: Boolean = false
     private var restart_connection: Boolean = false
+
+    private val poll_coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
+    private val connect_coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
+    private val player_status_coroutine_scope: CoroutineScope = CoroutineScope(Job())
 
     internal abstract val listeners: List<PlayerListener>
     internal var playlist: MutableList<Song> = mutableListOf()
@@ -155,7 +155,13 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
                 val protocol: String = "tcp"
                 val server_url = "$protocol://$ip:$port"
 
-                val handshake: SpMsClientHandshake = SpMsClientHandshake(getClientName(), SpMsClientType.SPMP_STANDALONE, context.getUiLanguage())
+                val handshake: SpMsClientHandshake =
+                    SpMsClientHandshake(
+                        name = getClientName(),
+                        type = SpMsClientType.SPMP_STANDALONE,
+                        machine_id = getSpMsMachineId(),
+                        language = context.getUiLanguage()
+                    )
 
                 val server_handshake: SpMsServerHandshake? = tryConnectToServer(
                     socket = this@connectToServer,
@@ -182,7 +188,7 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
 
                 var server_state_applied: Boolean = false
 
-                poll_coroutine_scope.launchSingle(Dispatchers.IO) {
+                poll_coroutine_scope.launchSingle {
                     val context: ZMQ.Context = ZMQ.context(1)
                     val poller: ZMQ.Poller = context.poller()
                     poller.register(socket, ZMQ.Poller.POLLIN)
@@ -231,6 +237,8 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
                 synchronized(this) {
                     server_state_applied = true
                 }
+
+                sendYtmAuthToPlayers()
             }
             while (restart_connection)
         }
@@ -322,5 +330,119 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
             
             return true
         }
+    }
+
+    override suspend fun getPeers(): Result<List<SpMsClientInfo>> {
+        sendRequest(SERVER_EXPECT_REPLY_CHAR + "clients")
+
+        val result: SpMsActionReply = clients_result_channel.receive()
+        if (!result.success) {
+            return Result.failure(RuntimeException(result.error, result.error_cause?.let { RuntimeException(it) }))
+        }
+
+        if (result.result == null) {
+            return Result.failure(NullPointerException("Result is null"))
+        }
+
+        return Result.success(Json.decodeFromJsonElement(result.result))
+    }
+
+    private fun sendYtmAuthToPlayers() {
+        player_status_coroutine_scope.launch {
+            val ytm_auth: Pair<Artist?, Headers>? =
+                YoutubeApi.UserAuthState.unpackSetData(YoutubeAuthSettings.Key.YTM_AUTH.get(context), context).takeIf { it.first != null }
+            sendStatusToPlayers(ytm_auth, emptyMap())
+        }
+    }
+
+    override fun onSongFileAdded(download_status: DownloadStatus) {
+        player_status_coroutine_scope.launch {
+            val local_players: List<SpMsClientInfo> = getLocalPlayers().getOrNull() ?: return@launch
+            for (player in local_players) {
+                val local_files_request: Request = Request.Builder()
+                    .url("http://127.0.0.1:${player.player_port}/local_song/add/${download_status.song.id}")
+                    .post(download_status.file!!.absolute_path.toRequestBody("text/plain".toMediaType()))
+                    .build()
+                http_client.newCall(local_files_request).execute()
+            }
+        }
+    }
+
+    override fun onSongFileDeleted(song: Song) {
+        player_status_coroutine_scope.launch {
+            val local_players: List<SpMsClientInfo> = getLocalPlayers().getOrNull() ?: return@launch
+            for (player in local_players) {
+                val local_files_request: Request = Request.Builder()
+                    .url("http://127.0.0.1:${player.player_port}/local_song/remove/${song.id}")
+                    .build()
+                http_client.newCall(local_files_request).execute()
+            }
+        }
+    }
+
+    override fun onLocalSongsSynced(songs: Map<String, DownloadStatus>) {
+        player_status_coroutine_scope.launch {
+            val ytm_auth: Pair<Artist?, Headers>? =
+                YoutubeApi.UserAuthState.unpackSetData(YoutubeAuthSettings.Key.YTM_AUTH.get(context), context).takeIf { it.first != null }
+            sendStatusToPlayers(ytm_auth, songs.mapValues { it.value.file!!.absolute_path })
+        }
+    }
+
+    private suspend fun getLocalPlayers(): Result<List<SpMsClientInfo>> =
+        getPeers().fold(
+            {
+                val machine_id: String = getSpMsMachineId()
+                Result.success(
+                    it.filter { peer ->
+                        !peer.is_caller && peer.player_port != null && peer.machine_id == machine_id
+                    }
+                )
+            },
+            { Result.failure(it) }
+        )
+
+    override suspend fun sendStatusToPlayers(ytm_auth: Pair<Artist?, Headers>?, local_files: Map<String, String>): Result<Unit> = withContext(Dispatchers.IO) {
+        val local_players: List<SpMsClientInfo> = getLocalPlayers().fold(
+            { it },
+            { return@withContext Result.failure(it) }
+        )
+
+        val yt_account_data: RequestBody? =
+            if (ytm_auth == null) null
+            else Json.encodeToString(YoutubeApi.UserAuthState.packSetData(ytm_auth.first, ytm_auth.second)).toRequestBody("application/json".toMediaType())
+        val local_files_data: RequestBody =
+            Json.encodeToString(local_files).toRequestBody("application/json".toMediaType())
+
+        coroutineScope {
+            for (player in local_players) {
+                launch {
+                    try {
+                        val account_request: Request = Request.Builder()
+                            .apply {
+                                if (yt_account_data == null) {
+                                    url("http://127.0.0.1:${player.player_port}/yt_account/remove")
+                                }
+                                else {
+                                    url("http://127.0.0.1:${player.player_port}/yt_account/set")
+                                    post(yt_account_data)
+                                }
+                            }
+                            .build()
+                        http_client.newCall(account_request).execute()
+
+                        val local_files_request: Request = Request.Builder()
+                            .url("http://127.0.0.1:${player.player_port}/local_song/add_batch")
+                            .post(local_files_data)
+                            .build()
+                        http_client.newCall(local_files_request).execute()
+                    }
+                    catch (e: Throwable) {
+                        RuntimeException(e).printStackTrace()
+                    }
+                }
+            }
+        }
+
+        return@withContext Result.success(Unit)
     }
 }

@@ -15,6 +15,8 @@ import androidx.compose.ui.window.*
 import com.toasterofbread.composekit.platform.composable.onWindowBackPressed
 import com.toasterofbread.spmp.model.settings.category.DesktopSettings
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.getTextFieldFocusState
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.isTextFieldFocused
 import kotlinx.coroutines.*
 import org.jetbrains.skiko.OS
 import org.jetbrains.skiko.hostOs
@@ -49,6 +51,8 @@ fun main() {
     var prev_window_placement: WindowPlacement? = null
 
     application {
+        val text_field_focus_state: Any = getTextFieldFocusState()
+
         Window(
             title = SpMp.app_name,
             onCloseRequest = ::exitApplication,
@@ -65,6 +69,13 @@ fun main() {
                                 window.placement = WindowPlacement.Fullscreen
                             }
                             return@Window true
+                        }
+                        Key.Spacebar -> {
+                            if (!isTextFieldFocused(text_field_focus_state)) {
+                                SpMp.player_state.withPlayer {
+                                    playPause()
+                                }
+                            }
                         }
                     }
                 }

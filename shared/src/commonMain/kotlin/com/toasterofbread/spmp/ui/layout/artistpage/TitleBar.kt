@@ -41,6 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -54,6 +55,7 @@ import com.toasterofbread.spmp.model.mediaitem.artist.toReadableSubscriberCount
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -99,7 +101,7 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                         }
                     }
 
-                    val field_colour = player.theme.on_accent
+                    val field_colour: Color = player.theme.on_accent
                     OutlinedTextField(
                         edited_title,
                         onValueChange = { text ->
@@ -120,7 +122,7 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                             focusedLabelColor = field_colour,
                             cursorColor = field_colour
                         ),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth().appTextField()
                     )
                 }
 

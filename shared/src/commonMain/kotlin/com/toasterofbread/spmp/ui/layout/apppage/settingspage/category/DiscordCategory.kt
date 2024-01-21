@@ -37,6 +37,7 @@ import com.toasterofbread.spmp.model.settings.category.InternalSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.getDiscordAuthItem
 
 internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
@@ -110,19 +111,23 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
 
         TextFieldSettingsItem(
             SettingsValueState(DiscordSettings.Key.STATUS_NAME.getName()),
-            getString("s_key_discord_status_name"), getString("s_sub_discord_status_name")
+            getString("s_key_discord_status_name"), getString("s_sub_discord_status_name"),
+            getFieldModifier = { Modifier.appTextField() }
         ),
         TextFieldSettingsItem(
             SettingsValueState(DiscordSettings.Key.STATUS_TEXT_A.getName()),
-            getString("s_key_discord_status_text_a"), getString("s_sub_discord_status_text_a")
+            getString("s_key_discord_status_text_a"), getString("s_sub_discord_status_text_a"),
+            getFieldModifier = { Modifier.appTextField() }
         ),
         TextFieldSettingsItem(
             SettingsValueState(DiscordSettings.Key.STATUS_TEXT_B.getName()),
-            getString("s_key_discord_status_text_b"), getString("s_sub_discord_status_text_b")
+            getString("s_key_discord_status_text_b"), getString("s_sub_discord_status_text_b"),
+            getFieldModifier = { Modifier.appTextField() }
         ),
         TextFieldSettingsItem(
             SettingsValueState(DiscordSettings.Key.STATUS_TEXT_C.getName()),
-            getString("s_key_discord_status_text_c"), getString("s_sub_discord_status_text_c")
+            getString("s_key_discord_status_text_c"), getString("s_sub_discord_status_text_c"),
+            getFieldModifier = { Modifier.appTextField() }
         ),
 
         ToggleSettingsItem(
@@ -139,7 +144,8 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
         ),
         TextFieldSettingsItem(
             SettingsValueState(DiscordSettings.Key.PROJECT_BUTTON_TEXT.getName()),
-            getString("s_key_discord_status_button_project_text"), null
+            getString("s_key_discord_status_button_project_text"), null,
+            getFieldModifier = { Modifier.appTextField() }
         )
     )
 }

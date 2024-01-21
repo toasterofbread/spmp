@@ -60,6 +60,7 @@ import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.LyricsSettings
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
 import kotlinx.coroutines.Dispatchers
@@ -288,7 +289,7 @@ fun LyricsSearchMenu(
                                 }
                             },
                             colors = text_field_colours,
-                            modifier = Modifier.clickable {},
+                            modifier = Modifier.clickable {}.appTextField(),
                             enabled = enabled
                         )
                     }

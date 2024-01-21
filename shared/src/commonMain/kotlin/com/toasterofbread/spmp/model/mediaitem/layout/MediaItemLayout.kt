@@ -49,7 +49,7 @@ fun getDefaultMediaItemPreviewSize(long: Boolean): DpSize =
 @Composable
 fun getMediaItemPreviewSquareAdditionalHeight(text_rows: Int?, line_height: TextUnit): Dp =
     with(LocalDensity.current) {
-        line_height.toDp()  * (text_rows ?: 1)
+        line_height.toDp() * (text_rows ?: 1)
     } + 5.dp
 
 data class MediaItemLayout(

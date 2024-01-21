@@ -95,15 +95,15 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
                                 Row(
                                     Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally)
+                                    horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally)
                                 ) {
-                                    LibrarySyncButton()
-
                                     Text(
                                         if (library_page.search_filter != null) getString("library_no_items_match_filter")
                                         else getString("library_no_local_songs"),
                                         textAlign = TextAlign.Center
                                     )
+
+                                    LibrarySyncButton()
                                 }
                             }
                         }

@@ -2,13 +2,7 @@ package com.toasterofbread.spmp.ui.layout.apppage.library
 
 import LocalPlayerState
 import SpMp.isDebugBuild
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -29,10 +23,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.toasterofbread.composekit.utils.composable.LoadActionIconButton
 import com.toasterofbread.composekit.utils.composable.spanItem
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
+import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
+import com.toasterofbread.spmp.model.mediaitem.layout.getMediaItemPreviewSquareAdditionalHeight
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.library.createLocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.library.rememberLocalPlaylists
@@ -44,6 +42,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.rememberOwnedPlaylists
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
@@ -180,7 +179,14 @@ private fun LazyGridScope.PlaylistItems(
     }
 
     items(items) { playlist ->
-        MediaItemPreviewSquare(playlist, multiselect_context = multiselect_context)
+        MediaItemPreviewSquare(
+            playlist,
+            Modifier.size(
+                getDefaultMediaItemPreviewSize(false)
+                + DpSize(0.dp, getMediaItemPreviewSquareAdditionalHeight(2, MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP.sp))
+            ),
+            multiselect_context = multiselect_context
+        )
     }
 
     spanItem {

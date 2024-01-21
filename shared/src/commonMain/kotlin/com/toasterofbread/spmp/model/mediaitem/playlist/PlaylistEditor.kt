@@ -105,7 +105,10 @@ abstract class PlaylistEditor(open val playlist: Playlist, val context: AppConte
         deleted = true
         pending_actions.clear()
 
-        if (playlist !is LocalPlaylist) {
+        if (playlist is LocalPlaylist) {
+            context.database.pinnedItemQueries.remove(playlist.id, playlist.getType().ordinal.toLong())
+        }
+        else {
             playlist.removeFromDatabase(context.database)
         }
 

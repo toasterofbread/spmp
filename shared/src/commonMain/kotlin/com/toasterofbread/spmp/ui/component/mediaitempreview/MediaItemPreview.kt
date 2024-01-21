@@ -117,7 +117,7 @@ fun MediaItemPreviewSquare(
     max_text_rows: Int? = null,
     show_download_indicator: Boolean = true,
     font_size: TextUnit = MEDIA_ITEM_PREVIEW_SQUARE_FONT_SIZE_SP.sp,
-    line_height: TextUnit = MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP.sp * 0.75f,
+    line_height: TextUnit = MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP.sp,
     long_press_menu_data: LongPressMenuData =
         remember(item, multiselect_context, multiselect_key, getTitle) {
             item.getLongPressMenuData(

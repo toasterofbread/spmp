@@ -21,8 +21,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.composekit.utils.common.copy
-import com.toasterofbread.composekit.utils.composable.EmptyListCrossfade
+import com.toasterofbread.composekit.utils.composable.EmptyListAndDataCrossfade
 import com.toasterofbread.composekit.utils.composable.LoadActionIconButton
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
@@ -49,6 +48,7 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
 
     private var liked_artists: List<Artist>? by mutableStateOf(null)
     private var load_error: Throwable? by mutableStateOf(null)
+    private var loaded: Boolean by mutableStateOf(false)
 
     @Composable
     override fun Page(
@@ -70,6 +70,7 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
         LaunchedEffect(Unit) {
             liked_artists = null
             load_error = null
+            loaded = false
         }
 
         with(library_page) {
@@ -145,7 +146,10 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
                 }
             )
         }) }) {
-            EmptyListCrossfade(if (showing_account_content) sorted_liked_artists?.map { Pair(it, 0) } ?: emptyList() else sorted_artists) { artists ->
+            EmptyListAndDataCrossfade(
+                if (showing_account_content) sorted_liked_artists?.map { Pair(it, 0) } ?: emptyList() else sorted_artists,
+                loaded
+            ) { artists, loaded ->
                 multiselect_context.CollectionToggleButton(
                     artists?.mapIndexed { index, item -> Pair(item.first, index) } ?: emptyList(),
                     show = false
@@ -161,14 +165,19 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
                     }
 
                     if (artists == null) {
-                        item {
-                            Text(
-                                if (library_page.search_filter != null) getString("library_no_items_match_filter")
-                                else if (showing_account_content) getString("library_no_liked_artists")
-                                else getString("library_no_local_artists"),
-                                Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Center
-                            )
+                        val text: String? =
+                            if (library_page.search_filter != null) getString("library_no_items_match_filter")
+                            else if (showing_account_content) if (loaded) getString("library_no_liked_artists") else null
+                            else getString("library_no_local_artists")
+
+                        if (text != null) {
+                            item {
+                                Text(
+                                    text,
+                                    Modifier.fillMaxWidth(),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
                         }
                     }
                     else {
@@ -186,8 +195,7 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
                                 title_lines = 3,
                                 getExtraInfo = {
                                     listOf(
-                                        getString("artist_\$x_songs")
-                                            .replace("\$x", song_count.toString())
+                                        getString("artist_\$x_songs").replace("\$x", song_count.toString())
                                     )
                                 }
                             )
@@ -213,8 +221,9 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
                         { liked_artists = it },
                         { load_error = it }
                     )
+                    loaded = true
                 },
-                load_on_launch = liked_artists == null
+                load_on_launch = true
             ) {
                 Icon(Icons.Default.Refresh, null)
             }

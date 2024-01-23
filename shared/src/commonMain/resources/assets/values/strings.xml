@@ -63,6 +63,7 @@
     <string name="library_no_local_songs">No local songs</string>
     <string name="library_no_local_artists">No local artists</string>
     <string name="library_no_liked_artists">No library artists</string>
+    <string name="library_no_liked_albums">No library albums</string>
     <string name="library_no_playlists">No playlists</string>
     <string name="library_no_items_match_filter">No items match filter</string>
 

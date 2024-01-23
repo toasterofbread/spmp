@@ -12,7 +12,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,22 +22,15 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.composekit.settings.ui.copy
 import com.toasterofbread.composekit.utils.composable.LoadActionIconButton
-import com.toasterofbread.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.composekit.utils.composable.spanItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
 import com.toasterofbread.spmp.model.mediaitem.layout.getMediaItemPreviewSquareAdditionalHeight
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.library.createLocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.library.rememberLocalPlaylists
-import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
-import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
-import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
-import com.toasterofbread.spmp.model.mediaitem.playlist.createOwnedPlaylist
-import com.toasterofbread.spmp.model.mediaitem.playlist.rememberOwnedPlaylists
+import com.toasterofbread.spmp.model.mediaitem.playlist.*
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
@@ -139,35 +131,33 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
         val load_endpoint: AccountPlaylistsEndpoint? = auth_state?.AccountPlaylists
         val create_endpoint: CreateAccountPlaylistEndpoint? = auth_state?.CreateAccountPlaylist
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            AnimatedVisibility(showing_account_content && load_endpoint?.isImplemented() == true) {
-                LoadActionIconButton(
-                    {
-                        val result = load_endpoint?.getAccountPlaylists()
-                        load_error = result?.exceptionOrNull()
-                    }
-                ) {
-                    Icon(Icons.Default.Refresh, null)
+        AnimatedVisibility(showing_account_content && load_endpoint?.isImplemented() == true) {
+            LoadActionIconButton(
+                {
+                    val result = load_endpoint?.getAccountPlaylists()
+                    load_error = result?.exceptionOrNull()
                 }
+            ) {
+                Icon(Icons.Default.Refresh, null)
             }
+        }
 
-            AnimatedVisibility(!showing_account_content || create_endpoint?.isImplemented() == true) {
-                LoadActionIconButton({
-                    if (!showing_account_content) {
-                        MediaItemLibrary.createLocalPlaylist(player.context)
-                            .onFailure {
-                                load_error = it
-                            }
-                    }
-                    else if (create_endpoint != null) {
-                        MediaItemLibrary.createOwnedPlaylist(auth_state, create_endpoint)
-                            .onFailure {
-                                load_error = it
-                            }
-                    }
-                }) {
-                    Icon(Icons.Default.Add, null)
+        AnimatedVisibility(!showing_account_content || create_endpoint?.isImplemented() == true) {
+            LoadActionIconButton({
+                if (!showing_account_content) {
+                    MediaItemLibrary.createLocalPlaylist(player.context)
+                        .onFailure {
+                            load_error = it
+                        }
                 }
+                else if (create_endpoint != null) {
+                    MediaItemLibrary.createOwnedPlaylist(auth_state, create_endpoint)
+                        .onFailure {
+                            load_error = it
+                        }
+                }
+            }) {
+                Icon(Icons.Default.Add, null)
             }
         }
     }

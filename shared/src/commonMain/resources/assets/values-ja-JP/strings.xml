@@ -46,6 +46,7 @@
     <string name="library_no_local_songs">保存済みの曲はありません</string>
     <string name="library_no_local_artists">保存済みのアーティストはありません</string>
     <string name="library_no_liked_artists">ライブラリーにアーティストはありません</string>
+    <string name="library_no_liked_albums">ライブラリーにアルバムはありません</string>
     <string name="library_no_playlists">プレイリストはありません</string>
     <string name="library_no_items_match_filter">フィルターに一致するアイテムはありません</string>
 

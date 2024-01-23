@@ -100,6 +100,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
     val tabs: List<LibrarySubPage> = listOf(
         LibraryPlaylistsPage(state.context),
         LibrarySongsPage(state.context),
+        LibraryAlbumsPage(state.context),
         LibraryArtistsPage(state.context),
         LibraryProfilePage(state.context)
     )
@@ -401,7 +402,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
                                     ) {
                                         LaunchedEffect(Unit) {
                                             focus_requester.requestFocus()
-                                        }                           
+                                        }
 
                                         ResizableOutlinedTextField(
                                             search_filter ?: "",
@@ -417,6 +418,10 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
 
                                 AnimatedVisibility(current_tab.enableSorting()) {
                                     SortButton()
+                                }
+
+                                AnimatedVisibility(current_tab.canShowAccountContent()) {
+                                    Spacer(Modifier.height(20.dp))
                                 }
                             }
                         }

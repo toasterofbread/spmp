@@ -3,10 +3,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.unit.DpSize
@@ -14,6 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.*
 import com.toasterofbread.composekit.platform.composable.onWindowBackPressed
 import com.toasterofbread.spmp.model.settings.category.DesktopSettings
+import com.toasterofbread.spmp.model.settings.category.SystemSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.getTextFieldFocusState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.isTextFieldFocused
@@ -48,7 +46,6 @@ fun main() {
     }
 
     lateinit var window: ComposeWindow
-    var prev_window_placement: WindowPlacement? = null
 
     application {
         val text_field_focus_state: Any = getTextFieldFocusState()
@@ -62,10 +59,9 @@ fun main() {
                         Key.Escape -> return@Window onWindowBackPressed()
                         Key.F11 -> {
                             if (window.placement == WindowPlacement.Fullscreen) {
-                                window.placement = prev_window_placement ?: WindowPlacement.Floating
+                                window.placement = WindowPlacement.Floating
                             }
                             else {
-                                prev_window_placement = window.placement
                                 window.placement = WindowPlacement.Fullscreen
                             }
                             return@Window true
@@ -75,6 +71,16 @@ fun main() {
                                 SpMp.player_state.withPlayer {
                                     playPause()
                                 }
+                            }
+                        }
+                        Key.Equals -> {
+                            if (event.isCtrlPressed) {
+                                SystemSettings.Key.UI_SCALE.set(SystemSettings.Key.UI_SCALE.get<Float>() + 0.1f)
+                            }
+                        }
+                        Key.Minus -> {
+                            if (event.isCtrlPressed) {
+                                SystemSettings.Key.UI_SCALE.set((SystemSettings.Key.UI_SCALE.get<Float>() - 0.1f).coerceAtLeast(0.1f))
                             }
                         }
                     }

@@ -20,6 +20,7 @@ data object SystemSettings: SettingsCategory("system") {
         LANG_UI,
         LANG_DATA,
         FONT,
+        UI_SCALE,
         LIBRARY_PATH,
         PERSISTENT_QUEUE,
         ADD_SONGS_TO_HISTORY;
@@ -31,6 +32,7 @@ data object SystemSettings: SettingsCategory("system") {
             when (this) {
                 LANG_UI, LANG_DATA -> ""
                 FONT -> FontMode.DEFAULT.ordinal
+                UI_SCALE -> 1f
                 LIBRARY_PATH -> ""
                 PERSISTENT_QUEUE -> true
                 ADD_SONGS_TO_HISTORY -> false

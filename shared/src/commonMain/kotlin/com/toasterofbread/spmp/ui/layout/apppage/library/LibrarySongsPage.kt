@@ -16,14 +16,7 @@ import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -31,12 +24,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.utils.composable.EmptyListCrossfade
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.download.DownloadStatus
-import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.platform.download.rememberSongDownloads
 import com.toasterofbread.spmp.resources.getString
@@ -56,6 +49,7 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
         library_page: LibraryAppPage,
         content_padding: PaddingValues,
         multiselect_context: MediaItemMultiSelectContext,
+        showing_account_content: Boolean,
         modifier: Modifier
     ) {
         val player: PlayerState = LocalPlayerState.current
@@ -88,23 +82,20 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
                     LazyColumn(
                         Modifier.fillMaxSize(),
                         contentPadding = content_padding,
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                        verticalArrangement = Arrangement.spacedBy(15.dp)
                     ) {
+                        item {
+                            LibraryPageTitle(MediaItemType.SONG.getReadable(true))
+                        }
+
                         if (current_songs == null) {
                             item {
-                                Row(
+                                Text(
+                                    if (library_page.search_filter != null) getString("library_no_items_match_filter")
+                                    else getString("library_no_local_songs"),
                                     Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally)
-                                ) {
-                                    Text(
-                                        if (library_page.search_filter != null) getString("library_no_items_match_filter")
-                                        else getString("library_no_local_songs"),
-                                        textAlign = TextAlign.Center
-                                    )
-
-                                    LibrarySyncButton()
-                                }
+                                    textAlign = TextAlign.Center
+                                )
                             }
                         }
                         else {
@@ -147,6 +138,11 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
                 }
             }
         }
+    }
+
+    @Composable
+    override fun SideContent(showing_account_content: Boolean) {
+        LibrarySyncButton()
     }
 }
 

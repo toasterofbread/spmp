@@ -5,7 +5,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.Density
 import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.utils.common.thenIf
@@ -103,7 +105,12 @@ object SpMp {
 
             Surface(modifier = modifier.fillMaxSize()) {
                 if (player_created) {
-                    CompositionLocalProvider(LocalPlayerState provides player_state) {
+                    val ui_scale: Float by SystemSettings.Key.UI_SCALE.rememberMutableState()
+
+                    CompositionLocalProvider(
+                        LocalPlayerState provides player_state,
+                        LocalDensity provides Density(LocalDensity.current.density * ui_scale, 1f)
+                    ) {
                         val splash_mode: SplashMode? = when (Platform.current) {
                             Platform.ANDROID -> null
                             Platform.DESKTOP -> if (!player_state.service_connected) SplashMode.SPLASH else null

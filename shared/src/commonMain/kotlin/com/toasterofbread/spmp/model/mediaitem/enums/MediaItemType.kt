@@ -67,7 +67,7 @@ enum class MediaItemType {
                 "AUDIOBOOK",
                 "RADIO" ->
                     PLAYLIST_REM
-                "USER_CHANNEL" ->
+                "USER_CHANNEL", "LIBRARY_ARTIST" ->
                     ARTIST
                 "NON_MUSIC_AUDIO_TRACK_PAGE", "UNKNOWN" ->
                     SONG

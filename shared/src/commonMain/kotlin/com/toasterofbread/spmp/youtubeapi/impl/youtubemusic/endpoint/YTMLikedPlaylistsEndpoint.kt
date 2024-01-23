@@ -1,15 +1,10 @@
 package com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint
 
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
-import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.platform.getDataLanguage
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
-import com.toasterofbread.spmp.youtubeapi.endpoint.AccountPlaylistsEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.CreateAccountPlaylistEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.DeleteAccountPlaylistEndpoint
+import com.toasterofbread.spmp.youtubeapi.endpoint.LikedPlaylistsEndpoint
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.unit
 import com.toasterofbread.spmp.youtubeapi.model.YoutubeiBrowseResponse
 import com.toasterofbread.spmp.youtubeapi.model.YoutubeiShelfContentsItem
 import kotlinx.coroutines.Dispatchers
@@ -17,8 +12,8 @@ import kotlinx.coroutines.withContext
 import okhttp3.Request
 import okhttp3.Response
 
-class YTMAccountPlaylistsEndpoint(override val auth: YoutubeMusicAuthInfo): AccountPlaylistsEndpoint() {
-    override suspend fun getAccountPlaylists(): Result<List<RemotePlaylistData>> {
+class YTMLikedPlaylistsEndpoint(override val auth: YoutubeMusicAuthInfo): LikedPlaylistsEndpoint() {
+    override suspend fun getLikedPlaylists(): Result<List<RemotePlaylistData>> {
         val result: Result<List<RemotePlaylistData>> = withContext(Dispatchers.IO) {
             val hl: String = api.context.getDataLanguage()
             val request: Request = Request.Builder()
@@ -55,19 +50,19 @@ class YTMAccountPlaylistsEndpoint(override val auth: YoutubeMusicAuthInfo): Acco
                     return@mapNotNull null
                 }
 
-                val item: MediaItemData? = it.toMediaItemData(hl)?.first
+                var item: MediaItemData? = it.toMediaItemData(hl)?.first
                 if (item !is RemotePlaylistData) {
                     return@mapNotNull null
                 }
 
                 for (menu_item in it.musicTwoRowItemRenderer.menu?.menuRenderer?.items?.asReversed() ?: emptyList()) {
                     if (menu_item.menuNavigationItemRenderer?.icon?.iconType == "DELETE") {
-                        item.owner = auth.own_channel
+                        item = null
                         break
                     }
                 }
 
-                return@mapNotNull item
+                return@mapNotNull item as? RemotePlaylistData
             }
 
             return@withContext Result.success(playlists)
@@ -87,43 +82,5 @@ class YTMAccountPlaylistsEndpoint(override val auth: YoutubeMusicAuthInfo): Acco
         }
 
         return result
-    }
-}
-
-private class PlaylistCreateResponse(val playlistId: String)
-
-class YTMCreateAccountPlaylistEndpoint(override val auth: YoutubeMusicAuthInfo): CreateAccountPlaylistEndpoint() {
-    override suspend fun createAccountPlaylist(title: String, description: String): Result<String> = withContext(Dispatchers.IO) {
-        val request = Request.Builder()
-            .endpointUrl("/youtubei/v1/playlist/create")
-            .addAuthApiHeaders()
-            .postWithBody(
-                mapOf("title" to title, "description" to description),
-                YoutubeApi.PostBodyContext.UI_LANGUAGE
-            )
-            .build()
-
-        val result = api.performRequest(request)
-        val data: PlaylistCreateResponse = result.parseJsonResponse {
-            return@withContext Result.failure(it)
-        }
-
-        return@withContext Result.success(data.playlistId)
-    }
-}
-
-class YTMDeleteAccountPlaylistEndpoint(override val auth: YoutubeMusicAuthInfo): DeleteAccountPlaylistEndpoint() {
-    override suspend fun deleteAccountPlaylist(playlist_id: String): Result<Unit> = withContext(Dispatchers.IO) {
-        val request = Request.Builder()
-            .endpointUrl("/youtubei/v1/playlist/delete")
-            .addAuthApiHeaders()
-            .postWithBody(
-                mapOf(
-                    "playlistId" to RemotePlaylist.formatYoutubeId(playlist_id)
-                )
-            )
-            .build()
-
-        return@withContext api.performRequest(request).unit()
     }
 }

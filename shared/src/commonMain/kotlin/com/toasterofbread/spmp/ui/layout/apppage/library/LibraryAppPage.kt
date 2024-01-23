@@ -2,54 +2,54 @@ package com.toasterofbread.spmp.ui.layout.apppage.library
 
 import LocalPlayerState
 import SpMp.isDebugBuild
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSizeIn
+import androidx.compose.animation.*
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Sort
-import androidx.compose.material3.ElevatedFilterChip
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.drawscope.ContentDrawScope
+import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.vibrateShort
+import com.toasterofbread.composekit.utils.common.amplify
 import com.toasterofbread.composekit.utils.common.copy
+import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.composekit.utils.composable.PlatformClickableIconButton
 import com.toasterofbread.composekit.utils.composable.ResizableOutlinedTextField
+import com.toasterofbread.composekit.utils.composable.SidebarButtonSelector
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.FormFactor
+import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
+import com.toasterofbread.spmp.ui.component.WaveShape
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import kotlinx.coroutines.CoroutineScope
 
 abstract class LibrarySubPage(val context: AppContext) {
     abstract fun getIcon(): ImageVector
@@ -59,14 +59,40 @@ abstract class LibrarySubPage(val context: AppContext) {
     open fun enableSorting(): Boolean = true
     open fun getDefaultSortType(): MediaItemSortType = MediaItemSortType.PLAY_COUNT
     open fun nativeSortTypeLabel(): String? = null
+    open fun canShowAccountContent(): Boolean = false
 
     @Composable
     abstract fun Page(
         library_page: LibraryAppPage,
         content_padding: PaddingValues,
         multiselect_context: MediaItemMultiSelectContext,
-        modifier: Modifier
+        showing_account_content: Boolean,
+        modifier: Modifier,
     )
+
+    @Composable
+    open fun SideContent(showing_account_content: Boolean) {}
+
+    @Composable
+    fun LibraryPageTitle(title: String, modifier: Modifier = Modifier) {
+        val form_factor: FormFactor = LocalPlayerState.current.form_factor
+
+        Box(
+            modifier.fillMaxWidth(),
+            contentAlignment = when (form_factor) {
+                FormFactor.PORTRAIT -> Alignment.Center
+                FormFactor.LANDSCAPE -> Alignment.CenterStart
+            }
+        ) {
+            Text(
+                title,
+                style = when (form_factor) {
+                    FormFactor.PORTRAIT -> MaterialTheme.typography.headlineMedium
+                    FormFactor.LANDSCAPE -> MaterialTheme.typography.displaySmall
+                }
+            )
+        }
+    }
 }
 
 class LibraryAppPage(override val state: AppPageState): AppPage() {
@@ -87,6 +113,8 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
 
     var external_load_error: Throwable? by mutableStateOf(null)
 
+    private var showing_account_content: Boolean by mutableStateOf(false)
+
     override fun onOpened(from_item: MediaItemHolder?) {
         setCurrentTab(tabs.first { !it.isHidden() })
     }
@@ -101,12 +129,13 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
         show_sort_type_menu = false
         sort_type = tab.getDefaultSortType()
         reverse_sort = false
+        showing_account_content = false
 
         current_tab = tab
     }
 
     @Composable
-    override fun showTopBar(): Boolean = true
+    override fun showTopBar(): Boolean = LocalPlayerState.current.form_factor == FormFactor.PORTRAIT
 
     @Composable
     override fun showTopBarContent(): Boolean = true
@@ -114,7 +143,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
     @Composable
     override fun TopBarContent(modifier: Modifier, close: () -> Unit) {
-        val player = LocalPlayerState.current
+        val player: PlayerState = LocalPlayerState.current
 
         MediaItemSortType.SelectionMenu(
             show_sort_type_menu,
@@ -232,45 +261,153 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
         content_padding: PaddingValues,
         close: () -> Unit
     ) {
-        val player = LocalPlayerState.current
+        val player: PlayerState = LocalPlayerState.current
+        val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
-        AnimatedVisibility(
-            external_load_error != null,
-            enter = expandVertically(),
-            exit = shrinkVertically()
-        ) {
-            var error: Throwable? by remember { mutableStateOf(external_load_error) }
-            LaunchedEffect(external_load_error) {
-                if (external_load_error != null) {
-                    error = external_load_error
+        val sidebar_background_colour: Color = player.theme.background.amplify(0.05f)
+        val wave_border_offset: Animatable<Float, AnimationVector1D> = remember { Animatable(0f) }
+
+        Row {
+            if (player.form_factor == FormFactor.LANDSCAPE) {
+                Column(
+                    modifier = Modifier
+                        .drawWithContent {
+                            drawContent()
+                            leftBorderContent(player.theme.accent.copy(alpha = 0.25f), sidebar_background_colour) { wave_border_offset.value }
+                        }
+                        .background(sidebar_background_colour)
+                        .padding(10.dp)
+                        .padding(start = 7.dp, bottom = player.nowPlayingBottomPadding(true))
+                        .width(50.dp)
+                        .fillMaxHeight()
+                ) {
+                    SidebarButtonSelector(
+                        modifier = Modifier.fillMaxSize().weight(1f),
+                        selected_button = current_tab,
+                        buttons = tabs,
+                        indicator_colour = player.theme.vibrant_accent,
+                        scrolling = false,
+                        onButtonSelected = { tab ->
+                            if (tab != current_tab) {
+                                val increasing: Boolean = tabs.indexOf(tab) > tabs.indexOf(current_tab)
+                                current_tab = tab
+                                coroutine_scope.launchSingle {
+                                    wave_border_offset.animateTo(
+                                        if (increasing) wave_border_offset.value + 20f
+                                        else wave_border_offset.value - 20f,
+                                        tween(500)
+                                    )
+                                }
+                            }
+                        },
+                        showButton = { tab ->
+                            !tab.isHidden()
+                        }
+                    ) { tab ->
+                        val colour: Color =
+                            if (tab == current_tab) player.theme.on_accent
+                            else player.theme.on_background
+
+                        CompositionLocalProvider(LocalContentColor provides colour) {
+                            Icon(tab.getIcon(), null, Modifier.requiredSizeIn(minWidth = 20.dp, minHeight = 20.dp))
+                        }
+                    }
+
+                    SidebarButtonSelector(
+                        selected_button = showing_account_content,
+                        buttons = listOf(false, true),
+                        indicator_colour = player.theme.vibrant_accent,
+                        scrolling = false,
+                        onButtonSelected = {
+                            showing_account_content = it
+                        },
+                        showButton = {
+                            current_tab.canShowAccountContent()
+                        },
+                        extraContent = {
+                            if (!it) {
+                                current_tab.SideContent(showing_account_content)
+                            }
+                        }
+                    ) {
+                        val colour: Color =
+                            if (it == showing_account_content) player.theme.on_accent
+                            else player.theme.on_background
+
+                        CompositionLocalProvider(LocalContentColor provides colour) {
+                            Icon(
+                                if (it) Icons.Default.Cloud
+                                else Icons.Default.Inventory2,
+                                null,
+                                Modifier.requiredSizeIn(minWidth = 20.dp, minHeight = 20.dp)
+                            )
+                        }
+                    }
                 }
             }
 
-            error?.also {
-                ErrorInfoDisplay(
-                    it,
-                    isDebugBuild(),
-                    modifier = Modifier.padding(content_padding.copy(bottom = 20.dp)),
-                    message = getString("error_yt_feed_parse_failed"),
-                    onRetry = {
-                        player.app_page_state.SongFeed.retrying = true
-                        player.openAppPage(player.app_page_state.SongFeed)
-                    },
-                    onDismiss = {
-                        external_load_error = null
-                    },
-                    disable_parent_scroll = false
+            AnimatedVisibility(
+                external_load_error != null,
+                enter = expandVertically(),
+                exit = shrinkVertically()
+            ) {
+                var error: Throwable? by remember { mutableStateOf(external_load_error) }
+                LaunchedEffect(external_load_error) {
+                    if (external_load_error != null) {
+                        error = external_load_error
+                    }
+                }
+
+                error?.also {
+                    ErrorInfoDisplay(
+                        it,
+                        isDebugBuild(),
+                        modifier = Modifier.padding(content_padding.copy(bottom = 20.dp)),
+                        message = getString("error_yt_feed_parse_failed"),
+                        onRetry = {
+                            player.app_page_state.SongFeed.retrying = true
+                            player.openAppPage(player.app_page_state.SongFeed)
+                        },
+                        onDismiss = {
+                            external_load_error = null
+                        },
+                        disable_parent_scroll = false
+                    )
+                }
+            }
+
+            Crossfade(Pair(current_tab, showing_account_content), modifier) {
+                val (tab, showing_account) = it
+                tab.Page(
+                    this@LibraryAppPage,
+                    content_padding.copy(top = if (external_load_error != null) 0.dp else null),
+                    multiselect_context,
+                    showing_account,
+                    Modifier.fillMaxSize()
                 )
             }
         }
+    }
+}
 
-        Crossfade(current_tab, modifier) { tab ->
-            tab.Page(
-                this@LibraryAppPage,
-                content_padding.copy(top = if (external_load_error != null) 0.dp else null),
-                multiselect_context,
-                Modifier.fillMaxSize()
-            )
+private fun ContentDrawScope.leftBorderContent(colour: Color, background_colour: Color, getOffset: () -> Float = { 0f }) {
+    val shape: Shape =
+        WaveShape(
+            (size.height / 10.dp.toPx()).toInt(),
+            getOffset() + (size.height / 2),
+            width_multiplier = 2f
+        )
+    val outline: Outline =
+        shape.createOutline(Size(size.height, 5.dp.toPx()), LayoutDirection.Ltr, this)
+
+    scale(2f, Offset.Zero) {
+        rotate(90f, Offset.Zero) {
+            translate(top = (-4).dp.toPx()) {
+                drawOutline(outline, colour)
+                translate(top = (-1).dp.toPx()) {
+                    drawOutline(outline, background_colour)
+                }
+            }
         }
     }
 }

@@ -40,10 +40,14 @@
     <string name="home_feed_filter_commute">通勤・通学</string>
     <string name="home_feed_filter_focus">フォーカス</string>
 
-    <string name="library_no_local_songs">保存済みの曲がありません</string>
-    <string name="library_no_local_artists">保存済みのアーティストがありません</string>
+    <string name="library_local">ローカル</string>
+    <string name="library_account">アカウント</string>
+
+    <string name="library_no_local_songs">保存済みの曲はありません</string>
+    <string name="library_no_local_artists">保存済みのアーティストはありません</string>
+    <string name="library_no_liked_artists">ライブラリーにアーティストはありません</string>
     <string name="library_no_playlists">プレイリストはありません</string>
-    <string name="library_no_items_match_filter">フィルターに一致するアイテムがありません</string>
+    <string name="library_no_items_match_filter">フィルターに一致するアイテムはありません</string>
 
     <string name="library_$x_songs">$x曲</string>
     <string name="library_$x_playlists">$xプレイリスト</string>
@@ -269,7 +273,7 @@
     <string name="notif_copied_x_to_clipboard">$xをコピーしました</string>
 
     <string name="radio_builder_title">ラジオ番組を作成</string>
-    <string name="radio_builder_no_songs_match_criteria">条件に当てはまる曲がありません</string>
+    <string name="radio_builder_no_songs_match_criteria">条件に当てはまる曲はありません</string>
     <string name="radio_builder_next_button">次へ</string>
     <string name="radio_builder_play_last_button">以前のラジオを聴く</string>
     <string name="radio_builder_recent_button">最近のラジオ</string>
@@ -369,6 +373,7 @@
     <string name="s_sub_treat_singles_as_song">アーティストの「シングル」セクションに入ってるプレイリストは、曲が一つしか含まれていなければその曲として扱われます</string>
 
     <string name="s_key_font">フォント</string>
+    <string name="s_key_ui_scale">UIスケール</string>
 
     <string name="s_key_stop_player_on_app_close">アプリを閉じたら再生を中止する</string>
     <string name="s_sub_stop_player_on_app_close">最近画面からアプリがクリアされると、音楽再生が終わります</string>

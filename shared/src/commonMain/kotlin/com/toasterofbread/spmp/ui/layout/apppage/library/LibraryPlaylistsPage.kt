@@ -13,11 +13,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -26,8 +22,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.toasterofbread.composekit.settings.ui.copy
 import com.toasterofbread.composekit.utils.composable.LoadActionIconButton
+import com.toasterofbread.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.composekit.utils.composable.spanItem
+import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
 import com.toasterofbread.spmp.model.mediaitem.layout.getMediaItemPreviewSquareAdditionalHeight
@@ -45,24 +44,29 @@ import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
+import com.toasterofbread.spmp.youtubeapi.endpoint.AccountPlaylistsEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.CreateAccountPlaylistEndpoint
 
 internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =
         MediaItemType.PLAYLIST_REM.getIcon()
 
+    override fun canShowAccountContent(): Boolean = true
+
+    private var load_error: Throwable? by mutableStateOf(null)
+
     @Composable
     override fun Page(
         library_page: LibraryAppPage,
         content_padding: PaddingValues,
         multiselect_context: MediaItemMultiSelectContext,
+        showing_account_content: Boolean,
         modifier: Modifier
     ) {
-        val player = LocalPlayerState.current
-        val api = player.context.ytapi
-
-        var load_error: Throwable? by remember { mutableStateOf(null) }
+        val player: PlayerState = LocalPlayerState.current
+        val api: YoutubeApi = player.context.ytapi
 
         val local_playlists: List<LocalPlaylistData> = MediaItemLibrary.rememberLocalPlaylists(player.context) ?: emptyList()
         val account_playlists: List<RemotePlaylistRef>? = api.user_auth_state?.own_channel?.let { own_channel ->
@@ -75,7 +79,22 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
         }
 
         val item_spacing: Dp = 15.dp
-        val auth_state: YoutubeApi.UserAuthState? = player.context.ytapi.user_auth_state
+
+        LaunchedEffect(Unit) {
+            load_error = null
+        }
+
+        LaunchedEffect(showing_account_content) {
+            if (showing_account_content && account_playlists.isNullOrEmpty()) {
+                val auth_state: YoutubeApi.UserAuthState = player.context.ytapi.user_auth_state ?: return@LaunchedEffect
+
+                val load_endpoint: AccountPlaylistsEndpoint = auth_state.AccountPlaylists
+                if (load_endpoint.isImplemented()) {
+                    val result = load_endpoint.getAccountPlaylists()
+                    load_error = result.exceptionOrNull()
+                }
+            }
+        }
 
         LazyVerticalGrid(
             GridCells.Adaptive(100.dp),
@@ -84,6 +103,10 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
             verticalArrangement = Arrangement.spacedBy(item_spacing),
             horizontalArrangement = Arrangement.spacedBy(item_spacing)
         ) {
+            spanItem {
+                LibraryPageTitle(MediaItemType.PLAYLIST_LOC.getReadable(true))
+            }
+
             load_error?.also { error ->
                 spanItem {
                     ErrorInfoDisplay(error, isDebugBuild(), Modifier.fillMaxWidth()) {
@@ -92,86 +115,75 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
                 }
             }
 
-            PlaylistItems(
-                "Local playlists",
-                sorted_local_playlists,
-                multiselect_context,
-                cornerContent = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        LoadActionIconButton({
-                            MediaItemLibrary.createLocalPlaylist(player.context)
-                                .onFailure {
-                                    load_error = it
-                                }
-                        }) {
-                            Icon(Icons.Default.Add, null)
-                        }
+            if (showing_account_content) {
+                PlaylistItems(
+                    sorted_account_playlists ?: emptyList(),
+                    multiselect_context
+                )
+            }
+            else {
+                PlaylistItems(
+                    sorted_local_playlists,
+                    multiselect_context
+                )
+            }
+        }
+    }
 
-                        multiselect_context.CollectionToggleButton(sorted_local_playlists)
+    @Composable
+    override fun SideContent(showing_account_content: Boolean) {
+        val player: PlayerState = LocalPlayerState.current
+        val auth_state: YoutubeApi.UserAuthState? =
+            if (showing_account_content) player.context.ytapi.user_auth_state
+            else null
+
+        if (auth_state == null) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                LoadActionIconButton({
+                    MediaItemLibrary.createLocalPlaylist(player.context)
+                        .onFailure {
+                            load_error = it
+                        }
+                }) {
+                    Icon(Icons.Default.Add, null)
+                }
+            }
+        }
+        else {
+            Row {
+                val load_endpoint: AccountPlaylistsEndpoint = auth_state.AccountPlaylists
+                if (load_endpoint.isImplemented()) {
+                    LoadActionIconButton(
+                        {
+                            val result = load_endpoint.getAccountPlaylists()
+                            load_error = result.exceptionOrNull()
+                        }
+                    ) {
+                        Icon(Icons.Default.Refresh, null)
                     }
                 }
-            )
 
-            if (sorted_account_playlists != null) {
-                PlaylistItems(
-                    "Account playlists",
-                    sorted_account_playlists,
-                    multiselect_context,
-                    cornerContent = {
-                        Row {
-                            val load_endpoint = auth_state?.AccountPlaylists
-                            if (load_endpoint?.isImplemented() == true) {
-                                LoadActionIconButton(
-                                    {
-                                        val result = load_endpoint.getAccountPlaylists()
-                                        load_error = result.exceptionOrNull()
-                                    },
-                                    load_on_launch = account_playlists.isEmpty()
-                                ) {
-                                    Icon(Icons.Default.Refresh, null)
-                                }
+                val create_endpoint: CreateAccountPlaylistEndpoint = auth_state.CreateAccountPlaylist
+
+                if (create_endpoint.isImplemented()) {
+                    LoadActionIconButton({
+                        MediaItemLibrary.createOwnedPlaylist(auth_state, create_endpoint)
+                            .onFailure {
+                                load_error = it
                             }
-
-                            val create_endpoint: CreateAccountPlaylistEndpoint? = auth_state?.CreateAccountPlaylist
-
-                            if (create_endpoint?.isImplemented() == true) {
-                                LoadActionIconButton({
-                                    MediaItemLibrary.createOwnedPlaylist(auth_state, create_endpoint)
-                                        .onFailure {
-                                            load_error = it
-                                        }
-                                }) {
-                                    Icon(Icons.Default.Add, null)
-                                }
-                            }
-
-                            multiselect_context.CollectionToggleButton(sorted_account_playlists)
-                        }
+                    }) {
+                        Icon(Icons.Default.Add, null)
                     }
-                )
+                }
             }
         }
     }
 }
 
 private fun LazyGridScope.PlaylistItems(
-    title: String,
     items: List<Playlist>,
-    multiselect_context: MediaItemMultiSelectContext? = null,
-    cornerContent: (@Composable () -> Unit)? = null
+    multiselect_context: MediaItemMultiSelectContext? = null
 ) {
-    spanItem {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                title,
-                Modifier.padding(bottom = 5.dp).fillMaxWidth().weight(1f),
-                style = MaterialTheme.typography.headlineMedium
-            )
-
-            cornerContent?.invoke()
-        }
-    }
-
     if (items.isEmpty()) {
         spanItem {
             Text(getString("library_no_playlists"), Modifier.fillMaxWidth(), textAlign = TextAlign.Center)

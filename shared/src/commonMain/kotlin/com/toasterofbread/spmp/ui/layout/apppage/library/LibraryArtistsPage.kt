@@ -1,17 +1,13 @@
 package com.toasterofbread.spmp.ui.layout.apppage.library
 
 import LocalPlayerState
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -25,42 +21,59 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.toasterofbread.composekit.utils.common.copy
 import com.toasterofbread.composekit.utils.composable.EmptyListCrossfade
+import com.toasterofbread.composekit.utils.composable.LoadActionIconButton
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
+import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.download.DownloadStatus
-import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.download.rememberSongDownloads
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageWithItem
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.artistpage.LocalArtistPage
+import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 
 class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =
         Icons.Default.Groups
 
     override fun enableSorting(): Boolean = false
+    override fun canShowAccountContent(): Boolean = true
+
+    private var liked_artists: List<Artist>? by mutableStateOf(null)
+    private var load_error: Throwable? by mutableStateOf(null)
 
     @Composable
     override fun Page(
         library_page: LibraryAppPage,
         content_padding: PaddingValues,
         multiselect_context: MediaItemMultiSelectContext,
+        showing_account_content: Boolean,
         modifier: Modifier,
     ) {
-        val player = LocalPlayerState.current
+        val player: PlayerState = LocalPlayerState.current
 
         val downloads: List<DownloadStatus> by rememberSongDownloads()
         var sorted_artists: List<Pair<ArtistRef, Int>> by remember { mutableStateOf(emptyList()) }
 
+        val sorted_liked_artists: List<Artist>? = liked_artists?.let {
+            library_page.sort_type.sortAndFilterItems(it, library_page.search_filter, player.database, library_page.reverse_sort)
+        }
+
+        LaunchedEffect(Unit) {
+            liked_artists = null
+            load_error = null
+        }
+
         with(library_page) {
             LaunchedEffect(downloads, search_filter, sort_type, reverse_sort) {
-
                 val filter = if (search_filter?.isNotEmpty() == true) search_filter else null
                 val artists: MutableList<Pair<ArtistRef, Int>> = mutableListOf()
 
@@ -132,52 +145,78 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
                 }
             )
         }) }) {
-            Column(modifier) {
-                EmptyListCrossfade(sorted_artists) { artists ->
-                    multiselect_context.CollectionToggleButton(
-                        artists?.mapIndexed { index, item -> Pair(item.first, index) } ?: emptyList(), 
-                        show = false
-                    )
-                
-                    LazyColumn(
-                        Modifier.fillMaxSize(),
-                        contentPadding = content_padding,
-                        verticalArrangement = Arrangement.spacedBy(15.dp)
-                    ) {
-                        if (artists == null) {
-                            item {
-                                Text(
-                                    if (library_page.search_filter != null) getString("library_no_items_match_filter")
-                                    else getString("library_no_local_artists"),
-                                    Modifier.fillMaxWidth(),
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                        }
-                        else {
-                            itemsIndexed(artists, { _, item -> item }) { index, artist_data ->
-                                val (artist, song_count) = artist_data
+            EmptyListCrossfade(if (showing_account_content) sorted_liked_artists?.map { Pair(it, 0) } ?: emptyList() else sorted_artists) { artists ->
+                multiselect_context.CollectionToggleButton(
+                    artists?.mapIndexed { index, item -> Pair(item.first, index) } ?: emptyList(),
+                    show = false
+                )
 
-                                MediaItemPreviewLong(
-                                    artist,
-                                    Modifier.height(75.dp).fillMaxWidth(),
-                                    multiselect_context = multiselect_context,
-                                    multiselect_key = index,
-                                    show_type = false,
-                                    show_play_count = true,
-                                    font_size = 18.sp,
-                                    title_lines = 3,
-                                    getExtraInfo = {
-                                        listOf(
-                                            getString("artist_\$x_songs")
-                                                .replace("\$x", song_count.toString())
-                                        )
-                                    }
-                                )
-                            }
+                LazyColumn(
+                    Modifier.fillMaxSize(),
+                    contentPadding = content_padding,
+                    verticalArrangement = Arrangement.spacedBy(15.dp)
+                ) {
+                    item {
+                        LibraryPageTitle(MediaItemType.ARTIST.getReadable(true))
+                    }
+
+                    if (artists == null) {
+                        item {
+                            Text(
+                                if (library_page.search_filter != null) getString("library_no_items_match_filter")
+                                else if (showing_account_content) getString("library_no_liked_artists")
+                                else getString("library_no_local_artists"),
+                                Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                    else {
+                        itemsIndexed(artists, { _, item -> item }) { index, artist_data ->
+                            val (artist, song_count) = artist_data
+
+                            MediaItemPreviewLong(
+                                artist,
+                                Modifier.height(75.dp).fillMaxWidth(),
+                                multiselect_context = multiselect_context,
+                                multiselect_key = index,
+                                show_type = false,
+                                show_play_count = true,
+                                font_size = 18.sp,
+                                title_lines = 3,
+                                getExtraInfo = {
+                                    listOf(
+                                        getString("artist_\$x_songs")
+                                            .replace("\$x", song_count.toString())
+                                    )
+                                }
+                            )
                         }
                     }
                 }
+            }
+        }
+    }
+
+    @Composable
+    override fun SideContent(showing_account_content: Boolean) {
+        val player: PlayerState = LocalPlayerState.current
+        val auth_state: YoutubeApi.UserAuthState? =
+            if (showing_account_content) player.context.ytapi.user_auth_state
+            else null
+
+        val liked_artists_endpoint = auth_state?.LikedArtists ?: return
+        if (liked_artists_endpoint.isImplemented()) {
+            LoadActionIconButton(
+                {
+                    liked_artists_endpoint.getLikedArtists().fold(
+                        { liked_artists = it },
+                        { load_error = it }
+                    )
+                },
+                load_on_launch = liked_artists == null
+            ) {
+                Icon(Icons.Default.Refresh, null)
             }
         }
     }

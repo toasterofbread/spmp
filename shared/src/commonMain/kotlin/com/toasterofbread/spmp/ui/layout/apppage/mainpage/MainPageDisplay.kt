@@ -54,7 +54,7 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
                         player.main_multiselect_context,
                         Modifier,
                         PaddingValues(
-                            top = if (page.showTopBar()) WAVE_BORDER_HEIGHT_DP.dp else (top_padding + vertical_padding),
+                            top = if (page.showTopBar()) WAVE_BORDER_HEIGHT_DP.dp / 2 else (top_padding + vertical_padding),
                             bottom = player.nowPlayingBottomPadding(true) + vertical_padding + bottom_padding,
                             start = horizontal_padding + WindowInsets.getStart(),
                             end = horizontal_padding + WindowInsets.getEnd()

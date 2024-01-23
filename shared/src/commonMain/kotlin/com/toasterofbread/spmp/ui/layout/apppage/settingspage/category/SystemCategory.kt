@@ -2,11 +2,21 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import com.toasterofbread.composekit.platform.PlatformFile
@@ -14,8 +24,10 @@ import com.toasterofbread.composekit.settings.ui.item.ComposableSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.DropdownSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.FileSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
+import com.toasterofbread.composekit.settings.ui.item.SettingsItem.Companion.ItemTitleText
 import com.toasterofbread.composekit.settings.ui.item.ToggleSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
+import com.toasterofbread.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
@@ -28,6 +40,7 @@ import com.toasterofbread.spmp.resources.Languages
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.net.URI
@@ -115,6 +128,35 @@ internal fun getSystemCategoryItems(context: AppContext): List<SettingsItem> {
             FontMode.entries.size,
         ) { index ->
             FontMode.entries[index].getReadable(language)
+        },
+
+        ComposableSettingsItem(
+            listOf(SystemSettings.Key.UI_SCALE.getName()),
+            resetSettingsValues = {
+                SystemSettings.Key.UI_SCALE.set(1f)
+            }
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                ItemTitleText(getString("s_key_ui_scale"), theme, Modifier.weight(1f))
+
+                Spacer(Modifier.fillMaxWidth().weight(1f))
+
+                var ui_scale: Float by SystemSettings.Key.UI_SCALE.rememberMutableState()
+
+                ShapedIconButton({
+                    ui_scale = (ui_scale - 0.1f).coerceAtLeast(0.1f)
+                }) {
+                    Icon(Icons.Default.Remove, null)
+                }
+
+                Text("${(ui_scale * 100).toInt()}%")
+
+                ShapedIconButton({
+                    ui_scale += 0.1f
+                }) {
+                    Icon(Icons.Default.Add, null)
+                }
+            }
         },
 
         ToggleSettingsItem(

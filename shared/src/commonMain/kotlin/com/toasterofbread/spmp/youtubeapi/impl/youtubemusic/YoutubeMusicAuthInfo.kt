@@ -6,16 +6,10 @@ import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.platform.getDataLanguage
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.endpoint.GenericFeedViewMorePageEndpoint
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMAccountPlaylistAddSongsEndpoint
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMAccountPlaylistEditorEndpoint
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMAccountPlaylistsEndpoint
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMCreateAccountPlaylistEndpoint
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMDeleteAccountPlaylistEndpoint
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMMarkSongAsWatchedEndpoint
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMSetSongLikedEndpoint
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMSetSubscribedToArtistEndpoint
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMSongLikedEndpoint
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.YTMSubscribedToArtistEndpoint
+import com.toasterofbread.spmp.youtubeapi.endpoint.LikedAlbumsEndpoint
+import com.toasterofbread.spmp.youtubeapi.endpoint.LikedArtistsEndpoint
+import com.toasterofbread.spmp.youtubeapi.endpoint.LikedPlaylistsEndpoint
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.endpoint.*
 import com.toasterofbread.spmp.youtubeapi.model.YoutubeiBrowseResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -52,6 +46,9 @@ class YoutubeMusicAuthInfo private constructor(
     override val MarkSongAsWatched = YTMMarkSongAsWatchedEndpoint(this)
     override val AccountPlaylistEditor = YTMAccountPlaylistEditorEndpoint(this)
     override val AccountPlaylistAddSongs = YTMAccountPlaylistAddSongsEndpoint(this)
+    override val LikedAlbums = YTMLikedAlbumsEndpoint(this)
+    override val LikedArtists = YTMLikedArtistsEndpoint(this)
+    override val LikedPlaylists = YTMLikedPlaylistsEndpoint(this)
 }
 
 class YTMGenericFeedViewMorePageEndpoint(override val api: YoutubeApi): GenericFeedViewMorePageEndpoint() {

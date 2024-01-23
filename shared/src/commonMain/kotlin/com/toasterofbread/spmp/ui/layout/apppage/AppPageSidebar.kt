@@ -1,37 +1,30 @@
 package com.toasterofbread.spmp.ui.layout.apppage
 
 import LocalPlayerState
-import androidx.compose.animation.*
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationVector1D
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonColors
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.runtime.*
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInParent
-import androidx.compose.ui.layout.positionInRoot
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.utils.common.amplify
-import com.toasterofbread.composekit.utils.common.toFloat
+import com.toasterofbread.composekit.utils.composable.SidebarButtonSelector
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
@@ -46,7 +39,6 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.loadIfLocalPlaylist
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
-import kotlin.math.roundToInt
 
 @Composable
 private fun getOwnChannel(): Artist? = LocalPlayerState.current.context.ytapi.user_auth_state?.own_channel
@@ -166,138 +158,55 @@ fun AppPageSidebar(
 ) {
     val player: PlayerState = LocalPlayerState.current
 
-    val button_positions: MutableMap<SidebarButton, Float> = remember { mutableStateMapOf() }
-
-    val button_indicator_alpha: Animatable<Float, AnimationVector1D> = remember { Animatable(0f) }
-    val button_indicator_position: Animatable<Float, AnimationVector1D> = remember { Animatable(0f) }
-
     val current_button: SidebarButton? = SidebarButton.current
-    var previous_button: SidebarButton? by remember { mutableStateOf(null) }
+    val pages: List<AppPage?> = SidebarButton.entries.map { it.page }
 
-    var running: Boolean by remember { mutableStateOf(false) }
-
-    LaunchedEffect(current_button) {
-        val button_position: Float? = button_positions[current_button]
-        if (button_position == null) {
-            button_indicator_alpha.animateTo(0f)
-            previous_button = null
-            running = false
-            return@LaunchedEffect
-        }
-
-        running = true
-
-        if (previous_button == null) {
-            button_indicator_position.snapTo(button_position)
-            button_indicator_alpha.animateTo(1f)
-        }
-        else {
-            var jump: Boolean = false
-
-            var in_range: Boolean = false
-            for (button in SidebarButton.buttons) {
-                if (button == current_button || button == previous_button) {
-                    if (in_range) {
-                        break
-                    }
-                    in_range = true
-                }
-                else if (in_range && button == null) {
-                    jump = true
-                    break
-                }
-            }
-
-            if (jump) {
-                button_indicator_alpha.animateTo(0f)
-                button_indicator_position.snapTo(button_position)
-                button_indicator_alpha.animateTo(1f)
-            }
-            else {
-                button_indicator_position.animateTo(button_position)
-            }
-        }
-
-        previous_button = current_button
-
-        running = false
-    }
-
-    BoxWithConstraints(
-        modifier
+    SidebarButtonSelector(
+        modifier = modifier
             .background(player.theme.background.amplify(0.05f))
             .padding(content_padding)
             .width(50.dp),
-        contentAlignment = Alignment.TopCenter
-    ) {
-        Box(Modifier.verticalScroll(rememberScrollState())) {
-            CurrentButtonIndicator(
-                Modifier
-                    .offset {
-                        IntOffset(
-                            0,
-                            button_indicator_position.value.roundToInt()
-                        )
-                    }
-                    .graphicsLayer {
-                        alpha = if (!running) 0f else button_indicator_alpha.value
-                    }
-            )
-
-            Column(
-                Modifier.heightIn(min = this@BoxWithConstraints.maxHeight),
-                verticalArrangement = Arrangement.spacedBy(1.dp)
-            ) {
-                val icon_button_colours: IconButtonColors =
-                    IconButtonDefaults.iconButtonColors(
-                        containerColor = Color.Transparent,
-                        contentColor = player.theme.on_background
-                    )
-
-                for (button in SidebarButton.buttons) {
-                    if (button == null) {
-                        Column(Modifier.fillMaxHeight().weight(1f).padding(vertical = 10.dp)) {
-                            Spacer(Modifier.fillMaxHeight().weight(1f))
-                            PinnedItems(multiselect_context = multiselect_context)
-                        }
-                        continue
-                    }
-
-                    val page: AppPage? = button.page
-                    AnimatedVisibility(
-                        button.shouldShow(page),
-                        Modifier.onGloballyPositioned {
-                            button_positions[button] = it.positionInParent().y
-                        }
-                    ) {
-                        Box(Modifier.requiredSize(0.dp)) {
-                            CurrentButtonIndicator(
-                                Modifier
-                                    .offset(25.dp, 25.dp)
-                                    .graphicsLayer { alpha = (button == previous_button && !running).toFloat() }
-                            )
-                        }
-
-                        IconButton(
-                            {
-                                with (button) {
-                                    player.onButtonClicked(page)
-                                }
-                            },
-                            colors =
-                                if (button == current_button) IconButtonDefaults.iconButtonColors(
-                                    containerColor = Color.Transparent,
-                                    contentColor = player.theme.on_accent
-                                )
-                                else icon_button_colours
-                        ) {
-                            button.ButtonContent()
-                        }
-                    }
-                }
-
-                Spacer(Modifier.height(player.nowPlayingBottomPadding(true)))
+        selected_button = current_button,
+        buttons = SidebarButton.buttons,
+        indicator_colour = player.theme.vibrant_accent,
+        onButtonSelected = { button ->
+            if (button == null) {
+                return@SidebarButtonSelector
             }
+
+            val page: AppPage? = pages[button.ordinal]
+            with (button) {
+                player.onButtonClicked(page)
+            }
+        },
+        isSpacing = {
+            it == null
+        },
+        bottom_padding = player.nowPlayingBottomPadding(true),
+        vertical_arrangement = Arrangement.spacedBy(1.dp),
+        showButton = { button ->
+            if (button == null) {
+                return@SidebarButtonSelector false
+            }
+
+            val page: AppPage? = pages[button.ordinal]
+            return@SidebarButtonSelector button.shouldShow(page)
+        },
+        extraContent = { button ->
+            if (button == null) {
+                Column(Modifier.fillMaxHeight().weight(1f).padding(vertical = 10.dp)) {
+                    Spacer(Modifier.fillMaxHeight().weight(1f))
+                    PinnedItems(multiselect_context = multiselect_context)
+                }
+            }
+        }
+    ) { button ->
+        val colour: Color =
+            if (button == current_button) player.theme.on_accent
+            else player.theme.on_background
+
+        CompositionLocalProvider(LocalContentColor provides colour) {
+            button?.ButtonContent()
         }
     }
 }
@@ -352,17 +261,4 @@ private fun PinnedItems(modifier: Modifier = Modifier, multiselect_context: Medi
             }
         }
     }
-}
-
-@Composable
-private fun CurrentButtonIndicator(modifier: Modifier = Modifier) {
-    val player: PlayerState = LocalPlayerState.current
-    Box(
-        modifier
-            .background(
-                player.theme.vibrant_accent,
-                CircleShape
-            )
-            .requiredSize(50.dp)
-    )
 }

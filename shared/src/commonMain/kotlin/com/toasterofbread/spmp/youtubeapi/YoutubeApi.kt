@@ -323,6 +323,11 @@ interface YoutubeApi {
         abstract val AccountPlaylistEditor: AccountPlaylistEditorEndpoint
         abstract val AccountPlaylistAddSongs: AccountPlaylistAddSongsEndpoint
 
+        // --- Account liked items ---
+        abstract val LikedAlbums: LikedAlbumsEndpoint
+        abstract val LikedArtists: LikedArtistsEndpoint
+        abstract val LikedPlaylists: LikedPlaylistsEndpoint
+
         // --- Interaction ---
         abstract val SubscribedToArtist: SubscribedToArtistEndpoint
         abstract val SetSubscribedToArtist: SetSubscribedToArtistEndpoint

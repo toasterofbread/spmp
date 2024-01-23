@@ -11,8 +11,10 @@ import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.settings.category.DiscordSettings
+import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.executeResult
 import com.toasterofbread.spmp.youtubeapi.fromJson
+import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
 import io.github.jan.supabase.functions.Functions
 import io.github.jan.supabase.plugins.standaloneSupabaseModule
 import io.ktor.client.call.body
@@ -32,15 +34,18 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import java.io.IOException
+import java.io.Reader
 import java.util.Base64
 
 actual class DiscordStatus actual constructor(
     private val context: AppContext,
+    private val application_id: String,
     private val account_token: String?
 ) {
     actual companion object {
         actual fun isSupported(): Boolean = true
         actual fun isAccountTokenRequired(): Boolean = true
+        actual fun getWarningText(): String? = getString("warning_discord_kizzy")
     }
 
     private val rpc: KizzyRPC
@@ -105,7 +110,7 @@ actual class DiscordStatus actual constructor(
             return@withContext true
         }
 
-        val request = Request.Builder()
+        val request: Request = Request.Builder()
             .url("https://discord.com/api/v9/users/@me/settings-proto/1")
             .addHeader("authorization", account_token)
             .build()
@@ -148,7 +153,6 @@ actual class DiscordStatus actual constructor(
     actual fun setActivity(
         name: String,
         type: Type,
-        application_id: String?,
         status: Status,
         state: String?,
         details: String?,
@@ -192,8 +196,11 @@ actual class DiscordStatus actual constructor(
             ProjectBuildConfig.SUPABASE_KEY
         )
 
-    actual suspend fun getCustomImages(image_items: List<MediaItem>, target_quality: MediaItemThumbnailProvider.Quality): Result<List<String?>> {
-        val supabase_functions = getSupabaseFunctions()
+    actual suspend fun getCustomImages(
+        image_items: List<MediaItem>,
+        target_quality: MediaItemThumbnailProvider.Quality
+    ): Result<List<String?>> {
+        val supabase_functions: Functions = getSupabaseFunctions()
 
         // The source code for this function is available at https://github.com/toasterofbread/discordimageindex
         val response: HttpResponse = supabase_functions.invoke(
@@ -228,4 +235,32 @@ actual class DiscordStatus actual constructor(
             }
         )
     }
+}
+
+actual suspend fun getDiscordAccountInfo(account_token: String?): Result<DiscordMeResponse> = withContext(Dispatchers.IO) {
+    if (account_token == null) {
+        return@withContext Result.failure(NullPointerException("account_token is null"))
+    }
+
+    val request: Request = Request.Builder()
+        .url("https://discord.com/api/v9/users/@me")
+        .addHeader("authorization", account_token)
+        .build()
+
+    val result: Result<Response> = OkHttpClient().executeResult(request)
+    val response: Response = result.getOrNull() ?: return@withContext result.cast()
+
+    val stream: Reader = response.body!!.charStream()
+    val me: DiscordMeResponse = try {
+        Gson().fromJson(stream)
+    }
+    catch (e: Throwable) {
+        return@withContext Result.failure(e)
+    }
+    finally {
+        stream.close()
+    }
+    me.token = account_token
+
+    return@withContext Result.success(me)
 }

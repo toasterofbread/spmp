@@ -13,7 +13,8 @@ plugins {
 val KEY_NAMES = mapOf(
     "PASTE_EE_TOKEN" to "String",
     "SUPABASE_URL" to "String",
-    "SUPABASE_KEY" to "String"
+    "SUPABASE_KEY" to "String",
+    "DISCORD_APPLICATION_ID" to "String"
 )
 val DEBUG_KEY_NAMES = mapOf(
     "YTM_CHANNEL_ID" to "String",
@@ -203,6 +204,7 @@ kotlin {
                 implementation(compose.desktop.common)
                 implementation("com.github.ltttttttttttt:load-the-image:1.0.5")
                 implementation("app.cash.sqldelight:sqlite-driver:2.0.0")
+                implementation("com.github.caoimhebyrne:KDiscordIPC:0.2.2")
             }
         }
     }

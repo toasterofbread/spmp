@@ -48,8 +48,9 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
     return listOf(
         ComposableSettingsItem { modifier ->
             var accepted: Boolean by InternalSettings.Key.DISCORD_WARNING_ACCEPTED.rememberMutableState()
+            val warning_text: String? = DiscordStatus.getWarningText()
 
-            AnimatedVisibility(!accepted, enter = expandVertically(), exit = shrinkVertically()) {
+            AnimatedVisibility(warning_text != null && !accepted, enter = expandVertically(), exit = shrinkVertically()) {
                 Card(
                     modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
@@ -61,7 +62,7 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
                     Column(Modifier.fillMaxSize().padding(15.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                         Icon(Icons.Default.Warning, null, tint = Color.Red)
 
-                        LinkifyText(getString("warning_discord_kizzy"), theme.accent, colour = theme.on_background, style = MaterialTheme.typography.bodyMedium)
+                        LinkifyText(warning_text ?: "", theme.accent, colour = theme.on_background, style = MaterialTheme.typography.bodyMedium)
 
                         Button(
                             { accepted = true },

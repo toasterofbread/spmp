@@ -546,10 +546,10 @@
     <string name="s_group_caching">キャッシュ</string>
     <string name="s_key_enable_thumbnail_cache">サムネール画像をキャッシュする</string>
     
-    <string name="s_discord_status_enabled"></string> <!--TODO-->
-    <string name="s_discord_status_disabled"></string> <!--TODO-->
-    <string name="s_discord_status_enable"></string> <!--TODO-->
-    <string name="s_discord_status_disable"></string> <!--TODO-->
+    <string name="s_discord_status_enabled">Discord ステータスは有効にされています</string>
+    <string name="s_discord_status_disabled">Discord ステータスは有効にされていません</string>
+    <string name="s_discord_status_enable">有効にする</string>
+    <string name="s_discord_status_disable">無効にする</string>
 
     <string name="s_group_desktop_system">システム</string>
 

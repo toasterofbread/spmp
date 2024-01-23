@@ -30,6 +30,8 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.DiscordAccountPreview
 import com.toasterofbread.spmp.ui.layout.DiscordLoginConfirmation
+import com.toasterofbread.spmp.platform.DiscordStatus
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 
 fun getDiscordAuthItem(
     context: AppContext,
@@ -40,8 +42,12 @@ fun getDiscordAuthItem(
     val discord_auth: SettingsValueState<String> = SettingsValueState<String>(DiscordAuthSettings.Key.DISCORD_ACCOUNT_TOKEN.getName())
         .init(context.getPrefs(), Settings::provideDefault)
 
-    val prerequisite: SettingsValueState<Boolean> = SettingsValueState<Boolean>(InternalSettings.Key.DISCORD_WARNING_ACCEPTED.getName())
-        .init(context.getPrefs(), Settings::provideDefault)
+    val login_required: Boolean = DiscordStatus.isAccountTokenRequired()
+    val prerequisite: SettingsValueState<Boolean>? =
+        if (login_required)
+            SettingsValueState<Boolean>(InternalSettings.Key.DISCORD_WARNING_ACCEPTED.getName())
+                .init(context.getPrefs(), Settings::provideDefault)
+        else null
 
     return LargeToggleSettingsItem(
         object : BasicSettingsValueState<Boolean> {
@@ -74,7 +80,7 @@ fun getDiscordAuthItem(
 
                 var account_token: String by mutableStateOf(discord_auth.get())
 
-                val auth = discord_auth.get()
+                val auth: String = discord_auth.get()
                 if (auth.isNotEmpty()) {
                     account_token = auth
                 }
@@ -86,23 +92,25 @@ fun getDiscordAuthItem(
         disabledContent = {
             StartIcon?.invoke()
         },
-        disabled_text = getString("auth_not_signed_in"),
-        enable_button = getString("auth_sign_in"),
-        disable_button = getString("auth_sign_out"),
-        warningDialog = { dismiss, openPage ->
-            DiscordLoginConfirmation { manual ->
-                dismiss()
-                if (manual != null) {
-                    openPage(PrefsPageScreen.DISCORD_LOGIN.ordinal, manual)
+        disabled_text = if (login_required) getString("auth_not_signed_in") else getString("s_discord_status_disabled"),
+        enable_button = if (login_required) getString("auth_sign_in") else getString("s_discord_status_enable"),
+        disable_button = if (login_required) getString("auth_sign_out") else getString("s_discord_status_disable"),
+        warningDialog =
+            if (login_required) {{ dismiss, openPage ->
+                DiscordLoginConfirmation { manual ->
+                    dismiss()
+                    if (manual != null) {
+                        openPage(PrefsPageScreen.DISCORD_LOGIN.ordinal, manual)
+                    }
                 }
-            }
-        },
+            }}
+            else null,
         infoButton = { enabled, _ ->
-            if (info_only) {
+            if (info_only || !login_required) {
                 return@LargeToggleSettingsItem
             }
 
-            val player = LocalPlayerState.current
+            val player: PlayerState = LocalPlayerState.current
             var show_info_dialog: Boolean by remember { mutableStateOf(false) }
 
             if (show_info_dialog) {
@@ -129,7 +137,12 @@ fun getDiscordAuthItem(
         prerequisite_value = if (ignore_prerequisite) null else prerequisite
     ) { target, setEnabled, _, openPage ->
         if (target) {
-            openPage(PrefsPageScreen.DISCORD_LOGIN.ordinal, null)
+            if (login_required) {
+                openPage(PrefsPageScreen.DISCORD_LOGIN.ordinal, null)
+            }
+            else {
+                discord_auth.set("0")
+            }
         }
         else {
             setEnabled(false)

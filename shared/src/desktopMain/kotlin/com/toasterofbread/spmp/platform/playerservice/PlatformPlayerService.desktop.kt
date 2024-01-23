@@ -110,9 +110,13 @@ actual class PlatformPlayerService: SpMsPlayerService(), PlayerService {
         sendRequest("removeItem", index)
     }
 
-    actual override fun addListener(listener: PlayerListener) {}
+    actual override fun addListener(listener: PlayerListener) {
+        Companion.addListener(listener)
+    }
 
-    actual override fun removeListener(listener: PlayerListener) {}
+    actual override fun removeListener(listener: PlayerListener) {
+        Companion.removeListener(listener)
+    }
 
     @Composable
     actual override fun Visualiser(colour: Color, modifier: Modifier, opacity: Float) {

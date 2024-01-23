@@ -51,7 +51,7 @@ fun <T> Result.Companion.failure(request: Request, response: Response, api: Yout
 
     response.close()
 
-    val request_body = request.body?.let {
+    val request_body: String? = request.body?.let {
         val buffer = Buffer()
         it.writeTo(buffer)
         buffer.readUtf8()

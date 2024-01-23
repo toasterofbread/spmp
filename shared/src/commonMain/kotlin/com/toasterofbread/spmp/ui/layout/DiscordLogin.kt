@@ -39,9 +39,12 @@ import com.google.gson.Gson
 import com.toasterofbread.composekit.platform.composable.rememberImagePainter
 import com.toasterofbread.composekit.utils.composable.LinkifyText
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.spmp.platform.DiscordMeResponse
 import com.toasterofbread.spmp.platform.WebViewLogin
+import com.toasterofbread.spmp.platform.getDiscordAccountInfo
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.youtubeapi.executeResult
 import com.toasterofbread.spmp.youtubeapi.fromJson
 import com.toasterofbread.spmp.youtubeapi.fromMap
@@ -51,10 +54,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.Response
+import java.io.Reader
 
 private const val DISCORD_LOGIN_URL = "https://discord.com/login"
 private const val DISCORD_API_URL = "https://discord.com/api/"
-private const val DISCORD_DEFAULT_AVATAR = "https://discord.com/assets/1f0bfc0865d324c2587920a7d80c609b.png"
 
 @Composable
 fun DiscordLoginConfirmation(info_only: Boolean = false, onFinished: (manual: Boolean?) -> Unit) {
@@ -86,7 +90,7 @@ fun DiscordLoginConfirmation(info_only: Boolean = false, onFinished: (manual: Bo
 
 @Composable
 fun DiscordLogin(modifier: Modifier = Modifier, manual: Boolean = false, onFinished: (Result<String?>?) -> Unit) {
-    val player = LocalPlayerState.current
+    val player: PlayerState = LocalPlayerState.current
 
     if (manual) {
         DiscordManualLogin(modifier, onFinished)
@@ -115,54 +119,6 @@ fun DiscordLogin(modifier: Modifier = Modifier, manual: Boolean = false, onFinis
     }
 }
 
-data class DiscordMeResponse(
-    val id: String? = null,
-    val username: String? = null,
-    val avatar: String? = null,
-    val discriminator: String? = null,
-    val banner_color: String? = null,
-    val bio: String? = null
-) {
-    var token: String? = null
-
-    fun isEmpty(): Boolean = this == EMPTY
-    fun getAvatarUrl(): String {
-        check(!isEmpty())
-        check(id != null)
-
-        return if (avatar != null) "https://cdn.discordapp.com/avatars/$id/$avatar.webp"
-                else DISCORD_DEFAULT_AVATAR
-    }
-
-    companion object {
-        val EMPTY = DiscordMeResponse()
-    }
-}
-
-suspend fun getDiscordAccountInfo(account_token: String): Result<DiscordMeResponse> = withContext(Dispatchers.IO) {
-    val request = Request.Builder()
-        .url("https://discord.com/api/v9/users/@me")
-        .addHeader("authorization", account_token)
-        .build()
-
-    val result = OkHttpClient().executeResult(request)
-    val response = result.getOrNull() ?: return@withContext result.cast()
-
-    val stream = response.body!!.charStream()
-    val me: DiscordMeResponse = try {
-        Gson().fromJson(stream)
-    }
-    catch (e: Throwable) {
-        return@withContext Result.failure(e)
-    }
-    finally {
-        stream.close()
-    }
-    me.token = account_token
-
-    return@withContext Result.success(me)
-}
-
 private val DiscordMeResponseSaver: Saver<DiscordMeResponse?, Any> = run {
     mapSaver(
         save = { it: DiscordMeResponse? ->
@@ -185,11 +141,11 @@ private val DiscordMeResponseSaver: Saver<DiscordMeResponse?, Any> = run {
 
 @Composable
 fun DiscordAccountPreview(account_token: String, modifier: Modifier = Modifier) {
-    val player = LocalPlayerState.current
+    val player: PlayerState = LocalPlayerState.current
 
     var account_info: DiscordMeResponse? by rememberSaveable(stateSaver = DiscordMeResponseSaver) { mutableStateOf(DiscordMeResponse.EMPTY) }
-    var started by remember { mutableStateOf(false) }
-    var loading by remember { mutableStateOf(false) }
+    var started: Boolean by remember { mutableStateOf(false) }
+    var loading: Boolean by remember { mutableStateOf(false) }
 
     LaunchedEffect(account_token) {
         if (account_info?.token != account_token) {

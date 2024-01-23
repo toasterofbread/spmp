@@ -36,7 +36,7 @@ enum class MediaItemSortType {
 
             DURATION -> {
                 {
-                    val value = mapValue(it)
+                    val value: T = mapValue(it)
                     if (value is Song) value.Duration.get(db) ?: 0 else 0
                 }
             }

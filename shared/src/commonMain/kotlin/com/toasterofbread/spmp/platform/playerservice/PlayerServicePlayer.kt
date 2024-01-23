@@ -125,7 +125,7 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
                 sendStatusWebhook(song)
             }
 
-            play()
+//            play()
         }
 
         private suspend fun sendStatusWebhook(song: Song?) {
@@ -155,7 +155,7 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
 
                 payload.add("youtube_video_id", song?.id?.let { JsonPrimitive(it) })
 
-                val request = Request.Builder()
+                val request: Request = Request.Builder()
                     .url(webhook_url)
                     .post(
                         gson.toJson(payload).toRequestBody("application/json".toMediaType())

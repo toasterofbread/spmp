@@ -3,11 +3,11 @@ package com.toasterofbread.spmp.service.playercontroller
 import SpMp
 import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.db.Database
+import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.DiscordAuthSettings
-import com.toasterofbread.spmp.model.settings.category.YoutubeAuthSettings
 import com.toasterofbread.spmp.model.settings.category.DiscordSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.DiscordStatus
@@ -17,9 +17,6 @@ import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrThrowHere
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
-
-private const val DISCORD_APPLICATION_ID = "1081929293979992134"
-private const val DISCORD_ASSET_ICON_PRIMARY = "1103702923852132372"
 
 internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context: AppContext) {
     private var discord_rpc: DiscordStatus? = null
@@ -36,15 +33,16 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
     fun onDiscordAccountTokenChanged() {
         discord_rpc?.close()
 
-        val account_token = DiscordAuthSettings.Key.DISCORD_ACCOUNT_TOKEN.get<String>(context.getPrefs())
+        val account_token: String = DiscordAuthSettings.Key.DISCORD_ACCOUNT_TOKEN.get(context.getPrefs())
         if (!DiscordStatus.isSupported() || (account_token.isBlank() && DiscordStatus.isAccountTokenRequired())) {
             discord_rpc = null
             return
         }
 
         discord_rpc = DiscordStatus(
-            context,
-            account_token
+            context = context,
+            application_id = ProjectBuildConfig.DISCORD_APPLICATION_ID,
+            account_token = account_token
         )
 
         updateDiscordStatus(null)
@@ -93,10 +91,10 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
                     return@apply
                 }
 
-                val name = formatText(DiscordSettings.Key.STATUS_NAME.get(context), status_song, song_title)
-                val text_a = formatText(DiscordSettings.Key.STATUS_TEXT_A.get(context), status_song, song_title)
-                val text_b = formatText(DiscordSettings.Key.STATUS_TEXT_B.get(context), status_song, song_title)
-                val text_c = formatText(DiscordSettings.Key.STATUS_TEXT_C.get(context), status_song, song_title)
+                val name: String = formatText(DiscordSettings.Key.STATUS_NAME.get(context), status_song, song_title)
+                val text_a: String = formatText(DiscordSettings.Key.STATUS_TEXT_A.get(context), status_song, song_title)
+                val text_b: String = formatText(DiscordSettings.Key.STATUS_TEXT_B.get(context), status_song, song_title)
+                val text_c: String = formatText(DiscordSettings.Key.STATUS_TEXT_C.get(context), status_song, song_title)
 
                 val large_image: String?
                 val small_image: String?
@@ -138,8 +136,7 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
                     small_image = small_image,
                     small_text =
                         if (small_image != null) status_song.Artist.get(context.database)?.getActiveTitle(context.database)
-                        else null,
-                    application_id = DISCORD_APPLICATION_ID
+                        else null
                 )
 
                 SpMp.Log.info("Discord status set for song $status_song ($song_title)")

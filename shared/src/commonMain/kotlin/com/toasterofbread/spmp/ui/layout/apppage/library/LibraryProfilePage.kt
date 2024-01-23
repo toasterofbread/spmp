@@ -23,7 +23,7 @@ class LibraryProfilePage(context: AppContext): LibrarySubPage(context) {
         Icons.Default.Person
 
     override fun isHidden(): Boolean = own_channel == null
-    override fun enableSearch(): Boolean = false
+    override fun enableSearching(): Boolean = false
     override fun enableSorting(): Boolean = false
 
     private val own_channel: Artist? get() = context.ytapi.user_auth_state?.own_channel

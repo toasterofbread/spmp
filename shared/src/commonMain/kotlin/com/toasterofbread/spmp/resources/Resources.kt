@@ -28,8 +28,8 @@ fun initResources(language: String, context: AppContext) {
         }
 
         runBlocking {
-            val strs: MutableMap<String, String> = mutableMapOf<String, String>()
-            val str_arrays: MutableMap<String, List<String>> = mutableMapOf<String, List<String>>()
+            val strs: MutableMap<String, String> = mutableMapOf()
+            val str_arrays: MutableMap<String, List<String>> = mutableMapOf()
 
             fun loadFile(path: String) {
                 val stream: InputStream
@@ -43,12 +43,12 @@ fun initResources(language: String, context: AppContext) {
                     return
                 }
 
-                println("Loading strings.xml at $path")
+                println("Loading resource file at $path")
 
                 val string: String = stream.reader().readText()
                 stream.close()
 
-                val parser = MiniXmlPullParser(string.iterator())
+                val parser: MiniXmlPullParser = MiniXmlPullParser(string.iterator())
 
                 while (parser.eventType != EventType.END_DOCUMENT) {
                     if (parser.eventType != EventType.START_TAG) {
@@ -56,7 +56,7 @@ fun initResources(language: String, context: AppContext) {
                         continue
                     }
 
-                    val key = parser.getAttributeValue("", "name")
+                    val key: String? = parser.getAttributeValue("", "name")
                     if (key != null) {
                         when (parser.name) {
                             "string" -> {
@@ -82,8 +82,6 @@ fun initResources(language: String, context: AppContext) {
                 }
 
                 stream.close()
-
-                println("Loaded strings.xml at $path")
             }
 
             var language_best_match: String? = null
@@ -147,7 +145,7 @@ inline fun iterateValuesDirectories(context: AppContext, action: (language: Stri
             continue
         }
 
-        val file_language = if (file.length == 6) null else file.substring(7)
+        val file_language: String? = if (file.length == 6) null else file.substring(7)
         if (action(file_language, file)) {
             break
         }

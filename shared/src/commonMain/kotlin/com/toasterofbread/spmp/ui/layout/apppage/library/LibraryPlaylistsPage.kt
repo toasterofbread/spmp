@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.ui.layout.apppage.library
 
 import LocalPlayerState
 import SpMp.isDebugBuild
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
@@ -133,47 +134,39 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
     @Composable
     override fun SideContent(showing_account_content: Boolean) {
         val player: PlayerState = LocalPlayerState.current
-        val auth_state: YoutubeApi.UserAuthState? =
-            if (showing_account_content) player.context.ytapi.user_auth_state
-            else null
+        val auth_state: YoutubeApi.UserAuthState? = player.context.ytapi.user_auth_state
 
-        if (auth_state == null) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                LoadActionIconButton({
-                    MediaItemLibrary.createLocalPlaylist(player.context)
-                        .onFailure {
-                            load_error = it
-                        }
-                }) {
-                    Icon(Icons.Default.Add, null)
+        val load_endpoint: AccountPlaylistsEndpoint? = auth_state?.AccountPlaylists
+        val create_endpoint: CreateAccountPlaylistEndpoint? = auth_state?.CreateAccountPlaylist
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            AnimatedVisibility(showing_account_content && load_endpoint?.isImplemented() == true) {
+                LoadActionIconButton(
+                    {
+                        val result = load_endpoint?.getAccountPlaylists()
+                        load_error = result?.exceptionOrNull()
+                    }
+                ) {
+                    Icon(Icons.Default.Refresh, null)
                 }
             }
-        }
-        else {
-            Row {
-                val load_endpoint: AccountPlaylistsEndpoint = auth_state.AccountPlaylists
-                if (load_endpoint.isImplemented()) {
-                    LoadActionIconButton(
-                        {
-                            val result = load_endpoint.getAccountPlaylists()
-                            load_error = result.exceptionOrNull()
-                        }
-                    ) {
-                        Icon(Icons.Default.Refresh, null)
+
+            AnimatedVisibility(!showing_account_content || create_endpoint?.isImplemented() == true) {
+                LoadActionIconButton({
+                    if (!showing_account_content) {
+                        MediaItemLibrary.createLocalPlaylist(player.context)
+                            .onFailure {
+                                load_error = it
+                            }
                     }
-                }
-
-                val create_endpoint: CreateAccountPlaylistEndpoint = auth_state.CreateAccountPlaylist
-
-                if (create_endpoint.isImplemented()) {
-                    LoadActionIconButton({
+                    else if (create_endpoint != null) {
                         MediaItemLibrary.createOwnedPlaylist(auth_state, create_endpoint)
                             .onFailure {
                                 load_error = it
                             }
-                    }) {
-                        Icon(Icons.Default.Add, null)
                     }
+                }) {
+                    Icon(Icons.Default.Add, null)
                 }
             }
         }

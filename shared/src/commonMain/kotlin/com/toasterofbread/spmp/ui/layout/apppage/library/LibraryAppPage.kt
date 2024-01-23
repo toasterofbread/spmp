@@ -16,6 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -28,11 +30,17 @@ import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
+import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.composekit.utils.common.amplify
 import com.toasterofbread.composekit.utils.common.copy
+import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.composekit.utils.composable.PlatformClickableIconButton
 import com.toasterofbread.composekit.utils.composable.ResizableOutlinedTextField
@@ -55,7 +63,7 @@ abstract class LibrarySubPage(val context: AppContext) {
     abstract fun getIcon(): ImageVector
 
     open fun isHidden(): Boolean = false
-    open fun enableSearch(): Boolean = true
+    open fun enableSearching(): Boolean = true
     open fun enableSorting(): Boolean = true
     open fun getDefaultSortType(): MediaItemSortType = MediaItemSortType.PLAY_COUNT
     open fun nativeSortTypeLabel(): String? = null
@@ -75,26 +83,19 @@ abstract class LibrarySubPage(val context: AppContext) {
 
     @Composable
     fun LibraryPageTitle(title: String, modifier: Modifier = Modifier) {
-        val form_factor: FormFactor = LocalPlayerState.current.form_factor
-
-        Box(
-            modifier.fillMaxWidth(),
-            contentAlignment = when (form_factor) {
-                FormFactor.PORTRAIT -> Alignment.Center
-                FormFactor.LANDSCAPE -> Alignment.CenterStart
-            }
-        ) {
-            Text(
-                title,
-                style = when (form_factor) {
-                    FormFactor.PORTRAIT -> MaterialTheme.typography.headlineMedium
-                    FormFactor.LANDSCAPE -> MaterialTheme.typography.displaySmall
-                }
-            )
+        if (LocalPlayerState.current.form_factor != FormFactor.LANDSCAPE) {
+            return
         }
+
+        Text(
+            title,
+            modifier.padding(bottom = 10.dp),
+            style = MaterialTheme.typography.displaySmall
+        )
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 class LibraryAppPage(override val state: AppPageState): AppPage() {
     val tabs: List<LibrarySubPage> = listOf(
         LibraryPlaylistsPage(state.context),
@@ -104,7 +105,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
     )
     private var current_tab: LibrarySubPage by mutableStateOf(tabs.first())
 
-    private var show_search_field: Boolean by mutableStateOf(false)
+    private var showing_search_field: Boolean by mutableStateOf(false)
     var search_filter: String? by mutableStateOf(null)
 
     private var show_sort_type_menu: Boolean by mutableStateOf(false)
@@ -124,7 +125,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
     }
 
     private fun setCurrentTab(tab: LibrarySubPage) {
-        show_search_field = false
+        showing_search_field = false
         search_filter = null
         show_sort_type_menu = false
         sort_type = tab.getDefaultSortType()
@@ -140,115 +141,143 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
     @Composable
     override fun showTopBarContent(): Boolean = true
 
-    @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+    @Composable
+    private fun SearchButton() {
+        val player: PlayerState = LocalPlayerState.current
+        val keyboard_controller: SoftwareKeyboardController? = LocalSoftwareKeyboardController.current
+
+        Crossfade(showing_search_field) { searching ->
+            PlatformClickableIconButton(
+                onClick = {
+                    if (searching) {
+                        keyboard_controller?.hide()
+                    }
+                    showing_search_field = !searching
+                    search_filter = null
+                          },
+                onAltClick = {
+                    if (!searching) {
+                        player.openAppPage(player.app_page_state.Search)
+                        player.context.vibrateShort()
+                    }
+                }
+            ) {
+                Icon(
+                    if (searching) Icons.Default.Close else Icons.Default.Search,
+                    null
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun SortButton() {
+        IconButton({
+            show_sort_type_menu = !show_sort_type_menu
+        }) {
+            Icon(Icons.Default.Sort, null)
+        }
+    }
+
     @Composable
     override fun TopBarContent(modifier: Modifier, close: () -> Unit) {
         val player: PlayerState = LocalPlayerState.current
 
-        MediaItemSortType.SelectionMenu(
-            show_sort_type_menu,
-            sort_type,
-            { show_sort_type_menu = false },
-            {
-                if (it == sort_type) {
-                    reverse_sort = !reverse_sort
-                }
-                else {
-                    sort_type = it
-                }
-            },
-            current_tab.nativeSortTypeLabel()
-        )
+        Column(modifier) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
 
-        Row(
-            modifier,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            val keyboard_controller = LocalSoftwareKeyboardController.current
-
-            AnimatedVisibility(current_tab.enableSearch()) {
-                Crossfade(show_search_field) { searching ->
-                    PlatformClickableIconButton(
-                        onClick = {
-                            if (searching) {
-                                keyboard_controller?.hide()
-                            }
-                            show_search_field = !searching
-                            search_filter = null
-                        },
-                        onAltClick = {
-                            if (!searching) {
-                                player.openAppPage(player.app_page_state.Search)
-                                player.context.vibrateShort()
-                            }
-                        }
-                    ) {
-                        Icon(
-                            if (searching) Icons.Default.Close else Icons.Default.Search,
-                            null
-                        )
-                    }
-                }
-            }
-
-            Row(Modifier.fillMaxWidth().weight(1f)) {
-                AnimatedVisibility(
-                    show_search_field && current_tab.enableSearch(),
-                    enter = fadeIn() + expandHorizontally(clip = false)
-                ) {
-                    ResizableOutlinedTextField(
-                        search_filter ?: "",
-                        { search_filter = it },
-                        Modifier.height(45.dp).fillMaxWidth().weight(1f),
-                        singleLine = true
-                    )
+                AnimatedVisibility(current_tab.enableSearching()) {
+                    SearchButton()
                 }
 
                 Row(Modifier.fillMaxWidth().weight(1f)) {
-                    val shown_tabs = tabs.filter { !it.isHidden() }
+                    AnimatedVisibility(
+                        showing_search_field && current_tab.enableSearching(),
+                        enter = fadeIn() + expandHorizontally(clip = false)
+                    ) {
+                        ResizableOutlinedTextField(
+                            search_filter ?: "",
+                            { search_filter = it },
+                            Modifier.height(45.dp).fillMaxWidth().weight(1f),
+                            singleLine = true
+                        )
+                    }
 
-                    for (tab in shown_tabs.withIndex()) {
-                        Crossfade(tab.value == current_tab) { selected ->
-                            Box(
-                                Modifier
-                                    .fillMaxWidth(
-                                        1f / (shown_tabs.size - tab.index)
-                                    )
-                                    .padding(horizontal = 5.dp)
-                            ) {
-                                ElevatedFilterChip(
-                                    selected,
-                                    {
-                                        setCurrentTab(tab.value)
-                                    },
-                                    {
-                                        Box(Modifier.fillMaxWidth().padding(end = 8.dp), contentAlignment = Alignment.Center) {
-                                            Icon(tab.value.getIcon(), null, Modifier.requiredSizeIn(minWidth = 20.dp, minHeight = 20.dp))
-                                        }
-                                    },
-                                    colors = with(player.theme) {
-                                        FilterChipDefaults.elevatedFilterChipColors(
-                                            containerColor = background,
-                                            labelColor = on_background,
-                                            selectedContainerColor = accent,
-                                            selectedLabelColor = on_accent
+                    Row(Modifier.fillMaxWidth().weight(1f)) {
+                        val shown_tabs = tabs.filter { !it.isHidden() }
+
+                        for (tab in shown_tabs.withIndex()) {
+                            Crossfade(tab.value == current_tab) { selected ->
+                                Box(
+                                    Modifier
+                                        .fillMaxWidth(
+                                            1f / (shown_tabs.size - tab.index)
                                         )
-                                    },
-                                    border = FilterChipDefaults.filterChipBorder(
-                                        borderColor = player.theme.on_background
+                                        .padding(horizontal = 5.dp)
+                                ) {
+                                    ElevatedFilterChip(
+                                        selected,
+                                        {
+                                            setCurrentTab(tab.value)
+                                        },
+                                        {
+                                            Box(Modifier.fillMaxWidth().padding(end = 8.dp), contentAlignment = Alignment.Center) {
+                                                Icon(tab.value.getIcon(), null, Modifier.requiredSizeIn(minWidth = 20.dp, minHeight = 20.dp))
+                                            }
+                                        },
+                                        colors = with(player.theme) {
+                                            FilterChipDefaults.elevatedFilterChipColors(
+                                                containerColor = background,
+                                                labelColor = on_background,
+                                                selectedContainerColor = accent,
+                                                selectedLabelColor = on_accent
+                                            )
+                                        },
+                                        border = FilterChipDefaults.filterChipBorder(
+                                            borderColor = player.theme.on_background
+                                        )
                                     )
-                                )
+                                }
                             }
                         }
                     }
                 }
+
+                AnimatedVisibility(current_tab.enableSorting()) {
+                    SortButton()
+                }
             }
 
-            AnimatedVisibility(current_tab.enableSorting()) {
-                IconButton({
-                    show_sort_type_menu = !show_sort_type_menu
-                }) {
-                    Icon(Icons.Default.Sort, null)
+            AnimatedVisibility(!current_tab.canShowAccountContent(), Modifier.align(Alignment.End)) {
+                current_tab.SideContent(showing_account_content)
+            }
+
+            AnimatedVisibility(current_tab.canShowAccountContent()) {
+                Row(Modifier.padding(horizontal = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    @Composable
+                    fun getButtonColours(current: Boolean) =
+                        ButtonDefaults.buttonColors(
+                            containerColor = if (current) player.theme.vibrant_accent else player.theme.vibrant_accent.copy(alpha = 0.1f),
+                            contentColor = if (current) player.theme.vibrant_accent.getContrasted() else player.theme.on_background
+                        )
+
+                    Button(
+                        { showing_account_content = false },
+                        Modifier.fillMaxWidth(0.5f).weight(1f),
+                        colors = getButtonColours(!showing_account_content)
+                    ) {
+                        Text(getString("library_local"), textAlign = TextAlign.Center)
+                    }
+
+                    Button(
+                        { showing_account_content = true },
+                        Modifier.fillMaxWidth().weight(1f),
+                        colors = getButtonColours(showing_account_content)
+                    ) {
+                        Text(getString("library_account"), textAlign = TextAlign.Center)
+                    }
+
+                    current_tab.SideContent(showing_account_content)
                 }
             }
         }
@@ -267,10 +296,30 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
         val sidebar_background_colour: Color = player.theme.background.amplify(0.05f)
         val wave_border_offset: Animatable<Float, AnimationVector1D> = remember { Animatable(0f) }
 
+        MediaItemSortType.SelectionMenu(
+            show_sort_type_menu,
+            sort_type,
+            { show_sort_type_menu = false },
+            {
+                if (it == sort_type) {
+                    reverse_sort = !reverse_sort
+                }
+                else {
+                    sort_type = it
+                }
+            },
+            current_tab.nativeSortTypeLabel()
+        )
+
+        BackHandler(showing_search_field && current_tab.enableSearching()) {
+            showing_search_field = false
+        }
+
         Row {
             if (player.form_factor == FormFactor.LANDSCAPE) {
                 Column(
                     modifier = Modifier
+                        .zIndex(1f)
                         .drawWithContent {
                             drawContent()
                             leftBorderContent(player.theme.accent.copy(alpha = 0.25f), sidebar_background_colour) { wave_border_offset.value }
@@ -327,6 +376,48 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
                         extraContent = {
                             if (!it) {
                                 current_tab.SideContent(showing_account_content)
+
+                                AnimatedVisibility(current_tab.enableSearching()) {
+                                    SearchButton()
+                                }
+
+                                BoxWithConstraints(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f, false)
+                                        .requiredHeight(0.dp)
+                                        .zIndex(-10f)
+                                ) {
+                                    val field_size: DpSize = DpSize(200.dp, 45.dp)
+                                    val focus_requester: FocusRequester = remember { FocusRequester() }
+
+                                    this@SidebarButtonSelector.AnimatedVisibility(
+                                        showing_search_field && current_tab.enableSearching(),
+                                        Modifier
+                                            .requiredSize(field_size)
+                                            .offset(x = (field_size.width + maxWidth) / 2, y = (-45f / 2f).dp),
+                                        enter = slideInHorizontally() { -it * 2 },
+                                        exit = slideOutHorizontally() { -it * 2 }
+                                    ) {
+                                        LaunchedEffect(Unit) {
+                                            focus_requester.requestFocus()
+                                        }                           
+
+                                        ResizableOutlinedTextField(
+                                            search_filter ?: "",
+                                            { search_filter = it },
+                                            Modifier
+                                                .requiredSize(field_size)
+                                                .background(sidebar_background_colour)
+                                                .focusRequester(focus_requester),
+                                            singleLine = true
+                                        )
+                                    }
+                                }
+
+                                AnimatedVisibility(current_tab.enableSorting()) {
+                                    SortButton()
+                                }
                             }
                         }
                     ) {

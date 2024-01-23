@@ -44,6 +44,8 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =
         MediaItemType.SONG.getIcon()
 
+    private var sorted_downloads: List<DownloadStatus> by mutableStateOf(emptyList())
+
     @Composable
     override fun Page(
         library_page: LibraryAppPage,
@@ -55,7 +57,9 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
         val player: PlayerState = LocalPlayerState.current
         val downloads: List<DownloadStatus> by rememberSongDownloads()
 
-        var sorted_downloads: List<DownloadStatus> by remember { mutableStateOf(emptyList()) }
+        LaunchedEffect(Unit) {
+            sorted_downloads = emptyList()
+        }
 
         with(library_page) {
             LaunchedEffect(downloads, search_filter, sort_type, reverse_sort) {
@@ -142,7 +146,9 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
 
     @Composable
     override fun SideContent(showing_account_content: Boolean) {
-        LibrarySyncButton()
+        if (sorted_downloads.isEmpty()) {
+            LibrarySyncButton()
+        }
     }
 }
 

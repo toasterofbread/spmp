@@ -61,7 +61,7 @@ class YTMAccountPlaylistsEndpoint(override val auth: YoutubeMusicAuthInfo): Acco
                 }
 
                 for (menu_item in it.musicTwoRowItemRenderer.menu?.menuRenderer?.items?.asReversed() ?: emptyList()) {
-                    if (menu_item.menuNavigationItemRenderer?.icon?.iconType == "DELETE") {
+                    if (item.id == "VLLM" || menu_item.menuNavigationItemRenderer?.icon?.iconType == "DELETE") {
                         item.owner = auth.own_channel
                         break
                     }

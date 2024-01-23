@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.toasterofbread.composekit.platform.composable.ScrollBarLazyColumn
 import com.toasterofbread.composekit.platform.composable.SwipeRefresh
 import com.toasterofbread.composekit.utils.common.copy
 import com.toasterofbread.composekit.utils.common.getThemeColour
@@ -58,7 +59,6 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.FilterSettings
-import com.toasterofbread.spmp.model.settings.category.LyricsSettings
 import com.toasterofbread.spmp.model.settings.category.TopBarSettings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
@@ -404,7 +404,7 @@ class PlaylistPage(
                         }
                     )
                 }) {
-                    LazyColumn(
+                    ScrollBarLazyColumn(
                         state = list_state.listState,
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.reorderable(list_state),

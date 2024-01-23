@@ -164,6 +164,7 @@
     <string name="sort_type_alphabet">Name</string>
     <string name="sort_type_duration">Duration</string>
     <string name="sort_type_playcount">Listen count</string>
+    <string name="sort_type_artist">Artist</string>
 
     <string name="playlist_chip_play">Play</string>
     <string name="playlist_chip_shuffle">Shuffle</string>

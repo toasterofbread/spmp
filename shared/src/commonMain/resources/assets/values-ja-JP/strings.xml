@@ -146,6 +146,7 @@
     <string name="sort_type_alphabet">名前</string>
     <string name="sort_type_duration">長さ</string>
     <string name="sort_type_playcount">再生数</string>
+    <string name="sort_type_artist">アーティスト</string>
 
     <string name="playlist_chip_play">再生</string>
     <string name="playlist_chip_shuffle">シャッフル</string>

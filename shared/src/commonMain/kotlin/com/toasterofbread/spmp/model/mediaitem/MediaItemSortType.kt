@@ -8,13 +8,14 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.resources.getString
 
 enum class MediaItemSortType {
-    NATIVE, ALPHABET, DURATION, PLAY_COUNT;
+     NATIVE, ALPHABET, DURATION, ARTIST, PLAY_COUNT;
 
     fun getReadable(native_string_key: String? = null): String =
         getString(when(this) {
             NATIVE ->     native_string_key!!
             ALPHABET ->   "sort_type_alphabet"
             DURATION ->   "sort_type_duration"
+            ARTIST -> "sort_type_artist"
             PLAY_COUNT -> "sort_type_playcount"
         })
 
@@ -38,6 +39,10 @@ enum class MediaItemSortType {
                     val value = mapValue(it)
                     if (value is Song) value.Duration.get(db) ?: 0 else 0
                 }
+            }
+
+            ARTIST -> {
+                { (mapValue(it) as? MediaItem.WithArtist)?.Artist?.get(db)?.getActiveTitle(db) ?: "" }
             }
 
             PLAY_COUNT -> {

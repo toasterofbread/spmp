@@ -31,6 +31,7 @@ import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.library.createLocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.library.rememberLocalPlaylists
 import com.toasterofbread.spmp.model.mediaitem.playlist.*
+import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
@@ -61,6 +62,8 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
         val player: PlayerState = LocalPlayerState.current
         val api: YoutubeApi = player.context.ytapi
 
+        val show_likes_playlist: Boolean by BehaviourSettings.Key.SHOW_LIKES_PLAYLIST.rememberMutableState()
+
         val local_playlists: List<LocalPlaylistData> = MediaItemLibrary.rememberLocalPlaylists(player.context) ?: emptyList()
         val account_playlists: List<RemotePlaylistRef>? = api.user_auth_state?.own_channel?.let { own_channel ->
             rememberOwnedPlaylists(own_channel, player.context)
@@ -68,7 +71,8 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
 
         val sorted_local_playlists = library_page.sort_type.sortAndFilterItems(local_playlists, library_page.search_filter, player.database, library_page.reverse_sort)
         val sorted_account_playlists = account_playlists?.let { playlists ->
-            library_page.sort_type.sortAndFilterItems(playlists, library_page.search_filter, player.database, library_page.reverse_sort)
+            val filtered: List<RemotePlaylistRef> = if (show_likes_playlist) playlists else playlists.filter { it.id != "VLLM" }
+            library_page.sort_type.sortAndFilterItems(filtered, library_page.search_filter, player.database, library_page.reverse_sort)
         }
 
         val item_spacing: Dp = 15.dp

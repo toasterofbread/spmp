@@ -154,10 +154,10 @@ internal fun ArtistAppPage.SFFArtistPage(
                     verticalArrangement = Arrangement.spacedBy(30.dp)
                 ) {
                     for (artist_layout in item_layouts ?: emptyList()) {
-                        val layout = artist_layout.rememberMediaItemLayout(player.database)
-                        val layout_id = (layout.title as? YoutubeLocalisedString)?.getYoutubeStringId()
+                        val layout: MediaItemLayout = artist_layout.rememberMediaItemLayout(player.database)
+                        val layout_id: YoutubeUILocalisation.StringID? = (layout.title as? YoutubeLocalisedString)?.getYoutubeStringId()
 
-                        val is_singles =
+                        val is_singles: Boolean =
                             BehaviourSettings.Key.TREAT_SINGLES_AS_SONG.get()
                                     && layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_SINGLES
 

@@ -7,7 +7,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.settings.ui.item.ComposableSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.settings.SettingsKey
@@ -38,7 +37,8 @@ data object DiscordAuthSettings: SettingsCategory("discordauth") {
     override fun showPage(exporting: Boolean): Boolean = exporting
 
     enum class Key: SettingsKey {
-        DISCORD_ACCOUNT_TOKEN;
+        DISCORD_ACCOUNT_TOKEN,
+        DISCORD_WARNING_ACCEPTED;
 
         override val category: SettingsCategory get() = DiscordAuthSettings
 
@@ -46,6 +46,7 @@ data object DiscordAuthSettings: SettingsCategory("discordauth") {
         override fun <T> getDefaultValue(): T =
             when (this) {
                 DISCORD_ACCOUNT_TOKEN -> ProjectBuildConfig.DISCORD_ACCOUNT_TOKEN ?: ""
+                DISCORD_WARNING_ACCEPTED -> false
             } as T
     }
 }

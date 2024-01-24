@@ -24,6 +24,7 @@ data object BehaviourSettings: SettingsCategory("behaviour") {
         MULTISELECT_CANCEL_ON_ACTION,
         MULTISELECT_CANCEL_ON_NONE_SELECTED, // TODO
         TREAT_SINGLES_AS_SONG,
+        TREAT_ANY_SINGLE_ITEM_PLAYLIST_AS_SINGLE,
         SHOW_LIKES_PLAYLIST,
         SEARCH_SHOW_SUGGESTIONS,
         STOP_PLAYER_ON_APP_CLOSE,
@@ -41,6 +42,7 @@ data object BehaviourSettings: SettingsCategory("behaviour") {
                 MULTISELECT_CANCEL_ON_ACTION -> true
                 MULTISELECT_CANCEL_ON_NONE_SELECTED -> true
                 TREAT_SINGLES_AS_SONG -> false
+                TREAT_ANY_SINGLE_ITEM_PLAYLIST_AS_SINGLE -> false
                 SHOW_LIKES_PLAYLIST -> true
                 SEARCH_SHOW_SUGGESTIONS -> true
                 STOP_PLAYER_ON_APP_CLOSE -> false

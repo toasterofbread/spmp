@@ -4,6 +4,7 @@ import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.SqlCursor
 import app.cash.sqldelight.db.SqlDriver
 
+// SqlDelight migration is buggy and inconsistent between platforms, this hopefully won't be
 object Migration {
     private val DATABASE_VERSION: Int = 2
     

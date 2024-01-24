@@ -33,7 +33,7 @@ import com.toasterofbread.composekit.settings.ui.item.ToggleSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.composekit.utils.composable.LinkifyText
 import com.toasterofbread.spmp.model.settings.category.DiscordSettings
-import com.toasterofbread.spmp.model.settings.category.InternalSettings
+import com.toasterofbread.spmp.model.settings.category.DiscordAuthSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.resources.getString
@@ -47,7 +47,7 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
 
     return listOf(
         ComposableSettingsItem { modifier ->
-            var accepted: Boolean by InternalSettings.Key.DISCORD_WARNING_ACCEPTED.rememberMutableState()
+            var accepted: Boolean by DiscordAuthSettings.Key.DISCORD_WARNING_ACCEPTED.rememberMutableState()
             val warning_text: String? = DiscordStatus.getWarningText()
 
             AnimatedVisibility(warning_text != null && !accepted, enter = expandVertically(), exit = shrinkVertically()) {

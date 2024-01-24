@@ -307,6 +307,23 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
             playMediaItem(item)
             onPlayActionOccurred()
         }
+        else if (
+            item is Playlist
+            && BehaviourSettings.Key.TREAT_SINGLES_AS_SONG.get()
+            && BehaviourSettings.Key.TREAT_ANY_SINGLE_ITEM_PLAYLIST_AS_SINGLE.get()
+        ) {
+            coroutine_scope.launch {
+                item.loadData(context).onSuccess { data ->
+                    val single = data.items?.singleOrNull()
+                    if (single != null) {
+                        onMediaItemClicked(single)
+                    }
+                    else {
+                        openMediaItem(item)
+                    }
+                }
+            }
+        }
         else {
             openMediaItem(item)
         }

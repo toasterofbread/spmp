@@ -40,6 +40,11 @@ internal fun getBehaviourCategoryItems(): List<SettingsItem> {
         ),
 
         ToggleSettingsItem(
+            SettingsValueState(BehaviourSettings.Key.TREAT_ANY_SINGLE_ITEM_PLAYLIST_AS_SINGLE.getName()),
+            getString("s_key_treat_any_single_item_playlist_as_single"), null
+        ),
+
+        ToggleSettingsItem(
             SettingsValueState(BehaviourSettings.Key.SHOW_LIKES_PLAYLIST.getName()),
             getString("s_key_show_likes_playlist"), null
         ),

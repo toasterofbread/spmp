@@ -5,7 +5,6 @@ import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Lyrics
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.spmp.model.settings.SettingsKey
-import com.toasterofbread.spmp.platform.AppContext
 
 data object InternalSettings: SettingsCategory("internal") {
     override val keys: List<SettingsKey> = Key.entries.toList()
@@ -14,8 +13,7 @@ data object InternalSettings: SettingsCategory("internal") {
 
     enum class Key: SettingsKey {
         TOPBAR_MODE_HOME,
-        TOPBAR_MODE_NOWPLAYING,
-        DISCORD_WARNING_ACCEPTED;
+        TOPBAR_MODE_NOWPLAYING;
 
         override val category: SettingsCategory get() = InternalSettings
 
@@ -24,7 +22,6 @@ data object InternalSettings: SettingsCategory("internal") {
             when (this) {
                 TOPBAR_MODE_HOME -> MusicTopBarMode.LYRICS.ordinal
                 TOPBAR_MODE_NOWPLAYING -> MusicTopBarMode.LYRICS.ordinal
-                DISCORD_WARNING_ACCEPTED -> false
             } as T
     }
 }

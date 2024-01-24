@@ -371,8 +371,10 @@
     <string name="s_key_add_songs_to_history">聴いた曲をYouTubeの歴史に追加する</string>
     <string name="s_sub_add_songs_to_history">アプリ内で流された曲をYouTubeに通信し、アカウントの歴史に追加されます</string>
 
-    <string name="s_key_treat_singles_as_song">アーティストのシングルを曲として扱う</string>
+    <string name="s_key_treat_singles_as_song">シングルを曲として扱う</string>
     <string name="s_sub_treat_singles_as_song">アーティストの「シングル」セクションに入ってるプレイリストは、曲が一つしか含まれていなければその曲として扱われます</string>
+
+    <string name="s_key_treat_any_single_item_playlist_as_single">１曲しか入ってないプレイリストすべてをシングルとして扱う</string>
 
     <string name="s_key_font">フォント</string>
     <string name="s_key_ui_scale">UIスケール</string>

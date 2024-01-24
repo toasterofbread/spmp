@@ -241,6 +241,7 @@ android {
     }
 }
 
+// Version specification isn't needed, but must remain for backwards-compatibility
 val DATABASE_VERSION: Int = 3
 
 sqldelight {

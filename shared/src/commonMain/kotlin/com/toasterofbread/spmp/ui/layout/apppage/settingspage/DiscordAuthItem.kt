@@ -17,7 +17,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.settings.ui.item.BasicSettingsValueState
 import com.toasterofbread.composekit.settings.ui.item.LargeToggleSettingsItem
@@ -25,7 +24,6 @@ import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.DiscordAuthSettings
-import com.toasterofbread.spmp.model.settings.category.InternalSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.DiscordAccountPreview
@@ -45,7 +43,7 @@ fun getDiscordAuthItem(
     val login_required: Boolean = DiscordStatus.isAccountTokenRequired()
     val prerequisite: SettingsValueState<Boolean>? =
         if (login_required)
-            SettingsValueState<Boolean>(InternalSettings.Key.DISCORD_WARNING_ACCEPTED.getName())
+            SettingsValueState<Boolean>(DiscordAuthSettings.Key.DISCORD_WARNING_ACCEPTED.getName())
                 .init(context.getPrefs(), Settings::provideDefault)
         else null
 

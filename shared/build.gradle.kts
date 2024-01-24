@@ -1,3 +1,4 @@
+import com.android.build.gradle.internal.tasks.factory.dependsOn
 import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
 import java.util.*
@@ -240,12 +241,40 @@ android {
     }
 }
 
+val DATABASE_VERSION: Int = 3
+
 sqldelight {
     databases {
         create("Database") {
             packageName.set("com.toasterofbread.db")
-            version = 3
+            version = DATABASE_VERSION
         }
+    }
+}
+
+val fixDatabaseVersion = tasks.register("fixDatabaseVersion") {
+    doLast {
+        val file: File = project.file("build/generated/sqldelight/code/Database/commonMain/com/toasterofbread/db/shared/DatabaseImpl.kt")
+        val lines: MutableList<String> = file.readLines().toMutableList()
+
+        for (i in 0 until lines.size) {
+            if (lines[i].endsWith("override val version: Long")) {
+                lines[i + 1] = "      get() = $DATABASE_VERSION"
+                break
+            }
+        }
+
+        file.writer().use { writer ->
+            for (line in lines) {
+                writer.write(line + "\n")
+            }
+        }
+    }
+}
+
+tasks.all {
+    if (name == "generateCommonMainDatabaseInterface") {
+        finalizedBy(fixDatabaseVersion)
     }
 }
 

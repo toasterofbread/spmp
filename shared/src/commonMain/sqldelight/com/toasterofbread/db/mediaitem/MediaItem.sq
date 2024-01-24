@@ -1,5 +1,5 @@
 CREATE TABLE MediaItem (
-    id TEXT NOT NULL PRIMARY KEY ,
+    id TEXT NOT NULL PRIMARY KEY,
 
     loaded INTEGER,
 

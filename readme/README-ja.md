@@ -6,7 +6,7 @@
 <br>
 
 ###
-<img align="left" width="140" src="../androidApp/src/main/ic_launcher-playstore.png">
+<img align="left" width="140" src="../metadata/en-US/images/icon_round.png">
 
 <a href="https://github.com/toasterofbread/spmp/blob/main/LICENSE"><img src="https://img.shields.io/github/license/toasterofbread/spmp?style=for-the-badge&color=624c9a&label=%E3%83%A9%E3%82%A4%E3%82%BB%E3%83%B3%E3%82%B9" align="right"></a>
 <a href="https://github.com/toasterofbread/spmp/releases"><img src="https://img.shields.io/github/v/release/toasterofbread/spmp?logo=github&style=for-the-badge&color=624c9a&label=%E3%83%AA%E3%83%AA%E3%83%BC%E3%82%B9" align="right"></a>
@@ -83,8 +83,8 @@ Pull requestと機能の提案は歓迎です！これは僕の初めてのCompo
 [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" height="100">](https://f-droid.org/en/packages/com.toasterofbread.spmp/)
 
 ## 参考にしたソフト
+- smlqrs: 本プロジェクトのアイコンをデザインしてくれました
 - [ytmusicapi](https://github.com/sigma67/ytmusicapi/): YouTube Music APIの使い方の参考にさせてもらいました
-- [KeyMapper](https://github.com/keymapperorg/KeyMapper): 画面オフ時の音量調整実装の参考にさせてもらいました
 - [ExoVisualizer](https://github.com/dzolnai/ExoVisualizer): 音楽ビジュアライザの実装の参考にさせてもらいました
 - [ViMusic](https://github.com/vfsfitvnm/ViMusic): このプロジェクトへの大きなインスピレーションでした
 

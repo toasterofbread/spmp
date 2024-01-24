@@ -6,7 +6,7 @@
 <br>
 
 ###
-<img align="left" width="140" src="androidApp/src/main/ic_launcher-playstore.png">
+<img align="left" width="140" src="metadata/en-US/images/icon_round.png">
 
 <a href="https://github.com/toasterofbread/spmp/blob/main/LICENSE"><img src="https://img.shields.io/github/license/toasterofbread/spmp?style=for-the-badge&color=624c9a" align="right"></a>
 <a href="https://github.com/toasterofbread/spmp/releases"><img src="https://img.shields.io/github/v/release/toasterofbread/spmp?logo=github&style=for-the-badge&color=624c9a" align="right"></a>
@@ -83,8 +83,8 @@ The app is currently being developed for both English and Japanese. Contribution
 [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" height="100">](https://f-droid.org/en/packages/com.toasterofbread.spmp/)
 
 ## Thanks to
+- smlqrs: For designing the project's icon graphic
 - [ytmusicapi](https://github.com/sigma67/ytmusicapi/): Used as a reference for the YouTube Music API
-- [KeyMapper](https://github.com/keymapperorg/KeyMapper): For screen off volume control implementation
 - [ExoVisualizer](https://github.com/dzolnai/ExoVisualizer): Music visualiser implementation
 - [ViMusic](https://github.com/vfsfitvnm/ViMusic): A major inspiration for this project
 

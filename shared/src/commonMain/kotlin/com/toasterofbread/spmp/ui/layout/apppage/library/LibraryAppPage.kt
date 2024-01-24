@@ -143,7 +143,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
     override fun showTopBarContent(): Boolean = true
 
     @Composable
-    private fun SearchButton() {
+    private fun SearchButton(icon: ImageVector = Icons.Default.Search) {
         val player: PlayerState = LocalPlayerState.current
         val keyboard_controller: SoftwareKeyboardController? = LocalSoftwareKeyboardController.current
 
@@ -164,7 +164,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
                 }
             ) {
                 Icon(
-                    if (searching) Icons.Default.Close else Icons.Default.Search,
+                    if (searching) Icons.Default.Close else icon,
                     null
                 )
             }
@@ -379,7 +379,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
                                 current_tab.SideContent(showing_account_content)
 
                                 AnimatedVisibility(current_tab.enableSearching()) {
-                                    SearchButton()
+                                    SearchButton(Icons.Default.FilterAlt)
                                 }
 
                                 BoxWithConstraints(
@@ -389,7 +389,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
                                         .requiredHeight(0.dp)
                                         .zIndex(-10f)
                                 ) {
-                                    val field_size: DpSize = DpSize(200.dp, 45.dp)
+                                    val field_size: DpSize = DpSize(250.dp, 65.dp)
                                     val focus_requester: FocusRequester = remember { FocusRequester() }
 
                                     this@SidebarButtonSelector.AnimatedVisibility(
@@ -404,20 +404,26 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
                                             focus_requester.requestFocus()
                                         }
 
-                                        ResizableOutlinedTextField(
-                                            search_filter ?: "",
-                                            { search_filter = it },
+                                        Row(
                                             Modifier
+                                                .background(player.theme.background.amplify(0.025f), MaterialTheme.shapes.small)
                                                 .requiredSize(field_size)
-                                                .background(sidebar_background_colour)
-                                                .focusRequester(focus_requester),
-                                            singleLine = true
-                                        )
-                                    }
-                                }
+                                                .padding(10.dp)
+                                                .padding(end = 10.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                        ) {
+                                            AnimatedVisibility(current_tab.enableSorting()) {
+                                                SortButton()
+                                            }
 
-                                AnimatedVisibility(current_tab.enableSorting()) {
-                                    SortButton()
+                                            ResizableOutlinedTextField(
+                                                search_filter ?: "",
+                                                { search_filter = it },
+                                                Modifier.fillMaxWidth().weight(1f).focusRequester(focus_requester),
+                                                singleLine = true
+                                            )
+                                        }
+                                    }
                                 }
 
                                 AnimatedVisibility(current_tab.canShowAccountContent()) {

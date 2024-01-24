@@ -313,16 +313,23 @@ fun LargeThumbnailRow(
             val lyrics_state: SongLyricsLoader.ItemState? = remember(current_song?.id) { current_song?.let { SongLyricsLoader.getItemState(it, player.context) } }
             val lyrics_sync_offset: Long? by current_song?.getLyricsSyncOffset(player.database, false)
 
-            AnimatedVisibility(lyrics_state?.lyrics?.synced == true, Modifier.fillMaxWidth(), enter = expandHorizontally(), exit = shrinkHorizontally()) {
-                lyrics_state?.lyrics?.also { lyrics ->
-                    LyricsLineDisplay(
-                        lyrics = lyrics,
-                        getTime = {
-                            (player.controller?.current_position_ms ?: 0) + (lyrics_sync_offset ?: 0)
-                        },
-                        text_colour = player.theme.vibrant_accent.getContrasted().copy(alpha = 0.75f),
-                        modifier = Modifier.padding(top = 5.dp)
-                    )
+            AnimatedVisibility(
+                lyrics_state?.lyrics?.synced == true,
+                Modifier.fillMaxWidth(),
+                enter = expandHorizontally(),
+                exit = shrinkHorizontally()
+            ) {
+                if (!expanded) {
+                    lyrics_state?.lyrics?.also { lyrics ->
+                        LyricsLineDisplay(
+                            lyrics = lyrics,
+                            getTime = {
+                                (player.controller?.current_position_ms ?: 0) + (lyrics_sync_offset ?: 0)
+                            },
+                            text_colour = player.theme.vibrant_accent.getContrasted().copy(alpha = 0.75f),
+                            modifier = Modifier.padding(top = 5.dp)
+                        )
+                    }
                 }
             }
 

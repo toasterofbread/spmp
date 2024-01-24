@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.toasterofbread.composekit.platform.composable.ScrollBarLazyColumn
 import com.toasterofbread.composekit.platform.composable.composeScope
 import com.toasterofbread.composekit.utils.common.*
 import com.toasterofbread.composekit.utils.composable.getTop
@@ -261,7 +262,7 @@ internal fun QueueTab(
                     ) {
                         val side_padding: Dp = maxWidth * PlayerSettings.Key.QUEUE_EXTRA_SIDE_PADDING.get<Float>() * 0.25f
 
-                        LazyColumn(
+                        ScrollBarLazyColumn(
                             state = queue_list_state.listState,
                             contentPadding = PaddingValues(
                                 top = top_padding + content_padding.calculateTopPadding(),

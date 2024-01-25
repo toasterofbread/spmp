@@ -62,6 +62,7 @@ abstract class AppPage {
         onChipSelected: (Int) -> Unit,
         modifier: Modifier = Modifier,
         show_scrollbar: Boolean = false,
+        horizontal_alignment: Alignment.Horizontal = Alignment.Start,
         spacing: Dp = 10.dp,
         chipContent: @Composable (Int) -> Unit
     ) {
@@ -70,7 +71,8 @@ abstract class AppPage {
         ScrollBarLazyRow(
             modifier,
             show_scrollbar = show_scrollbar,
-            horizontalArrangement = Arrangement.spacedBy(spacing),
+            horizontalArrangement = Arrangement.spacedBy(spacing, horizontal_alignment),
+            horizontalAlignment = horizontal_alignment,
             verticalAlignment = Alignment.CenterVertically
         ) {
             items(chip_count) { index ->

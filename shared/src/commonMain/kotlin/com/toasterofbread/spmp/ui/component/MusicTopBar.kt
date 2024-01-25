@@ -24,14 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -55,6 +48,8 @@ import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.model.settings.category.MusicTopBarMode
 import com.toasterofbread.spmp.model.settings.category.TopBarSettings
 import com.toasterofbread.spmp.model.settings.rememberMutableEnumState
+import com.toasterofbread.spmp.platform.FormFactor
+import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
@@ -119,7 +114,7 @@ class MusicTopBar(val player: PlayerState) {
         padding: PaddingValues = PaddingValues()
     ): MusicTopBarState {
         var target_mode: MusicTopBarMode by target_mode_key.rememberMutableEnumState()
-        val show_toast = remember { mutableStateOf(false) }
+        val show_toast: MutableState<Boolean> = remember { mutableStateOf(false) }
 
         return MusicTopBar(
             { target_mode },
@@ -386,7 +381,7 @@ private fun getModeState(mode: MusicTopBarMode, lyrics: SongLyrics?): Any? {
 
 @Composable
 private fun isStateActive(state: Any, can_show_visualiser: Boolean): Boolean = when (state) {
-    is SongLyrics -> true
+    is SongLyrics -> LocalPlayerState.current.form_factor != FormFactor.LANDSCAPE
     MusicTopBarMode.VISUALISER -> can_show_visualiser && LocalPlayerState.current.status.m_playing
     else -> false
 }

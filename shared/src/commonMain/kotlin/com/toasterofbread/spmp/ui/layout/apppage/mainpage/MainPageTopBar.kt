@@ -24,7 +24,7 @@ import com.toasterofbread.spmp.ui.layout.radiobuilder.RadioBuilderIcon
 
 @Composable
 fun MainPageTopBar(content_padding: PaddingValues, modifier: Modifier = Modifier) {
-    val player = LocalPlayerState.current
+    val player: PlayerState = LocalPlayerState.current
 
     Column(modifier.padding(content_padding)) {
         Row(Modifier.height(IntrinsicSize.Min), verticalAlignment = Alignment.CenterVertically) {
@@ -75,6 +75,7 @@ fun MainPageTopBar(content_padding: PaddingValues, modifier: Modifier = Modifier
         }
 
         player.main_multiselect_context.InfoDisplay(
+            Modifier.fillMaxWidth(),
             show_alt_content = player.app_page.showTopBarContent(),
             altContent = {
                 player.app_page.TopBarContent(Modifier.fillMaxWidth()) { player.navigateBack() }

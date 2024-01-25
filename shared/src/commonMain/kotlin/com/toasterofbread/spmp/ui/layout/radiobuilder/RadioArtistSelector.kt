@@ -3,39 +3,26 @@ package com.toasterofbread.spmp.ui.layout.radiobuilder
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.composekit.utils.common.times
@@ -44,12 +31,14 @@ import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.composekit.utils.composable.crossOut
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
+import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getArtistThumbShape
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getLongPressMenuData
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderArtist
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -60,8 +49,8 @@ internal fun RadioArtistSelector(
     modifier: Modifier = Modifier,
     onFinished: (List<Int>?) -> Unit
 ) {
+    val player: PlayerState = LocalPlayerState.current
     val selected_artists: MutableList<Int> = remember { mutableStateListOf() }
-    val player = LocalPlayerState.current
 
     DisposableEffect(Unit) {
         val actions = pill_menu.run {
@@ -105,25 +94,28 @@ internal fun RadioArtistSelector(
             }
         } 
         else {
-            val thumb_size = 80.dp
-            val selected_border_size = 10.dp
+            val selected_border_size: Dp = 10.dp
+            val thumb_size: Dp = if (player.form_factor.is_large) 120.dp else 80.dp
+            val artist_padding: Dp = if (player.form_factor.is_large) 30.dp else 10.dp
 
-            LazyVerticalGrid(GridCells.Fixed(3), modifier) {
+            LazyVerticalGrid(
+                with (LocalDensity.current) {
+                    GridCells.FixedSize(thumb_size +  14.sp.toDp() + (artist_padding * 2) + 5.dp)
+                },
+                modifier,
+                horizontalArrangement = Arrangement.Center
+            ) {
                 itemsIndexed(artists) { index, radio_artist ->
-                    val artist = remember(radio_artist, index) {
+                    val artist: ArtistData = remember(radio_artist, index) {
                         ArtistData("RB$index").apply {
                             title = radio_artist.name
                             thumbnail_provider = MediaItemThumbnailProvider.fromThumbnails(listOf(radio_artist.thumbnail))
                         }
                     }
 
-                    LaunchedEffect(artist) {
-                        artist.saveToDatabase(player.database)
-                    }
-
                     Box(contentAlignment = Alignment.Center) {
-                        val selected by remember { derivedStateOf { selected_artists.contains(index) } }
-                        val border_expansion = remember { Animatable(if (selected) 1f else 0f) }
+                        val selected: Boolean by remember { derivedStateOf { selected_artists.contains(index) } }
+                        val border_expansion: Animatable<Float, AnimationVector1D> = remember { Animatable(if (selected) 1f else 0f) }
 
                         OnChangedEffect(selected) {
                             border_expansion.animateTo(if (selected) 1f else 0f)
@@ -134,8 +126,8 @@ internal fun RadioArtistSelector(
                         }
 
                         Column(
-                            modifier
-                                .padding(10.dp, 0.dp)
+                            Modifier
+                                .padding(artist_padding, 0.dp)
                                 .combinedClickable(
                                     interactionSource = remember { MutableInteractionSource() },
                                     indication = null,
@@ -160,11 +152,14 @@ internal fun RadioArtistSelector(
                                             .border(1.dp, player.theme.on_background, getArtistThumbShape())
                                     )
                                 }
+
                                 artist.Thumbnail(
                                     MediaItemThumbnailProvider.Quality.LOW,
                                     Modifier
                                         .longPressMenuIcon(long_press_menu_data)
-                                        .size(thumb_size)
+                                        .size(thumb_size),
+                                    provider_override = artist.thumbnail_provider,
+                                    disable_cache = true
                                 )
                             }
 

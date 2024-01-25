@@ -9,6 +9,8 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material3.*
 import androidx.compose.material3.tokens.FilledButtonTokens
@@ -23,6 +25,7 @@ import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.composable.PlatformClickableButton
+import com.toasterofbread.composekit.utils.composable.TextOrIconButton
 import com.toasterofbread.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -54,7 +57,9 @@ fun QueueButtonsRow(
             RepeatButton(getButtonColour, button_modifier.fillMaxHeight())
             StopAfterSongButton(getButtonColour, button_modifier.fillMaxHeight())
 
-            PlatformClickableButton(
+            TextOrIconButton(
+                text = getString("queue_clear"),
+                icon = Icons.Default.Clear,
                 onClick = {
                     player.controller?.service_player?.undoableAction {
                         if (multiselect_context.is_active) {
@@ -74,11 +79,11 @@ fun QueueButtonsRow(
                     contentColor = button_colour.getContrasted()
                 ),
                 border = multiselect_context.getActiveHintBorder()
-            ) {
-                Text(getString("queue_clear"))
-            }
+            )
 
-            PlatformClickableButton(
+            TextOrIconButton(
+                text = getString("queue_shuffle"),
+                icon = Icons.Default.Shuffle,
                 onClick = {
                     player.controller?.service_player?.undoableAction {
                         if (multiselect_context.is_active) {
@@ -107,9 +112,7 @@ fun QueueButtonsRow(
                     contentColor = button_colour.getContrasted()
                 ),
                 border = multiselect_context.getActiveHintBorder()
-            ) {
-                Text(text = getString("queue_shuffle"))
-            }
+            )
         }
 
         val undo_background: Color = animateColorAsState(

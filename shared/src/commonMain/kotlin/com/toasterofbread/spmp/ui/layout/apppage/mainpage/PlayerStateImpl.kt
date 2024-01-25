@@ -619,7 +619,6 @@ private class AppPageMultiSelectContext(private val player: PlayerStateImpl): Me
     ): Boolean {
         if (player.form_factor.is_large) {
             // Displayed in PlayerStateImpl.PersistentContent()
-
             DisposableEffect(is_active, getAllItems) {
                 if (!is_active) {
                     return@DisposableEffect onDispose {}
@@ -633,6 +632,12 @@ private class AppPageMultiSelectContext(private val player: PlayerStateImpl): Me
                     if (getAllItems != null) {
                         player.multiselect_info_all_items_getters.remove(getAllItems)
                     }
+                }
+            }
+
+            if (show_alt_content) {
+                Box(modifier) {
+                    altContent?.invoke()
                 }
             }
 

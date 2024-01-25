@@ -8,6 +8,7 @@ import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -45,6 +46,8 @@ import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.composekit.utils.composable.PlatformClickableIconButton
 import com.toasterofbread.composekit.utils.composable.ResizableOutlinedTextField
 import com.toasterofbread.composekit.utils.composable.SidebarButtonSelector
+import com.toasterofbread.composekit.utils.composable.getTop
+import com.toasterofbread.composekit.utils.modifier.scrollWithoutClip
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.platform.AppContext
@@ -316,133 +319,145 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
             showing_search_field = false
         }
 
-        Row {
+        Row(modifier) {
             if (player.form_factor == FormFactor.LANDSCAPE) {
-                Column(
-                    modifier = Modifier
-                        .zIndex(1f)
-                        .drawWithContent {
-                            drawContent()
-                            leftBorderContent(player.theme.accent.copy(alpha = 0.25f), sidebar_background_colour) { wave_border_offset.value }
-                        }
-                        .background(sidebar_background_colour)
-                        .padding(10.dp)
-                        .padding(start = 7.dp, bottom = player.nowPlayingBottomPadding(true))
-                        .width(50.dp)
-                        .fillMaxHeight()
-                ) {
-                    SidebarButtonSelector(
-                        modifier = Modifier.fillMaxSize().weight(1f),
-                        selected_button = current_tab,
-                        buttons = tabs,
-                        indicator_colour = player.theme.vibrant_accent,
-                        scrolling = false,
-                        onButtonSelected = { tab ->
-                            if (tab != current_tab) {
-                                val increasing: Boolean = tabs.indexOf(tab) > tabs.indexOf(current_tab)
-                                current_tab = tab
-                                coroutine_scope.launchSingle {
-                                    wave_border_offset.animateTo(
-                                        if (increasing) wave_border_offset.value + 20f
-                                        else wave_border_offset.value - 20f,
-                                        tween(500)
-                                    )
-                                }
+                BoxWithConstraints {
+                    Column(
+                        modifier = Modifier
+                            .heightIn(min = this@BoxWithConstraints.maxHeight)
+                            .zIndex(1f)
+                            .drawWithContent {
+                                drawContent()
+                                leftBorderContent(player.theme.accent.copy(alpha = 0.25f), sidebar_background_colour) { wave_border_offset.value }
                             }
-                        },
-                        showButton = { tab ->
-                            !tab.isHidden()
-                        }
-                    ) { tab ->
-                        val colour: Color =
-                            if (tab == current_tab) player.theme.on_accent
-                            else player.theme.on_background
-
-                        CompositionLocalProvider(LocalContentColor provides colour) {
-                            Icon(tab.getIcon(), null, Modifier.requiredSizeIn(minWidth = 20.dp, minHeight = 20.dp))
-                        }
-                    }
-
-                    SidebarButtonSelector(
-                        selected_button = showing_account_content,
-                        buttons = listOf(false, true),
-                        indicator_colour = player.theme.vibrant_accent,
-                        scrolling = false,
-                        onButtonSelected = {
-                            showing_account_content = it
-                        },
-                        showButton = {
-                            current_tab.canShowAccountContent()
-                        },
-                        extraContent = {
-                            if (!it) {
-                                current_tab.SideContent(showing_account_content)
-
-                                AnimatedVisibility(current_tab.enableSearching()) {
-                                    SearchButton(Icons.Default.FilterAlt)
-                                }
-
-                                BoxWithConstraints(
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .weight(1f, false)
-                                        .requiredHeight(0.dp)
-                                        .zIndex(-10f)
-                                ) {
-                                    val field_size: DpSize = DpSize(250.dp, 65.dp)
-                                    val focus_requester: FocusRequester = remember { FocusRequester() }
-
-                                    this@SidebarButtonSelector.AnimatedVisibility(
-                                        showing_search_field && current_tab.enableSearching(),
-                                        Modifier
-                                            .requiredSize(field_size)
-                                            .offset(x = (field_size.width + maxWidth) / 2, y = (-45f / 2f).dp),
-                                        enter = slideInHorizontally() { -it * 2 },
-                                        exit = slideOutHorizontally() { -it * 2 }
-                                    ) {
-                                        LaunchedEffect(Unit) {
-                                            focus_requester.requestFocus()
-                                        }
-
-                                        Row(
-                                            Modifier
-                                                .background(player.theme.background.amplify(0.025f), MaterialTheme.shapes.small)
-                                                .requiredSize(field_size)
-                                                .padding(10.dp)
-                                                .padding(end = 10.dp),
-                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                        ) {
-                                            AnimatedVisibility(current_tab.enableSorting()) {
-                                                SortButton()
-                                            }
-
-                                            ResizableOutlinedTextField(
-                                                search_filter ?: "",
-                                                { search_filter = it },
-                                                Modifier.fillMaxWidth().weight(1f).focusRequester(focus_requester),
-                                                singleLine = true
-                                            )
-                                        }
+                            .background(sidebar_background_colour)
+                            .padding(10.dp)
+                            .padding(
+                                start = 7.dp,
+                                top = WindowInsets.getTop(),
+                                bottom = player.nowPlayingBottomPadding(true)
+                            )
+                            .width(50.dp)
+                            .fillMaxHeight()
+                            .scrollWithoutClip(
+                                rememberScrollState(),
+                                is_vertical = true
+                            )
+                    ) {
+                        SidebarButtonSelector(
+                            selected_button = current_tab,
+                            buttons = tabs,
+                            indicator_colour = player.theme.vibrant_accent,
+                            scrolling = false,
+                            onButtonSelected = { tab ->
+                                if (tab != current_tab) {
+                                    val increasing: Boolean = tabs.indexOf(tab) > tabs.indexOf(current_tab)
+                                    current_tab = tab
+                                    coroutine_scope.launchSingle {
+                                        wave_border_offset.animateTo(
+                                            if (increasing) wave_border_offset.value + 20f
+                                            else wave_border_offset.value - 20f,
+                                            tween(500)
+                                        )
                                     }
                                 }
+                            },
+                            showButton = { tab ->
+                                !tab.isHidden()
+                            }
+                        ) { tab ->
+                            val colour: Color =
+                                if (tab == current_tab) player.theme.on_accent
+                                else player.theme.on_background
 
-                                AnimatedVisibility(current_tab.canShowAccountContent()) {
-                                    Spacer(Modifier.height(20.dp))
-                                }
+                            CompositionLocalProvider(LocalContentColor provides colour) {
+                                Icon(tab.getIcon(), null, Modifier.requiredSizeIn(minWidth = 20.dp, minHeight = 20.dp))
                             }
                         }
-                    ) {
-                        val colour: Color =
-                            if (it == showing_account_content) player.theme.on_accent
-                            else player.theme.on_background
 
-                        CompositionLocalProvider(LocalContentColor provides colour) {
-                            Icon(
-                                if (it) Icons.Default.Cloud
-                                else Icons.Default.Inventory2,
-                                null,
-                                Modifier.requiredSizeIn(minWidth = 20.dp, minHeight = 20.dp)
-                            )
+                        Spacer(Modifier.fillMaxHeight().weight(1f))
+
+                        SidebarButtonSelector(
+                            selected_button = showing_account_content,
+                            buttons = listOf(false, true),
+                            indicator_colour = player.theme.vibrant_accent,
+                            scrolling = false,
+                            onButtonSelected = {
+                                showing_account_content = it
+                            },
+                            showButton = {
+                                current_tab.canShowAccountContent()
+                            },
+                            extraContent = {
+                                if (!it) {
+                                    current_tab.SideContent(showing_account_content)
+
+                                    AnimatedVisibility(current_tab.enableSearching()) {
+                                        SearchButton(Icons.Default.FilterAlt)
+                                    }
+
+                                    BoxWithConstraints(
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .weight(1f, false)
+                                            .requiredHeight(0.dp)
+                                            .zIndex(-10f)
+                                    ) {
+                                        val field_size: DpSize = DpSize(250.dp, 65.dp)
+                                        val focus_requester: FocusRequester = remember { FocusRequester() }
+
+                                        this@SidebarButtonSelector.AnimatedVisibility(
+                                            showing_search_field && current_tab.enableSearching(),
+                                            Modifier
+                                                .requiredSize(field_size)
+                                                .offset(x = (field_size.width + maxWidth) / 2, y = (-45f / 2f).dp),
+                                            enter = slideInHorizontally() { -it * 2 },
+                                            exit = slideOutHorizontally() { -it * 2 }
+                                        ) {
+                                            LaunchedEffect(Unit) {
+                                                focus_requester.requestFocus()
+                                            }
+
+                                            Row(
+                                                Modifier
+                                                    .background(player.theme.background.amplify(0.025f), MaterialTheme.shapes.small)
+                                                    .requiredSize(field_size)
+                                                    .padding(10.dp)
+                                                    .padding(end = 10.dp),
+                                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                            ) {
+                                                AnimatedVisibility(current_tab.enableSorting()) {
+                                                    SortButton()
+                                                }
+
+                                                ResizableOutlinedTextField(
+                                                    search_filter ?: "",
+                                                    { search_filter = it },
+                                                    Modifier.fillMaxWidth().weight(1f).focusRequester(focus_requester),
+                                                    singleLine = true
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    AnimatedVisibility(current_tab.canShowAccountContent()) {
+                                        Spacer(Modifier.height(20.dp))
+                                    }
+                                }
+                            }
+                        ) {
+                            val colour: Color =
+                                if (it == showing_account_content) player.theme.on_accent
+                                else player.theme.on_background
+
+                            CompositionLocalProvider(LocalContentColor provides colour) {
+                                Icon(
+                                    if (it) Icons.Default.Cloud
+                                    else Icons.Default.Inventory2,
+                                    null,
+                                    Modifier.requiredSizeIn(minWidth = 20.dp, minHeight = 20.dp)
+                                )
+                            }
                         }
                     }
                 }
@@ -478,7 +493,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
                 }
             }
 
-            Crossfade(Pair(current_tab, showing_account_content), modifier) {
+            Crossfade(Pair(current_tab, showing_account_content)) {
                 val (tab, showing_account) = it
                 tab.Page(
                     this@LibraryAppPage,

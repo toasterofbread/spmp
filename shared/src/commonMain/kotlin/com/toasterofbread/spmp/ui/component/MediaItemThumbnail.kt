@@ -40,6 +40,7 @@ private suspend inline fun MediaItem.loadThumb(
     player: PlayerState,
     target_quality: Quality,
     base_provider: MediaItemThumbnailProvider?,
+    disable_cache: Boolean,
     onLoaded: (ImageBitmap, Quality) -> Unit
 ) {
     var provider: MediaItemThumbnailProvider? = base_provider
@@ -54,7 +55,9 @@ private suspend inline fun MediaItem.loadThumb(
                 this@loadThumb,
                 provider,
                 quality,
-                player.context
+                player.context,
+                disable_cache_read = disable_cache,
+                disable_cache_write = disable_cache
             )
             load_result.onSuccess { loaded_image ->
                 onLoaded(loaded_image, quality)
@@ -72,6 +75,7 @@ fun MediaItem.Thumbnail(
     provider_override: MediaItemThumbnailProvider? = null,
     getContentColour: (() -> Color)? = null,
     container_modifier: Modifier = Modifier,
+    disable_cache: Boolean = false,
     onLoaded: ((ImageBitmap?) -> Unit)? = null
 ) {
     require(this !is LocalPlaylistRef) { "LocalPlaylistRef must be loaded and passed as a LocalPlaylistData" }
@@ -107,7 +111,7 @@ fun MediaItem.Thumbnail(
         coroutine_scope.launchSingle {
             loading = true
             image = null
-            loadThumb(player, target_quality, getThumbnailProvider()) { loaded_image, quality ->
+            loadThumb(player, target_quality, getThumbnailProvider(), disable_cache) { loaded_image, quality ->
                 image = Pair(loaded_image, quality)
                 onLoaded?.invoke(loaded_image)
             }
@@ -124,7 +128,7 @@ fun MediaItem.Thumbnail(
 
         coroutine_scope.launchSingle {
             loading = true
-            loadThumb(player, target_quality, getThumbnailProvider()) { loaded_image, quality ->
+            loadThumb(player, target_quality, getThumbnailProvider(), disable_cache) { loaded_image, quality ->
                 image = Pair(loaded_image, quality)
                 onLoaded?.invoke(loaded_image)
             }

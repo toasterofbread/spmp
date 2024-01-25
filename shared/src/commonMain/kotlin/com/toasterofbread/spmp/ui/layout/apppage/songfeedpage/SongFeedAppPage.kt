@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.icons.Icons
@@ -260,14 +259,15 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
         params: String?,
         continuation: String? = null
     ): Result<HomeFeedLoadResult> {
-        val result = feed_endpoint.getHomeFeed(
-            allow_cached = allow_cached,
-            min_rows = min_rows,
-            params = params,
-            continuation = continuation
-        )
+        val result: Result<HomeFeedLoadResult> =
+            feed_endpoint.getHomeFeed(
+                allow_cached = allow_cached,
+                min_rows = min_rows,
+                params = params,
+                continuation = continuation
+            )
 
-        val data = result.getOrNull() ?: return result.cast()
+        val data: HomeFeedLoadResult = result.getOrNull() ?: return result.cast()
         return Result.success(
             data.copy(
                 layouts = data.layouts.filter { it.items.isNotEmpty() }

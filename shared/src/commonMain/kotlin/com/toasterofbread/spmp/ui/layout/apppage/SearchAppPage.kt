@@ -26,11 +26,14 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
@@ -54,17 +57,17 @@ import com.toasterofbread.spmp.model.mediaitem.layout.LambdaViewMore
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
+import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.theme.appHover
 import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
-import com.toasterofbread.spmp.youtubeapi.endpoint.SearchFilter
-import com.toasterofbread.spmp.youtubeapi.endpoint.SearchResults
-import com.toasterofbread.spmp.youtubeapi.endpoint.SearchSuggestion
-import com.toasterofbread.spmp.youtubeapi.endpoint.SearchType
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
+import com.toasterofbread.spmp.youtubeapi.endpoint.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
@@ -111,7 +114,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
     }
 
     @Composable
-    override fun showTopBar(): Boolean = true
+    override fun showTopBar(): Boolean = !LocalPlayerState.current.form_factor.is_large
 
     @Composable
     override fun showTopBarContent(): Boolean = true
@@ -123,34 +126,35 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
                 Icon(Icons.Default.Close, null)
             }
 
-            FilterChipsRow(
-                SearchType.entries.size + 1,
-                { index ->
-                    if (current_filter == null) index == 0 else current_filter!!.ordinal == index - 1
-                },
-                { index ->
-                    if (index == 0) {
-                        setFilter(null)
-                    }
-                    else {
-                        setFilter(SearchType.entries[index - 1])
-                    }
-                },
-                Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .height(SEARCH_BAR_HEIGHT_DP.dp),
-                spacing = 5.dp
-            ) { index ->
-                Text(when (if (index == 0) null else SearchType.entries[index - 1]) {
-                    null -> getString("search_filter_all")
-                    SearchType.VIDEO -> getString("search_filter_videos")
-                    SearchType.SONG -> MediaItemType.SONG.getReadable(true)
-                    SearchType.ARTIST -> MediaItemType.ARTIST.getReadable(true)
-                    SearchType.PLAYLIST -> PlaylistType.PLAYLIST.getReadable(true)
-                    SearchType.ALBUM -> PlaylistType.ALBUM.getReadable(true)
-                })
-            }
+            SearchFiltersRow(Modifier.fillMaxWidth().weight(1f))
+        }
+    }
+
+    @Composable
+    private fun SearchFiltersRow(
+        modifier: Modifier,
+        horizontal_alignment: Alignment.Horizontal = Alignment.CenterHorizontally
+    ) {
+        FilterChipsRow(
+            SearchType.entries.size + 1,
+            { index ->
+                if (current_filter == null) index == 0 else current_filter!!.ordinal == index - 1
+            },
+            { index ->
+                if (index == 0) {
+                    setFilter(null)
+                }
+                else {
+                    setFilter(SearchType.entries[index - 1])
+                }
+            },
+            modifier
+                .height(SEARCH_BAR_HEIGHT_DP.dp),
+            horizontal_alignment = horizontal_alignment,
+            spacing = 5.dp
+        ) { index ->
+            val search_type: SearchType? = if (index == 0) null else SearchType.entries[index - 1]
+            Text(search_type.getReadable())
         }
     }
 
@@ -171,10 +175,10 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
             setFilter(null)
         }
 
-        val player = LocalPlayerState.current
-        val focus_manager = LocalFocusManager.current
-        val keyboard_controller = LocalSoftwareKeyboardController.current
-        val focus_state = remember { mutableStateOf(false) }
+        val player: PlayerState = LocalPlayerState.current
+        val focus_manager: FocusManager = LocalFocusManager.current
+        val keyboard_controller: SoftwareKeyboardController? = LocalSoftwareKeyboardController.current
+        val focus_state: MutableState<Boolean> = remember { mutableStateOf(false) }
 
         DisposableEffect(focus_manager, keyboard_controller) {
             clearFocus = {
@@ -189,7 +193,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
             }
         }
 
-        val keyboard_open by rememberKeyboardOpen()
+        val keyboard_open: Boolean by rememberKeyboardOpen()
         LaunchedEffect(keyboard_open) {
             if (!keyboard_open) {
                 clearFocus?.invoke()
@@ -265,9 +269,13 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
         clearFocus?.invoke()
 
         synchronized(search_lock) {
+            if (current_query.isBlank()) {
+                return
+            }
+
             search_in_progress = true
 
-            val query = current_query
+            val query: String = current_query
             current_results = null
             current_filter = filter?.type
             error = null
@@ -332,9 +340,9 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
         shape: Shape = CircleShape,
         close: () -> Unit
     ) {
-        val player = LocalPlayerState.current
-        val expansion = LocalNowPlayingExpansion.current
-        val focus_requester = remember { FocusRequester() }
+        val player: PlayerState = LocalPlayerState.current
+        val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
+        val focus_requester: FocusRequester = remember { FocusRequester() }
 
         LaunchedEffect(Unit) {
             if (expansion.getPage() == 0 && current_results == null && !search_in_progress) {
@@ -408,6 +416,10 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
                         }
                     }
                 }
+            }
+
+            if (LocalPlayerState.current.form_factor.is_large) {
+                SearchFiltersRow(Modifier.fillMaxWidth(), Alignment.Start)
             }
 
             Row(

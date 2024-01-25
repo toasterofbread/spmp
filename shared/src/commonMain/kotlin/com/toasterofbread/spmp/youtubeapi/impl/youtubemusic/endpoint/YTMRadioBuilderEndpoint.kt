@@ -13,13 +13,14 @@ import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
+import okhttp3.Response
 
 class YTMRadioBuilderEndpoint(override val api: YoutubeMusicApi): RadioBuilderEndpoint() {
     // https://gist.github.com/toasterofbread/8982ffebfca5919cb51e8967e0122982
     override suspend fun getRadioBuilderArtists(
         selectThumbnail: (List<MediaItemThumbnailProvider.Thumbnail>) -> MediaItemThumbnailProvider.Thumbnail
     ): Result<List<RadioBuilderArtist>> = withContext(Dispatchers.IO) {
-        val request = Request.Builder()
+        val request: Request = Request.Builder()
             .endpointUrl("/youtubei/v1/browse")
             .addAuthApiHeaders()
             .postWithBody(
@@ -28,7 +29,7 @@ class YTMRadioBuilderEndpoint(override val api: YoutubeMusicApi): RadioBuilderEn
             )
             .build()
 
-        val result = api.performRequest(request)
+        val result: Result<Response> = api.performRequest(request)
         val parsed: RadioBuilderBrowseResponse = result.parseJsonResponse {
             return@withContext Result.failure(it)
         }
@@ -44,7 +45,7 @@ class YTMRadioBuilderEndpoint(override val api: YoutubeMusicApi): RadioBuilderEn
         require(artists.isNotEmpty())
         var radio_token: String = "VLRDAT"
 
-        var modifier_added = false
+        var modifier_added: Boolean = false
         for (modifier in listOf(
             modifiers.singleOrNull { it is RadioBuilderModifier.FilterB },
             modifiers.singleOrNull { it is RadioBuilderModifier.FilterA },
@@ -103,7 +104,7 @@ class YTMRadioBuilderEndpoint(override val api: YoutubeMusicApi): RadioBuilderEn
     }
 }
 
-private class RadioBuilderBrowseResponse(
+private data class RadioBuilderBrowseResponse(
     val contents: Contents,
     val frameworkUpdates: FrameworkUpdates
 ) {
@@ -114,30 +115,30 @@ private class RadioBuilderBrowseResponse(
     val mutations: List<Mutation> get() =
         frameworkUpdates.entityBatchUpdate.mutations
 
-    class Contents(val singleColumnBrowseResultsRenderer: SingleColumnBrowseResultsRenderer)
-    class SingleColumnBrowseResultsRenderer(val tabs: List<Tab>)
-    class Tab(val tabRenderer: TabRenderer)
-    class TabRenderer(val content: Content)
-    class Content(val sectionListRenderer: SectionListRenderer)
-    class SectionListRenderer(val contents: List<SectionListRendererContent>)
-    class SectionListRendererContent(val itemSectionRenderer: ItemSectionRenderer)
-    class ItemSectionRenderer(val contents: List<ItemSectionRendererContent>)
-    class ItemSectionRendererContent(val elementRenderer: ElementRenderer)
-    class ElementRenderer(val newElement: NewElement)
-    class NewElement(val type: Type)
-    class Type(val componentType: ComponentType)
-    class ComponentType(val model: Model)
-    class Model(val musicRadioBuilderModel: MusicRadioBuilderModel)
-    class MusicRadioBuilderModel(val seedItems: List<SeedItem>)
-    class SeedItem(val itemEntityKey: String, val musicThumbnail: MusicThumbnail, val title: String)
-    class MusicThumbnail(val image: Image)
-    class Image(val sources: List<MediaItemThumbnailProvider.Thumbnail>)
+    data class Contents(val singleColumnBrowseResultsRenderer: SingleColumnBrowseResultsRenderer)
+    data class SingleColumnBrowseResultsRenderer(val tabs: List<Tab>)
+    data class Tab(val tabRenderer: TabRenderer)
+    data class TabRenderer(val content: Content)
+    data class Content(val sectionListRenderer: SectionListRenderer)
+    data class SectionListRenderer(val contents: List<SectionListRendererContent>)
+    data class SectionListRendererContent(val itemSectionRenderer: ItemSectionRenderer)
+    data class ItemSectionRenderer(val contents: List<ItemSectionRendererContent>)
+    data class ItemSectionRendererContent(val elementRenderer: ElementRenderer)
+    data class ElementRenderer(val newElement: NewElement)
+    data class NewElement(val type: Type)
+    data class Type(val componentType: ComponentType)
+    data class ComponentType(val model: Model)
+    data class Model(val musicRadioBuilderModel: MusicRadioBuilderModel)
+    data class MusicRadioBuilderModel(val seedItems: List<SeedItem>)
+    data class SeedItem(val itemEntityKey: String, val musicThumbnail: MusicThumbnail, val title: String)
+    data class MusicThumbnail(val image: Image)
+    data class Image(val sources: List<MediaItemThumbnailProvider.Thumbnail>)
 
-    class FrameworkUpdates(val entityBatchUpdate: EntityBatchUpdate)
-    class EntityBatchUpdate(val mutations: List<Mutation>)
-    class Mutation(val entityKey: String, val payload: Payload) {
+    data class FrameworkUpdates(val entityBatchUpdate: EntityBatchUpdate)
+    data class EntityBatchUpdate(val mutations: List<Mutation>)
+    data class Mutation(val entityKey: String, val payload: Payload) {
         val token: String? get() = payload.musicFormBooleanChoice?.opaqueToken
     }
-    class Payload(val musicFormBooleanChoice: MusicFormBooleanChoice?)
-    class MusicFormBooleanChoice(val opaqueToken: String)
+    data class Payload(val musicFormBooleanChoice: MusicFormBooleanChoice?)
+    data class MusicFormBooleanChoice(val opaqueToken: String)
 }

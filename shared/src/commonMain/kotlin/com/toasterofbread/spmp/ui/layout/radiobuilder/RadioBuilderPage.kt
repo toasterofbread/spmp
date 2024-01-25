@@ -35,7 +35,9 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.WaveBorder
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderArtist
+import com.toasterofbread.spmp.youtubeapi.RadioBuilderEndpoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -50,8 +52,8 @@ fun RadioBuilderPage(
     var artists_result: Result<List<RadioBuilderArtist>>? by remember { mutableStateOf(null) }
     var selected_artists: Set<Int>? by remember { mutableStateOf(null) }
 
-    val player = LocalPlayerState.current
-    val builder_endpoint = player.context.ytapi.RadioBuilder
+    val player: PlayerState = LocalPlayerState.current
+    val builder_endpoint: RadioBuilderEndpoint = player.context.ytapi.RadioBuilder
     check(builder_endpoint.isImplemented())
 
     LaunchedEffect(Unit) {

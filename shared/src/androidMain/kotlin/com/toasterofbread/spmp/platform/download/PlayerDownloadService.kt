@@ -2,11 +2,13 @@ package com.toasterofbread.spmp.platform.download
 
 import SpMp
 import android.Manifest
+import android.app.ForegroundServiceTypeException
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
@@ -68,7 +70,8 @@ class PlayerDownloadService: PlatformServiceImpl() {
                 }
 
                 notification_builder = getNotificationBuilder()
-                startForeground(NOTIFICATION_ID, notification_builder!!.build())
+
+                startForeground(NOTIFICATION_ID, notification_builder!!.build(), FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
             }
         }
 

@@ -26,11 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Icon
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,13 +44,14 @@ import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreview
 import com.toasterofbread.spmp.model.mediaitem.layout.getMediaItemPreviewSquareAdditionalHeight
 import com.toasterofbread.spmp.model.mediaitem.layout.shouldShowTitleBar
 import com.toasterofbread.spmp.model.mediaitem.rememberFilteredItems
-import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import kotlin.math.ceil
+import kotlin.math.roundToInt
 
 @Composable
 fun MediaItemGrid(
@@ -169,7 +166,16 @@ fun MediaItemGrid(
 
         Column {
             BoxWithConstraints(Modifier.fillMaxWidth().animateContentSize(), contentAlignment = Alignment.CenterEnd) {
-                val current_rows: Int = if (expanded) expanded_row_count else row_count
+                val current_rows: Int by remember { derivedStateOf {
+                    val current_rows: Int = if (expanded) expanded_row_count else row_count
+                    val min_columns: Int = (
+                       (this@BoxWithConstraints.maxWidth + item_spacing.spacing) / (item_size.width + item_spacing.spacing)
+                    ).roundToInt()
+
+                    val item_count: Int = filtered_items.size
+                    val max_rows: Int = ceil(item_count.toFloat() / min_columns).toInt()
+                    return@derivedStateOf current_rows.coerceAtMost(max_rows)
+                } }
 
                 LazyHorizontalGrid(
                     state = grid_state,

@@ -28,8 +28,10 @@ internal suspend fun SpMsPlayerService.applyServerState(state: SpMsServerState, 
                                 if (artist.Loaded.get(context.database)) {
                                     return@tryTransaction
                                 }
+                            }
 
-                                artist.loadData(context).onSuccess { artist_data ->
+                            artist.loadData(context).onSuccess { artist_data ->
+                                tryTransaction {
                                     artist_data.saveToDatabase(context.database)
                                 }
                             }

@@ -326,7 +326,7 @@ fun LargeThumbnailRow(
                             getTime = {
                                 (player.controller?.current_position_ms ?: 0) + (lyrics_sync_offset ?: 0)
                             },
-                            text_colour = player.theme.vibrant_accent.getContrasted().copy(alpha = 0.75f),
+                            text_colour = player.getNPOnBackground().copy(alpha = 0.75f),
                             modifier = Modifier.padding(top = 5.dp)
                         )
                     }

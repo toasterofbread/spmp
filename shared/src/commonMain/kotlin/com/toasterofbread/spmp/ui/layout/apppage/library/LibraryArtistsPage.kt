@@ -44,7 +44,7 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
         Icons.Default.Groups
 
     override fun enableSorting(): Boolean = false
-    override fun canShowAccountContent(): Boolean = true
+    override fun canShowAltContent(): Boolean = true
 
     private var liked_artists: List<Artist>? by mutableStateOf(null)
     private var load_error: Throwable? by mutableStateOf(null)
@@ -55,7 +55,7 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
         library_page: LibraryAppPage,
         content_padding: PaddingValues,
         multiselect_context: MediaItemMultiSelectContext,
-        showing_account_content: Boolean,
+        showing_alt_content: Boolean,
         modifier: Modifier,
     ) {
         val player: PlayerState = LocalPlayerState.current
@@ -147,7 +147,7 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
             )
         }) }) {
             EmptyListAndDataCrossfade(
-                if (showing_account_content) sorted_liked_artists?.map { Pair(it, 0) } ?: emptyList() else sorted_artists,
+                if (showing_alt_content) sorted_liked_artists?.map { Pair(it, 0) } ?: emptyList() else sorted_artists,
                 loaded
             ) { artists, loaded ->
                 multiselect_context.CollectionToggleButton(
@@ -167,7 +167,7 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
                     if (artists == null) {
                         val text: String? =
                             if (library_page.search_filter != null) getString("library_no_items_match_filter")
-                            else if (showing_account_content) if (loaded) getString("library_no_liked_artists") else null
+                            else if (showing_alt_content) if (loaded) getString("library_no_liked_artists") else null
                             else getString("library_no_local_artists")
 
                         if (text != null) {
@@ -207,10 +207,10 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
     }
 
     @Composable
-    override fun SideContent(showing_account_content: Boolean) {
+    override fun SideContent(showing_alt_content: Boolean) {
         val player: PlayerState = LocalPlayerState.current
         val auth_state: YoutubeApi.UserAuthState? =
-            if (showing_account_content) player.context.ytapi.user_auth_state
+            if (showing_alt_content) player.context.ytapi.user_auth_state
             else null
 
         val liked_artists_endpoint = auth_state?.LikedArtists ?: return

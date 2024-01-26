@@ -60,10 +60,16 @@
     <string name="library_local">Local</string>
     <string name="library_account">Account</string>
 
+    <string name="library_songs_downloaded">Downloaded</string>
+    <string name="library_songs_downloaded_title">Downloaded songs</string>
+    <string name="library_songs_liked">Liked</string>
+    <string name="library_songs_liked_title">Liked songs</string>
+
     <string name="library_no_local_songs">No local songs</string>
     <string name="library_no_local_artists">No local artists</string>
     <string name="library_no_liked_artists">No library artists</string>
     <string name="library_no_liked_albums">No library albums</string>
+    <string name="library_no_liked_songs">No liked songs</string>
     <string name="library_no_playlists">No playlists</string>
     <string name="library_no_items_match_filter">No items match filter</string>
 

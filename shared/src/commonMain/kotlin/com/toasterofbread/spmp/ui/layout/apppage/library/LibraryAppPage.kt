@@ -70,19 +70,25 @@ abstract class LibrarySubPage(val context: AppContext) {
     open fun enableSorting(): Boolean = true
     open fun getDefaultSortType(): MediaItemSortType = MediaItemSortType.PLAY_COUNT
     open fun nativeSortTypeLabel(): String? = null
-    open fun canShowAccountContent(): Boolean = false
+
+    open fun canShowAltContent(): Boolean = false
+    open fun getAltContentButtons(): Pair<Pair<String, ImageVector>, Pair<String, ImageVector>> =
+        Pair(
+            Pair(getString("library_local"), Icons.Default.Inventory2),
+            Pair(getString("library_account"), Icons.Default.Cloud)
+        )
 
     @Composable
     abstract fun Page(
         library_page: LibraryAppPage,
         content_padding: PaddingValues,
         multiselect_context: MediaItemMultiSelectContext,
-        showing_account_content: Boolean,
-        modifier: Modifier,
+        showing_alt_content: Boolean,
+        modifier: Modifier
     )
 
     @Composable
-    open fun SideContent(showing_account_content: Boolean) {}
+    open fun SideContent(showing_alt_content: Boolean) {}
 
     @Composable
     fun LibraryPageTitle(title: String, modifier: Modifier = Modifier) {
@@ -118,7 +124,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
 
     var external_load_error: Throwable? by mutableStateOf(null)
 
-    private var showing_account_content: Boolean by mutableStateOf(false)
+    private var showing_alt_content: Boolean by mutableStateOf(false)
 
     override fun onOpened(from_item: MediaItemHolder?) {
         setCurrentTab(tabs.first { !it.isHidden() })
@@ -134,7 +140,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
         show_sort_type_menu = false
         sort_type = tab.getDefaultSortType()
         reverse_sort = false
-        showing_account_content = false
+        showing_alt_content = false
 
         current_tab = tab
     }
@@ -252,11 +258,11 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
                 }
             }
 
-            AnimatedVisibility(!current_tab.canShowAccountContent(), Modifier.align(Alignment.End)) {
-                current_tab.SideContent(showing_account_content)
+            AnimatedVisibility(!current_tab.canShowAltContent(), Modifier.align(Alignment.End)) {
+                current_tab.SideContent(showing_alt_content)
             }
 
-            AnimatedVisibility(current_tab.canShowAccountContent()) {
+            AnimatedVisibility(current_tab.canShowAltContent()) {
                 Row(Modifier.padding(horizontal = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     @Composable
                     fun getButtonColours(current: Boolean) =
@@ -265,23 +271,25 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
                             contentColor = if (current) player.theme.vibrant_accent.getContrasted() else player.theme.on_background
                         )
 
+                    val (main_button, alt_button) = remember(current_tab) { current_tab.getAltContentButtons() }
+
                     Button(
-                        { showing_account_content = false },
+                        { showing_alt_content = false },
                         Modifier.fillMaxWidth(0.5f).weight(1f),
-                        colors = getButtonColours(!showing_account_content)
+                        colors = getButtonColours(!showing_alt_content)
                     ) {
-                        Text(getString("library_local"), textAlign = TextAlign.Center)
+                        Text(main_button.first, textAlign = TextAlign.Center)
                     }
 
                     Button(
-                        { showing_account_content = true },
+                        { showing_alt_content = true },
                         Modifier.fillMaxWidth().weight(1f),
-                        colors = getButtonColours(showing_account_content)
+                        colors = getButtonColours(showing_alt_content)
                     ) {
-                        Text(getString("library_account"), textAlign = TextAlign.Center)
+                        Text(alt_button.first, textAlign = TextAlign.Center)
                     }
 
-                    current_tab.SideContent(showing_account_content)
+                    current_tab.SideContent(showing_alt_content)
                 }
             }
         }
@@ -377,20 +385,22 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
 
                         Spacer(Modifier.fillMaxHeight().weight(1f))
 
+                        val (main_button, alt_button) = remember(current_tab) { current_tab.getAltContentButtons() }
+
                         SidebarButtonSelector(
-                            selected_button = showing_account_content,
+                            selected_button = showing_alt_content,
                             buttons = listOf(false, true),
                             indicator_colour = player.theme.vibrant_accent,
                             scrolling = false,
                             onButtonSelected = {
-                                showing_account_content = it
+                                showing_alt_content = it
                             },
                             showButton = {
-                                current_tab.canShowAccountContent()
+                                current_tab.canShowAltContent()
                             },
                             extraContent = {
                                 if (!it) {
-                                    current_tab.SideContent(showing_account_content)
+                                    current_tab.SideContent(showing_alt_content)
 
                                     AnimatedVisibility(current_tab.enableSearching()) {
                                         SearchButton(Icons.Default.FilterAlt)
@@ -440,20 +450,20 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
                                         }
                                     }
 
-                                    AnimatedVisibility(current_tab.canShowAccountContent()) {
+                                    AnimatedVisibility(current_tab.canShowAltContent()) {
                                         Spacer(Modifier.height(20.dp))
                                     }
                                 }
                             }
                         ) {
                             val colour: Color =
-                                if (it == showing_account_content) player.theme.on_accent
+                                if (it == showing_alt_content) player.theme.on_accent
                                 else player.theme.on_background
 
                             CompositionLocalProvider(LocalContentColor provides colour) {
                                 Icon(
-                                    if (it) Icons.Default.Cloud
-                                    else Icons.Default.Inventory2,
+                                    if (it) alt_button.second
+                                    else main_button.second,
                                     null,
                                     Modifier.requiredSizeIn(minWidth = 20.dp, minHeight = 20.dp)
                                 )
@@ -493,9 +503,10 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
                 }
             }
 
-            Crossfade(Pair(current_tab, showing_account_content)) {
+            Crossfade(Pair(current_tab, showing_alt_content)) {
                 val (tab, showing_account) = it
-                tab.Page(
+                tab.
+                Page(
                     this@LibraryAppPage,
                     content_padding.copy(top = if (external_load_error != null) 0.dp else null),
                     multiselect_context,

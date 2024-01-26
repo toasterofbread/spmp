@@ -57,7 +57,7 @@ internal class LibraryAlbumsPage(context: AppContext): LibrarySubPage(context) {
         library_page: LibraryAppPage,
         content_padding: PaddingValues,
         multiselect_context: MediaItemMultiSelectContext,
-        showing_account_content: Boolean,
+        showing_alt_content: Boolean,
         modifier: Modifier
     ) {
         val player: PlayerState = LocalPlayerState.current
@@ -106,7 +106,7 @@ internal class LibraryAlbumsPage(context: AppContext): LibrarySubPage(context) {
     }
 
     @Composable
-    override fun SideContent(showing_account_content: Boolean) {
+    override fun SideContent(showing_alt_content: Boolean) {
         val player: PlayerState = LocalPlayerState.current
         val auth_state: YoutubeApi.UserAuthState = player.context.ytapi.user_auth_state ?: return
         

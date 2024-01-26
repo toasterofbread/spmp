@@ -119,20 +119,6 @@ internal fun ArtistAppPage.LFFArtistEndPane(
                     }
                 }
             }
-            else if (single_layout != null) {
-                item {
-                    single_layout.TitleBar(Modifier.padding(end = end_padding, bottom = 5.dp))
-                }
-
-                items(single_layout.items) { item ->
-                    Row(Modifier.padding(end = end_padding), verticalAlignment = Alignment.CenterVertically) {
-                        MediaItemPreviewLong(
-                            item,
-                            multiselect_context = multiselect_context
-                        )
-                    }
-                }
-            }
             else {
                 item {
                     Column(

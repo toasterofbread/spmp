@@ -43,10 +43,16 @@
     <string name="library_local">ローカル</string>
     <string name="library_account">アカウント</string>
 
+    <string name="library_songs_downloaded">ダウンロード済み</string>
+    <string name="library_songs_downloaded_title">ダウンロード済みの曲</string>
+    <string name="library_songs_liked">お気に入り</string>
+    <string name="library_songs_liked_title">お気に入りの曲</string>
+
     <string name="library_no_local_songs">保存済みの曲はありません</string>
     <string name="library_no_local_artists">保存済みのアーティストはありません</string>
     <string name="library_no_liked_artists">ライブラリーにアーティストはありません</string>
     <string name="library_no_liked_albums">ライブラリーにアルバムはありません</string>
+    <string name="library_no_liked_songs">お気に入りの曲はありません</string>
     <string name="library_no_playlists">プレイリストはありません</string>
     <string name="library_no_items_match_filter">フィルターに一致するアイテムはありません</string>
 

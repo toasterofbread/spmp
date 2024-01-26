@@ -26,6 +26,7 @@ import com.toasterofbread.spmp.ui.component.longpressmenu.song.SongLongPressMenu
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistSubscribeButton
 import com.toasterofbread.spmp.ui.theme.appHover
+import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -92,18 +93,16 @@ data class LongPressMenuData(
 
     @Composable
     fun SideButton(modifier: Modifier, background: Color) {
-        val auth_state = LocalPlayerState.current.context.ytapi.user_auth_state
+        val auth_state: YoutubeApi.UserAuthState? = LocalPlayerState.current.context.ytapi.user_auth_state
 
-        if (auth_state != null) {
-            when (item) {
-                is Song -> LikeDislikeButton(item, auth_state, modifier) { background.getContrasted() }
-                is Artist -> {
-                    if (!item.isForItem()) {
-                        ArtistSubscribeButton(item, auth_state, modifier)
-                    }
+        when (item) {
+            is Song -> LikeDislikeButton(item, auth_state, modifier) { background.getContrasted() }
+            is Artist -> {
+                if (auth_state != null && !item.isForItem()) {
+                    ArtistSubscribeButton(item, auth_state, modifier)
                 }
-                else -> {}
             }
+            else -> {}
         }
     }
 }

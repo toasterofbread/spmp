@@ -14,7 +14,6 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
@@ -47,7 +46,7 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
     override fun getIcon(): ImageVector =
         MediaItemType.PLAYLIST_REM.getIcon()
 
-    override fun canShowAccountContent(): Boolean = true
+    override fun canShowAltContent(): Boolean = true
 
     private var load_error: Throwable? by mutableStateOf(null)
 
@@ -56,7 +55,7 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
         library_page: LibraryAppPage,
         content_padding: PaddingValues,
         multiselect_context: MediaItemMultiSelectContext,
-        showing_account_content: Boolean,
+        showing_alt_content: Boolean,
         modifier: Modifier
     ) {
         val player: PlayerState = LocalPlayerState.current
@@ -81,8 +80,8 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
             load_error = null
         }
 
-        LaunchedEffect(showing_account_content) {
-            if (showing_account_content && account_playlists.isNullOrEmpty()) {
+        LaunchedEffect(showing_alt_content) {
+            if (showing_alt_content && account_playlists.isNullOrEmpty()) {
                 val auth_state: YoutubeApi.UserAuthState = player.context.ytapi.user_auth_state ?: return@LaunchedEffect
 
                 val load_endpoint: AccountPlaylistsEndpoint = auth_state.AccountPlaylists
@@ -112,7 +111,7 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
                 }
             }
 
-            if (showing_account_content) {
+            if (showing_alt_content) {
                 PlaylistItems(
                     sorted_account_playlists ?: emptyList(),
                     multiselect_context
@@ -128,14 +127,14 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
     }
 
     @Composable
-    override fun SideContent(showing_account_content: Boolean) {
+    override fun SideContent(showing_alt_content: Boolean) {
         val player: PlayerState = LocalPlayerState.current
         val auth_state: YoutubeApi.UserAuthState? = player.context.ytapi.user_auth_state
 
         val load_endpoint: AccountPlaylistsEndpoint? = auth_state?.AccountPlaylists
         val create_endpoint: CreateAccountPlaylistEndpoint? = auth_state?.CreateAccountPlaylist
 
-        AnimatedVisibility(showing_account_content && load_endpoint?.isImplemented() == true) {
+        AnimatedVisibility(showing_alt_content && load_endpoint?.isImplemented() == true) {
             LoadActionIconButton(
                 {
                     val result = load_endpoint?.getAccountPlaylists()
@@ -146,9 +145,9 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
             }
         }
 
-        AnimatedVisibility(!showing_account_content || create_endpoint?.isImplemented() == true) {
+        AnimatedVisibility(!showing_alt_content || create_endpoint?.isImplemented() == true) {
             LoadActionIconButton({
-                if (!showing_account_content) {
+                if (!showing_alt_content) {
                     MediaItemLibrary.createLocalPlaylist(player.context)
                         .onFailure {
                             load_error = it

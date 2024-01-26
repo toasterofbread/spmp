@@ -5,9 +5,10 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.ThumbUp
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,26 +27,26 @@ import com.toasterofbread.spmp.model.mediaitem.loader.SongLikedLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.theme.appHover
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.endpoint.SetSongLikedEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.SongLikedEndpoint
+import kotlinx.coroutines.CoroutineScope
 
 @Composable
 fun LikeDislikeButton(
     song: Song,
-    auth_state: YoutubeApi.UserAuthState,
+    auth_state: YoutubeApi.UserAuthState?,
     modifier: Modifier = Modifier,
     getEnabled: (() -> Boolean)? = null,
     getColour: () -> Color
 ) {
-    val get_liked_endpoint: SongLikedEndpoint = auth_state.SongLiked
-    val set_liked_endpoint: SetSongLikedEndpoint = auth_state.SetSongLiked
-    check(get_liked_endpoint.isImplemented())
-    check(set_liked_endpoint.isImplemented())
+    val get_liked_endpoint: SongLikedEndpoint? = auth_state?.SongLiked
+    val set_liked_endpoint: SetSongLikedEndpoint? = auth_state?.SetSongLiked
 
-    val player = LocalPlayerState.current
-    val coroutine_scope = rememberCoroutineScope()
+    val player: PlayerState = LocalPlayerState.current
+    val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     val loading: Boolean = SongLikedLoader.rememberItemState(song.id).loading
     val liked_status: SongLikedStatus? by song.Liked.observe(player.database)
@@ -69,6 +70,10 @@ fun LikeDislikeButton(
             }
         },
         onAltClick = {
+            if (set_liked_endpoint == null) {
+                return@PlatformClickableIconButton
+            }
+
             player.context.vibrateShort()
             coroutine_scope.launchSingle {
                 song.updateLiked(
@@ -85,12 +90,15 @@ fun LikeDislikeButton(
         enabled = getEnabled?.invoke() != false,
         apply_minimum_size = false
     ) {
-        Crossfade(liked_status) { status ->
+        Crossfade(
+            if (auth_state == null) liked_status ?: SongLikedStatus.NEUTRAL else liked_status
+        ) { status ->
             if (status != null) {
                 LikedStatusIcon(
                     status,
                     Modifier.rotate(rotation),
-                    getColour
+                    getColour,
+                    alt_shape = auth_state == null
                 )
             }
             else if (loading) {
@@ -104,10 +112,14 @@ fun LikeDislikeButton(
 private fun LikedStatusIcon(
     status: SongLikedStatus,
     modifier: Modifier = Modifier,
-    getColour: () -> Color
+    getColour: () -> Color,
+    alt_shape: Boolean = false
 ) {
     Icon(
-        if (status != SongLikedStatus.NEUTRAL) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp,
+        if (!alt_shape)
+            if (status != SongLikedStatus.NEUTRAL) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp
+        else
+            if (status != SongLikedStatus.NEUTRAL) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
         null,
         modifier,
         tint = getColour()

@@ -11,6 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import app.cash.sqldelight.Query
 import com.toasterofbread.db.Database
+import com.toasterofbread.db.mediaitem.PinnedItemQueries
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
@@ -27,33 +28,6 @@ fun Database.getPinnedItems(): List<MediaItem> {
     return pinnedItemQueries.getAll().executeAsList().map { item ->
         MediaItemType.entries[item.type.toInt()].referenceFromId(item.id)
     }
-}
-private fun Database.isItemPinned(item: MediaItem): Boolean {
-    return pinnedItemQueries.countByItem(item.id, item.getType().ordinal.toLong()).executeAsOne() > 0
-}
-
-@Composable
-fun rememberAnyItemsArePinned(context: AppContext): Boolean {
-    val db = context.database
-
-    val any_are_pinned = remember { mutableStateOf(
-        db.pinnedItemQueries.count().executeAsOne() > 0
-    ) }
-
-    DisposableEffect(Unit) {
-        val listener = Query.Listener {
-            any_are_pinned.value = db.pinnedItemQueries.count().executeAsOne() > 0
-        }
-
-        val query = db.pinnedItemQueries.count()
-        query.addListener(listener)
-
-        onDispose {
-            query.removeListener(listener)
-        }
-    }
-
-    return any_are_pinned.value
 }
 
 @Composable
@@ -106,8 +80,8 @@ fun rememberPinnedItems(): List<MediaItem>? {
 
 @Composable
 fun MediaItem.observePinnedToHome(): MutableState<Boolean> {
-    val queries = LocalPlayerState.current.database.pinnedItemQueries
-    val query = remember(this) {
+    val queries: PinnedItemQueries = LocalPlayerState.current.database.pinnedItemQueries
+    val query: Query<Long> = remember(this) {
         queries.countByItem(id, getType().ordinal.toLong())
     }
 
@@ -132,7 +106,7 @@ fun MediaItem.observePinnedToHome(): MutableState<Boolean> {
 }
 
 fun MediaItem.setPinned(pinned: Boolean, context: AppContext) {
-    val queries = context.database.pinnedItemQueries
+    val queries: PinnedItemQueries = context.database.pinnedItemQueries
     if (pinned) {
         queries.insert(id, getType().ordinal.toLong())
     }

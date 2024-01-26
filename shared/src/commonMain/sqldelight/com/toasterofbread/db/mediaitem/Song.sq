@@ -34,6 +34,7 @@ CREATE TABLE Song (
 
 countById: SELECT COUNT(*) FROM Song WHERE id == :id;
 byHidden: SELECT Song.id FROM Song, MediaItem WHERE MediaItem.id == Song.id AND MediaItem.hidden == :hidden;
+byLiked: SELECT Song.id FROM Song WHERE liked == :liked;
 
 insertById {
     INSERT OR IGNORE INTO MediaItem(id) VALUES(:id);

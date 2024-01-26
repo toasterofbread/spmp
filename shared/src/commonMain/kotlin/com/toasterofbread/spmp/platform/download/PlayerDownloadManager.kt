@@ -106,7 +106,7 @@ enum class DownloadMethod {
     }
 }
 
-class DownloadStatus(
+data class DownloadStatus(
     val song: Song,
     val status: Status,
     val quality: SongAudioQuality?,

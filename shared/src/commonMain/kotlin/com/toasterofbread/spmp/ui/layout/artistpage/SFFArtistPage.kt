@@ -131,20 +131,6 @@ internal fun ArtistAppPage.SFFArtistPage(
                 }
             }
         }
-        else if (single_layout != null) {
-            item {
-                single_layout.TitleBar(content_modifier.padding(content_padding).padding(bottom = 5.dp))
-            }
-
-            items(single_layout.items) { item ->
-                Row(content_modifier.padding(content_padding), verticalAlignment = Alignment.CenterVertically) {
-                    MediaItemPreviewLong(
-                        item,
-                        multiselect_context = multiselect_context ?: own_multiselect_context
-                    )
-                }
-            }
-        }
         else {
             item {
                 Column(

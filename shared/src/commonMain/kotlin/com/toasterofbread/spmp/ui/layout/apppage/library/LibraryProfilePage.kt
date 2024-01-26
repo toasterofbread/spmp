@@ -32,7 +32,7 @@ class LibraryProfilePage(context: AppContext): LibrarySubPage(context) {
         library_page: LibraryAppPage,
         content_padding: PaddingValues,
         multiselect_context: MediaItemMultiSelectContext,
-        showing_account_content: Boolean,
+        showing_alt_content: Boolean,
         modifier: Modifier
     ) {
         val channel: Artist = own_channel ?: return

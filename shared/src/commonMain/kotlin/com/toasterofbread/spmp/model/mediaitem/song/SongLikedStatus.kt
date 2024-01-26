@@ -49,16 +49,16 @@ fun SongLikedStatus?.toLong(): Long? =
         null -> null
     }
 
-suspend fun Song.updateLiked(liked: SongLikedStatus, endpoint: SetSongLikedEndpoint, context: AppContext): Result<Unit> {
-    if (!endpoint.isImplemented()) {
-        return Result.failure(EndpointNotImplementedException(endpoint))
-    }
-
+suspend fun Song.updateLiked(liked: SongLikedStatus, endpoint: SetSongLikedEndpoint?, context: AppContext): Result<Unit> {
     Liked.set(liked, context.database)
     SongLikedStatus.onSongLikedStatusChanged(this, liked)
 
-    return endpoint.setSongLiked(this, liked).onSuccess {
-        Liked.set(liked, context.database)
-        SongLikedStatus.onSongLikedStatusChanged(this, liked)
+    if (endpoint?.isImplemented() == true) {
+        return endpoint.setSongLiked(this, liked).onSuccess {
+            Liked.set(liked, context.database)
+            SongLikedStatus.onSongLikedStatusChanged(this, liked)
+        }
     }
+
+    return Result.success(Unit)
 }

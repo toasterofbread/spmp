@@ -31,14 +31,13 @@ internal object NowPlayingMainTabActionButtons {
         
         val player: PlayerState = LocalPlayerState.current
         val auth_state: YoutubeApi.UserAuthState? = player.context.ytapi.user_auth_state
-        if (auth_state != null) {
-            LikeDislikeButton(
-                song,
-                auth_state,
-                modifier,
-                getColour = { colour }
-            )
-        }
+
+        LikeDislikeButton(
+            song,
+            auth_state,
+            modifier,
+            getColour = { colour }
+        )
     }
     
     @Composable

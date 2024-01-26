@@ -67,7 +67,9 @@
 
         <service
             android:name=".platform.download.PlayerDownloadService"
-            android:exported="false"></service>
+            android:exported="false"
+            android:foregroundServiceType="dataSync">
+        </service>
 
         <receiver
             android:name="androidx.media.session.MediaButtonReceiver"

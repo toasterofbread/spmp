@@ -251,7 +251,6 @@ private fun LongPressMenuActionProvider.LPMActions(
 
                 // IDLE, DOWNLOADING, PAUSED
                 else -> {
-                    TODO(status.toString())
                     player.context.sendToast(getString("notif_download_already_downloading"))
                 }
             }

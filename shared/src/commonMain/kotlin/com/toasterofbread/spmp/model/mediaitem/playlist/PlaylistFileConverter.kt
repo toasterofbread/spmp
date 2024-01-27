@@ -53,9 +53,9 @@ object PlaylistFileConverter {
     }
 
     suspend fun PlaylistData.saveToFile(file: PlatformFile, context: AppContext): Result<Unit> = withContext(Dispatchers.IO) {
-        val temp_file = file.getSibling("${file.name}.tmp")
+        val temp_file: PlatformFile = file.getSibling("${file.name}.tmp")
 
-        val result =  runCatching {
+        val result: Result<Unit> = runCatching {
             temp_file.outputStream().use { stream ->
                 with(stream.writer()) {
                     writeFileHeaders(this@saveToFile, context)
@@ -122,7 +122,7 @@ object PlaylistFileConverter {
 
                 try {
                     if (line.first() == '#') {
-                        val line_split = line.split(':', limit = 2)
+                        val line_split: List<String> = line.split(':', limit = 2)
 
                         when (line_split[0]) {
                             "#PLAYLIST" -> playlist.title = line_split[1]
@@ -135,7 +135,7 @@ object PlaylistFileConverter {
                                     return@forEachLine
                                 }
 
-                                val split = line_split[1].split(',', limit = 2)
+                                val split: List<String> = line_split[1].split(',', limit = 2)
 
                                 val duration_seconds: Int? = split.getOrNull(0)?.toIntOrNull()
                                 if (duration_seconds != null && duration_seconds > 0) {

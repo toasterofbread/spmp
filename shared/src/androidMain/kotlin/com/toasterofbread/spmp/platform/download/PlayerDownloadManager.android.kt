@@ -9,9 +9,7 @@ import com.toasterofbread.spmp.platform.startPlatformService
 import com.toasterofbread.spmp.platform.unbindPlatformService
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.DownloadRequestCallback
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 actual class PlayerDownloadManager actual constructor(val context: AppContext) {

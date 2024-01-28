@@ -232,7 +232,7 @@ fun rememberSongDownloads(): State<List<DownloadStatus>> {
                 if (current.isCompleted() != local.isCompleted()) {
                     return@none false
                 }
-                return@none current.file?.matches(local.file!!) == true
+                return@none local.file?.let { current.file?.matches(it) } == true
             }
         }
     } }

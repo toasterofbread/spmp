@@ -162,7 +162,6 @@ internal fun ArtistAppPage.SFFArtistPage(
                                     else {
                                         player.playMediaItem(item)
                                     }
-                                    player.onPlayActionOccurred()
                                 },
                                 onLongClickedOverride = { item, long_press_data ->
                                     player.onMediaItemLongClicked(

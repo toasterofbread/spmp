@@ -88,85 +88,28 @@ object MediaItemLibrary {
         }
     }
 
-    fun getLocalLyrics(context: AppContext, song: Song, allow_partial: Boolean = false): PlatformFile? {
-        val file: PlatformFile = getLocalLyricsFile(song, context)
-        if (!file.is_file) {
-            return null
-        }
-        return file
-    }
+    suspend fun getLocalLyrics(context: AppContext, song: Song, allow_partial: Boolean = false): PlatformFile? =
+        lyrics_sync_loader.performSync(context, skip_if_synced = true)[song.id]
 
-    private val song_sync_coroutine_scope: CoroutineScope = CoroutineScope(Job())
-    private val song_sync_lock: Mutex = Mutex()
-    private var song_sync_job: Deferred<Map<String, DownloadStatus>>? = null
-    var synced_songs: Map<String, DownloadStatus>? by mutableStateOf(null)
-        private set
-    var song_sync_in_progress: Boolean by mutableStateOf(false)
-        private set
+    private val song_sync_loader: LocalSongSyncLoader = LocalSongSyncLoader()
+    private val lyrics_sync_loader: LocalLyricsSyncLoader = LocalLyricsSyncLoader()
 
-    suspend fun syncLocalSongs(context: AppContext, skip_if_synced: Boolean = false): Map<String, DownloadStatus> = song_sync_coroutine_scope.async {
-        return@async coroutineScope {
-            val loader: Deferred<Map<String, DownloadStatus>>
-            song_sync_lock.withLock {
-                if (skip_if_synced) {
-                    synced_songs?.also {
-                        return@coroutineScope it
-                    }
-                }
+    val synced_songs: Map<String, DownloadStatus>?
+        get() = song_sync_loader.synced
+    val song_sync_in_progress: Boolean
+        get() = song_sync_loader.sync_in_progress
 
-                song_sync_job?.also { job ->
-                    if (job.isActive) {
-                        loader = job
-                        return@withLock
-                    }
-                }
-
-                loader = async(start = CoroutineStart.LAZY) {
-                    try {
-                        song_sync_in_progress = true
-                        val songs: Map<String, DownloadStatus> =
-                            getAllLocalSongFiles(context, true)
-                                .associateBy { it.song.id }
-                        synced_songs = songs
-
-                        SpMp._player_state?.interactService { service: Any ->
-                            if (service is ClientServerPlayerService) {
-                                service.onLocalSongsSynced(songs)
-                            }
-                        }
-
-                        return@async songs
-                    }
-                    finally {
-                        song_sync_in_progress = false
-                    }
-                }
-                song_sync_job = loader
-            }
-
-            loader.start()
-            return@coroutineScope loader.await()
-        }
-    }.await()
+    suspend fun syncLocalSongs(context: AppContext, skip_if_synced: Boolean = false): Map<String, DownloadStatus> =
+        song_sync_loader.performSync(context, skip_if_synced)
 
     suspend fun getLocalSong(song: Song, context: AppContext): DownloadStatus? =
-        syncLocalSongs(context, true)[song.id]
+        syncLocalSongs(context, skip_if_synced = true)[song.id]
 
     suspend fun getLocalSongs(context: AppContext): List<DownloadStatus> =
-        syncLocalSongs(context, true).values.toList()
+        syncLocalSongs(context, skip_if_synced = true).values.toList()
 
     suspend fun onSongFileAdded(download_status: DownloadStatus) {
-        song_sync_lock.withLock {
-            song_sync_job?.also { job ->
-                if (job.isActive) {
-                    return
-                }
-            }
-
-            synced_songs = synced_songs?.toMutableMap()?.apply {
-                put(download_status.song.id, download_status)
-            }
-        }
+        song_sync_loader.put(download_status.song.id, download_status)
 
         SpMp._player_state?.interactService { service: Any ->
             if (service is ClientServerPlayerService) {
@@ -176,17 +119,7 @@ object MediaItemLibrary {
     }
 
     suspend fun onSongFileDeleted(song: Song) {
-        song_sync_lock.withLock {
-            song_sync_job?.also { job ->
-                if (job.isActive) {
-                    return
-                }
-            }
-
-            synced_songs = synced_songs?.toMutableMap()?.apply {
-                remove(song.id)
-            }
-        }
+        song_sync_loader.remove(song.id)
 
         SpMp._player_state?.interactService { service: Any ->
             if (service is ClientServerPlayerService) {
@@ -235,22 +168,109 @@ private suspend fun getAllLocalSongFiles(context: AppContext, allow_partial: Boo
     return@withContext results.filterNotNull()
 }
 
-//private suspend fun Song.getLocalSongFile(context: AppContext, files: List<PlatformFile>?): SongDownloader.Companion.DownloadFileInfo? {
-//    if (files == null) {
-//        return null
-//    }
-//
-//    for (file in files) {
-//        val file_info: SongDownloader.Companion.DownloadFileInfo = SongDownloader.getFileDownloadInfo(file)
-//        if (!file_info.is_partial) {
-//            if (LocalSongMetadataProcessor.readLocalSongMetadata(file, context, id, load_data = false) != null) {
-//                return file_info
-//            }
-//        }
-//        else if (file_info.id == id) {
-//            return file_info
-//        }
-//    }
-//
-//    return null
-//}
+private class LocalSongSyncLoader: SyncLoader<DownloadStatus>() {
+    override suspend fun internalPerformSync(context: AppContext): Map<String, DownloadStatus> {
+        val songs: Map<String, DownloadStatus> =
+            getAllLocalSongFiles(context, true)
+                .associateBy { it.song.id }
+
+        SpMp._player_state?.interactService { service: Any ->
+            if (service is ClientServerPlayerService) {
+                service.onLocalSongsSynced(songs)
+            }
+        }
+
+        return songs
+    }
+}
+
+private class LocalLyricsSyncLoader: SyncLoader<PlatformFile>() {
+    override suspend fun internalPerformSync(context: AppContext): Map<String, PlatformFile> {
+        return MediaItemLibrary.getLocalLyricsDir(context).listFiles().orEmpty()
+            .associateBy { file ->
+                file.name.split('.', limit = 2).first()
+            }
+    }
+}
+
+private abstract class SyncLoader<T> {
+    var synced: Map<String, T>? by mutableStateOf(null)
+        private set
+    var sync_in_progress: Boolean by mutableStateOf(false)
+        private set
+
+    private val coroutine_scope: CoroutineScope = CoroutineScope(Job())
+    private val lock: Mutex = Mutex()
+    private var sync_job: Deferred<Map<String, T>>? = null
+
+    protected abstract suspend fun internalPerformSync(context: AppContext): Map<String, T>
+
+    suspend fun put(key: String, value: T): Boolean {
+        lock.withLock {
+            sync_job?.also { job ->
+                if (job.isActive) {
+                    return false
+                }
+            }
+
+            synced = synced?.toMutableMap()?.apply {
+                put(key, value)
+            }
+        }
+
+        return true
+    }
+
+    suspend fun remove(key: String) {
+        lock.withLock {
+            sync_job?.also { job ->
+                if (job.isActive) {
+                    return
+                }
+            }
+
+            synced = synced?.toMutableMap()?.apply {
+                remove(key)
+            }
+        }
+    }
+
+    suspend fun performSync(context: AppContext, skip_if_synced: Boolean = false): Map<String, T> =
+        coroutine_scope.async {
+            return@async coroutineScope {
+                val loader: Deferred<Map<String, T>>
+                lock.withLock {
+                    if (skip_if_synced) {
+                        synced?.also {
+                            return@coroutineScope it
+                        }
+                    }
+
+                    sync_job?.also { job ->
+                        if (job.isActive) {
+                            loader = job
+                            return@withLock
+                        }
+                    }
+
+                    loader = async(start = CoroutineStart.LAZY) {
+                        try {
+                            sync_in_progress = true
+
+                            val sync_result: Map<String, T> = internalPerformSync(context)
+                            synced = sync_result
+
+                            return@async sync_result
+                        }
+                        finally {
+                            sync_in_progress = false
+                        }
+                    }
+                    sync_job = loader
+                }
+
+                loader.start()
+                return@coroutineScope loader.await()
+            }
+        }.await()
+}

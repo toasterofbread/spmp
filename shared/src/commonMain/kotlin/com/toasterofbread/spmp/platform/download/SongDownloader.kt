@@ -45,11 +45,13 @@ abstract class SongDownloader(
         val instance: Int,
         val file_uri: String?
     ) {
+        // This is fine :)
         var song_file: PlatformFile? = runBlocking {
-            // This is fine :)
             MediaItemLibrary.getLocalSong(song, context)?.file
         }
-        var lyrics_file: PlatformFile? = MediaItemLibrary.getLocalLyrics(context, song, allow_partial = true)
+        var lyrics_file: PlatformFile? = runBlocking {
+            MediaItemLibrary.getLocalLyrics(context, song, allow_partial = true)
+        }
 
         var status: DownloadStatus.Status =
             if (song_file?.let { getFileDownloadInfo(it).is_partial } == false) DownloadStatus.Status.ALREADY_FINISHED
@@ -190,7 +192,13 @@ abstract class SongDownloader(
         catch (_: Throwable) {}
     }
 
-    fun startDownload(song: Song, silent: Boolean, file_uri: String?, callback: (Download, Result<PlatformFile?>) -> Unit) {
+    suspend fun startDownload(
+        song: Song,
+        silent: Boolean,
+        file_uri: String?,
+        callback: (Download, Result<PlatformFile?>) -> Unit
+    ) = withContext(Dispatchers.IO) {
+
         val download: Download = getOrCreateDownload(
             song,
             silent = silent,
@@ -200,7 +208,7 @@ abstract class SongDownloader(
         synchronized(download) {
             if (download.finished) {
                 callback(download, Result.success(download.song_file))
-                return
+                return@withContext
             }
 
             if (download.downloading) {
@@ -208,7 +216,7 @@ abstract class SongDownloader(
                     paused = false
                 }
                 callback(download, Result.success(null))
-                return
+                return@withContext
             }
 
             synchronized(downloads) {
@@ -275,7 +283,7 @@ abstract class SongDownloader(
         }
     }
 
-    fun cancelDownloads(filter: (Download) -> Boolean) {
+    suspend fun cancelDownloads(filter: (Download) -> Boolean) = withContext(Dispatchers.IO) {
         synchronized(downloads) {
             for (download in downloads) {
                 if (filter(download)) {

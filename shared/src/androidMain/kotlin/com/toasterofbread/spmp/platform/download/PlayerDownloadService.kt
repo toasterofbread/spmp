@@ -28,6 +28,9 @@ import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringOrNull
 import com.toasterofbread.spmp.resources.initResources
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.concurrent.Executors
 
 private const val NOTIFICATION_ID = 1
@@ -86,13 +89,15 @@ class PlayerDownloadService: PlatformServiceImpl() {
         }
 
         override fun onDownloadProgress() {
-            updateNotification()
+            context.coroutine_scope.launch {
+                updateNotification()
+            }
         }
 
-        fun updateNotification() {
+        suspend fun updateNotification() = withContext(Dispatchers.IO) {
             synchronized(downloads) {
                 if (downloads.isNotEmpty() && downloads.all { it.silent }) {
-                    return
+                    return@withContext
                 }
 
                 notification_builder?.also { builder ->
@@ -114,7 +119,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
                         }
                         else {
                             NotificationManagerCompat.from(context.ctx).cancel(NOTIFICATION_ID)
-                            return
+                            return@withContext
                         }
 
                         builder.setContentText("")
@@ -214,10 +219,12 @@ class PlayerDownloadService: PlatformServiceImpl() {
 
     override fun onMessage(data: Any?) {
         require(data is PlayerDownloadManager.PlayerDownloadMessage)
-        onActionIntentReceived(data)
+        context.coroutine_scope.launch {
+            onActionIntentReceived(data)
+        }
     }
 
-    private fun onActionIntentReceived(message: PlayerDownloadManager.PlayerDownloadMessage) {
+    private suspend fun onActionIntentReceived(message: PlayerDownloadManager.PlayerDownloadMessage) {
         when (message.action) {
             IntentAction.STOP -> {
                 SpMp.Log.info("Download service stopping...")
@@ -237,7 +244,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
         }
     }
 
-    private fun startDownload(message: PlayerDownloadManager.PlayerDownloadMessage) {
+    private suspend fun startDownload(message: PlayerDownloadManager.PlayerDownloadMessage) {
         require(message.instance != null)
 
         downloader?.startDownload(
@@ -258,14 +265,14 @@ class PlayerDownloadService: PlatformServiceImpl() {
         }
     }
 
-    private fun cancelDownload(message: PlayerDownloadManager.PlayerDownloadMessage) {
+    private suspend fun cancelDownload(message: PlayerDownloadManager.PlayerDownloadMessage) {
         val id: String = message.data["id"] as String
         downloader?.cancelDownloads { download ->
             download.song.id == id
         }
     }
 
-    private fun cancelAllDownloads(message: PlayerDownloadManager.PlayerDownloadMessage) {
+    private suspend fun cancelAllDownloads(message: PlayerDownloadManager.PlayerDownloadMessage) {
         downloader?.cancelDownloads { true }
     }
 
@@ -318,15 +325,17 @@ class PlayerDownloadService: PlatformServiceImpl() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val action = intent?.extras?.get("action")
+        val action: Any? = intent?.extras?.get("action")
         if (action is IntentAction) {
             SpMp.Log.info("Download service received action $action")
-            onActionIntentReceived(
-                PlayerDownloadManager.PlayerDownloadMessage(
-                    action,
-                    emptyMap()
+            context.coroutine_scope.launch {
+                onActionIntentReceived(
+                    PlayerDownloadManager.PlayerDownloadMessage(
+                        action,
+                        emptyMap()
+                    )
                 )
-            )
+            }
         }
 
         return super.onStartCommand(intent, flags, startId)

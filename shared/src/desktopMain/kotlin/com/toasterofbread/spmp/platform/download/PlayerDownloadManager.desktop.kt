@@ -63,11 +63,13 @@ actual class PlayerDownloadManager actual constructor(private val context: AppCo
         file_uri: String?,
         callback: DownloadRequestCallback?,
     ) {
-        downloader.startDownload(song, silent, file_uri) { download, result ->
-            val status: DownloadStatus = download.getStatusObject()
-            context.coroutine_scope.launch {
-                MediaItemLibrary.onSongFileAdded(status)
-                callback?.invoke(status)
+        context.coroutine_scope.launch {
+            downloader.startDownload(song, silent, file_uri) { download, result ->
+                val status: DownloadStatus = download.getStatusObject()
+                context.coroutine_scope.launch {
+                    MediaItemLibrary.onSongFileAdded(status)
+                    callback?.invoke(status)
+                }
             }
         }
     }

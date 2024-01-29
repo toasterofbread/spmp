@@ -155,7 +155,7 @@ abstract class ActuallyPackageAppImage: DefaultTask() {
 }
 
 tasks.register<ActuallyPackageAppImage>("actuallyPackageAppImage") {
-    val package_task: Task = getTasksByName("packageAppImage", false).first()
+    val package_task: Task = getTasksByName("packageReleaseAppImage", false).first()
     dependsOn(package_task)
     group = package_task.group
 

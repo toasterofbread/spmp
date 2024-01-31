@@ -61,7 +61,12 @@ enum class SplashMode {
 }
 
 @Composable
-fun LoadingSplashView(splash_mode: SplashMode?, loading_message: String?, modifier: Modifier = Modifier) {
+fun LoadingSplashView(
+    splash_mode: SplashMode?,
+    loading_message: String?,
+    modifier: Modifier = Modifier,
+    server_executable_path: String? = null
+) {
     val player: PlayerState = LocalPlayerState.current
 
     var show_message: Boolean by remember { mutableStateOf(false) }
@@ -138,7 +143,8 @@ fun LoadingSplashView(splash_mode: SplashMode?, loading_message: String?, modifi
                             .thenIf(!show_message) {
                                 blockGestures()
                             }
-                            .graphicsLayer { alpha = extra_content_alpha }
+                            .graphicsLayer { alpha = extra_content_alpha },
+                        server_executable_path = server_executable_path
                     )
                 }
             }

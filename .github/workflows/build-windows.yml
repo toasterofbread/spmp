@@ -29,4 +29,4 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: spmp-windows-release.zip
-        path: desktopApp/build/compose/binaries/main-release/exe/*
+        path: desktopApp/build/compose/binaries/main-release/exe/*.exe

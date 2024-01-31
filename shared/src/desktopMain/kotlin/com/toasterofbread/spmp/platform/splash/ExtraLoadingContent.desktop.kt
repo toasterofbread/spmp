@@ -45,7 +45,7 @@ import kotlinx.coroutines.withContext
 private const val LOCAL_SERVER_AUTOSTART_DELAY_MS: Long = 100
 
 @Composable
-actual fun SplashExtraLoadingContent(modifier: Modifier) {
+actual fun SplashExtraLoadingContent(modifier: Modifier, server_executable_path: String?) {
     val player: PlayerState = LocalPlayerState.current
     val button_colours: ButtonColors = ButtonDefaults.buttonColors(
         containerColor = player.theme.accent,
@@ -57,7 +57,7 @@ actual fun SplashExtraLoadingContent(modifier: Modifier) {
     var local_server_error: Throwable? by remember { mutableStateOf(null) }
     var local_server_process: Pair<String, Process>? by remember { mutableStateOf(null) }
 
-    fun startServer(stop_if_running: Boolean) {
+    fun startServer(stop_if_running: Boolean, automatic: Boolean) {
         local_server_process?.also { process ->
             if (stop_if_running) {
                 local_server_process = null
@@ -67,11 +67,18 @@ actual fun SplashExtraLoadingContent(modifier: Modifier) {
         }
 
         try {
-            local_server_process = startLocalServer(DesktopSettings.Key.SERVER_PORT.get()) {
+            local_server_process = startLocalServer(
+                DesktopSettings.Key.SERVER_PORT.get(),
+                server_executable_path
+            ) {
                 if (local_server_process != null) {
                     local_server_process = null
                     local_server_error = RuntimeException("Local server failed ($it)")
                 }
+            }
+
+            if (!automatic && local_server_process == null) {
+                local_server_error = RuntimeException(getString("desktop_splash_local_server_command_not_set"))
             }
         }
         catch (e: Throwable) {
@@ -83,7 +90,7 @@ actual fun SplashExtraLoadingContent(modifier: Modifier) {
     LaunchedEffect(Unit) {
         if (DesktopSettings.Key.SERVER_LOCAL_START_AUTOMATICALLY.get()) {
             delay(LOCAL_SERVER_AUTOSTART_DELAY_MS)
-            startServer(stop_if_running = false)
+            startServer(stop_if_running = false, automatic = true)
             delay(500)
         }
         show = true
@@ -96,7 +103,7 @@ actual fun SplashExtraLoadingContent(modifier: Modifier) {
     Column(modifier.animateContentSize().fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Button(
-                { startServer(stop_if_running = true) },
+                { startServer(stop_if_running = true, automatic = false) },
                 colors = button_colours
             ) {
                 Crossfade(local_server_process) { process ->
@@ -208,10 +215,14 @@ actual fun SplashExtraLoadingContent(modifier: Modifier) {
 
 @OptIn(DelicateCoroutinesApi::class)
 @Suppress("NewApi")
-private fun startLocalServer(port: Int, onExit: (Int) -> Unit): Pair<String, Process>? {
+private fun startLocalServer(
+    port: Int,
+    server_executable_path: String?,
+    onExit: (Int) -> Unit
+): Pair<String, Process>? {
     var command: String = DesktopSettings.Key.SERVER_LOCAL_COMMAND.get<String>().trim()
     if (command.isEmpty()) {
-        return null
+        command = server_executable_path ?: return null
     }
 
     val args: String = "--port $port"

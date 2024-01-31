@@ -19,10 +19,29 @@ import kotlinx.coroutines.*
 import org.jetbrains.skiko.OS
 import org.jetbrains.skiko.hostOs
 import java.awt.Toolkit
+import java.io.File
 import java.lang.reflect.Field
 
 @OptIn(ExperimentalComposeUiApi::class)
-fun main() {
+fun main(args: Array<String>) {
+    var server_executable_path: String? = null
+    val server_executable_filename: String? = getServerExecutableFilename()
+
+    if (server_executable_filename != null) {
+        for (arg in args) {
+            if (!arg.startsWith("--bin-dir=")) {
+                continue
+            }
+
+            val server_executable = File(arg.drop(10).trim().trim('\'', '"')).resolve(server_executable_filename)
+            if (server_executable.isFile) {
+                server_executable_path = server_executable.absolutePath
+            }
+
+            break
+        }
+    }
+
     val coroutine_scope: CoroutineScope = CoroutineScope(Job())
 
     val context: AppContext = AppContext(SpMp.app_name, coroutine_scope)
@@ -123,7 +142,8 @@ fun main() {
                     if (event.button?.index == 5) {
                         onWindowBackPressed()
                     }
-                }
+                },
+                server_executable_path = server_executable_path
             )
         }
     }
@@ -133,3 +153,10 @@ fun main() {
     SpMp.onStop()
     SpMp.release()
 }
+
+fun getServerExecutableFilename(): String? =
+    when (hostOs) {
+        OS.Linux -> "spms.kexe"
+        OS.Windows -> "spms.exe"
+        else -> null
+    }

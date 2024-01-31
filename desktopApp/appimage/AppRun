@@ -13,4 +13,4 @@ EXEC=$(grep -e '^Exec=.*' "${HERE}"/*.desktop | head -n 1 | cut -d "=" -f 2 | cu
 cd $HERE
 
 echo "Running SpMp..."
-exec "${EXEC}" "--bin-dir=${HERE}/bin" "$@"
+exec "${EXEC}" "$@"

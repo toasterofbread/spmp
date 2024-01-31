@@ -64,8 +64,7 @@ enum class SplashMode {
 fun LoadingSplashView(
     splash_mode: SplashMode?,
     loading_message: String?,
-    modifier: Modifier = Modifier,
-    server_executable_path: String? = null
+    modifier: Modifier = Modifier
 ) {
     val player: PlayerState = LocalPlayerState.current
 
@@ -143,8 +142,7 @@ fun LoadingSplashView(
                             .thenIf(!show_message) {
                                 blockGestures()
                             }
-                            .graphicsLayer { alpha = extra_content_alpha },
-                        server_executable_path = server_executable_path
+                            .graphicsLayer { alpha = extra_content_alpha }
                     )
                 }
             }

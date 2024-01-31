@@ -41,11 +41,14 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.skiko.OS
+import org.jetbrains.skiko.hostOs
+import java.io.File
 
 private const val LOCAL_SERVER_AUTOSTART_DELAY_MS: Long = 100
 
 @Composable
-actual fun SplashExtraLoadingContent(modifier: Modifier, server_executable_path: String?) {
+actual fun SplashExtraLoadingContent(modifier: Modifier) {
     val player: PlayerState = LocalPlayerState.current
     val button_colours: ButtonColors = ButtonDefaults.buttonColors(
         containerColor = player.theme.accent,
@@ -67,10 +70,7 @@ actual fun SplashExtraLoadingContent(modifier: Modifier, server_executable_path:
         }
 
         try {
-            local_server_process = startLocalServer(
-                DesktopSettings.Key.SERVER_PORT.get(),
-                server_executable_path
-            ) {
+            local_server_process = startLocalServer(DesktopSettings.Key.SERVER_PORT.get()) {
                 if (local_server_process != null) {
                     local_server_process = null
                     local_server_error = RuntimeException("Local server failed ($it)")
@@ -217,12 +217,25 @@ actual fun SplashExtraLoadingContent(modifier: Modifier, server_executable_path:
 @Suppress("NewApi")
 private fun startLocalServer(
     port: Int,
-    server_executable_path: String?,
     onExit: (Int) -> Unit
 ): Pair<String, Process>? {
     var command: String = DesktopSettings.Key.SERVER_LOCAL_COMMAND.get<String>().trim()
     if (command.isEmpty()) {
-        command = server_executable_path ?: return null
+        val packaged_server_filename: String = getServerExecutableFilename() ?: return null
+        val packaged_server: File =
+            File(System.getProperty("compose.application.resources.dir"))
+                .resolve(packaged_server_filename)
+
+        if (packaged_server.isFile) {
+            command =
+                when (hostOs) {
+                    OS.Windows -> "\"" + packaged_server.absolutePath + "\""
+                    else -> packaged_server.absolutePath.replace(" ", "\\ ")
+                }
+        }
+        else {
+            return null
+        }
     }
 
     val args: String = "--port $port"
@@ -254,3 +267,10 @@ private fun startLocalServer(
 
     return Pair(command, process)
 }
+
+fun getServerExecutableFilename(): String? =
+    when (hostOs) {
+        OS.Linux -> "spms.kexe"
+        OS.Windows -> "spms.exe"
+        else -> null
+    }

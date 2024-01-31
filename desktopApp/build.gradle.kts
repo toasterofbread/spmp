@@ -11,6 +11,10 @@ import java.nio.file.Files.setPosixFilePermissions
 import java.nio.file.attribute.PosixFilePermission
 import java.util.*
 import kotlin.NoSuchElementException
+import org.gradle.api.Project
+import java.io.File
+import java.io.FileOutputStream
+import java.util.zip.ZipFile
 
 plugins {
     kotlin("multiplatform")
@@ -73,6 +77,8 @@ compose.desktop {
                 "jdk.unsupported"
             )
 
+            appResourcesRootDir.set(project.file("build/package"))
+
             packageName = getString("app_name")
             packageVersion = getString("version_string")
             version = getString("version_string")
@@ -108,6 +114,12 @@ compose.desktop {
 abstract class PackageTask: DefaultTask() {
     companion object {
         const val FLAG_PACKAGE_SERVER: String = "packageServer"
+
+        fun getResourcesDir(project: Project, os: OS) =
+            when (os) {
+                OS.LINUX -> project.file("build/package/linux")
+                OS.WINDOWS -> project.file("build/package/windows")
+            }
     }
 
     fun File.addExecutePermission() {
@@ -134,12 +146,53 @@ abstract class PackageTask: DefaultTask() {
 
         project.logger.lifecycle("Downloading server binary at $download_url")
 
-        val destination: File = dst_dir.resolve(getPlatformServerFilename(target_os))
+        val server_executable_filename: String = getPlatformServerFilename(target_os)
+
+        val destination: File = dst_dir.resolve(download_url.split('/').last())
         FileUtils.copyURLToFile(URL(download_url), destination)
 
-        if (target_os == OS.LINUX) {
-            project.logger.lifecycle("Adding execute permission to server binary at ${destination.absolutePath}")
-            destination.addExecutePermission()
+        if (destination.name.endsWith(".zip")) {
+            extractZip(destination, destination.parentFile)
+            destination.delete()
+        }
+
+        val target_extension: String = "." + server_executable_filename.split('.').last()
+
+        for (file in destination.parentFile.listFiles().orEmpty()) {
+            if (file.name.endsWith(target_extension)) {
+                val target_file: File = destination.parentFile.resolve(server_executable_filename)
+                file.renameTo(target_file)
+
+                if (target_os == OS.LINUX) {
+                    project.logger.lifecycle("Adding execute permission to server binary at ${target_file.absolutePath}")
+                    target_file.addExecutePermission()
+                }
+
+                break
+            }
+        }
+    }
+
+    fun extractZip(file: File, output_dir: File) {
+        ZipFile(file).use { zip ->
+            val entries = zip.entries()
+            while (entries.hasMoreElements()) {
+                val entry = entries.nextElement()
+                val entry_destination = File(output_dir, entry.name)
+
+                if (entry.isDirectory) {
+                    entry_destination.mkdirs()
+                    continue
+                }
+
+                entry_destination.parentFile.mkdirs()
+
+                zip.getInputStream(entry).use { input ->
+                    FileOutputStream(entry_destination).use { output ->
+                        input.copyTo(output)
+                    }
+                }
+            }
         }
     }
 }
@@ -195,7 +248,7 @@ abstract class ActuallyPackageAppImageTask: PackageTask() {
         val icon_dst: File = icon_dst_file.get().asFile
         icon_src.copyTo(icon_dst, overwrite = true)
 
-        val server_dst_dir: File = appimage_dst.resolve("bin")
+        val server_dst_dir: File = getResourcesDir(project, OS.LINUX)
         if (project.hasProperty(FLAG_PACKAGE_SERVER)) {
             downloadPlatformServer(OS.LINUX, server_props_file.get().asFile, server_dst_dir)
         }
@@ -224,7 +277,7 @@ abstract class ActuallyPackageAppImageTask: PackageTask() {
     }
 }
 
-afterEvaluate {
+fun registerAppImagePackageTasks() {
     val package_tasks = listOf(
         tasks.getByName("packageAppImage") to "finishPackagingAppImage",
         tasks.getByName("packageReleaseAppImage") to "finishPackagingReleaseAppImage"
@@ -257,4 +310,24 @@ afterEvaluate {
             project.ext.set(PackageTask.FLAG_PACKAGE_SERVER, 1)
         }
     }
+}
+
+fun registerExePackageTasks() {
+    tasks.register<PackageTask>("packageReleaseExeWithServer") {
+        finalizedBy("packageReleaseExe")
+        group = tasks.getByName("packageReleaseExe").group
+
+        doFirst {
+            downloadPlatformServer(
+                OS.WINDOWS,
+                server_properties_file,
+                PackageTask.getResourcesDir(project, OS.WINDOWS)
+            )
+        }
+    }
+}
+
+afterEvaluate {
+    registerAppImagePackageTasks()
+    registerExePackageTasks()
 }

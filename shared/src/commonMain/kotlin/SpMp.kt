@@ -83,8 +83,7 @@ object SpMp {
     @Composable
     fun App(
         modifier: Modifier = Modifier,
-        open_uri: String? = null,
-        server_executable_path: String? = null
+        open_uri: String? = null
     ) {
         context.theme.Update()
 
@@ -127,8 +126,7 @@ object SpMp {
                                 .fillMaxSize()
                                 .thenIf(splash_mode != null) {
                                     pointerInput(Unit) {}
-                                },
-                            server_executable_path = server_executable_path
+                                }
                         )
 
                         if (splash_mode == null) {

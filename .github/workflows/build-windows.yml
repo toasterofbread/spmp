@@ -23,7 +23,7 @@ jobs:
         distribution: 'temurin'
 
     - name: Build exe
-      run: .\gradlew.bat desktopApp:packageReleaseExe
+      run: .\gradlew.bat desktopApp:packageReleaseExeWithServer
 
     - name: Upload exe artifact
       uses: actions/upload-artifact@v3

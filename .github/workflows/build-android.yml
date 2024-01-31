@@ -33,11 +33,11 @@ jobs:
     - name: Upload universal debug APK artifact
       uses: actions/upload-artifact@v3
       with:
-        name: androidApp-debug.apk
+        name: spmp-android-debug.zip
         path: androidApp/build/outputs/apk/debug/androidApp-debug.apk
 
     - name: Upload universal release APK artifact
       uses: actions/upload-artifact@v3
       with:
-        name: androidApp-release.apk
+        name: spmp-android-release.zip
         path: androidApp/build/outputs/apk/release/androidApp-release.apk

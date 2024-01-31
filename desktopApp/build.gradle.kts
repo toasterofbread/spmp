@@ -12,6 +12,10 @@ plugins {
     id("org.jetbrains.compose")
 }
 
+enum class OS {
+    LINUX, WINDOWS;
+}
+
 val strings_file: File = rootProject.file("shared/src/commonMain/resources/assets/values/strings.xml")
 
 fun getString(key: String): String {
@@ -90,7 +94,38 @@ compose.desktop {
     }
 }
 
-abstract class ActuallyPackageAppImage: DefaultTask() {
+abstract class DownloadPlatformServerTask: DefaultTask() {
+    @get:Input
+    abstract val target_os: Property<OS>
+
+    @get:InputFile
+    val server_properties_file: RegularFileProperty = project.objects.fileProperty()
+    
+    @get:OutputDirectory
+    val dst_dir: DirectoryProperty = project.objects.directoryProperty()
+
+    @TaskAction
+    fun downloadPlatformServer() {
+        val properties: Properties = Properties()
+        properties.load(FileInputStream(server_properties_file.get().asFile))
+
+        val download_url: String =
+            when (target_os.get()) {
+                OS.LINUX -> properties["SPMS_TARGET_URL_LINUX"]
+                OS.WINDOWS ->properties["SPMS_TARGET_URL_WINDOWS"]
+            }
+
+        val filename: String = 
+            when (target_os.get()) {
+                OS.LINUX -> "spms.kexe"
+                OS.WINDOWS -> "spms.exe"
+            }
+
+        val destination: File = dst_dir.get().asFile.resolve(filename)
+        FileUtils.copyURLToFile(URL(download_url), destination)
+}
+
+abstract class ActuallyPackageAppImageTask: DefaultTask() {
     @get:Input
     abstract val appimage_arch: Property<String>
 
@@ -154,7 +189,7 @@ abstract class ActuallyPackageAppImage: DefaultTask() {
     }
 }
 
-tasks.register<ActuallyPackageAppImage>("actuallyPackageAppImage") {
+tasks.register<ActuallyPackageAppImageTask>("actuallyPackageAppImage") {
     val package_task: Task = getTasksByName("packageReleaseAppImage", false).first()
     dependsOn(package_task)
     group = package_task.group

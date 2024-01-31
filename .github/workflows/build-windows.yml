@@ -28,5 +28,5 @@ jobs:
     - name: Upload exe artifact
       uses: actions/upload-artifact@v3
       with:
-        name: desktopApp-release.exe
-        path: desktopApp/build/compose/binaries/main-release/exe/*.exe
+        name: spmp-windows-release.zip
+        path: desktopApp/build/compose/binaries/main-release/exe/*

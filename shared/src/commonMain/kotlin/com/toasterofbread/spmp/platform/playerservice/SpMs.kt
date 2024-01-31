@@ -95,3 +95,5 @@ enum class SpMsClientType {
 }
 
 expect fun getSpMsMachineId(): String
+
+expect fun getServerExecutableFilename(): String?

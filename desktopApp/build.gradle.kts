@@ -115,7 +115,7 @@ abstract class PackageTask: DefaultTask() {
     companion object {
         const val FLAG_PACKAGE_SERVER: String = "packageServer"
 
-        fun getResourcesDir(project: Project, os: OS) =
+        fun getResourcesDir(project: Project, os: OS): File =
             when (os) {
                 OS.LINUX -> project.file("build/package/linux")
                 OS.WINDOWS -> project.file("build/package/windows")
@@ -248,7 +248,7 @@ abstract class ActuallyPackageAppImageTask: PackageTask() {
         val icon_dst: File = icon_dst_file.get().asFile
         icon_src.copyTo(icon_dst, overwrite = true)
 
-        val server_dst_dir: File = getResourcesDir(project, OS.LINUX)
+        val server_dst_dir: File = appimage_dst.resolve("bin")
         if (project.hasProperty(FLAG_PACKAGE_SERVER)) {
             downloadPlatformServer(OS.LINUX, server_props_file.get().asFile, server_dst_dir)
         }

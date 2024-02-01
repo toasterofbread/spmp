@@ -2,16 +2,30 @@
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import org.apache.commons.io.FileUtils
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import java.io.FileInputStream
+import java.net.URL
 import java.nio.file.Files.getPosixFilePermissions
 import java.nio.file.Files.setPosixFilePermissions
 import java.nio.file.attribute.PosixFilePermission
+import java.util.*
+import kotlin.NoSuchElementException
+import org.gradle.api.Project
+import java.io.File
+import java.io.FileOutputStream
+import java.util.zip.ZipFile
 
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.compose")
 }
 
+enum class OS {
+    LINUX, WINDOWS;
+}
+
+val server_properties_file: File = rootProject.file("server.properties")
 val strings_file: File = rootProject.file("shared/src/commonMain/resources/assets/values/strings.xml")
 
 fun getString(key: String): String {
@@ -58,13 +72,19 @@ compose.desktop {
         mainClass = "MainKt"
 
         nativeDistributions {
+            modules(
+                "java.sql",
+                "jdk.unsupported"
+            )
+
+            appResourcesRootDir.set(project.file("build/package"))
+
             packageName = getString("app_name")
-            version = getString("version_string")
             packageVersion = getString("version_string")
+            version = getString("version_string")
             licenseFile.set(rootProject.file("LICENSE"))
 
             targetFormats(TargetFormat.AppImage, TargetFormat.Deb, TargetFormat.Exe)
-            includeAllModules = true
 
             linux {
                 iconFile.set(rootProject.file("metadata/en-US/images/icon.png"))
@@ -78,6 +98,7 @@ compose.desktop {
             windows {
                 iconFile.set(rootProject.file("metadata/en-US/images/icon.ico"))
                 shortcut = true
+                dirChooser = true
             }
         }
 
@@ -90,7 +111,97 @@ compose.desktop {
     }
 }
 
-abstract class ActuallyPackageAppImage: DefaultTask() {
+abstract class PackageTask: DefaultTask() {
+    companion object {
+        const val FLAG_PACKAGE_SERVER: String = "packageServer"
+
+        fun getResourcesDir(project: Project, os: OS): File =
+            when (os) {
+                OS.LINUX -> project.file("build/package/linux")
+                OS.WINDOWS -> project.file("build/package/windows")
+            }
+    }
+
+    fun File.addExecutePermission() {
+        val permissions: MutableSet<PosixFilePermission> = getPosixFilePermissions(toPath())
+        permissions.add(PosixFilePermission.OWNER_EXECUTE)
+        setPosixFilePermissions(toPath(), permissions)
+    }
+
+    fun getPlatformServerFilename(target_os: OS): String =
+        when (target_os) {
+            OS.LINUX -> "spms.kexe"
+            OS.WINDOWS -> "spms.exe"
+        }
+
+    fun downloadPlatformServer(target_os: OS, server_properties_file: File, dst_dir: File) {
+        val properties: Properties = Properties()
+        properties.load(FileInputStream(server_properties_file))
+
+        val download_url: String =
+            when (target_os) {
+                OS.LINUX -> properties["SPMS_TARGET_URL_LINUX"]!!.toString()
+                OS.WINDOWS -> properties["SPMS_TARGET_URL_WINDOWS"]!!.toString()
+            }
+
+        project.logger.lifecycle("Downloading server binary at $download_url")
+
+        val server_executable_filename: String = getPlatformServerFilename(target_os)
+
+        val destination: File = dst_dir.resolve(download_url.split('/').last())
+        FileUtils.copyURLToFile(URL(download_url), destination)
+
+        if (destination.name.endsWith(".zip")) {
+            extractZip(destination, destination.parentFile)
+            destination.delete()
+        }
+
+        val target_extension: String = "." + server_executable_filename.split('.').last()
+
+        for (file in destination.parentFile.listFiles().orEmpty()) {
+            if (file.name.endsWith(target_extension)) {
+                val target_file: File = destination.parentFile.resolve(server_executable_filename)
+                file.renameTo(target_file)
+
+                if (target_os == OS.LINUX) {
+                    project.logger.lifecycle("Adding execute permission to server binary at ${target_file.absolutePath}")
+                    target_file.addExecutePermission()
+                }
+
+                break
+            }
+        }
+    }
+
+    fun extractZip(file: File, output_dir: File) {
+        ZipFile(file).use { zip ->
+            val entries = zip.entries()
+            while (entries.hasMoreElements()) {
+                val entry = entries.nextElement()
+                val entry_destination = File(output_dir, entry.name)
+
+                if (entry.isDirectory) {
+                    entry_destination.mkdirs()
+                    continue
+                }
+
+                entry_destination.parentFile.mkdirs()
+
+                zip.getInputStream(entry).use { input ->
+                    FileOutputStream(entry_destination).use { output ->
+                        input.copyTo(output)
+                    }
+                }
+            }
+        }
+    }
+}
+
+abstract class ActuallyPackageAppImageTask: PackageTask() {
+    @Optional
+    @get:InputFile
+    val server_props_file: RegularFileProperty = project.objects.fileProperty()
+
     @get:Input
     abstract val appimage_arch: Property<String>
 
@@ -109,6 +220,10 @@ abstract class ActuallyPackageAppImage: DefaultTask() {
     @get:OutputFile
     val icon_dst_file: RegularFileProperty = project.objects.fileProperty()
 
+    init {
+        outputs.upToDateWhen { false }
+    }
+
     @TaskAction
     fun prepareAppImageFiles() {
         val appimage_src: File = appimage_src_dir.get().asFile
@@ -122,11 +237,8 @@ abstract class ActuallyPackageAppImage: DefaultTask() {
 
         val AppRun: File = appimage_dst.resolve("AppRun")
         if (AppRun.isFile) {
-            project.logger.lifecycle("Adding 'execute' permission to AppRun file at ${AppRun.relativeTo(project.rootDir)}")
-
-            val permissions: MutableSet<PosixFilePermission> = getPosixFilePermissions(AppRun.toPath())
-            permissions.add(PosixFilePermission.OWNER_EXECUTE)
-            setPosixFilePermissions(AppRun.toPath(), permissions)
+            project.logger.lifecycle("Adding execute permission to AppRun file at ${AppRun.relativeTo(project.rootDir)}")
+            AppRun.addExecutePermission()
         }
 
         val icon_src: File = icon_src_file.get().asFile
@@ -135,6 +247,17 @@ abstract class ActuallyPackageAppImage: DefaultTask() {
         project.logger.lifecycle("Copying icon at ${icon_src.relativeTo(project.rootDir)} into AppImage files")
         val icon_dst: File = icon_dst_file.get().asFile
         icon_src.copyTo(icon_dst, overwrite = true)
+
+        val server_dst_dir: File = appimage_dst.resolve("bin")
+        if (project.hasProperty(FLAG_PACKAGE_SERVER)) {
+            downloadPlatformServer(OS.LINUX, server_props_file.get().asFile, server_dst_dir)
+        }
+        else {
+            val server_file: File = server_dst_dir.resolve(getPlatformServerFilename(OS.LINUX))
+            if (server_file.isFile) {
+                server_file.delete()
+            }
+        }
 
         val arch: String = appimage_arch.get()
         val appimage_output: File = appimage_output_file.get().asFile
@@ -154,17 +277,57 @@ abstract class ActuallyPackageAppImage: DefaultTask() {
     }
 }
 
-tasks.register<ActuallyPackageAppImage>("actuallyPackageAppImage") {
-    val package_task: Task = getTasksByName("packageReleaseAppImage", false).first()
-    dependsOn(package_task)
-    group = package_task.group
+fun registerAppImagePackageTasks() {
+    val package_tasks = listOf(
+        tasks.getByName("packageAppImage") to "finishPackagingAppImage",
+        tasks.getByName("packageReleaseAppImage") to "finishPackagingReleaseAppImage"
+    )
 
-    appimage_arch = "x86_64"
-    appimage_output_file = buildDir.resolve(rootProject.name.lowercase() + "-" + getString("version_string") + ".appimage")
+    for ((task, subtask_name) in package_tasks) {
+        tasks.register<ActuallyPackageAppImageTask>(subtask_name) {
+            val build_dir: File = task.outputs.files.toList().single()
 
-    appimage_src_dir = projectDir.resolve("appimage")
-    appimage_dst_dir = package_task.outputs.files.toList().single().resolve(rootProject.name)
+            appimage_arch = "x86_64"
+            appimage_output_file = build_dir.parentFile.resolve("appimage").resolve(rootProject.name.lowercase() + "-" + getString("version_string") + ".appimage")
 
-    icon_src_file = rootDir.resolve("metadata/en-US/images/icon.png")
-    icon_dst_file = appimage_dst_dir.get().asFile.resolve("${rootProject.name}.png")
+            appimage_src_dir = projectDir.resolve("appimage")
+            appimage_dst_dir = build_dir.resolve(rootProject.name)
+
+            icon_src_file = rootDir.resolve("metadata/en-US/images/icon.png")
+            icon_dst_file = appimage_dst_dir.get().asFile.resolve("${rootProject.name}.png")
+
+            server_props_file = server_properties_file
+        }
+
+        task.finalizedBy(subtask_name)
+    }
+
+    tasks.register("packageReleaseAppImageWithServer") {
+        finalizedBy("packageReleaseAppImage")
+        group = tasks.getByName("packageReleaseAppImage").group
+
+        doFirst {
+            project.ext.set(PackageTask.FLAG_PACKAGE_SERVER, 1)
+        }
+    }
+}
+
+fun registerExePackageTasks() {
+    tasks.register<PackageTask>("packageReleaseExeWithServer") {
+        finalizedBy("packageReleaseExe")
+        group = tasks.getByName("packageReleaseExe").group
+
+        doFirst {
+            downloadPlatformServer(
+                OS.WINDOWS,
+                server_properties_file,
+                PackageTask.getResourcesDir(project, OS.WINDOWS)
+            )
+        }
+    }
+}
+
+afterEvaluate {
+    registerAppImagePackageTasks()
+    registerExePackageTasks()
 }

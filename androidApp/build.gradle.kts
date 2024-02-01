@@ -164,3 +164,38 @@ dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3")
     implementation("androidx.core:core-splashscreen:1.0.0")
 }
+
+afterEvaluate {
+    val package_tasks = listOf(
+        tasks.getByName("packageRelease") to true,
+        tasks.getByName("packageDebug") to false
+    )
+
+    for ((task, is_release) in package_tasks) {
+        val subtask_name: String =
+            if (is_release) "finishPackagingRelease"
+            else "finishPackagingDebug"
+        val apk_name: String =
+            rootProject.name.lowercase() + "-" + getString("version_string") + (
+                if (is_release) ""
+                else "-debug"
+            ) + ".apk"
+
+        tasks.register(subtask_name) {
+            outputs.upToDateWhen { false }
+
+            doLast {
+                val build_dir: File = task.outputs.files.toList().last()
+                for (file in build_dir.listFiles().orEmpty()) {
+                    if (!file.name.endsWith(".apk")) {
+                        continue
+                    }
+
+                    file.renameTo(build_dir.resolve(apk_name))
+                }
+            }
+        }
+
+        task.finalizedBy(subtask_name)
+    }
+}

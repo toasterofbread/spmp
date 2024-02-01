@@ -40,8 +40,6 @@ class YTMUserAuthStateEndpoint(
                 .postWithBody()
                 .build()
 
-            println("HEADERS ${request.headers}")
-
             val result: Result<Response> = api.performRequest(request)
             val data: YTAccountMenuResponse = result.parseJsonResponse {
                 return@withContext Result.failure(it)

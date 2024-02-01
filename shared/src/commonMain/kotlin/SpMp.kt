@@ -81,7 +81,11 @@ object SpMp {
     }
 
     @Composable
-    fun App(modifier: Modifier = Modifier, open_uri: String? = null) {
+    fun App(
+        modifier: Modifier = Modifier,
+        open_uri: String? = null,
+        server_executable_path: String? = null
+    ) {
         context.theme.Update()
 
         context.theme.ApplicationTheme(context, getFontFamily(context) ?: FontFamily.Default) {
@@ -123,7 +127,8 @@ object SpMp {
                                 .fillMaxSize()
                                 .thenIf(splash_mode != null) {
                                     pointerInput(Unit) {}
-                                }
+                                },
+                            server_executable_path = server_executable_path
                         )
 
                         if (splash_mode == null) {

@@ -230,6 +230,7 @@
     <string name="desktop_splash_button_start_server">ローカルサーバーを実行</string>
     <string name="desktop_splash_button_stop_process">プロセスを停止</string>
     <string name="desktop_splash_process_running_with_command_$x">このコマンドでプロセスが実行しています:&#xA;$x</string>
+    <string name="desktop_splash_local_server_command_not_set">ローカルサーバーの実行コマンドが設定されていません</string>
 
     <string name="throw_error">スロー</string>
     <string name="report_error">報告する</string>

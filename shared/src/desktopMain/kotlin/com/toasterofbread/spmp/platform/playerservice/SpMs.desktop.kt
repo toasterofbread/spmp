@@ -30,3 +30,10 @@ actual fun getSpMsMachineId(): String {
 
     return new_id
 }
+
+actual fun getServerExecutableFilename(): String? =
+    when (hostOs) {
+        OS.Linux -> "spms.kexe"
+        OS.Windows -> "spms.exe"
+        else -> null
+    }

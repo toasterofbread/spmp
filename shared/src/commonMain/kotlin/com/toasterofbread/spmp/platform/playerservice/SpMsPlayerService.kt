@@ -356,6 +356,9 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
     }
 
     override fun onSongFileAdded(download_status: DownloadStatus) {
+        // TODO
+        return
+
         player_status_coroutine_scope.launch {
             val local_players: List<SpMsClientInfo> = getLocalPlayers().getOrNull() ?: return@launch
             for (player in local_players) {
@@ -369,6 +372,9 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
     }
 
     override fun onSongFileDeleted(song: Song) {
+        // TODO
+        return
+
         player_status_coroutine_scope.launch {
             val local_players: List<SpMsClientInfo> = getLocalPlayers().getOrNull() ?: return@launch
             for (player in local_players) {
@@ -402,6 +408,9 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
         )
 
     override suspend fun sendStatusToPlayers(ytm_auth: Pair<Artist?, Headers>?, local_files: Map<String, String>): Result<Unit> = withContext(Dispatchers.IO) {
+        // TODO
+        return@withContext Result.success(Unit)
+
         val local_players: List<SpMsClientInfo> = getLocalPlayers().fold(
             { it },
             { return@withContext Result.failure(it) }

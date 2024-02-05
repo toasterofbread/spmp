@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp
 
 import SpMp
+import ProgramArguments
 import SpMp.isDebugBuild
 import android.content.ComponentCallbacks2
 import android.content.Intent
@@ -92,7 +93,7 @@ class MainActivity : ComponentActivity() {
             }
 
             if (launched) {
-                SpMp.App(open_uri = open_uri?.toString())
+                SpMp.App(ProgramArguments(), open_uri = open_uri?.toString())
             }
         }
     }

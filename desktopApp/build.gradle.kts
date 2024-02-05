@@ -74,7 +74,8 @@ compose.desktop {
         nativeDistributions {
             modules(
                 "java.sql",
-                "jdk.unsupported"
+                "jdk.unsupported",
+                "java.management"
             )
 
             appResourcesRootDir.set(project.file("build/package"))

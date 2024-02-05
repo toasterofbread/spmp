@@ -75,19 +75,19 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
             discord_rpc?.apply {
                 if (status_song == null) {
                     close()
-                    SpMp.Log.info("Discord status cancelled: No song")
+//                    SpMp.Log.info("Discord status cancelled: No song")
                     return@apply
                 }
 
                 if (song_title == null) {
                     close()
-                    SpMp.Log.info("Discord status cancelled: Song $status_song has no title")
+//                    SpMp.Log.info("Discord status cancelled: Song $status_song has no title")
                     return@apply
                 }
 
                 if (!shouldUpdateStatus()) {
                     close()
-                    SpMp.Log.info("discord_rpc.shouldUpdateStatus() returned false")
+//                    SpMp.Log.info("discord_rpc.shouldUpdateStatus() returned false")
                     return@apply
                 }
 
@@ -99,7 +99,7 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
                 val large_image: String?
                 val small_image: String?
 
-                SpMp.Log.info("Loading Discord status images for $status_song ($song_title)...")
+//                SpMp.Log.info("Loading Discord status images for $status_song ($song_title)...")
 
                 try {
                     val artist: ArtistRef? = status_song.Artist.get(context.database)
@@ -123,7 +123,7 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
                     }
                 }
 
-                SpMp.Log.info("Setting Discord status for song $status_song ($song_title)...")
+//                SpMp.Log.info("Setting Discord status for song $status_song ($song_title)...")
 
                 setActivity(
                     name = name,
@@ -139,7 +139,7 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
                         else null
                 )
 
-                SpMp.Log.info("Discord status set for song $status_song ($song_title)")
+//                SpMp.Log.info("Discord status set for song $status_song ($song_title)")
             }
         }
     }

@@ -13,43 +13,21 @@ import com.toasterofbread.composekit.platform.composable.onWindowBackPressed
 import com.toasterofbread.spmp.model.settings.category.DesktopSettings
 import com.toasterofbread.spmp.model.settings.category.SystemSettings
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.playerservice.getServerExecutableFilename
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.getTextFieldFocusState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.isTextFieldFocused
 import kotlinx.coroutines.*
 import org.jetbrains.skiko.OS
 import org.jetbrains.skiko.hostOs
 import java.awt.Toolkit
-import java.io.File
 import java.lang.reflect.Field
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main(args: Array<String>) {
-    var server_executable_path: String? = null
-    val server_executable_filename: String? = getServerExecutableFilename()
-
-    if (server_executable_filename != null) {
-        for (arg in args) {
-            if (!arg.startsWith("--bin-dir=")) {
-                continue
-            }
-
-            val server_executable: File =
-                File(arg.drop(10).trim().trim('\'', '"'))
-                    .resolve(server_executable_filename)
-            if (server_executable.isFile) {
-                server_executable_path = server_executable.absolutePath
-            }
-
-            break
-        }
-    }
-
+    val arguments: ProgramArguments = ProgramArguments.parse(args) ?: return
     val coroutine_scope: CoroutineScope = CoroutineScope(Job())
-
     val context: AppContext = AppContext(SpMp.app_name, coroutine_scope)
-    SpMp.init(context)
 
+    SpMp.init(context)
     coroutine_scope.launch {
         context.init()
     }
@@ -140,13 +118,13 @@ fun main(args: Array<String>) {
             }
 
             SpMp.App(
+                arguments,
                 Modifier.onPointerEvent(PointerEventType.Press) { event ->
                     // Mouse back click
                     if (event.button?.index == 5) {
                         onWindowBackPressed()
                     }
-                },
-                server_executable_path = server_executable_path
+                }
             )
         }
     }

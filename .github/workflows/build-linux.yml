@@ -35,7 +35,7 @@ jobs:
       run: chmod +x /usr/local/bin/appimagetool
 
     - name: Build AppImage
-      run: ./gradlew desktopApp:packageReleaseAppImage#WithServer
+      run: ./gradlew desktopApp:packageReleaseAppImage
 
     - name: Upload AppImage artifact
       uses: actions/upload-artifact@v3

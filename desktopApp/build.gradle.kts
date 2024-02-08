@@ -74,7 +74,8 @@ compose.desktop {
         nativeDistributions {
             modules(
                 "java.sql",
-                "jdk.unsupported"
+                "jdk.unsupported",
+                "java.management"
             )
 
             appResourcesRootDir.set(project.file("build/package"))
@@ -138,11 +139,15 @@ abstract class PackageTask: DefaultTask() {
         val properties: Properties = Properties()
         properties.load(FileInputStream(server_properties_file))
 
-        val download_url: String =
+        val download_url: String? =
             when (target_os) {
-                OS.LINUX -> properties["SPMS_TARGET_URL_LINUX"]!!.toString()
-                OS.WINDOWS -> properties["SPMS_TARGET_URL_WINDOWS"]!!.toString()
+                OS.LINUX -> properties["SPMS_TARGET_URL_LINUX"]?.toString()
+                OS.WINDOWS -> properties["SPMS_TARGET_URL_WINDOWS"]?.toString()
             }
+
+        if (download_url == null) {
+            throw RuntimeException("No SpMs target URL for $target_os in ${server_properties_file.absolutePath}")
+        }
 
         project.logger.lifecycle("Downloading server binary at $download_url")
 

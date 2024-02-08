@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem.library
 
+import SpMp
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -113,7 +114,7 @@ object MediaItemLibrary {
 
         SpMp._player_state?.interactService { service: Any ->
             if (service is ClientServerPlayerService) {
-                service.onSongFileAdded(download_status)
+                service.onSongFilesAdded(listOf(download_status))
             }
         }
     }
@@ -123,7 +124,7 @@ object MediaItemLibrary {
 
         SpMp._player_state?.interactService { service: Any ->
             if (service is ClientServerPlayerService) {
-                service.onSongFileDeleted(song)
+                service.onSongFilesDeleted(listOf(song))
             }
         }
     }
@@ -170,17 +171,16 @@ private suspend fun getAllLocalSongFiles(context: AppContext, allow_partial: Boo
 
 private class LocalSongSyncLoader: SyncLoader<DownloadStatus>() {
     override suspend fun internalPerformSync(context: AppContext): Map<String, DownloadStatus> {
-        val songs: Map<String, DownloadStatus> =
+        val downloads: List<DownloadStatus> =
             getAllLocalSongFiles(context, true)
-                .associateBy { it.song.id }
 
         SpMp._player_state?.interactService { service: Any ->
             if (service is ClientServerPlayerService) {
-                service.onLocalSongsSynced(songs)
+                service.onLocalSongsSynced(downloads)
             }
         }
 
-        return songs
+        return downloads.associateBy { it.song.id }
     }
 }
 

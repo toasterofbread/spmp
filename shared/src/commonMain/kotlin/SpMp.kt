@@ -10,6 +10,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Density
 import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.platform.PlatformPreferences
+import com.toasterofbread.composekit.platform.PlatformFile
 import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.settings.category.FontMode
@@ -17,6 +18,7 @@ import com.toasterofbread.spmp.model.settings.category.SystemSettings
 import com.toasterofbread.spmp.model.settings.getEnum
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getUiLanguage
+import com.toasterofbread.spmp.platform.playerservice.getServerExecutableFilename
 import com.toasterofbread.spmp.resources.getStringOrNull
 import com.toasterofbread.spmp.resources.initResources
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
@@ -30,6 +32,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import java.io.File
 import java.util.logging.Logger
 
 val LocalPlayerState: ProvidableCompositionLocal<PlayerState> = staticCompositionLocalOf { SpMp.player_state }
@@ -82,9 +85,9 @@ object SpMp {
 
     @Composable
     fun App(
+        arguments: ProgramArguments,
         modifier: Modifier = Modifier,
-        open_uri: String? = null,
-        server_executable_path: String? = null
+        open_uri: String? = null
     ) {
         context.theme.Update()
 
@@ -123,12 +126,12 @@ object SpMp {
                         LoadingSplashView(
                             splash_mode,
                             player_state.service_loading_message,
+                            arguments,
                             Modifier
                                 .fillMaxSize()
                                 .thenIf(splash_mode != null) {
                                     pointerInput(Unit) {}
-                                },
-                            server_executable_path = server_executable_path
+                                }
                         )
 
                         if (splash_mode == null) {

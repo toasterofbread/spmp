@@ -8,6 +8,8 @@ import kotlinx.serialization.json.int
 import kotlinx.serialization.json.long
 
 internal fun SpMsPlayerService.applyPlayerEvent(event: SpMsPlayerEvent) {
+    println("Applying event $event")
+
     when (event.type) {
         SpMsPlayerEvent.Type.ITEM_TRANSITION -> {
             _current_song_index = event.properties["index"]!!.int

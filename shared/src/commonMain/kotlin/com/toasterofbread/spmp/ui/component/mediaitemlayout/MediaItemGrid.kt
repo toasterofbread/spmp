@@ -174,7 +174,7 @@ fun MediaItemGrid(
 
                     val item_count: Int = filtered_items.size
                     val max_rows: Int = ceil(item_count.toFloat() / min_columns).toInt()
-                    return@derivedStateOf current_rows.coerceAtMost(max_rows)
+                    return@derivedStateOf current_rows.coerceAtMost(max_rows).coerceAtLeast(1)
                 } }
 
                 LazyHorizontalGrid(

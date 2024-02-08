@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.platform.splash
 
 import LocalPlayerState
+import ProgramArguments
 import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
@@ -27,8 +28,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.composekit.platform.PlatformContext
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 import com.toasterofbread.composekit.utils.composable.ShapedIconButton
+import com.toasterofbread.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.DesktopSettings
 import com.toasterofbread.spmp.platform.playerservice.getServerExecutableFilename
@@ -48,8 +51,20 @@ import java.io.File
 
 private const val LOCAL_SERVER_AUTOSTART_DELAY_MS: Long = 100
 
+private fun ProgramArguments.getServerExecutable(context: PlatformContext): PlatformFile? {
+    val server_executable_filename: String? = getServerExecutableFilename()
+    val server_executable: PlatformFile? =
+        if (server_executable_filename != null && bin_dir != null)
+            PlatformFile.fromFile(
+                File(bin_dir).resolve(server_executable_filename),
+                context
+            ).takeIf { it.is_file }
+        else null
+    return server_executable
+}
+
 @Composable
-actual fun SplashExtraLoadingContent(modifier: Modifier, server_executable_path: String?) {
+actual fun SplashExtraLoadingContent(modifier: Modifier, arguments: ProgramArguments) {
     val player: PlayerState = LocalPlayerState.current
     val button_colours: ButtonColors = ButtonDefaults.buttonColors(
         containerColor = player.theme.accent,
@@ -62,6 +77,10 @@ actual fun SplashExtraLoadingContent(modifier: Modifier, server_executable_path:
     var local_server_process: Pair<String, Process>? by remember { mutableStateOf(null) }
 
     fun startServer(stop_if_running: Boolean, automatic: Boolean) {
+        if (automatic && arguments.no_auto_server) {
+            return
+        }
+
         local_server_process?.also { process ->
             if (stop_if_running) {
                 local_server_process = null
@@ -73,7 +92,7 @@ actual fun SplashExtraLoadingContent(modifier: Modifier, server_executable_path:
         try {
             local_server_process = startLocalServer(
                 DesktopSettings.Key.SERVER_PORT.get(),
-                server_executable_path
+                arguments.getServerExecutable(player.context)
             ) {
                 if (local_server_process != null) {
                     local_server_process = null
@@ -221,15 +240,15 @@ actual fun SplashExtraLoadingContent(modifier: Modifier, server_executable_path:
 @Suppress("NewApi")
 private fun startLocalServer(
     port: Int,
-    server_executable_path: String?,
+    server_executable: PlatformFile?,
     onExit: (Int) -> Unit,
 ): Pair<String, Process>? {
     var command: String = DesktopSettings.Key.SERVER_LOCAL_COMMAND.get<String>().trim()
     if (command.isEmpty()) {
         val executable_path: String
 
-        if (server_executable_path != null) {
-            executable_path = server_executable_path
+        if (server_executable != null) {
+            executable_path = server_executable.absolute_path
         }
         else {
             val packaged_server_filename: String = getServerExecutableFilename() ?: return null

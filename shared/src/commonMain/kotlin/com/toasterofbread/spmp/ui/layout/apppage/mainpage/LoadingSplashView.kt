@@ -2,6 +2,7 @@
 package com.toasterofbread.spmp.ui.layout.apppage.mainpage
 
 import LocalPlayerState
+import ProgramArguments
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
@@ -64,8 +65,8 @@ enum class SplashMode {
 fun LoadingSplashView(
     splash_mode: SplashMode?,
     loading_message: String?,
-    modifier: Modifier = Modifier,
-    server_executable_path: String? = null
+    arguments: ProgramArguments,
+    modifier: Modifier = Modifier
 ) {
     val player: PlayerState = LocalPlayerState.current
 
@@ -144,7 +145,7 @@ fun LoadingSplashView(
                                 blockGestures()
                             }
                             .graphicsLayer { alpha = extra_content_alpha },
-                        server_executable_path = server_executable_path
+                        arguments = arguments
                     )
                 }
             }

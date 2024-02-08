@@ -6,6 +6,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 
 const val SERVER_EXPECT_REPLY_CHAR: Char = '!'
+const val SERVER_MESSAGE_MAX_SIZE: Int = 300
 
 @Serializable
 data class SpMsActionReply(val success: Boolean, val error: String? = null, val error_cause: String? = null, val result: JsonElement? = null)
@@ -50,7 +51,8 @@ internal data class SpMsServerHandshake(
     val name: String,
     val device_name: String,
     val spms_commit_hash: String,
-    val server_state: SpMsServerState
+    val server_state: SpMsServerState,
+    val machine_id: String
 )
 
 @Serializable

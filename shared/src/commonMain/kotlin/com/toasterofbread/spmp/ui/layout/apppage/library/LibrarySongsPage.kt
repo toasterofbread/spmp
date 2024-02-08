@@ -1,6 +1,8 @@
 package com.toasterofbread.spmp.ui.layout.apppage.library
 
 import LocalPlayerState
+import SpMp.isDebugBuild
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,26 +11,32 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.composekit.platform.composable.ScrollBarLazyColumn
+import com.toasterofbread.composekit.utils.common.getValue
 import com.toasterofbread.composekit.utils.composable.EmptyListCrossfade
+import com.toasterofbread.composekit.utils.composable.LoadActionIconButton
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.spmp.model.mediaitem.db.rememberLikedSongs
+import com.toasterofbread.spmp.model.mediaitem.db.rememberLocalLikedSongs
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.download.DownloadStatus
@@ -36,9 +44,13 @@ import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.platform.download.rememberSongDownloads
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
+import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.youtubeapi.YoutubeApi
+import com.toasterofbread.spmp.youtubeapi.endpoint.LoadPlaylistEndpoint
+import com.toasterofbread.spmp.youtubeapi.implementedOrNull
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -47,6 +59,7 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
         MediaItemType.SONG.getIcon()
 
     private var sorted_songs: List<Song> by mutableStateOf(emptyList())
+    private var load_error: Throwable? by mutableStateOf(null)
 
     override fun canShowAltContent(): Boolean = true
     override fun getAltContentButtons(): Pair<Pair<String, ImageVector>, Pair<String, ImageVector>> =
@@ -64,19 +77,35 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
         modifier: Modifier
     ) {
         val player: PlayerState = LocalPlayerState.current
+        val auth_state: YoutubeApi.UserAuthState? = player.context.ytapi.user_auth_state
 
         val downloads: List<DownloadStatus> by rememberSongDownloads()
-        val liked_songs: List<Song>? by rememberLikedSongs()
+        val local_liked_songs: List<Song>? by rememberLocalLikedSongs()
+
+        val remote_likes_playlist: RemotePlaylistRef? = remember(auth_state) { if (auth_state != null) RemotePlaylistRef("LM") else null }
+        val remote_liked_songs: List<Song>? by remote_likes_playlist?.Items?.observe(player.database)
 
         LaunchedEffect(Unit) {
             sorted_songs = emptyList()
+            load_error = null
         }
 
         with(library_page) {
-            LaunchedEffect(downloads, search_filter, sort_type, reverse_sort, showing_alt_content, liked_songs) {
-                val songs: List<Song> =
-                    if (showing_alt_content) liked_songs ?: emptyList()
-                    else downloads.mapNotNull { download -> if (download.progress < 1f) null else download.song }
+            LaunchedEffect(showing_alt_content, remote_likes_playlist) {
+                if (showing_alt_content) {
+                    remote_likes_playlist?.loadData(player.context, populate_data = false, force = true)
+                }
+            }
+
+            LaunchedEffect(downloads, search_filter, sort_type, reverse_sort, showing_alt_content, local_liked_songs, remote_liked_songs) {
+                val songs: List<Song>
+
+                if (showing_alt_content) {
+                    songs = (remote_liked_songs ?: local_liked_songs ?: emptyList()).distinctBy { it.id }
+                }
+                else {
+                    songs = downloads.mapNotNull { download -> if (download.progress < 1f) null else download.song }
+                }
 
                 val filter: String? = if (search_filter?.isNotEmpty() == true) search_filter else null
                 val filtered_songs: List<Song> = songs.filter { song ->
@@ -92,7 +121,7 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
         }) }) {
             Column(modifier) {
                 EmptyListCrossfade(sorted_songs) { current_songs ->
-                    LazyColumn(
+                    ScrollBarLazyColumn(
                         Modifier.fillMaxSize(),
                         contentPadding = content_padding,
                         verticalArrangement = Arrangement.spacedBy(15.dp)
@@ -102,6 +131,14 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
                                 if (showing_alt_content) getString("library_songs_liked_title")
                                 else getString("library_songs_downloaded_title")
                             )
+                        }
+
+                        load_error?.also { error ->
+                            item {
+                                ErrorInfoDisplay(error, isDebugBuild(), Modifier.fillMaxWidth()) {
+                                    load_error = null
+                                }
+                            }
                         }
 
                         if (current_songs == null) {
@@ -157,8 +194,26 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
         }
     }
 
+
+
     @Composable
     override fun SideContent(showing_alt_content: Boolean) {
+        val player: PlayerState = LocalPlayerState.current
+        val auth_state: YoutubeApi.UserAuthState? = player.context.ytapi.user_auth_state
+
+        val load_endpoint: LoadPlaylistEndpoint? = player.context.ytapi.LoadPlaylist.implementedOrNull()
+
+        AnimatedVisibility(showing_alt_content && auth_state != null && load_endpoint != null) {
+            LoadActionIconButton(
+                {
+                    val result: Result<RemotePlaylistData> = RemotePlaylistRef("LM").loadData(player.context, populate_data = false, force = true)
+                    load_error = result.exceptionOrNull()
+                }
+            ) {
+                Icon(Icons.Default.Refresh, null)
+            }
+        }
+
         if (!showing_alt_content && sorted_songs.isEmpty()) {
             LibrarySyncButton()
         }

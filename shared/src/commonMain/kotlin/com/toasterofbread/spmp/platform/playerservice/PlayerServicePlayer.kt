@@ -242,7 +242,7 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
     }
 
     fun setActiveQueueIndex(value: Int) {
-        active_queue_index = value.coerceIn(service.current_song_index, service.song_count - 1)
+        active_queue_index = value.coerceAtLeast(service.current_song_index).coerceAtMost(service.song_count - 1)
     }
 
     fun cancelSession() {

@@ -3,11 +3,12 @@ package com.toasterofbread.spmp.ui.layout.apppage.library
 import LocalPlayerState
 import SpMp.isDebugBuild
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.LocalScrollbarStyle
+import androidx.compose.foundation.ScrollbarStyle
+import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyGridScope
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Refresh
@@ -23,6 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.composekit.utils.composable.LoadActionIconButton
 import com.toasterofbread.composekit.utils.composable.spanItem
+import com.toasterofbread.composekit.utils.modifier.horizontal
+import com.toasterofbread.composekit.utils.modifier.vertical
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
 import com.toasterofbread.spmp.model.mediaitem.layout.getMediaItemPreviewSquareAdditionalHeight
@@ -41,6 +44,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.endpoint.AccountPlaylistsEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.CreateAccountPlaylistEndpoint
+import com.toasterofbread.spmp.youtubeapi.implementedOrNull
 
 internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =
@@ -92,37 +96,47 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
             }
         }
 
-        LazyVerticalGrid(
-            GridCells.Adaptive(100.dp),
-            modifier,
-            contentPadding = content_padding,
-            verticalArrangement = Arrangement.spacedBy(item_spacing),
-            horizontalArrangement = Arrangement.spacedBy(item_spacing)
-        ) {
-            spanItem {
-                LibraryPageTitle(MediaItemType.PLAYLIST_LOC.getReadable(true))
-            }
+        Row(modifier.padding(content_padding.horizontal)) {
+            val grid_state: LazyGridState = rememberLazyGridState()
 
-            load_error?.also { error ->
+            LazyVerticalGrid(
+                GridCells.Adaptive(100.dp),
+                Modifier.fillMaxWidth().weight(1f),
+                state = grid_state,
+                contentPadding = content_padding.vertical,
+                verticalArrangement = Arrangement.spacedBy(item_spacing),
+                horizontalArrangement = Arrangement.spacedBy(item_spacing)
+            ) {
                 spanItem {
-                    ErrorInfoDisplay(error, isDebugBuild(), Modifier.fillMaxWidth()) {
-                        load_error = null
+                    LibraryPageTitle(MediaItemType.PLAYLIST_LOC.getReadable(true))
+                }
+
+                load_error?.also { error ->
+                    spanItem {
+                        ErrorInfoDisplay(error, isDebugBuild(), Modifier.fillMaxWidth()) {
+                            load_error = null
+                        }
                     }
+                }
+
+                if (showing_alt_content) {
+                    PlaylistItems(
+                        sorted_account_playlists ?: emptyList(),
+                        multiselect_context
+                    )
+                }
+                else {
+                    PlaylistItems(
+                        sorted_local_playlists,
+                        multiselect_context
+                    )
                 }
             }
 
-            if (showing_alt_content) {
-                PlaylistItems(
-                    sorted_account_playlists ?: emptyList(),
-                    multiselect_context
-                )
-            }
-            else {
-                PlaylistItems(
-                    sorted_local_playlists,
-                    multiselect_context
-                )
-            }
+            VerticalScrollbar(
+                rememberScrollbarAdapter(grid_state),
+                Modifier.padding(content_padding.vertical)
+            )
         }
     }
 
@@ -131,10 +145,10 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
         val player: PlayerState = LocalPlayerState.current
         val auth_state: YoutubeApi.UserAuthState? = player.context.ytapi.user_auth_state
 
-        val load_endpoint: AccountPlaylistsEndpoint? = auth_state?.AccountPlaylists
-        val create_endpoint: CreateAccountPlaylistEndpoint? = auth_state?.CreateAccountPlaylist
+        val load_endpoint: AccountPlaylistsEndpoint? = auth_state?.AccountPlaylists?.implementedOrNull()
+        val create_endpoint: CreateAccountPlaylistEndpoint? = auth_state?.CreateAccountPlaylist?.implementedOrNull()
 
-        AnimatedVisibility(showing_alt_content && load_endpoint?.isImplemented() == true) {
+        AnimatedVisibility(showing_alt_content && load_endpoint != null) {
             LoadActionIconButton(
                 {
                     val result = load_endpoint?.getAccountPlaylists()
@@ -145,7 +159,7 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
             }
         }
 
-        AnimatedVisibility(!showing_alt_content || create_endpoint?.isImplemented() == true) {
+        AnimatedVisibility(!showing_alt_content || create_endpoint != null) {
             LoadActionIconButton({
                 if (!showing_alt_content) {
                     MediaItemLibrary.createLocalPlaylist(player.context)

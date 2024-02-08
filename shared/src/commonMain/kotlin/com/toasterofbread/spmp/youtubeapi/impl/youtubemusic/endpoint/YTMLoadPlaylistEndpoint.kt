@@ -139,6 +139,8 @@ class YTMLoadPlaylistEndpoint(override val api: YoutubeMusicApi): LoadPlaylistEn
                 return@withContext Result.failure(DataParseException.ofYoutubeJsonRequest(request, api, cause = it))
             }
 
+        response.close()
+
         val provider: MediaItemThumbnailProvider? = playlist_data.thumbnail_provider
         if (provider is MediaItemThumbnailProviderImpl && (provider.url_a.startsWith(EMPTY_PLAYLIST_IMAGE_URL_PREFIX) || provider.url_b?.startsWith(EMPTY_PLAYLIST_IMAGE_URL_PREFIX) == true)) {
             playlist_data.thumbnail_provider = null

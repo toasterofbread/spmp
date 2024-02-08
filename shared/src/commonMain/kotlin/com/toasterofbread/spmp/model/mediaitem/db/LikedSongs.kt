@@ -10,7 +10,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.toLong
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 
 @Composable
-fun rememberLikedSongs(liked_status: SongLikedStatus = SongLikedStatus.LIKED): State<List<Song>?> {
+fun rememberLocalLikedSongs(liked_status: SongLikedStatus = SongLikedStatus.LIKED): State<List<Song>?> {
     val player: PlayerState = LocalPlayerState.current
     
     val query: Query<String> = remember(liked_status) {

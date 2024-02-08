@@ -8,32 +8,34 @@ import kotlinx.serialization.json.Json
 import org.zeromq.ZMQ.Socket
 import org.zeromq.ZMsg
 
-internal suspend fun SpMsPlayerService.tryConnectToServer(
-    socket: Socket,
+internal suspend fun Socket.tryConnectToServer(
     server_url: String,
     handshake: SpMsClientHandshake,
     json: Json,
-    shouldCancelConnection: () -> Boolean,
-    setLoadState: (PlayerServiceLoadState) -> Unit
+    shouldCancelConnection: () -> Boolean = { false },
+    log: (String) -> Unit = { println(it) },
+    setLoadState: ((PlayerServiceLoadState) -> Unit)? = null
 ): SpMsServerHandshake? = withContext(Dispatchers.IO) {
-    check(socket.connect(server_url))
+    check(connect(server_url))
 
     val handshake_message: ZMsg = ZMsg()
     handshake_message.add(json.encodeToString(handshake))
-    handshake_message.send(socket)
+    check(handshake_message.send(this@tryConnectToServer))
 
-    setLoadState(
-        PlayerServiceLoadState(
-            true,
-            getString("desktop_splash_connecting_to_server_at_\$x").replace("\$x", server_url.split("://", limit = 2).last())
+    if (setLoadState != null) {
+        setLoadState(
+            PlayerServiceLoadState(
+                true,
+                getString("desktop_splash_connecting_to_server_at_\$x").replace("\$x", server_url.split("://", limit = 2).last())
+            )
         )
-    )
+    }
 
-    println("Waiting for reply from server at $server_url...")
+    log("Waiting for reply from server at $server_url...")
 
     var reply: ZMsg? = null
     while (reply == null) {
-        reply = socket.recvMsg(500)
+        reply = recvMsg(500)
 
         if (shouldCancelConnection()) {
             return@withContext null
@@ -42,7 +44,7 @@ internal suspend fun SpMsPlayerService.tryConnectToServer(
 
     val server_handshake_data: String = reply.first.data.decodeToString().trimEnd { it == '\u0000' }
 
-    println("Received reply handshake from server with the following content:\n$server_handshake_data")
+    log("Received reply handshake from server with the following content:\n$server_handshake_data")
 
     val server_handshake: SpMsServerHandshake
     try {

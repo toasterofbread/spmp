@@ -12,15 +12,16 @@ interface ClientServerPlayerService: PlayerService {
         val protocol: String,
         val name: String,
         val device_name: String,
+        val machine_id: String,
         val spms_git_commit_hash: String
     )
     
     val connected_server: ServerInfo?
     
     suspend fun getPeers(): Result<List<SpMsClientInfo>>
-    suspend fun sendStatusToPlayers(ytm_auth: Pair<Artist?, Headers>?, local_files: Map<String, String>): Result<Unit>
+    suspend fun sendAuthInfoToPlayers(ytm_auth: Pair<Artist?, Headers>?): Result<Unit>
 
-    fun onSongFileAdded(download_status: DownloadStatus)
-    fun onSongFileDeleted(song: Song)
-    fun onLocalSongsSynced(songs: Map<String, DownloadStatus>)
+    fun onSongFilesAdded(songs: List<DownloadStatus>)
+    fun onSongFilesDeleted(songs: List<Song>)
+    fun onLocalSongsSynced(songs: List<DownloadStatus>)
 }

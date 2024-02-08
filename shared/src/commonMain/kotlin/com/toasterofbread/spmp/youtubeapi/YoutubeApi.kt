@@ -224,14 +224,21 @@ interface YoutubeApi {
         val headers: Headers
 
         init {
-            val headers_builder = Headers.Builder()
+            val headers_builder: Headers.Builder = Headers.Builder()
 
-            val headers_to_keep = listOf("cookie", "authorization", "x-goog-authuser")
+            val headers_to_keep: List<String> = listOf("cookie", "authorization", "x-goog-authuser")
             for (header in headers_to_keep) {
-                val value = headers[header]
-                if (value != null) {
-                    headers_builder.add(header, value)
+                val value: String = headers[header] ?: continue
+                if (header == "cookie") {
+                    val filtered_cookies: String = filterCookieString(value) {
+                        it.startsWith("__Secure-")
+                    }
+
+                    headers_builder.add("cookie", filtered_cookies)
+                    continue
                 }
+
+                headers_builder.add(header, value)
             }
 
             this.headers = headers_builder.build()
@@ -241,6 +248,26 @@ interface YoutubeApi {
 
         fun getSetData(): Set<String> {
             return packSetData(own_channel, headers)
+        }
+
+        private fun filterCookieString(cookies_string: String, shouldKeepCookie: (String) -> Boolean): String {
+            var ret: String = ""
+            val cookies: List<String> = cookies_string.split(';')
+                .mapNotNull {
+                    it.trim().takeIf { it.isNotEmpty() }
+                }
+
+            for (cookie in cookies) {
+                val (name, value) = cookie.split('=', limit = 2)
+
+                if (!shouldKeepCookie(name)) {
+                    continue
+                }
+
+                ret += "$name=$value;"
+            }
+
+            return ret
         }
 
         companion object {

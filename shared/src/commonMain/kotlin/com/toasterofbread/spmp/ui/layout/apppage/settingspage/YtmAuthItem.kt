@@ -32,6 +32,7 @@ import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.composable.LoginPage
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
+import okhttp3.Headers
 
 fun getYtmAuthItem(context: AppContext, ytm_auth: SettingsValueState<Set<String>>, initialise: Boolean = false): SettingsItem {
     var own_channel: Artist? by mutableStateOf(null)
@@ -74,7 +75,7 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: SettingsValueState<Set<String>
 //                own_channel = data.first
 //            }
 
-            val data = YoutubeApi.UserAuthState.unpackSetData(ytm_auth.get(), context)
+            val data: Pair<Artist?, Headers> = YoutubeApi.UserAuthState.unpackSetData(ytm_auth.get(), context)
             if (data.first != null) {
                 own_channel = data.first
             }

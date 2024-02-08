@@ -22,11 +22,16 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
+    - name: Set up Gradle
+      uses: gradle/gradle-build-action@v3
+
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
     - name: Install desktop-file-utils, appstream
-      run: sudo apt-get install desktop-file-utils appstream
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: desktop-file-utils appstream
 
     - name: Download appimagetool
       run: wget https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage -O /usr/local/bin/appimagetool

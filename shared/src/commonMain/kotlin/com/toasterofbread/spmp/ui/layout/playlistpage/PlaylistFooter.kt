@@ -70,7 +70,7 @@ fun PlaylistPage.PlaylistFooter(
                         if (state is MediaItemLayout.Continuation) {
                             Button({
                                 coroutine_scope.launch {
-                                    MediaItemLoader.loadRemotePlaylist(remote.getEmptyData(), player.context, state)
+                                    MediaItemLoader.loadRemotePlaylist(remote.getEmptyData(), player.context, continuation = state)
                                 }
                             }) {
                                 if (loading) {

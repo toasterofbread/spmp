@@ -432,7 +432,7 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
         super.onTaskRemoved(intent)
 
         if (
-            (!player.isPlaying && convertState(player.playbackState) != MediaPlayerState.BUFFERING)
+            (!player.isPlaying && convertState(player.playbackState) != SpMsPlayerState.BUFFERING)
             || (
                 BehaviourSettings.Key.STOP_PLAYER_ON_APP_CLOSE.get(context)
                 && intent?.component?.packageName == packageName
@@ -693,15 +693,15 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
 
     private lateinit var _service_player: PlayerServicePlayer
     actual override val service_player: PlayerServicePlayer get() = _service_player
-    actual override val state: MediaPlayerState get() = convertState(player.playbackState)
+    actual override val state: SpMsPlayerState get() = convertState(player.playbackState)
     actual override val is_playing: Boolean get() = player.isPlaying
     actual override val song_count: Int get() = player.mediaItemCount
     actual override val current_song_index: Int get() = player.currentMediaItemIndex
     actual override val current_position_ms: Long get() = player.currentPosition
     actual override val duration_ms: Long get() = player.duration
     actual override val radio_state: RadioInstance.RadioState get() = service_player.radio_state
-    actual override var repeat_mode: MediaPlayerRepeatMode
-        get() = MediaPlayerRepeatMode.entries[player.repeatMode]
+    actual override var repeat_mode: SpMsPlayerRepeatMode
+        get() = SpMsPlayerRepeatMode.entries[player.repeatMode]
         set(value) {
             player.repeatMode = value.ordinal
         }
@@ -819,8 +819,8 @@ private fun Song.buildExoMediaItem(context: AppContext): MediaItem =
         .build()
 
 
-fun convertState(exo_state: Int): MediaPlayerState {
-    return MediaPlayerState.entries[exo_state - 1]
+fun convertState(exo_state: Int): SpMsPlayerState {
+    return SpMsPlayerState.entries[exo_state - 1]
 }
 
 fun MediaItem.getSong(): Song {

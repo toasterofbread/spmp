@@ -33,6 +33,8 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import spms.socketapi.shared.SpMsPlayerRepeatMode
+import spms.socketapi.shared.SpMsPlayerState
 import java.io.IOException
 import java.util.Timer
 import java.util.TimerTask
@@ -187,8 +189,8 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
             radio.instance.onSongRemoved(index)
         }
 
-        override fun onStateChanged(state: MediaPlayerState) {
-            if (state == MediaPlayerState.ENDED) {
+        override fun onStateChanged(state: SpMsPlayerState) {
+            if (state == SpMsPlayerState.ENDED) {
                 onSongEnded()
             }
         }
@@ -595,7 +597,7 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
 
     // --- Service ---
 
-    val state: MediaPlayerState get() = service.state
+    val state: SpMsPlayerState get() = service.state
     val is_playing: Boolean get() = service.is_playing
     val song_count: Int get() = service.song_count
     val current_song_index: Int get() = service.current_song_index
@@ -605,7 +607,7 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
 
     val radio_state: RadioInstance.RadioState get() = radio.instance.state
 
-    var repeat_mode: MediaPlayerRepeatMode
+    var repeat_mode: SpMsPlayerRepeatMode
         get() = service.repeat_mode
         set(value) {
             service.repeat_mode = value

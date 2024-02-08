@@ -1,14 +1,14 @@
 package com.toasterofbread.spmp.platform
 
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.playerservice.MediaPlayerRepeatMode
-import com.toasterofbread.spmp.platform.playerservice.MediaPlayerState
+import spms.socketapi.shared.SpMsPlayerRepeatMode
+import spms.socketapi.shared.SpMsPlayerState
 
 expect abstract class PlayerListener() {
     open fun onSongTransition(song: Song?, manual: Boolean)
-    open fun onStateChanged(state: MediaPlayerState)
+    open fun onStateChanged(state: SpMsPlayerState)
     open fun onPlayingChanged(is_playing: Boolean)
-    open fun onRepeatModeChanged(repeat_mode: MediaPlayerRepeatMode)
+    open fun onRepeatModeChanged(repeat_mode: SpMsPlayerRepeatMode)
     open fun onVolumeChanged(volume: Float)
     open fun onDurationChanged(duration_ms: Long)
     open fun onSeeked(position_ms: Long)

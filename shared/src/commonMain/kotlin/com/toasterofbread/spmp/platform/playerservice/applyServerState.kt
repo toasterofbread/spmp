@@ -1,49 +1,56 @@
 package com.toasterofbread.spmp.platform.playerservice
 
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import spms.socketapi.shared.SpMsServerState
 
-internal suspend fun SpMsPlayerService.applyServerState(state: SpMsServerState, coroutine_scope: CoroutineScope) {
+internal suspend fun SpMsPlayerService.applyServerState(
+    state: SpMsServerState,
+    coroutine_scope: CoroutineScope,
+    onProgress: (String?) -> Unit = {}
+) = withContext(Dispatchers.Default) {
     assert(playlist.isEmpty())
 
+    onProgress(null)
+
     val items: Array<Song?> = arrayOfNulls(state.queue.size)
+    var completed: Int = 0
 
-    state.queue.mapIndexed { i, id ->
-        coroutine_scope.launch {
-            val song: Song = SongRef(id)
-            tryTransaction {
-                if (song.Loaded.get(context.database)) {
-                    return@tryTransaction
-                }
+    val loaded_items: Map<String, Boolean> =
+        context.database.mediaItemQueries.loaded().executeAsList()
+            .associate { it.id to (it.loaded != null) }
 
-                song.loadData(context).onSuccess { data ->
-                    data.saveToDatabase(context.database)
-
-                    data.artist?.also { artist ->
-                        coroutine_scope.launch {
-                            tryTransaction {
-                                if (artist.Loaded.get(context.database)) {
-                                    return@tryTransaction
-                                }
-                            }
-
-                            artist.loadData(context).onSuccess { artist_data ->
-                                tryTransaction {
-                                    artist_data.saveToDatabase(context.database)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+    state.queue.mapIndexedNotNull { i, item_id ->
+        val song: Song = SongRef(item_id)
+        if (loaded_items[item_id] == true) {
             items[i] = song
+            completed++
+            return@mapIndexedNotNull null
+        }
+
+        coroutine_scope.launch(Dispatchers.IO) {
+            song.loadData(context, force = true, save = false).onSuccess { data ->
+                items[i] = data
+            }
+            onProgress("${++completed}/${items.size}")
         }
     }.joinAll()
 
-    playlist.addAll(items.filterNotNull())
+    context.database.transaction {
+        for (item in items) {
+            if (item == null) {
+                continue
+            }
+
+            if (item is MediaItemData) {
+                item.saveToDatabase(context.database)
+            }
+
+            playlist.add(item)
+        }
+    }
 
     if (playlist.isNotEmpty()) {
         service_player.session_started = true
@@ -93,19 +100,5 @@ internal suspend fun SpMsPlayerService.applyServerState(state: SpMsServerState, 
     listeners.forEach {
         it.onDurationChanged(_duration_ms)
         it.onEvents()
-    }
-}
-
-private inline fun tryTransaction(transaction: () -> Unit) {
-    while (true) {
-        try {
-            transaction()
-            break
-        }
-        catch (e: Throwable) {
-            if (e.javaClass.name != "org.sqlite.SQLiteException") {
-                throw e
-            }
-        }
     }
 }

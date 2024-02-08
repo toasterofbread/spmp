@@ -143,6 +143,10 @@ kotlin {
 
     sourceSets {
         commonMain {
+            kotlin {
+                srcDir(rootProject.file("spmp-server/src/nativeMain/kotlin/spms/socketapi/shared/"))
+            }
+
             @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
             dependencies {
                 implementation(compose.runtime)

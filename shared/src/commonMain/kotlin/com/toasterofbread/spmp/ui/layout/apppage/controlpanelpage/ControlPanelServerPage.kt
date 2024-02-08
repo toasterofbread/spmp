@@ -20,16 +20,15 @@ import com.toasterofbread.composekit.platform.composable.ScrollBarLazyColumn
 import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.spmp.platform.playerservice.ClientServerPlayerService
-import com.toasterofbread.spmp.platform.playerservice.SpMsClientInfo
-import com.toasterofbread.spmp.platform.playerservice.SpMsClientType
-import com.toasterofbread.spmp.platform.playerservice.getSpMsMachineId
+import com.toasterofbread.spmp.platform.playerservice.*
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import spms.socketapi.shared.SpMsClientInfo
+import spms.socketapi.shared.SpMsClientType
 
 @Composable
 fun ControlPanelServerPage(

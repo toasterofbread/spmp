@@ -46,8 +46,8 @@ sealed interface RemotePlaylist: Playlist {
         }
     }
 
-    override suspend fun loadData(context: AppContext, populate_data: Boolean, force: Boolean): Result<RemotePlaylistData> {
-        return super.loadData(context, populate_data, force) as Result<RemotePlaylistData>
+    override suspend fun loadData(context: AppContext, populate_data: Boolean, force: Boolean, save: Boolean): Result<RemotePlaylistData> {
+        return super.loadData(context, populate_data, force, save) as Result<RemotePlaylistData>
     }
 
     override suspend fun setSortType(sort_type: MediaItemSortType?, context: AppContext): Result<Unit> {

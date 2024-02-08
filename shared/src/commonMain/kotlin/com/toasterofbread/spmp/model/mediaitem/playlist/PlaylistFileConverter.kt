@@ -94,7 +94,7 @@ object PlaylistFileConverter {
         return@withContext result
     }
 
-    suspend fun loadFromFile(file: PlatformFile, context: AppContext): LocalPlaylistData? = withContext(Dispatchers.IO) {
+    suspend fun loadFromFile(file: PlatformFile, context: AppContext, save: Boolean = true): LocalPlaylistData? = withContext(Dispatchers.IO) {
         val required_suffix: String = ".${getFileExtension()}"
         if (!file.name.endsWith(required_suffix)) {
             return@withContext null
@@ -167,9 +167,11 @@ object PlaylistFileConverter {
             playlist.title = getString("new_playlist_title")
         }
 
-        context.database.transaction {
-            for (song in songs) {
-                song.saveToDatabase(context.database)
+        if (save) {
+            context.database.transaction {
+                for (song in songs) {
+                    song.saveToDatabase(context.database)
+                }
             }
         }
 

@@ -87,8 +87,8 @@ sealed interface Artist: MediaItem {
         }
         data.subscriber_count = SubscriberCount.get(db)
     }
-    override suspend fun loadData(context: AppContext, populate_data: Boolean, force: Boolean): Result<ArtistData> {
-        return super.loadData(context, populate_data, force) as Result<ArtistData>
+    override suspend fun loadData(context: AppContext, populate_data: Boolean, force: Boolean, save: Boolean): Result<ArtistData> {
+        return super.loadData(context, populate_data, force, save) as Result<ArtistData>
     }
 
     fun isForItem(): Boolean =

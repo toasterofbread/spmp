@@ -27,7 +27,9 @@ import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.toLyricsReference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.InputStream
 import java.net.URL
+import java.net.URLConnection
 import kotlin.math.roundToInt
 
 private const val STATIC_LYRICS_SYNC_OFFSET: Long = 1000
@@ -54,26 +56,26 @@ interface Song: MediaItem.WithArtist {
         data.loudness_db = LoudnessDb.get(db)
     }
 
-    override suspend fun loadData(context: AppContext, populate_data: Boolean, force: Boolean): Result<SongData> {
-        return super.loadData(context, populate_data, force) as Result<SongData>
+    override suspend fun loadData(context: AppContext, populate_data: Boolean, force: Boolean, save: Boolean): Result<SongData> {
+        return super.loadData(context, populate_data, force, save) as Result<SongData>
     }
 
     override suspend fun downloadThumbnailData(url: String): Result<ImageBitmap> = withContext(Dispatchers.IO) {
         return@withContext kotlin.runCatching {
-            val connection = URL(url).openConnection()
+            val connection: URLConnection = URL(url).openConnection()
             connection.connectTimeout = com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DEFAULT_CONNECT_TIMEOUT
 
-            val stream = connection.getInputStream()
-            val bytes = stream.readBytes()
+            val stream: InputStream = connection.getInputStream()
+            val bytes: ByteArray = stream.readBytes()
             stream.close()
 
-            val image = bytes.toImageBitmap()
+            val image: ImageBitmap = bytes.toImageBitmap()
             if (image.width == image.height) {
                 return@runCatching image
             }
 
             // Crop image to 1:1
-            val size = (image.width * (9f/16f)).toInt()
+            val size: Int = (image.width * (9f/16f)).toInt()
             return@runCatching image.crop((image.width - size) / 2, (image.height - size) / 2, size, size)
         }
     }

@@ -20,13 +20,13 @@ import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import okhttp3.Headers
 import okhttp3.OkHttpClient
 import org.zeromq.*
 import java.net.InetAddress
+import spms.socketapi.shared.*
 
 private const val POLL_STATE_INTERVAL: Long = 100
 private const val POLL_TIMEOUT_MS: Long = 10000
@@ -80,12 +80,12 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
     internal var playlist: MutableList<Song> = mutableListOf()
         private set
     
-    internal var _state: MediaPlayerState = MediaPlayerState.IDLE
+    internal var _state: SpMsPlayerState = SpMsPlayerState.IDLE
     internal var _is_playing: Boolean = false
     internal var _current_song_index: Int = -1
     internal var _duration_ms: Long = -1
     internal var _radio_state: RadioInstance.RadioState = RadioInstance.RadioState() // TODO
-    internal var _repeat_mode: MediaPlayerRepeatMode = MediaPlayerRepeatMode.NONE
+    internal var _repeat_mode: SpMsPlayerRepeatMode = SpMsPlayerRepeatMode.NONE
     internal var _volume: Float = 1f
     internal var current_song_time: Long = -1
 
@@ -216,13 +216,13 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
                     }
                 }
 
-                socket_load_state =
-                    PlayerServiceLoadState(
-                        true,
-                        getString("desktop_splash_setting_initial_state")
-                    )
-
-                applyServerState(server_handshake.server_state, this)
+                applyServerState(server_handshake.server_state, this) { status ->
+                    socket_load_state =
+                        PlayerServiceLoadState(
+                            true,
+                            getString("desktop_splash_setting_initial_state") + status?.let { " ($it)" }.orEmpty()
+                        )
+                }
 
                 socket_load_state = PlayerServiceLoadState(false)
 
@@ -246,12 +246,7 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
             return false
         }
 
-        for (i in 0 until events.size) {
-            val event_str: String = events.pop().data.decodeToString().removeSuffix("\u0000")
-            if (event_str.isEmpty()) {
-                continue
-            }
-            
+        for (event_str in SpMsSocketApi.decode(events.map { it.data.decodeToString() })) {
             val event: SpMsPlayerEvent
             try {
                 event = json.decodeFromString(event_str) ?: continue
@@ -281,7 +276,7 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
             }
 
             val actions_expecting_result: List<Pair<String, List<Any?>>> =
-                queued_messages.filter { it.first.firstOrNull() == SERVER_EXPECT_REPLY_CHAR }
+                queued_messages.filter { it.first.firstOrNull() == SPMS_EXPECT_REPLY_CHAR }
             
             queued_messages.clear()
             
@@ -299,7 +294,7 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
                 return false
             }
             
-            val result_str: String = results.joinToString { it.data.decodeToString().removeSuffix("\u0000") }
+            val result_str: String = SpMsSocketApi.decode(results.map { it.data.decodeToString() }).first()
             if (result_str.isEmpty()) {
                 throw RuntimeException("Result string is empty")
             }
@@ -325,7 +320,7 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
     }
 
     override suspend fun getPeers(): Result<List<SpMsClientInfo>> {
-        sendRequest(SERVER_EXPECT_REPLY_CHAR + "clients")
+        sendRequest(SPMS_EXPECT_REPLY_CHAR + "clients")
 
         val result: SpMsActionReply = clients_result_channel.receive()
         if (!result.success) {
@@ -367,7 +362,7 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
         val socket: ZMQ.Socket = zmq.createSocket(SocketType.REQ)
 
         val message: ZMsg = ZMsg()
-        message.addSafe(SERVER_EXPECT_REPLY_CHAR + identifier)
+        message.addSafe(SPMS_EXPECT_REPLY_CHAR + identifier)
         message.addSafe(Gson().toJson(params))
 
         val local_players: List<SpMsClientInfo> = getLocalPlayers().getOrNull() ?: return
@@ -437,10 +432,5 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
 }
 
 private fun ZMsg.addSafe(part: String) {
-    val chunks: List<String> = part.chunked(SERVER_MESSAGE_MAX_SIZE - 8)
-    addAll(
-        chunks.mapIndexed { i, chunk ->
-            ZFrame(if (i + 1 == chunks.size) chunk  + '\u0000' else chunk)
-        }
-    )
+    addAll(SpMsSocketApi.encode(listOf(part)).map { ZFrame(it) })
 }

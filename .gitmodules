@@ -1,3 +1,6 @@
 [submodule "ToasterComposeTools"]
 	path = ComposeKit
 	url = https://github.com/toasterofbread/ToasterComposeTools
+[submodule "spmp-server"]
+	path = spmp-server
+	url = https://github.com/toasterofbread/spmp-server

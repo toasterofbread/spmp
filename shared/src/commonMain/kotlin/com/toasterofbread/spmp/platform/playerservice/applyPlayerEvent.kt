@@ -6,6 +6,9 @@ import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.float
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.long
+import spms.socketapi.shared.SpMsPlayerEvent
+import spms.socketapi.shared.SpMsPlayerRepeatMode
+import spms.socketapi.shared.SpMsPlayerState
 
 internal fun SpMsPlayerService.applyPlayerEvent(event: SpMsPlayerEvent) {
     println("Applying event $event")
@@ -26,7 +29,7 @@ internal fun SpMsPlayerService.applyPlayerEvent(event: SpMsPlayerEvent) {
             when (key) {
                 "state" -> {
                     if (value.int != _state.ordinal) {
-                        _state = MediaPlayerState.entries[value.int]
+                        _state = SpMsPlayerState.entries[value.int]
                         listeners.forEach {
                             it.onStateChanged(_state)
                             it.onEvents()
@@ -44,7 +47,7 @@ internal fun SpMsPlayerService.applyPlayerEvent(event: SpMsPlayerEvent) {
                 }
                 "repeat_mode" -> {
                     if (value.int != _repeat_mode.ordinal) {
-                        _repeat_mode = MediaPlayerRepeatMode.entries[value.int]
+                        _repeat_mode = SpMsPlayerRepeatMode.entries[value.int]
                         listeners.forEach {
                             it.onRepeatModeChanged(_repeat_mode)
                             it.onEvents()

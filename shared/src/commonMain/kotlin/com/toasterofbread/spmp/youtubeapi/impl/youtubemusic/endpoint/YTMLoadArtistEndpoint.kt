@@ -13,8 +13,8 @@ import okhttp3.Request
 import okhttp3.Response
 
 class YTMLoadArtistEndpoint(override val api: YoutubeMusicApi): LoadArtistEndpoint() {
-    override suspend fun loadArtist(artist_data: ArtistData): Result<ArtistData> = withContext(Dispatchers.IO) {
-        val hl = api.context.getDataLanguage()
+    override suspend fun loadArtist(artist_data: ArtistData, save: Boolean): Result<ArtistData> = withContext(Dispatchers.IO) {
+        val hl: String = api.context.getDataLanguage()
         val request: Request = Request.Builder()
             .endpointUrl("/youtubei/v1/browse")
             .addAuthApiHeaders()
@@ -37,7 +37,9 @@ class YTMLoadArtistEndpoint(override val api: YoutubeMusicApi): LoadArtistEndpoi
         }
 
         artist_data.loaded = true
-        artist_data.saveToDatabase(api.database, subitems_uncertain = true)
+        if (save) {
+            artist_data.saveToDatabase(api.database, subitems_uncertain = true)
+        }
 
         return@withContext Result.success(artist_data)
     }

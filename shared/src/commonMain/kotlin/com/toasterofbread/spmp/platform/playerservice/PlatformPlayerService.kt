@@ -7,21 +7,10 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
+import spms.socketapi.shared.SpMsPlayerRepeatMode
+import spms.socketapi.shared.SpMsPlayerState
 
 internal const val AUTO_DOWNLOAD_SOFT_TIMEOUT = 1500 // ms
-
-enum class MediaPlayerState {
-    IDLE,
-    BUFFERING,
-    READY,
-    ENDED
-}
-
-enum class MediaPlayerRepeatMode {
-    NONE,
-    ONE,
-    ALL
-}
 
 data class PlayerServiceLoadState(
     val loading: Boolean,
@@ -35,7 +24,7 @@ interface PlayerService {
     fun onCreate()
     fun onDestroy()
 
-    val state: MediaPlayerState
+    val state: SpMsPlayerState
     val is_playing: Boolean
     val song_count: Int
     val current_song_index: Int
@@ -45,7 +34,7 @@ interface PlayerService {
 
     val radio_state: RadioInstance.RadioState
 
-    var repeat_mode: MediaPlayerRepeatMode
+    var repeat_mode: SpMsPlayerRepeatMode
     var volume: Float
 
     fun isPlayingOverLatentDevice(): Boolean
@@ -97,7 +86,7 @@ expect class PlatformPlayerService: PlayerService {
     override fun onCreate()
     override fun onDestroy()
 
-    override val state: MediaPlayerState
+    override val state: SpMsPlayerState
     override val is_playing: Boolean
     override val song_count: Int
     override val current_song_index: Int
@@ -107,7 +96,7 @@ expect class PlatformPlayerService: PlayerService {
 
     override val radio_state: RadioInstance.RadioState
 
-    override var repeat_mode: MediaPlayerRepeatMode
+    override var repeat_mode: SpMsPlayerRepeatMode
     override var volume: Float
 
     override fun isPlayingOverLatentDevice(): Boolean

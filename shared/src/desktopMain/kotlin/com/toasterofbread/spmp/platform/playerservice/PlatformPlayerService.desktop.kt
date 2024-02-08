@@ -10,6 +10,8 @@ import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.startPlatformService
 import com.toasterofbread.spmp.platform.unbindPlatformService
 import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
+import spms.socketapi.shared.SpMsPlayerRepeatMode
+import spms.socketapi.shared.SpMsPlayerState
 
 private class PlayerServiceBinder(val service: PlatformPlayerService): PlatformBinder()
 
@@ -23,7 +25,7 @@ actual class PlatformPlayerService: SpMsPlayerService(), PlayerService {
     actual override val service_player: PlayerServicePlayer
         get() = _service_player
 
-    actual override val state: MediaPlayerState
+    actual override val state: SpMsPlayerState
         get() = _state
     actual override val is_playing: Boolean
         get() = _is_playing
@@ -47,7 +49,7 @@ actual class PlatformPlayerService: SpMsPlayerService(), PlayerService {
         get() = true // TODO
     actual override val radio_state: RadioInstance.RadioState
         get() = service_player.radio_state
-    actual override var repeat_mode: MediaPlayerRepeatMode
+    actual override var repeat_mode: SpMsPlayerRepeatMode
         get() = _repeat_mode
         set(value) {
             if (value == _repeat_mode) {

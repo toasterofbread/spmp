@@ -103,7 +103,7 @@ sealed interface Playlist: MediaItem.WithArtist {
 
     suspend fun setSortType(sort_type: MediaItemSortType?, context: AppContext): Result<Unit>
 
-    override suspend fun loadData(context: AppContext, populate_data: Boolean, force: Boolean): Result<PlaylistData> {
-        return super.loadData(context, populate_data, force) as Result<PlaylistData>
+    override suspend fun loadData(context: AppContext, populate_data: Boolean, force: Boolean, save: Boolean): Result<PlaylistData> {
+        return super.loadData(context, populate_data, force, save) as Result<PlaylistData>
     }
 }

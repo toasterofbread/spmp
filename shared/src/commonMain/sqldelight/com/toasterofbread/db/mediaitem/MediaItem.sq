@@ -38,3 +38,5 @@ updateIsHiddenById: UPDATE MediaItem SET hidden = :hidden WHERE id == :id;
 --
 
 activeTitleById: SELECT IFNULL(custom_title, title) FROM MediaItem WHERE id == :id;
+
+loaded: SELECT id, loaded FROM MediaItem;

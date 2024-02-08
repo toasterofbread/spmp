@@ -15,7 +15,7 @@ import com.toasterofbread.spmp.model.settings.category.SystemSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.getTextFieldFocusState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.isTextFieldFocused
- import kotlinx.coroutines.*
+import kotlinx.coroutines.*
 import org.jetbrains.skiko.OS
 import org.jetbrains.skiko.hostOs
 import java.awt.Toolkit

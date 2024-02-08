@@ -24,7 +24,7 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
-import com.toasterofbread.spmp.platform.playerservice.MediaPlayerRepeatMode
+import spms.socketapi.shared.SpMsPlayerRepeatMode
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
 import com.toasterofbread.spmp.ui.component.MusicTopBar
@@ -79,7 +79,7 @@ class PlayerStatus internal constructor() {
     val duration_ms: Long get() = player?.duration_ms ?: -1
     val song: Song? get() = player?.getSong()
     val index: Int get() = player?.current_song_index ?: -1
-    val repeat_mode: MediaPlayerRepeatMode get() = player?.repeat_mode ?: MediaPlayerRepeatMode.NONE
+    val repeat_mode: SpMsPlayerRepeatMode get() = player?.repeat_mode ?: SpMsPlayerRepeatMode.NONE
     val has_next: Boolean get() = true
     val has_previous: Boolean get() = true
     val volume: Float get() = player?.volume ?: -1f
@@ -95,7 +95,7 @@ class PlayerStatus internal constructor() {
         private set
     var m_index: Int by mutableStateOf(index)
         private set
-    var m_repeat_mode: MediaPlayerRepeatMode by mutableStateOf(repeat_mode)
+    var m_repeat_mode: SpMsPlayerRepeatMode by mutableStateOf(repeat_mode)
         private set
     // TODO
     var m_has_next: Boolean by mutableStateOf(has_next)
@@ -138,7 +138,7 @@ class PlayerStatus internal constructor() {
             override fun onPlayingChanged(is_playing: Boolean) {
                 m_playing = is_playing
             }
-            override fun onRepeatModeChanged(repeat_mode: MediaPlayerRepeatMode) {
+            override fun onRepeatModeChanged(repeat_mode: SpMsPlayerRepeatMode) {
                 m_repeat_mode = repeat_mode
             }
             override fun onUndoStateChanged() {

@@ -34,26 +34,30 @@ internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
     private val loading_remote_playlists: MutableMap<String, LoadJob<Result<RemotePlaylistData>>> = mutableMapOf()
     private val loading_local_playlists: MutableMap<String, LoadJob<Result<LocalPlaylistData>>> = mutableMapOf()
 
-    suspend fun <ItemType: MediaItemData> loadUnknown(item: ItemType, context: AppContext): Result<ItemType> =
+    suspend fun <ItemType: MediaItemData> loadUnknown(
+        item: ItemType,
+        context: AppContext,
+        save: Boolean = true
+    ): Result<ItemType> =
         when (item) {
-            is SongData -> loadSong(item, context) as Result<ItemType>
-            is ArtistData -> loadArtist(item, context) as Result<ItemType>
-            is RemotePlaylistData -> loadRemotePlaylist(item, context) as Result<ItemType>
-            is LocalPlaylistData -> loadLocalPlaylist(item, context) as Result<ItemType>
+            is SongData -> loadSong(item, context, save) as Result<ItemType>
+            is ArtistData -> loadArtist(item, context, save) as Result<ItemType>
+            is RemotePlaylistData -> loadRemotePlaylist(item, context, save) as Result<ItemType>
+            is LocalPlaylistData -> loadLocalPlaylist(item, context, save) as Result<ItemType>
             else -> throw NotImplementedError(item::class.toString())
         }
 
-    suspend fun loadSong(song: SongData, context: AppContext): Result<SongData> {
-        return loadItem(song, loading_songs, song_lock, context)
+    suspend fun loadSong(song: SongData, context: AppContext, save: Boolean = true): Result<SongData> {
+        return loadItem(song, loading_songs, song_lock, context, save)
     }
-    suspend fun loadArtist(artist: ArtistData, context: AppContext): Result<ArtistData> {
-        return loadItem(artist, loading_artists, artist_lock, context)
+    suspend fun loadArtist(artist: ArtistData, context: AppContext, save: Boolean = true): Result<ArtistData> {
+        return loadItem(artist, loading_artists, artist_lock, context, save)
     }
-    suspend fun loadRemotePlaylist(playlist: RemotePlaylistData, context: AppContext, continuation: MediaItemLayout.Continuation? = null): Result<RemotePlaylistData> {
-        return loadItem(playlist, loading_remote_playlists, playlist_lock, context, continuation)
+    suspend fun loadRemotePlaylist(playlist: RemotePlaylistData, context: AppContext, save: Boolean = true, continuation: MediaItemLayout.Continuation? = null): Result<RemotePlaylistData> {
+        return loadItem(playlist, loading_remote_playlists, playlist_lock, context, save, continuation)
     }
-    suspend fun loadLocalPlaylist(playlist: LocalPlaylistData, context: AppContext): Result<LocalPlaylistData> {
-        return loadItem(playlist, loading_local_playlists, playlist_lock, context)
+    suspend fun loadLocalPlaylist(playlist: LocalPlaylistData, context: AppContext, save: Boolean = true): Result<LocalPlaylistData> {
+        return loadItem(playlist, loading_local_playlists, playlist_lock, context, save)
     }
 
     fun isUnknownLoading(item: MediaItem): Boolean {
@@ -75,9 +79,10 @@ internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
         loading_items: MutableMap<String, LoadJob<Result<ItemType>>>,
         lock: ReentrantLock,
         context: AppContext,
+        save: Boolean,
         continuation: MediaItemLayout.Continuation? = null
     ): Result<ItemType> {
-        val result = performSafeLoad(
+        return performSafeLoad(
             item.id,
             lock,
             loading_items,
@@ -89,7 +94,7 @@ internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
                         if (!isImplemented()) {
                             return@performSafeLoad Result.failure(EndpointNotImplementedException(this))
                         }
-                        loadSong(item) as Result<ItemType>
+                        loadSong(item, save) as Result<ItemType>
                     }
                 }
                 is ArtistData -> {
@@ -97,7 +102,7 @@ internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
                         if (!isImplemented()) {
                             return@performSafeLoad Result.failure(EndpointNotImplementedException(this))
                         }
-                        loadArtist(item) as Result<ItemType>
+                        loadArtist(item, save) as Result<ItemType>
                     }
                 }
                 is RemotePlaylistData -> {
@@ -105,13 +110,13 @@ internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
                         if (!isImplemented()) {
                             return@performSafeLoad Result.failure(EndpointNotImplementedException(this))
                         }
-                        loadPlaylist(item, continuation) as Result<ItemType>
+                        loadPlaylist(item, save, continuation) as Result<ItemType>
                     }
                 }
                 is LocalPlaylistData -> {
                     kotlin.runCatching {
                         val file = MediaItemLibrary.getLocalPlaylistFile(item, context)
-                        PlaylistFileConverter.loadFromFile(file, context)
+                        PlaylistFileConverter.loadFromFile(file, context, save = save)
                     } as Result<ItemType>
                 }
                 else -> throw NotImplementedError(item::class.toString())
@@ -122,7 +127,6 @@ internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
                 { Result.failure(it) }
             )
         }
-        return result
     }
 
 }

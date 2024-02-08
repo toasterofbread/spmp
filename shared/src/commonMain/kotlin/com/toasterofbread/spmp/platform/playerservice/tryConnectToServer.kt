@@ -7,6 +7,9 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.zeromq.ZMQ.Socket
 import org.zeromq.ZMsg
+import spms.socketapi.shared.SpMsClientHandshake
+import spms.socketapi.shared.SpMsSocketApi
+import spms.socketapi.shared.SpMsServerHandshake
 
 internal suspend fun Socket.tryConnectToServer(
     server_url: String,
@@ -42,7 +45,11 @@ internal suspend fun Socket.tryConnectToServer(
         }
     }
 
-    val server_handshake_data: String = reply.first.data.decodeToString().trimEnd { it == '\u0000' }
+    val all_data = reply.map { it.data.decodeToString() }
+    println("ALL DATA: $all_data")
+    println("\n\n\n")
+    val joined_reply: List<String> = SpMsSocketApi.decode(all_data)
+    val server_handshake_data: String = joined_reply.first()
 
     log("Received reply handshake from server with the following content:\n$server_handshake_data")
 

@@ -4,6 +4,7 @@ import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import okhttp3.Headers
+import spms.socketapi.shared.SpMsClientInfo
 
 interface ClientServerPlayerService: PlayerService {
     data class ServerInfo(

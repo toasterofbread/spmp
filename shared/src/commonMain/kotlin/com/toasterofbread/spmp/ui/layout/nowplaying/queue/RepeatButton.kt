@@ -21,7 +21,7 @@ import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.common.getInnerSquareSizeOfCircle
 import com.toasterofbread.composekit.utils.composable.crossOut
 import com.toasterofbread.composekit.utils.modifier.background
-import com.toasterofbread.spmp.platform.playerservice.MediaPlayerRepeatMode
+import spms.socketapi.shared.SpMsPlayerRepeatMode
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import kotlin.math.roundToInt
 
@@ -39,14 +39,14 @@ fun RepeatButton(getBackgroundColour: () -> Color, modifier: Modifier = Modifier
                 onClick = {
                     player.controller?.repeat_mode =
                         when (player.controller?.repeat_mode) {
-                            MediaPlayerRepeatMode.ALL -> MediaPlayerRepeatMode.ONE
-                            MediaPlayerRepeatMode.ONE -> MediaPlayerRepeatMode.NONE
-                            else -> MediaPlayerRepeatMode.ALL
+                            SpMsPlayerRepeatMode.ALL -> SpMsPlayerRepeatMode.ONE
+                            SpMsPlayerRepeatMode.ONE -> SpMsPlayerRepeatMode.NONE
+                            else -> SpMsPlayerRepeatMode.ALL
                         }
                 }
             )
             .crossOut(
-                crossed_out = player.status.m_repeat_mode == MediaPlayerRepeatMode.NONE,
+                crossed_out = player.status.m_repeat_mode == SpMsPlayerRepeatMode.NONE,
                 getColour = { getBackgroundColour().getContrasted() },
             ) {
                 return@crossOut IntSize(
@@ -58,7 +58,7 @@ fun RepeatButton(getBackgroundColour: () -> Color, modifier: Modifier = Modifier
     ) {
         Icon(
             when (player.status.m_repeat_mode) {
-                MediaPlayerRepeatMode.ONE -> Icons.Filled.RepeatOne
+                SpMsPlayerRepeatMode.ONE -> Icons.Filled.RepeatOne
                 else -> Icons.Filled.Repeat
             },
             null,

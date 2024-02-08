@@ -108,21 +108,21 @@ class UnimplementedYoutubeApi(
     }
     override val LoadSong = object : LoadSongEndpoint() {
         override fun isImplemented(): Boolean = false
-        override suspend fun loadSong(song_data: SongData): Result<SongData> {
+        override suspend fun loadSong(song_data: SongData, save: Boolean): Result<SongData> {
             throw NotImplementedError()
         }
         override val api = this@UnimplementedYoutubeApi
     }
     override val LoadArtist = object : LoadArtistEndpoint() {
         override fun isImplemented(): Boolean = false
-        override suspend fun loadArtist(artist_data: ArtistData): Result<ArtistData> {
+        override suspend fun loadArtist(artist_data: ArtistData, save: Boolean): Result<ArtistData> {
             throw NotImplementedError()
         }
         override val api = this@UnimplementedYoutubeApi
     }
     override val LoadPlaylist = object : LoadPlaylistEndpoint() {
         override fun isImplemented(): Boolean = false
-        override suspend fun loadPlaylist(playlist_data: RemotePlaylistData, continuation: MediaItemLayout.Continuation?): Result<RemotePlaylistData> {
+        override suspend fun loadPlaylist(playlist_data: RemotePlaylistData, save: Boolean, continuation: MediaItemLayout.Continuation?): Result<RemotePlaylistData> {
             throw NotImplementedError()
         }
         override val api = this@UnimplementedYoutubeApi

@@ -15,7 +15,7 @@ class LocalPlaylistRef(override val id: String): LocalPlaylist, MediaItemRef() {
         throw IllegalStateException(id)
     }
 
-    override suspend fun loadData(context: AppContext, populate_data: Boolean, force: Boolean): Result<LocalPlaylistData> {
+    override suspend fun loadData(context: AppContext, populate_data: Boolean, force: Boolean, save: Boolean): Result<LocalPlaylistData> {
         return runCatching {
             val file = MediaItemLibrary.getLocalPlaylistFile(this, context)
             PlaylistFileConverter.loadFromFile(file, context)!!

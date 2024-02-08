@@ -9,6 +9,7 @@ import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.processDefaultRespon
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
+import okhttp3.Response
 
 private data class PlayerData(
     val videoDetails: VideoDetails?,
@@ -20,8 +21,8 @@ private data class PlayerData(
 }
 
 class YTMLoadSongEndpoint(override val api: YoutubeMusicApi): LoadSongEndpoint() {
-    override suspend fun loadSong(song_data: SongData): Result<SongData> = withContext(Dispatchers.IO) {
-        val hl = api.context.getDataLanguage()
+    override suspend fun loadSong(song_data: SongData, save: Boolean): Result<SongData> = withContext(Dispatchers.IO) {
+        val hl: String = api.context.getDataLanguage()
         var request: Request = Request.Builder()
             .endpointUrl("/youtubei/v1/next")
             .addAuthApiHeaders()
@@ -34,7 +35,7 @@ class YTMLoadSongEndpoint(override val api: YoutubeMusicApi): LoadSongEndpoint()
             )
             .build()
 
-        val next_result = api.performRequest(request).fold(
+        val next_result: Result<Unit>? = api.performRequest(request).fold(
             { response ->
                 processDefaultResponse(song_data, response, hl, api)
             },
@@ -51,7 +52,7 @@ class YTMLoadSongEndpoint(override val api: YoutubeMusicApi): LoadSongEndpoint()
                 )
                 .build()
 
-            val result = api.performRequest(request)
+            val result: Result<Response> = api.performRequest(request)
             val video_data: PlayerData = result.parseJsonResponse {
                 return@withContext Result.failure(it)
             }
@@ -65,7 +66,9 @@ class YTMLoadSongEndpoint(override val api: YoutubeMusicApi): LoadSongEndpoint()
         }
 
         song_data.loaded = true
-        song_data.saveToDatabase(api.database)
+        if (save) {
+            song_data.saveToDatabase(api.database)
+        }
 
         return@withContext Result.success(song_data)
     }

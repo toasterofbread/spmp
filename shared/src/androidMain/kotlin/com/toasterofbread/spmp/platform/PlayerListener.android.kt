@@ -3,16 +3,16 @@ package com.toasterofbread.spmp.platform
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.playerservice.MediaPlayerRepeatMode
-import com.toasterofbread.spmp.platform.playerservice.MediaPlayerState
+import spms.socketapi.shared.SpMsPlayerRepeatMode
+import spms.socketapi.shared.SpMsPlayerState
 import com.toasterofbread.spmp.platform.playerservice.convertState
 import com.toasterofbread.spmp.platform.playerservice.getSong
 
 actual abstract class PlayerListener {
     actual open fun onSongTransition(song: Song?, manual: Boolean) {}
-    actual open fun onStateChanged(state: MediaPlayerState) {}
+    actual open fun onStateChanged(state: SpMsPlayerState) {}
     actual open fun onPlayingChanged(is_playing: Boolean) {}
-    actual open fun onRepeatModeChanged(repeat_mode: MediaPlayerRepeatMode) {}
+    actual open fun onRepeatModeChanged(repeat_mode: SpMsPlayerRepeatMode) {}
     actual open fun onVolumeChanged(volume: Float) {}
     actual open fun onDurationChanged(duration_ms: Long) {}
     actual open fun onSeeked(position_ms: Long) {}
@@ -41,7 +41,7 @@ actual abstract class PlayerListener {
             onPlayingChanged(is_playing)
         }
         override fun onRepeatModeChanged(repeat_mode: Int) {
-            onRepeatModeChanged(MediaPlayerRepeatMode.entries[repeat_mode])
+            onRepeatModeChanged(SpMsPlayerRepeatMode.entries[repeat_mode])
         }
         override fun onVolumeChanged(volume: Float) {
             this@PlayerListener.onVolumeChanged(volume)

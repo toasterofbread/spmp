@@ -28,7 +28,7 @@ sealed interface LocalPlaylist: Playlist {
         "file://" + getLocalPlaylistFile(context).absolute_path
     override fun getEmptyData(): LocalPlaylistData = LocalPlaylistData(id)
 
-    override suspend fun loadData(context: AppContext, populate_data: Boolean, force: Boolean): Result<LocalPlaylistData>
+    override suspend fun loadData(context: AppContext, populate_data: Boolean, force: Boolean, save: Boolean): Result<LocalPlaylistData>
 
     override suspend fun setActiveTitle(value: String?, context: AppContext) {
         val data: LocalPlaylistData = loadData(context).getOrNull() ?: return

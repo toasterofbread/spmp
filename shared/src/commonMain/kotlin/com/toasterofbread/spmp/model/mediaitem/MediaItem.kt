@@ -81,7 +81,12 @@ interface MediaItem: MediaItemHolder {
         data.thumbnail_provider = ThumbnailProvider.get(db)
     }
 
-    suspend fun loadData(context: AppContext, populate_data: Boolean = true, force: Boolean = false): Result<MediaItemData> {
+    suspend fun loadData(
+        context: AppContext,
+        populate_data: Boolean = true,
+        force: Boolean = false,
+        save: Boolean = true
+    ): Result<MediaItemData> {
         val data: MediaItemData = getEmptyData()
         if (!force && Loaded.get(context.database)) {
             if (populate_data) {
@@ -89,7 +94,7 @@ interface MediaItem: MediaItemHolder {
             }
             return Result.success(data)
         }
-        return MediaItemLoader.loadUnknown(data, context)
+        return MediaItemLoader.loadUnknown(data, context, save = save)
     }
 
     suspend fun downloadThumbnailData(url: String): Result<ImageBitmap> = withContext(Dispatchers.IO) {

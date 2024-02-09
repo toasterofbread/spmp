@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
 import androidx.compose.material3.LocalContentColor
@@ -48,7 +47,6 @@ import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueWaveBorder
 import com.toasterofbread.spmp.model.settings.category.PlayerSettings
 import com.toasterofbread.spmp.model.settings.rememberMutableEnumState
 import com.toasterofbread.spmp.platform.PlayerListener
-import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
@@ -144,9 +142,14 @@ internal fun QueueTab(
     }
 
     DisposableEffect(Unit) {
-        PlatformPlayerService.addListener(queue_listener)
+        player.interactService {
+            it.addListener(queue_listener)
+        }
+
         onDispose {
-            PlatformPlayerService.removeListener(queue_listener)
+            player.interactService {
+                it.removeListener(queue_listener)
+            }
         }
     }
 

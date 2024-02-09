@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.platform
 
+import ProgramArguments
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
@@ -109,6 +110,7 @@ internal class ThemeImpl(private val context: AppContext): Theme(getString("them
 }
 
 expect class AppContext: PlatformContext {
+    val launch_arguments: ProgramArguments
     val database: Database
     val download_manager: PlayerDownloadManager
     val ytapi: YoutubeApi

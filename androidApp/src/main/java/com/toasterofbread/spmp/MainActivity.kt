@@ -93,7 +93,7 @@ class MainActivity : ComponentActivity() {
             }
 
             if (launched) {
-                SpMp.App(ProgramArguments(), open_uri = open_uri?.toString())
+                SpMp.App(open_uri = open_uri?.toString())
             }
         }
     }

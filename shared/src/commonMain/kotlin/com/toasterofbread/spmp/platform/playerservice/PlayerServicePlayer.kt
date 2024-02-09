@@ -46,7 +46,7 @@ private const val UPDATE_INTERVAL: Long = 30000 // ms
 private const val SONG_MARK_WATCHED_POSITION = 1000 // ms
 
 @Suppress("LeakingThis")
-abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
+abstract class PlayerServicePlayer(private val service: PlayerService) {
     private val context: AppContext get() = service.context
     private val coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
 

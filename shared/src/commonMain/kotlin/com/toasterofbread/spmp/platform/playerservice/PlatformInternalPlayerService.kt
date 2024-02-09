@@ -12,74 +12,12 @@ import spms.socketapi.shared.SpMsPlayerState
 
 internal const val AUTO_DOWNLOAD_SOFT_TIMEOUT = 1500 // ms
 
-data class PlayerServiceLoadState(
-    val loading: Boolean,
-    val loading_message: String? = null
-)
-
-interface PlayerService {
-    val context: AppContext
-    val service_player: PlayerServicePlayer
-
-    fun onCreate()
-    fun onDestroy()
-
-    val state: SpMsPlayerState
-    val is_playing: Boolean
-    val song_count: Int
-    val current_song_index: Int
-    val current_position_ms: Long
-    val duration_ms: Long
-    val has_focus: Boolean
-
-    val radio_state: RadioInstance.RadioState
-
-    var repeat_mode: SpMsPlayerRepeatMode
-    var volume: Float
-
-    fun isPlayingOverLatentDevice(): Boolean
-
-    fun play()
-    fun pause()
-    fun playPause()
-
-    fun seekTo(position_ms: Long)
-    fun seekToSong(index: Int)
-    fun seekToNext()
-    fun seekToPrevious()
-
-    fun getSong(): Song?
-    fun getSong(index: Int): Song?
-
-    fun addSong(song: Song, index: Int)
-    fun moveSong(from: Int, to: Int)
-    fun removeSong(index: Int)
-
-    fun addListener(listener: PlayerListener)
-    fun removeListener(listener: PlayerListener)
-
-    @Composable
-    fun Visualiser(colour: Color, modifier: Modifier, opacity: Float)
-}
-
-expect class PlatformPlayerService: PlayerService {
-    companion object {
-        fun isServiceRunning(context: AppContext): Boolean
-
-        fun addListener(listener: PlayerListener)
-        fun removeListener(listener: PlayerListener)
-
-        fun connect(
-            context: AppContext,
-            instance: PlatformPlayerService? = null,
-            onConnected: (PlatformPlayerService) -> Unit,
-            onDisconnected: () -> Unit
-        ): Any
-
-        fun disconnect(context: AppContext, connection: Any)
+expect class PlatformInternalPlayerService: PlayerService {
+    companion object: PlayerServiceCompanion {
+        fun isAvailable(context: AppContext): Boolean
     }
 
-    val load_state: PlayerServiceLoadState
+    override val load_state: PlayerServiceLoadState
     override val context: AppContext
     override val service_player: PlayerServicePlayer
 

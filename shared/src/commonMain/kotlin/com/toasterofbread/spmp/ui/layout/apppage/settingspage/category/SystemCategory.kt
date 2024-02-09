@@ -19,14 +19,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
+import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.platform.PlatformFile
-import com.toasterofbread.composekit.settings.ui.item.ComposableSettingsItem
-import com.toasterofbread.composekit.settings.ui.item.DropdownSettingsItem
-import com.toasterofbread.composekit.settings.ui.item.FileSettingsItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsItem
+import com.toasterofbread.composekit.settings.ui.item.*
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem.Companion.ItemTitleText
-import com.toasterofbread.composekit.settings.ui.item.ToggleSettingsItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.composekit.utils.composable.WidthShrinkText
@@ -40,6 +36,7 @@ import com.toasterofbread.spmp.resources.Languages
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -263,5 +260,14 @@ internal fun getSystemCategoryItems(context: AppContext): List<SettingsItem> {
                 }
             }
         )
-    )
+    ) + (if (Platform.DESKTOP.isCurrent()) getDesktopSystemCategoryItems() else emptyList())
 }
+
+private fun getDesktopSystemCategoryItems(): List<SettingsItem> =
+    listOf(
+        TextFieldSettingsItem(
+            SettingsValueState(SystemSettings.Key.STARTUP_COMMAND.getName()),
+            getString("s_key_startup_command"), getString("s_sub_startup_command"),
+            getFieldModifier = { Modifier.appTextField() }
+        )
+    )

@@ -23,7 +23,8 @@ data object SystemSettings: SettingsCategory("system") {
         UI_SCALE,
         LIBRARY_PATH,
         PERSISTENT_QUEUE,
-        ADD_SONGS_TO_HISTORY;
+        ADD_SONGS_TO_HISTORY,
+        STARTUP_COMMAND;
 
         override val category: SettingsCategory get() = SystemSettings
 
@@ -36,6 +37,7 @@ data object SystemSettings: SettingsCategory("system") {
                 LIBRARY_PATH -> ""
                 PERSISTENT_QUEUE -> true
                 ADD_SONGS_TO_HISTORY -> false
+                STARTUP_COMMAND -> ""
             } as T
     }
 }

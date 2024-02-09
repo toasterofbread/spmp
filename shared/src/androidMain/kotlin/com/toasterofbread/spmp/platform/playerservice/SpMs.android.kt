@@ -1,7 +1,9 @@
 package com.toasterofbread.spmp.platform.playerservice
 
-actual fun getSpMsMachineId(): String {
-    TODO("Not yet implemented")
+import com.toasterofbread.spmp.platform.AppContext
+
+actual fun getSpMsMachineId(context: AppContext): String {
+    return getSpMsMachineIdFromFile(context.getFilesDir().resolve("spmp_machine_id.txt"))
 }
 
 actual fun getServerExecutableFilename(): String? =

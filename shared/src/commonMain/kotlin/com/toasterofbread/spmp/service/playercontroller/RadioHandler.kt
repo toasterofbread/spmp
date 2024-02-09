@@ -1,15 +1,15 @@
 package com.toasterofbread.spmp.service.playercontroller
 
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
+import com.toasterofbread.spmp.platform.playerservice.PlayerService
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
 import com.toasterofbread.spmp.platform.playerservice.UndoRedoAction
 import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-// Radio continuation will be added if the amount of remaining songs (including current) falls below this
 // TODO Add setting
+// Radio continuation will be added if the amount of remaining songs (including current) falls below this
 private const val RADIO_MIN_LENGTH: Int = 10
 
 class RadioHandler(val player: PlayerServicePlayer, val context: AppContext) {
@@ -55,11 +55,11 @@ class RadioHandler(val player: PlayerServicePlayer, val context: AppContext) {
         }
 
         return object : UndoRedoAction {
-            override fun redo(service: PlatformPlayerService) {
+            override fun redo(service: PlayerService) {
                 instance.setRadioState(radio_state)
             }
 
-            override fun undo(service: PlatformPlayerService) {
+            override fun undo(service: PlayerService) {
                 instance.setRadioState(previous_radio_state)
             }
         }
@@ -100,11 +100,11 @@ class RadioHandler(val player: PlayerServicePlayer, val context: AppContext) {
             }
 
             return@customUndoableAction object : UndoRedoAction {
-                override fun redo(service: PlatformPlayerService) {
+                override fun redo(service: PlayerService) {
                     instance.setFilter(filter_index)
                 }
 
-                override fun undo(service: PlatformPlayerService) {
+                override fun undo(service: PlayerService) {
                     instance.setFilter(previous_filter_index)
                 }
             }

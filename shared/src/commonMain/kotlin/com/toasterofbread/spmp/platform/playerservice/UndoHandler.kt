@@ -7,11 +7,11 @@ import com.toasterofbread.composekit.utils.common.synchronizedBlock
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 
 interface UndoRedoAction {
-    fun undo(service: PlatformPlayerService) {}
-    fun redo(service: PlatformPlayerService) {}
+    fun undo(service: PlayerService) {}
+    fun redo(service: PlayerService) {}
 }
 
-internal class UndoHandler(val player: PlayerServicePlayer, val service: PlatformPlayerService) {
+internal class UndoHandler(val player: PlayerServicePlayer, val service: PlayerService) {
     private var current_action: MutableList<UndoRedoAction>? = null
     private var current_action_is_further: Boolean = false
     private val action_list: MutableList<List<UndoRedoAction>> = mutableListOf()
@@ -25,12 +25,12 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: Platfor
             assert(index >= 0) { index.toString() }
         }
 
-        override fun redo(service: PlatformPlayerService) {
+        override fun redo(service: PlayerService) {
             super.redo(service)
             service.addSong(song, index)
             service.service_player.onUndoStateChanged()
         }
-        override fun undo(service: PlatformPlayerService) {
+        override fun undo(service: PlayerService) {
             service.removeSong(index)
             service.service_player.onUndoStateChanged()
         }
@@ -41,12 +41,12 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: Platfor
             assert(to >= 0)
         }
 
-        override fun redo(service: PlatformPlayerService) {
+        override fun redo(service: PlayerService) {
             super.redo(service)
             service.moveSong(from, to)
             service.service_player.onUndoStateChanged()
         }
-        override fun undo(service: PlatformPlayerService) {
+        override fun undo(service: PlayerService) {
             service.moveSong(to, from)
             service.service_player.onUndoStateChanged()
         }
@@ -57,14 +57,14 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: Platfor
         }
 
         private lateinit var song: Song
-        override fun redo(service: PlatformPlayerService) {
+        override fun redo(service: PlayerService) {
             super.redo(service)
             song = service.getSong(index)!!
             service.removeSong(index)
             service.service_player.onUndoStateChanged()
         }
 
-        override fun undo(service: PlatformPlayerService) {
+        override fun undo(service: PlayerService) {
             service.addSong(song, index)
             service.service_player.onUndoStateChanged()
         }

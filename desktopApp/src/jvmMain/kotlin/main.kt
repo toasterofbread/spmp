@@ -10,7 +10,6 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.*
 import com.toasterofbread.composekit.platform.composable.onWindowBackPressed
-import com.toasterofbread.spmp.model.settings.category.DesktopSettings
 import com.toasterofbread.spmp.model.settings.category.SystemSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.getTextFieldFocusState
@@ -25,7 +24,7 @@ import java.lang.reflect.Field
 fun main(args: Array<String>) {
     val arguments: ProgramArguments = ProgramArguments.parse(args) ?: return
     val coroutine_scope: CoroutineScope = CoroutineScope(Job())
-    val context: AppContext = AppContext(SpMp.app_name, coroutine_scope)
+    val context: AppContext = AppContext(SpMp.app_name, arguments, coroutine_scope)
 
     SpMp.init(context)
     coroutine_scope.launch {
@@ -95,7 +94,7 @@ fun main(args: Array<String>) {
             LaunchedEffect(Unit) {
                 window = this@Window.window
 
-                val startup_command: String = DesktopSettings.Key.STARTUP_COMMAND.get()
+                val startup_command: String = SystemSettings.Key.STARTUP_COMMAND.get()
                 if (startup_command.isBlank()) {
                     return@LaunchedEffect
                 }
@@ -118,7 +117,6 @@ fun main(args: Array<String>) {
             }
 
             SpMp.App(
-                arguments,
                 Modifier.onPointerEvent(PointerEventType.Press) { event ->
                     // Mouse back click
                     if (event.button?.index == 5) {

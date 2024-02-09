@@ -34,13 +34,13 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
+import com.toasterofbread.spmp.model.settings.category.ServerSettings
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.download.DownloadMethodSelectionDialog
 import com.toasterofbread.spmp.platform.form_factor
-import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
-import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
+import com.toasterofbread.spmp.platform.playerservice.*
 import com.toasterofbread.spmp.service.playercontroller.PersistentQueueHandler
 import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenu
@@ -69,7 +69,7 @@ enum class FeedLoadState { PREINIT, NONE, LOADING, CONTINUING }
 // TODO | There is almost zero reason for this to be two classes
 @OptIn(ExperimentalMaterialApi::class)
 class PlayerStateImpl(override val context: AppContext, private val coroutine_scope: CoroutineScope): PlayerState(null, null, null) {
-    private var _player: PlatformPlayerService? by mutableStateOf(null)
+    private var _player: PlayerService? by mutableStateOf(null)
 
     private val app_page_undo_stack: MutableList<AppPage?> = mutableStateListOf()
 
@@ -153,13 +153,18 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
         context.getPrefs().addListener(prefs_listener)
         top_bar.reconnect()
 
-        if (PlatformPlayerService.isServiceRunning(context)) {
-            connectService(null)
+        val service_companion: PlayerServiceCompanion =
+            if (!PlatformInternalPlayerService.isAvailable(context) || ServerSettings.Key.ENABLE_EXTERNAL_SERVER_MODE.get(context))
+                PlatformExternalPlayerService
+            else PlatformInternalPlayerService
+
+        if (service_companion.isServiceRunning(context)) {
+            connectService(service_companion, null)
         }
         else {
             coroutine_scope.launch {
                 if (PersistentQueueHandler.isPopulatedQueueSaved(context)) {
-                    connectService(null)
+                    connectService(service_companion, null)
                 }
             }
         }
@@ -172,14 +177,15 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
 
     fun release() {
         service_connection?.also {
-            PlatformPlayerService.disconnect(context, it)
+            service_connection_companion?.disconnect(context, it)
         }
         service_connection = null
+        service_connection_companion = null
         _player = null
         top_bar.release()
     }
 
-    override fun interactService(action: (player: PlatformPlayerService) -> Unit) {
+    override fun interactService(action: (player: PlayerService) -> Unit) {
         synchronized(service_connected_listeners) {
             _player?.also {
                 action(it)
@@ -529,7 +535,7 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
         }
     }
 
-    override val controller: PlatformPlayerService? get() = _player
+    override val controller: PlayerService? get() = _player
     override fun withPlayer(action: PlayerServicePlayer.() -> Unit) {
         _player?.also {
             action(it.service_player)
@@ -543,20 +549,26 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
 
     @Composable
     override fun withPlayerComposable(action: @Composable PlayerServicePlayer.() -> Unit) {
-        connectService(null)
+        connectService(onConnected = null)
         _player?.service_player?.also {
             action(it)
         }
     }
 
-    val service_connected: Boolean get() = _player?.load_state?.loading == false
-    val service_loading_message: String? get() = _player?.load_state?.takeIf { it.loading }?.loading_message
+    override val service_connected: Boolean get() = _player?.load_state?.run { !loading && error == null } ?: false
+    val service_load_state: PlayerServiceLoadState? get() = _player?.load_state
 
-    private var service_connecting = false
-    private var service_connected_listeners = mutableListOf<(PlatformPlayerService) -> Unit>()
+    private var service_connecting: Boolean = false
+    private var service_connected_listeners: MutableList<(PlayerService) -> Unit> = mutableListOf()
     private var service_connection: Any? = null
+    private var service_connection_companion: PlayerServiceCompanion? = null
 
-    private fun connectService(onConnected: ((PlatformPlayerService) -> Unit)?) {
+    private fun connectService(
+        service_companion: PlayerServiceCompanion =
+            if (ServerSettings.Key.ENABLE_EXTERNAL_SERVER_MODE.get(context)) PlatformExternalPlayerService
+            else PlatformInternalPlayerService,
+        onConnected: ((PlayerService) -> Unit)?
+    ) {
         synchronized(service_connected_listeners) {
             if (service_connecting) {
                 if (onConnected != null) {
@@ -570,8 +582,10 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
                 return
             }
 
+            service_connection_companion = service_companion
+
             service_connecting = true
-            service_connection = PlatformPlayerService.connect(
+            service_connection = service_companion.connect(
                 context,
                 _player,
                 { service ->

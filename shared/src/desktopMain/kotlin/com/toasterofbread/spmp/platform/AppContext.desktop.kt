@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.platform
 
+import ProgramArguments
 import com.toasterofbread.composekit.platform.PlatformContext
 import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.platform.PlatformPreferencesImpl
@@ -8,14 +9,15 @@ import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.settings.category.YTApiSettings
 import com.toasterofbread.spmp.model.settings.getEnum
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
-import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
+import com.toasterofbread.spmp.platform.playerservice.PlatformInternalPlayerService
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import kotlinx.coroutines.CoroutineScope
 
 actual class AppContext(
     app_name: String,
+    actual val launch_arguments: ProgramArguments,
     val coroutine_scope: CoroutineScope
-): PlatformContext(app_name, "drawable/ic_spmp.png", PlatformPlayerService::class.java) {
+): PlatformContext(app_name, "drawable/ic_spmp.png", PlatformInternalPlayerService::class.java) {
     actual val database: Database = createDatabase()
     actual val download_manager: PlayerDownloadManager = PlayerDownloadManager(this)
     actual val ytapi: YoutubeApi

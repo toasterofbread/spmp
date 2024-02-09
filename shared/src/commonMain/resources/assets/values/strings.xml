@@ -243,6 +243,7 @@
     <string name="error_message_generic">A error occurred</string>
     <string name="error_yt_feed_parse_failed">YouTube feed parsing failed</string>
     <string name="error_player_service_not_connected">Player service isn't connecting&#xA;A bug may have occurred</string>
+    <string name="error_while_connecting_to_server_at_$x">An error occurred while connecting to server at $x</string>
     <string name="error_on_server_command_execution">An error occurred while calling server command</string>
 
     <string name="desktop_splash_connecting_to_server_at_$x">Connecting to server at $x</string>
@@ -582,21 +583,19 @@
     <string name="s_discord_status_enable">Enable</string>
     <string name="s_discord_status_disable">Disable</string>
 
-    <string name="s_group_desktop_system">System</string>
-
     <string name="s_key_startup_command">Startup command</string>
     <string name="s_sub_startup_command">Command to be executed at program start</string>
 
-    <string name="s_group_server">Server</string>
     <string name="s_info_server">The SpMp server component (SpMs) must be running at the specified port IP address and port. https://github.com/toasterofbread/spmp-server</string>
 
-    <string name="s_key_server_ip">Server IP address</string>
+    <string name="s_key_enable_external_server_mode">Enable external server mode</string>
+    <string name="s_sub_enable_external_server_mode">Instead of running its own internal server, SpMp will connect to the server defined below</string>
+
+    <string name="s_sub_always_enabled_because_spms_not_packaged">This option always enabled because this build of SpMp was not packaged with SpMs</string>
+
+    <string name="s_key_external_server_ip">External server IP address</string>
     <string name="s_key_server_port">Server port</string>
-    <string name="s_key_local_server_command">Server command</string>
-    <string name="s_sub_local_server_command">Command to be run when manually starting the server from within SpMp&#xA;The first occurence of '$@' will be replaced with the server arguments, otherwise they will be appended to the command</string>
-    <string name="s_key_server_local_start_automatically">Start local server automatically</string>
-    <string name="s_sub_server_local_start_automatically">On startup, if a server is not found immediately, a server will be started automatically using the specified command</string>
-    <string name="s_key_server_kill_child_on_exit">Stop child server on exit</string>
+    <string name="s_key_kill_child_server_on_exit">Stop child server on exit</string>
 
     <string name="s_cat_development">Development</string>
 
@@ -670,8 +669,8 @@
     <string name="s_cat_streaming">Playback</string>
     <string name="s_cat_desc_streaming">Audio quality and playback settings</string>
 
-    <string name="s_cat_desktop">Desktop</string>
-    <string name="s_cat_desc_desktop">Platform-specific configuration</string>
+    <string name="s_cat_server">Server</string>
+    <string name="s_cat_desc_server">Configure connections to spmp-server</string>
 
     <string name="s_cat_misc">Other</string>
     <string name="s_cat_desc_misc">Cache and other miscellaneous options</string>

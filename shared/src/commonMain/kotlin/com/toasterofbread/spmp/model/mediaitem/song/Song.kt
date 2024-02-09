@@ -20,7 +20,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.settings.category.LyricsSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.crop
-import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
+import com.toasterofbread.spmp.platform.playerservice.PlayerService
 import com.toasterofbread.spmp.platform.toImageBitmap
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
@@ -167,7 +167,7 @@ interface Song: MediaItem.WithArtist {
 
     @Composable
     fun getLyricsSyncOffset(database: Database, is_topbar: Boolean): State<Long> {
-        val player: PlatformPlayerService = LocalPlayerState.current.controller ?: return mutableStateOf(0)
+        val player: PlayerService = LocalPlayerState.current.controller ?: return mutableStateOf(0)
 
         val internal_offset: Long? by LyricsSyncOffset.observe(database)
         val settings_delay: Float by LyricsSettings.Key.SYNC_DELAY.rememberMutableState()

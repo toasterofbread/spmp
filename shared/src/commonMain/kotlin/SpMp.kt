@@ -10,15 +10,14 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Density
 import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.platform.PlatformPreferences
-import com.toasterofbread.composekit.platform.PlatformFile
 import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.settings.category.FontMode
+import com.toasterofbread.spmp.model.settings.category.ServerSettings
 import com.toasterofbread.spmp.model.settings.category.SystemSettings
 import com.toasterofbread.spmp.model.settings.getEnum
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getUiLanguage
-import com.toasterofbread.spmp.platform.playerservice.getServerExecutableFilename
 import com.toasterofbread.spmp.resources.getStringOrNull
 import com.toasterofbread.spmp.resources.initResources
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
@@ -26,13 +25,14 @@ import com.toasterofbread.spmp.resources.uilocalisation.UnlocalisedStringCollect
 import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
 import com.toasterofbread.spmp.resources.uilocalisation.localised.UILanguages
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.*
+import com.toasterofbread.spmp.ui.layout.loadingsplash.LoadingSplash
+import com.toasterofbread.spmp.ui.layout.loadingsplash.SplashMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.theme.ApplicationTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import java.io.File
 import java.util.logging.Logger
 
 val LocalPlayerState: ProvidableCompositionLocal<PlayerState> = staticCompositionLocalOf { SpMp.player_state }
@@ -85,7 +85,6 @@ object SpMp {
 
     @Composable
     fun App(
-        arguments: ProgramArguments,
         modifier: Modifier = Modifier,
         open_uri: String? = null
     ) {
@@ -98,7 +97,8 @@ object SpMp {
 
             LaunchedEffect(Unit) {
                 _player_state = PlayerStateImpl(context, player_coroutine_scope)
-                _player_state?.onStart()
+                _player_state?.
+                onStart()
                 player_created = true
             }
 
@@ -119,14 +119,13 @@ object SpMp {
                         LocalDensity provides Density(LocalDensity.current.density * ui_scale, 1f)
                     ) {
                         val splash_mode: SplashMode? = when (Platform.current) {
-                            Platform.ANDROID -> null
+                            Platform.ANDROID -> if (!player_state.service_connected && ServerSettings.Key.ENABLE_EXTERNAL_SERVER_MODE.get()) SplashMode.SPLASH else null
                             Platform.DESKTOP -> if (!player_state.service_connected) SplashMode.SPLASH else null
                         }
 
-                        LoadingSplashView(
+                        LoadingSplash(
                             splash_mode,
-                            player_state.service_loading_message,
-                            arguments,
+                            player_state.service_load_state,
                             Modifier
                                 .fillMaxSize()
                                 .thenIf(splash_mode != null) {

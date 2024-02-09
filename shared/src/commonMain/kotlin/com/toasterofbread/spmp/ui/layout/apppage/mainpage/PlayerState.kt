@@ -23,9 +23,8 @@ import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.download.DownloadStatus
-import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import spms.socketapi.shared.SpMsPlayerRepeatMode
-import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
+import com.toasterofbread.spmp.platform.playerservice.PlayerService
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
 import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
@@ -41,9 +40,12 @@ import java.net.URISyntaxException
 typealias DownloadRequestCallback = (DownloadStatus?) -> Unit
 
 class PlayerStatus internal constructor() {
-    private var player: PlatformPlayerService? = null
+    private var player: PlayerService? = null
 
-    internal fun setPlayer(new_player: PlatformPlayerService) {
+    internal fun setPlayer(new_player: PlayerService) {
+        player?.removeListener(player_listener)
+        new_player.addListener(player_listener)
+
         player = new_player
 
         m_playing = playing
@@ -126,8 +128,8 @@ class PlayerStatus internal constructor() {
             "redo_count" to m_redo_count
         ).toString()
 
-    init {
-        PlatformPlayerService.addListener(object : PlayerListener() {
+    private val player_listener: PlayerListener =
+        object : PlayerListener() {
             init {
                 onEvents()
             }
@@ -161,8 +163,7 @@ class PlayerStatus internal constructor() {
                     }
                 }
             }
-        })
-    }
+        }
 }
 
 open class PlayerState protected constructor(
@@ -188,17 +189,18 @@ open class PlayerState protected constructor(
     open fun navigateNpOverlayMenuBack() { upstream!!.navigateNpOverlayMenuBack() }
     open fun openNpOverlayMenu(menu: PlayerOverlayMenu?) { upstream!!.openNpOverlayMenu(menu) }
 
-    open val controller: PlatformPlayerService? get() = upstream!!.controller
+    open val controller: PlayerService? get() = upstream!!.controller
     open fun withPlayer(action: PlayerServicePlayer.() -> Unit): Unit = upstream!!.withPlayer(action)
     @Composable
     open fun withPlayerComposable(action: @Composable PlayerServicePlayer.() -> Unit): Unit = upstream!!.withPlayerComposable(action)
 
     open val status: PlayerStatus get() = upstream!!.status
     open val session_started: Boolean get() = upstream!!.session_started
+    open val service_connected: Boolean get() = upstream!!.service_connected
 
     open val screen_size: DpSize get() = upstream!!.screen_size
 
-    open fun interactService(action: (player: PlatformPlayerService) -> Unit) { upstream!!.interactService(action) }
+    open fun interactService(action: (player: PlayerService) -> Unit) { upstream!!.interactService(action) }
     open fun isRunningAndFocused(): Boolean = upstream!!.isRunningAndFocused()
 
     fun copy(

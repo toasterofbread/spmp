@@ -57,7 +57,17 @@
         <activity android:name=".ErrorReportActivity" />
 
         <service
-            android:name=".platform.playerservice.PlatformPlayerService"
+            android:name=".platform.playerservice.PlatformInternalPlayerService"
+            android:exported="true"
+            android:foregroundServiceType="mediaPlayback">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+                <action android:name="androidx.media3.session.MediaSessionService" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".platform.playerservice.PlatformExternalPlayerService"
             android:exported="true"
             android:foregroundServiceType="mediaPlayback">
             <intent-filter>

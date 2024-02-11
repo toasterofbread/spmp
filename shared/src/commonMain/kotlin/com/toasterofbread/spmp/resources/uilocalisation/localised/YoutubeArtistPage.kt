@@ -8,37 +8,43 @@ fun getYoutubeArtistPageLocalisations(languages: UILanguages): YoutubeUILocalisa
             add(
                 en to "Songs",
                 ja to "曲",
-                es to "Canciónes" ,
+                es to "Canciónes",
+                zh to "歌曲" ,
                 id = YoutubeUILocalisation.StringID.ARTIST_ROW_SONGS
             )
             add(
                 en to "Albums",
                 ja to "アルバム",
-                es to "Álbumes" ,
+                es to "Álbumes",
+                zh to "专辑" ,
                 id = YoutubeUILocalisation.StringID.ARTIST_ROW_OTHER
             )
             add(
                 en to "Videos",
                 ja to "動画",
-                es to "Videos" ,
+                es to "Videos",
+                zh to "视频" ,
                 id = YoutubeUILocalisation.StringID.ARTIST_ROW_VIDEOS
             )
             add(
                 en to "Singles",
                 ja to "シングル",
-                es to "Sencillos" ,
+                es to "Sencillos",
+                zh to "单曲" ,
                 id = YoutubeUILocalisation.StringID.ARTIST_ROW_SINGLES
             )
             add(
                 en to "Playlists",
                 ja to "プレイリスト",
-                es to "Playlists" ,
+                es to "Playlists",
+                zh to "播放列表" ,
                 id = YoutubeUILocalisation.StringID.ARTIST_ROW_OTHER
             )
             add(
                 en to "From your library",
                 ja to "ライブラリから",
-                es to "De tu biblioteca" ,
+                es to "De tu biblioteca",
+                zh to "来自你的库" ,
                 id = YoutubeUILocalisation.StringID.ARTIST_ROW_OTHER
             )
             add(
@@ -47,11 +53,13 @@ fun getYoutubeArtistPageLocalisations(languages: UILanguages): YoutubeUILocalisa
                 ja to "おすすめのアーティスト" ,
                 ja to "似てるかも",
                 es to "A los fans también podrían gustarles",
+                zh to "粉丝可能还会喜欢",
                 id = YoutubeUILocalisation.StringID.ARTIST_ROW_ARTISTS
             )
             add(
                 en to "Featured on",
                 ja to "収録プレイリスト" ,
+                zh to "精选" ,
                 es to "Aparece en"
             )
         }

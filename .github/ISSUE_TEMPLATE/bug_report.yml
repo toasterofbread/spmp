@@ -8,7 +8,7 @@ body:
       label: Checklist
       description: Please complete all tasks before submitting a report.
       options:
-        - label: I am able to reproduce the bug with the [latest debug version](https://github.com/toasterofbread/spmp/actions/workflows/android.yml).
+        - label: I am able to reproduce the bug with the [latest debug version](https://github.com/toasterofbread/spmp/actions).
           required: true
         - label: I've checked that there is no open or closed issue about this bug.
           required: true
@@ -83,13 +83,24 @@ body:
       required: true
 
   - type: input
-    id: android-version
+    id: app-platform
     attributes:
-      label: Android version
+      label: SpMp platform
+      description: |
+        The platform of the SpMp build you are using. Even if you're running the Android version on a PC or vice-versa, this should be the version of the app itself.
+      placeholder: |
+        Examples: "Android aarch64", "Linux x86_64"
+    validations:
+      required: true
+
+  - type: input
+    id: os-version
+    attributes:
+      label: OS version
       description: |
         If using a custom rom, please also include the name and version of the rom.
       placeholder: |
-        Example: "Android 9"
+        Examples: "Android 9", "Ubuntu 20.04"
     validations:
       required: true
 

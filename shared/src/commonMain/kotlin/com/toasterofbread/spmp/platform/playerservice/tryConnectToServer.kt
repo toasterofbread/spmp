@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.platform.playerservice
 
 import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -10,11 +11,13 @@ import org.zeromq.ZMsg
 import spms.socketapi.shared.SpMsClientHandshake
 import spms.socketapi.shared.SpMsSocketApi
 import spms.socketapi.shared.SpMsServerHandshake
+import java.util.concurrent.TimeoutException
 
 internal suspend fun Socket.tryConnectToServer(
     server_url: String,
     handshake: SpMsClientHandshake,
     json: Json,
+    timeout: Long? = null,
     shouldCancelConnection: () -> Boolean = { false },
     log: (String) -> Unit = { println(it) },
     setLoadState: ((PlayerServiceLoadState) -> Unit)? = null
@@ -36,18 +39,21 @@ internal suspend fun Socket.tryConnectToServer(
 
     log("Waiting for reply from server at $server_url...")
 
-    var reply: ZMsg? = null
-    while (reply == null) {
-        reply = recvMsg(500)
+    var reply: ZMsg?
+    do {
+        reply = recvMsg(timeout ?: 500)
+
+        if (timeout != null && reply == null) {
+            throw TimeoutException()
+        }
 
         if (shouldCancelConnection()) {
             return@withContext null
         }
     }
+    while (reply == null)
 
-    val all_data = reply.map { it.data.decodeToString() }
-    println("ALL DATA: $all_data")
-    println("\n\n\n")
+    val all_data: List<String> = reply.map { it.data.decodeToString() }
     val joined_reply: List<String> = SpMsSocketApi.decode(all_data)
     val server_handshake_data: String = joined_reply.first()
 

@@ -9,7 +9,6 @@ import com.toasterofbread.composekit.platform.PlatformPreferencesListener
 import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.settings.category.DesktopSettings
 import com.toasterofbread.spmp.model.settings.category.YoutubeAuthSettings
 import com.toasterofbread.spmp.platform.PlatformServiceImpl
 import com.toasterofbread.spmp.platform.PlayerListener
@@ -37,10 +36,7 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
     private val clients_result_channel: Channel<SpMsActionReply> = Channel()
     
     var socket_load_state: PlayerServiceLoadState by mutableStateOf(PlayerServiceLoadState(true))
-        private set
-
-    private fun getServerPort(): Int = DesktopSettings.Key.SERVER_PORT.get(context)
-    private fun getServerIp(): String = DesktopSettings.Key.SERVER_IP_ADDRESS.get(context)
+        protected set
 
     private fun getClientName(): String {
         val host: String = InetAddress.getLocalHost().hostName
@@ -49,14 +45,10 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
         return getString("app_name") + " [$os, $host]"
     }
 
+    internal val listeners: MutableList<PlayerListener> = mutableListOf()
     private val prefs_listener: PlatformPreferencesListener = object : PlatformPreferencesListener {
         override fun onChanged(prefs: PlatformPreferences, key: String) {
             when (key) {
-                DesktopSettings.Key.SERVER_IP_ADDRESS.getName(),
-                DesktopSettings.Key.SERVER_PORT.getName() -> {
-                    restart_connection = true
-                    cancel_connection = true
-                }
                 YoutubeAuthSettings.Key.YTM_AUTH.getName() -> {
                     sendYtmAuthToPlayers()
                 }
@@ -69,14 +61,14 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
     private val http_client: OkHttpClient = OkHttpClient()
     private val json: Json = Json { ignoreUnknownKeys = true }
     private val queued_messages: MutableList<Pair<String, List<Any?>>> = mutableListOf()
-    private var cancel_connection: Boolean = false
-    private var restart_connection: Boolean = false
+
+    protected var restart_connection: Boolean = false
+    protected var cancel_connection: Boolean = false
 
     private val poll_coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
-    private val connect_coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
+    private val connect_coroutine_scope: CoroutineScope = CoroutineScope(Job())
     private val player_status_coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 
-    internal abstract val listeners: List<PlayerListener>
     internal var playlist: MutableList<Song> = mutableListOf()
         private set
     
@@ -117,123 +109,154 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
 
     override fun onCreate() {
         context.getPrefs().addListener(prefs_listener)
-
         socket = zmq.createSocket(SocketType.DEALER)
-        socket.connectToServer()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        poll_coroutine_scope.cancel()
-        connect_coroutine_scope.cancel()
+        disconnectFromServer()
         context.getPrefs().removeListener(prefs_listener)
     }
 
     private fun onSocketConnectionLost(expired_timeout_ms: Long) {
         println("Connection to server timed out after ${expired_timeout_ms}ms, reconnecting...")
-        socket.connectToServer()
+
+        connected_server?.run {
+            connect_coroutine_scope.launchSingle {
+                socket.connectSocketToServer({ip}, {port})
+            }
+        }
     }
 
-    private fun ZMQ.Socket.connectToServer() {
-        connect_coroutine_scope.launch {
-            do {
-                connected_server = null
-                cancel_connection = false
-                restart_connection = false
-                
-                val ip: String = getServerIp()
-                val port: Int = getServerPort()
-                val protocol: String = "tcp"
-                val server_url = "$protocol://$ip:$port"
+    suspend fun connectToServer(
+        ip: String,
+        port: Int,
+        timeout: Long? = null
+    ) {
+        connectToServer({ip}, {port}, timeout)
+    }
 
-                val handshake: SpMsClientHandshake =
-                    SpMsClientHandshake(
-                        name = getClientName(),
-                        type = SpMsClientType.SPMP_STANDALONE,
-                        machine_id = getSpMsMachineId(),
-                        language = context.getUiLanguage()
-                    )
+    suspend fun connectToServer(
+        getIp: () -> String,
+        getPort: () -> Int,
+        timeout: Long? = null
+    ) {
+        check(connected_server == null)
+        socket.connectSocketToServer(getIp, getPort, timeout)
+    }
 
-                val server_handshake: SpMsServerHandshake? =
-                    tryConnectToServer(
-                        server_url = server_url,
-                        handshake = handshake,
-                        json = json,
-                        shouldCancelConnection = { cancel_connection },
-                        setLoadState = { socket_load_state = it }
-                    )
+    fun disconnectFromServer() {
+        connect_coroutine_scope.coroutineContext.cancelChildren()
+        poll_coroutine_scope.coroutineContext.cancelChildren()
+        player_status_coroutine_scope.coroutineContext.cancelChildren()
+        connected_server = null
+    }
 
-                if (server_handshake == null) {
-                    disconnect(server_url)
-                    continue
-                }
+    private suspend fun ZMQ.Socket.connectSocketToServer(
+        getIp: () -> String,
+        getPort: () -> Int,
+        timeout: Long? = null,
+    ) = withContext(Dispatchers.Default) {
+        do {
+            connected_server = null
+            cancel_connection = false
+            restart_connection = false
 
-                connected_server = ClientServerPlayerService.ServerInfo(
-                    ip = ip,
-                    port = port,
-                    protocol = protocol,
-                    name = server_handshake.name,
-                    device_name = server_handshake.device_name,
-                    machine_id = server_handshake.machine_id,
-                    spms_git_commit_hash = server_handshake.spms_commit_hash
+            val ip: String = getIp()
+            val port: Int = getPort()
+            val protocol: String = "tcp"
+            val server_url = "$protocol://$ip:$port"
+
+            val handshake: SpMsClientHandshake =
+                SpMsClientHandshake(
+                    name = getClientName(),
+                    type = SpMsClientType.SPMP_STANDALONE,
+                    machine_id = getSpMsMachineId(context),
+                    language = context.getUiLanguage()
                 )
 
-                var server_state_applied: Boolean = false
+            val server_handshake: SpMsServerHandshake? =
+                tryConnectToServer(
+                    server_url = server_url,
+                    handshake = handshake,
+                    json = json,
+                    timeout = timeout,
+                    shouldCancelConnection = { cancel_connection },
+                    setLoadState = { socket_load_state = it }
+                )
 
-                poll_coroutine_scope.launchSingle {
-                    val context: ZMQ.Context = ZMQ.context(1)
-                    val poller: ZMQ.Poller = context.poller()
-                    poller.register(socket, ZMQ.Poller.POLLIN)
+            if (server_handshake == null) {
+                disconnect(server_url)
+                continue
+            }
 
-                    var queued_events: MutableList<SpMsPlayerEvent>? = mutableListOf()
+            connected_server = ClientServerPlayerService.ServerInfo(
+                ip = ip,
+                port = port,
+                protocol = protocol,
+                name = server_handshake.name,
+                device_name = server_handshake.device_name,
+                machine_id = server_handshake.machine_id,
+                spms_git_commit_hash = server_handshake.spms_commit_hash
+            )
 
-                    while (true) {
-                        delay(POLL_STATE_INTERVAL)
+            var server_state_applied: Boolean = false
 
-                        synchronized(this@launch) {
-                            if (server_state_applied && queued_events != null) {
-                                for (event in queued_events!!) {
-                                    applyPlayerEvent(event)
-                                }
-                                queued_events = null
-                            }
-                        }
+            poll_coroutine_scope.launchSingle {
+                val context: ZMQ.Context = ZMQ.context(1)
+                val poller: ZMQ.Poller = context.poller()
+                poller.register(socket, ZMQ.Poller.POLLIN)
 
-                        val poll_successful: Boolean =
-                            pollServerState(poller, POLL_TIMEOUT_MS) { event ->
-                                queued_events?.also {
-                                    it.add(event)
-                                    return@also
-                                }
+                var queued_events: MutableList<SpMsPlayerEvent>? = mutableListOf()
 
+                while (true) {
+                    synchronized(this@withContext) {
+                        if (server_state_applied && queued_events != null) {
+                            for (event in queued_events!!) {
                                 applyPlayerEvent(event)
                             }
-
-                        if (!poll_successful) {
-                            onSocketConnectionLost(POLL_TIMEOUT_MS)
-                            break
+                            queued_events = null
                         }
                     }
+
+                    val poll_successful: Boolean =
+                        pollServerState(poller, POLL_TIMEOUT_MS) { event ->
+                            queued_events?.also {
+                                it.add(event)
+                                return@also
+                            }
+
+                            applyPlayerEvent(event)
+                        }
+
+                    println("POLL RESULT $poll_successful")
+
+                    if (!poll_successful) {
+                        onSocketConnectionLost(POLL_TIMEOUT_MS)
+                        break
+                    }
+
+                    delay(POLL_STATE_INTERVAL)
                 }
-
-                applyServerState(server_handshake.server_state, this) { status ->
-                    socket_load_state =
-                        PlayerServiceLoadState(
-                            true,
-                            getString("desktop_splash_setting_initial_state") + status?.let { " ($it)" }.orEmpty()
-                        )
-                }
-
-                socket_load_state = PlayerServiceLoadState(false)
-
-                synchronized(this) {
-                    server_state_applied = true
-                }
-
-                sendYtmAuthToPlayers()
             }
-            while (restart_connection)
+
+            applyServerState(server_handshake.server_state) { status ->
+                socket_load_state =
+                    PlayerServiceLoadState(
+                        true,
+                        getString("desktop_splash_setting_initial_state") + status?.let { " ($it)" }.orEmpty()
+                    )
+            }
+
+            socket_load_state = PlayerServiceLoadState(false)
+
+            synchronized(this@withContext) {
+                server_state_applied = true
+            }
+
+            sendYtmAuthToPlayers()
         }
+        while (restart_connection)
     }
 
     private fun ZMQ.Socket.pollServerState(poller: ZMQ.Poller, timeout: Long = -1, onEvent: (SpMsPlayerEvent) -> Unit): Boolean {
@@ -379,7 +402,7 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
                 SpMsClientHandshake(
                     name = getClientName(),
                     type = SpMsClientType.SPMP_STANDALONE,
-                    machine_id = getSpMsMachineId(),
+                    machine_id = getSpMsMachineId(context),
                     language = context.getUiLanguage()
                 )
 
@@ -412,7 +435,7 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
     private suspend fun getLocalPlayers(): Result<List<SpMsClientInfo>> =
         getPeers().fold(
             {
-                val machine_id: String = getSpMsMachineId()
+                val machine_id: String = getSpMsMachineId(context)
                 Result.success(
                     it.filter { peer ->
                         !peer.is_caller && peer.player_port != null && peer.machine_id == machine_id
@@ -428,6 +451,14 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
                 YoutubeApi.UserAuthState.unpackSetData(YoutubeAuthSettings.Key.YTM_AUTH.get(context), context).takeIf { it.first != null }
             sendAuthInfoToPlayers(ytm_auth)
         }
+    }
+
+    override fun addListener(listener: PlayerListener) {
+        listeners.add(listener)
+    }
+
+    override fun removeListener(listener: PlayerListener) {
+        listeners.remove(listener)
     }
 }
 

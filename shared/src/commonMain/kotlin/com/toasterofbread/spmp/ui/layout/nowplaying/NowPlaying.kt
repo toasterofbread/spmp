@@ -44,7 +44,7 @@ import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.model.settings.rememberMutableEnumState
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.form_factor
-import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
+import com.toasterofbread.spmp.platform.playerservice.PlayerService
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
@@ -192,7 +192,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
                 return@LaunchedEffect
             }
 
-            val service: PlatformPlayerService = player.controller ?: return@LaunchedEffect
+            val service: PlayerService = player.controller ?: return@LaunchedEffect
             val anchor: Float = swipe_anchors.keys.first()
             val delta: Long = 50
             val time_threshold: Float = overscroll_clear_time * 1000

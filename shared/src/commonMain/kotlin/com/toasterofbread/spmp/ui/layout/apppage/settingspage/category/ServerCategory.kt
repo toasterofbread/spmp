@@ -1,35 +1,23 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
+import LocalPlayerState
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.toasterofbread.composekit.settings.ui.item.GroupSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.InfoTextSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.composekit.settings.ui.item.TextFieldSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.ToggleSettingsItem
-import com.toasterofbread.spmp.model.settings.category.DesktopSettings
+import com.toasterofbread.spmp.model.settings.category.ServerSettings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
+import com.toasterofbread.spmp.platform.playerservice.PlatformInternalPlayerService
 
-internal fun getDesktopCategoryItems(): List<SettingsItem> {
-    return listOf(
-        GroupSettingsItem(
-            getString("s_group_desktop_system")
-        ),
+@Composable
+private fun isInternalServerAvailable(): Boolean =
+    PlatformInternalPlayerService.isAvailable(LocalPlayerState.current.context)
 
-        TextFieldSettingsItem(
-            SettingsValueState(DesktopSettings.Key.STARTUP_COMMAND.getName()),
-            getString("s_key_startup_command"), getString("s_sub_startup_command"),
-            getFieldModifier = { Modifier.appTextField() }
-        ),
-
-        GroupSettingsItem(
-            getString("s_group_server")
-        )
-    ) + getServerGroupItems()
-}
-
-fun getServerGroupItems(): List<SettingsItem> {
+internal fun getServerCategoryItems(): List<SettingsItem> {
     // (I will never learn regex)
     // https://stackoverflow.com/a/36760050
     val ip_regex: Regex = "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}\$".toRegex()
@@ -39,14 +27,38 @@ fun getServerGroupItems(): List<SettingsItem> {
     check(ip_regex.matches("127.0.0.1"))
     check(port_regex.matches("1111"))
 
-    return listOf(
+    return listOfNotNull(
         InfoTextSettingsItem(
             getString("s_info_server")
         ),
 
+        ToggleSettingsItem(
+            SettingsValueState(ServerSettings.Key.ENABLE_EXTERNAL_SERVER_MODE.getName()),
+            getString("s_key_enable_external_server_mode"), getString("s_sub_enable_external_server_mode"),
+            getEnabled = {
+                isInternalServerAvailable()
+            },
+            getValueOverride = {
+                if (!isInternalServerAvailable()) {
+                    true
+                }
+                else {
+                    null
+                }
+            },
+            getSubtitleOverride = {
+                if (!isInternalServerAvailable()) {
+                    getString("s_sub_always_enabled_because_spms_not_packaged")
+                }
+                else {
+                    null
+                }
+            }
+        ),
+
         TextFieldSettingsItem(
-            SettingsValueState(DesktopSettings.Key.SERVER_IP_ADDRESS.getName()),
-            getString("s_key_server_ip"), null,
+            SettingsValueState(ServerSettings.Key.EXTERNAL_SERVER_IP_ADDRESS.getName()),
+            getString("s_key_external_server_ip"), null,
             getStringError = { input ->
                 if (!ip_regex.matches(input)) {
                     return@TextFieldSettingsItem getString("settings_value_not_ipv4")
@@ -58,7 +70,7 @@ fun getServerGroupItems(): List<SettingsItem> {
 
         TextFieldSettingsItem(
             SettingsValueState(
-                DesktopSettings.Key.SERVER_PORT.getName(),
+                ServerSettings.Key.SERVER_PORT.getName(),
                 getValueConverter = {
                     it?.toString()
                 },
@@ -76,20 +88,9 @@ fun getServerGroupItems(): List<SettingsItem> {
             getFieldModifier = { Modifier.appTextField() }
         ),
 
-        TextFieldSettingsItem(
-            SettingsValueState(DesktopSettings.Key.SERVER_LOCAL_COMMAND.getName()),
-            getString("s_key_local_server_command"), getString("s_sub_local_server_command"),
-            getFieldModifier = { Modifier.appTextField() }
-        ),
-
         ToggleSettingsItem(
-            SettingsValueState(DesktopSettings.Key.SERVER_LOCAL_START_AUTOMATICALLY.getName()),
-            getString("s_key_server_local_start_automatically"), getString("s_sub_server_local_start_automatically")
-        ),
-
-        ToggleSettingsItem(
-            SettingsValueState(DesktopSettings.Key.SERVER_KILL_CHILD_ON_EXIT.getName()),
-            getString("s_key_server_kill_child_on_exit"), null
+            SettingsValueState(ServerSettings.Key.KILL_CHILD_SERVER_ON_EXIT.getName()),
+            getString("s_key_kill_child_server_on_exit"), null
         )
     )
 }

@@ -216,7 +216,7 @@ private fun ClientInfoDisplay(client: SpMsClientInfo, modifier: Modifier = Modif
     val player: PlayerState = LocalPlayerState.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
-    val machine_id: String = remember { getSpMsMachineId() }
+    val machine_id: String = remember { getSpMsMachineId(player.context) }
 
     Card(
         modifier,

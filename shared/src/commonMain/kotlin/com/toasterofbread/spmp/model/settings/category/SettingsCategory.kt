@@ -121,6 +121,7 @@ sealed class SettingsCategory(id: String) {
                 YoutubeAuthSettings,
 
                 SystemSettings,
+                ServerSettings,
                 BehaviourSettings,
                 PlayerSettings,
                 FeedSettings,
@@ -131,7 +132,6 @@ sealed class SettingsCategory(id: String) {
                 DiscordAuthSettings,
                 FilterSettings,
                 StreamingSettings,
-                DesktopSettings,
                 MiscSettings,
 
                 YTApiSettings,

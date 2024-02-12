@@ -1,4 +1,3 @@
-import com.android.build.gradle.internal.tasks.factory.dependsOn
 import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
 import java.util.*
@@ -185,7 +184,7 @@ kotlin {
                 implementation("androidx.palette:palette:1.0.0")
                 implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
 
-                val media3_version = "1.2.0"
+                val media3_version: String = "1.2.0"
                 implementation("androidx.media3:media3-exoplayer:$media3_version")
                 implementation("androidx.media3:media3-ui:$media3_version")
                 implementation("androidx.media3:media3-session:$media3_version")
@@ -245,7 +244,7 @@ android {
     }
 }
 
-// Version specification isn't needed, but must remain for backwards-compatibility
+// Version specification isn't used, but remains for backwards-compatibility
 val DATABASE_VERSION: Int = 3
 
 sqldelight {
@@ -338,7 +337,7 @@ fun getCurrentGitTag(): String? {
     try {
         return cmd("git", "tag", "--points-at", "HEAD").ifBlank { null }
     }
-    catch (e: Throwable) {
+    catch (_: Throwable) {
         return null
     }
 }
@@ -347,7 +346,7 @@ fun getCurrentGitCommitHash(): String? {
     try {
         return cmd("git", "rev-parse", "HEAD").ifBlank { null }
     }
-    catch (e: Throwable) {
+    catch (_: Throwable) {
         return null
     }
 }

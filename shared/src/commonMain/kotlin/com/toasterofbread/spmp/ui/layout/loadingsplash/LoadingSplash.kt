@@ -1,50 +1,26 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
-package com.toasterofbread.spmp.ui.layout.apppage.mainpage
+package com.toasterofbread.spmp.ui.layout.loadingsplash
 
 import LocalPlayerState
-import ProgramArguments
+import SpMp.isDebugBuild
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -52,20 +28,21 @@ import com.toasterofbread.composekit.utils.common.bitmapResource
 import com.toasterofbread.composekit.utils.common.blockGestures
 import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.composekit.utils.common.toFloat
-import com.toasterofbread.spmp.platform.splash.SplashExtraLoadingContent
+import com.toasterofbread.spmp.platform.playerservice.PlayerServiceLoadState
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import kotlinx.coroutines.delay
 
-private const val MESSAGE_DELAY: Long = 2000L
+private const val MESSAGE_DISPLAY_DELAY: Long = 1000L
 enum class SplashMode {
     SPLASH, WARNING
 }
 
 @Composable
-fun LoadingSplashView(
+fun LoadingSplash(
     splash_mode: SplashMode?,
-    loading_message: String?,
-    arguments: ProgramArguments,
+    load_state: PlayerServiceLoadState?,
     modifier: Modifier = Modifier
 ) {
     val player: PlayerState = LocalPlayerState.current
@@ -73,7 +50,7 @@ fun LoadingSplashView(
     var show_message: Boolean by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        delay(MESSAGE_DELAY)
+        delay(MESSAGE_DISPLAY_DELAY)
         show_message = true
     }
 
@@ -131,10 +108,21 @@ fun LoadingSplashView(
                             verticalArrangement = Arrangement.spacedBy(10.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            if (loading_message != null) {
-                                Text(loading_message, Modifier.padding(horizontal = 20.dp), color = player.theme.on_background)
+                            if (load_state?.error != null) {
+                                ErrorInfoDisplay(
+                                    load_state.error,
+                                    isDebugBuild(),
+                                    onDismiss = null,
+                                    expanded_content_modifier = Modifier.height(300.dp)
+                                )
                             }
-                            LinearProgressIndicator(Modifier.fillMaxWidth(), color = player.theme.accent)
+                            else {
+                                if (load_state?.loading_message != null) {
+                                    Text(load_state.loading_message, Modifier.padding(horizontal = 20.dp), color = player.theme.on_background)
+                                }
+                                
+                                LinearProgressIndicator(Modifier.fillMaxWidth(), color = player.theme.accent)
+                            }
                         }
                     }
 
@@ -144,8 +132,7 @@ fun LoadingSplashView(
                             .thenIf(!show_message) {
                                 blockGestures()
                             }
-                            .graphicsLayer { alpha = extra_content_alpha },
-                        arguments = arguments
+                            .graphicsLayer { alpha = extra_content_alpha }
                     )
                 }
             }

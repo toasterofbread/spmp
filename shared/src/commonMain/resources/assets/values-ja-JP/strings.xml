@@ -221,6 +221,7 @@
     <string name="error_message_generic">エラーが発生しました</string>
     <string name="error_yt_feed_parse_failed">YouTubeフィード解析に失敗しました</string>
     <string name="error_player_service_not_connected">プレイヤーサービスとの接続がありません&#xA;バグが発生してる可能性があります</string>
+    <string name="error_while_connecting_to_server_at_$x">$xのサーバーに接続中にエラーが発生しました</string>
     <string name="error_on_server_command_execution">サーバーコマンドの実行中にエラーが発生しました</string>
 
     <string name="desktop_splash_connecting_to_server_at_$x">$x のサーバーに接続中</string>
@@ -560,21 +561,19 @@
     <string name="s_discord_status_enable">有効にする</string>
     <string name="s_discord_status_disable">無効にする</string>
 
-    <string name="s_group_desktop_system">システム</string>
-
     <string name="s_key_startup_command">開始コマンド</string>
     <string name="s_sub_startup_command">プログラム開始時に一回実行されるコマンド</string>
 
-    <string name="s_group_server">サーバー</string>
     <string name="s_info_server">SpMpのサーバー部分(SpMs)が設定されたIPアドレスとポートで実行されていなければなりません。https://github.com/toasterofbread/spmp-server</string>
 
-    <string name="s_key_server_ip">サーバーのIPアドレス</string>
+    <string name="s_key_enable_external_server_mode">外部サーバーモード</string>
+    <string name="s_sub_enable_external_server_mode">このアプリ専用のサーバーを内部で実行せず、以下に設定さている外部サーバーに接続する</string>
+
+    <string name="s_sub_always_enabled_because_spms_not_packaged">このSpMpビルドはSpMsとパッケージされていないため、このオプションは常にオンになっています</string>
+
+    <string name="s_key_external_server_ip">外部サーバーのIPアドレス</string>
     <string name="s_key_server_port">サーバーのポート</string>
-    <string name="s_key_local_server_command">サーバー実行のコマンド</string>
-    <string name="s_sub_local_server_command">SpMp内からサーバーを手動で実行するのに使われるコマンド&#xA;「$@」の最初の出現はサーバーへのアーギュメントに置き換えられ、「$@」がなければコマンドに直接追加されます</string>
-    <string name="s_key_server_local_start_automatically">自動的にサーバーを実行する</string>
-    <string name="s_sub_server_local_start_automatically">アプリ開始時にサーバーが見つからなければ、設定されたコマンドで自動的にサーバーを実行します</string>
-    <string name="s_key_server_kill_child_on_exit">終了時に子プロセスのサーバーを停止</string>
+    <string name="s_key_kill_child_server_on_exit">終了時に子プロセスのサーバーを停止</string>
 
     <string name="s_cat_development">開発</string>
 
@@ -648,8 +647,8 @@
     <string name="s_cat_streaming">再生</string>
     <string name="s_cat_desc_streaming">音質や再生の調節</string>
 
-    <string name="s_cat_desktop">デスクトップ</string>
-    <string name="s_cat_desc_desktop">SpMpのデスクトップ版のみの設定</string>
+    <string name="s_cat_server">サーバー</string>
+    <string name="s_cat_desc_server">spmp-serverへの接続の設定</string>
 
     <string name="s_cat_misc">その他</string>
     <string name="s_cat_desc_misc">キャッシュなどの設定</string>

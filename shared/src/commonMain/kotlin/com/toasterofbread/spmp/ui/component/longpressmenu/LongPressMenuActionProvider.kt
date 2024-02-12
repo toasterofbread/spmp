@@ -30,7 +30,7 @@ import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
+import com.toasterofbread.spmp.platform.playerservice.PlayerService
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.theme.appHover
@@ -53,7 +53,7 @@ class LongPressMenuActionProvider(
         onLongClick: ((active_queue_index: Int) -> Unit)? = null
     ) {
         val player: PlayerState = LocalPlayerState.current
-        val service: PlatformPlayerService = LocalPlayerState.current.controller ?: return
+        val service: PlayerService = LocalPlayerState.current.controller ?: return
         
         var active_queue_item: Song? by remember { mutableStateOf(null) }
         AnimatedVisibility(service.service_player.active_queue_index < player.status.m_song_count) {

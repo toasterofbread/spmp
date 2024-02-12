@@ -2,14 +2,7 @@ package com.toasterofbread.spmp.ui.layout.nowplaying.overlay.lyrics
 
 import LocalPlayerState
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
@@ -28,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
+import com.toasterofbread.spmp.platform.playerservice.PlayerService
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.AnnotatedReadingTerm
 
@@ -110,7 +103,7 @@ fun LyricsSyncMenu(
 }
 
 @Composable
-private fun PlayerControls(service: PlatformPlayerService?, onSelected: () -> Unit) {
+private fun PlayerControls(service: PlayerService?, onSelected: () -> Unit) {
     val button_modifier = Modifier.size(40.dp)
 
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {

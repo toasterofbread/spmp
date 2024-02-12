@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.platform
 
+import ProgramArguments
 import android.app.Activity
 import android.content.Context
 import com.toasterofbread.composekit.platform.ApplicationContext
@@ -24,6 +25,7 @@ actual class AppContext(
         lateinit var main_activity: Class<out Activity>
     }
 
+    actual val launch_arguments: ProgramArguments = ProgramArguments()
     actual val database: Database = createDatabase()
     actual val download_manager = PlayerDownloadManager(this)
     actual val ytapi: YoutubeApi

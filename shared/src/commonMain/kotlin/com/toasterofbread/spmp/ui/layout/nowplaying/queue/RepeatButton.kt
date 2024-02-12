@@ -22,7 +22,7 @@ import com.toasterofbread.composekit.utils.common.getInnerSquareSizeOfCircle
 import com.toasterofbread.composekit.utils.composable.crossOut
 import com.toasterofbread.composekit.utils.modifier.background
 import spms.socketapi.shared.SpMsPlayerRepeatMode
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlin.math.roundToInt
 
 @Composable

@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.platform
 
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
 enum class FormFactor {
     PORTRAIT,

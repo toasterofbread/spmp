@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.platform.playerservice
 
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.boolean
@@ -104,9 +105,21 @@ internal fun SpMsPlayerService.applyPlayerEvent(event: SpMsPlayerEvent) {
         SpMsPlayerEvent.Type.ITEM_MOVED -> {
             val to: Int = event.properties["to"]!!.int
             val from: Int = event.properties["from"]!!.int
-            playlist.add(to, playlist.removeAt(from))
+
+            val song: Song = playlist.removeAt(from)
+            playlist.add(to, song)
+
+            if (from == _current_song_index) {
+                _current_song_index = to
+            }
+
             listeners.forEach {
                 it.onSongMoved(from, to)
+
+                if (from == _current_song_index) {
+                    it.onSongTransition(song, true)
+                }
+
                 it.onEvents()
             }
         }

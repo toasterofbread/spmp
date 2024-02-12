@@ -44,10 +44,11 @@ import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.platform.download.rememberSongDownloads
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
+import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.endpoint.LoadPlaylistEndpoint
 import com.toasterofbread.spmp.youtubeapi.implementedOrNull
@@ -116,9 +117,11 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
             }
         }
 
-        CompositionLocalProvider(LocalPlayerState provides remember { player.copy(onClickedOverride = { item, index ->
-            onSongClicked(sorted_songs, player, item as Song, index!!)
-        }) }) {
+        CompositionLocalProvider(LocalPlayerClickOverrides provides LocalPlayerClickOverrides.current.copy(
+            onClickOverride = { item, index ->
+                onSongClicked(sorted_songs, player, item as Song, index!!)
+            }
+        )) {
             Column(modifier) {
                 EmptyListCrossfade(sorted_songs) { current_songs ->
                     ScrollBarLazyColumn(

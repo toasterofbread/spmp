@@ -13,8 +13,8 @@ internal class KugouLyricsSource(source_idx: Int): LyricsSource(source_idx) {
     override fun getColour(): Color = Color(0xFF50A6FB)
     override fun getUrlOfId(id: String): String? = null
 
-    override suspend fun getLyrics(lyrics_id: String, context: AppContext): Result<SongLyrics> {
-        val load_result: Result<List<List<SongLyrics.Term>>> = loadKugouLyrics(lyrics_id)
+    override suspend fun getLyrics(lyrics_id: String, context: AppContext, tokeniser: LyricsFuriganaTokeniser): Result<SongLyrics> {
+        val load_result: Result<List<List<SongLyrics.Term>>> = loadKugouLyrics(lyrics_id, tokeniser)
         val lines: List<List<SongLyrics.Term>> = load_result.getOrNull() ?: return load_result.cast()
 
         return Result.success(

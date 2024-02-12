@@ -4,7 +4,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.TouchApp
 import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.spmp.model.settings.SettingsKey
-import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getBehaviourCategoryItems
 

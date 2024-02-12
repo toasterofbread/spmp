@@ -20,9 +20,11 @@ import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreview
 import com.toasterofbread.spmp.model.mediaitem.rememberFilteredItems
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
+import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
+import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
 const val MEDIAITEM_LIST_DEFAULT_SPACING_DP: Float = 10f
 
@@ -57,6 +59,7 @@ fun MediaItemList(
 ) {
     val filtered_items: List<MediaItem> by items.rememberFilteredItems(apply_filter)
     val player: PlayerState = LocalPlayerState.current
+    val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
     Column(modifier.padding(content_padding), verticalArrangement = Arrangement.spacedBy(MEDIAITEM_LIST_DEFAULT_SPACING_DP.dp)) {
         TitleBar(
@@ -68,24 +71,26 @@ fun MediaItemList(
             multiselect_context = multiselect_context
         )
 
-        CompositionLocalProvider(LocalPlayerState provides remember(play_as_list) {
-            player.copy(onClickedOverride = { item, index ->
-                if (play_as_list && item is Song) {
-                    player.withPlayer {
-                        undoableAction {
-                            addMultipleToQueue(
-                                filtered_items.filterIsInstance<Song>(),
-                                clear = true
-                            )
+        CompositionLocalProvider(LocalPlayerClickOverrides provides remember(play_as_list) {
+            click_overrides.copy(
+                onClickOverride = { item, index ->
+                    if (play_as_list && item is Song) {
+                        player.withPlayer {
+                            undoableAction {
+                                addMultipleToQueue(
+                                    filtered_items.filterIsInstance<Song>(),
+                                    clear = true
+                                )
 
-                            seekToSong(index!!)
+                                seekToSong(index!!)
+                            }
                         }
                     }
+                    else {
+                        click_overrides.onMediaItemClicked(item, player, multiselect_key = index)
+                    }
                 }
-                else {
-                    player.onMediaItemClicked(item, index)
-                }
-            })
+            )
         }) {
             for (item in filtered_items.withIndex()) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {

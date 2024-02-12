@@ -460,7 +460,7 @@
 
     <string name="s_key_np_default_gradient_depth">默认渐变深度</string>
     <string name="s_key_np_default_background_image_opacity">默认横向背景图像透明度</string>
-    <string name="s_key_np_default_image_shadow_radius">默认图像阴影大小</string>
+    <string name="s_key_np_default_shadow_radius">默认图像阴影大小</string>
 
     <string name="s_key_lyrics_default_source">默认歌词来源</string>
 

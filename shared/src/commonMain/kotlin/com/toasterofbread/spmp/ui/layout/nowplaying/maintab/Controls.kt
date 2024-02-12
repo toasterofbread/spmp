@@ -42,8 +42,10 @@ import com.toasterofbread.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
+import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
@@ -135,6 +137,7 @@ internal fun Controls(
     textRowStartContent: @Composable RowScope.() -> Unit = {}
 ) {
     val player: PlayerState = LocalPlayerState.current
+    val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
     val song_title: String? by song?.observeActiveTitle()
     val song_artist_title: String? by song?.Artist?.observePropertyActiveTitle()
@@ -195,13 +198,13 @@ internal fun Controls(
                                 onClick = {
                                     val artist: Artist? = song?.Artist?.get(player.database)
                                     if (artist?.isForItem() == false) {
-                                        player.onMediaItemClicked(artist)
+                                        click_overrides.onMediaItemClicked(artist, player)
                                     }
                                 },
                                 onAltClick = {
                                     val artist: Artist? = song?.Artist?.get(player.database)
                                     if (artist?.isForItem() == false) {
-                                        player.onMediaItemLongClicked(artist)
+                                        click_overrides.onMediaItemLongClicked(artist, player)
                                         player.context.vibrateShort()
                                     }
                                 }

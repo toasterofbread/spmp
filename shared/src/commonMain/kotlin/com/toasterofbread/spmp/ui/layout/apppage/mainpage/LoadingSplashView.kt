@@ -54,6 +54,7 @@ import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.composekit.utils.common.toFloat
 import com.toasterofbread.spmp.platform.splash.SplashExtraLoadingContent
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.delay
 
 private const val MESSAGE_DELAY: Long = 2000L

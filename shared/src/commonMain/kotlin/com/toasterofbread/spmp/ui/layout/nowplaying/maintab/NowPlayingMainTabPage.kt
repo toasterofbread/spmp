@@ -17,7 +17,7 @@ import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.utils.common.getThemeColour
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 import kotlinx.coroutines.delay

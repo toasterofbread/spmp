@@ -41,7 +41,7 @@ import com.toasterofbread.spmp.model.mediaitem.layout.ViewMore
 import com.toasterofbread.spmp.model.mediaitem.layout.shouldShowTitleBar
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 

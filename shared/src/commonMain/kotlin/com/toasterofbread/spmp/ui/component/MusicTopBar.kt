@@ -51,8 +51,9 @@ import com.toasterofbread.spmp.model.settings.rememberMutableEnumState
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
+import com.toasterofbread.spmp.youtubeapi.lyrics.createFuriganaTokeniser
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -82,7 +83,7 @@ class MusicTopBar(val player: PlayerState) {
 
         coroutine_scope.launchSingle {
             val result: Result<SongLyrics>? =
-                if (reference != null) SongLyricsLoader.loadByLyrics(reference, player.context)
+                if (reference != null) SongLyricsLoader.loadByLyrics(reference, player.context, createFuriganaTokeniser())
                 else SongLyricsLoader.loadBySong(song, player.context)
 
             result?.onSuccess {

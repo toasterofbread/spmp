@@ -1,7 +1,9 @@
 package com.toasterofbread.spmp.youtubeapi.lyrics
 
 import androidx.compose.ui.graphics.Color
+import com.atilika.kuromoji.ipadic.Tokenizer
 import com.toasterofbread.composekit.platform.PlatformFile
+import com.toasterofbread.db.Database
 import com.toasterofbread.db.mediaitem.LyricsById
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
@@ -40,7 +42,7 @@ sealed class LyricsSource(val source_index: Int) {
     open suspend fun getReferenceBySong(song: Song, context: AppContext): Result<LyricsReference?> { throw NotImplementedError() }
 
     open fun supportsLyricsBySearching(): Boolean = true
-    abstract suspend fun getLyrics(lyrics_id: String, context: AppContext): Result<SongLyrics>
+    abstract suspend fun getLyrics(lyrics_id: String, context: AppContext, tokeniser: LyricsFuriganaTokeniser): Result<SongLyrics>
     abstract suspend fun searchForLyrics(title: String, artist_name: String? = null): Result<List<SearchResult>>
 
     fun referenceOfSource(id: String): LyricsReference =
@@ -74,9 +76,10 @@ sealed class LyricsSource(val source_index: Int) {
         suspend fun searchSongLyricsByPriority(
             song: Song,
             context: AppContext,
+            tokeniser: LyricsFuriganaTokeniser,
             default: Int = LyricsSettings.Key.DEFAULT_SOURCE.get()
         ): Result<SongLyrics> {
-            val db = context.database
+            val db: Database = context.database
             val (song_title, artist_title) = db.transactionWithResult {
                 Pair(
                     song.getActiveTitle(db),
@@ -133,7 +136,7 @@ sealed class LyricsSource(val source_index: Int) {
                     throw NotImplementedError(source::class.toString())
                 }
 
-                val lyrics_result = SongLyricsLoader.loadByLyrics(lyrics_reference, context)
+                val lyrics_result = SongLyricsLoader.loadByLyrics(lyrics_reference, context, tokeniser)
                 if (lyrics_result.isSuccess) {
                     return lyrics_result
                 }
@@ -148,15 +151,14 @@ sealed class LyricsSource(val source_index: Int) {
     }
 }
 
-suspend fun loadLyrics(reference: LyricsReference, context: AppContext): Result<SongLyrics> {
+suspend fun loadLyrics(reference: LyricsReference, context: AppContext, tokeniser: LyricsFuriganaTokeniser): Result<SongLyrics> {
     require(!reference.isNone())
 
     val source: LyricsSource = LyricsSource.fromIdx(reference.source_index)
-    return source.getLyrics(reference.id, context)
+    return source.getLyrics(reference.id, context, tokeniser)
 }
 
-internal fun parseStaticLyrics(lyrics_text: String): List<List<SongLyrics.Term>> {
-    val tokeniser = createFuriganaTokeniser()
+internal fun parseStaticLyrics(lyrics_text: String, tokeniser: LyricsFuriganaTokeniser): List<List<SongLyrics.Term>> {
     return lyrics_text.split('\n').map { line ->
         val terms: MutableList<SongLyrics.Term> = mutableListOf()
         val split = line.split(' ')
@@ -171,6 +173,6 @@ internal fun parseStaticLyrics(lyrics_text: String): List<List<SongLyrics.Term>>
             }
         }
 
-        mergeAndFuriganiseTerms(tokeniser, terms)
+        tokeniser.mergeAndFuriganiseTerms(terms)
     }
 }

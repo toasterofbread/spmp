@@ -72,8 +72,8 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
         ),
 
         AppSliderItem(
-            SettingsValueState(ThemeSettings.Key.NOWPLAYING_DEFAULT_IMAGE_SHADOW_RADIUS.getName()),
-            getString("s_key_np_default_image_shadow_radius"), null
+            SettingsValueState(ThemeSettings.Key.NOWPLAYING_DEFAULT_SHADOW_RADIUS.getName()),
+            getString("s_key_np_default_shadow_radius"), null
         )
     )
 }

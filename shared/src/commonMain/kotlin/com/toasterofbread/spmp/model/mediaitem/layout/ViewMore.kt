@@ -6,7 +6,7 @@ import com.toasterofbread.spmp.model.mediaitem.getMediaItemFromUid
 import com.toasterofbread.spmp.model.mediaitem.getUid
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
 sealed interface ViewMore {
     fun execute(player: PlayerState, title: LocalisedString?)

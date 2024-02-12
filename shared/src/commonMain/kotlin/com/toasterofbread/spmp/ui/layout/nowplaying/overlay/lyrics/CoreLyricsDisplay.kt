@@ -43,7 +43,7 @@ import com.toasterofbread.spmp.model.settings.category.LyricsSettings
 import com.toasterofbread.spmp.ui.component.AnnotatedReadingTerm
 import com.toasterofbread.spmp.ui.component.ReadingTextData
 import com.toasterofbread.spmp.ui.component.calculateReadingsAnnotatedString
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING_DP
 import kotlinx.coroutines.delay
 

@@ -31,7 +31,7 @@ import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.platform.generatePalette
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
@@ -131,8 +131,8 @@ class SongThemePlayerOverlayMenu(
                         }
                         
                         ValueSlider(
-                            song.ImageShadowRadius.observe(player.database),
-                            ThemeSettings.Key.NOWPLAYING_DEFAULT_IMAGE_SHADOW_RADIUS.get(),
+                            song.ShadowRadius.observe(player.database),
+                            ThemeSettings.Key.NOWPLAYING_DEFAULT_SHADOW_RADIUS.get(),
                             getString("song_theme_menu_image_shadow_radius")
                         )
                         

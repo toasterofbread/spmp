@@ -62,6 +62,20 @@ kotlin {
                 implementation(project(":shared"))
                 implementation(project(":ComposeKit:lib"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.6.4")
+
+                // LWJGL needed by gdx-nativefilechooser
+                val os_name: String = System.getProperty("os.name")
+                val lwjgl_os = when {
+                    os_name == "Linux" -> "linux"
+                    os_name.startsWith("Win") -> "windows"
+                    os_name == "Mac OS X" -> "macos"
+                    else -> throw Error("Unknown OS '$os_name'")
+                }
+                val lwjgl_version: String = "3.3.1"
+                for (lwjgl_library in listOf("lwjgl", "lwjgl-nfd")) {
+                    implementation("org.lwjgl:$lwjgl_library:$lwjgl_version")
+                    implementation("org.lwjgl:$lwjgl_library:$lwjgl_version:natives-$lwjgl_os")
+                }
             }
         }
     }

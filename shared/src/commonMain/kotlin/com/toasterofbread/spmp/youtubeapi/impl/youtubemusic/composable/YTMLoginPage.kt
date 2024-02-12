@@ -38,7 +38,7 @@ import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.AccountSelectionData
 import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.AccountSelectionPage
 import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.AccountSwitcherEndpoint

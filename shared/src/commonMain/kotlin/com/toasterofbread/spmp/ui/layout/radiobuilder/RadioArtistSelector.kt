@@ -38,7 +38,7 @@ import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getArtistThumbShape
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getLongPressMenuData
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderArtist
 
 @OptIn(ExperimentalFoundationApi::class)

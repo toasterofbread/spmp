@@ -12,7 +12,7 @@ import com.toasterofbread.composekit.utils.composable.getTop
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.platform.getFormFactor
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NowPlayingMainTabPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.NowPlayingQueuePage
 

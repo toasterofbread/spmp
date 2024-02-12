@@ -59,7 +59,7 @@ import com.toasterofbread.spmp.ui.component.WaveShape
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.CoroutineScope
 
 abstract class LibrarySubPage(val context: AppContext) {

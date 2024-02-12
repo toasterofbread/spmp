@@ -60,7 +60,7 @@ import com.toasterofbread.composekit.utils.modifier.background
 import com.toasterofbread.composekit.utils.modifier.disableParentScroll
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.youtubeapi.fromJson
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast

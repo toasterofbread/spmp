@@ -38,6 +38,7 @@ import com.toasterofbread.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -55,7 +56,7 @@ fun FilterSelectionPage(
     content_padding: PaddingValues,
     modifier: Modifier = Modifier
 ) {
-    val player = LocalPlayerState.current
+    val player: PlayerState = LocalPlayerState.current
 
     val builder_endpoint = player.context.ytapi.RadioBuilder
     check(builder_endpoint.isImplemented())

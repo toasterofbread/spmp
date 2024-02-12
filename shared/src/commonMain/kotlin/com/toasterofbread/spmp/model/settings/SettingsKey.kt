@@ -26,7 +26,10 @@ interface SettingsKey {
     }
 
     @Composable
-    fun <T> rememberMutableState(preferences: PlatformPreferences = Settings.prefs): MutableState<T> =
+    fun <T> rememberMutableState(): MutableState<T> = rememberMutableState(Settings.prefs)
+
+    @Composable
+    fun <T> rememberMutableState(preferences: PlatformPreferences): MutableState<T> =
         mutableSettingsState(this, preferences)
 }
 

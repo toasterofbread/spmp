@@ -62,7 +62,7 @@ import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
 val MEDIA_ITEM_PREVIEW_SQUARE_FONT_SIZE_SP: Float
     @Composable get() = if (LocalPlayerState.current.form_factor.is_large) 15f else 12f

@@ -4,8 +4,7 @@ import com.google.gson.Gson
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.youtubeapi.executeResult
 import com.toasterofbread.spmp.youtubeapi.fromJson
-import com.toasterofbread.spmp.youtubeapi.lyrics.createFuriganaTokeniser
-import com.toasterofbread.spmp.youtubeapi.lyrics.mergeAndFuriganiseTerms
+import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsFuriganaTokeniser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -18,7 +17,7 @@ import java.util.Base64
 
 private const val START_SKIP_LINES: Int = 0
 
-suspend fun loadKugouLyrics(hash: String): Result<List<List<SongLyrics.Term>>> =
+suspend fun loadKugouLyrics(hash: String, tokeniser: LyricsFuriganaTokeniser): Result<List<List<SongLyrics.Term>>> =
     withContext(Dispatchers.IO) { kotlin.runCatching {
         val request: Request = Request.Builder()
             .url(
@@ -76,10 +75,9 @@ suspend fun loadKugouLyrics(hash: String): Result<List<List<SongLyrics.Term>>> =
             term.value.line_range = term.value.start!! .. term.value.end!!
         }
 
-        val tokeniser = createFuriganaTokeniser()
         return@runCatching reverse_lines.asReversed().mapIndexedNotNull { index, line ->
             if (index < START_SKIP_LINES) null
-            else mergeAndFuriganiseTerms(tokeniser, listOf(line))
+            else tokeniser.mergeAndFuriganiseTerms(listOf(line))
         }
     }}
 

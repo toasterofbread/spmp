@@ -62,11 +62,13 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
+import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
@@ -82,6 +84,7 @@ internal fun LongPressMenuContent(
     onAction: () -> Unit
 ) {
     val player: PlayerState = LocalPlayerState.current
+    val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
     
     @Composable
     fun Thumb(modifier: Modifier) {
@@ -183,16 +186,12 @@ internal fun LongPressMenuContent(
                             val item_artist: Artist? by data.item.Artist.observe(player.database)
                             item_artist?.also { artist ->
                                 Marquee {
-                                    CompositionLocalProvider(
-                                        LocalPlayerState provides remember {
-                                            player.copy(
-                                                onClickedOverride = { item, _ ->
-                                                    onAction()
-                                                    player.onMediaItemClicked(item)
-                                                }
-                                            )
+                                    CompositionLocalProvider(LocalPlayerClickOverrides provides click_overrides.copy(
+                                        onClickOverride = { item, _ ->
+                                            onAction()
+                                            click_overrides.onMediaItemClicked(item, player)
                                         }
-                                    ) {
+                                    )) {
                                         MediaItemPreviewLong(artist)
                                     }
                                 }

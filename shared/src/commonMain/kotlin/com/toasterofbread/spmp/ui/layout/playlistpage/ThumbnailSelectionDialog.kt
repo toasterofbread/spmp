@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.ui.layout.playlistpage
 
-import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
@@ -33,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 
@@ -107,9 +107,9 @@ internal fun PlaylistPage.ThumbnailSelectionDialog(
                         Text(getString("playlist_empty"), Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
                     }
                     else {
-                        CompositionLocalProvider(LocalPlayerState provides remember {
-                            player.copy(
-                                onClickedOverride = { item, _ ->
+                        CompositionLocalProvider(LocalPlayerClickOverrides provides
+                            LocalPlayerClickOverrides.current.copy(
+                                onClickOverride = { item, _ ->
                                     setEditedImageUrl(
                                         item.ThumbnailProvider.get(player.database)
                                             ?.getThumbnailUrl(MediaItemThumbnailProvider.Quality.HIGH)
@@ -117,7 +117,7 @@ internal fun PlaylistPage.ThumbnailSelectionDialog(
                                     close()
                                 }
                             )
-                        }) {
+                        ) {
                             LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                                 items(items ?: emptyList()) { item ->
                                     MediaItemPreviewLong(item)

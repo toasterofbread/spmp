@@ -50,7 +50,7 @@ internal enum class PrefsPageScreen {
     UI_DEBUG_INFO
 }
 
-class SettingsAppPage(override val state: AppPageState, footer_modifier: Modifier): AppPage() {
+class SettingsAppPage(override val state: AppPageState, getFooterModifier: @Composable () -> Modifier): AppPage() {
     private val pill_menu: PillMenu = PillMenu(follow_player = true)
     val ytm_auth: SettingsValueState<Set<String>> =
         SettingsValueState<Set<String>>(
@@ -61,7 +61,7 @@ class SettingsAppPage(override val state: AppPageState, footer_modifier: Modifie
             state,
             pill_menu,
             ytm_auth,
-            footer_modifier,
+            getFooterModifier,
         )
 
     override fun onBackNavigation(): Boolean {

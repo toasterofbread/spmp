@@ -1,4 +1,4 @@
-rootProject.name = "SpMp"
+rootProject.name = "spmp"
 
 include(":ComposeKit:lib")
 include(":spmp-server")
@@ -11,6 +11,7 @@ pluginManagement {
         gradlePluginPortal()
         mavenCentral()
         google()
+        maven("https://oss.sonatype.org/content/repositories/snapshots/")
     }
 
     plugins {

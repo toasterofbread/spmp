@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.settings.ui.Theme
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlin.math.ceil
 import com.toasterofbread.composekit.utils.common.thenIf
 import androidx.compose.ui.draw.clipToBounds

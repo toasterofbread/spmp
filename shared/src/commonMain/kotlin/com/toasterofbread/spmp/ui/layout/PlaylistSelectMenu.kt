@@ -28,6 +28,7 @@ import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.library.rememberLocalPlaylists
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.rememberOwnedPlaylists
+import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 
@@ -67,19 +68,21 @@ fun PlaylistSelectMenu(
         refreshAccountPlaylists()
     }
 
-    CompositionLocalProvider(LocalPlayerState provides remember {
-        player.copy(onClickedOverride = { item, _ ->
-            check(item is Playlist)
-            
-            val index = selected.indexOf(item)
-            if (index != -1) {
-                selected.removeAt(index)
+    CompositionLocalProvider(
+        LocalPlayerClickOverrides provides LocalPlayerClickOverrides.current.copy(
+            onClickOverride = { item, _ ->
+                check(item is Playlist)
+
+                val index = selected.indexOf(item)
+                if (index != -1) {
+                    selected.removeAt(index)
+                }
+                else {
+                    selected.add(item)
+                }
             }
-            else {
-                selected.add(item)
-            }
-        })
-    }) {
+        )
+    ) {
         SwipeRefresh(
             loading,
             { refreshAccountPlaylists() },

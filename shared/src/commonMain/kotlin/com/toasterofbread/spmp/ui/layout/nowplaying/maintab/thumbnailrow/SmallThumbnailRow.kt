@@ -46,7 +46,7 @@ import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.model.settings.getEnum
 import com.toasterofbread.spmp.platform.getPixel
 import com.toasterofbread.spmp.ui.component.Thumbnail
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.EXPANDED_THRESHOLD
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.OVERLAY_MENU_ANIMATION_DURATION
@@ -323,10 +323,10 @@ fun SmallThumbnailRow(
 }
 
 @Composable
-internal fun Modifier.songThumbnailShadow(song: Song, shape: Shape): Modifier {
+internal fun Modifier.songThumbnailShadow(song: Song?, shape: Shape): Modifier {
     val player: PlayerState = LocalPlayerState.current
-    val default_shadow_radius: Float by ThemeSettings.Key.NOWPLAYING_DEFAULT_IMAGE_SHADOW_RADIUS.rememberMutableState()
-    val shadow_radius: Float? by song.ImageShadowRadius.observe(player.database)
+    val default_shadow_radius: Float by ThemeSettings.Key.NOWPLAYING_DEFAULT_SHADOW_RADIUS.rememberMutableState()
+    val shadow_radius: Float? by song?.ShadowRadius?.observe(player.database)
 
     return graphicsLayer {
         shadowElevation = (20.dp * (shadow_radius ?: default_shadow_radius)).toPx()

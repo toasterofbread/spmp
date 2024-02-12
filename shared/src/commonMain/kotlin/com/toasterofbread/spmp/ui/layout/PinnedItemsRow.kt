@@ -31,7 +31,7 @@ import com.toasterofbread.spmp.model.mediaitem.db.rememberPinnedItems
 import com.toasterofbread.spmp.model.mediaitem.db.setPinned
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
 @Composable
 fun PinnedItemsRow(

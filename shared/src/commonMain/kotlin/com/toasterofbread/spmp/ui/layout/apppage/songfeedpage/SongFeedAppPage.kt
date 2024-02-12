@@ -37,11 +37,11 @@ import com.toasterofbread.spmp.model.settings.mutableSettingsState
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.form_factor
+import com.toasterofbread.spmp.service.playercontroller.FeedLoadState
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.FeedLoadState
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedLoadResult
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast

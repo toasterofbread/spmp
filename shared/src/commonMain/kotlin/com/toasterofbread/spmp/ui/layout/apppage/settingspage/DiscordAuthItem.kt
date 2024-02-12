@@ -29,7 +29,7 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.DiscordAccountPreview
 import com.toasterofbread.spmp.ui.layout.DiscordLoginConfirmation
 import com.toasterofbread.spmp.platform.DiscordStatus
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
 fun getDiscordAuthItem(
     context: AppContext,

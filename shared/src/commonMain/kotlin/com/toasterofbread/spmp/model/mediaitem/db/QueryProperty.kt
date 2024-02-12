@@ -10,7 +10,7 @@ import androidx.compose.runtime.remember
 import app.cash.sqldelight.Query
 import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
 @Composable
 fun <T: MediaItem?> Property<T>.observePropertyActiveTitle(): State<String?>? {

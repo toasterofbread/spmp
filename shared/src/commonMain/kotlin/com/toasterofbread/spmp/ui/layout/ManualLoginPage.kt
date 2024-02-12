@@ -39,7 +39,7 @@ import com.toasterofbread.composekit.utils.composable.Marquee
 import com.toasterofbread.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.composekit.utils.modifier.horizontal
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 
 @Composable

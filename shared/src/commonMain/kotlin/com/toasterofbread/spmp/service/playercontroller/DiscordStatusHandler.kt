@@ -116,10 +116,10 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
 
                 val buttons: MutableList<Pair<String, String>> = mutableListOf<Pair<String, String>>().apply {
                     if (DiscordSettings.Key.SHOW_SONG_BUTTON.get(context)) {
-                        add(DiscordSettings.Key.SONG_BUTTON_TEXT.get<String>() to status_song.getURL(context))
+                        add(DiscordSettings.Key.SONG_BUTTON_TEXT.get<String>(context) to status_song.getURL(context))
                     }
                     if (DiscordSettings.Key.SHOW_PROJECT_BUTTON.get(context)) {
-                        add(DiscordSettings.Key.PROJECT_BUTTON_TEXT.get<String>() to getString("project_url"))
+                        add(DiscordSettings.Key.PROJECT_BUTTON_TEXT.get<String>(context) to getString("project_url"))
                     }
                 }
 

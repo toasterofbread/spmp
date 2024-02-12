@@ -19,7 +19,7 @@ import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.composekit.utils.common.isDark
 import com.toasterofbread.composekit.utils.composable.OnChangedEffect
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.runBlocking
 
 actual fun isWebViewLoginSupported(): Boolean = true

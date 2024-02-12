@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.spmp.model.settings.category.InternalSettings
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.SettingsAppPage
 import com.toasterofbread.spmp.ui.layout.radiobuilder.RADIO_BUILDER_ICON_WIDTH_DP

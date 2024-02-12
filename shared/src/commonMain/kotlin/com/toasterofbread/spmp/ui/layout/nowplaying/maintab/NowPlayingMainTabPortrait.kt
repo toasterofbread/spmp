@@ -44,9 +44,11 @@ import com.toasterofbread.composekit.platform.composable.composeScope
 import com.toasterofbread.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.PlayerSettings
+import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
+import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.bottom_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.horizontal_padding
@@ -70,6 +72,7 @@ private fun BoxWithConstraintsScope.getThumbnailSize(): Dp {
 @Composable
 internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(page_height: Dp, top_bar: NowPlayingTopBar, content_padding: PaddingValues, modifier: Modifier = Modifier) {
     val player: PlayerState = LocalPlayerState.current
+    val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
     val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
 
     val current_song: Song? by player.status.song_state
@@ -201,7 +204,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(page_height: Dp, to
                                 {
                                     current_song?.let { song ->
                                         if (1f - expansion.getDisappearing() > 0f) {
-                                            player.onMediaItemLongClicked(song, player.status.m_index)
+                                            click_overrides.onMediaItemLongClicked(song, player.status.m_index, player)
                                         }
                                     }
                                 }

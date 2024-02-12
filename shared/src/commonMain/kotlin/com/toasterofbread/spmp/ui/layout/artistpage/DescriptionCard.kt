@@ -41,7 +41,7 @@ import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.composekit.utils.composable.LinkifyText
 import com.toasterofbread.composekit.utils.composable.NoRipple
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
 @Composable
 fun DescriptionCard(description_text: String, expanding: Boolean = true, height: Dp = 200.dp) {

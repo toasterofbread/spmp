@@ -120,7 +120,7 @@ object JAudioTaggerMetadataProcessor: MetadataProcessor {
                     AudioFileIO.read(File(file.absolute_path)).tag
                 }
                 catch (e: Throwable) {
-                    RuntimeException(file.absolute_path, e).printStackTrace()
+                    RuntimeException("Ignoring exception while reading ${file.absolute_path}", e).printStackTrace()
                     return@withContext null
                 }
 

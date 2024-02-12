@@ -477,7 +477,7 @@
 
     <string name="s_key_np_default_gradient_depth">Default gradient depth</string>
     <string name="s_key_np_default_background_image_opacity">Default landscape background image opacity</string>
-    <string name="s_key_np_default_image_shadow_radius">Default image shadow size</string>
+    <string name="s_key_np_default_shadow_radius">Default shadow size</string>
 
     <string name="s_key_lyrics_default_source">Default lyrics source</string>
 

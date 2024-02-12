@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.ui.layout.apppage.mainpage
+package com.toasterofbread.spmp.service.playercontroller
 
 import LocalPlayerState
 import SpMp
@@ -24,9 +24,11 @@ import androidx.compose.ui.unit.*
 import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.platform.PlatformPreferencesListener
 import com.toasterofbread.composekit.platform.composable.BackHandler
+import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.composekit.utils.common.init
 import com.toasterofbread.composekit.utils.composable.getEnd
 import com.toasterofbread.composekit.utils.composable.getStart
+import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.layout.BrowseParamsData
@@ -38,14 +40,14 @@ import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.download.DownloadMethodSelectionDialog
+import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
-import com.toasterofbread.spmp.service.playercontroller.PersistentQueueHandler
 import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenu
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
-import com.toasterofbread.spmp.ui.component.mediaitempreview.getLongPressMenuData
+import com.toasterofbread.spmp.ui.component.multiselect.AppPageMultiSelectContext
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectInfoDisplayContent
 import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
@@ -53,6 +55,8 @@ import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageWithItem
 import com.toasterofbread.spmp.ui.layout.apppage.MediaItemAppPage
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MainPageDisplay
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
@@ -64,11 +68,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+typealias DownloadRequestCallback = (DownloadStatus?) -> Unit
+
 enum class FeedLoadState { PREINIT, NONE, LOADING, CONTINUING }
 
-// TODO | There is almost zero reason for this to be two classes
 @OptIn(ExperimentalMaterialApi::class)
-class PlayerStateImpl(override val context: AppContext, private val coroutine_scope: CoroutineScope): PlayerState(null, null, null) {
+class PlayerState(val context: AppContext, internal val coroutine_scope: CoroutineScope) {
+    val database: Database get() = context.database
+    val theme: Theme get() = context.theme
+    val app_page: AppPage get() = app_page_state.current_page
+
     private var _player: PlatformPlayerService? by mutableStateOf(null)
 
     private val app_page_undo_stack: MutableList<AppPage?> = mutableStateListOf()
@@ -76,7 +85,7 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
     private val low_memory_listener: () -> Unit
     private val prefs_listener: PlatformPreferencesListener
 
-    override fun switchNowPlayingPage(page: Int) {
+    fun switchNowPlayingPage(page: Int) {
         coroutine_scope.launch {
             np_swipe_state.value.animateTo(
                 page,
@@ -101,23 +110,23 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
     private var download_request_always_show_options: Boolean by mutableStateOf(false)
     private var download_request_callback: DownloadRequestCallback? by mutableStateOf(null)
 
-    override val expansion = NowPlayingExpansionState(this, np_swipe_state, coroutine_scope)
-    override val session_started: Boolean get() = _player?.service_player?.session_started == true
-    override var screen_size: DpSize by mutableStateOf(DpSize.Zero)
+    val expansion = NowPlayingExpansionState(this, np_swipe_state, coroutine_scope)
+    val session_started: Boolean get() = _player?.service_player?.session_started == true
+    var screen_size: DpSize by mutableStateOf(DpSize.Zero)
 
-    override val app_page_state = AppPageState(this)
-    override val main_multiselect_context: MediaItemMultiSelectContext = AppPageMultiSelectContext(this)
-    override var np_theme_mode: ThemeMode by mutableStateOf(Settings.getEnum(ThemeSettings.Key.NOWPLAYING_THEME_MODE, context.getPrefs()))
-    override val top_bar: MusicTopBar = MusicTopBar(this)
+    val app_page_state = AppPageState(this)
+    val main_multiselect_context: MediaItemMultiSelectContext = AppPageMultiSelectContext(this)
+    var np_theme_mode: ThemeMode by mutableStateOf(Settings.getEnum(ThemeSettings.Key.NOWPLAYING_THEME_MODE, context.getPrefs()))
+    val top_bar: MusicTopBar = MusicTopBar(this)
 
-    override val np_overlay_menu: MutableState<PlayerOverlayMenu?> = mutableStateOf(null)
+    val np_overlay_menu: MutableState<PlayerOverlayMenu?> = mutableStateOf(null)
     private val np_overlay_menu_queue: MutableList<PlayerOverlayMenu> = mutableListOf()
 
-    override fun navigateNpOverlayMenuBack() {
+    fun navigateNpOverlayMenuBack() {
         np_overlay_menu.value = np_overlay_menu_queue.removeLastOrNull()
     }
 
-    override fun openNpOverlayMenu(menu: PlayerOverlayMenu?) {
+    fun openNpOverlayMenu(menu: PlayerOverlayMenu?) {
         if (menu == null) {
             np_overlay_menu.value = null
             np_overlay_menu_queue.clear()
@@ -179,7 +188,7 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
         top_bar.release()
     }
 
-    override fun interactService(action: (player: PlatformPlayerService) -> Unit) {
+    fun interactService(action: (player: PlatformPlayerService) -> Unit) {
         synchronized(service_connected_listeners) {
             _player?.also {
                 action(it)
@@ -212,7 +221,7 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
     private var now_playing_top_offset_item_sizes: MutableMap<Int, Dp> = mutableStateMapOf()
 
     @Composable
-    override fun nowPlayingTopOffset(base: Modifier, force_top: Boolean): Modifier {
+    fun nowPlayingTopOffset(base: Modifier, force_top: Boolean = false): Modifier {
         val system_insets: WindowInsets = WindowInsets.systemBars
         val navigation_insets: WindowInsets = WindowInsets.navigationBars
         val keyboard_insets: WindowInsets = WindowInsets.ime
@@ -259,7 +268,7 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
     }
 
     @Composable
-    override fun nowPlayingBottomPadding(include_np: Boolean): Dp {
+    fun nowPlayingBottomPadding(include_np: Boolean = false): Dp {
         val bottom_padding = with(LocalDensity.current) {
             LocalDensity.current.getNpBottomPadding(WindowInsets.systemBars, WindowInsets.navigationBars, WindowInsets.ime).toDp()
         }
@@ -271,7 +280,7 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
         return bottom_padding
     }
 
-    override fun onNavigationBarTargetColourChanged(colour: Color?, from_lpm: Boolean) {
+    fun onNavigationBarTargetColourChanged(colour: Color?, from_lpm: Boolean) {
         if (!from_lpm && long_press_menu_showing) {
             return
         }
@@ -281,7 +290,7 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
         )
     }
 
-    override fun openAppPage(page: AppPage?, from_current: Boolean, replace_current: Boolean) {
+    fun openAppPage(page: AppPage?, from_current: Boolean = false, replace_current: Boolean = false) {
         if (page != app_page) {
             if (!replace_current) {
                 app_page_undo_stack.add(app_page)
@@ -295,44 +304,19 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
         }
     }
 
-    override fun navigateBack() {
+    fun navigateBack() {
         if (app_page.onBackNavigation()) {
             return
         }
         app_page_state.setPage(app_page_undo_stack.removeLastOrNull(), from_current = false, going_back = true)
     }
 
-    override fun onMediaItemClicked(item: MediaItem, multiselect_key: Int?) {
-        if (item is Song) {
-            playMediaItem(item)
-            onPlayActionOccurred()
-        }
-        else if (
-            item is Playlist
-            && BehaviourSettings.Key.TREAT_SINGLES_AS_SONG.get()
-            && BehaviourSettings.Key.TREAT_ANY_SINGLE_ITEM_PLAYLIST_AS_SINGLE.get()
-        ) {
-            coroutine_scope.launch {
-                item.loadData(context).onSuccess { data ->
-                    val single = data.items?.singleOrNull()
-                    if (single != null) {
-                        onMediaItemClicked(single)
-                    }
-                    else {
-                        openMediaItem(item)
-                    }
-                }
-            }
-        }
-        else {
-            openMediaItem(item)
-        }
-    }
-    override fun onMediaItemLongClicked(item: MediaItem, long_press_data: LongPressMenuData?) {
-        showLongPressMenu(long_press_data ?: item.getLongPressMenuData())
-    }
-
-    override fun openMediaItem(item: MediaItem, from_current: Boolean, replace_current: Boolean, browse_params: BrowseParamsData?) {
+    fun openMediaItem(
+        item: MediaItem,
+        from_current: Boolean = false,
+        replace_current: Boolean = false,
+        browse_params: BrowseParamsData? = null
+    ) {
         if (item is Artist && item.isForItem()) {
             return
         }
@@ -351,22 +335,23 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
         openAppPage(page, from_current, replace_current)
     }
 
-    override fun openViewMorePage(browse_id: String, title: String?) {
+    fun openViewMorePage(browse_id: String, title: String?) {
         openAppPage(app_page_state.getViewMorePage(browse_id, title))
     }
 
-    override fun openNowPlayingPlayerOverlayMenu(menu: PlayerOverlayMenu?) {
+    fun openNowPlayingPlayerOverlayMenu(menu: PlayerOverlayMenu? = null) {
+
         np_overlay_menu.value = menu
         expansion.scrollTo(1)
     }
 
-    override fun onPlayActionOccurred() {
+    fun onPlayActionOccurred() {
         if (np_swipe_state.value.targetValue == 0 && Settings.get(BehaviourSettings.Key.OPEN_NP_ON_SONG_PLAYED)) {
             switchNowPlayingPage(1)
         }
     }
 
-    override fun playMediaItem(item: MediaItem, shuffle: Boolean, at_index: Int) {
+    fun playMediaItem(item: MediaItem, shuffle: Boolean = false, at_index: Int = 0) {
         withPlayer {
             if (item is Song) {
                 playSong(
@@ -382,7 +367,7 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
         }
     }
 
-    override fun playPlaylist(playlist: Playlist, from_index: Int) {
+    fun playPlaylist(playlist: Playlist, from_index: Int = 0) {
         withPlayer {
             startRadioAtIndex(
                 0,
@@ -400,7 +385,8 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
         }
     }
 
-    override fun showLongPressMenu(data: LongPressMenuData) {
+    fun showLongPressMenu(item: MediaItem) { showLongPressMenu(LongPressMenuData(item)) }
+    fun showLongPressMenu(data: LongPressMenuData) {
         long_press_menu_data = data
 
         if (long_press_menu_showing) {
@@ -412,7 +398,7 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
         }
     }
 
-    override fun hideLongPressMenu() {
+    fun hideLongPressMenu() {
         long_press_menu_showing = false
         long_press_menu_direct = false
         long_press_menu_data = null
@@ -529,8 +515,8 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
         }
     }
 
-    override val controller: PlatformPlayerService? get() = _player
-    override fun withPlayer(action: PlayerServicePlayer.() -> Unit) {
+    val controller: PlatformPlayerService? get() = _player
+    fun withPlayer(action: PlayerServicePlayer.() -> Unit) {
         _player?.also {
             action(it.service_player)
             return
@@ -542,7 +528,7 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
     }
 
     @Composable
-    override fun withPlayerComposable(action: @Composable PlayerServicePlayer.() -> Unit) {
+    fun withPlayerComposable(action: @Composable PlayerServicePlayer.() -> Unit) {
         connectService(null)
         _player?.service_player?.also {
             action(it)
@@ -594,55 +580,18 @@ class PlayerStateImpl(override val context: AppContext, private val coroutine_sc
         }
     }
 
-    override val status: PlayerStatus = PlayerStatus()
+    val status: PlayerStatus = PlayerStatus()
 
-    override fun isRunningAndFocused(): Boolean {
+    fun isRunningAndFocused(): Boolean {
         return controller?.has_focus == true
     }
 
-    override fun onSongDownloadRequested(songs: List<Song>, always_show_options: Boolean, callback: DownloadRequestCallback?) {
+    fun onSongDownloadRequested(song: Song, always_show_options: Boolean = false, onCompleted: DownloadRequestCallback? = null) {
+        onSongDownloadRequested(listOf(song), always_show_options, onCompleted)
+    }
+    fun onSongDownloadRequested(songs: List<Song>, always_show_options: Boolean = false, callback: DownloadRequestCallback? = null) {
         download_request_songs = songs
         download_request_always_show_options = always_show_options
         download_request_callback = callback
-    }
-}
-
-private class AppPageMultiSelectContext(private val player: PlayerStateImpl): MediaItemMultiSelectContext() {
-    @Composable
-    override fun InfoDisplayContent(
-        modifier: Modifier,
-        content_modifier: Modifier,
-        getAllItems: (() -> List<List<MultiSelectItem>>)?,
-        wrapContent: @Composable (@Composable () -> Unit) -> Unit,
-        show_alt_content: Boolean,
-        altContent: (@Composable () -> Unit)?
-    ): Boolean {
-        if (player.form_factor.is_large) {
-            // Displayed in PlayerStateImpl.PersistentContent()
-            DisposableEffect(is_active, getAllItems) {
-                if (!is_active) {
-                    return@DisposableEffect onDispose {}
-                }
-
-                if (getAllItems != null) {
-                    player.multiselect_info_all_items_getters.add(getAllItems)
-                }
-
-                onDispose {
-                    if (getAllItems != null) {
-                        player.multiselect_info_all_items_getters.remove(getAllItems)
-                    }
-                }
-            }
-
-            if (show_alt_content) {
-                Box(modifier) {
-                    altContent?.invoke()
-                }
-            }
-
-            return false
-        }
-        return super.InfoDisplayContent(modifier, content_modifier, getAllItems, wrapContent, show_alt_content, altContent)
     }
 }

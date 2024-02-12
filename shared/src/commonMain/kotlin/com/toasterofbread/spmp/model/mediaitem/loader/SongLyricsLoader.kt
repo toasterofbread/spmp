@@ -9,9 +9,7 @@ import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
-import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
-import com.toasterofbread.spmp.youtubeapi.lyrics.loadLyrics
+import com.toasterofbread.spmp.youtubeapi.lyrics.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.lang.ref.WeakReference
@@ -29,7 +27,8 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
 
     suspend fun loadBySong(
         song: Song,
-        context: AppContext
+        context: AppContext,
+        tokeniser: LyricsFuriganaTokeniser? = null
     ): Result<SongLyrics>? {
         loaded_by_song[song.id]?.get()?.also {
             return Result.success(it)
@@ -51,22 +50,24 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
             if (lyrics_reference.isNone()) {
                 return null
             }
-            return loadByLyrics(lyrics_reference, context)
+            return loadByLyrics(lyrics_reference, context, tokeniser ?: createFuriganaTokeniser())
         }
 
         return performSafeLoad(
             song.id,
             loading_by_id
         ) {
-            val result: Result<SongLyrics> = LyricsSource.searchSongLyricsByPriority(song, context)
+            val result: Result<SongLyrics> = LyricsSource.searchSongLyricsByPriority(song, context, tokeniser ?: createFuriganaTokeniser())
             result.onSuccess { lyrics ->
-                loaded_by_reference[lyrics.reference] = WeakReference(lyrics)
+                if (tokeniser == null) {
+                    loaded_by_reference[lyrics.reference] = WeakReference(lyrics)
+                }
                 song.Lyrics.set(lyrics.reference, context.database)
             }
         }
     }
 
-    suspend fun loadByLyrics(lyrics_reference: LyricsReference, context: AppContext): Result<SongLyrics> {
+    suspend fun loadByLyrics(lyrics_reference: LyricsReference, context: AppContext, tokeniser: LyricsFuriganaTokeniser): Result<SongLyrics> {
         require(!lyrics_reference.isNone())
 
         val loaded: SongLyrics? = withContext(Dispatchers.Main) { loaded_by_reference[lyrics_reference]?.get() }
@@ -79,7 +80,7 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
             lock,
             loading_by_reference
         ) {
-            val result: Result<SongLyrics> = loadLyrics(lyrics_reference, context)
+            val result: Result<SongLyrics> = loadLyrics(lyrics_reference, context, tokeniser)
             result.onSuccess { lyrics ->
                 loaded_by_reference[lyrics_reference] = WeakReference(lyrics)
             }

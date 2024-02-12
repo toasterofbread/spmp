@@ -10,7 +10,7 @@ import androidx.compose.runtime.remember
 import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.mediaitem.db.isMediaItemHidden
 import com.toasterofbread.spmp.model.mediaitem.db.rememberHiddenItems
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
 interface MediaItemHolder {
     // If item is null, consider it deleted

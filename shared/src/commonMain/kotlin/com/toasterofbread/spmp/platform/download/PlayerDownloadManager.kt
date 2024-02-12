@@ -19,7 +19,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.DownloadRequestCallback
+import com.toasterofbread.spmp.service.playercontroller.DownloadRequestCallback
 
 enum class DownloadMethod {
     LIBRARY, CUSTOM;
@@ -57,7 +57,7 @@ enum class DownloadMethod {
                             return@promptUserForFileCreation
                         }
 
-                        context.download_manager.startDownload(songs.single(), file_uri = uri, callback = callback)
+                        context.download_manager.startDownload(songs.single(), custom_uri = uri, download_lyrics = false, callback = callback)
                     }
                 }
                 else {
@@ -93,7 +93,7 @@ enum class DownloadMethod {
                                 file.createFile()
                             }
 
-                            context.download_manager.startDownload(song, file_uri = file.uri, callback = callback)
+                            context.download_manager.startDownload(song, custom_uri = file.uri, download_lyrics = false, callback = callback)
                         }
                     }
                 }
@@ -135,7 +135,8 @@ expect class PlayerDownloadManager(context: AppContext) {
     fun startDownload(
         song: Song,
         silent: Boolean = false,
-        file_uri: String? = null,
+        custom_uri: String? = null,
+        download_lyrics: Boolean = true,
         callback: DownloadRequestCallback? = null
     )
 

@@ -39,7 +39,7 @@ import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.Languages
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch

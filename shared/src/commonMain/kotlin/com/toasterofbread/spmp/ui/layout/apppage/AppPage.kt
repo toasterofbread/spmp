@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.composable.ScrollBarLazyRow
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
 abstract class AppPageWithItem : AppPage() {
     abstract val item: MediaItemHolder

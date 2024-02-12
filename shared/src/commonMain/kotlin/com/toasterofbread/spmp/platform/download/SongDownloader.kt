@@ -12,6 +12,7 @@ import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.StreamingSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.YoutubeVideoFormat
+import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsFuriganaTokeniser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -43,7 +44,8 @@ abstract class SongDownloader(
         val quality: SongAudioQuality,
         var silent: Boolean,
         val instance: Int,
-        val file_uri: String?
+        val custom_uri: String?,
+        val download_lyrics: Boolean = true
     ) {
         // This is fine :)
         var song_file: PlatformFile? = runBlocking {
@@ -98,14 +100,14 @@ abstract class SongDownloader(
     }
 
     private var download_inc: Int = 0
-    private fun getOrCreateDownload(song: Song, silent: Boolean, file_uri: String?): Download {
+    private fun getOrCreateDownload(song: Song, silent: Boolean, custom_uri: String?, download_lyrics: Boolean): Download {
         synchronized(downloads) {
             for (download in downloads) {
                 if (download.song.id == song.id) {
                     return download
                 }
             }
-            return Download(song, Settings.getEnum(StreamingSettings.Key.DOWNLOAD_AUDIO_QUALITY), silent, download_inc++, file_uri)
+            return Download(song, Settings.getEnum(StreamingSettings.Key.DOWNLOAD_AUDIO_QUALITY), silent, download_inc++, custom_uri, download_lyrics)
         }
     }
 
@@ -158,11 +160,13 @@ abstract class SongDownloader(
         }
     }
 
+    val downloads: MutableList<Download> = mutableListOf()
+
     private val song_download_dir: PlatformFile get() = MediaItemLibrary.getSongDownloadsDir(context)
     private val song_storage_dir: PlatformFile get() = MediaItemLibrary.getLocalSongsDir(context)
-
-    val downloads: MutableList<Download> = mutableListOf()
     private var stopping: Boolean = false
+    private val lyrics_tokeniser: LyricsFuriganaTokeniser = LyricsFuriganaTokeniser { terms -> terms }
+
     fun stop() {
         synchronized(download_executor) {
             stopping = true
@@ -195,14 +199,16 @@ abstract class SongDownloader(
     suspend fun startDownload(
         song: Song,
         silent: Boolean,
-        file_uri: String?,
+        custom_uri: String?,
+        download_lyrics: Boolean,
         callback: (Download, Result<PlatformFile?>) -> Unit
     ) = withContext(Dispatchers.IO) {
 
         val download: Download = getOrCreateDownload(
             song,
             silent = silent,
-            file_uri = file_uri
+            custom_uri = custom_uri,
+            download_lyrics = download_lyrics
         )
 
         synchronized(download) {
@@ -378,9 +384,9 @@ abstract class SongDownloader(
                     LocalSongMetadataProcessor.addMetadataToLocalSong(download.song, file, format_extension, context)
                 }
                 launch {
-                    if (download.lyrics_file == null) {
+                    if (download.lyrics_file == null && download.download_lyrics) {
                         val lyrics_file: PlatformFile = MediaItemLibrary.getLocalLyricsFile(download.song, context)
-                        SongLyricsLoader.loadBySong(download.song, context)?.onSuccess { lyrics ->
+                        SongLyricsLoader.loadBySong(download.song, context, lyrics_tokeniser)?.onSuccess { lyrics ->
                             with (LyricsFileConverter) {
                                 val exception: Throwable? = lyrics.saveToFile(lyrics_file, context).exceptionOrNull()
                                 exception?.printStackTrace()
@@ -399,8 +405,12 @@ abstract class SongDownloader(
         try {
             close(DownloadStatus.Status.FINISHED)
 
-            val destination_file: PlatformFile = download.file_uri?.let { context.getUserDirectoryFile(it) }
-                    ?: song_storage_dir.resolve(download.generatePath(format_extension, false))
+            val destination_file: PlatformFile = download.custom_uri?.let { context.getUserDirectoryFile(it) }
+                ?: song_storage_dir.resolve(download.generatePath(format_extension, false))
+
+            if (destination_file.is_file) {
+                destination_file.delete()
+            }
 
             file.moveTo(destination_file)
             download.song_file = destination_file

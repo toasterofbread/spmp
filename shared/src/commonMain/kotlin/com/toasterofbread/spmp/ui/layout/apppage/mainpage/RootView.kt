@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.apppage.mainpage
 
 import LocalPlayerState
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,9 +23,8 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.getMinimisedPlayerHe
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.getMinimisedPlayerVPadding
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.DisposableEffect
-import kotlinx.coroutines.delay
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
 val MINIMISED_NOW_PLAYING_HEIGHT_DP: Float
     @Composable get() = LocalPlayerState.current.form_factor.getMinimisedPlayerHeight().value
@@ -36,7 +34,7 @@ val MINIMISED_NOW_PLAYING_V_PADDING_DP: Float
 private val LocalFocusedTextFieldOwners: ProvidableCompositionLocal<MutableList<Any>> = staticCompositionLocalOf { mutableStateListOf() }
 
 @Composable
-fun RootView(player: PlayerStateImpl) {
+fun RootView(player: PlayerState) {
     val density: Density = LocalDensity.current
     Box(
         Modifier

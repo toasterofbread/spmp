@@ -22,7 +22,7 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.crop
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.platform.toImageBitmap
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.toLyricsReference
 import kotlinx.coroutines.Dispatchers
@@ -156,7 +156,7 @@ interface Song: MediaItem.WithArtist {
         get() = property_rememberer.rememberSingleQueryProperty(
             "BackgroundImageOpacity", { songQueries.backgroundImageOpacityById(id) }, { background_image_opacity?.toFloat() }, { songQueries.updateBackgroundImageOpacityById(it?.toDouble(), id) }
         )
-    val ImageShadowRadius: Property<Float?>
+    val ShadowRadius: Property<Float?>
         get() = property_rememberer.rememberSingleQueryProperty(
             "ImageShadowRadius", { songQueries.imageShadowRadiusById(id) }, { image_shadow_radius?.toFloat() }, { songQueries.updateImageShadowRadiusById(it?.toDouble(), id) }
         )

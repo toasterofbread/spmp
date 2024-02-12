@@ -15,7 +15,6 @@ import com.toasterofbread.composekit.settings.ui.SettingsPageWithItems
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.DiscordAuthSettings
-import com.toasterofbread.spmp.model.settings.category.YoutubeAuthSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
@@ -24,7 +23,7 @@ internal fun getPrefsPageSettingsInterface(
     page_state: AppPageState,
     pill_menu: PillMenu,
     ytm_auth: SettingsValueState<Set<String>>,
-    footer_modifier: Modifier
+    getFooterModifier: @Composable () -> Modifier
 ): SettingsInterface {
     lateinit var settings_interface: SettingsInterface
     val context: AppContext = page_state.context
@@ -80,7 +79,7 @@ internal fun getPrefsPageSettingsInterface(
             }
         },
         { },
-        footer_modifier
+        getFooterModifier
     )
 
     return settings_interface

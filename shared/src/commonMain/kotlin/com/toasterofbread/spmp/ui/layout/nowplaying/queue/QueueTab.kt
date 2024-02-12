@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
 import androidx.compose.material3.LocalContentColor
@@ -49,11 +48,12 @@ import com.toasterofbread.spmp.model.settings.category.PlayerSettings
 import com.toasterofbread.spmp.model.settings.rememberMutableEnumState
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
+import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
@@ -110,22 +110,23 @@ internal fun QueueTab(
                 }
             }
             override fun onSongMoved(from: Int, to: Int) {
-                if (from == to) {
+                val coerced_to: Int = to.coerceIn(0, song_items.size - 1)
+                if (from == coerced_to) {
                     return
                 }
 
-                song_items.add(to, song_items.removeAt(from))
+                song_items.add(coerced_to, song_items.removeAt(from))
 
                 for (item in multiselect_context.getSelectedItems().map { it.second!! }.withIndex()) {
                     if (item.value == from) {
-                        multiselect_context.updateKey(item.index, to)
+                        multiselect_context.updateKey(item.index, coerced_to)
                     }
-                    else if (from > to) {
-                        if (item.value in to until from) {
+                    else if (from > coerced_to) {
+                        if (item.value in coerced_to until from) {
                             multiselect_context.updateKey(item.index, item.value + 1)
                         }
                     }
-                    else if (item.value in (from + 1) .. to) {
+                    else if (item.value in (from + 1) .. coerced_to) {
                         multiselect_context.updateKey(item.index, item.value - 1)
                     }
                 }
@@ -241,13 +242,13 @@ internal fun QueueTab(
                     getBorderColour = getWaveBorderColour
                 )
 
-                CompositionLocalProvider(
-                    LocalPlayerState provides remember { player.copy(onClickedOverride = { song, index: Int? ->
+                CompositionLocalProvider(LocalPlayerClickOverrides provides LocalPlayerClickOverrides.current.copy(
+                    onClickOverride = { song, index: Int? ->
                         if (index != player.status.m_index) {
                             player.controller?.seekToSong(index!!)
                         }
-                    }) }
-                ) {
+                    }
+                )) {
                     var list_position by remember { mutableStateOf(0.dp) }
                     val top_padding = (
                         list_padding

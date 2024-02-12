@@ -139,10 +139,10 @@ open class MediaItemMultiSelectContext {
     protected open fun InfoDisplayContent(
         modifier: Modifier,
         content_modifier: Modifier,
-        getAllItems: (() -> List<List<MultiSelectItem>>)? = null,
+        getAllItems: (() -> List<List<MultiSelectItem>>)?,
         wrapContent: @Composable (@Composable () -> Unit) -> Unit,
         show_alt_content: Boolean,
-        altContent: (@Composable () -> Unit)? = null
+        altContent: (@Composable () -> Unit)?
     ): Boolean =
         MultiSelectInfoDisplay(modifier, content_modifier, getAllItems, wrapContent, show_alt_content, altContent)
 

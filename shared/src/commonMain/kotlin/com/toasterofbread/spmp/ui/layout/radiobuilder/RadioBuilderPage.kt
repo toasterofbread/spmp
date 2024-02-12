@@ -35,7 +35,7 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.WaveBorder
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderArtist
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderEndpoint
 import kotlinx.coroutines.Dispatchers

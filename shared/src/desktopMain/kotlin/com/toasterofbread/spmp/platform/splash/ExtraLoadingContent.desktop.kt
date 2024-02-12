@@ -37,7 +37,7 @@ import com.toasterofbread.spmp.model.settings.category.DesktopSettings
 import com.toasterofbread.spmp.platform.playerservice.getServerExecutableFilename
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getServerGroupItems
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers

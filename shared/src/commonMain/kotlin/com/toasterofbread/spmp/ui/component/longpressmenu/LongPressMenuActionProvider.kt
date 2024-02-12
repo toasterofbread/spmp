@@ -31,8 +31,9 @@ import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
+import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.theme.appHover
 
 class LongPressMenuActionProvider(
@@ -125,7 +126,9 @@ class LongPressMenuActionProvider(
                 }
 
                 CompositionLocalProvider(
-                    LocalPlayerState provides remember { player.copy(onClickedOverride = { item, _ -> player.openMediaItem(item,) }) }
+                    LocalPlayerClickOverrides provides LocalPlayerClickOverrides.current.copy(
+                        onClickOverride = { item, _ -> player.openMediaItem(item) }
+                    )
                 ) {
                     Crossfade(active_queue_item, animationSpec = tween(100)) { active_item ->
                         if (active_item != null) {
@@ -138,7 +141,6 @@ class LongPressMenuActionProvider(
     }
 
     companion object {
-        @OptIn(ExperimentalFoundationApi::class)
         @Composable
         fun ActionButton(
             icon: ImageVector,

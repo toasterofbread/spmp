@@ -56,13 +56,15 @@ import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
+import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getThumbShape
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -73,6 +75,7 @@ fun MediaItemCard(
     apply_filter: Boolean = false
 ) {
     val player: PlayerState = LocalPlayerState.current
+    val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
     val item: MediaItem = layout.items.first()
     if (apply_filter && isMediaItemHidden(item, player.database)) {
@@ -93,7 +96,7 @@ fun MediaItemCard(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    player.onMediaItemClicked(item)
+                    click_overrides.onMediaItemClicked(item, player)
                 },
                 onLongClick = {
                     player.showLongPressMenu(long_press_menu_data)

@@ -34,7 +34,7 @@ import com.toasterofbread.spmp.model.settings.category.InternalSettings
 import com.toasterofbread.spmp.model.settings.category.LyricsSettings
 import com.toasterofbread.spmp.model.settings.category.MusicTopBarMode
 import com.toasterofbread.spmp.model.settings.category.TopBarSettings
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
 @Composable
 fun rememberTopBarShouldShowInQueue(mode: MusicTopBarMode): Boolean {

@@ -30,7 +30,7 @@ internal class PetitLyricsSource(source_idx: Int): LyricsSource(source_idx) {
     override fun getColour(): Color = Color(0xFFBD0A0F)
     override fun getUrlOfId(id: String): String? = "https://petitlyrics.com/lyrics/$id"
 
-    override suspend fun getLyrics(lyrics_id: String, context: AppContext): Result<SongLyrics> {
+    override suspend fun getLyrics(lyrics_id: String, context: AppContext, tokeniser: LyricsFuriganaTokeniser): Result<SongLyrics> {
         var exception: Throwable? = null
 
         for (sync_type in SongLyrics.SyncType.byPriority()) {
@@ -45,7 +45,7 @@ internal class PetitLyricsSource(source_idx: Int): LyricsSource(source_idx) {
             }
 
             if (data.startsWith("<wsy>")) {
-                val parse_result = parseTimedLyrics(data)
+                val parse_result = parseTimedLyrics(data, tokeniser)
                 val lyrics = parse_result.getOrNull() ?: return parse_result.cast()
 
                 return Result.success(
@@ -61,7 +61,7 @@ internal class PetitLyricsSource(source_idx: Int): LyricsSource(source_idx) {
                     SongLyrics(
                         LyricsReference(source_index, lyrics_id),
                         SongLyrics.SyncType.NONE,
-                        parseStaticLyrics(data)
+                        parseStaticLyrics(data, tokeniser)
                     )
                 )
             }

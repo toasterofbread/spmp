@@ -44,7 +44,7 @@ import com.toasterofbread.spmp.model.settings.category.PlayerSettings
 import com.toasterofbread.spmp.model.settings.getEnum
 import com.toasterofbread.spmp.ui.component.LyricsLineDisplay
 import com.toasterofbread.spmp.ui.component.Thumbnail
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.EXPANDED_THRESHOLD
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground

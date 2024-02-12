@@ -2,7 +2,6 @@ package com.toasterofbread.spmp.platform.download
 
 import SpMp
 import android.Manifest
-import android.app.ForegroundServiceTypeException
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -250,7 +249,8 @@ class PlayerDownloadService: PlatformServiceImpl() {
         downloader?.startDownload(
             SongRef(message.data["song_id"] as String),
             silent = message.data["silent"] as Boolean,
-            file_uri = message.data["file_uri"] as String?
+            custom_uri = message.data["custom_uri"] as String?,
+            download_lyrics = (message.data["download_lyrics"] as Boolean?) ?: true
         ) { download, result ->
             sendMessageOut(
                 PlayerDownloadManager.PlayerDownloadMessage(

@@ -1,4 +1,6 @@
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -10,11 +12,14 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.*
 import com.toasterofbread.composekit.platform.composable.onWindowBackPressed
+import com.toasterofbread.composekit.utils.common.addUnique
 import com.toasterofbread.spmp.model.settings.category.DesktopSettings
 import com.toasterofbread.spmp.model.settings.category.SystemSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.getTextFieldFocusState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.isTextFieldFocused
+import com.toasterofbread.spmp.ui.shortcut.PressedShortcutModifiers
+import com.toasterofbread.spmp.ui.shortcut.ShortcutModifier
 import kotlinx.coroutines.*
 import org.jetbrains.skiko.OS
 import org.jetbrains.skiko.hostOs
@@ -49,43 +54,23 @@ fun main(args: Array<String>) {
 
     application {
         val text_field_focus_state: Any = getTextFieldFocusState()
+        val pressed_shortcut_modifiers: MutableList<ShortcutModifier> = remember { mutableStateListOf() }
 
         Window(
             title = SpMp.app_name,
             onCloseRequest = ::exitApplication,
             onKeyEvent = { event ->
-                if (event.type == KeyEventType.KeyDown) {
-                    when (event.key) {
-                        Key.Escape -> return@Window onWindowBackPressed()
-                        Key.F11 -> {
-                            if (window.placement == WindowPlacement.Fullscreen) {
-                                window.placement = WindowPlacement.Floating
-                            }
-                            else {
-                                window.placement = WindowPlacement.Fullscreen
-                            }
-                            return@Window true
-                        }
-                        Key.Spacebar -> {
-                            if (!isTextFieldFocused(text_field_focus_state)) {
-                                SpMp.player_state.withPlayer {
-                                    playPause()
-                                }
-                            }
-                        }
-                        Key.Equals -> {
-                            if (event.isCtrlPressed) {
-                                SystemSettings.Key.UI_SCALE.set(SystemSettings.Key.UI_SCALE.get<Float>() + 0.1f)
-                            }
-                        }
-                        Key.Minus -> {
-                            if (event.isCtrlPressed) {
-                                SystemSettings.Key.UI_SCALE.set((SystemSettings.Key.UI_SCALE.get<Float>() - 0.1f).coerceAtLeast(0.1f))
-                            }
-                        }
+                if (event.key == Key.CtrlLeft || event.key == Key.CtrlRight) {
+                    if (event.type == KeyEventType.KeyDown) {
+                        pressed_shortcut_modifiers.addUnique(ShortcutModifier.CTRL)
                     }
+                    else {
+                        pressed_shortcut_modifiers.remove(ShortcutModifier.CTRL)
+                    }
+                    return@Window false
                 }
-                return@Window false
+
+                return@Window SpMp.player_state.processKeyEventShortcuts(event, window, text_field_focus_state)
             },
             state = rememberWindowState(
                 size = DpSize(1280.dp, 720.dp),
@@ -124,7 +109,8 @@ fun main(args: Array<String>) {
                     if (event.button?.index == 5) {
                         onWindowBackPressed()
                     }
-                }
+                },
+                pressed_shortcut_modifiers = remember { PressedShortcutModifiers(pressed_shortcut_modifiers) }
             )
         }
     }

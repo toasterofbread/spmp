@@ -42,15 +42,11 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.theme.appHover
 import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.job
+import kotlinx.coroutines.*
 
 class RadioInstance(val context: AppContext) {
     var state: RadioState by mutableStateOf(RadioState())
@@ -434,11 +430,11 @@ fun RadioInstance.RadioState.StatusDisplay(
             ShapedIconButton(
                 {
                     player.controller?.service_player?.radio?.instance?.loadContinuation(player.context) { result, _ ->
-                        result.onSuccess {
+                        result.onSuccess { withContext(Dispatchers.Main) {
                             player.withPlayer {
                                 addMultipleToQueue(it, player.status.song_count, skip_existing = true)
                             }
-                        }
+                        }}
                     }
                 },
                 modifier = Modifier

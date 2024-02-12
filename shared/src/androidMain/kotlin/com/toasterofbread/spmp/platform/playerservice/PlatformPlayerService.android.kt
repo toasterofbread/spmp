@@ -793,7 +793,6 @@ private fun Song.buildExoMediaItem(context: AppContext): MediaItem =
         )
         .build()
 
-
 fun convertState(exo_state: Int): SpMsPlayerState {
     return SpMsPlayerState.entries[exo_state - 1]
 }

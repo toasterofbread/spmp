@@ -31,11 +31,12 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.rememberSongDownloads
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageWithItem
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.artistpage.LocalArtistPage
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 
@@ -116,36 +117,38 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
             }
         }
 
-        CompositionLocalProvider(LocalPlayerState provides remember { player.copy(onClickedOverride = { item, index ->
-            player.openAppPage(
-                object : AppPageWithItem() {
-                    override val item: MediaItemHolder = item
-                    override val state: AppPageState = player.app_page_state
+        CompositionLocalProvider(LocalPlayerClickOverrides provides LocalPlayerClickOverrides.current.copy(
+            onClickOverride = { item, index ->
+                player.openAppPage(
+                    object : AppPageWithItem() {
+                        override val item: MediaItemHolder = item
+                        override val state: AppPageState = player.app_page_state
 
-                    private var previous_item: MediaItemHolder? by mutableStateOf(null)
+                        private var previous_item: MediaItemHolder? by mutableStateOf(null)
 
-                    override fun onOpened(from_item: MediaItemHolder?) {
-                        super.onOpened(from_item)
-                        previous_item = from_item
+                        override fun onOpened(from_item: MediaItemHolder?) {
+                            super.onOpened(from_item)
+                            previous_item = from_item
+                        }
+
+                        @Composable
+                        override fun ColumnScope.Page(
+                            multiselect_context: MediaItemMultiSelectContext,
+                            modifier: Modifier,
+                            content_padding: PaddingValues,
+                            close: () -> Unit,
+                            ) {
+                            LocalArtistPage(
+                                item.item as Artist,
+                                previous_item = previous_item?.item,
+                                content_padding = content_padding,
+                                multiselect_context = multiselect_context
+                            )
+                        }
                     }
-
-                    @Composable
-                    override fun ColumnScope.Page(
-                        multiselect_context: MediaItemMultiSelectContext,
-                        modifier: Modifier,
-                        content_padding: PaddingValues,
-                        close: () -> Unit,
-                    ) {
-                        LocalArtistPage(
-                            item.item as Artist, 
-                            previous_item = previous_item?.item, 
-                            content_padding = content_padding,
-                            multiselect_context = multiselect_context
-                        )
-                    }
-                }
-            )
-        }) }) {
+                )
+            }
+        )) {
             EmptyListAndDataCrossfade(
                 if (showing_alt_content) sorted_liked_artists?.map { Pair(it, 0) } ?: emptyList() else sorted_artists,
                 loaded

@@ -41,7 +41,7 @@ import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueWaveBorder
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.bottom_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.horizontal_padding
@@ -51,6 +51,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.LargeThumbnailRow
+import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.songThumbnailShadow
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.QueueTab
 import kotlin.math.absoluteValue
@@ -369,6 +370,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                                 Modifier
                                     .fillMaxHeight()
                                     .weight(1f)
+                                    .songThumbnailShadow(player.status.m_song, queue_shape)
                                     .thenIf(player.np_theme_mode != ThemeMode.BACKGROUND) {
                                         border(
                                             stroke_width,

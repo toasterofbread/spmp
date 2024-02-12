@@ -15,7 +15,7 @@ import com.toasterofbread.spmp.model.settings.category.MiscSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.toByteArray
 import com.toasterofbread.spmp.platform.toImageBitmap
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File

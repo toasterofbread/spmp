@@ -45,9 +45,11 @@ import com.toasterofbread.spmp.model.settings.rememberMutableEnumState
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
+import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
+import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -376,8 +378,9 @@ private fun StatusBarColourHandler(page_height: Dp) {
 
 @Composable
 private fun NowPlayingCardContent(page_height: Dp, content_padding: PaddingValues, swipe_modifier: Modifier, modifier: Modifier = Modifier) {
-    val player = LocalPlayerState.current
-    val expansion = LocalNowPlayingExpansion.current
+    val player: PlayerState = LocalPlayerState.current
+    val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
+    val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
 
     StatusBarColourHandler(page_height)
     MinimisedProgressBar()
@@ -428,14 +431,12 @@ private fun NowPlayingCardContent(page_height: Dp, content_padding: PaddingValue
                 }
             }
 
-            CompositionLocalProvider(LocalPlayerState provides remember {
-                player.copy(
-                    onClickedOverride = { item, _ ->
-                        player.onMediaItemClicked(item)
-                        expansion.close()
-                    }
-                )
-            }) {
+            CompositionLocalProvider(LocalPlayerClickOverrides provides click_overrides.copy(
+                onClickOverride = { item, _ ->
+                    click_overrides.onMediaItemClicked(item, player)
+                    expansion.close()
+                }
+            )) {
                 pages.firstOrNull()?.Page(
                     page_height,
                     top_bar,

@@ -33,12 +33,14 @@ import com.toasterofbread.spmp.model.settings.category.FilterSettings
 import com.toasterofbread.spmp.resources.uilocalisation.RawLocalisedString
 import com.toasterofbread.spmp.resources.uilocalisation.YoutubeLocalisedString
 import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
+import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
+import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemList
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsRow
 import kotlinx.coroutines.*
@@ -51,6 +53,7 @@ internal fun ArtistAppPage.SFFArtistPage(
     multiselect_context: MediaItemMultiSelectContext? = null
 ) {
     val player: PlayerState = LocalPlayerState.current
+    val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
     val own_multiselect_context = remember(multiselect_context) { if (multiselect_context != null) null else MediaItemMultiSelectContext() {} }
     val apply_filter: Boolean by FilterSettings.Key.APPLY_TO_ARTIST_ITEMS.rememberMutableState()
@@ -150,11 +153,11 @@ internal fun ArtistAppPage.SFFArtistPage(
                         val is_artist_row: Boolean =
                             layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_SINGLES || layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_OTHER
 
-                        CompositionLocalProvider(LocalPlayerState provides remember {
-                            player.copy(
-                                onClickedOverride = { item, multiselect_key ->
+                        CompositionLocalProvider(
+                            LocalPlayerClickOverrides provides click_overrides.copy(
+                                onClickOverride = { item, multiselect_key ->
                                     if (is_singles && item is Playlist) {
-                                        onSinglePlaylistClicked(item, player)
+                                        onSinglePlaylistClicked(item, player, click_overrides)
                                     }
                                     else if (item !is Song) {
                                         player.openMediaItem(item, is_artist_row)
@@ -163,17 +166,19 @@ internal fun ArtistAppPage.SFFArtistPage(
                                         player.playMediaItem(item)
                                     }
                                 },
-                                onLongClickedOverride = { item, long_press_data ->
-                                    player.onMediaItemLongClicked(
+                                onAltClickOverride = { item, long_press_data ->
+                                    click_overrides.onMediaItemLongClicked(
                                         item,
-                                        if (is_singles && item is Playlist)
-                                            long_press_data?.copy(playlist_as_song = true)
-                                                ?: LongPressMenuData(item, playlist_as_song = true)
-                                        else long_press_data
+                                        player,
+                                        long_press_data =
+                                            if (is_singles && item is Playlist)
+                                                long_press_data?.copy(playlist_as_song = true)
+                                                    ?: LongPressMenuData(item, playlist_as_song = true)
+                                            else long_press_data
                                     )
                                 }
                             )
-                        }) {
+                        ) {
                             val type: MediaItemLayout.Type =
                                 if (layout.type == null) MediaItemLayout.Type.GRID
                                 else if (layout.type == MediaItemLayout.Type.NUMBERED_LIST && artist is Artist) MediaItemLayout.Type.LIST
@@ -200,12 +205,12 @@ internal fun ArtistAppPage.SFFArtistPage(
 }
 
 @OptIn(DelicateCoroutinesApi::class)
-private fun onSinglePlaylistClicked(playlist: Playlist, player: PlayerState) {
+private fun onSinglePlaylistClicked(playlist: Playlist, player: PlayerState, click_overrides: PlayerClickOverrides) {
     GlobalScope.launch {
         playlist.loadData(player.context).onSuccess { data ->
             data.items?.firstOrNull()?.also { first_item ->
                 withContext(Dispatchers.Main) {
-                    player.onMediaItemClicked(first_item)
+                    click_overrides.onMediaItemClicked(first_item, player)
                 }
             }
         }

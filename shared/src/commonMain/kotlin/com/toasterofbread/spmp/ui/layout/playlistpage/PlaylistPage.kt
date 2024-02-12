@@ -61,12 +61,14 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.FilterSettings
 import com.toasterofbread.spmp.model.settings.category.TopBarSettings
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
+import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageWithItem
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -263,6 +265,7 @@ class PlaylistPage(
         close: () -> Unit
     ) {
         val db: Database = player.database
+        val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
         val playlist_items: List<MediaItem>? by playlist.Items.observe(db)
         var sorted_items: List<Pair<MediaItem, Int>>? by remember { mutableStateOf(null) }
@@ -380,30 +383,28 @@ class PlaylistPage(
                 swipe_enabled = !loading,
                 modifier = Modifier.fillMaxSize()
             ) {
-                CompositionLocalProvider(LocalPlayerState provides remember {
-                    player.copy(
-                        onClickedOverride = { item, multiselect_key ->
-                            if (multiselect_key != null) {
-                                if (sort_type == MediaItemSortType.NATIVE && current_filter == null) {
-                                    player.playPlaylist(playlist, multiselect_key)
-                                    player.onPlayActionOccurred()
-                                }
-                                else {
-                                    sorted_items?.also { items ->
-                                        player.withPlayer {
-                                            addMultipleToQueue(items.mapNotNull { it.first as? Song }, clear = true)
-                                            seekToSong(multiselect_key)
-                                            player.onPlayActionOccurred()
-                                        }
+                CompositionLocalProvider(LocalPlayerClickOverrides provides click_overrides.copy(
+                    onClickOverride = { item, multiselect_key ->
+                        if (multiselect_key != null) {
+                            if (sort_type == MediaItemSortType.NATIVE && current_filter == null) {
+                                player.playPlaylist(playlist, multiselect_key)
+                                player.onPlayActionOccurred()
+                            }
+                            else {
+                                sorted_items?.also { items ->
+                                    player.withPlayer {
+                                        addMultipleToQueue(items.mapNotNull { it.first as? Song }, clear = true)
+                                        seekToSong(multiselect_key)
+                                        player.onPlayActionOccurred()
                                     }
                                 }
                             }
-                            else {
-                                player.onMediaItemClicked(item)
-                            }
                         }
-                    )
-                }) {
+                        else {
+                            click_overrides.onMediaItemClicked(item, player)
+                        }
+                    }
+                )) {
                     ScrollBarLazyColumn(
                         state = list_state.listState,
                         horizontalAlignment = Alignment.CenterHorizontally,

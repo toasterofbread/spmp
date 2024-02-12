@@ -455,7 +455,7 @@
 
     <string name="s_key_np_default_gradient_depth">グラデーションのデフォルトの深さ</string>
     <string name="s_key_np_default_background_image_opacity">ランドスケープバックグラウンド画像のデフォルトの不透明度</string>
-    <string name="s_key_np_default_image_shadow_radius">画像シャドウのデフォルトのサイズ</string>
+    <string name="s_key_np_default_shadow_radius">シャドウのデフォルトのサイズ</string>
 
     <string name="s_key_lyrics_default_source">デフォルトの歌詞源</string>
 

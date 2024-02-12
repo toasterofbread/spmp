@@ -11,6 +11,12 @@ private val amount_suffixes: Map<String, Map<Char, Int>> = mapOf(
         '万' to 10000,
         '千' to 1000,
         '百' to 100
+    ),
+    UILanguages.zh to mapOf(
+        '亿' to 100000000,
+        '万' to 10000,
+        '千' to 1000,
+        '百' to 100
     )
 )
 

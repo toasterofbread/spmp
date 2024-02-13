@@ -94,7 +94,7 @@ compose.desktop {
 
             appResourcesRootDir.set(project.file("build/package"))
 
-            packageName = getString("app_name")
+            packageName = rootProject.name
             packageVersion = getString("version_string")
             version = getString("version_string")
             licenseFile.set(rootProject.file("LICENSE"))

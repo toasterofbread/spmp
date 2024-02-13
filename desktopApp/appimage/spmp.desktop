@@ -2,7 +2,7 @@
 Type=Application
 Version=1.0
 Name=SpMp
-Exec=bin/SpMp
+Exec=bin/spmp
 Icon=spmp
 Terminal=false
 Categories=Audio;AudioVideo;

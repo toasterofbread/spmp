@@ -1,7 +1,6 @@
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
@@ -14,7 +13,6 @@ import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.toasterofbread.composekit.platform.composable.onWindowBackPressed
@@ -79,14 +77,17 @@ fun main(args: Array<String>) {
                 return@Window SpMp.player_state.processKeyEventShortcuts(event, window, text_field_focus_state)
             },
             state = rememberWindowState(
-                size = DpSize(1280.dp, 720.dp),
-                position = WindowPosition(Alignment.Center)
+                size = DpSize(1280.dp, 720.dp)
             ),
             undecorated = enable_window_transparency,
             transparent = enable_window_transparency
         ) {
             LaunchedEffect(Unit) {
                 window = this@Window.window
+
+                if (enable_window_transparency) {
+                    window.background = java.awt.Color(0, 0, 0, 0)
+                }
 
                 val startup_command: String = DesktopSettings.Key.STARTUP_COMMAND.get()
                 if (startup_command.isBlank()) {

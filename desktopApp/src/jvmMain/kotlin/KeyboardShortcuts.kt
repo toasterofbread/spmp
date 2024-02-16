@@ -44,6 +44,7 @@ internal fun PlayerState.processKeyEventShortcuts(
                         val page: AppPage? = AppPageSidebarButton.getShortcutButtonPage(page_index, this)
                         if (page != null) {
                             openAppPage(page)
+                            return true
                         }
                     }
                     else {
@@ -51,6 +52,7 @@ internal fun PlayerState.processKeyEventShortcuts(
                             val seek_target: Long = (duration_ms * (number_index.toFloat() / NUMBER_KEYS.size)).roundToLong()
                             seekTo(seek_target)
                         }
+                        return true
                     }
                 }
             }
@@ -61,16 +63,17 @@ internal fun PlayerState.processKeyEventShortcuts(
         }
         
         when (event.key) {
-            
             // UI scale
             Key.Equals -> {
                 if (event.isCtrlPressed) {
                     SystemSettings.Key.UI_SCALE.set(SystemSettings.Key.UI_SCALE.get<Float>() + 0.1f)
+                    return true
                 }
             }
             Key.Minus -> {
                 if (event.isCtrlPressed) {
                     SystemSettings.Key.UI_SCALE.set((SystemSettings.Key.UI_SCALE.get<Float>() - 0.1f).coerceAtLeast(0.1f))
+                    return true
                 }
             }
             
@@ -82,12 +85,14 @@ internal fun PlayerState.processKeyEventShortcuts(
                             removeFromQueue(current_song_index)
                         }
                     }
+                    return true
                 }
             }
             Key.Spacebar -> {
                 withPlayer {
                     playPause()
                 }
+                return true
             }
             Key.DirectionLeft, Key.DirectionRight -> {
                 withPlayer {
@@ -98,6 +103,7 @@ internal fun PlayerState.processKeyEventShortcuts(
                         seekBy(if (event.key == Key.DirectionLeft) -SEEK_AMOUNT_MS else SEEK_AMOUNT_MS)
                     }
                 }
+                return true
             }
         }
     }

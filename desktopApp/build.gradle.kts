@@ -26,6 +26,7 @@ enum class OS {
 }
 
 val server_properties_file: File = rootProject.file("server.properties")
+val local_properties_path: String = "local.properties"
 val strings_file: File = rootProject.file("shared/src/commonMain/resources/assets/values/strings.xml")
 
 fun getString(key: String): String {
@@ -65,7 +66,7 @@ kotlin {
 
                 // LWJGL needed by gdx-nativefilechooser
                 val os_name: String = System.getProperty("os.name")
-                val lwjgl_os = when {
+                val lwjgl_os: String = when {
                     os_name == "Linux" -> "linux"
                     os_name.startsWith("Win") -> "windows"
                     os_name == "Mac OS X" -> "macos"
@@ -346,7 +347,22 @@ fun registerExePackageTasks() {
     }
 }
 
+fun configureRunTask() {
+    tasks.getByName<JavaExec>("run") {
+        val local_properties: Properties = Properties().apply {
+            try {
+                load(FileInputStream(rootProject.file(local_properties_path)))
+            }
+            catch (e: Throwable) {
+                RuntimeException("Ignoring exception while loading '$local_properties_path' in configureRunTask()", e).printStackTrace()
+            }
+        }
+        executable = local_properties["execTaskJavaExe"]?.toString() ?: return@getByName
+    }
+}
+
 afterEvaluate {
     registerAppImagePackageTasks()
     registerExePackageTasks()
+    configureRunTask()
 }

@@ -7,7 +7,7 @@ import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.*
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.interaction.Interaction
@@ -17,15 +17,19 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.SwipeableState
 import androidx.compose.material.swipeable
-import androidx.compose.material3.*
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
-import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
+import androidx.compose.ui.zIndex
 import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.composekit.platform.composable.composeScope
@@ -47,9 +51,9 @@ import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -306,28 +310,12 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
                     }
                 }
         ) {
+            if (ThemeSettings.Key.SHOW_EXPANDED_PLAYER_WAVE.rememberMutableState<Boolean>().value) {
+                NowPlayingOverlappingWaveBackground(Modifier.align(Alignment.TopCenter).zIndex(1f))
+            }
+
             if (NowPlayingPage.getFormFactor(player) == FormFactor.LANDSCAPE) {
-                val default_background_image_opacity: Float by ThemeSettings.Key.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.rememberMutableState()
-                val current_song: Song? by player.status.song_state
-
-                current_song?.also { song ->
-                    val background_image_opacity: Float? by song.BackgroundImageOpacity.observe(player.database)
-                    val opacity: Float = background_image_opacity ?: default_background_image_opacity
-                    if (opacity <= 0f) {
-                        return@also
-                    }
-
-                    song.Thumbnail(
-                        MediaItemThumbnailProvider.Quality.HIGH,
-                        Modifier
-                            .requiredSize(maxOf(player.screen_size.height, player.screen_size.width))
-                            .blur(5.dp)
-                            .alpha(opacity)
-                            .graphicsLayer {
-                                alpha = expansion.get().coerceIn(0f, 1f)
-                            }
-                    )
-                }
+                NowPlayingThumbnailBackground(Modifier.requiredSize(maxOf(player.screen_size.height, player.screen_size.width)))
             }
 
             BackHandler({ !is_shut }) {
@@ -337,7 +325,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
             }
 
             CompositionLocalProvider(LocalContentColor provides player.getNPOnBackground()) {
-                Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(Modifier.fillMaxSize().zIndex(2f), horizontalAlignment = Alignment.CenterHorizontally) {
                     NowPlayingCardContent(page_height, content_padding, swipe_modifier)
                 }
             }

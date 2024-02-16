@@ -67,7 +67,7 @@ enum class DownloadMethod {
                             return@promptUserForDirectory
                         }
 
-                        val directory: PlatformFile = context.getUserDirectoryFile(uri)
+                        val directory: PlatformFile = context.getUserDirectoryFile(uri) ?: return@promptUserForDirectory
 
                         Platform.ANDROID.only {
                             directory.mkdirs()

@@ -456,6 +456,8 @@
     <string name="s_key_np_default_gradient_depth">グラデーションのデフォルトの深さ</string>
     <string name="s_key_np_default_background_image_opacity">ランドスケープバックグラウンド画像のデフォルトの不透明度</string>
     <string name="s_key_np_default_shadow_radius">シャドウのデフォルトのサイズ</string>
+    
+    <string name="s_key_show_expanded_player_wave">拡大プレイヤーの波を表示</string>
 
     <string name="s_group_theming_desktop">デスクトップ専用のオプション</string>
 

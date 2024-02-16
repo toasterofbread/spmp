@@ -47,6 +47,7 @@ import com.toasterofbread.composekit.utils.composable.PlatformClickableIconButto
 import com.toasterofbread.composekit.utils.composable.ResizableOutlinedTextField
 import com.toasterofbread.composekit.utils.composable.SidebarButtonSelector
 import com.toasterofbread.composekit.utils.composable.getTop
+import com.toasterofbread.composekit.utils.composable.wave.WaveShape
 import com.toasterofbread.composekit.utils.modifier.scrollWithoutClip
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
@@ -55,7 +56,6 @@ import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
-import com.toasterofbread.spmp.ui.component.WaveShape
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState

@@ -12,7 +12,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.scale
@@ -56,6 +55,9 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_RO
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.QueueTab
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
+
+val NOW_PLAYING_LARGE_BOTTOM_BAR_HEIGHT: Dp
+    @Composable get() = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
 
 @Composable
 private fun MainTabControls(
@@ -119,7 +121,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
     val top_padding: Dp = top_padding
     val bottom_padding: Dp = bottom_padding
 
-    val bottom_bar_height: Dp = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
+    val bottom_bar_height: Dp = NOW_PLAYING_LARGE_BOTTOM_BAR_HEIGHT
     val inner_bottom_padding: Dp = horizontal_padding
 
     var thumbnail_y_position: Float by remember { mutableStateOf(0f) }

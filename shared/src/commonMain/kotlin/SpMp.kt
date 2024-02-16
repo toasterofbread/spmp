@@ -25,7 +25,9 @@ import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
 import com.toasterofbread.spmp.resources.uilocalisation.localised.UILanguages
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.service.playercontroller.openUri
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.*
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.LoadingSplashView
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.RootView
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.SplashMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.shortcut.LocalPressedShortcutModifiers
 import com.toasterofbread.spmp.ui.shortcut.PressedShortcutModifiers

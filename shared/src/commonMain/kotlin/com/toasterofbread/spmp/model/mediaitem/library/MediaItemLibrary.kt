@@ -29,10 +29,14 @@ object MediaItemLibrary {
         context: AppContext,
         custom_location_uri: String = SystemSettings.Key.LIBRARY_PATH.get(context),
     ): PlatformFile {
-        if (custom_location_uri.isBlank()) {
-            return getDefaultLibraryDir(context)
+        if (custom_location_uri.isNotBlank()) {
+            val custom_dir: PlatformFile? = context.getUserDirectoryFile(custom_location_uri)
+            if (custom_dir != null) {
+                return custom_dir
+            }
         }
-        return context.getUserDirectoryFile(custom_location_uri)
+
+        return getDefaultLibraryDir(context)
     }
 
     fun getDefaultLibraryDir(context: AppContext): PlatformFile =

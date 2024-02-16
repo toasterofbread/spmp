@@ -47,7 +47,7 @@ fun RootView(player: PlayerState) {
             }
     )
 
-    val window_transparency_enabled: Boolean = ThemeSettings.Key.ENABLE_WINDOW_TRANSPARENCY.get()
+    val window_transparency_enabled: Boolean = remember { ThemeSettings.Key.ENABLE_WINDOW_TRANSPARENCY.get() }
     val background_opacity: Float by ThemeSettings.Key.WINDOW_BACKGROUND_OPACITY.rememberMutableState()
 
     Canvas(Modifier.fillMaxSize()) {

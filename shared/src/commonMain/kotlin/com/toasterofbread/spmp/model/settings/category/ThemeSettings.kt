@@ -21,12 +21,13 @@ data object ThemeSettings: SettingsCategory("theme") {
         CURRENT_THEME,
         THEMES,
         ACCENT_COLOUR_SOURCE,
-        ENABLE_WINDOW_TRANSPARENCY,
-        WINDOW_BACKGROUND_OPACITY,
         NOWPLAYING_THEME_MODE,
         NOWPLAYING_DEFAULT_GRADIENT_DEPTH,
         NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY,
-        NOWPLAYING_DEFAULT_SHADOW_RADIUS;
+        NOWPLAYING_DEFAULT_SHADOW_RADIUS,
+        SHOW_EXPANDED_PLAYER_WAVE,
+        ENABLE_WINDOW_TRANSPARENCY,
+        WINDOW_BACKGROUND_OPACITY;
 
         override val category: SettingsCategory get() = ThemeSettings
 
@@ -36,12 +37,13 @@ data object ThemeSettings: SettingsCategory("theme") {
                 CURRENT_THEME -> 0
                 THEMES -> "[]"
                 ACCENT_COLOUR_SOURCE -> AccentColourSource.THUMBNAIL.ordinal
-                ENABLE_WINDOW_TRANSPARENCY -> false
-                WINDOW_BACKGROUND_OPACITY -> 1f
                 NOWPLAYING_THEME_MODE -> ThemeMode.DEFAULT.ordinal
                 NOWPLAYING_DEFAULT_GRADIENT_DEPTH -> 1f
                 NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY -> 0.0f
                 NOWPLAYING_DEFAULT_SHADOW_RADIUS -> 0.5f
+                SHOW_EXPANDED_PLAYER_WAVE -> true
+                ENABLE_WINDOW_TRANSPARENCY -> false
+                WINDOW_BACKGROUND_OPACITY -> 1f
             } as T
     }
 }

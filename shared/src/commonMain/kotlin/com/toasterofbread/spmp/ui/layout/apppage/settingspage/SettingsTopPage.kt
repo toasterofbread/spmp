@@ -229,7 +229,7 @@ internal fun SettingsImportDialog(modifier: Modifier = Modifier, onFinished: () 
             if (path != null) {
                 coroutine_scope.launch {
                     try {
-                        import_data = SettingsImportExport.loadSettingsFile(context.getUserDirectoryFile(path))
+                        import_data = SettingsImportExport.loadSettingsFile(context.getUserDirectoryFile(path)!!)
                     }
                     catch (e: Throwable) {
                         import_error = e
@@ -429,7 +429,7 @@ private fun peformExport(context: AppContext, categories: List<SettingsCategory>
         GlobalScope.launch {
             SettingsImportExport.exportSettings(
                 context = context,
-                file = context.getUserDirectoryFile(path),
+                file = context.getUserDirectoryFile(path)!!,
                 categories = categories
             )
         }

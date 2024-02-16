@@ -72,7 +72,13 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
         AppSliderItem(
             SettingsValueState(ThemeSettings.Key.NOWPLAYING_DEFAULT_SHADOW_RADIUS.getName()),
             getString("s_key_np_default_shadow_radius"), null
+        ),
+
+        ToggleSettingsItem(
+            SettingsValueState(ThemeSettings.Key.SHOW_EXPANDED_PLAYER_WAVE.getName()),
+            getString("s_key_show_expanded_player_wave"), null
         )
+
     ) + when (Platform.current) {
         Platform.DESKTOP -> getDesktopGroupItems()
         else -> emptyList()

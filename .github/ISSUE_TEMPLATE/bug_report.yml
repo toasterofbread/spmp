@@ -8,7 +8,7 @@ body:
       label: Checklist
       description: Please complete all tasks before submitting a report.
       options:
-        - label: I am able to reproduce the bug with the [latest debug version](https://github.com/toasterofbread/spmp/actions).
+        - label: I am able to reproduce the bug with the latest debug version ([Android](https://nightly.link/toasterofbread/spmp/workflows/build-android/main), [Linux](https://nightly.link/toasterofbread/spmp/workflows/build-linux/main), [Windows](https://nightly.link/toasterofbread/spmp/workflows/build-windows/main))
           required: true
         - label: I've checked that there is no open or closed issue about this bug.
           required: true

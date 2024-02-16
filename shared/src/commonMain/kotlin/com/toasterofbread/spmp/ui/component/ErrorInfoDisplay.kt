@@ -242,7 +242,7 @@ private fun ExpandedContent(
             .fillMaxWidth()
             .clip(shape)
             .padding(bottom = 10.dp)
-            .background(player.theme.background_provider)
+            .background({ player.theme.background })
             .padding(10.dp)
     ) {
         CompositionLocalProvider(LocalContentColor provides player.theme.on_background) {

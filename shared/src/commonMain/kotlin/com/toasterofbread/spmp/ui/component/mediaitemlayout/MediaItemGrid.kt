@@ -205,7 +205,7 @@ fun MediaItemGrid(
                 if (multiselect_context != null && !shouldShowTitleBar(title, subtitle, view_more, scrollable_state)) {
                     Box(
                         Modifier
-                            .background(CircleShape, player.theme.background_provider)
+                            .background(CircleShape, { player.theme.background })
                             .padding(horizontal_padding),
                         contentAlignment = Alignment.Center
                     ) {

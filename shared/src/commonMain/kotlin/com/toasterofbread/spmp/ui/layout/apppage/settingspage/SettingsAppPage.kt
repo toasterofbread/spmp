@@ -115,7 +115,7 @@ class SettingsAppPage(override val state: AppPageState, getFooterModifier: @Comp
                 val top_padding: Dp = player.top_bar.MusicTopBar(
                     TopBarSettings.Key.SHOW_IN_SETTINGS,
                     Modifier.fillMaxWidth().zIndex(10f),
-                    getBottomBorderColour = player.theme.background_provider,
+                    getBottomBorderColour = { player.theme.background },
                     padding = PaddingValues(top = content_padding.calculateTopPadding())
                 ).top_padding
 

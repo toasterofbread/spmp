@@ -5,19 +5,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
-import androidx.compose.ui.input.key.*
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.*
+import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowPosition
+import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
 import com.toasterofbread.composekit.platform.composable.onWindowBackPressed
 import com.toasterofbread.composekit.utils.common.addUnique
 import com.toasterofbread.spmp.model.settings.category.DesktopSettings
-import com.toasterofbread.spmp.model.settings.category.SystemSettings
+import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.getTextFieldFocusState
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.isTextFieldFocused
 import com.toasterofbread.spmp.ui.shortcut.PressedShortcutModifiers
 import com.toasterofbread.spmp.ui.shortcut.ShortcutModifier
 import kotlinx.coroutines.*
@@ -51,6 +56,7 @@ fun main(args: Array<String>) {
     }
 
     lateinit var window: ComposeWindow
+    val enable_window_transparency: Boolean = ThemeSettings.Key.ENABLE_WINDOW_TRANSPARENCY.get(context.getPrefs())
 
     application {
         val text_field_focus_state: Any = getTextFieldFocusState()
@@ -75,7 +81,9 @@ fun main(args: Array<String>) {
             state = rememberWindowState(
                 size = DpSize(1280.dp, 720.dp),
                 position = WindowPosition(Alignment.Center)
-            )
+            ),
+            undecorated = enable_window_transparency,
+            transparent = enable_window_transparency
         ) {
             LaunchedEffect(Unit) {
                 window = this@Window.window

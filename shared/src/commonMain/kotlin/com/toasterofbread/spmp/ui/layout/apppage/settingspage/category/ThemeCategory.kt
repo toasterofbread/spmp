@@ -1,12 +1,10 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
 import androidx.compose.ui.Modifier
+import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.composekit.settings.ui.ThemeData
-import com.toasterofbread.composekit.settings.ui.item.SettingsItem
-import com.toasterofbread.composekit.settings.ui.item.MultipleChoiceSettingsItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
-import com.toasterofbread.composekit.settings.ui.item.ThemeSelectorSettingsItem
+import com.toasterofbread.composekit.settings.ui.item.*
 import com.toasterofbread.spmp.model.settings.category.AccentColourSource
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.AppContext
@@ -59,7 +57,7 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
                 1 -> getString("s_option_np_accent_elements")
                 else -> getString("s_option_np_accent_none")
             }
-          },
+        },
 
         AppSliderItem(
             SettingsValueState(ThemeSettings.Key.NOWPLAYING_DEFAULT_GRADIENT_DEPTH.getName()),
@@ -75,5 +73,27 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
             SettingsValueState(ThemeSettings.Key.NOWPLAYING_DEFAULT_SHADOW_RADIUS.getName()),
             getString("s_key_np_default_shadow_radius"), null
         )
-    )
+    ) + when (Platform.current) {
+        Platform.DESKTOP -> getDesktopGroupItems()
+        else -> emptyList()
+    }
 }
+
+private fun getDesktopGroupItems(): List<SettingsItem> = listOf(
+    GroupSettingsItem(
+        getString("s_group_theming_desktop")
+    ),
+
+    ToggleSettingsItem(
+        SettingsValueState(ThemeSettings.Key.ENABLE_WINDOW_TRANSPARENCY.getName()),
+        getString("s_key_enable_window_transparency"),
+        getString("s_sub_enable_window_transparency")
+    ),
+
+    AppSliderItem(
+        SettingsValueState(ThemeSettings.Key.WINDOW_BACKGROUND_OPACITY.getName()),
+        getString("s_key_window_background_opacity"),
+        getString("s_sub_window_background_opacity"),
+        range = 0f..1f
+    )
+)

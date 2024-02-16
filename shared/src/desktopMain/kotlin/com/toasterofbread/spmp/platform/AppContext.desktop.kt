@@ -24,7 +24,7 @@ actual class AppContext(
     actual fun getPrefs(): PlatformPreferences = PlatformPreferencesImpl.getInstance { getFilesDir().resolve("preferences.json") }
 
     init {
-        val prefs = getPrefs()
+        val prefs: PlatformPreferences = getPrefs()
         val youtubeapi_type: YoutubeApi.Type = YTApiSettings.Key.API_TYPE.getEnum(prefs)
         ytapi = youtubeapi_type.instantiate(this, YTApiSettings.Key.API_URL.get(prefs))
     }

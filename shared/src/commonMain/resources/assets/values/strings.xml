@@ -479,6 +479,13 @@
     <string name="s_key_np_default_background_image_opacity">Default landscape background image opacity</string>
     <string name="s_key_np_default_shadow_radius">Default shadow size</string>
 
+    <string name="s_group_theming_desktop">Desktop-only options</string>
+
+    <string name="s_key_enable_window_transparency">Enable window transparency</string>
+    <string name="s_sub_enable_window_transparency">Requires restart for change to apply</string>
+    <string name="s_key_window_background_opacity">Window background opacity</string>
+    <string name="s_sub_window_background_opacity">Window transparency must be enabled for this to take effect</string>
+
     <string name="s_key_lyrics_default_source">Default lyrics source</string>
 
     <string name="s_key_lyrics_follow_enabled">Follow current line</string>

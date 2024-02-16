@@ -45,7 +45,7 @@ internal fun SpecialModeMenu(special_mode: SpecialMode?, song: Song, setMode: (S
         Modifier
             .fillMaxWidth()
             .padding(15.dp)
-            .background(RoundedCornerShape(16.dp), player.theme.accent_provider)
+            .background(RoundedCornerShape(16.dp)) { player.theme.accent }
             .padding(horizontal = 10.dp)
     ) { mode ->
         val button_width = 40.dp

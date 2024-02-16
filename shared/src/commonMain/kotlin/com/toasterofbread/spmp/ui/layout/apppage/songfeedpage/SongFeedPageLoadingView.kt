@@ -12,6 +12,6 @@ import com.toasterofbread.spmp.resources.getString
 internal fun SongFeedPageLoadingView(modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
     Box(modifier, contentAlignment = Alignment.Center) {
-        SubtleLoadingIndicator(message = getString("loading_feed"), getColour = player.theme.on_background_provider)
+        SubtleLoadingIndicator(message = getString("loading_feed"), getColour = { player.theme.on_background })
     }
 }

@@ -93,7 +93,7 @@ fun ArtistLayout(
 
     val main_column_state: LazyListState = rememberLazyListState()
 
-    val background_modifier: Modifier = Modifier.background(player.theme.background_provider)
+    val background_modifier: Modifier = Modifier.background({ player.theme.background })
     val gradient_size = 0.35f
     var accent_colour: Color? by remember { mutableStateOf(null) }
 

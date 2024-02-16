@@ -1,30 +1,28 @@
+@file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 package com.toasterofbread.spmp.ui.layout.apppage.mainpage
 
 import LocalPlayerState
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.input.key.*
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.DpSize
 import com.toasterofbread.composekit.utils.common.addUnique
-import com.toasterofbread.composekit.utils.modifier.background
+import com.toasterofbread.composekit.utils.common.thenIf
+import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.form_factor
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.getMinimisedPlayerHeight
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.getMinimisedPlayerVPadding
-import androidx.compose.runtime.ProvidableCompositionLocal
-import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.runtime.DisposableEffect
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
 val MINIMISED_NOW_PLAYING_HEIGHT_DP: Float
     @Composable get() = LocalPlayerState.current.form_factor.getMinimisedPlayerHeight().value
@@ -49,11 +47,17 @@ fun RootView(player: PlayerState) {
             }
     )
 
-    Column(
-        Modifier
-            .fillMaxSize()
-            .background(player.theme.background_provider)
-    ) {
+    val window_transparency_enabled: Boolean = ThemeSettings.Key.ENABLE_WINDOW_TRANSPARENCY.get()
+    val background_opacity: Float by ThemeSettings.Key.WINDOW_BACKGROUND_OPACITY.rememberMutableState()
+
+    Canvas(Modifier.fillMaxSize()) {
+        drawRect(
+            player.theme.background.thenIf(window_transparency_enabled) { copy(alpha = background_opacity) },
+            blendMode = BlendMode.SrcIn
+        )
+    }
+
+    Column(Modifier.fillMaxSize()) {
         player.HomePage()
         player.NowPlaying()
     }

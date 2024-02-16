@@ -26,46 +26,48 @@ import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.AccentColourSource
 import com.toasterofbread.spmp.model.settings.category.SystemSettings
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
+import com.toasterofbread.spmp.model.settings.getEnum
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
-import java.util.Locale
+import java.util.*
 
 internal class ThemeImpl(private val context: AppContext): Theme(getString("theme_title_system")) {
+    private var accent_colour_source: AccentColourSource? by mutableStateOf(null)
+
     private val gson: Gson
         get() = GsonBuilder().let { builder ->
-        builder.registerTypeAdapter(
-            StaticThemeData::class.java,
-            object : TypeAdapter<StaticThemeData>() {
-                override fun write(writer: JsonWriter, value: StaticThemeData?) {
-                    if (value == null) {
-                        writer.nullValue()
+            builder.registerTypeAdapter(
+                StaticThemeData::class.java,
+                object : TypeAdapter<StaticThemeData>() {
+                    override fun write(writer: JsonWriter, value: StaticThemeData?) {
+                        if (value == null) {
+                            writer.nullValue()
+                        }
+                        else {
+                            writer.value(value.serialise())
+                        }
                     }
-                    else {
-                        writer.value(value.serialise())
+
+                    override fun read(reader: JsonReader): StaticThemeData {
+                        return StaticThemeData.deserialise(reader.nextString())
                     }
                 }
+            )
 
-                override fun read(reader: JsonReader): StaticThemeData {
-                    return StaticThemeData.deserialise(reader.nextString())
-                }
-            }
-        )
-
-        builder.create()
-    }
+            builder.create()
+        }
 
     private val prefs_listener: PlatformPreferencesListener =
         object : PlatformPreferencesListener {
             override fun onChanged(prefs: PlatformPreferences, key: String) {
                 when (key) {
                     ThemeSettings.Key.ACCENT_COLOUR_SOURCE.getName() -> {
-                        accent_colour_source = Settings.getEnum<AccentColourSource>(
-                            ThemeSettings.Key.ACCENT_COLOUR_SOURCE, prefs)
+                        accent_colour_source = ThemeSettings.Key.ACCENT_COLOUR_SOURCE.getEnum<AccentColourSource>(prefs)
                     }
                     ThemeSettings.Key.CURRENT_THEME.getName() -> {
-                        setCurrentThemeIdx(Settings.get(ThemeSettings.Key.CURRENT_THEME, prefs))
+                        setCurrentThemeIdx(ThemeSettings.Key.CURRENT_THEME.get(prefs))
                     }
                     ThemeSettings.Key.THEMES.getName() -> {
                         reloadThemes()
@@ -73,8 +75,6 @@ internal class ThemeImpl(private val context: AppContext): Theme(getString("them
                 }
             }
         }
-
-    private var accent_colour_source: AccentColourSource? by mutableStateOf(null)
 
     init {
         val prefs = context.getPrefs()

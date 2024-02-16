@@ -444,7 +444,7 @@ class PlaylistPage(
                             list_state.listState,
                             if (top_bar_showing) 0.dp else top_padding,
                             Modifier.zIndex(1f).padding(bottom = 5.dp),
-                            player.theme.background_provider
+                            { player.theme.background }
                         ) {
                             PlaylistInteractionBar(
                                 sorted_items,

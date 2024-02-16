@@ -457,6 +457,13 @@
     <string name="s_key_np_default_background_image_opacity">ランドスケープバックグラウンド画像のデフォルトの不透明度</string>
     <string name="s_key_np_default_shadow_radius">シャドウのデフォルトのサイズ</string>
 
+    <string name="s_group_theming_desktop">デスクトップ専用のオプション</string>
+
+    <string name="s_key_enable_window_transparency">ウィンドウの透明バックグラウンドを有効にする</string>
+    <string name="s_sub_enable_window_transparency">変更を有効にするには、アプリの再起動が必要です</string>
+    <string name="s_key_window_background_opacity">ウィンドウの不透明度</string>
+    <string name="s_sub_window_background_opacity">ウィンドウの透明バックグラウンドが有効になっていなければなりません</string>
+
     <string name="s_key_lyrics_default_source">デフォルトの歌詞源</string>
 
     <string name="s_key_lyrics_follow_enabled">現在の行をたどる</string>

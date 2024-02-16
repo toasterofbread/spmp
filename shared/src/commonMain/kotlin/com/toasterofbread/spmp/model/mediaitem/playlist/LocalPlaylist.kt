@@ -71,7 +71,7 @@ suspend fun Playlist.downloadAsLocalPlaylist(context: AppContext, replace: Boole
 @Composable
 fun LocalPlaylist.LocalPlaylistDefaultThumbnail(modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
-    Box(modifier.background(player.theme.accent_provider), contentAlignment = Alignment.Center) {
+    Box(modifier.background({ player.theme.accent }), contentAlignment = Alignment.Center) {
         Icon(Icons.Default.PlaylistPlay, null, tint = player.theme.on_accent)
     }
 }

@@ -456,7 +456,8 @@
     <string name="s_key_np_default_gradient_depth">グラデーションのデフォルトの深さ</string>
     <string name="s_key_np_default_background_image_opacity">ランドスケープバックグラウンド画像のデフォルトの不透明度</string>
     <string name="s_key_np_default_shadow_radius">シャドウのデフォルトのサイズ</string>
-    
+    <string name="s_key_np_default_image_corner_rounding">イメージ角のデフォルトのラウンヂング</string>
+
     <string name="s_key_show_expanded_player_wave">拡大プレイヤーの波を表示</string>
 
     <string name="s_group_theming_desktop">デスクトップ専用のオプション</string>
@@ -485,7 +486,7 @@
 
     <string name="s_key_lyrics_extra_padding">パディングを増やす</string>
     <string name="s_sub_lyrics_extra_padding">歌詞の上と下にパディングを増やす</string>
-    
+
     <string name="s_key_lyrics_enable_word_sync">文字ごとにシンクする</string>
     <string name="s_sub_lyrics_enable_word_sync">可能ならば、行ごとにではなく文字ごとにシンクを表示します</string>
 
@@ -563,7 +564,7 @@
 
     <string name="s_group_caching">キャッシュ</string>
     <string name="s_key_enable_thumbnail_cache">サムネール画像をキャッシュする</string>
-    
+
     <string name="s_discord_status_enabled">Discord ステータスは有効にされています</string>
     <string name="s_discord_status_disabled">Discord ステータスは有効にされていません</string>
     <string name="s_discord_status_enable">有効にする</string>
@@ -588,7 +589,7 @@
     <string name="s_cat_development">開発</string>
 
     <string name="s_subpage_ui_debug_info">UIデバッグ情報</string>
-    
+
     <string name="s_group_localisation">ローカリゼーション</string>
     <string name="s_key_unlocalised_strings">ローカライズされてない文</string>
     <string name="s_sub_unlocalised_strings">現在のアプリ言語に対してまだ書かれていないストリング</string>

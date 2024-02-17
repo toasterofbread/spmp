@@ -441,7 +441,7 @@
     <string name="s_option_wave_border_mode_scroll">Animate on queue scroll</string>
     <string name="s_option_wave_border_mode_none">No animation</string>
     <string name="s_option_wave_border_mode_line">Line border</string>
-    
+
     <string name="s_key_np_queue_radio_info_position">Queue radio info position</string>
     <string name="s_option_np_queue_radio_info_top_bar">Button bar</string>
     <string name="s_option_np_queue_radio_info_above_items">Above queue items</string>
@@ -478,7 +478,8 @@
     <string name="s_key_np_default_gradient_depth">Default gradient depth</string>
     <string name="s_key_np_default_background_image_opacity">Default landscape background image opacity</string>
     <string name="s_key_np_default_shadow_radius">Default shadow size</string>
-    
+    <string name="s_key_np_default_image_corner_rounding">Default image corner rounding</string>
+
     <string name="s_key_show_expanded_player_wave">Show expanded player wave</string>
 
     <string name="s_group_theming_desktop">Desktop-only options</string>

@@ -103,7 +103,7 @@ class SongThemePlayerOverlayMenu(
                             ) {}
                         }
                     }
-                    
+
                     Column(
                         Modifier
                             .padding(vertical = 10.dp)
@@ -112,16 +112,16 @@ class SongThemePlayerOverlayMenu(
                     ) {
                         ValueSlider(
                             song.ThumbnailRounding.observe(player.database),
-                            DEFAULT_THUMBNAIL_ROUNDING,
+                            ThemeSettings.Key.NOWPLAYING_DEFAULT_IMAGE_CORNER_ROUNDING.get(),
                             getString("song_theme_menu_corner_radius")
                         )
-                        
+
                         ValueSlider(
                             song.PlayerGradientDepth.observe(player.database),
                             ThemeSettings.Key.NOWPLAYING_DEFAULT_GRADIENT_DEPTH.get(),
                             getString("song_theme_menu_gradient_depth")
                         )
-                        
+
                         if (player.form_factor == FormFactor.LANDSCAPE) {
                             ValueSlider(
                                 song.BackgroundImageOpacity.observe(player.database),
@@ -129,15 +129,15 @@ class SongThemePlayerOverlayMenu(
                                 getString("song_theme_menu_background_image_opacity")
                             )
                         }
-                        
+
                         ValueSlider(
                             song.ShadowRadius.observe(player.database),
                             ThemeSettings.Key.NOWPLAYING_DEFAULT_SHADOW_RADIUS.get(),
                             getString("song_theme_menu_image_shadow_radius")
                         )
-                        
+
                         Spacer(Modifier.fillMaxHeight().weight(1f))
-                        
+
                         Row(Modifier.fillMaxWidth()) {
                             IconButton(
                                 {
@@ -152,9 +152,9 @@ class SongThemePlayerOverlayMenu(
                             ) {
                                 Icon(Icons.Default.Colorize, null)
                             }
-                            
+
                             Spacer(Modifier.fillMaxWidth().weight(1f))
-                            
+
                             val notif_image_menu_button_text: String? = notifImagePlayerOverlayMenuButtonText()
                             if (notif_image_menu_button_text != null) {
                                 Button({ openMenu(NotifImagePlayerOverlayMenu()) }, colors = button_colours) {
@@ -173,13 +173,12 @@ class SongThemePlayerOverlayMenu(
 private fun ValueSlider(value_state: MutableState<Float?>, default_value: Float, title: String) {
     val player: PlayerState = LocalPlayerState.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
-    
+
     val current_value: Float = value_state.value ?: default_value
     var slider_value: Float by remember { mutableStateOf(current_value) }
 
     var value_changed: Boolean by remember { mutableStateOf(false) }
     val anim_state: Animatable<Float, AnimationVector1D> = remember { Animatable(current_value) }
-    
 
     OnChangedEffect(anim_state.value) {
         value_state.value = anim_state.value
@@ -188,14 +187,14 @@ private fun ValueSlider(value_state: MutableState<Float?>, default_value: Float,
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Row(Modifier.offset(y = 10.dp)) {
             Text(title, fontSize = 15.sp)
-            
+
             Spacer(Modifier.fillMaxWidth().weight(1f))
-            
+
             Text((current_value * 100).roundToInt().toString().padStart(3, ' '), fontSize = 15.sp)
         }
-        
+
         val background_colour: Color = player.theme.vibrant_accent
-        
+
         Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             Slider(
                 value = anim_state.value,
@@ -223,7 +222,7 @@ private fun ValueSlider(value_state: MutableState<Float?>, default_value: Float,
                 ),
                 modifier = Modifier.weight(1f)
             )
-            
+
             IconButton({
                 value_changed = false
                 coroutine_scope.launch {

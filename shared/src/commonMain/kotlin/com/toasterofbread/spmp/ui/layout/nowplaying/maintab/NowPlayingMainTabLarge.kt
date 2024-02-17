@@ -262,7 +262,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                                     if (compact_mode) {
                                         val song: Song? by player.status.song_state
 
-                                        val thumbnail_rounding: Int = song.observeThumbnailRounding(DEFAULT_THUMBNAIL_ROUNDING)
+                                        val thumbnail_rounding: Int = song.observeThumbnailRounding()
                                         val thumbnail_shape: RoundedCornerShape = RoundedCornerShape(thumbnail_rounding)
 
                                         song?.Thumbnail(

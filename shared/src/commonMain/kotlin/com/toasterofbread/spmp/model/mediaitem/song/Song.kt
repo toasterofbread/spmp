@@ -18,6 +18,7 @@ import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.settings.category.LyricsSettings
+import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.crop
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
@@ -221,7 +222,8 @@ private data class SongThumbnailProvider(val id: String): MediaItemThumbnailProv
 }
 
 @Composable
-fun Song?.observeThumbnailRounding(default: Float): Int {
-    val player: PlayerState = LocalPlayerState.current
-    return ((this?.ThumbnailRounding?.observe(player.database)?.value?.div(2) ?: default) * 100).roundToInt()
+fun Song?.observeThumbnailRounding(): Int {
+    val default: Float by ThemeSettings.Key.NOWPLAYING_DEFAULT_IMAGE_CORNER_ROUNDING.rememberMutableState()
+    val corner_rounding: Float? = this?.ThumbnailRounding?.observe(LocalPlayerState.current.database)?.value
+    return ((corner_rounding ?: default) * 50f).roundToInt()
 }

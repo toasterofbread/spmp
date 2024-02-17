@@ -74,6 +74,11 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
             getString("s_key_np_default_shadow_radius"), null
         ),
 
+        AppSliderItem(
+            SettingsValueState(ThemeSettings.Key.NOWPLAYING_DEFAULT_IMAGE_CORNER_ROUNDING.getName()),
+            getString("s_key_np_default_image_corner_rounding"), null
+        ),
+
         ToggleSettingsItem(
             SettingsValueState(ThemeSettings.Key.SHOW_EXPANDED_PLAYER_WAVE.getName()),
             getString("s_key_show_expanded_player_wave"), null

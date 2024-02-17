@@ -130,10 +130,12 @@ class QueueTabItem(val song: Song, val key: Int) {
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                CompositionLocalProvider(
-                    LocalPlayerClickOverrides provides click_overrides.copy(
-                        onClickOverride = { _, _ -> }
-                    )
+                CompositionLocalProvider(LocalPlayerClickOverrides provides
+                    if (Platform.DESKTOP.isCurrent())
+                        click_overrides.copy(
+                            onClickOverride = { _, _ -> }
+                        )
+                    else click_overrides
                 ) {
                     MediaItemPreviewLong(
                         song,

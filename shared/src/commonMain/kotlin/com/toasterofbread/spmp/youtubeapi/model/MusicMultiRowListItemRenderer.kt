@@ -32,7 +32,7 @@ class MusicMultiRowListItemRenderer(
     fun toMediaItem(hl: String): MediaItemData {
         val title = title.runs!!.first()
         return SongData(
-            title.navigationEndpoint!!.browseEndpoint!!.browseId.removePrefix("MPED")
+            title.navigationEndpoint!!.browseEndpoint!!.browseId!!.removePrefix("MPED")
         ).also { song ->
             song.title = title.text
             song.thumbnail_provider = thumbnail.toThumbnailProvider()
@@ -47,10 +47,10 @@ class MusicMultiRowListItemRenderer(
 
             var podcast_data: RemotePlaylistData? = null
 
-            val podcast_text = secondTitle?.runs?.firstOrNull()
-            if (podcast_text != null) {
+            val podcast_text: TextRun? = secondTitle?.runs?.firstOrNull()
+            if (podcast_text?.navigationEndpoint?.browseEndpoint?.browseId != null) {
                 podcast_data = RemotePlaylistData(
-                    podcast_text.navigationEndpoint!!.browseEndpoint!!.browseId
+                    podcast_text.navigationEndpoint.browseEndpoint.browseId
                 ).also { data ->
                     data.title = podcast_text.text
                 }
@@ -58,6 +58,9 @@ class MusicMultiRowListItemRenderer(
 
             for (item in menu.menuRenderer.items) {
                 val browse_endpoint: BrowseEndpoint = item.menuNavigationItemRenderer?.navigationEndpoint?.browseEndpoint ?: continue
+                if (browse_endpoint.browseId == null) {
+                    continue
+                }
 
                 if (podcast_data == null && browse_endpoint.getPageType() == "MUSIC_PAGE_TYPE_PODCAST_SHOW_DETAIL_PAGE") {
                     podcast_data = RemotePlaylistData(browse_endpoint.browseId)
@@ -73,12 +76,15 @@ class MusicMultiRowListItemRenderer(
             }
 
             for (run in subtitle.runs ?: emptyList()) {
-                if (run.navigationEndpoint?.browseEndpoint?.getMediaItemType() == MediaItemType.ARTIST) {
-                    song.artist = ArtistData(run.navigationEndpoint.browseEndpoint.browseId)
-                        .also { artist ->
-                            artist.title = run.text
-                        }
+                val browse_endpoint: BrowseEndpoint = run.navigationEndpoint?.browseEndpoint ?: continue
+                if (browse_endpoint.browseId == null || browse_endpoint.getMediaItemType() != MediaItemType.ARTIST) {
+                    continue
                 }
+
+                song.artist = ArtistData(browse_endpoint.browseId)
+                    .also { artist ->
+                        artist.title = run.text
+                    }
             }
         }
     }

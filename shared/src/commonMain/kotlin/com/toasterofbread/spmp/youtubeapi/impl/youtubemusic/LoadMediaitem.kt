@@ -23,6 +23,7 @@ import com.toasterofbread.spmp.youtubeapi.fromJson
 import com.toasterofbread.spmp.youtubeapi.getReader
 import com.toasterofbread.spmp.youtubeapi.model.Header
 import com.toasterofbread.spmp.youtubeapi.model.HeaderRenderer
+import com.toasterofbread.spmp.youtubeapi.model.TextRun
 import com.toasterofbread.spmp.youtubeapi.model.YoutubeiBrowseResponse
 import com.toasterofbread.spmp.youtubeapi.radio.YoutubeiNextResponse
 import kotlinx.coroutines.Dispatchers
@@ -131,11 +132,14 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
 
                     header_renderer.subtitle?.runs?.also { subtitle ->
                         if (item is MediaItem.DataWithArtist) {
-                            val artist_run = subtitle.firstOrNull {
-                                it.navigationEndpoint?.browseEndpoint?.getMediaItemType() == MediaItemType.ARTIST
+                            val artist_run: TextRun? = subtitle.firstOrNull {
+                                it.navigationEndpoint?.browseEndpoint?.let { endpoint ->
+                                    endpoint.browseId != null && endpoint.getMediaItemType() == MediaItemType.ARTIST
+                                } ?: false
                             }
+
                             if (artist_run != null) {
-                                item.artist = ArtistData(artist_run.navigationEndpoint!!.browseEndpoint!!.browseId).apply {
+                                item.artist = ArtistData(artist_run.navigationEndpoint!!.browseEndpoint!!.browseId!!).apply {
                                     title = artist_run.text
                                 }
                             }

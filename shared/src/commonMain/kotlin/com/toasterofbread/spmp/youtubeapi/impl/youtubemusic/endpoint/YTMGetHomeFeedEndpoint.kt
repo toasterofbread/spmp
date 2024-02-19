@@ -152,7 +152,7 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
                         add(
                             AppLocalisedString(view_more_page_title_key),
                             null,
-                            view_more = PlainViewMore(browse_endpoint.browseId),
+                            view_more = PlainViewMore(browse_endpoint.browseId!!),
                             type = when(browse_endpoint.browseId) {
                                 "FEmusic_listen_again" -> MediaItemLayout.Type.GRID_ALT
                                 else -> null
@@ -162,7 +162,7 @@ class YTMGetHomeFeedEndpoint(override val api: YoutubeMusicApi): HomeFeedEndpoin
                     }
 
                     val page_type: String? = browse_endpoint.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType
-                    if (page_type != null) {
+                    if (page_type != null && browse_endpoint.browseId != null) {
                         val media_item = MediaItemType.fromBrowseEndpointType(page_type).referenceFromId(browse_endpoint.browseId).apply {
                             Title.set(header.title.runs?.getOrNull(0)?.text, api.database)
                         }

@@ -29,6 +29,7 @@ data class MusicResponsiveListItemRenderer(
 
     fun toMediaItemAndPlaylistSetVideoId(hl: String): Pair<MediaItemData, String?>? {
         var video_id: String? = playlistItemData?.videoId ?: navigationEndpoint?.watchEndpoint?.videoId
+        val browse_id: String? = navigationEndpoint?.browseEndpoint?.browseId
         var video_is_main: Boolean = true
 
         var title: String? = null
@@ -37,8 +38,8 @@ data class MusicResponsiveListItemRenderer(
         var duration: Long? = null
         var album: RemotePlaylistData? = null
 
-        if (video_id == null) {
-            val page_type = navigationEndpoint?.browseEndpoint?.getPageType()
+        if (video_id == null && browse_id != null) {
+            val page_type: String? = navigationEndpoint!!.browseEndpoint!!.getPageType()
             when (
                 page_type?.let { type ->
                     MediaItemType.fromBrowseEndpointType(type)
@@ -46,13 +47,13 @@ data class MusicResponsiveListItemRenderer(
             ) {
                 MediaItemType.PLAYLIST_REM -> {
                     video_is_main = false
-                    playlist = RemotePlaylistData(navigationEndpoint!!.browseEndpoint!!.browseId).apply {
+                    playlist = RemotePlaylistData(browse_id).apply {
                         playlist_type = PlaylistType.fromBrowseEndpointType(page_type)
                     }
                 }
                 MediaItemType.ARTIST -> {
                     video_is_main = false
-                    artist = ArtistData(navigationEndpoint!!.browseEndpoint!!.browseId)
+                    artist = ArtistData(browse_id)
                 }
                 else -> {}
             }
@@ -81,8 +82,8 @@ data class MusicResponsiveListItemRenderer(
                         continue
                     }
 
-                    val browse_endpoint = run.navigationEndpoint.browseEndpoint
-                    if (artist == null && browse_endpoint?.getMediaItemType() == MediaItemType.ARTIST) {
+                    val browse_endpoint: BrowseEndpoint = run.navigationEndpoint.browseEndpoint ?: continue
+                    if (artist == null && browse_endpoint.browseId != null && browse_endpoint.getMediaItemType() == MediaItemType.ARTIST) {
                         artist = ArtistData(browse_endpoint.browseId)
                         artist.title = run.text
                     }
@@ -131,6 +132,10 @@ data class MusicResponsiveListItemRenderer(
 
         for (item in menu?.menuRenderer?.items ?: emptyList()) {
             val browse_endpoint: BrowseEndpoint = (item.menuNavigationItemRenderer ?: continue).navigationEndpoint.browseEndpoint ?: continue
+            if (browse_endpoint.browseId == null) {
+                continue
+            }
+
             when (browse_endpoint.getMediaItemType()) {
                 MediaItemType.ARTIST -> {
                     if (artist == null) {

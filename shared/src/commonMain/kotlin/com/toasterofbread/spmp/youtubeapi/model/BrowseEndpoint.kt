@@ -12,7 +12,7 @@ data class WatchEndpoint(val videoId: String?, val playlistId: String?)
 data class BrowseEndpointContextMusicConfig(val pageType: String)
 data class BrowseEndpointContextSupportedConfigs(val browseEndpointContextMusicConfig: BrowseEndpointContextMusicConfig)
 data class BrowseEndpoint(
-    val browseId: String,
+    val browseId: String?, // Yes, this CAN be null/missing sometimes (YouTube is strange)
     val browseEndpointContextSupportedConfigs: BrowseEndpointContextSupportedConfigs?,
     val params: String?
 ) {
@@ -23,13 +23,18 @@ data class BrowseEndpoint(
 
     fun getMediaItem(): MediaItemData? =
         getPageType()?.let { page_type ->
-            MediaItemData.fromBrowseEndpointType(page_type, browseId)
+            browseId?.let { browse_id ->
+                MediaItemData.fromBrowseEndpointType(page_type, browse_id)
+            }
         }
 
-    fun getViewMore(base_item: MediaItem): ViewMore {
+    fun getViewMore(base_item: MediaItem): ViewMore? {
         val item = getMediaItem()
         if (item != null) {
             return MediaItemViewMore(item, params, base_item)
+        }
+        else if (browseId == null) {
+            return null
         }
         else if (params != null) {
             return ListPageBrowseIdViewMore(

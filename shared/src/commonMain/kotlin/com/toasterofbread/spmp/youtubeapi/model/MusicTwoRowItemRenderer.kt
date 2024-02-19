@@ -23,10 +23,12 @@ class MusicTwoRowItemRenderer(
 ) {
     private fun getArtist(host_item: MediaItemData): Artist? {
         for (run in subtitle?.runs ?: emptyList()) {
-            val browse_endpoint = run.navigationEndpoint?.browseEndpoint
+            val browse_endpoint: BrowseEndpoint? = run.navigationEndpoint?.browseEndpoint
+            if (browse_endpoint?.browseId == null) {
+                continue
+            }
 
-            val endpoint_type = browse_endpoint?.getMediaItemType()
-            if (endpoint_type == MediaItemType.ARTIST) {
+            if (browse_endpoint.getMediaItemType() == MediaItemType.ARTIST) {
                 return ArtistData(browse_endpoint.browseId).apply {
                     title = run.text
                 }
@@ -58,7 +60,7 @@ class MusicTwoRowItemRenderer(
 
                 for (item in menu?.menuRenderer?.items ?: emptyList()) {
                     val browse_endpoint: BrowseEndpoint = item.menuNavigationItemRenderer?.navigationEndpoint?.browseEndpoint ?: continue
-                    if (browse_endpoint.getMediaItemType() == MediaItemType.PLAYLIST_REM) {
+                    if (browse_endpoint.browseId != null && browse_endpoint.getMediaItemType() == MediaItemType.PLAYLIST_REM) {
                         data.album = RemotePlaylistData(browse_endpoint.browseId)
                         break
                     }
@@ -81,8 +83,8 @@ class MusicTwoRowItemRenderer(
         }
         else {
             // Playlist or artist
-            val browse_id = navigationEndpoint.browseEndpoint!!.browseId
-            val page_type = navigationEndpoint.browseEndpoint.getPageType()!!
+            val browse_id: String = navigationEndpoint.browseEndpoint?.browseId ?: return null
+            val page_type: String = navigationEndpoint.browseEndpoint.getPageType() ?: return null
 
             item = when (MediaItemType.fromBrowseEndpointType(page_type)) {
                 MediaItemType.SONG -> SongData(browse_id)

@@ -9,12 +9,7 @@ import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.youtubeapi.model.BrowseEndpoint
-import com.toasterofbread.spmp.youtubeapi.model.MusicResponsiveListItemRenderer
-import com.toasterofbread.spmp.youtubeapi.model.MusicThumbnailRenderer
-import com.toasterofbread.spmp.youtubeapi.model.NavigationEndpoint
-import com.toasterofbread.spmp.youtubeapi.model.TextRuns
-import com.toasterofbread.spmp.youtubeapi.model.WatchEndpoint
+import com.toasterofbread.spmp.youtubeapi.model.*
 
 data class YoutubeiNextResponse(
     val contents: Contents
@@ -80,14 +75,15 @@ data class YoutubeiNextResponse(
                     continue
                 }
 
+                val browse_id: String = run.navigationEndpoint?.browseEndpoint?.browseId ?: continue
                 return Result.success(
-                    ArtistData(run.navigationEndpoint!!.browseEndpoint!!.browseId).apply {
+                    ArtistData(browse_id).apply {
                         title = run.text
                     }
                 )
             }
 
-            val menu_artist = menu.menuRenderer.getArtist()?.menuNavigationItemRenderer?.navigationEndpoint?.browseEndpoint?.browseId
+            val menu_artist: String? = menu.menuRenderer.getArtist()?.menuNavigationItemRenderer?.navigationEndpoint?.browseEndpoint?.browseId
             if (menu_artist != null) {
                 return Result.success(ArtistData(menu_artist))
             }
@@ -98,13 +94,13 @@ data class YoutubeiNextResponse(
                     continue
                 }
 
-                val playlist_id = run.navigationEndpoint.browseEndpoint.browseId
+                val playlist_id: String = run.navigationEndpoint.browseEndpoint.browseId ?: continue
                 var artist = context.database.playlistQueries.artistById(playlist_id).executeAsOneOrNull()?.artist?.let {
                     ArtistData(it)
                 }
 
                 if (artist == null) {
-                    val artist_load_result = context.loadMediaItemValue(
+                    val artist_load_result: Result<ArtistData>? = context.loadMediaItemValue(
                         RemotePlaylistData(playlist_id),
                         { artist }
                     )
@@ -121,7 +117,7 @@ data class YoutubeiNextResponse(
             }
 
             // Get title-only artist (Resolves to 'Various artists' when viewed on YouTube)
-            val artist_title = longBylineText.runs?.firstOrNull { it.navigationEndpoint == null }
+            val artist_title: TextRun? = longBylineText.runs?.firstOrNull { it.navigationEndpoint == null }
             if (artist_title != null) {
                 return Result.success(
                     ArtistData(Artist.getForItemId(host_item)).apply {

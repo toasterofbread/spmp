@@ -360,7 +360,7 @@ fun registerAppImagePackageTasks() {
                 }
             }
 
-            tasks.getByName(task_name + suffix).dependsOn(subtask_name)
+            tasks.getByName(task_name + suffix).finalizedBy(subtask_name)
         }
     }
 }

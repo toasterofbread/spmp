@@ -537,6 +537,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
 
     val service_connected: Boolean get() = _player?.load_state?.loading == false
     val service_loading_message: String? get() = _player?.load_state?.takeIf { it.loading }?.loading_message
+    val service_connection_error: Throwable? get() = _player?.connection_error
 
     private var service_connecting = false
     private var service_connected_listeners = mutableListOf<(PlatformPlayerService) -> Unit>()

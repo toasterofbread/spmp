@@ -685,7 +685,6 @@
     <string name="control_panel_server_port_$x">端口：$x</string>
     <string name="control_panel_server_name_$x">名称：$x</string>
     <string name="control_panel_server_device_name_$x">主机设备：$x</string>
-    <string name="control_panel_server_spms_git_commit_hash_$x">SpMs提交哈希：$x</string>
     <string name="control_panel_server_connected_clients">其他已连接的客户端</string>
     <string name="control_panel_server_connected_clients_loading">加载中</string>
     <string name="control_panel_server_this_client">此客户端</string>
@@ -697,9 +696,6 @@
     <string name="auth_not_signed_in">未登录</string>
     <string name="auth_sign_in">登录</string>
     <string name="auth_sign_out">登出</string>
-
-    <string name="info_using_release_$x">使用版本 $x</string>
-    <string name="info_using_non_release_commit_$x">使用非发布提交 $x</string>
 
     <string name="warning_ytm_login">您将被引导至应用内的 webview 以登录 YouTube Music。&#xA;&#xA;一旦登录，您的会话 cookie 将被提取、存储，并仅用于向 YouTube Music 发送 API 请求，如获取推荐 feed 和订阅艺术家。&#xA;&#xA;继续吗？</string>
     <string name="info_ytm_login">您将被引导至应用内的 webview 以登录 YouTube Music。&#xA;&#xA;一旦登录，您的会话 cookie 将被提取、存储，并仅用于向 YouTube Music 发送 API 请求，如获取推荐 feed 和订阅艺术家。</string>

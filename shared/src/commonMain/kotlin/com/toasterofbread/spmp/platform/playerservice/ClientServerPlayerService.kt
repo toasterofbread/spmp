@@ -14,7 +14,7 @@ interface ClientServerPlayerService: PlayerService {
         val name: String,
         val device_name: String,
         val machine_id: String,
-        val spms_git_commit_hash: String
+        val spms_api_version: Int
     )
     
     val connected_server: ServerInfo?

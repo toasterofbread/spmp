@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.ui.layout.apppage.mainpage
 
 import LocalPlayerState
 import ProgramArguments
+import SpMp.isDebugBuild
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
@@ -52,9 +53,11 @@ import com.toasterofbread.composekit.utils.common.bitmapResource
 import com.toasterofbread.composekit.utils.common.blockGestures
 import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.composekit.utils.common.toFloat
+import com.toasterofbread.composekit.utils.composable.NullableValueAnimatedVisibility
 import com.toasterofbread.spmp.platform.splash.SplashExtraLoadingContent
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import kotlinx.coroutines.delay
 
 private const val MESSAGE_DELAY: Long = 2000L
@@ -66,6 +69,7 @@ enum class SplashMode {
 fun LoadingSplashView(
     splash_mode: SplashMode?,
     loading_message: String?,
+    connection_error: Throwable?,
     arguments: ProgramArguments,
     modifier: Modifier = Modifier
 ) {
@@ -148,6 +152,10 @@ fun LoadingSplashView(
                             .graphicsLayer { alpha = extra_content_alpha },
                         arguments = arguments
                     )
+
+                    NullableValueAnimatedVisibility(connection_error) { error ->
+                        ErrorInfoDisplay(error, isDebugBuild(), onDismiss = null)
+                    }
                 }
             }
             SplashMode.WARNING -> {

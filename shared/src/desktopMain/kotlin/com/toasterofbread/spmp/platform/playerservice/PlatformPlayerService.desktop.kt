@@ -17,6 +17,7 @@ private class PlayerServiceBinder(val service: PlatformPlayerService): PlatformB
 
 actual class PlatformPlayerService: SpMsPlayerService(), PlayerService {
     actual val load_state: PlayerServiceLoadState get() = socket_load_state
+    actual val connection_error: Throwable? get() = socket_connection_error
     actual override val context: AppContext get() = super.context
 
     override val listeners: List<PlayerListener>

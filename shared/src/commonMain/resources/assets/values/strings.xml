@@ -14,6 +14,13 @@
 
     <string name="project_url_name">project URL</string>
 
+    <string name="info_using_release_$x">Using release $x</string>
+    <string name="info_using_non_release_commit_$x">Using non-release commit $x</string>
+
+    <string name="version_message_release_$appver_$apiver">SpMp release build $appver using API version $apiver</string>
+    <string name="version_message_non_release_$commit_$apiver">SpMp non-release build on $commit using API version $apiver</string>
+    <string name="help_message">TODO</string>
+
     <string name="spms_client_type_spmp_player">SpMp (player)</string>
     <string name="spms_client_type_info_spmp_player">A graphical instance of SpMp that plays its own audio</string>
     <string name="spms_client_type_spmp_standalone">SpMp (standalone)</string>
@@ -712,7 +719,7 @@
     <string name="control_panel_server_port_$x">Port: $x</string>
     <string name="control_panel_server_name_$x">Name: $x</string>
     <string name="control_panel_server_device_name_$x">Host device: $x</string>
-    <string name="control_panel_server_spms_git_commit_hash_$x">SpMs commit hash: $x</string>
+    <string name="control_panel_server_spms_api_version_$x">SpMs API version: $x</string>
     <string name="control_panel_server_connected_clients">Other connected clients</string>
     <string name="control_panel_server_connected_clients_loading">Loading</string>
     <string name="control_panel_server_this_client">This client</string>
@@ -725,14 +732,14 @@
     <string name="auth_sign_in">Sign in</string>
     <string name="auth_sign_out">Sign out</string>
 
-    <string name="info_using_release_$x">Using release $x</string>
-    <string name="info_using_non_release_commit_$x">Using non-release commit $x</string>
-
     <string name="warning_ytm_login">You will be directed to an in-app webview in order to log into YouTube Music.&#xA;&#xA;Once logged in, your session cookie will be extracted, stored, and used only for API requests to YouTube Music such as getting your recommended feed and subscribing to artists.&#xA;&#xA;Continue?</string>
     <string name="info_ytm_login">You will be directed to an in-app webview in order to log into YouTube Music.&#xA;&#xA;Once logged in, your session cookie will be extracted, stored, and used only for API requests to YouTube Music such as getting your recommended feed and subscribing to artists.</string>
     <string name="warning_discord_login">You will be directed to an in-app webview in order to log into Discord.&#xA;&#xA;Once logged in, your account token will be extracted, stored, and used only for gateway connections to Discord for setting your current status.&#xA;&#xA;See https://github.com/dead8309/Kizzy for more information.&#xA;&#xA;Continue?</string>
     <string name="info_discord_login">You will be directed to an in-app webview in order to log into Discord.&#xA;&#xA;Once logged in, your account token will be extracted, stored, and used only for gateway connections to Discord for setting your current status.&#xA;&#xA;See https://github.com/dead8309/Kizzy for more information.</string>
     <string name="warning_discord_kizzy">SpMp uses the KizzyRPC library to set your Discord account's status. This involves using the Discord Gateway connection, which may be considered a violation of Discord's TOS. However, there are no known cases of user accounts being suspended for this reason. Use at your own risk.&#xA;&#xA;See https://github.com/dead8309/Kizzy for more information.</string>
+
+    <string name="warning_spms_api_version_mismatch">SpMs API version mismatch</string>
+    <string name="warning_spms_api_version_mismatch_$theirs_$ours">The connected server's API version ($theirs) doesn't match the API version that this build of SpMp was designed for ($ours). This may cause unexpected behaviour or crashes.</string>
 
     <string name="youtube_manual_login_title">YouTube manual log-in</string>
     <string-array name="youtube_manual_login_steps">

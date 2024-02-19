@@ -31,7 +31,6 @@ import java.lang.reflect.Field
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main(args: Array<String>) {
-    val arguments: ProgramArguments = ProgramArguments.parse(args) ?: return
     val coroutine_scope: CoroutineScope = CoroutineScope(Job())
     val context: AppContext = AppContext(SpMp.app_name, coroutine_scope)
 
@@ -39,6 +38,8 @@ fun main(args: Array<String>) {
     coroutine_scope.launch {
         context.init()
     }
+
+    val arguments: ProgramArguments = ProgramArguments.parse(args) ?: return
 
     SpMp.onStart()
 

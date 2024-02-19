@@ -38,6 +38,8 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
     
     var socket_load_state: PlayerServiceLoadState by mutableStateOf(PlayerServiceLoadState(true))
         private set
+    var socket_connection_error: Throwable? by mutableStateOf(null)
+        private set
 
     private fun getServerPort(): Int = DesktopSettings.Key.SERVER_PORT.get(context)
     private fun getServerIp(): String = DesktopSettings.Key.SERVER_IP_ADDRESS.get(context)
@@ -138,6 +140,7 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
         connect_coroutine_scope.launch {
             do {
                 connected_server = null
+                socket_connection_error = null
                 cancel_connection = false
                 restart_connection = false
                 
@@ -154,14 +157,20 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
                         language = context.getUiLanguage()
                     )
 
-                val server_handshake: SpMsServerHandshake? =
-                    tryConnectToServer(
+                val server_handshake: SpMsServerHandshake?
+                try {
+                    server_handshake = tryConnectToServer(
                         server_url = server_url,
                         handshake = handshake,
                         json = json,
                         shouldCancelConnection = { cancel_connection },
                         setLoadState = { socket_load_state = it }
                     )
+                }
+                catch (e: Throwable) {
+                    socket_connection_error = e
+                    continue
+                }
 
                 if (server_handshake == null) {
                     disconnect(server_url)
@@ -175,7 +184,7 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
                     name = server_handshake.name,
                     device_name = server_handshake.device_name,
                     machine_id = server_handshake.machine_id,
-                    spms_git_commit_hash = server_handshake.spms_commit_hash
+                    spms_api_version = server_handshake.spms_api_version
                 )
 
                 var server_state_applied: Boolean = false

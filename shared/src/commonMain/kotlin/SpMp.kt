@@ -1,7 +1,10 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -17,6 +20,8 @@ import com.toasterofbread.spmp.model.settings.category.SystemSettings
 import com.toasterofbread.spmp.model.settings.getEnum
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getUiLanguage
+import com.toasterofbread.spmp.platform.playerservice.ClientServerPlayerService
+import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringOrNull
 import com.toasterofbread.spmp.resources.initResources
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
@@ -36,6 +41,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import spms.socketapi.shared.SPMS_API_VERSION
 import java.util.logging.Logger
 
 val LocalPlayerState: ProvidableCompositionLocal<PlayerState> = staticCompositionLocalOf { SpMp.player_state }
@@ -116,33 +122,76 @@ object SpMp {
             }
 
             Surface(modifier = modifier.fillMaxSize()) {
-                if (player_created) {
-                    val ui_scale: Float by SystemSettings.Key.UI_SCALE.rememberMutableState()
+                if (!player_created) {
+                    return@Surface
+                }
 
-                    CompositionLocalProvider(
-                        LocalPlayerState provides player_state,
-                        LocalPressedShortcutModifiers provides pressed_shortcut_modifiers,
-                        LocalDensity provides Density(LocalDensity.current.density * ui_scale, 1f)
-                    ) {
-                        val splash_mode: SplashMode? = when (Platform.current) {
-                            Platform.ANDROID -> null
-                            Platform.DESKTOP -> if (!player_state.service_connected) SplashMode.SPLASH else null
+                val ui_scale: Float by SystemSettings.Key.UI_SCALE.rememberMutableState()
+
+                CompositionLocalProvider(
+                    LocalPlayerState provides player_state,
+                    LocalPressedShortcutModifiers provides pressed_shortcut_modifiers,
+                    LocalDensity provides Density(LocalDensity.current.density * ui_scale, 1f)
+                ) {
+                    var mismatched_server_api_version: Int? by remember { mutableStateOf(null) }
+                    val splash_mode: SplashMode? = when (Platform.current) {
+                        Platform.ANDROID -> null
+                        Platform.DESKTOP -> if (!player_state.service_connected) SplashMode.SPLASH else null
+                    }
+
+                    LoadingSplashView(
+                        splash_mode,
+                        player_state.service_loading_message,
+                        player_state.service_connection_error,
+                        arguments,
+                        Modifier
+                            .fillMaxSize()
+                            .thenIf(splash_mode != null) {
+                                pointerInput(Unit) {}
+                            }
+                    )
+
+                    LaunchedEffect(splash_mode) {
+                        mismatched_server_api_version = null
+                        if (splash_mode != null) {
+                            return@LaunchedEffect
                         }
 
-                        LoadingSplashView(
-                            splash_mode,
-                            player_state.service_loading_message,
-                            arguments,
-                            Modifier
-                                .fillMaxSize()
-                                .thenIf(splash_mode != null) {
-                                    pointerInput(Unit) {}
+                        player_state.interactService { service: Any ->
+                            if (service !is ClientServerPlayerService) {
+                                return@interactService
+                            }
+
+                            val server_api_version: Int = service.connected_server?.spms_api_version ?: return@interactService
+                            if (server_api_version != SPMS_API_VERSION) {
+                                mismatched_server_api_version = server_api_version
+                            }
+                        }
+                    }
+
+                    if (splash_mode == null) {
+                        RootView(player_state)
+                    }
+
+                    if (mismatched_server_api_version != null) {
+                        AlertDialog(
+                            { mismatched_server_api_version = null },
+                            confirmButton = {
+                                Button({ mismatched_server_api_version = null }) {
+                                    Text(getString("action_close"))
                                 }
+                            },
+                            title = {
+                                Text(getString("warning_spms_api_version_mismatch"))
+                            },
+                            text = {
+                                Text(
+                                    getString("warning_spms_api_version_mismatch_\$theirs_\$ours")
+                                        .replace("\$theirs", "v$mismatched_server_api_version")
+                                        .replace("\$ours", "v$SPMS_API_VERSION")
+                                )
+                            }
                         )
-
-                        if (splash_mode == null) {
-                            RootView(player_state)
-                        }
                     }
                 }
             }

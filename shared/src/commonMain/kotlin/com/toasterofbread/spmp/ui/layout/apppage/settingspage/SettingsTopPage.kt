@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import LocalPlayerState
+import ProgramArguments
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
@@ -78,6 +79,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
+import spms.socketapi.shared.SPMS_API_VERSION
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -189,19 +191,9 @@ internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, cont
         }
 
         item {
-            val version_string: String = "v${getString("version_string")}"
-            val on_release_commit: Boolean = ProjectBuildConfig.GIT_TAG == version_string
-
             SelectionContainer {
                 Text(
-                    if (on_release_commit) {
-                        getString("info_using_release_\$x")
-                            .replace("\$x", version_string)
-                    }
-                    else {
-                        getString("info_using_non_release_commit_\$x")
-                            .replace("\$x", ProjectBuildConfig.GIT_COMMIT_HASH?.take(7).toString())
-                    },
+                    ProgramArguments.getVersionMessage(),
                     Modifier
                         .fillMaxWidth()
                         .padding(top = 10.dp)

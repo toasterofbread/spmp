@@ -91,6 +91,10 @@ fun ErrorInfoDisplay(
     onRetry: (() -> Unit)? = null,
     onDismiss: (() -> Unit)?
 ) {
+    if (error == null && pair_error == null) {
+        return
+    }
+
     val player: PlayerState = LocalPlayerState.current
     var expanded: Boolean by remember { mutableStateOf(start_expanded) }
     val shape: Shape = RoundedCornerShape(20.dp)

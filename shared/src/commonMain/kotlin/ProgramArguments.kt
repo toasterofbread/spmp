@@ -1,3 +1,7 @@
+import com.toasterofbread.spmp.ProjectBuildConfig
+import com.toasterofbread.spmp.resources.getString
+import spms.socketapi.shared.SPMS_API_VERSION
+
 data class ProgramArguments(
     val bin_dir: String? = null,
     val no_auto_server: Boolean = false
@@ -27,7 +31,11 @@ data class ProgramArguments(
                         arguments = arguments.copy(no_auto_server = true)
                     }
                     "--help", "-h" -> {
-                        outputHelpMessage()
+                        println(getHelpMessage())
+                        return null
+                    }
+                    "--version", "-v" -> {
+                        println(getVersionMessage())
                         return null
                     }
                     else -> onIllegalArgument("Unknown argument '$name'.")
@@ -37,8 +45,25 @@ data class ProgramArguments(
             return arguments
         }
         
-        fun outputHelpMessage() {
-            println("TODO")
+        fun getHelpMessage(): String {
+            return getString("help_message") + "\n" + getVersionMessage()
+        }
+
+        fun getVersionMessage(): String {
+            val version_string: String = "v${getString("version_string")}"
+            val api_version_string: String = "v$SPMS_API_VERSION"
+            val on_release_commit: Boolean = ProjectBuildConfig.GIT_TAG == version_string
+
+            if (on_release_commit) {
+                return getString("version_message_release_\$appver_\$apiver")
+                    .replace("\$appver", version_string)
+                    .replace("\$apiver", api_version_string)
+            }
+            else {
+                return getString("version_message_non_release_\$commit_\$apiver")
+                    .replace("\$commit", ProjectBuildConfig.GIT_COMMIT_HASH?.take(7).toString())
+                    .replace("\$apiver", api_version_string)
+            }
         }
     }
 }

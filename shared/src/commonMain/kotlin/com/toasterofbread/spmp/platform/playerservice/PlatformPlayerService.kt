@@ -80,6 +80,8 @@ expect class PlatformPlayerService: PlayerService {
     }
 
     val load_state: PlayerServiceLoadState
+    val connection_error: Throwable?
+
     override val context: AppContext
     override val service_player: PlayerServicePlayer
 

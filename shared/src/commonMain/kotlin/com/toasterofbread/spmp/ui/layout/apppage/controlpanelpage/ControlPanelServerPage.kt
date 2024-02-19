@@ -122,7 +122,7 @@ fun ControlPanelServerPage(
                                     Text(getString("control_panel_server_port_\$x").replace("\$x", server.ip))
                                     Text(getString("control_panel_server_name_\$x").replace("\$x", server.name))
                                     Text(getString("control_panel_server_device_name_\$x").replace("\$x", server.device_name))
-                                    Text(getString("control_panel_server_spms_git_commit_hash_\$x").replace("\$x", server.spms_git_commit_hash))
+                                    Text(getString("control_panel_server_spms_api_version_\$x").replace("\$x", server.spms_api_version.toString()))
                                 }
                             }
                         }

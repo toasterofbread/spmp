@@ -95,7 +95,7 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
         ScrollBarLazyVerticalGrid(
             GridCells.Adaptive(100.dp),
             modifier = modifier,
-            contentPadding = content_padding.vertical,
+            contentPadding = content_padding,
             verticalArrangement = Arrangement.spacedBy(item_spacing),
             horizontalArrangement = Arrangement.spacedBy(item_spacing)
         ) {

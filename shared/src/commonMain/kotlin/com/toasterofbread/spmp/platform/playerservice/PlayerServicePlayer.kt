@@ -127,7 +127,7 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
                 sendStatusWebhook(song)
             }
 
-//            play()
+            play()
         }
 
         private suspend fun sendStatusWebhook(song: Song?) {

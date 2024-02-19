@@ -32,6 +32,7 @@ import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.rememberSongDownloads
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
+import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
@@ -60,6 +61,7 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
         modifier: Modifier,
     ) {
         val player: PlayerState = LocalPlayerState.current
+        val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
         val downloads: List<DownloadStatus> by rememberSongDownloads()
         var sorted_artists: List<Pair<ArtistRef, Int>> by remember { mutableStateOf(emptyList()) }
@@ -117,8 +119,13 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
             }
         }
 
-        CompositionLocalProvider(LocalPlayerClickOverrides provides LocalPlayerClickOverrides.current.copy(
+        CompositionLocalProvider(LocalPlayerClickOverrides provides click_overrides.copy(
             onClickOverride = { item, index ->
+                if (showing_alt_content) {
+                    click_overrides.onMediaItemClicked(item, player)
+                    return@copy
+                }
+
                 player.openAppPage(
                     object : AppPageWithItem() {
                         override val item: MediaItemHolder = item

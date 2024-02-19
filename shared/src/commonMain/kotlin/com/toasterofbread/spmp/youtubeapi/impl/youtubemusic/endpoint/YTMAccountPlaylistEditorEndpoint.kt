@@ -10,6 +10,7 @@ import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
+import okhttp3.Response
 
 class YTMAccountPlaylistEditorEndpoint(override val auth: YoutubeMusicAuthInfo): AccountPlaylistEditorEndpoint() {
     override fun getEditor(playlist: RemotePlaylist): PlaylistEditor {
@@ -43,7 +44,7 @@ private class AccountPlaylistEditor(playlist: RemotePlaylist, val auth: YoutubeM
             }
 
             with(endpoint) {
-                val request = Request.Builder()
+                val request: Request = Request.Builder()
                     .endpointUrl("/youtubei/v1/browse/edit_playlist")
                     .addAuthApiHeaders()
                     .postWithBody(
@@ -54,7 +55,7 @@ private class AccountPlaylistEditor(playlist: RemotePlaylist, val auth: YoutubeM
                     )
                     .build()
 
-                val result = api.performRequest(request)
+                val result: Result<Response> = api.performRequest(request)
                 return@withContext result.fold(
                     {
                         it.close()

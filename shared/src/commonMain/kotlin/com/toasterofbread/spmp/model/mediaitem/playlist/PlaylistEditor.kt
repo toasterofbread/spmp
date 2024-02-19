@@ -81,12 +81,12 @@ abstract class PlaylistEditor(open val playlist: Playlist, val context: AppConte
         }
 
         if (exclude_item_changes) {
-            val result = performAndCommitActions(pending_actions.filter { !it.changes_items })
+            val result: Result<Unit> = performAndCommitActions(pending_actions.filter { !it.changes_items })
             pending_actions.removeAll { !it.changes_items }
             return result
         }
 
-        val result = performAndCommitActions(pending_actions)
+        val result: Result<Unit> = performAndCommitActions(pending_actions)
         pending_actions.clear()
         return result
     }
@@ -203,30 +203,37 @@ class LocalPlaylistEditor(override val playlist: LocalPlaylist, context: AppCont
         )
         val items: MutableList<SongData> = (data.items ?: emptyList()).toMutableList()
 
-        for (action in actions) {
-            when (action) {
-                is Action.Add -> {
-                    items.add(SongData(action.song_id))
-                }
-                is Action.Move -> {
-                    items.add(action.to, items.removeAt(action.from))
-                }
-                is Action.Remove -> {
-                    items.removeAt(action.index)
-                }
+        for ((i, action) in actions.withIndex()) {
+            try {
+                when (action) {
+                    is Action.Add -> {
+                        items.add(SongData(action.song_id))
+                    }
+                    is Action.Move -> {
+                        items.add(action.to, items.removeAt(action.from))
+                    }
+                    is Action.Remove -> {
+                        items.removeAt(action.index)
+                    }
 
-                is Action.SetTitle -> {
-                    data.title = action.title
-                    param_data?.title = action.title
+                    is Action.SetTitle -> {
+                        data.title = action.title
+                        param_data?.title = action.title
+                    }
+                    is Action.SetImage -> {
+                        data.custom_image_url = action.image_url
+                        param_data?.custom_image_url = action.image_url
+                    }
+                    is Action.SetImageWidth -> {
+                        data.image_width = action.image_width
+                        param_data?.image_width = action.image_width
+                    }
                 }
-                is Action.SetImage -> {
-                    data.custom_image_url = action.image_url
-                    param_data?.custom_image_url = action.image_url
-                }
-                is Action.SetImageWidth -> {
-                    data.image_width = action.image_width
-                    param_data?.image_width = action.image_width
-                }
+            }
+            catch (e: Throwable) {
+                return Result.failure(
+                    RuntimeException("Applying edit action $action (${i + 1} of ${actions.size}) to local playlist $playlist failed\nAll actions: ${actions.toList()}\nItems: ${items.toList()}", e)
+                )
             }
         }
 

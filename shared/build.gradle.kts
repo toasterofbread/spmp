@@ -244,13 +244,14 @@ android {
     }
 }
 
-// Version specification isn't needed, but must remain for backwards-compatibility
-val DATABASE_VERSION: Int = 3
+val DATABASE_VERSION: Int = 4
 
 sqldelight {
     databases {
         create("Database") {
             packageName.set("com.toasterofbread.db")
+
+            // Version specification kept for backwards-compatibility
             version = DATABASE_VERSION
         }
     }
@@ -260,13 +261,17 @@ val fixDatabaseVersion = tasks.register("fixDatabaseVersion") {
     doLast {
         val file: File = project.file("build/generated/sqldelight/code/Database/commonMain/com/toasterofbread/db/shared/DatabaseImpl.kt")
         val lines: MutableList<String> = file.readLines().toMutableList()
+        var found: Boolean = false
 
         for (i in 0 until lines.size) {
             if (lines[i].endsWith("override val version: Long")) {
                 lines[i + 1] = "      get() = $DATABASE_VERSION"
+                found = true
                 break
             }
         }
+
+        check(found) { "Version line not found" }
 
         file.writer().use { writer ->
             for (line in lines) {

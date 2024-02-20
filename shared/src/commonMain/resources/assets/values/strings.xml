@@ -17,8 +17,8 @@
     <string name="info_using_release_$x">Using release $x</string>
     <string name="info_using_non_release_commit_$x">Using non-release commit $x</string>
 
-    <string name="version_message_release_$appver_$apiver">SpMp release build $appver using API version $apiver</string>
-    <string name="version_message_non_release_$commit_$apiver">SpMp non-release build on $commit using API version $apiver</string>
+    <string name="version_message_release_$appver_$apiver_$split">SpMp release build $appver $splitand API version $apiver</string>
+    <string name="version_message_non_release_$commit_$apiver_$split">SpMp non-release build on $commit $splitand API version $apiver</string>
     <string name="help_message">TODO</string>
 
     <string name="spms_client_type_spmp_player">SpMp (player)</string>
@@ -515,7 +515,7 @@
 
     <string name="s_key_lyrics_extra_padding">Extra padding</string>
     <string name="s_sub_lyrics_extra_padding">Add extra padding above and below lyrics for increased scrolling range</string>
-    
+
     <string name="s_key_lyrics_enable_word_sync">Enable word sync</string>
     <string name="s_sub_lyrics_enable_word_sync">When available, lyrics sync will be displayed per-word instead of per-line</string>
 

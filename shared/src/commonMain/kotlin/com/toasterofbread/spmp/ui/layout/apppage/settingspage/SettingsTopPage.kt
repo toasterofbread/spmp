@@ -12,10 +12,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -83,6 +85,7 @@ import spms.socketapi.shared.SPMS_API_VERSION
 import java.text.SimpleDateFormat
 import java.util.Date
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, content_padding: PaddingValues = PaddingValues(), top_padding: Dp = 0.dp) {
     val player: PlayerState = LocalPlayerState.current
@@ -191,17 +194,23 @@ internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, cont
         }
 
         item {
-            SelectionContainer {
-                Text(
-                    ProgramArguments.getVersionMessage(),
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(top = 10.dp)
-                        .padding(horizontal_padding)
-                        .alpha(0.5f),
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center
-                )
+            FlowRow(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp)
+                    .padding(horizontal_padding)
+                    .alpha(0.5f),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                for (part in remember { ProgramArguments.getVersionMessage(split_lines = true).split("\n") }) {
+                    SelectionContainer {
+                        Text(
+                            part,
+                            fontSize = 12.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
             }
         }
     }

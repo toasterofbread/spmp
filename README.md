@@ -17,15 +17,6 @@ A YouTube Music client with a focus on customisation of colours and song metadat
 <br>
 <br>
 
-## Development status
-The Android version of SpMp is in beta and is ready for regular use with no major issues, but rough edges are still being actively polished and tweaked.
-
-SpMp is being [ported](https://github.com/toasterofbread/spmp-server) to desktop platforms of [Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform), but is still in a pre-alpha state. Some basic features are working but are yet to be tested thoroughly.
-
-<br>
-
-<img align="right" width="20%" src="metadata/en-US/images/phoneScreenshots/0.png">
-
 # Features
 - Edit song, artist, and playlist titles
 - Select multiple songs for batch actions on any screen
@@ -46,9 +37,12 @@ SpMp is being [ported](https://github.com/toasterofbread/spmp-server) to desktop
 <details open>
     <summary><h2>Screenshots</h2></summary>
     <p align="center">
-        <img src="metadata/en-US/images/phoneScreenshots/7.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="metadata/en-US/images/phoneScreenshots/8.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="metadata/en-US/images/phoneScreenshots/1.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="metadata/en-US/images/phoneScreenshots/landscape_1.png" style="max-height:50vh;object-fit:contain;" width="78%">
+        <img width="21%" src="metadata/en-US/images/phoneScreenshots/8.png" style="max-height:50vh;object-fit:contain;">
+    </p>
+    <p align="center">
+        <img width="21%" src="metadata/en-US/images/phoneScreenshots/1.png" style="max-height:50vh;object-fit:contain;">
+        <img src="metadata/en-US/images/phoneScreenshots/landscape_2.png" style="max-height:50vh;object-fit:contain;" width="78%">
     </p>
 </details>
 
@@ -56,17 +50,34 @@ SpMp is being [ported](https://github.com/toasterofbread/spmp-server) to desktop
     <summary><h2>More Screenshots</h2></summary>
     <p align="center">
         <img src="metadata/en-US/images/phoneScreenshots/9.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="metadata/en-US/images/phoneScreenshots/2.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="metadata/en-US/images/phoneScreenshots/7.png" style="max-height:70vh;object-fit:contain;" width="25%">
         <img src="metadata/en-US/images/phoneScreenshots/4.png" style="max-height:70vh;object-fit:contain;" width="25%">
     </p>
     <p align="center">
-        <img src="metadata/en-US/images/phoneScreenshots/3.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="metadata/en-US/images/phoneScreenshots/0.png" style="max-height:70vh;object-fit:contain;" width="25%">
         <img src="metadata/en-US/images/phoneScreenshots/5.png" style="max-height:70vh;object-fit:contain;" width="25%">
         <img src="metadata/en-US/images/phoneScreenshots/6.png" style="max-height:70vh;object-fit:contain;" width="25%">
     </p>
 </details>
 
 <br>
+
+## Installation
+
+Downloads for all platforms can be found on the repository's [releases page](https://github.com/toasterofbread/spmp/releases).
+
+#### Additional requirements on desktop
+
+- Java must be installed for all desktop platforms
+- [Several system packages](https://spmp.toastbits.dev/docs/client/installation/#dependencies) are required to use the Linux version
+
+The Android version is also available on F-Droid. There is no difference between APKs available on GitHub and those on F-Droid.
+
+[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" height="80">](https://f-droid.org/en/packages/com.toasterofbread.spmp/)
+
+## Documentation
+
+Documentation on advanced usage of SpMp including compilation instructions can be found at https://spmp.toastbits.dev/docs/
 
 ## About the project
 I started this project after I got tired of dealing with YouTube's official music app's lack of language features and customisation. I tried several alternatives, but all had at least a few issues that bugged me.
@@ -77,10 +88,6 @@ So instead of spending a few weeks learning the codebase of an existing project 
 Pull requests, bug reports, and feature suggestions are welcome! This is my first Compose project (and also the largest project I've ever done in general) so there's probably plenty of room for improvement.
 
 The app is currently being developed for both English and Japanese. Contributions for other languages would be greatly appreciated! Information about app localisation can be found [here](https://github.com/toasterofbread/spmp/wiki/App-localisation).
-
-## Also available at
-
-[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" height="100">](https://f-droid.org/en/packages/com.toasterofbread.spmp/)
 
 ## Thanks to
 - smlqrs: For designing the project's icon graphic

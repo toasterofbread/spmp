@@ -15,16 +15,6 @@
 UIの色と曲のメタデータのカスタマイズに特化した YouTube Music のアプリ。Androidとデスクトップのプラットフォーム向けに、Compose Multiplatformを使って開発されています。
 
 <br>
-<br>
-
-## 開発状態
-SpMpのAndroid版はただいまベータテスティング中です。普段の使用には使えますが、まだ仕上げができていない部分もあります。
-
-SpMpはデスクトップのプラットフォーム用にも[開発中](https://github.com/toasterofbread/spmp-server)ですが、まだアルファ未満の状態となっています。最低限の機能は動作していますが、テスティングはまだされていません。
-
-<br>
-
-<img align="right" width="20%" src="../metadata/en-US/images/phoneScreenshots/0.png">
 
 ## 機能
 - 曲、アーティスト、またはプレイリストのタイトルを編集
@@ -46,9 +36,12 @@ SpMpはデスクトップのプラットフォーム用にも[開発中](https:/
 <details open>
     <summary><h2>スクリーンショット</h2></summary>
     <p align="center">
-        <img src="../metadata/en-US/images/phoneScreenshots/7.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="../metadata/en-US/images/phoneScreenshots/8.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="../metadata/en-US/images/phoneScreenshots/1.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="../metadata/en-US/images/phoneScreenshots/landscape_1.png" style="max-height:50vh;object-fit:contain;" width="78%">
+        <img width="21%" src="../metadata/en-US/images/phoneScreenshots/8.png" style="max-height:50vh;object-fit:contain;">
+    </p>
+    <p align="center">
+        <img width="21%" src="../metadata/en-US/images/phoneScreenshots/1.png" style="max-height:50vh;object-fit:contain;">
+        <img src="../metadata/en-US/images/phoneScreenshots/landscape_2.png" style="max-height:50vh;object-fit:contain;" width="78%">
     </p>
 </details>
 
@@ -56,17 +49,34 @@ SpMpはデスクトップのプラットフォーム用にも[開発中](https:/
     <summary><h2>他のスクリーンショット</h2></summary>
     <p align="center">
         <img src="../metadata/en-US/images/phoneScreenshots/9.png" style="max-height:70vh;object-fit:contain;" width="25%">
-        <img src="../metadata/en-US/images/phoneScreenshots/2.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="../metadata/en-US/images/phoneScreenshots/7.png" style="max-height:70vh;object-fit:contain;" width="25%">
         <img src="../metadata/en-US/images/phoneScreenshots/4.png" style="max-height:70vh;object-fit:contain;" width="25%">
     </p>
     <p align="center">
-        <img src="../metadata/en-US/images/phoneScreenshots/3.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="../metadata/en-US/images/phoneScreenshots/0.png" style="max-height:70vh;object-fit:contain;" width="25%">
         <img src="../metadata/en-US/images/phoneScreenshots/5.png" style="max-height:70vh;object-fit:contain;" width="25%">
         <img src="../metadata/en-US/images/phoneScreenshots/6.png" style="max-height:70vh;object-fit:contain;" width="25%">
     </p>
 </details>
 
 <br>
+
+## インストール手順
+
+すべてのプラットフォームのダウンロードは、リポジトリの[リリース ページ](https://github.com/toasterofbread/spmp/releases)にあります。
+
+#### デスクトップ版の追加要件
+
+- Java をインストールする（すべてのプラットフォーム）
+- Linux バージョンには[いくつかのシステム パッケージ](https://spmp.toastbits.dev/docs/client/installation/#dependency)が必要です
+
+Android版は F-Droid からもダウンロードできます。GitHubで入手可能の APK と F-Droid で入手可能の APK に違いはありません。
+
+[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" height="80">](https://f-droid.org/en/packages/com.toasterofbread.spmp/)
+
+## ドキュメンテーション（現在英語のみ）
+
+SpMp の高度な使用法（コンパイル手順など）に関するドキュメンテーションは、https://spmp.toastbits.dev/docs/ にあります。
 
 ## このプロジェクトについて
 YouTube公式のミュージックアプリをしばらく使っていましたが、言語やメタデータの設定機能の無さを感じて別のアプリをいくつか使ってみました。ましな物はあったけど、どれにも重大な問題を一つは感じました。
@@ -77,10 +87,6 @@ YouTube公式のミュージックアプリをしばらく使っていました�
 Pull requestと機能の提案は歓迎です！これは僕の初めてのComposeプロジェクトで、それに今までで最大のプロジェクトなので改善の余地はたくさんあると思います。
 
 このアプリの日本語版も英語版も開発しています。他の言語への貢献も大歓迎です！
-
-## こちらからも入手
-
-[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" height="100">](https://f-droid.org/en/packages/com.toasterofbread.spmp/)
 
 ## 参考にしたソフト
 - smlqrs: 本プロジェクトのアイコンをデザインしてくれました

@@ -6,7 +6,7 @@
     <string name="info_using_release_$x">リリース「$x」を使用中</string>
     <string name="info_using_non_release_commit_$x">リリースではないコミット「$x」を使用中</string>
 
-    <string name="version_message_release_$appver_$apiver_$split">SpMp リリース「$commit」$splitと API バージョン「$apiver」を使用中</string>
+    <string name="version_message_release_$appver_$apiver_$split">SpMp リリース「$appver」$splitと API バージョン「$apiver」を使用中</string>
     <string name="version_message_non_release_$commit_$apiver_$split">SpMp のリリースではないコミット「$commit」$splitと API バージョン「$apiver」を使用中</string>
     <string name="help_message">TODO</string>
 

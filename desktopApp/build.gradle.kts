@@ -4,6 +4,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.io.FileUtils
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.gradle.internal.os.OperatingSystem
 import java.io.FileInputStream
 import java.net.URL
 import java.nio.file.Files.getPosixFilePermissions
@@ -179,9 +180,11 @@ abstract class PackageTask: DefaultTask() {
     }
 
     fun File.addExecutePermission() {
-        val permissions: MutableSet<PosixFilePermission> = getPosixFilePermissions(toPath())
-        permissions.add(PosixFilePermission.OWNER_EXECUTE)
-        setPosixFilePermissions(toPath(), permissions)
+        if (OperatingSystem.current().isUnix()) {
+            val permissions: MutableSet<PosixFilePermission> = getPosixFilePermissions(toPath())
+            permissions.add(PosixFilePermission.OWNER_EXECUTE)
+            setPosixFilePermissions(toPath(), permissions)
+        }
     }
 
     fun getPlatformServerFileExtension(target_os: OS): String =

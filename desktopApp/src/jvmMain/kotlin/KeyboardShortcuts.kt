@@ -35,7 +35,7 @@ internal fun PlayerState.processKeyEventShortcuts(
                 }
                 return true
             }
-            
+
             else -> {
                 val number_index: Int = NUMBER_KEYS.indexOf(event.key)
                 if (number_index != -1) {
@@ -57,11 +57,11 @@ internal fun PlayerState.processKeyEventShortcuts(
                 }
             }
         }
-        
+
         if (isTextFieldFocused(text_field_focus_state)) {
             return false
         }
-        
+
         when (event.key) {
             // UI scale
             Key.Equals -> {
@@ -76,7 +76,7 @@ internal fun PlayerState.processKeyEventShortcuts(
                     return true
                 }
             }
-            
+
             // Playback
             Key.Delete -> {
                 if (event.isCtrlPressed) {
@@ -105,8 +105,14 @@ internal fun PlayerState.processKeyEventShortcuts(
                 }
                 return true
             }
+
+            // Navigation
+            Key.Tab -> {
+                expansion.toggle()
+                return true
+            }
         }
     }
-    
+
     return false
 }

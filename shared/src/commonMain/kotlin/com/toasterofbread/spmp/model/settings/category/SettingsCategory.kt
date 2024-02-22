@@ -22,6 +22,7 @@ import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 import com.toasterofbread.composekit.utils.common.blendWith
 import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.composekit.utils.common.amplifyPercent
 
 sealed class SettingsCategory(id: String) {
     val id: String = id.uppercase()
@@ -67,7 +68,7 @@ sealed class SettingsCategory(id: String) {
 
             override fun getItems(context: AppContext): List<SettingsItem>? {
                 if (items == null) {
-                    items = getPageItems(context).filter { 
+                    items = getPageItems(context).filter {
                         it.getKeys().none { key_name ->
                             for (cat in listOf(category) + SettingsCategory.all) {
                                 val key: SettingsKey? = cat.getKeyOfName(key_name)
@@ -76,7 +77,7 @@ sealed class SettingsCategory(id: String) {
                                 }
                             }
                             throw RuntimeException("Key not found: $key_name (category: $category)")
-                        } 
+                        }
                     }
                 }
                 return items!!
@@ -96,7 +97,7 @@ sealed class SettingsCategory(id: String) {
                         },
                         modifier = modifier.fillMaxWidth(),
                         colors = CardDefaults.elevatedCardColors(
-                            containerColor = theme.accent.blendWith(theme.background, 0.05f),
+                            containerColor = theme.background.amplifyPercent(0.03f),
                             contentColor = theme.on_background
                         )
                     ) {

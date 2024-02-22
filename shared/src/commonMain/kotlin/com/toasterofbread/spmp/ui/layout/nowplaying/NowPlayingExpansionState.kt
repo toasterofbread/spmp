@@ -66,7 +66,7 @@ class NowPlayingExpansionState(
     val swipe_state: SwipeableState<Int> by swipe_state
 
     override val top_bar_mode: MutableState<MusicTopBarMode> = mutableStateOf(MusicTopBarMode.default)
-    
+
     override fun getPageRange(): IntRange =
         0 .. getNowPlayingVerticalPageCount(player)
 
@@ -79,7 +79,7 @@ class NowPlayingExpansionState(
         player.switchNowPlayingPage(page)
     }
 
-    fun close() {
+    fun toggle() {
         scrollTo(if (swipe_state.targetValue == 0) 1 else 0)
     }
 

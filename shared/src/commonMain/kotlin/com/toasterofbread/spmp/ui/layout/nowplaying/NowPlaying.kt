@@ -422,7 +422,7 @@ private fun NowPlayingCardContent(page_height: Dp, content_padding: PaddingValue
             CompositionLocalProvider(LocalPlayerClickOverrides provides click_overrides.copy(
                 onClickOverride = { item, _ ->
                     click_overrides.onMediaItemClicked(item, player)
-                    expansion.close()
+                    expansion.toggle()
                 }
             )) {
                 pages.firstOrNull()?.Page(

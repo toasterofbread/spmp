@@ -87,7 +87,7 @@ internal fun LargeBottomBar(
                     )
                 }
 
-                IconButton({ player.expansion.close() }, Modifier.bounceOnClick().appHover(true)) {
+                IconButton({ player.expansion.toggle() }, Modifier.bounceOnClick().appHover(true)) {
                     Icon(Icons.Default.KeyboardArrowDown, null, tint = button_colour)
                 }
             }

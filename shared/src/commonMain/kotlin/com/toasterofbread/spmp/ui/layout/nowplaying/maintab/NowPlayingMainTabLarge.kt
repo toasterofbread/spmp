@@ -186,7 +186,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                         }
                         .pointerInput(Unit) {
                             detectTapGestures {
-                                player.expansion.close()
+                                player.expansion.toggle()
                             }
                         }
                 ) {

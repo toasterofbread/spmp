@@ -212,7 +212,7 @@ data class YoutubeMusicApi(
         OkHttpClient.Builder()
             .callTimeout(Duration.ofMillis(DEFAULT_CONNECT_TIMEOUT.toLong()))
             .retryOnConnectionFailure(false)
-            .protocols(listOf(Protocol.HTTP_1_1))
+            .protocols(listOf(Protocol.HTTP_1_1, Protocol.HTTP_2))
             .build()
             .also {
                 Logger.getLogger(OkHttpClient::class.java.name).level = Level.FINE

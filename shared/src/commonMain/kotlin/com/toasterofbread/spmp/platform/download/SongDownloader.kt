@@ -45,7 +45,8 @@ abstract class SongDownloader(
         var silent: Boolean,
         val instance: Int,
         val custom_uri: String?,
-        val download_lyrics: Boolean = true
+        val download_lyrics: Boolean = true,
+        val direct: Boolean = false
     ) {
         // This is fine :)
         var song_file: PlatformFile? = runBlocking {
@@ -91,23 +92,37 @@ abstract class SongDownloader(
             cancelled = true
         }
 
-        fun generatePath(extension: String, in_progress: Boolean): String {
-            return getDownloadPath(song, extension, in_progress, context)
+        fun getDownloadFile(extension: String): PlatformFile {
+            if (direct) {
+                return getDestinationFile(extension)
+            }
+
+            check(song_download_dir.mkdirs()) { "Could not create song download directory $song_download_dir" }
+            return song_download_dir.resolve(generatePath(extension, true))
+        }
+
+        fun getDestinationFile(extension: String): PlatformFile {
+            return custom_uri?.let { context.getUserDirectoryFile(it) }
+                ?: song_storage_dir.resolve(generatePath(extension, false))
         }
 
         override fun toString(): String =
             "Download(id=${song.id}, quality=$quality, silent=$silent, instance=$instance, file=$song_file)"
+
+        private fun generatePath(extension: String, in_progress: Boolean): String {
+            return getDownloadPath(song, extension, !direct && in_progress, context)
+        }
     }
 
     private var download_inc: Int = 0
-    private fun getOrCreateDownload(song: Song, silent: Boolean, custom_uri: String?, download_lyrics: Boolean): Download {
+    private fun getOrCreateDownload(song: Song, silent: Boolean, custom_uri: String?, download_lyrics: Boolean, direct: Boolean): Download {
         synchronized(downloads) {
             for (download in downloads) {
                 if (download.song.id == song.id) {
                     return download
                 }
             }
-            return Download(song, Settings.getEnum(StreamingSettings.Key.DOWNLOAD_AUDIO_QUALITY), silent, download_inc++, custom_uri, download_lyrics)
+            return Download(song, Settings.getEnum(StreamingSettings.Key.DOWNLOAD_AUDIO_QUALITY), silent, download_inc++, custom_uri, download_lyrics, direct)
         }
     }
 
@@ -201,14 +216,15 @@ abstract class SongDownloader(
         silent: Boolean,
         custom_uri: String?,
         download_lyrics: Boolean,
+        direct: Boolean,
         callback: (Download, Result<PlatformFile?>) -> Unit
     ) = withContext(Dispatchers.IO) {
-
         val download: Download = getOrCreateDownload(
             song,
             silent = silent,
             custom_uri = custom_uri,
-            download_lyrics = download_lyrics
+            download_lyrics = download_lyrics,
+            direct = direct
         )
 
         synchronized(download) {
@@ -313,14 +329,12 @@ abstract class SongDownloader(
             connection.connect()
         }
         catch (e: Throwable) {
-            return@withContext Result.failure(RuntimeException(connection.url.toString(), e))
+            return@withContext Result.failure(RuntimeException("Connection to '${connection.url}' with bytes=${download.downloaded} failed", e))
         }
 
         if (connection.responseCode != 200 && connection.responseCode != 206) {
             return@withContext Result.failure(
-                ConnectException(
-                "${download.song.id}: Server returned code ${connection.responseCode} ${connection.responseMessage}"
-            )
+                ConnectException("Connection to '${connection.url}' with bytes=${download.downloaded} failed ${connection.responseCode} ${connection.responseMessage}")
             )
         }
 
@@ -332,13 +346,9 @@ abstract class SongDownloader(
             }
 
         var file: PlatformFile? = download.song_file
-        check(song_download_dir.mkdirs()) { song_download_dir.toString() }
-
         if (file == null) {
-            file = song_download_dir.resolve(download.generatePath(format_extension, true))
+            file = download.getDownloadFile(format_extension)
         }
-
-        check(file.name.endsWith(FILE_DOWNLOADING_SUFFIX))
 
         val data: ByteArray = ByteArray(4096)
         val input_stream: InputStream = connection.inputStream
@@ -381,7 +391,9 @@ abstract class SongDownloader(
             runBlocking {
                 launch {
                     download.song.Duration.setNotNull(getAudioFileDurationMs(file), context.database)
-                    LocalSongMetadataProcessor.addMetadataToLocalSong(download.song, file, format_extension, context)
+                    if (download.custom_uri == null) {
+                        LocalSongMetadataProcessor.addMetadataToLocalSong(download.song, file, format_extension, context)
+                    }
                 }
                 launch {
                     if (download.lyrics_file == null && download.download_lyrics) {
@@ -405,13 +417,7 @@ abstract class SongDownloader(
         try {
             close(DownloadStatus.Status.FINISHED)
 
-            val destination_file: PlatformFile = download.custom_uri?.let { context.getUserDirectoryFile(it) }
-                ?: song_storage_dir.resolve(download.generatePath(format_extension, false))
-
-            if (destination_file.is_file) {
-                destination_file.delete()
-            }
-
+            val destination_file: PlatformFile = download.getDestinationFile(format_extension)
             file.moveTo(destination_file)
             download.song_file = destination_file
 

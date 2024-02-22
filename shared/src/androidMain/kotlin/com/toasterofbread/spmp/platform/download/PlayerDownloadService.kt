@@ -250,7 +250,8 @@ class PlayerDownloadService: PlatformServiceImpl() {
             SongRef(message.data["song_id"] as String),
             silent = message.data["silent"] as Boolean,
             custom_uri = message.data["custom_uri"] as String?,
-            download_lyrics = (message.data["download_lyrics"] as Boolean?) ?: true
+            download_lyrics = (message.data["download_lyrics"] as Boolean?) ?: true,
+            direct = (message.data["direct"] as Boolean?) ?: false,
         ) { download, result ->
             sendMessageOut(
                 PlayerDownloadManager.PlayerDownloadMessage(

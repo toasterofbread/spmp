@@ -129,17 +129,18 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
         silent: Boolean,
         custom_uri: String?,
         download_lyrics: Boolean,
+        direct: Boolean,
         callback: DownloadRequestCallback?
     ) {
         if (!silent && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             context.application_context?.requestNotficationPermission { granted ->
                 if (granted) {
-                    performDownload(song, silent, custom_uri, download_lyrics, callback)
+                    performDownload(song, silent, custom_uri, download_lyrics, direct, callback)
                 }
             }
         }
         else {
-            performDownload(song, silent, custom_uri, download_lyrics, callback)
+            performDownload(song, silent, custom_uri, download_lyrics, direct, callback)
         }
     }
 
@@ -148,6 +149,7 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
         silent: Boolean,
         custom_uri: String?,
         download_lyrics: Boolean,
+        direct: Boolean,
         onCompleted: DownloadRequestCallback?
     ) {
         onService {
@@ -169,7 +171,8 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
                         "song_id" to song.id,
                         "silent" to silent,
                         "custom_uri" to custom_uri,
-                        "download_lyrics" to download_lyrics
+                        "download_lyrics" to download_lyrics,
+                        "direct" to direct
                     ),
                     instance
                 )

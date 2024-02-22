@@ -11,7 +11,10 @@ import java.io.Reader
 
 class PipedVideoFormatsEndpoint(override val api: YoutubeApi): VideoFormatsEndpoint() {
     override suspend fun getVideoFormats(id: String, filter: ((YoutubeVideoFormat) -> Boolean)?): Result<List<YoutubeVideoFormat>> = withContext(Dispatchers.IO) {
-        val request: Request = Request.Builder().url("https://pipedapi.syncpundit.io/streams/$id").build()
+        val request: Request = Request.Builder()
+            .url("https://pipedapi.kavin.rocks/streams/$id")
+            .header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/114.0")
+            .build()
         val result: Result<Response> = api.performRequest(request, allow_fail_response = true)
 
         val response: Response = result.fold(
@@ -19,23 +22,28 @@ class PipedVideoFormatsEndpoint(override val api: YoutubeApi): VideoFormatsEndpo
             { return@withContext Result.failure(it) }
         )
 
-        val stream: Reader = response.body?.charStream() ?: return@withContext Result.failure(NullPointerException())
-        stream.use {
-            val parsed: PipedStreamsResponse = api.gson.fromJson(it)
-            if (!response.isSuccessful) {
-                if (parsed.error?.contains("YoutubeMusicPremiumContentException") == true) {
-                    return@withContext Result.failure(YoutubeMusicPremiumContentException(parsed.message))
-                }
+        val body: String = response.body?.string() ?: return@withContext Result.failure(NullPointerException())
+        val parsed: PipedStreamsResponse
+        try {
+            parsed = api.gson.fromJson(body)
+        }
+        catch (e: Throwable) {
+            throw RuntimeException("getVideoFormats for $id using Piped API failed $body", e)
+        }
 
-                return@withContext Result.failure(RuntimeException(parsed.message))
+        if (!response.isSuccessful) {
+            if (parsed.error?.contains("YoutubeMusicPremiumContentException") == true) {
+                return@withContext Result.failure(YoutubeMusicPremiumContentException(parsed.message))
             }
 
-            return@withContext Result.success(
-                parsed.audioStreams?.let { streams ->
-                    if (filter != null) streams.filter(filter) else streams
-                } ?: emptyList()
-            )
+            return@withContext Result.failure(RuntimeException(parsed.message))
         }
+
+        return@withContext Result.success(
+            parsed.audioStreams?.let { streams ->
+                if (filter != null) streams.filter(filter) else streams
+            } ?: emptyList()
+        )
     }
 }
 

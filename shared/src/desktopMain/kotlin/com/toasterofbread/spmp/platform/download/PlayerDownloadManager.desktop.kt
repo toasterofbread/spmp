@@ -62,10 +62,11 @@ actual class PlayerDownloadManager actual constructor(private val context: AppCo
         silent: Boolean,
         custom_uri: String?,
         download_lyrics: Boolean,
+        direct: Boolean,
         callback: DownloadRequestCallback?,
     ) {
         context.coroutine_scope.launch {
-            downloader.startDownload(song, silent, custom_uri, download_lyrics) { download, result ->
+            downloader.startDownload(song, silent, custom_uri, download_lyrics, direct) { download, result ->
                 val status: DownloadStatus = download.getStatusObject()
                 context.coroutine_scope.launch {
                     if (custom_uri == null) {

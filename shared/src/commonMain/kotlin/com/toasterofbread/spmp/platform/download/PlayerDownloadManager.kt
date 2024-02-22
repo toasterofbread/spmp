@@ -57,7 +57,13 @@ enum class DownloadMethod {
                             return@promptUserForFileCreation
                         }
 
-                        context.download_manager.startDownload(songs.single(), custom_uri = uri, download_lyrics = false, callback = callback)
+                        context.download_manager.startDownload(
+                            songs.single(),
+                            custom_uri = uri,
+                            download_lyrics = false,
+                            direct = true,
+                            callback = callback
+                        )
                     }
                 }
                 else {
@@ -127,7 +133,7 @@ expect class PlayerDownloadManager(context: AppContext) {
 
     fun addDownloadStatusListener(listener: DownloadStatusListener)
     fun removeDownloadStatusListener(listener: DownloadStatusListener)
-    
+
     suspend fun getDownload(song: Song): DownloadStatus?
     suspend fun getDownloads(): List<DownloadStatus>
 
@@ -137,6 +143,7 @@ expect class PlayerDownloadManager(context: AppContext) {
         silent: Boolean = false,
         custom_uri: String? = null,
         download_lyrics: Boolean = true,
+        direct: Boolean = false,
         callback: DownloadRequestCallback? = null
     )
 

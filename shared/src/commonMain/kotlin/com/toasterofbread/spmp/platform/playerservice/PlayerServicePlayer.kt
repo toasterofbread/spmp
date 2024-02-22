@@ -127,7 +127,9 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
                 sendStatusWebhook(song)
             }
 
-            play()
+            if (manual) {
+                play()
+            }
         }
 
         private suspend fun sendStatusWebhook(song: Song?) {
@@ -629,7 +631,7 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
 
     fun getSong(): Song? = service.getSong()
     fun getSong(index: Int): Song? = service.getSong(index)
-    
+
     fun savePersistentQueue() {
         coroutine_scope.launch {
             persistent_queue.savePersistentQueue()

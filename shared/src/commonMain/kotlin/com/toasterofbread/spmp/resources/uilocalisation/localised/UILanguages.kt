@@ -14,12 +14,18 @@ fun <T> Map<String, T>.getByLanguage(language: String): IndexedValue<Map.Entry<S
         return exact
     }
 
-    val lang: String = language.split('-', limit = 2).first()
+    val primary: String = language.primary_language
     for (entry in entries.withIndex()) {
-        if (entry.value.key.split('-', limit = 2).first() == lang) {
+        if (entry.value.key.primary_language == primary) {
             return entry
         }
     }
 
     return null
+}
+
+val String.primary_language: String get() = this.split('-', limit = 2).first()
+
+fun String.matchesLanguage(other: String): Boolean {
+    return this == other || this.primary_language == other.primary_language
 }

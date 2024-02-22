@@ -7,6 +7,7 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
 import com.toasterofbread.spmp.youtubeapi.lyrics.kugou.loadKugouLyrics
 import com.toasterofbread.spmp.youtubeapi.lyrics.kugou.searchKugouLyrics
+import com.toasterofbread.spmp.platform.getUiLanguage
 
 internal class KugouLyricsSource(source_idx: Int): LyricsSource(source_idx) {
     override fun getReadable(): String = getString("lyrics_source_kugou")
@@ -14,7 +15,7 @@ internal class KugouLyricsSource(source_idx: Int): LyricsSource(source_idx) {
     override fun getUrlOfId(id: String): String? = null
 
     override suspend fun getLyrics(lyrics_id: String, context: AppContext, tokeniser: LyricsFuriganaTokeniser): Result<SongLyrics> {
-        val load_result: Result<List<List<SongLyrics.Term>>> = loadKugouLyrics(lyrics_id, tokeniser)
+        val load_result: Result<List<List<SongLyrics.Term>>> = loadKugouLyrics(lyrics_id, tokeniser, context.getUiLanguage())
         val lines: List<List<SongLyrics.Term>> = load_result.getOrNull() ?: return load_result.cast()
 
         return Result.success(

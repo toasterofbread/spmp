@@ -14,10 +14,16 @@ import okhttp3.Response
 import java.io.IOException
 import java.nio.charset.Charset
 import java.util.Base64
+import com.toasterofbread.spmp.resources.uilocalisation.localised.matchesLanguage
+import com.toasterofbread.spmp.resources.uilocalisation.localised.UILanguages
 
 private const val START_SKIP_LINES: Int = 0
 
-suspend fun loadKugouLyrics(hash: String, tokeniser: LyricsFuriganaTokeniser): Result<List<List<SongLyrics.Term>>> =
+suspend fun loadKugouLyrics(
+    hash: String,
+    tokeniser: LyricsFuriganaTokeniser,
+    lang: String
+): Result<List<List<SongLyrics.Term>>> =
     withContext(Dispatchers.IO) { kotlin.runCatching {
         val request: Request = Request.Builder()
             .url(
@@ -60,7 +66,7 @@ suspend fun loadKugouLyrics(hash: String, tokeniser: LyricsFuriganaTokeniser): R
 
             reverse_lines.add(
                 SongLyrics.Term(
-                    listOf(SongLyrics.Term.Text(formatLyricsLine(split[1]))),
+                    listOf(SongLyrics.Term.Text(formatLyricsLine(split[1], lang))),
                     -1,
                     start = time,
                     end = previous_time ?: Long.MAX_VALUE
@@ -81,7 +87,11 @@ suspend fun loadKugouLyrics(hash: String, tokeniser: LyricsFuriganaTokeniser): R
         }
     }}
 
-private fun formatLyricsLine(line: String): String {
+private fun formatLyricsLine(line: String, lang: String): String {
+    if (!lang.matchesLanguage(UILanguages.ja)) {
+        return line
+    }
+
     val formatted: StringBuilder = StringBuilder()
     for ((i, c) in line.withIndex()) {
         formatted.append(when (c) {

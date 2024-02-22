@@ -291,17 +291,20 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
     }
 
     fun openAppPage(page: AppPage?, from_current: Boolean = false, replace_current: Boolean = false) {
-        if (page != app_page) {
-            if (!replace_current) {
-                app_page_undo_stack.add(app_page)
-            }
-            app_page_state.setPage(page, from_current = from_current, going_back = false)
-
-            if (np_swipe_state.value.targetValue != 0) {
-                switchNowPlayingPage(0)
-            }
-            hideLongPressMenu()
+        if (page == app_page) {
+            page?.onReopened()
+            return
         }
+
+        if (!replace_current) {
+            app_page_undo_stack.add(app_page)
+        }
+        app_page_state.setPage(page, from_current = from_current, going_back = false)
+
+        if (np_swipe_state.value.targetValue != 0) {
+            switchNowPlayingPage(0)
+        }
+        hideLongPressMenu()
     }
 
     fun navigateBack() {

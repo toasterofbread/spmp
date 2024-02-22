@@ -40,6 +40,8 @@ import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import androidx.compose.runtime.MutableState
 
 internal const val PREFS_PAGE_EXTRA_PADDING_DP: Float = 10f
 
@@ -68,6 +70,10 @@ class SettingsAppPage(override val state: AppPageState, getFooterModifier: @Comp
         return settings_interface.goBack()
     }
 
+    override fun onReopened() {
+        settings_interface.openPage(null)
+    }
+
     @Composable
     override fun ColumnScope.Page(
         multiselect_context: MediaItemMultiSelectContext,
@@ -75,8 +81,8 @@ class SettingsAppPage(override val state: AppPageState, getFooterModifier: @Comp
         content_padding: PaddingValues,
         close: () -> Unit,
     ) {
-        val player = LocalPlayerState.current
-        val show_reset_confirmation = remember { mutableStateOf(false) }
+        val player: PlayerState = LocalPlayerState.current
+        val show_reset_confirmation: MutableState<Boolean> = remember { mutableStateOf(false) }
 
         ResetConfirmationDialog(
             show_reset_confirmation,

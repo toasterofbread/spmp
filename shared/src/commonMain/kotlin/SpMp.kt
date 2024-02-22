@@ -232,7 +232,7 @@ object SpMp {
 
     fun onUnlocalisedStringFound(type: String, key: String?, source_language: String) =
         onUnlocalisedStringFound(UnlocalisedStringCollector.UnlocalisedString(type, key, source_language))
-    
+
     fun onUnlocalisedStringFound(string: LocalisedString) =
         onUnlocalisedStringFound(UnlocalisedStringCollector.UnlocalisedString.fromLocalised(string))
 }

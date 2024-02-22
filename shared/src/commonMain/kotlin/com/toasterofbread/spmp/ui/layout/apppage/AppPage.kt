@@ -45,6 +45,7 @@ abstract class AppPage {
     ) { }
 
     open fun onOpened(from_item: MediaItemHolder? = null) {}
+    open fun onReopened() {}
     open fun onClosed(next_page: AppPage?) {}
     open fun onBackNavigation(): Boolean = false
 

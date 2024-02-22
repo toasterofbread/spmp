@@ -82,14 +82,17 @@ body:
     validations:
       required: true
 
-  - type: input
+  - type: dropdown
     id: app-platform
     attributes:
       label: SpMp platform
       description: |
         The platform of the SpMp build you are using. Even if you're running the Android version on a PC or vice-versa, this should be the version of the app itself.
-      placeholder: |
-        Examples: "Android aarch64", "Linux x86_64"
+      options:
+        - Android
+        - Linux
+        - Windows
+      default: 0
     validations:
       required: true
 

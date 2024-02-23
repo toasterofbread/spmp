@@ -55,12 +55,14 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_RO
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.QueueTab
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
+import androidx.compose.runtime.State
 
 val NOW_PLAYING_LARGE_BOTTOM_BAR_HEIGHT: Dp
     @Composable get() = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
 
 private const val STROKE_WIDTH_DP: Float = 1f
 private const val INNER_PADDING_DP: Float = 25f
+private const val CONTROLS_IMAGE_SEPARATION_DP: Float = 20f
 
 @Composable
 private fun MainTabControls(
@@ -131,8 +133,6 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
     val bottom_bar_height: Dp = NOW_PLAYING_LARGE_BOTTOM_BAR_HEIGHT
     val inner_bottom_padding: Dp = horizontal_padding
 
-    var thumbnail_y_position: Float by remember { mutableStateOf(0f) }
-
     val bar_background_colour: Color = player.theme.card
     val stroke_colour: Color = bar_background_colour.amplify(255f)
 
@@ -153,33 +153,27 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             val parent_max_width: Dp = this@BoxWithConstraints.maxWidth
-            val thumb_size: Dp = minOf(height, parent_max_width * 0.5f) - inner_padding
 
             var actual_thumb_size: DpSize by remember { mutableStateOf(DpSize.Zero) }
             var actual_thumb_position: DpOffset by remember { mutableStateOf(DpOffset.Zero) }
 
             val controls_target_height: Dp = 200.dp
-            var controls_height: Dp by remember { mutableStateOf(0.dp) }
 
-            val main_column_target_width: Dp = maxOf(
-                300.dp,
-                minOf(
-                    player.screen_size.height - controls_target_height,
-                    minOf(page_height, parent_max_width * 0.5f) - (20.dp)
+            val main_column_target_width: Dp by remember(parent_max_width) { derivedStateOf {
+                maxOf(
+                    300.dp,
+                    minOf(
+                        player.screen_size.height - controls_target_height,
+                        minOf(page_height, parent_max_width * 0.5f) - (20.dp)
+                    )
                 )
-            )
+            }}
 
-            val main_column_width: Dp =
-                lerp(
-                    parent_max_width,
-                    main_column_target_width,
-                    absolute_expansion
-                )
+            val thumb_space_v: Dp = page_height - top_padding - controls_target_height - inner_bottom_padding - bottom_padding
+            val thumb_space_h: Dp = main_column_target_width - 5.dp
+            val thumb_size: Dp = minOf(thumb_space_h, thumb_space_v)
 
-            val current_thumb_size: Dp = this@BoxWithConstraints.maxHeight - controls_height
-            val compact_mode: Boolean = absolute_expansion > 0.9f && (
-                (current_thumb_size / main_column_width) < 0.75f
-            )
+            val compact_mode: Boolean = thumb_size < 250.dp
 
             // Bottom bar
             Box(Modifier.requiredSize(0.dp).zIndex(1f)) {
@@ -211,7 +205,9 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
 
                     CompositionLocalProvider(LocalContentColor provides bar_background_colour.getContrasted()) {
                         var bottom_bar_position: DpOffset by remember { mutableStateOf(DpOffset.Zero) }
-                        val inset_depth: Dp = (actual_thumb_position.y + actual_thumb_size.height - bottom_bar_position.y).coerceAtLeast(0.dp)
+
+                        val thumb_pos: Dp = page_height - top_padding - controls_target_height - thumb_size - CONTROLS_IMAGE_SEPARATION_DP.dp
+                        val inset_depth: Dp = if (bottom_bar_height - thumb_pos > 4.dp) 4.dp else 0.dp
 
                         LargeBottomBar(
                             Modifier
@@ -242,11 +238,16 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                         Modifier.fillMaxHeight().weight(1f)
                     ) {
                         Column(
-                            Modifier.width(main_column_width),
+                            Modifier.width(
+                                lerp(
+                                    parent_max_width,
+                                    main_column_target_width,
+                                    absolute_expansion
+                                )
+                            ),
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-
                             Spacer(Modifier.requiredHeight(inner_bottom_padding).weight(1f, false))
 
                             Spacer(Modifier.fillMaxHeight().weight(1f))
@@ -261,12 +262,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                                         requiredHeight(controls_target_height * ((absolute_expansion - 0.5f) * 2f))
                                     }
                                     .scale(1f, absolute_expansion)
-                                    .padding(bottom = 20.dp)
-                                    .onSizeChanged {
-                                        controls_height = with (density) {
-                                            it.height.toDp()
-                                        }
-                                    },
+                                    .padding(bottom = CONTROLS_IMAGE_SEPARATION_DP.dp),
                                 textRowStartContent = {
                                     if (compact_mode) {
                                         val song: Song? by player.status.song_state
@@ -301,16 +297,9 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                                         }
                                         .offset {
                                             IntOffset(
-                                                (((main_column_width - actual_thumb_size.width).toPx() / 2) * absolute_expansion).roundToInt(),
+                                                (((main_column_target_width - actual_thumb_size.width).toPx() / 2) * absolute_expansion).roundToInt(),
                                                 0
                                             )
-                                        }
-                                        .onGloballyPositioned {
-                                            thumbnail_y_position = with (density) {(
-                                                it.positionInParent().y
-                                                + lerp(-controls_target_height.toPx() / 2f, 0f, 1f - absolute_expansion)
-                                                - 50.dp.toPx()
-                                            )}
                                         },
                                     onThumbnailLoaded = { song, image ->
                                         onThumbnailLoaded(song, image)
@@ -320,13 +309,14 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                                     },
                                     getSeekState = { seek_state },
                                     disable_parent_scroll_while_menu_open = false,
-                                    thumbnail_modifier = Modifier.onGloballyPositioned {
-                                        with (density) {
-                                            val position: Offset = it.positionInRoot()
-                                            actual_thumb_position = DpOffset(position.x.toDp(), position.y.toDp())
-                                            actual_thumb_size = DpSize(it.size.width.toDp(), it.size.height.toDp())
+                                    thumbnail_modifier = Modifier
+                                        .onGloballyPositioned {
+                                            with (density) {
+                                                val position: Offset = it.positionInRoot()
+                                                actual_thumb_position = DpOffset(position.x.toDp(), position.y.toDp())
+                                                actual_thumb_size = DpSize(it.size.width.toDp(), it.size.height.toDp())
+                                            }
                                         }
-                                    }
                                 )
                             }
 
@@ -341,7 +331,9 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
             }
 
             PlayerQueueTab(
-                getWidth = remember {{ player.screen_size.width - main_column_target_width - 5.dp - target_start_padding - target_end_padding - INNER_PADDING_DP.dp  }},
+                width_state = remember(parent_max_width) { derivedStateOf {
+                    parent_max_width - main_column_target_width - 5.dp - target_start_padding - target_end_padding - INNER_PADDING_DP.dp
+                } },
                 getHeight = remember {{ player.screen_size.height - top_padding - bottom_padding }},
                 getCurrentControlsHeight = remember {{ page_height - top_padding - bottom_padding - inner_bottom_padding }},
                 inner_bottom_padding = inner_bottom_padding,
@@ -355,7 +347,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
 
 @Composable
 private fun PlayerQueueTab(
-    getWidth: () -> Dp,
+    width_state: State<Dp>,
     getHeight: () -> Dp,
     getCurrentControlsHeight: () -> Dp,
     inner_bottom_padding: Dp,
@@ -365,10 +357,11 @@ private fun PlayerQueueTab(
 ) {
     val player: PlayerState = LocalPlayerState.current
     val queue_shape: Shape = RoundedCornerShape(10.dp)
+    val width: Dp by width_state
 
     Box(
         modifier
-            .requiredSize(getWidth(), getHeight())
+            .requiredSize(width, getHeight())
             .offset {
                 IntOffset(
                     0,//-((1f - player.expansion.getBounded()) * (page_height - INNER_PADDING_DP.dp) / 2f).roundToPx(),

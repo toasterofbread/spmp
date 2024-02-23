@@ -112,6 +112,7 @@ internal object YTMLogin {
             val account_request: Request = Request.Builder()
                 .endpointUrl("/youtubei/v1/account/account_menu")
                 .headers(headers)
+                .addAuthlessApiHeaders()
                 .postWithBody()
                 .build()
 

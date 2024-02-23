@@ -130,7 +130,7 @@ class YTMLoginPage(val api: YoutubeMusicApi): LoginPage() {
 
         fun onHeadersProvided(provided_headers: Headers) {
             val headers: Headers = provided_headers.filter {
-                YoutubeApi.INCLUDE_HEADERS.contains(it.first)
+                YoutubeApi.INCLUDE_HEADERS.contains(it.first.lowercase())
             }.associate { it }.toHeaders()
 
             val account_switcher_request: Request = with(api) {

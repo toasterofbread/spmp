@@ -58,10 +58,10 @@ private fun AccountSwitcherEndpoint.AccountItem.Item(onClick: () -> Unit) {
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                Text(accountName.firstTextOrNull() ?: "", style = MaterialTheme.typography.headlineSmall)
+                Text(accountName.simpleText, style = MaterialTheme.typography.headlineSmall)
                 Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                    val handle = channelHandle?.firstTextOrNull()
-                    val byline = accountByline.firstTextOrNull()
+                    val handle = channelHandle?.simpleText
+                    val byline = accountByline.simpleText
 
                     if (handle != null) {
                         Text(handle)

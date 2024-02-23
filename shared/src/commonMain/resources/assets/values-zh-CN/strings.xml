@@ -697,8 +697,8 @@
     <string name="auth_sign_in">登录</string>
     <string name="auth_sign_out">登出</string>
 
-    <string name="warning_ytm_login">您将被引导至应用内的 webview 以登录 YouTube Music。&#xA;&#xA;一旦登录，您的会话 cookie 将被提取、存储，并仅用于向 YouTube Music 发送 API 请求，如获取推荐 feed 和订阅艺术家。&#xA;&#xA;继续吗？</string>
-    <string name="info_ytm_login">您将被引导至应用内的 webview 以登录 YouTube Music。&#xA;&#xA;一旦登录，您的会话 cookie 将被提取、存储，并仅用于向 YouTube Music 发送 API 请求，如获取推荐 feed 和订阅艺术家。</string>
+    <string name="warning_ytm_login">一旦登录，您的会话 cookie 将被提取、存储，并仅用于向 YouTube Music 发送 API 请求，如获取推荐 feed 和订阅艺术家。&#xA;&#xA;继续吗？</string>
+    <string name="info_ytm_login">一旦登录，您的会话 cookie 将被提取、存储，并仅用于向 YouTube Music 发送 API 请求，如获取推荐 feed 和订阅艺术家。</string>
     <string name="warning_discord_login">您将被引导至应用内的 webview 以登录 Discord。&#xA;&#xA;一旦登录，您的账户令牌将被提取、存储，并仅用于与 Discord 的网关连接，以设置您当前的状态。&#xA;&#xA;请查看 https://github.com/dead8309/Kizzy 以获取更多信息。&#xA;&#xA;继续吗？</string>
     <string name="info_discord_login">您将被引导至应用内的 webview 以登录 Discord。&#xA;&#xA;一旦登录，您的账户令牌将被提取、存储，并仅用于与 Discord 的网关连接，以设置您当前的状态。&#xA;&#xA;请查看 https://github.com/dead8309/Kizzy 以获取更多信息。</string>
     <string name="warning_discord_kizzy">SpMp 使用 KizzyRPC 库来设置您的 Discord 账户的状态。这涉及使用 Discord Gateway 连接，这可能被视为违反 Discord 的 TOS。然而，目前没有已知的因此原因被暂停的用户账户。请自行承担风险。&#xA;&#xA;请查看 https://github.com/dead8309/Kizzy 以获取更多信息。</string>

@@ -96,7 +96,7 @@ class UnimplementedYoutubeApi(
             throw NotImplementedError()
         }
         @Composable
-        override fun LoginConfirmationDialog(info_only: Boolean, onFinished: (param: Any?) -> Unit) {
+        override fun LoginConfirmationDialog(info_only: Boolean, manual_only: Boolean, onFinished: (param: Any?) -> Unit) {
             throw NotImplementedError()
         }
         override fun getTitle(confirm_param: Any?): String? {

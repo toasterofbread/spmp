@@ -439,8 +439,8 @@
     <string name="auth_sign_in">Zaloguj się</string>
     <string name="auth_sign_out">Wyloguj się</string>
 
-    <string name="warning_ytm_login">Zostaniesz przekierowany do widoku internetowego w aplikacji, aby zalogować się do YouTube Music.&#xA;&#xA;Po zalogowaniu plik cookie sesji zostanie wyodrębniony, zapisany i wykorzystany wyłącznie do żądań API do YouTube Music, takich jak pobieranie polecanego kanału i subskrybowanie artystów.&#xA;&#xA;Kontynuować?</string>
-    <string name="info_ytm_login">Zostaniesz przekierowany do widoku internetowego w aplikacji, aby zalogować się do YouTube Music.&#xA;&#xA;Po zalogowaniu plik cookie sesji zostanie wyodrębniony, zapisany i wykorzystany wyłącznie do żądań API do YouTube Music, takich jak pobieranie polecanego kanału i subskrybowanie artystów.</string>
+    <string name="warning_ytm_login">Po zalogowaniu plik cookie sesji zostanie wyodrębniony, zapisany i wykorzystany wyłącznie do żądań API do YouTube Music, takich jak pobieranie polecanego kanału i subskrybowanie artystów.&#xA;&#xA;Kontynuować?</string>
+    <string name="info_ytm_login">Po zalogowaniu plik cookie sesji zostanie wyodrębniony, zapisany i wykorzystany wyłącznie do żądań API do YouTube Music, takich jak pobieranie polecanego kanału i subskrybowanie artystów.</string>
     <string name="warning_discord_login">Zostaniesz przekierowany do widoku internetowego w aplikacji, aby zalogować się do Discord.&#xA;&#xA;Po zalogowaniu token konta zostanie wyodrębniony, zapisany i użyty wyłącznie do połączenia z Discord w celu ustawienia bieżącego statusu.&#xA;&#xA;Więcej informacji można znaleźć na stronie https://github.com/dead8309/Kizzy &#xA;&#xA;Kontynuować?</string>
     <string name="info_discord_login">Zostaniesz przekierowany do widoku internetowego w aplikacji, aby zalogować się do Discord.&#xA;&#xA;Po zalogowaniu token konta zostanie wyodrębniony, zapisany i użyty wyłącznie do połączenia z Discord w celu ustawienia bieżącego statusu.&#xA;&#xA;Więcej informacji można znaleźć na stronie https://github.com/dead8309/Kizzy</string>
 

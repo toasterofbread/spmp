@@ -33,6 +33,7 @@ import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.composable.LoginPage
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
 import okhttp3.Headers
+import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 
 fun getYtmAuthItem(context: AppContext, ytm_auth: SettingsValueState<Set<String>>, initialise: Boolean = false): SettingsItem {
     var own_channel: Artist? by mutableStateOf(null)
@@ -89,7 +90,10 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: SettingsValueState<Set<String>
         enable_button = getString("auth_sign_in"),
         disable_button = getString("auth_sign_out"),
         warningDialog = { dismiss, openPage ->
-            login_page.LoginConfirmationDialog(false) { param ->
+            login_page.LoginConfirmationDialog(
+                info_only = false,
+                manual_only = !isWebViewLoginSupported()
+            ) { param ->
                 dismiss()
                 if (param != null) {
                     openPage(PrefsPageScreen.YOUTUBE_MUSIC_LOGIN.ordinal, param)
@@ -101,7 +105,7 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: SettingsValueState<Set<String>
             var show_info_dialog: Boolean by remember(enabled) { mutableStateOf(false) }
 
             if (show_info_dialog) {
-                login_page.LoginConfirmationDialog(true) {
+                login_page.LoginConfirmationDialog(info_only = true, manual_only = false) {
                     show_info_dialog = false
                 }
             }

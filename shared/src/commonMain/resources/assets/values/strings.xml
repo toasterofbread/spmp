@@ -732,8 +732,8 @@
     <string name="auth_sign_in">Sign in</string>
     <string name="auth_sign_out">Sign out</string>
 
-    <string name="warning_ytm_login">You will be directed to an in-app webview in order to log into YouTube Music.&#xA;&#xA;Once logged in, your session cookie will be extracted, stored, and used only for API requests to YouTube Music such as getting your recommended feed and subscribing to artists.&#xA;&#xA;Continue?</string>
-    <string name="info_ytm_login">You will be directed to an in-app webview in order to log into YouTube Music.&#xA;&#xA;Once logged in, your session cookie will be extracted, stored, and used only for API requests to YouTube Music such as getting your recommended feed and subscribing to artists.</string>
+    <string name="warning_ytm_login">Once logged in, your session cookie will be extracted, stored, and used only for API requests to YouTube Music such as getting your recommended feed and subscribing to artists.&#xA;&#xA;Continue?</string>
+    <string name="info_ytm_login">Once logged in, your session cookie will be extracted, stored, and used only for API requests to YouTube Music such as getting your recommended feed and subscribing to artists.</string>
     <string name="warning_discord_login">You will be directed to an in-app webview in order to log into Discord.&#xA;&#xA;Once logged in, your account token will be extracted, stored, and used only for gateway connections to Discord for setting your current status.&#xA;&#xA;See https://github.com/dead8309/Kizzy for more information.&#xA;&#xA;Continue?</string>
     <string name="info_discord_login">You will be directed to an in-app webview in order to log into Discord.&#xA;&#xA;Once logged in, your account token will be extracted, stored, and used only for gateway connections to Discord for setting your current status.&#xA;&#xA;See https://github.com/dead8309/Kizzy for more information.</string>
     <string name="warning_discord_kizzy">SpMp uses the KizzyRPC library to set your Discord account's status. This involves using the Discord Gateway connection, which may be considered a violation of Discord's TOS. However, there are no known cases of user accounts being suspended for this reason. Use at your own risk.&#xA;&#xA;See https://github.com/dead8309/Kizzy for more information.</string>
@@ -748,9 +748,9 @@
         <item>Go to the network tab</item>
         <item>Go to https://music.youtube.com/</item>
         <item>Find any POST request to https://music.youtube.com/youtubei/v1/... such as /browse or /account_menu</item>
-        <item>Copy the request headers and enter them below</item>
+        <item>Right-click the request and selecting 'Copy' (or 'Copy value') and then 'Copy as cURL' to copy the request headers, then paste them below</item>
     </string-array>
-    <string name="youtube_manual_login_suffix">On Firefox, this can be done by right-clicking the request and selecting 'Copy value' and then 'Copy Request Headers'.&#xA;&#xA;In other browsers, click on the request and go to the 'Headers' tab, scroll down to 'Request headers', and copy all of the headers in that section starting from 'Accept: */*'.</string>
+    <string name="youtube_manual_login_suffix"></string>
     <string name="youtube_manual_login_field">Headers</string>
 
     <string name="youtube_login_load_message">Loading login page</string>

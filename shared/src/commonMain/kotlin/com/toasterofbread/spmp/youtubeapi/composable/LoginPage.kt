@@ -15,7 +15,7 @@ abstract class LoginPage: YoutubeApi.Implementable {
         onFinished: (Result<YoutubeApi.UserAuthState>?) -> Unit
     )
     @Composable
-    abstract fun LoginConfirmationDialog(info_only: Boolean, onFinished: (param: Any?) -> Unit)
+    abstract fun LoginConfirmationDialog(info_only: Boolean, manual_only: Boolean, onFinished: (param: Any?) -> Unit)
 
     abstract fun getTitle(confirm_param: Any?): String?
     abstract fun getIcon(confirm_param: Any?): ImageVector?

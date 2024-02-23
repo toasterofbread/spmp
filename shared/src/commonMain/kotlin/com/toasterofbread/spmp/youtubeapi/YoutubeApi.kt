@@ -58,6 +58,10 @@ fun <T: YoutubeApi.Implementable> T.implementedOrNull(): T? =
     else null
 
 interface YoutubeApi {
+    companion object {
+        val INCLUDE_HEADERS: List<String> = listOf("cookie", "authorization", "x-goog-authuser")
+    }
+
     val context: AppContext
 
     val database: Database get() = context.database
@@ -226,8 +230,7 @@ interface YoutubeApi {
         init {
             val headers_builder: Headers.Builder = Headers.Builder()
 
-            val headers_to_keep: List<String> = listOf("cookie", "authorization", "x-goog-authuser")
-            for (header in headers_to_keep) {
+            for (header in INCLUDE_HEADERS) {
                 val value: String = headers[header] ?: continue
                 if (header == "cookie") {
                     val filtered_cookies: String = filterCookieString(value) {

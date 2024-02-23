@@ -386,7 +386,7 @@
 	<string name="upload_to_paste_dot_ee">Subir a Paste.ee</string>
 	<string name="videos">Videos</string>
 	<string name="warning_discord_login">Se lo dirigirá a una vista web en la aplicación para iniciar sesión en Discord.\n\nUna vez que haya iniciado sesión, el token de su cuenta se extraerá, almacenará y utilizará únicamente para conexiones de puerta de enlace a Discord para configurar su estado actual.\n\nConsulte https://github.com/dead8309/Kizzy para obtener más información.\n\n¿Continuar?</string>
-	<string name="warning_ytm_login">Se lo dirigirá a una vista web en la aplicación para iniciar sesión en YouTube Music.\n\nUna vez que haya iniciado sesión, su cookie de sesión se extraerá, almacenará y utilizará solo para solicitudes de API a YouTube Music, como obtener su feed recomendado y suscribirse a artistas.\n\n¿Continuar?</string>
+	<string name="warning_ytm_login">\n\nUna vez que haya iniciado sesión, su cookie de sesión se extraerá, almacenará y utilizará solo para solicitudes de API a YouTube Music, como obtener su feed recomendado y suscribirse a artistas.\n\n¿Continuar?</string>
 	<string name="wrap_text_switch_label">Ajustar texto</string>
 	<string name="youtube_account_selection_title">Seleccionar cuenta</string>
 	<string name="youtube_channel_creation_confirm">Crear</string>

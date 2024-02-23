@@ -14,6 +14,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.GraphicsLayerScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -323,7 +324,12 @@ fun SmallThumbnailRow(
 }
 
 @Composable
-internal fun Modifier.songThumbnailShadow(song: Song?, shape: Shape): Modifier {
+internal fun Modifier.songThumbnailShadow(
+    song: Song?,
+    shape: Shape,
+    apply_expansion_to_colour: Boolean = true,
+    inGraphicsLayer: GraphicsLayerScope.() -> Unit = {}
+): Modifier {
     val player: PlayerState = LocalPlayerState.current
     val default_shadow_radius: Float by ThemeSettings.Key.NOWPLAYING_DEFAULT_SHADOW_RADIUS.rememberMutableState()
     val shadow_radius: Float? by song?.ShadowRadius?.observe(player.database)
@@ -333,8 +339,10 @@ internal fun Modifier.songThumbnailShadow(song: Song?, shape: Shape): Modifier {
         this.shape = shape
         clip = true
 
-        val shadow_colour: Color = Color.Black.copy(alpha = player.expansion.get().coerceIn(0f, 1f))
+        val shadow_colour: Color = Color.Black.thenIf(apply_expansion_to_colour) { copy(alpha = player.expansion.get().coerceIn(0f, 1f)) }
         ambientShadowColor = shadow_colour
         spotShadowColor = shadow_colour
+
+        inGraphicsLayer()
     }
 }

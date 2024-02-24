@@ -58,6 +58,8 @@ body:
       description: |
         Screenshots or recordings showing the issue.
 
+        **DO NOT screenshot stack traces / error messages.** Copy-paste the entire text or upload it to paste.ee and paste the link into the 'Logs' section.
+
         You can upload them directly in the text box.
 
   - type: textarea
@@ -66,6 +68,8 @@ body:
       label: Logs
       description: |
         Please provide any logs or stack traces displayed by the app. If your issue involves a crash but no logs were displayed, then please find the logs using Logcat or a similar tool. 
+
+        **DO NOT screenshot stack traces / error messages.** Copy-paste the entire text or upload it to paste.ee and paste the link.
         
         Without this information, the developer may unable to resolve the issue.
     validations:

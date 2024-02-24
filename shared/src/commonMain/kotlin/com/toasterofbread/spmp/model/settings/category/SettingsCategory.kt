@@ -23,6 +23,7 @@ import com.toasterofbread.composekit.utils.common.blendWith
 import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.composekit.utils.common.amplifyPercent
+import com.toasterofbread.composekit.settings.ui.SettingsPage
 
 sealed class SettingsCategory(id: String) {
     val id: String = id.uppercase()
@@ -57,6 +58,7 @@ sealed class SettingsCategory(id: String) {
     protected fun Page(
         title: String,
         description: String,
+        getPage: (AppContext, List<SettingsItem>) -> SettingsPage,
         getPageItems: (AppContext) -> List<SettingsItem>,
         getPageIcon: @Composable () -> ImageVector
     ): Page =
@@ -87,13 +89,7 @@ sealed class SettingsCategory(id: String) {
                 ComposableSettingsItem { modifier ->
                     ElevatedCard(
                         onClick = {
-                            openPage(
-                                SettingsPageWithItems(
-                                    getTitle = { title },
-                                    getItems = { getItems(context)!! },
-                                    getIcon = { getPageIcon() }
-                                )
-                            )
+                            openPage(getPage(context, getItems(context)!!))
                         },
                         modifier = modifier.fillMaxWidth(),
                         colors = CardDefaults.elevatedCardColors(
@@ -116,6 +112,26 @@ sealed class SettingsCategory(id: String) {
                 }
         }
 
+    protected fun Page(
+        title: String,
+        description: String,
+        getPageItems: (AppContext) -> List<SettingsItem>,
+        getPageIcon: @Composable () -> ImageVector
+    ): Page =
+        Page(
+            title,
+            description,
+            { context, items ->
+                SettingsPageWithItems(
+                    getTitle = { title },
+                    getItems = { items },
+                    getIcon = { getPageIcon() }
+                )
+            },
+            getPageItems,
+            getPageIcon
+        )
+
     companion object {
         val all: List<SettingsCategory> get() =
             listOf(
@@ -123,6 +139,7 @@ sealed class SettingsCategory(id: String) {
 
                 SystemSettings,
                 BehaviourSettings,
+                LayoutSettings,
                 PlayerSettings,
                 FeedSettings,
                 ThemeSettings,

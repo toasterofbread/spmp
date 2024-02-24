@@ -115,6 +115,7 @@
     <string name="action_close">閉じる</string>
     <string name="action_cancel">キャンセル</string>
     <string name="action_share">共有</string>
+    <string name="action_select">決定</string>
     <string name="action_confirm_action">はい</string>
     <string name="action_deny_action">いいえ</string>
     <string name="action_warning_accept">同意する</string>

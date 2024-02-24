@@ -133,6 +133,7 @@
     <string name="action_close">Close</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_share">Share</string>
+    <string name="action_select">Select</string>
     <string name="action_confirm_action">Yes</string>
     <string name="action_deny_action">No</string>
     <string name="action_warning_accept">Accept</string>
@@ -663,6 +664,9 @@
     <string name="s_cat_behaviour">Behaviour</string>
     <string name="s_cat_desc_behaviour">Various display and action tweaks</string>
 
+    <string name="s_cat_layout">TODO</string>
+    <string name="s_cat_desc_layout">TODO</string>
+
     <string name="s_cat_player">Player</string>
     <string name="s_cat_desc_player">Adjust music player view</string>
 
@@ -788,5 +792,18 @@
     <string name="settings_import_result_title">Import successful</string>
     <string name="settings_import_result_$x_from_file">$x value(s) imported from file</string>
     <string name="settings_import_result_$x_from_default">$x value(s) restored from defaults</string>
+
+    <string name="layout_slot_content_bar_selection">Select content bar</string>
+    
+    <string name="layout_slot_portrait_upper_top_bar">Upper top bar</string>
+    <string name="layout_slot_portrait_lower_top_bar">Lower top bar</string>
+    <string name="layout_slot_portrait_above_player">Above mini-player</string>
+    <string name="layout_slot_portrait_below_player">Below mini-player</string>
+
+    <string name="layout_slot_landscape_side_left">Left sidebar</string>
+    <string name="layout_slot_landscape_side_right">Right sidebar</string>
+    <string name="layout_slot_landscape_page_top">Page top</string>
+    <string name="layout_slot_landscape_above_player">Above mini-player</string>
+    <string name="layout_slot_landscape_below_player">Below mini-player</string>
 
 </resources>

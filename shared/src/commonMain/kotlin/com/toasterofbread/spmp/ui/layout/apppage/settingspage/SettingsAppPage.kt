@@ -42,6 +42,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import androidx.compose.runtime.MutableState
+import com.toasterofbread.composekit.utils.common.copy
 
 internal const val PREFS_PAGE_EXTRA_PADDING_DP: Float = 10f
 
@@ -117,7 +118,8 @@ class SettingsAppPage(override val state: AppPageState, getFooterModifier: @Comp
         Box(modifier) {
             pill_menu.PillMenu()
 
-            Column(Modifier.fillMaxSize().padding(horizontal = PREFS_PAGE_EXTRA_PADDING_DP.dp)) {
+            Column(Modifier.fillMaxSize()) {
+                val layout_direction: LayoutDirection = LocalLayoutDirection.current
                 val top_padding: Dp = player.top_bar.MusicTopBar(
                     TopBarSettings.Key.SHOW_IN_SETTINGS,
                     Modifier.fillMaxWidth().zIndex(10f),
@@ -127,21 +129,26 @@ class SettingsAppPage(override val state: AppPageState, getFooterModifier: @Comp
 
                 Crossfade(settings_interface.current_page.id != PrefsPageScreen.ROOT.ordinal) { open ->
                     if (!open) {
-                        SettingsTopPage(content_padding = content_padding, top_padding = top_padding)
+                        SettingsTopPage(
+                            content_padding = content_padding.copy(
+                                start = content_padding.calculateStartPadding(layout_direction) + PREFS_PAGE_EXTRA_PADDING_DP.dp,
+                                end = content_padding.calculateEndPadding(layout_direction) + PREFS_PAGE_EXTRA_PADDING_DP.dp
+                            ),
+                            top_padding = top_padding
+                        )
                     }
                     else {
                         BoxWithConstraints(
                             Modifier.pointerInput(Unit) {}
                         ) {
-                            val layout_direction: LayoutDirection = LocalLayoutDirection.current
                             CompositionLocalProvider(LocalContentColor provides player.theme.on_background) {
                                 settings_interface.Interface(
                                     Modifier.fillMaxSize(),
                                     content_padding = PaddingValues(
                                         top = top_padding,
                                         bottom = content_padding.calculateBottomPadding(),
-                                        start = content_padding.calculateStartPadding(layout_direction),
-                                        end = content_padding.calculateEndPadding(layout_direction)
+                                        start = content_padding.calculateStartPadding(layout_direction) + PREFS_PAGE_EXTRA_PADDING_DP.dp,
+                                        end = content_padding.calculateEndPadding(layout_direction) + PREFS_PAGE_EXTRA_PADDING_DP.dp
                                     ),
                                     titleFooter = {
                                         WaveBorder()

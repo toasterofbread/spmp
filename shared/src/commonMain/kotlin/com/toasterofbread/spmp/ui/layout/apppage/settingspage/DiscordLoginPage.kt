@@ -34,7 +34,7 @@ internal fun getDiscordLoginPage(discord_auth: SettingsValueState<String>, manua
         ) {
             val player = LocalPlayerState.current
 
-            DiscordLogin(Modifier.fillMaxSize(), manual = manual) { auth_info ->
+            DiscordLogin(content_padding, Modifier.fillMaxSize(), manual = manual) { auth_info ->
                 if (auth_info == null) {
                     goBack()
                     return@DiscordLogin

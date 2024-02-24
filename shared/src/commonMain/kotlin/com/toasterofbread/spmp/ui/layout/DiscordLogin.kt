@@ -56,6 +56,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import java.io.Reader
+import androidx.compose.foundation.layout.PaddingValues
 
 private const val DISCORD_LOGIN_URL = "https://discord.com/login"
 private const val DISCORD_API_URL = "https://discord.com/api/"
@@ -89,13 +90,10 @@ fun DiscordLoginConfirmation(info_only: Boolean = false, onFinished: (manual: Bo
 }
 
 @Composable
-fun DiscordLogin(modifier: Modifier = Modifier, manual: Boolean = false, onFinished: (Result<String?>?) -> Unit) {
+fun DiscordLogin(content_padding: PaddingValues, modifier: Modifier = Modifier, manual: Boolean = false, onFinished: (Result<String?>?) -> Unit) {
     val player: PlayerState = LocalPlayerState.current
 
-    if (manual) {
-        DiscordManualLogin(modifier, onFinished)
-    }
-    else if (isWebViewLoginSupported()) {
+    if (!manual && isWebViewLoginSupported()) {
         WebViewLogin(
             DISCORD_LOGIN_URL,
             modifier,
@@ -115,7 +113,7 @@ fun DiscordLogin(modifier: Modifier = Modifier, manual: Boolean = false, onFinis
         LaunchedEffect(Unit) {
             player.context.openUrl(DISCORD_LOGIN_URL)
         }
-        DiscordManualLogin(modifier, onFinished)
+        DiscordManualLogin(content_padding, modifier, onFinished)
     }
 }
 

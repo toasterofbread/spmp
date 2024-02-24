@@ -9,18 +9,20 @@ import com.toasterofbread.spmp.platform.getDiscordAccountInfo
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringArray
 import com.toasterofbread.spmp.youtubeapi.fromJson
+import androidx.compose.foundation.layout.PaddingValues
 
 private data class DiscordErrorMessage(val message: String?)
 
 @Composable
-fun DiscordManualLogin(modifier: Modifier = Modifier, onFinished: (Result<String?>?) -> Unit) {
+fun DiscordManualLogin(content_padding: PaddingValues, modifier: Modifier = Modifier, onFinished: (Result<String?>?) -> Unit) {
     val coroutine_scope = rememberCoroutineScope()
 
     ManualLoginPage(
         steps = getStringArray("discord_manual_login_steps"),
         suffix = getString("discord_manual_login_suffix"),
         entry_label = getString("discord_manual_login_field"),
-        modifier
+        modifier,
+        content_padding = content_padding
     ) { entry ->
         if (entry == null) {
             onFinished(Result.success(null))

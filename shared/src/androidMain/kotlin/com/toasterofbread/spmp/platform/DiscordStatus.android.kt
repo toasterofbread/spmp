@@ -184,7 +184,10 @@ actual class DiscordStatus actual constructor(
         )
     }
 
-    private fun getProxyUrlAttachment(proxy_url: String): String = "mp:" + Uri.parse(proxy_url).path!!.removePrefix("/")
+    private fun getProxyUrlAttachment(proxy_url: String): String {
+        val uri: Uri = Uri.parse(proxy_url)
+        return "mp:" + uri.path!!.removePrefix("/") + "?" + uri.query
+    }
 
     @Serializable
     private data class SupabaseGetImagesResponse(val attachment_urls: List<String?>)

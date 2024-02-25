@@ -22,6 +22,8 @@ import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.SettingsAppPage
 import com.toasterofbread.spmp.ui.layout.radiobuilder.RADIO_BUILDER_ICON_WIDTH_DP
 import com.toasterofbread.spmp.ui.layout.radiobuilder.RadioBuilderIcon
+import com.toasterofbread.spmp.ui.layout.contentbar.DisplayBar
+import com.toasterofbread.spmp.ui.layout.contentbar.PortraitLayoutSlot
 
 @Composable
 fun MainPageTopBar(content_padding: PaddingValues, modifier: Modifier = Modifier) {
@@ -79,7 +81,7 @@ fun MainPageTopBar(content_padding: PaddingValues, modifier: Modifier = Modifier
             Modifier.fillMaxWidth(),
             show_alt_content = player.app_page.showTopBarContent(),
             altContent = {
-                player.app_page.TopBarContent(Modifier.fillMaxWidth()) { player.navigateBack() }
+                PortraitLayoutSlot.LOWER_TOP_BAR.DisplayBar(Modifier.fillMaxWidth())
             }
         )
 

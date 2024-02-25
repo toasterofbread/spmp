@@ -18,17 +18,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material.icons.filled.LooksOne
 import androidx.compose.material.icons.filled.LooksTwo
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.background
 
 sealed class InternalContentBar(
     val ordinal: Int
 ): ContentBar() {
-    @Composable
-    override fun BarContent(slot: LayoutSlot, modifier: Modifier) {
-        Row(modifier) {
-            Text("$ordinal")
-        }
-    }
-
     companion object {
         val PRIMARY: InternalContentBar = PrimaryInternalContentBar()
         val SECONDARY: InternalContentBar = SecondaryInternalContentBar()
@@ -43,12 +38,24 @@ private class PrimaryInternalContentBar: InternalContentBar(0) {
     override fun getName(): String = "Primary // TODO"
     override fun getDescription(): String = "An informative description of this bar's function // TODO"
     override fun getIcon(): ImageVector = Icons.Default.LooksOne
+
+    @Composable
+    override fun BarContent(slot: LayoutSlot, modifier: Modifier) {
+        LocalPlayerState.current.app_page.PrimaryBarContent(slot, modifier)
+    }
 }
 
 private class SecondaryInternalContentBar: InternalContentBar(1) {
     override fun getName(): String = "Secondary // TODO"
     override fun getDescription(): String = "An informative description of this bar's function // TODO"
     override fun getIcon(): ImageVector = Icons.Default.LooksTwo
+
+    @Composable
+    override fun BarContent(slot: LayoutSlot, modifier: Modifier) {
+        Row(modifier.background(Color.Red)) {
+            Text("Secondary content")
+        }
+    }
 }
 
 private class NavigationInternalContentBar: InternalContentBar(2) {

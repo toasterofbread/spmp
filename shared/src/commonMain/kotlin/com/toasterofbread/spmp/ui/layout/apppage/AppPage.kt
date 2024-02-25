@@ -17,6 +17,8 @@ import com.toasterofbread.composekit.platform.composable.ScrollBarLazyRow
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
+import com.toasterofbread.composekit.utils.composable.ScrollBarLazyRowOrColumn
 
 abstract class AppPageWithItem : AppPage() {
     abstract val item: MediaItemHolder
@@ -38,11 +40,9 @@ abstract class AppPage {
 
     @Composable
     open fun showTopBarContent() = false
+
     @Composable
-    open fun TopBarContent(
-        modifier: Modifier,
-        close: () -> Unit
-    ) { }
+    open fun PrimaryBarContent(slot: LayoutSlot, modifier: Modifier) {}
 
     open fun onOpened(from_item: MediaItemHolder? = null) {}
     open fun onReopened() {}
@@ -57,24 +57,26 @@ abstract class AppPage {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun FilterChipsRow(
+    fun FilterChipsRowOrColumn(
+        row: Boolean,
         chip_count: Int,
         isChipSelected: (Int) -> Boolean,
         onChipSelected: (Int) -> Unit,
         modifier: Modifier = Modifier,
         show_scrollbar: Boolean = false,
-        horizontal_alignment: Alignment.Horizontal = Alignment.Start,
+        alignment: Int = -1,
         spacing: Dp = 10.dp,
         chipContent: @Composable (Int) -> Unit
     ) {
         val player: PlayerState = LocalPlayerState.current
 
-        ScrollBarLazyRow(
+        ScrollBarLazyRowOrColumn(
+            row,
             modifier,
             show_scrollbar = show_scrollbar,
-            horizontalArrangement = Arrangement.spacedBy(spacing, horizontal_alignment),
-            horizontalAlignment = horizontal_alignment,
-            verticalAlignment = Alignment.CenterVertically
+            arrangement = Arrangement.spacedBy(spacing),
+            alt_alignment = alignment,
+            alignment = 0
         ) {
             items(chip_count) { index ->
                 Crossfade(isChipSelected(index)) { selected ->

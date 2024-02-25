@@ -14,7 +14,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.foundation.layout.height
 import androidx.compose.ui.unit.DpSize
-import com.toasterofbread.spmp.ui.component.RowOrColumn
+import com.toasterofbread.composekit.utils.composable.RowOrColumn
 import com.toasterofbread.composekit.utils.common.thenIf
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
@@ -32,7 +32,6 @@ import androidx.compose.foundation.layout.Column
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.vertical
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxHeight
-import com.toasterofbread.composekit.utils.composable.MeasureUnconstrainedView
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -60,6 +59,8 @@ import com.toasterofbread.composekit.platform.composable.platformClickable
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.ui.unit.Dp
 
 @Composable
 private fun Modifier.contentBarPreview(): Modifier {
@@ -83,31 +84,24 @@ sealed class ContentBar {
 
     @Composable
     fun Bar(slot: LayoutSlot, modifier: Modifier = Modifier) {
+        val player: PlayerState = LocalPlayerState.current
+
         Crossfade(bar_selection_state) { selection_state ->
             if (selection_state == null) {
                 BarContent(slot, modifier)
                 return@Crossfade
             }
 
-            MeasureUnconstrainedView({
-                val content_modifier: Modifier =
-                    if (slot.is_vertical) modifier.height(1.dp)
-                    else modifier.width(1.dp)
-                BarContent(slot, content_modifier)
-            }) { size ->
-                val density: Density = LocalDensity.current
+            val selctor_size: Dp = 70.dp
+            val selector_modifier: Modifier =
+                if (slot.is_vertical) modifier.width(selctor_size)
+                else modifier.height(selctor_size)
 
-                val selector_modifier: Modifier = with (density) {
-                    if (slot.is_vertical) modifier.width(size.width.toDp())
-                    else modifier.height(size.height.toDp())
-                }
-
-                ContentBarSelector(
-                    selection_state,
-                    slot,
-                    selector_modifier
-                )
-            }
+            ContentBarSelector(
+                selection_state,
+                slot,
+                selector_modifier
+            )
         }
     }
 
@@ -115,7 +109,12 @@ sealed class ContentBar {
     protected abstract fun BarContent(slot: LayoutSlot, modifier: Modifier)
 
     companion object {
-        var bar_selection_state: BarSelectionState? by mutableStateOf(null)
+        var _bar_selection_state: BarSelectionState? by mutableStateOf(null)
+        var bar_selection_state: BarSelectionState?
+            get() = if (disable_bar_selection) null else _bar_selection_state
+            set(value) { _bar_selection_state = value }
+
+        var disable_bar_selection: Boolean by mutableStateOf(false)
 
         fun getDefaultPortraitSlots(): Map<String, Int> =
             mapOf(
@@ -130,10 +129,11 @@ sealed class ContentBar {
             mapOf(
                 LandscapeLayoutSlot.SIDE_LEFT.name to InternalContentBar.NAVIGATION.ordinal,
                 LandscapeLayoutSlot.PAGE_TOP.name to InternalContentBar.PRIMARY.ordinal,
-                LandscapeLayoutSlot.ABOVE_PLAYER.name to InternalContentBar.SECONDARY.ordinal,
+                // LandscapeLayoutSlot.ABOVE_PLAYER.name to InternalContentBar.SECONDARY.ordinal,
+                LandscapeLayoutSlot.BELOW_PLAYER.name to InternalContentBar.SECONDARY.ordinal,
 
                 // TEMP
-                LandscapeLayoutSlot.SIDE_RIGHT.name to InternalContentBar.SECONDARY.ordinal
+                LandscapeLayoutSlot.SIDE_RIGHT.name to InternalContentBar.NAVIGATION.ordinal
             )
 
         fun deserialise(data: String): ContentBar {
@@ -184,21 +184,19 @@ sealed class ContentBar {
                             else Modifier.fillMaxWidth()
                         )
                 ) {
-                    var text_size: IntSize by remember { mutableStateOf(IntSize.Zero) }
-
                     Row(
                         Modifier
-                            .thenIf(slot.is_vertical) { rotate(-90f).vertical() }
-                            .requiredSize(maxHeight, maxWidth)
-                            .offset { with (density) {
-                                IntOffset(
-                                    (maxWidth - maxHeight).roundToPx() / 2,
-                                    0
-                                )
-                            } }
-                            .wrapContentHeight()
-                            .onSizeChanged {
-                                text_size = it
+                            .thenIf(slot.is_vertical) {
+                                rotate(-90f)
+                                .vertical()
+                                .requiredSize(maxHeight, maxWidth)
+                                .offset { with (density) {
+                                    IntOffset(
+                                        (maxWidth - maxHeight).roundToPx() / 2,
+                                        0
+                                    )
+                                } }
+                                .wrapContentHeight()
                             },
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(15.dp)
@@ -218,7 +216,8 @@ sealed class ContentBar {
                                 .fillMaxWidth()
                                 .weight(1f)
                                 .contentBarPreview(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             CompositionLocalProvider(LocalContentColor provides player.theme.on_background) {
                                 Icon(getIcon(), null)
@@ -226,6 +225,10 @@ sealed class ContentBar {
                             }
                         }
                     }
+                }
+
+                if (slot.is_vertical) {
+                    Spacer(Modifier.height(player.nowPlayingBottomPadding(true)))
                 }
             }
         }

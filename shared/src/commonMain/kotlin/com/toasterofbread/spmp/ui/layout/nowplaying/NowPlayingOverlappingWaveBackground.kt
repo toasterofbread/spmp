@@ -21,7 +21,7 @@ import com.toasterofbread.composekit.utils.composable.wave.getDefaultOverlapping
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NOW_PLAYING_LARGE_BOTTOM_BAR_HEIGHT
 
 @Composable
-fun NowPlayingOverlappingWaveBackground(modifier: Modifier = Modifier) {
+fun NowPlayingOverlappingWaveBackground(page_height: Dp, modifier: Modifier = Modifier) {
     val player: PlayerState = LocalPlayerState.current
     val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
     
@@ -38,13 +38,13 @@ fun NowPlayingOverlappingWaveBackground(modifier: Modifier = Modifier) {
 
     when (form_factor) {
         FormFactor.PORTRAIT -> {
-            wave_height = player.screen_size.height * 0.5f
+            wave_height = page_height * 0.5f
             wave_alpha = 0.5f
             speed = 0.15f
             bottom_spacing = 0.dp
         }
         FormFactor.LANDSCAPE -> {
-            wave_height = player.screen_size.height * 0.5f
+            wave_height = page_height * 0.5f
             wave_alpha = 1f
             speed = 0.5f
             bottom_spacing = NOW_PLAYING_LARGE_BOTTOM_BAR_HEIGHT
@@ -59,7 +59,7 @@ fun NowPlayingOverlappingWaveBackground(modifier: Modifier = Modifier) {
             .requiredHeight(wave_height)
             .offset {
                 val queue_expansion: Float = expansion.get().coerceAtLeast(1f)
-                IntOffset(0, ((queue_expansion * player.screen_size.height) - bottom_spacing - wave_height).roundToPx())
+                IntOffset(0, ((queue_expansion * page_height) - bottom_spacing - wave_height).roundToPx())
             },
         layers = wave_layers,
         speed = speed

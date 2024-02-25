@@ -30,14 +30,109 @@ import androidx.compose.material3.Text
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.Button
+import kotlinx.serialization.encodeToString
+import com.toasterofbread.composekit.settings.ui.item.SettingsItem
+import com.toasterofbread.composekit.settings.ui.item.ComposableSettingsItem
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.composekit.utils.common.getContrasted
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.material3.Switch
+import androidx.compose.foundation.layout.Spacer
+
+@OptIn(ExperimentalLayoutApi::class)
+fun getLayoutSlotEditorSettingsItems(): List<SettingsItem> {
+    return listOf(
+        ComposableSettingsItem(
+            emptyList(),
+            composable = {
+                val player: PlayerState = LocalPlayerState.current
+
+                Column(
+                    Modifier
+                        .border(2.dp, player.theme.vibrant_accent, RoundedCornerShape(10.dp))
+                        .padding(10.dp)
+                        .fillMaxWidth()
+                        .height(IntrinsicSize.Min)
+                    ) {
+                    Text(
+                        "Preview options",
+                        Modifier.padding(bottom = 10.dp),
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+
+                    Spacer(Modifier.fillMaxWidth().weight(1f))
+
+                    SwitchButton(
+                        checked = ContentBar.disable_bar_selection,
+                        onCheckedChange = { checked ->
+                            ContentBar.disable_bar_selection = checked
+                        }
+                    ) {
+                        Text("Show bar content")
+                    }
+
+                    SwitchButton(
+                        checked = player.hide_player,
+                        onCheckedChange = { checked ->
+                            player.hide_player = checked
+                        }
+                    ) {
+                        Text("Hide player")
+                    }
+
+                    SwitchButton(
+                        checked = player.form_factor == FormFactor.PORTRAIT,
+                        onCheckedChange = { checked ->
+                            FormFactor.form_factor_override =
+                                if (checked) FormFactor.PORTRAIT
+                                else FormFactor.LANDSCAPE
+                        }
+                    ) {
+                        Text("Portrait mode")
+                    }
+
+                    DisposableEffect(Unit) {
+                        onDispose {
+                            FormFactor.form_factor_override = null
+                        }
+                    }
+                }
+            }
+        ),
+        ComposableSettingsItem(
+            listOf(
+                LayoutSettings.Key.PORTRAIT_SLOTS.getName(),
+                LayoutSettings.Key.LANDSCAPE_SLOTS.getName(),
+                LayoutSettings.Key.CUSTOM_BARS.getName()
+            ),
+            composable = {
+                LayoutSlotEditor(it)
+            }
+        )
+    )
+}
 
 @Composable
-fun LayoutSlotEditor(modifier: Modifier) {
+fun LayoutSlotEditor(modifier: Modifier = Modifier) {
     val player: PlayerState = LocalPlayerState.current
 
     val custom_bars_data: String by LayoutSettings.Key.CUSTOM_BARS.rememberMutableState()
 
-    var editing_portrait: Boolean = player.form_factor == FormFactor.PORTRAIT
+    val slots_key: SettingsKey = when (player.form_factor) {
+        FormFactor.PORTRAIT -> LayoutSettings.Key.PORTRAIT_SLOTS
+        FormFactor.LANDSCAPE -> LayoutSettings.Key.LANDSCAPE_SLOTS
+    }
+    val available_slots: List<LayoutSlot> = when (player.form_factor) {
+        FormFactor.PORTRAIT -> PortraitLayoutSlot.entries
+        FormFactor.LANDSCAPE -> LandscapeLayoutSlot.entries
+    }
 
     DisposableEffect(Unit) {
         ContentBar.bar_selection_state = object : ContentBar.BarSelectionState {
@@ -51,7 +146,14 @@ fun LayoutSlotEditor(modifier: Modifier) {
                 }
 
             override fun onBarSelected(slot: LayoutSlot, bar: Pair<ContentBar, Int>?) {
-                println("SELECTED $slot $bar")
+                val slots: MutableMap<String, Int> = Json.decodeFromString<Map<String, Int>>(slots_key.get<String>()).toMutableMap()
+                if (bar == null) {
+                    slots.remove(slot.getKey())
+                }
+                else {
+                    slots[slot.getKey()] = bar.second
+                }
+                slots_key.set(Json.encodeToString(slots))
             }
         }
 
@@ -60,11 +162,9 @@ fun LayoutSlotEditor(modifier: Modifier) {
         }
     }
 
-    Crossfade(editing_portrait, modifier) { portrait ->
-        val slots_key: SettingsKey = if (portrait) LayoutSettings.Key.PORTRAIT_SLOTS else LayoutSettings.Key.LANDSCAPE_SLOTS
-        val available_slots: List<LayoutSlot> = if (portrait) PortraitLayoutSlot.entries else LandscapeLayoutSlot.entries
-
-        SlotEditor(slots_key, available_slots)
+    Crossfade(Pair(slots_key, available_slots), modifier) {
+        val (key, available) = it
+        SlotEditor(key, available)
     }
 }
 
@@ -146,5 +246,25 @@ private fun SlotOrderEditorLandscape(
         //         }
         //     }
         // }
+    }
+}
+
+@Composable
+private fun SwitchButton(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    text: @Composable () -> Unit
+) {
+    Row(
+        Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        text()
+
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange
+        )
     }
 }

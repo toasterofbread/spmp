@@ -61,6 +61,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.CoroutineScope
+import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
 
 abstract class LibrarySubPage(val context: AppContext) {
     abstract fun getIcon(): ImageVector
@@ -190,7 +191,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
     }
 
     @Composable
-    override fun TopBarContent(modifier: Modifier, close: () -> Unit) {
+    override fun PrimaryBarContent(slot: LayoutSlot, modifier: Modifier) {
         val player: PlayerState = LocalPlayerState.current
 
         Column(modifier) {

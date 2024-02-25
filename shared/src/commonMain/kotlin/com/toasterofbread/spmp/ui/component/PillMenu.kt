@@ -52,6 +52,7 @@ import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.composekit.utils.composable.NoRipple
 import com.toasterofbread.spmp.platform.AppContext
 import kotlin.math.sign
+import com.toasterofbread.composekit.utils.composable.RowOrColumn
 
 class PillMenu(
     private val action_count: Int = 0,
@@ -90,7 +91,7 @@ class PillMenu(
     fun setBackgroundColourOverride(colour: Color?) {
         background_colour_override = colour
     }
-    
+
     fun addAlongsideAction(action: @Composable Action.() -> Unit) {
         extra_alongside_actions.addUnique(action)
     }
@@ -399,39 +400,5 @@ class PillMenu(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun RowOrColumn(
-    row: Boolean,
-    modifier: Modifier = Modifier,
-    arrangement: Arrangement.HorizontalOrVertical = Arrangement.SpaceEvenly,
-    alignment: Int = 0,
-    content: @Composable (getWeightModifier: (Float) -> Modifier) -> Unit,
-) {
-    if (row) {
-        Row(
-            modifier,
-            horizontalArrangement = arrangement,
-            verticalAlignment =
-                when (alignment.sign) {
-                    -1 -> Alignment.Top
-                    0 -> Alignment.CenterVertically
-                    else -> Alignment.Bottom
-                }
-        ) { content { Modifier.weight(it) } }
-    }
-    else {
-        Column(
-            modifier,
-            verticalArrangement = arrangement,
-            horizontalAlignment =
-            when (alignment.sign) {
-                -1 -> Alignment.Start
-                0 -> Alignment.CenterHorizontally
-                else -> Alignment.End
-            }
-        ) { content { Modifier.weight(it) } }
     }
 }

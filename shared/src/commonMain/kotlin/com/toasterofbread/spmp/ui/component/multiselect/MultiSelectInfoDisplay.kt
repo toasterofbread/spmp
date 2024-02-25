@@ -36,7 +36,7 @@ internal fun MediaItemMultiSelectContext.MultiSelectInfoDisplay(
     }
 
     val show: Boolean = is_active || (altContent != null && show_alt_content)
-    
+
     AnimatedVisibility(
         show,
         enter = expandVertically(),
@@ -53,7 +53,7 @@ internal fun MediaItemMultiSelectContext.MultiSelectInfoDisplay(
             }
         }
     }
-    
+
     return show
 }
 
@@ -65,7 +65,7 @@ fun MediaItemMultiSelectContext.MultiSelectInfoDisplayContent(
 ) {
     Column(modifier.animateContentSize()) {
         val title_text: String = getString("multiselect_x_items_selected").replace("\$x", selected_items.size.toString())
-        
+
         var wave_border_offset: Float by remember { mutableStateOf(0f) }
         LaunchedEffect(Unit) {
             val update_interval: Long = 1000 / 30
@@ -77,14 +77,14 @@ fun MediaItemMultiSelectContext.MultiSelectInfoDisplayContent(
 
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(
-                title_text, 
+                title_text,
                 style = MaterialTheme.typography.labelLarge
             )
 
             WaveBorder(
-                Modifier.fillMaxWidth().weight(1f), 
+                Modifier.fillMaxWidth().weight(1f),
                 waves = 4,
-                border_thickness = hint_path_thickness + 1.dp, 
+                border_thickness = hint_path_thickness + 1.dp,
                 border_colour = LocalContentColor.current.copy(alpha = 0.5f),
                 getColour = { background_colour },
                 getOffset = { 0f },
@@ -212,7 +212,7 @@ private fun MediaItemMultiSelectContext.getItemsBetweenSelectableItems(selectabl
         if (max == -1) {
             return@flatMap emptyList()
         }
-        
+
         return@flatMap items.subList(min, max + 1)
     }
 }

@@ -67,6 +67,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.toasterofbread.spmp.ui.layout.contentbar.LandscapeLayoutSlot
+import com.toasterofbread.spmp.ui.layout.contentbar.PortraitLayoutSlot
+import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
+import com.toasterofbread.spmp.ui.layout.contentbar.DisplayBar
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import com.toasterofbread.composekit.utils.composable.getTop
+import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.requiredWidth
 
 typealias DownloadRequestCallback = (DownloadStatus?) -> Unit
 
@@ -105,6 +115,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         SwipeableState(0)
     )
     private var np_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
+    private var np_bottom_bar_height: Dp by mutableStateOf(0.dp)
 
     private var download_request_songs: List<Song>? by mutableStateOf(null)
     private var download_request_always_show_options: Boolean by mutableStateOf(false)
@@ -113,6 +124,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
     val expansion = NowPlayingExpansionState(this, np_swipe_state, coroutine_scope)
     val session_started: Boolean get() = _player?.service_player?.session_started == true
     var screen_size: DpSize by mutableStateOf(DpSize.Zero)
+    var hide_player: Boolean by mutableStateOf(false)
 
     val app_page_state = AppPageState(this)
     val main_multiselect_context: MediaItemMultiSelectContext = AppPageMultiSelectContext(this)
@@ -251,7 +263,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
             .offset {
                 val bottom_padding: Int = getNpBottomPadding(system_insets, navigation_insets, keyboard_insets)
                 val swipe_offset: Dp =
-                    if (session_started) -np_swipe_state.value.offset.value.dp - (screen_size.height * 0.5f)
+                    if (session_started && !hide_player) -np_swipe_state.value.offset.value.dp - (screen_size.height * 0.5f)
                     else 0.dp
 
                 IntOffset(
@@ -274,7 +286,12 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         }
 
         if (include_np) {
-            val np by animateDpAsState(if (session_started) MINIMISED_NOW_PLAYING_HEIGHT_DP.dp else 0.dp)
+            val np by animateDpAsState(
+                np_bottom_bar_height +(
+                    if (session_started && !hide_player) MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
+                    else 0.dp
+                )
+            )
             return np + bottom_padding
         }
         return bottom_padding
@@ -409,21 +426,23 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
 
     @Composable
     fun NowPlaying() {
-        val player: PlayerState = LocalPlayerState.current
         val density: Density = LocalDensity.current
         val bottom_padding: Int = density.getNpBottomPadding(WindowInsets.systemBars, WindowInsets.navigationBars, WindowInsets.ime)
 
-        val vertical_page_count: Int = getNowPlayingVerticalPageCount(player)
+        val vertical_page_count: Int = getNowPlayingVerticalPageCount(this)
         val minimised_now_playing_height: Dp = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
 
-        LaunchedEffect(screen_size.height, bottom_padding, vertical_page_count) {
-            val half_screen_height: Float = screen_size.height.value * 0.5f
+
+        val player_height: Dp = screen_size.height - np_bottom_bar_height
+
+        LaunchedEffect(player_height, bottom_padding, vertical_page_count) {
+            val half_screen_height: Float = player_height.value * 0.5f
 
             with(density) {
                 np_swipe_anchors = (0..vertical_page_count)
                     .associateBy { anchor ->
                         if (anchor == 0) minimised_now_playing_height.value - half_screen_height
-                        else ((screen_size.height - bottom_padding.toDp()).value * anchor) - half_screen_height
+                        else ((player_height - bottom_padding.toDp()).value * anchor) + (np_bottom_bar_height.value * (anchor - 1)) - half_screen_height
                     }
             }
 
@@ -434,12 +453,44 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
             }
         }
 
-        if (np_swipe_anchors != null) {
-            com.toasterofbread.spmp.ui.layout.nowplaying.NowPlaying(
-                np_swipe_state.value,
-                np_swipe_anchors!!,
-                content_padding = PaddingValues(start = WindowInsets.getStart(), end = WindowInsets.getEnd())
+        Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
+            if (np_swipe_anchors != null) {
+                val page_height: Dp = (
+                    player_height
+                    - nowPlayingBottomPadding()
+                    - WindowInsets.getTop()
+                )
+
+                com.toasterofbread.spmp.ui.layout.nowplaying.NowPlaying(
+                    page_height,
+                    np_swipe_state.value,
+                    np_swipe_anchors!!,
+                    PaddingValues(start = WindowInsets.getStart(), end = WindowInsets.getEnd()),
+                    Modifier.weight(1f).offset(y = (page_height) / 2)
+                )
+            }
+
+            val layout_slot: LayoutSlot =
+                when (form_factor) {
+                    FormFactor.LANDSCAPE -> LandscapeLayoutSlot.BELOW_PLAYER
+                    FormFactor.PORTRAIT -> PortraitLayoutSlot.BELOW_PLAYER
+                }
+
+            val bar_showing: Boolean = layout_slot.DisplayBar(
+                Modifier
+                    .fillMaxWidth()
+                    .onSizeChanged {
+                        np_bottom_bar_height = with (density) {
+                            it.height.toDp()
+                        }
+                    }
             )
+
+            LaunchedEffect(bar_showing) {
+                if (!bar_showing) {
+                    np_bottom_bar_height = 0.dp
+                }
+            }
         }
     }
 
@@ -498,6 +549,18 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
                         )
                     }
                 }
+            }
+        }
+
+        Box(Modifier.fillMaxSize()) {
+            val layout_slot: LayoutSlot =
+                when (form_factor) {
+                    FormFactor.LANDSCAPE -> LandscapeLayoutSlot.ABOVE_PLAYER
+                    FormFactor.PORTRAIT -> PortraitLayoutSlot.ABOVE_PLAYER
+                }
+
+            Box(nowPlayingTopOffset(Modifier, true).align(Alignment.BottomEnd)) {
+                layout_slot.DisplayBar()
             }
         }
     }

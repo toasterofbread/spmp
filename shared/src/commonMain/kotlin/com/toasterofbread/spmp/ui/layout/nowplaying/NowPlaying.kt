@@ -146,7 +146,13 @@ internal fun PlayerState.getNPAltOnBackground(): Color =
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>, content_padding: PaddingValues) {
+fun NowPlaying(
+    page_height: Dp,
+    swipe_state: SwipeableState<Int>,
+    swipe_anchors: Map<Float, Int>,
+    content_padding: PaddingValues,
+    modifier: Modifier = Modifier
+) {
     val player: PlayerState = LocalPlayerState.current
     val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
     val density: Density = LocalDensity.current
@@ -173,19 +179,15 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
     }
 
     AnimatedVisibility(
-        player.session_started,
+        player.session_started && !player.hide_player,
+        modifier,
         exit = slideOutVertically(),
         enter = slideInVertically()
     ) {
         val bottom_padding: Dp = player.nowPlayingBottomPadding()
         val default_gradient_depth: Float by ThemeSettings.Key.NOWPLAYING_DEFAULT_GRADIENT_DEPTH.rememberMutableState()
 
-        val half_screen_height: Dp = player.screen_size.height * 0.5f
-        val page_height: Dp = (
-            player.screen_size.height
-            - bottom_padding
-            - WindowInsets.getTop()
-        )
+        val half_page_height: Dp = page_height * 0.5f
 
         val is_shut: Boolean by remember { derivedStateOf { swipe_state.targetValue == 0 } }
 
@@ -269,12 +271,12 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
-                .requiredHeight((player.screen_size.height * (getNowPlayingVerticalPageCount(player) + 1)))
+                .requiredHeight((page_height * (getNowPlayingVerticalPageCount(player) + 1)))
                 .offset {
                     IntOffset(
                         0,
                         with(density) {
-                            ((half_screen_height * getNowPlayingVerticalPageCount(player)) - swipe_state.offset.value.dp - bottom_padding).roundToPx()
+                            ((half_page_height * getNowPlayingVerticalPageCount(player)) - swipe_state.offset.value.dp - bottom_padding).roundToPx()
                         }
                     )
                 }
@@ -311,11 +313,11 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
                 }
         ) {
             if (ThemeSettings.Key.SHOW_EXPANDED_PLAYER_WAVE.rememberMutableState<Boolean>().value) {
-                NowPlayingOverlappingWaveBackground(Modifier.align(Alignment.TopCenter).zIndex(1f))
+                NowPlayingOverlappingWaveBackground(page_height, Modifier.align(Alignment.TopCenter).zIndex(1f))
             }
 
             if (NowPlayingPage.getFormFactor(player) == FormFactor.LANDSCAPE) {
-                NowPlayingThumbnailBackground(Modifier.requiredSize(maxOf(player.screen_size.height, player.screen_size.width)))
+                NowPlayingThumbnailBackground(Modifier.requiredSize(maxOf(page_height, player.screen_size.width)))
             }
 
             BackHandler({ !is_shut }) {
@@ -390,7 +392,7 @@ private fun NowPlayingCardContent(page_height: Dp, content_padding: PaddingValue
                 }
                 else {
                     val max_height: Dp = top_inset - 2.dp
-                    val proportion: Float = (max_height + 5.dp) / player.screen_size.height
+                    val proportion: Float = (max_height + 5.dp) / page_height
 
                     val exp: Float = expansion.get().coerceIn(0f, 1f)
                     val proportion_exp: Float =

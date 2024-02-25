@@ -87,7 +87,7 @@ class SongThemePlayerOverlayMenu(
                         Modifier.fillMaxHeight(),
                         contentPadding = PaddingValues(top = 10.dp, bottom = 10.dp, start = 10.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
-                        reverse = true
+                        reverseScrollBarLayout = true
                     ) {
                         items(palette_colours ?: emptyList()) { colour ->
                             Button(

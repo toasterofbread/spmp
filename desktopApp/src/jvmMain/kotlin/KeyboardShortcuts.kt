@@ -35,27 +35,6 @@ internal fun PlayerState.processKeyEventShortcuts(
                 }
                 return true
             }
-
-            else -> {
-                val number_index: Int = NUMBER_KEYS.indexOf(event.key)
-                if (number_index != -1) {
-                    if (event.isCtrlPressed) {
-                        val page_index: Int = if (number_index == 0) 9 else number_index - 1
-                        val page: AppPage? = AppPageSidebarButton.getShortcutButtonPage(page_index, this)
-                        if (page != null) {
-                            openAppPage(page)
-                            return true
-                        }
-                    }
-                    else {
-                        withPlayer {
-                            val seek_target: Long = (duration_ms * (number_index.toFloat() / NUMBER_KEYS.size)).roundToLong()
-                            seekTo(seek_target)
-                        }
-                        return true
-                    }
-                }
-            }
         }
 
         if (isTextFieldFocused(text_field_focus_state)) {
@@ -110,6 +89,29 @@ internal fun PlayerState.processKeyEventShortcuts(
             Key.Tab -> {
                 expansion.toggle()
                 return true
+            }
+
+            else -> {
+                val number_index: Int = NUMBER_KEYS.indexOf(event.key)
+                if (number_index == -1) {
+                    return false
+                }
+
+                if (event.isCtrlPressed) {
+                    val page_index: Int = if (number_index == 0) 9 else number_index - 1
+                    val page: AppPage? = AppPageSidebarButton.getShortcutButtonPage(page_index, this)
+                    if (page != null) {
+                        openAppPage(page)
+                        return true
+                    }
+                }
+                else {
+                    withPlayer {
+                        val seek_target: Long = (duration_ms * (number_index.toFloat() / NUMBER_KEYS.size)).roundToLong()
+                        seekTo(seek_target)
+                    }
+                    return true
+                }
             }
         }
     }

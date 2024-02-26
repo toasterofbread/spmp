@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.LooksOne
 import androidx.compose.material.icons.filled.LooksTwo
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.height
 
 sealed class InternalContentBar(
     val ordinal: Int
@@ -52,7 +53,7 @@ private class SecondaryInternalContentBar: InternalContentBar(1) {
 
     @Composable
     override fun BarContent(slot: LayoutSlot, modifier: Modifier) {
-        Row(modifier.background(Color.Red)) {
+        Row(modifier.height(50.dp)) {
             Text("Secondary content")
         }
     }

@@ -45,6 +45,10 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.material3.Switch
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.runtime.LaunchedEffect
+import com.toasterofbread.composekit.utils.common.fromHexString
+import com.toasterofbread.composekit.utils.common.toHexString
+import com.toasterofbread.composekit.settings.ui.Theme
 
 @OptIn(ExperimentalLayoutApi::class)
 fun getLayoutSlotEditorSettingsItems(): List<SettingsItem> {
@@ -124,6 +128,7 @@ fun LayoutSlotEditor(modifier: Modifier = Modifier) {
     val player: PlayerState = LocalPlayerState.current
 
     val custom_bars_data: String by LayoutSettings.Key.CUSTOM_BARS.rememberMutableState()
+    var slot_colours_data: String by LayoutSettings.Key.SLOT_COLOURS.rememberMutableState()
 
     val slots_key: SettingsKey = when (player.form_factor) {
         FormFactor.PORTRAIT -> LayoutSettings.Key.PORTRAIT_SLOTS
@@ -140,7 +145,7 @@ fun LayoutSlotEditor(modifier: Modifier = Modifier) {
                 get() {
                     val custom_bars: List<CustomContentBar> = Json.decodeFromString(custom_bars_data)
                     return (
-                        InternalContentBar.getAll().mapIndexed { index, bar -> Pair(bar, index) }
+                        InternalContentBar.getAll().mapIndexed { index, bar -> Pair(bar, index + 1) }
                         + custom_bars.mapIndexed { index, bar -> Pair(bar, -(index + 1)) }
                     )
                 }
@@ -154,6 +159,22 @@ fun LayoutSlotEditor(modifier: Modifier = Modifier) {
                     slots[slot.getKey()] = bar.second
                 }
                 slots_key.set(Json.encodeToString(slots))
+            }
+
+            override fun onThemeColourSelected(slot: LayoutSlot, colour: Theme.Colour) {
+                setColour(slot, colour.ordinal.toString())
+            }
+
+            override fun onCustomColourSelected(slot: LayoutSlot, colour: Color) {
+                setColour(slot, colour.toHexString())
+            }
+
+            private fun setColour(slot: LayoutSlot, colour: String) {
+                val colours: MutableMap<String, String> =
+                    Json.decodeFromString<Map<String, String>>(slot_colours_data).toMutableMap()
+
+                colours[slot.getKey()] = colour
+                slot_colours_data = Json.encodeToString(colours)
             }
         }
 

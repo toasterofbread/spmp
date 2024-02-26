@@ -263,8 +263,8 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
             .offset {
                 val bottom_padding: Int = getNpBottomPadding(system_insets, navigation_insets, keyboard_insets)
                 val swipe_offset: Dp =
-                    if (session_started && !hide_player) -np_swipe_state.value.offset.value.dp - (screen_size.height * 0.5f)
-                    else 0.dp
+                    if (session_started && !hide_player) -np_swipe_state.value.offset.value.dp - ((screen_size.height + np_bottom_bar_height) * 0.5f)
+                    else -np_bottom_bar_height
 
                 IntOffset(
                     0,

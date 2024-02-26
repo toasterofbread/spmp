@@ -61,21 +61,24 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.ui.unit.Dp
-
-@Composable
-private fun Modifier.contentBarPreview(): Modifier {
-    val player: PlayerState = LocalPlayerState.current
-    return (
-        appHover(
-            button = true,
-            expand = true,
-            hover_scale = 0.98f,
-            animation_spec = tween(200)
-        )
-        .background(RoundedCornerShape(20.dp)) { player.theme.background }
-        .padding(10.dp)
-    )
-}
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.Icons
+import androidx.compose.ui.draw.clipToBounds
+import com.toasterofbread.composekit.settings.ui.Theme
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.ui.graphics.Color
+import com.toasterofbread.spmp.ui.component.ColourSelectionDialog
+import com.toasterofbread.composekit.utils.composable.ShapedIconButton
+import androidx.compose.material3.IconButtonDefaults
+import com.toasterofbread.spmp.model.settings.category.LayoutSettings
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.CircleShape
+import com.toasterofbread.spmp.ui.component.getReadable
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.runtime.State
+import androidx.compose.foundation.layout.RowScope
+import com.toasterofbread.composekit.utils.common.thenWith
+import androidx.compose.animation.animateContentSize
 
 sealed class ContentBar {
     abstract fun getName(): String
@@ -88,7 +91,20 @@ sealed class ContentBar {
 
         Crossfade(bar_selection_state) { selection_state ->
             if (selection_state == null) {
-                BarContent(slot, modifier)
+                val slot_colour_source: ColourSource? by slot.rememberColourSource()
+
+                val background_colour: Color by remember { derivedStateOf {
+                    slot_colour_source?.get(player.theme)
+                        ?: slot.getDefaultBackgroundColour(player.theme)
+                } }
+
+                CompositionLocalProvider(LocalContentColor provides background_colour) {
+                    BarContent(
+                        slot,
+                        modifier.background(background_colour)
+                    )
+                }
+
                 return@Crossfade
             }
 
@@ -116,26 +132,6 @@ sealed class ContentBar {
 
         var disable_bar_selection: Boolean by mutableStateOf(false)
 
-        fun getDefaultPortraitSlots(): Map<String, Int> =
-            mapOf(
-                PortraitLayoutSlot.LOWER_TOP_BAR.name to InternalContentBar.PRIMARY.ordinal,
-                PortraitLayoutSlot.ABOVE_PLAYER.name to InternalContentBar.SECONDARY.ordinal,
-
-                // TEMP
-                PortraitLayoutSlot.BELOW_PLAYER.name to InternalContentBar.NAVIGATION.ordinal
-            )
-
-        fun getDefaultLandscapeSlots(): Map<String, Int> =
-            mapOf(
-                LandscapeLayoutSlot.SIDE_LEFT.name to InternalContentBar.NAVIGATION.ordinal,
-                LandscapeLayoutSlot.PAGE_TOP.name to InternalContentBar.PRIMARY.ordinal,
-                // LandscapeLayoutSlot.ABOVE_PLAYER.name to InternalContentBar.SECONDARY.ordinal,
-                LandscapeLayoutSlot.BELOW_PLAYER.name to InternalContentBar.SECONDARY.ordinal,
-
-                // TEMP
-                LandscapeLayoutSlot.SIDE_RIGHT.name to InternalContentBar.NAVIGATION.ordinal
-            )
-
         fun deserialise(data: String): ContentBar {
             val internal_bar_index: Int? = data.toIntOrNull()
             if (internal_bar_index != null) {
@@ -149,13 +145,99 @@ sealed class ContentBar {
     interface BarSelectionState {
         val available_bars: List<Pair<ContentBar, Int>>
         fun onBarSelected(slot: LayoutSlot, bar: Pair<ContentBar, Int>?)
+        fun onThemeColourSelected(slot: LayoutSlot, colour: Theme.Colour)
+        fun onCustomColourSelected(slot: LayoutSlot, colour: Color)
     }
 
     @Composable
     private fun ContentBarSelector(state: BarSelectionState, slot: LayoutSlot, modifier: Modifier = Modifier) {
         val player: PlayerState = LocalPlayerState.current
         val density: Density = LocalDensity.current
+        val slot_colour_source: ColourSource? by slot.rememberColourSource()
 
+        var show_expanded_options: Boolean by remember { mutableStateOf(false) }
+        var show_colour_selector: Boolean by remember { mutableStateOf(false) }
+
+        if (show_colour_selector) {
+            ColourSelectionDialog(
+                onDismissed = {
+                    show_colour_selector = false
+                },
+                onThemeColourSelected = {
+                    state.onThemeColourSelected(slot, it)
+                    show_colour_selector = false
+                },
+                onCustomColourSelected = {
+                    state.onCustomColourSelected(slot, it)
+                    show_colour_selector = false
+                }
+            )
+        }
+
+        CompositionLocalProvider(LocalContentColor provides player.theme.on_accent) {
+            BoxWithConstraints(
+                modifier
+                    .clipToBounds()
+                    .background { player.theme.accent }
+                    .padding(10.dp)
+                    .fillMaxSize()
+                    .thenIf(slot.is_vertical) {
+                        padding(bottom = player.nowPlayingBottomPadding(true))
+                    }
+            ) {
+                Row(
+                    Modifier
+                        .thenIf(slot.is_vertical) {
+                            rotate(-90f)
+                            .vertical()
+                            .requiredSize(maxHeight, maxWidth)
+                            .offset { with (density) {
+                                IntOffset(
+                                    (maxWidth - maxHeight).roundToPx() / 2,
+                                    0
+                                )
+                            } }
+                            .wrapContentHeight()
+                        },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    val rotate_modifier: Modifier = Modifier.thenIf(slot.is_vertical) { rotate(90f) }
+
+                    Text(slot.getName())
+
+                    val colour_button_background_colour: Color =
+                        slot_colour_source?.get(player.theme) ?: player.theme.background
+
+                    ConfigButton(
+                        Modifier
+                            .platformClickable(
+                                onClick = { show_colour_selector = !show_colour_selector }
+                            ),
+                        background_colour = colour_button_background_colour,
+                        border_colour = colour_button_background_colour.getContrasted()
+                    ) {
+                        Icon(Icons.Default.Palette, null, rotate_modifier)
+
+                        slot_colour_source?.theme_colour?.also {
+                            Text(it.getReadable())
+                        }
+                    }
+
+                    ContentBarSelectorMainRow(state, slot, rotate_modifier = rotate_modifier)
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun ContentBarSelectorMainRow(
+        state: BarSelectionState,
+        slot: LayoutSlot,
+        rotate_modifier: Modifier,
+        modifier: Modifier = Modifier
+    ) {
+        val player: PlayerState = LocalPlayerState.current
         var show_bar_selector: Boolean by remember { mutableStateOf(false) }
 
         if (show_bar_selector) {
@@ -171,65 +253,39 @@ sealed class ContentBar {
             }
         }
 
-        CompositionLocalProvider(LocalContentColor provides player.theme.on_accent) {
-            RowOrColumn(
-                row = !slot.is_vertical,
-                modifier.background { player.theme.accent }.padding(10.dp),
-                arrangement = Arrangement.spacedBy(10.dp)
-            ) { getWeightModifier ->
-                BoxWithConstraints(
-                    getWeightModifier(1f)
-                        .then(
-                            if (slot.is_vertical) Modifier.fillMaxSize()
-                            else Modifier.fillMaxWidth()
-                        )
-                ) {
-                    Row(
-                        Modifier
-                            .thenIf(slot.is_vertical) {
-                                rotate(-90f)
-                                .vertical()
-                                .requiredSize(maxHeight, maxWidth)
-                                .offset { with (density) {
-                                    IntOffset(
-                                        (maxWidth - maxHeight).roundToPx() / 2,
-                                        0
-                                    )
-                                } }
-                                .wrapContentHeight()
-                            },
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(15.dp)
-                    ) {
-                        Text(slot.getName())
-
-                        Row(
-                            Modifier
-                                .platformClickable(
-                                    onClick = {
-                                        show_bar_selector = true
-                                    },
-                                    onAltClick = {
-                                        state.onBarSelected(slot, null)
-                                    }
-                                )
-                                .fillMaxWidth()
-                                .weight(1f)
-                                .contentBarPreview(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            CompositionLocalProvider(LocalContentColor provides player.theme.on_background) {
-                                Icon(getIcon(), null)
-                                Text(getName())
-                            }
-                        }
+        ConfigButton(
+            modifier
+                .platformClickable(
+                    onClick = {
+                        show_bar_selector = true
+                    },
+                    onAltClick = {
+                        state.onBarSelected(slot, null)
                     }
-                }
+                )
+                .fillMaxWidth()
+        ) {
+            Icon(getIcon(), null)
+            Text(getName())
+        }
+    }
 
-                if (slot.is_vertical) {
-                    Spacer(Modifier.height(player.nowPlayingBottomPadding(true)))
-                }
+    @Composable
+    private fun ConfigButton(
+        modifier: Modifier = Modifier,
+        background_colour: Color = LocalPlayerState.current.theme.background,
+        border_colour: Color? = null,
+        content: @Composable RowScope.() -> Unit
+    ) {
+        Row(
+            modifier
+                .contentBarPreview(background_colour = background_colour, border_colour = border_colour)
+                .animateContentSize(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            CompositionLocalProvider(LocalContentColor provides background_colour.getContrasted()) {
+                content()
             }
         }
     }
@@ -247,9 +303,6 @@ private fun BarSelectorPopup(
     AlertDialog(
         { onSelected(null) },
         modifier = modifier,
-        containerColor = player.theme.accent,
-        titleContentColor = player.theme.on_accent,
-        textContentColor = player.theme.on_background,
         confirmButton = {
             Button(
                 { onSelected(null) },
@@ -300,4 +353,24 @@ private fun ContentBarPreview(bar: ContentBar, modifier: Modifier = Modifier) {
             }
         }
     }
+}
+
+@Composable
+private fun Modifier.contentBarPreview(background_colour: Color? = null, border_colour: Color? = null): Modifier {
+    val player: PlayerState = LocalPlayerState.current
+    val shape: Shape = RoundedCornerShape(20.dp)
+
+    return (
+        appHover(
+            button = true,
+            expand = true,
+            hover_scale = 0.98f,
+            animation_spec = tween(200)
+        )
+        .thenWith(border_colour) {
+            border(2.dp, it, shape)
+        }
+        .background(shape) { background_colour ?: player.theme.background }
+        .padding(10.dp)
+    )
 }

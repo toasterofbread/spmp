@@ -7,14 +7,19 @@ import kotlinx.serialization.json.Json
 import kotlin.math.absoluteValue
 import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
+import com.toasterofbread.composekit.settings.ui.Theme
+import androidx.compose.ui.graphics.Color
 
 sealed interface LayoutSlot {
     fun getKey(): String
     fun getName(): String
 
+    fun getDefaultContentBar(): ContentBar?
+    fun getDefaultBackgroundColour(theme: Theme): Color
+
     val is_vertical: Boolean
     val slots_key: SettingsKey
-
 }
 
 @Composable
@@ -23,16 +28,21 @@ fun LayoutSlot.observeContentBar(): State<ContentBar?> {
     val custom_bars: String by LayoutSettings.Key.CUSTOM_BARS.rememberMutableState()
 
     return remember { derivedStateOf {
-        val slot: Int =
+        val slot: Int? =
             Json.decodeFromString<Map<String, Int>>(slots)
-                .get(getKey()) ?: return@derivedStateOf null
+                .get(getKey())
 
-        if (slot < 0) {
-            val bars: List<CustomContentBar> = Json.decodeFromString(custom_bars)
-            return@derivedStateOf bars.getOrNull(slot.absoluteValue - 1)
+        return@derivedStateOf when(slot) {
+            null -> getDefaultContentBar()
+            0 -> null
+            in 1..Int.MAX_VALUE -> {
+                InternalContentBar.getAll().getOrNull(slot - 1)
+            }
+            else -> {
+                val bars: List<CustomContentBar> = Json.decodeFromString(custom_bars)
+                bars.getOrNull(slot.absoluteValue - 1)
+            }
         }
-
-        return@derivedStateOf InternalContentBar.getAll().getOrNull(slot)
     } }
 }
 
@@ -61,6 +71,23 @@ enum class PortraitLayoutSlot: LayoutSlot {
             ABOVE_PLAYER -> getString("layout_slot_portrait_above_player")
             BELOW_PLAYER -> getString("layout_slot_portrait_below_player")
         }
+
+    override fun getDefaultContentBar(): ContentBar? =
+        when (this) {
+            LOWER_TOP_BAR -> InternalContentBar.PRIMARY
+            ABOVE_PLAYER -> InternalContentBar.SECONDARY
+            BELOW_PLAYER -> InternalContentBar.NAVIGATION
+
+            else -> null
+        }
+
+    override fun getDefaultBackgroundColour(theme: Theme): Color =
+        when (this) {
+            UPPER_TOP_BAR -> theme.background
+            LOWER_TOP_BAR -> theme.background
+            ABOVE_PLAYER -> theme.accent
+            BELOW_PLAYER -> theme.card
+        }
 }
 
 enum class LandscapeLayoutSlot: LayoutSlot {
@@ -87,5 +114,24 @@ enum class LandscapeLayoutSlot: LayoutSlot {
             PAGE_TOP -> getString("layout_slot_landscape_page_top")
             ABOVE_PLAYER -> getString("layout_slot_landscape_above_player")
             BELOW_PLAYER -> getString("layout_slot_landscape_below_player")
+        }
+
+    override fun getDefaultContentBar(): ContentBar? =
+        when (this) {
+            SIDE_LEFT -> InternalContentBar.NAVIGATION
+            PAGE_TOP -> InternalContentBar.PRIMARY
+            BELOW_PLAYER -> InternalContentBar.SECONDARY
+            SIDE_RIGHT -> InternalContentBar.NAVIGATION
+
+            else -> null
+        }
+
+    override fun getDefaultBackgroundColour(theme: Theme): Color =
+        when (this) {
+            SIDE_LEFT -> theme.card
+            SIDE_RIGHT -> theme.card
+            PAGE_TOP -> theme.background
+            ABOVE_PLAYER -> theme.accent
+            BELOW_PLAYER -> theme.card
         }
 }

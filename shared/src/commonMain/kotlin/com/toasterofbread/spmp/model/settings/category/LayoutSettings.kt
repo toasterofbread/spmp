@@ -6,9 +6,6 @@ import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getLayoutCategoryItems
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
-import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.encodeToString
 import com.toasterofbread.composekit.settings.ui.SettingsPage
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.PaddingValues
@@ -27,10 +24,16 @@ data object LayoutSettings: SettingsCategory("player") {
 
     enum class Key: SettingsKey {
         // Map of LayoutSlot to int where values are:
-        // - Positive or zero = InternalContentBar index
+        // - Positive = InternalContentBar index + 1
         // - Negative = CUSTOM_BARS index + 1
+        // - Zero = none
         PORTRAIT_SLOTS,
         LANDSCAPE_SLOTS,
+
+        // Map of LayoutSlot to string where values are either:
+        // - Hex colours starting with '#'
+        // - Or an integer index of Theme.Colour
+        SLOT_COLOURS,
 
         // List of serialised CustomBars
         CUSTOM_BARS;
@@ -40,8 +43,9 @@ data object LayoutSettings: SettingsCategory("player") {
         @Suppress("UNCHECKED_CAST")
         override fun <T> getDefaultValue(): T =
             when (this) {
-                PORTRAIT_SLOTS -> Json.encodeToString(ContentBar.getDefaultPortraitSlots())
-                LANDSCAPE_SLOTS -> Json.encodeToString(ContentBar.getDefaultLandscapeSlots())
+                PORTRAIT_SLOTS -> "{}"
+                LANDSCAPE_SLOTS -> "{}"
+                SLOT_COLOURS -> "{}"
                 CUSTOM_BARS -> "[]"
             } as T
     }

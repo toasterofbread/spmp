@@ -181,8 +181,8 @@ fun NowPlaying(
     AnimatedVisibility(
         player.session_started && !player.hide_player,
         modifier,
-        exit = slideOutVertically(),
-        enter = slideInVertically()
+        exit = slideOutVertically() { it },
+        enter = slideInVertically() { it }
     ) {
         val bottom_padding: Dp = player.nowPlayingBottomPadding()
         val default_gradient_depth: Float by ThemeSettings.Key.NOWPLAYING_DEFAULT_GRADIENT_DEPTH.rememberMutableState()

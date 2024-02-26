@@ -794,7 +794,7 @@
     <string name="settings_import_result_$x_from_default">$x value(s) restored from defaults</string>
 
     <string name="layout_slot_content_bar_selection">Select content bar</string>
-    
+
     <string name="layout_slot_portrait_upper_top_bar">Upper top bar</string>
     <string name="layout_slot_portrait_lower_top_bar">Lower top bar</string>
     <string name="layout_slot_portrait_above_player">Above mini-player</string>
@@ -805,5 +805,14 @@
     <string name="layout_slot_landscape_page_top">Page top</string>
     <string name="layout_slot_landscape_above_player">Above mini-player</string>
     <string name="layout_slot_landscape_below_player">Below mini-player</string>
+
+    <string name="colour_selector_dialog_title">Select a colour</string>
+    <string name="colour_selector_dialog_select_theme">From theme</string>
+    <string name="colour_selector_dialog_select_custom">Custom</string>
+
+    <string name="theme_colour_background">Background</string>
+    <string name="theme_colour_accent">Accent</string>
+    <string name="theme_colour_vibrant_accent">Vibrant accent</string>
+    <string name="theme_colour_card">Card</string>
 
 </resources>

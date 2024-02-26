@@ -105,7 +105,7 @@ android {
     }
 }
 
-val DATABASE_VERSION: Int = 4
+val DATABASE_VERSION: Int = 5 // post-v0.3.0
 
 sqldelight {
     databases {

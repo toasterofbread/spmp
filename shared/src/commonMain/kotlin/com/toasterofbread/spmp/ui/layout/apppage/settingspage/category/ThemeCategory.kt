@@ -45,7 +45,7 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
                 AccentColourSource.THEME -> getString("s_option_accent_theme")
                 AccentColourSource.THUMBNAIL -> getString("s_option_accent_thumbnail")
             }
-          },
+        },
 
         MultipleChoiceSettingsItem(
             SettingsValueState(ThemeSettings.Key.NOWPLAYING_THEME_MODE.getName()),
@@ -82,8 +82,17 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
         ToggleSettingsItem(
             SettingsValueState(ThemeSettings.Key.SHOW_EXPANDED_PLAYER_WAVE.getName()),
             getString("s_key_show_expanded_player_wave"), null
-        )
+        ),
 
+        AppSliderItem(
+            SettingsValueState(ThemeSettings.Key.NOWPLAYING_DEFAULT_WAVE_SPEED.getName()),
+            getString("s_key_np_default_wave_speed"), null
+        ),
+
+        AppSliderItem(
+            SettingsValueState(ThemeSettings.Key.NOWPLAYING_DEFAULT_WAVE_OPACITY.getName()),
+            getString("s_key_np_default_wave_opacity"), null
+        )
     ) + when (Platform.current) {
         Platform.DESKTOP -> getDesktopGroupItems()
         else -> emptyList()

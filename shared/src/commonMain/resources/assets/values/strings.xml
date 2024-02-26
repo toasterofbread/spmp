@@ -159,6 +159,8 @@
     <string name="song_theme_menu_gradient_depth">Gradient depth</string>
     <string name="song_theme_menu_background_image_opacity">Background image opacity</string>
     <string name="song_theme_menu_image_shadow_radius">Shadow radius</string>
+    <string name="song_theme_menu_wave_speed">Wave speed</string>
+    <string name="song_theme_menu_wave_opacity">Wave opacity</string>
 
     <string name="song_notif_image_menu_open">Adjust notification image</string>
     <string name="song_notif_image_menu_adjust_offset">Change image offset</string>
@@ -483,11 +485,13 @@
     <string name="s_option_np_accent_none">Don\'t use accent colour</string>
 
     <string name="s_key_np_default_gradient_depth">Default gradient depth</string>
-    <string name="s_key_np_default_background_image_opacity">Default landscape background image opacity</string>
+    <string name="s_key_np_default_background_image_opacity">Default landscape back ground image opacity</string>
     <string name="s_key_np_default_shadow_radius">Default shadow size</string>
     <string name="s_key_np_default_image_corner_rounding">Default image corner rounding</string>
+    <string name="s_key_np_default_wave_speed">Default wave speed</string>
+    <string name="s_key_np_default_wave_opacity">Default wave opacity</string>
 
-    <string name="s_key_show_expanded_player_wave">Show expanded player wave</string>
+    <string name="s_key_show_expanded_player_wave">Show wave in expanded player</string>
 
     <string name="s_group_theming_desktop">Desktop-only options</string>
 

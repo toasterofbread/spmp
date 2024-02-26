@@ -161,6 +161,14 @@ interface Song: MediaItem.WithArtist {
         get() = property_rememberer.rememberSingleQueryProperty(
             "ImageShadowRadius", { songQueries.imageShadowRadiusById(id) }, { image_shadow_radius?.toFloat() }, { songQueries.updateImageShadowRadiusById(it?.toDouble(), id) }
         )
+    val BackgroundWaveSpeed: Property<Float?>
+        get() = property_rememberer.rememberSingleQueryProperty(
+            "BackgroundWaveSpeed", { songQueries.backgroundWaveSpeedById(id) }, { background_wave_speed?.toFloat() }, { songQueries.updateBackgroundWaveSpeedById(it?.toDouble(), id) }
+        )
+    val BackgroundWaveOpacity: Property<Float?>
+        get() = property_rememberer.rememberSingleQueryProperty(
+            "BackgroundWaveOpacity", { songQueries.backgroundWaveOpacityById(id) }, { background_wave_opacity?.toFloat() }, { songQueries.updateBackgroundWaveOpacityById(it?.toDouble(), id) }
+        )
     val Liked: Property<SongLikedStatus?>
         get() = property_rememberer.rememberSingleQueryProperty(
         "Liked", { songQueries.likedById(id) }, { liked.toSongLikedStatus() }, { songQueries.updatelikedById(it.toLong(), id) }

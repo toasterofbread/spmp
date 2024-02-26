@@ -6,28 +6,30 @@ import app.cash.sqldelight.db.SqlDriver
 
 // SqlDelight migration is buggy and inconsistent between platforms, this hopefully won't be
 object Migration {
-    private val DATABASE_VERSION: Int = 2
-    
+    private val DATABASE_VERSION: Int = 5
+
     fun updateDriverIfNeeded(driver: SqlDriver) {
         val driver_version: Int = driver.getVersion()
         if (driver_version < DATABASE_VERSION) {
             println("Migrating database from version $driver_version to version $DATABASE_VERSION")
-            
+
             for (version in driver_version until DATABASE_VERSION) {
                 when (version) {
                     0 -> driver.migrateToVersion1()
                     1 -> driver.migrateToVersion2()
+                    2, 3 -> {}
+                    4 -> driver.migrateToVersion5()
                     else -> throw NotImplementedError(version.toString())
                 }
             }
-            
+
             driver.setVersion(DATABASE_VERSION)
         }
         else {
             println("Database is already up to date (version $driver_version)")
         }
     }
-    
+
     interface Operation {
         fun execute(driver: SqlDriver, table: String)
     }
@@ -77,7 +79,7 @@ private fun SqlDriver.getVersion(): Int {
         )
         run("INSERT INTO Version (version) VALUES (0);")
     }
-    
+
     val mapper: (SqlCursor) -> QueryResult.Value<Long?> = { cursor: SqlCursor ->
         QueryResult.Value(if (cursor.next().value) cursor.getLong(0) else null)
     }

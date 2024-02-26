@@ -122,6 +122,18 @@ class SongThemePlayerOverlayMenu(
                             getString("song_theme_menu_gradient_depth")
                         )
 
+                        ValueSlider(
+                            song.BackgroundWaveSpeed.observe(player.database),
+                            ThemeSettings.Key.NOWPLAYING_DEFAULT_WAVE_SPEED.get(),
+                            getString("song_theme_menu_wave_speed")
+                        )
+
+                        ValueSlider(
+                            song.BackgroundWaveOpacity.observe(player.database),
+                            ThemeSettings.Key.NOWPLAYING_DEFAULT_WAVE_OPACITY.get(),
+                            getString("song_theme_menu_wave_opacity")
+                        )
+
                         if (player.form_factor == FormFactor.LANDSCAPE) {
                             ValueSlider(
                                 song.BackgroundImageOpacity.observe(player.database),

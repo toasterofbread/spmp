@@ -53,7 +53,7 @@ data class SongLyrics(
 
         data class Text(val text: String, var reading: String? = null) {
             init {
-                require(text.isNotEmpty())
+                // require(text.isNotEmpty())
 
                 if (reading != null) {
                     if (reading == "*") {

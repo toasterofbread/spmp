@@ -22,6 +22,8 @@ CREATE TABLE Song (
     notif_image_offset_y INTEGER,
     background_image_opacity REAL,
     image_shadow_radius REAL,
+    background_wave_speed REAL,
+    background_wave_opacity REAL,
 
     FOREIGN KEY (artist) REFERENCES Artist(id),
     FOREIGN KEY (album) REFERENCES Playlist(id),
@@ -96,3 +98,9 @@ updateBackgroundImageOpacityById: UPDATE Song SET background_image_opacity = :ba
 
 imageShadowRadiusById: SELECT image_shadow_radius FROM Song WHERE id == :id;
 updateImageShadowRadiusById: UPDATE Song SET image_shadow_radius = :image_shadow_radius WHERE id == :id;
+
+backgroundWaveSpeedById: SELECT background_wave_speed FROM Song WHERE id == :id;
+updateBackgroundWaveSpeedById: UPDATE Song SET background_wave_speed = :background_wave_speed WHERE id == :id;
+
+backgroundWaveOpacityById: SELECT background_wave_opacity FROM Song WHERE id == :id;
+updateBackgroundWaveOpacityById: UPDATE Song SET background_wave_opacity = :background_wave_opacity WHERE id == :id;

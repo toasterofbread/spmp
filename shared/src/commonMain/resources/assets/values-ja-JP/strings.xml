@@ -141,6 +141,8 @@
     <string name="song_theme_menu_gradient_depth">グラデーションの深さ</string>
     <string name="song_theme_menu_background_image_opacity">バックグラウンド画像の不透明度</string>
     <string name="song_theme_menu_image_shadow_radius">画像シャドウのサイズ</string>
+    <string name="song_theme_menu_wave_speed">波の速度</string>
+    <string name="song_theme_menu_wave_opacity">波の不透明度</string>
 
     <string name="song_notif_image_menu_open">通知イメージの調整</string>
     <string name="song_notif_image_menu_adjust_offset">イメージの位置を変える</string>
@@ -464,8 +466,10 @@
     <string name="s_key_np_default_background_image_opacity">ランドスケープバックグラウンド画像のデフォルトの不透明度</string>
     <string name="s_key_np_default_shadow_radius">シャドウのデフォルトのサイズ</string>
     <string name="s_key_np_default_image_corner_rounding">イメージ角のデフォルトのラウンヂング</string>
+    <string name="s_key_np_default_wave_speed">波のデフォルトの速度</string>
+    <string name="s_key_np_default_wave_opacity">波のデフォルトの不透明度</string>
 
-    <string name="s_key_show_expanded_player_wave">拡大プレイヤーの波を表示</string>
+    <string name="s_key_show_expanded_player_wave">拡大プレイヤーに波を表示</string>
 
     <string name="s_group_theming_desktop">デスクトップ専用のオプション</string>
 

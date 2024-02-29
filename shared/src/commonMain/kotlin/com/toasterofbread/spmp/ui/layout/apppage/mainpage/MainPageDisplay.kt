@@ -20,6 +20,10 @@ import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageSidebar
+import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
+import com.toasterofbread.spmp.ui.layout.contentbar.LandscapeLayoutSlot
+import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
+import com.toasterofbread.spmp.ui.layout.contentbar.DisplayBar
 
 @Composable
 fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
@@ -30,16 +34,7 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
         val top_padding: Dp = WindowInsets.getTop()
 
         if (player.form_factor == FormFactor.LANDSCAPE) {
-            AppPageSidebar(
-                Modifier.fillMaxHeight().zIndex(1f),
-                content_padding = PaddingValues(
-                    top = 10.dp + top_padding,
-                    bottom = 10.dp,
-                    start = 10.dp,
-                    end = 10.dp
-                ),
-                multiselect_context = player.main_multiselect_context
-            )
+            LandscapeLayoutSlot.SIDE_LEFT.DisplayBar(Modifier.fillMaxHeight().zIndex(1f))
         }
 
         Crossfade(player.app_page, Modifier.fillMaxWidth().weight(1f)) { page ->
@@ -63,6 +58,10 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
                     ) { player.navigateBack() }
                 }
             }
+        }
+
+        if (player.form_factor == FormFactor.LANDSCAPE) {
+            LandscapeLayoutSlot.SIDE_RIGHT.DisplayBar(Modifier.fillMaxHeight().zIndex(1f))
         }
     }
 }

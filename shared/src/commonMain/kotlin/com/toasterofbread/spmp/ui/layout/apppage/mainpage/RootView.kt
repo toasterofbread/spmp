@@ -57,7 +57,7 @@ fun RootView(player: PlayerState) {
         )
     }
 
-    Column(Modifier.fillMaxSize()) {
+    Box(Modifier.fillMaxSize()) {
         player.HomePage()
         player.NowPlaying()
     }

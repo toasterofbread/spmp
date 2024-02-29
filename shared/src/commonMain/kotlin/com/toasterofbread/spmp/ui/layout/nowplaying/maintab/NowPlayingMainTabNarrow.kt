@@ -31,7 +31,7 @@ import com.toasterofbread.composekit.utils.common.isJP
 import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.ui.component.RowOrColumn
+import com.toasterofbread.composekit.utils.composable.RowOrColumn
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.bottom_padding

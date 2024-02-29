@@ -51,6 +51,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
+import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
+import com.toasterofbread.composekit.utils.composable.RowOrColumn
 
 internal const val ARTISTS_ROW_DEFAULT_MIN_OCCURRENCES: Int = 2
 internal const val ARTISTS_ROW_MIN_ARTISTS: Int = 4
@@ -103,9 +105,9 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
     }
 
     @Composable
-    fun FeedFiltersRow(modifier: Modifier = Modifier, show_scrollbar: Boolean = true, onSelected: (Int?) -> Unit = {}) {
+    fun FeedFiltersRowOrColumn(row: Boolean, modifier: Modifier = Modifier, show_scrollbar: Boolean = true, onSelected: (Int?) -> Unit = {}) {
         val player: PlayerState = LocalPlayerState.current
-        
+
         Crossfade(filter_chips, modifier) { chips ->
             if (chips.isNullOrEmpty()) {
                 if (load_state != FeedLoadState.LOADING && load_state != FeedLoadState.CONTINUING) {
@@ -115,7 +117,8 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
                 }
             }
             else {
-                FilterChipsRow(
+                FilterChipsRowOrColumn(
+                    row,
                     chips.size,
                     { it == selected_filter_chip },
                     {
@@ -130,17 +133,17 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
     }
 
     @Composable
-    override fun TopBarContent(modifier: Modifier, close: () -> Unit) {
+    override fun PrimaryBarContent(slot: LayoutSlot, modifier: Modifier) {
         val player: PlayerState = LocalPlayerState.current
         val show: Boolean by mutableSettingsState(FeedSettings.Key.SHOW_FILTER_BAR)
 
         AnimatedVisibility(show) {
-            Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+            RowOrColumn(!slot.is_vertical, alignment = 0) {
                 IconButton({ player.openAppPage(player.app_page_state.Search) }) {
                     Icon(Icons.Default.Search, null)
                 }
 
-                FeedFiltersRow()
+                FeedFiltersRowOrColumn(!slot.is_vertical)
             }
         }
     }

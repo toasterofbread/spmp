@@ -115,6 +115,7 @@
     <string name="action_close">閉じる</string>
     <string name="action_cancel">キャンセル</string>
     <string name="action_share">共有</string>
+    <string name="action_select">決定</string>
     <string name="action_confirm_action">はい</string>
     <string name="action_deny_action">いいえ</string>
     <string name="action_warning_accept">同意する</string>
@@ -766,5 +767,14 @@
     <string name="settings_import_result_title">インポートが成功しました</string>
     <string name="settings_import_result_$x_from_file">$x個の設定をファイルからインポートしました</string>
     <string name="settings_import_result_$x_from_default">$x個の設定をデフォルトから復元しました</string>
+
+    <string name="colour_selector_dialog_title">色の選択</string>
+    <string name="colour_selector_dialog_select_theme">テーマから</string>
+    <string name="colour_selector_dialog_select_custom">カスタム</string>
+
+    <string name="theme_colour_background">バックグラウンド</string>
+    <string name="theme_colour_accent">アクセント</string>
+    <string name="theme_colour_vibrant_accent">明るいアクセント</string>
+    <string name="theme_colour_card">カードard</string>
 
 </resources>

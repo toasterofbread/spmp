@@ -209,7 +209,6 @@ fun AppPageSidebar(
 
     SidebarButtonSelector(
         modifier = modifier
-            .background(player.theme.background.amplify(0.05f))
             .padding(content_padding)
             .width(50.dp),
         selected_button = current_button,
@@ -249,7 +248,7 @@ fun AppPageSidebar(
     ) { button ->
         val colour: Color =
             if (button == current_button) player.theme.on_accent
-            else player.theme.on_background
+            else LocalContentColor.current.getContrasted()
 
         CompositionLocalProvider(LocalContentColor provides colour) {
             button?.ButtonContent()

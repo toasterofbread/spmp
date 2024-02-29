@@ -104,7 +104,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
     val layout_direction: LayoutDirection = LocalLayoutDirection.current
     val density: Density = LocalDensity.current
 
-    val proportion: Float = WindowInsets.getTop() / player.screen_size.height
+    val proportion: Float = WindowInsets.getTop() / page_height
     val proportion_exp: Float by remember { derivedStateOf {
         (expansion.get().coerceIn(0f, 1f) * (1f - proportion)).coerceAtLeast(0f)
     } }
@@ -163,7 +163,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                 maxOf(
                     300.dp,
                     minOf(
-                        player.screen_size.height - controls_target_height,
+                        page_height - controls_target_height,
                         minOf(page_height, parent_max_width * 0.5f) - (20.dp)
                     )
                 )
@@ -334,7 +334,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                 width_state = remember(parent_max_width) { derivedStateOf {
                     parent_max_width - main_column_target_width - 5.dp - target_start_padding - target_end_padding - INNER_PADDING_DP.dp
                 } },
-                getHeight = remember {{ player.screen_size.height - top_padding - bottom_padding }},
+                getHeight = remember(page_height) {{ page_height - top_padding - bottom_padding }},
                 getCurrentControlsHeight = remember {{ page_height - top_padding - bottom_padding - inner_bottom_padding }},
                 inner_bottom_padding = inner_bottom_padding,
                 stroke_colour = stroke_colour,

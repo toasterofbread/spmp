@@ -72,6 +72,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
+import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
 
 val SEARCH_FIELD_FONT_SIZE: TextUnit = 18.sp
 private const val SEARCH_BAR_HEIGHT_DP = 45f
@@ -120,12 +121,8 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
     override fun showTopBarContent(): Boolean = true
 
     @Composable
-    override fun TopBarContent(modifier: Modifier, close: () -> Unit) {
+    override fun PrimaryBarContent(slot: LayoutSlot, modifier: Modifier) {
         Row(modifier) {
-            IconButton(close) {
-                Icon(Icons.Default.Close, null)
-            }
-
             SearchFiltersRow(Modifier.fillMaxWidth().weight(1f))
         }
     }
@@ -133,9 +130,10 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
     @Composable
     private fun SearchFiltersRow(
         modifier: Modifier,
-        horizontal_alignment: Alignment.Horizontal = Alignment.CenterHorizontally
+        alignment: Int = 0
     ) {
-        FilterChipsRow(
+        FilterChipsRowOrColumn(
+            true,
             SearchType.entries.size + 1,
             { index ->
                 if (current_filter == null) index == 0 else current_filter!!.ordinal == index - 1
@@ -148,9 +146,8 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
                     setFilter(SearchType.entries[index - 1])
                 }
             },
-            modifier
-                .height(SEARCH_BAR_HEIGHT_DP.dp),
-            horizontal_alignment = horizontal_alignment,
+            modifier.height(SEARCH_BAR_HEIGHT_DP.dp),
+            alignment = alignment,
             spacing = 5.dp
         ) { index ->
             val search_type: SearchType? = if (index == 0) null else SearchType.entries[index - 1]
@@ -419,7 +416,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
             }
 
             if (LocalPlayerState.current.form_factor.is_large) {
-                SearchFiltersRow(Modifier.fillMaxWidth(), Alignment.Start)
+                SearchFiltersRow(Modifier.fillMaxWidth(), -1)
             }
 
             Row(

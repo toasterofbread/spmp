@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem.artist
 
-import com.toasterofbread.db.Database
+import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer

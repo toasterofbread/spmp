@@ -59,8 +59,8 @@ kotlin {
 }
 
 android {
-    compileSdk = (findProperty("android.compileSdk") as String).toInt()
     namespace = "com.toasterofbread.spmp"
+    compileSdk = (findProperty("android.compileSdk") as String).toInt()
 
     signingConfigs {
         create("main") {
@@ -155,15 +155,13 @@ android {
         disable.add("ByteOrderMark")
     }
 
-    sourceSets {
-        getByName("main") {
-            assets.srcDirs("src/main/assets")
-            dependencies {
-                implementation(project(":shared"))
-            }
-            manifest {
-                srcFile("src/main/AndroidManifest.xml")
-            }
+    sourceSets.getByName("main") {
+        assets.srcDirs("src/main/assets")
+        dependencies {
+            implementation(project(":shared"))
+        }
+        manifest {
+            srcFile("src/main/AndroidManifest.xml")
         }
     }
 }

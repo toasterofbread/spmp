@@ -28,7 +28,7 @@ import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.composekit.utils.common.init
 import com.toasterofbread.composekit.utils.composable.getEnd
 import com.toasterofbread.composekit.utils.composable.getStart
-import com.toasterofbread.db.Database
+import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.layout.BrowseParamsData

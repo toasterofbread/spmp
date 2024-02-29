@@ -21,7 +21,7 @@ import com.toasterofbread.composekit.platform.PlatformPreferencesListener
 import com.toasterofbread.composekit.settings.ui.StaticThemeData
 import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.composekit.settings.ui.ThemeData
-import com.toasterofbread.db.Database
+import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.AccentColourSource
 import com.toasterofbread.spmp.model.settings.category.SystemSettings

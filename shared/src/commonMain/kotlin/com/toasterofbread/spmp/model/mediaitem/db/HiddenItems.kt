@@ -8,10 +8,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import app.cash.sqldelight.Query
-import com.toasterofbread.db.Database
-import com.toasterofbread.db.mediaitem.ArtistQueries
-import com.toasterofbread.db.mediaitem.PlaylistQueries
-import com.toasterofbread.db.mediaitem.SongQueries
+import com.toasterofbread.spmp.db.Database
+import com.toasterofbread.spmp.db.mediaitem.ArtistQueries
+import com.toasterofbread.spmp.db.mediaitem.PlaylistQueries
+import com.toasterofbread.spmp.db.mediaitem.SongQueries
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef

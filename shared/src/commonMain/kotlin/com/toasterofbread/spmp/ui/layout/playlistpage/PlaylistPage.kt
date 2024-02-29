@@ -42,7 +42,7 @@ import com.toasterofbread.composekit.utils.common.copy
 import com.toasterofbread.composekit.utils.common.getThemeColour
 import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.composekit.utils.composable.stickyHeaderWithTopPadding
-import com.toasterofbread.db.Database
+import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType

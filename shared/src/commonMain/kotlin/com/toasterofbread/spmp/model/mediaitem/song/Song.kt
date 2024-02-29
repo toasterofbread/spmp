@@ -5,8 +5,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.IntOffset
 import app.cash.sqldelight.Query
-import com.toasterofbread.db.Database
-import com.toasterofbread.db.mediaitem.song.ArtistById
+import com.toasterofbread.spmp.db.Database
+import com.toasterofbread.spmp.db.mediaitem.song.ArtistById
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider

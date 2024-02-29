@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.service.playercontroller
 
 import SpMp
 import com.toasterofbread.composekit.utils.common.launchSingle
-import com.toasterofbread.db.Database
+import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef

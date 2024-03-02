@@ -319,12 +319,12 @@ class PillMenu(
                                 player.nowPlayingTopOffset(this)
                             },
                         Arrangement.spacedBy(10.dp)
-                    ) { getWeightModifier ->
-                        val action = remember(background_colour) { Action(background_colour, background_colour.getContrasted(), getWeightModifier(Float.MAX_VALUE)) }
+                    ) {
+                        val action = remember(background_colour) { Action(background_colour, background_colour.getContrasted(), Modifier.weight(Float.MAX_VALUE)) }
 
                         @Composable
                         fun AlongsideContent() {
-                            Row(getWeightModifier(1f).run {
+                            Row(Modifier.weight(1f).run {
                                 if (vertical) fillMaxHeight() else fillMaxWidth()
                             }) {
                                 if (start && alongsideContent != null) {

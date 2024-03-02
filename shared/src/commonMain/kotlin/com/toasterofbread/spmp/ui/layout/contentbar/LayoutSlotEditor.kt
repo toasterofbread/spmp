@@ -152,12 +152,7 @@ fun LayoutSlotEditor(modifier: Modifier = Modifier) {
 
             override fun onBarSelected(slot: LayoutSlot, bar: Pair<ContentBar, Int>?) {
                 val slots: MutableMap<String, Int> = Json.decodeFromString<Map<String, Int>>(slots_key.get<String>()).toMutableMap()
-                if (bar == null) {
-                    slots.remove(slot.getKey())
-                }
-                else {
-                    slots[slot.getKey()] = bar.second
-                }
+                slots[slot.getKey()] = bar?.second ?: 0
                 slots_key.set(Json.encodeToString(slots))
             }
 

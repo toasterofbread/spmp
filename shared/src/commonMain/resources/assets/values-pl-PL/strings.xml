@@ -261,7 +261,6 @@
     <string name="s_key_hp_show_timed_lyrics">Pokaż tekst utworu</string>
     <string name="s_sub_hp_show_timed_lyrics">W określonym czasie pojawi się na górnym pasku tekst utworu, jeśli jest dostępny</string>
 
-    <string name="s_key_feed_show_filter_bar">Pokaż filtry, jeśli są dostępne</string>
     <string name="s_key_feed_initial_rows">Initial feed rows</string>
     <string name="s_key_feed_square_preview_text_lines">Maksymalna liczba wierszy tekstu elementu kwadratowego</string>
     <string name="s_sub_feed_initial_rows">Minimalna liczba wierszy kanału do automatycznego ładowania</string>

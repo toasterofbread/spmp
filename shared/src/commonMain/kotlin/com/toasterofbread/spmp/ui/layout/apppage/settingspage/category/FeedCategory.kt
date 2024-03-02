@@ -15,11 +15,6 @@ import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppStringSetItem
 internal fun getFeedCategoryItems(): List<SettingsItem> {
     return listOf(
         ToggleSettingsItem(
-            SettingsValueState(FeedSettings.Key.SHOW_FILTER_BAR.getName()),
-            getString("s_key_feed_show_filter_bar"), getString("s_sub_feed_show_filter_bar")
-        ),
-
-        ToggleSettingsItem(
             SettingsValueState(FeedSettings.Key.SHOW_SONG_DOWNLOAD_INDICATORS.getName()),
             getString("s_key_feed_show_song_download_indicators"), null
         ),

@@ -5,6 +5,11 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -26,6 +31,7 @@ import com.toasterofbread.composekit.utils.common.amplify
 import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.composable.SidebarButtonSelector
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.composekit.utils.composable.RowOrColumn
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
@@ -39,6 +45,7 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.loadIfLocalPlaylist
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
+import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
 import com.toasterofbread.spmp.ui.shortcut.*
 import kotlinx.coroutines.delay
 import kotlin.math.absoluteValue
@@ -179,6 +186,7 @@ enum class AppPageSidebarButton {
 
 @Composable
 fun AppPageSidebar(
+    slot: LayoutSlot,
     modifier: Modifier = Modifier,
     content_padding: PaddingValues = PaddingValues(),
     multiselect_context: MediaItemMultiSelectContext? = null
@@ -197,7 +205,7 @@ fun AppPageSidebar(
         }
 
         val period: Long = ((1f / AppPageSidebarButton.entries.size) * SHORTCUT_INDICATOR_GROUP_ANIM_DURATION_MS).roundToLong()
-        val target = if (has_all_shortcut_modifiers) AppPageSidebarButton.entries.size else 0
+        val target: Int = if (has_all_shortcut_modifiers) AppPageSidebarButton.entries.size else 0
 
         for (i in 0 until (showing_shortcut_indices - target).absoluteValue) {
             if (has_all_shortcut_modifiers) showing_shortcut_indices++
@@ -208,9 +216,13 @@ fun AppPageSidebar(
     }
 
     SidebarButtonSelector(
+        vertical = slot.is_vertical,
         modifier = modifier
             .padding(content_padding)
-            .width(50.dp),
+            .then(
+                if (slot.is_vertical) Modifier.width(50.dp)
+                else Modifier.height(50.dp)
+            ),
         selected_button = current_button,
         buttons = AppPageSidebarButton.buttons,
         indicator_colour = player.theme.vibrant_accent,
@@ -227,8 +239,7 @@ fun AppPageSidebar(
         isSpacing = {
             it == null
         },
-        bottom_padding = player.nowPlayingBottomPadding(true),
-        vertical_arrangement = Arrangement.spacedBy(1.dp),
+        arrangement = Arrangement.spacedBy(1.dp),
         showButton = { button ->
             if (button == null) {
                 return@SidebarButtonSelector false
@@ -239,16 +250,20 @@ fun AppPageSidebar(
         },
         extraContent = { button ->
             if (button == null) {
-                Column(Modifier.fillMaxHeight().weight(1f).padding(vertical = 10.dp)) {
-                    Spacer(Modifier.fillMaxHeight().weight(1f))
-                    PinnedItems(multiselect_context = multiselect_context)
+                val fill_modifier: Modifier =
+                    if (slot.is_vertical) Modifier.fillMaxHeight()
+                    else Modifier.fillMaxWidth()
+                Column(fill_modifier.weight(1f).padding(vertical = 10.dp)) {
+                    Spacer(fill_modifier.weight(1f))
+                    // TODO
+                    // PinnedItems(multiselect_context = multiselect_context)
                 }
             }
         }
     ) { button ->
         val colour: Color =
             if (button == current_button) player.theme.on_accent
-            else LocalContentColor.current.getContrasted()
+            else LocalContentColor.current
 
         CompositionLocalProvider(LocalContentColor provides colour) {
             button?.ButtonContent()

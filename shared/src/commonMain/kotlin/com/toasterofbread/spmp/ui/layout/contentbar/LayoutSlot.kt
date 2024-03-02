@@ -1,22 +1,28 @@
 package com.toasterofbread.spmp.ui.layout.contentbar
 
+import LocalPlayerState
+import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.Dp
+import com.toasterofbread.composekit.settings.ui.Theme
+import com.toasterofbread.composekit.utils.composable.RowOrColumn
 import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.model.settings.category.LayoutSettings
-import kotlinx.serialization.json.Json
-import kotlin.math.absoluteValue
-import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
-import com.toasterofbread.composekit.settings.ui.Theme
-import androidx.compose.ui.graphics.Color
+import kotlin.math.absoluteValue
+import kotlinx.serialization.json.Json
 
 sealed interface LayoutSlot {
     fun getKey(): String
     fun getName(): String
 
     fun getDefaultContentBar(): ContentBar?
-    fun getDefaultBackgroundColour(theme: Theme): Color
+    fun getDefaultBackgroundColour(theme: Theme): ColourSource
 
     val is_vertical: Boolean
     val slots_key: SettingsKey
@@ -47,10 +53,35 @@ fun LayoutSlot.observeContentBar(): State<ContentBar?> {
 }
 
 @Composable
-fun LayoutSlot.DisplayBar(modifier: Modifier = Modifier): Boolean {
-    val content_bar: ContentBar? by observeContentBar()
-    content_bar?.Bar(this, modifier)
-    return content_bar != null
+fun LayoutSlot.OrientedLayout(
+    content_padding: PaddingValues,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    val player: PlayerState = LocalPlayerState.current
+
+    val top_padding: Dp = content_padding.calculateTopPadding()
+    val bottom_padding: Dp = content_padding.calculateBottomPadding()
+    val start_padding: Dp = content_padding.calculateStartPadding(LocalLayoutDirection.current)
+    val end_padding: Dp = content_padding.calculateEndPadding(LocalLayoutDirection.current)
+
+    val padding_modifier: Modifier =
+        if (is_vertical) Modifier.padding(start = start_padding, end = end_padding)
+        else Modifier.padding(top = top_padding, end = end_padding)
+
+    RowOrColumn(!is_vertical, modifier, alignment = 0) {
+        Spacer(
+            if (is_vertical) Modifier.height(top_padding)
+            else Modifier.width(start_padding)
+        )
+
+        content()
+
+        Spacer(
+            if (is_vertical) Modifier.height(bottom_padding)
+            else Modifier.width(end_padding)
+        )
+    }
 }
 
 enum class PortraitLayoutSlot: LayoutSlot {
@@ -81,19 +112,20 @@ enum class PortraitLayoutSlot: LayoutSlot {
             else -> null
         }
 
-    override fun getDefaultBackgroundColour(theme: Theme): Color =
+    override fun getDefaultBackgroundColour(theme: Theme): ColourSource =
         when (this) {
-            UPPER_TOP_BAR -> theme.background
-            LOWER_TOP_BAR -> theme.background
-            ABOVE_PLAYER -> theme.accent
-            BELOW_PLAYER -> theme.card
+            UPPER_TOP_BAR -> ThemeColourSource(Theme.Colour.CARD)
+            LOWER_TOP_BAR -> ThemeColourSource(Theme.Colour.CARD)
+            ABOVE_PLAYER -> ThemeColourSource(Theme.Colour.ACCENT)
+            BELOW_PLAYER -> ThemeColourSource(Theme.Colour.CARD)
         }
 }
 
 enum class LandscapeLayoutSlot: LayoutSlot {
     SIDE_LEFT,
     SIDE_RIGHT,
-    PAGE_TOP,
+    UPPER_TOP_BAR,
+    LOWER_TOP_BAR,
     ABOVE_PLAYER,
     BELOW_PLAYER;
 
@@ -111,7 +143,8 @@ enum class LandscapeLayoutSlot: LayoutSlot {
         when (this) {
             SIDE_LEFT -> getString("layout_slot_landscape_side_left")
             SIDE_RIGHT -> getString("layout_slot_landscape_side_right")
-            PAGE_TOP -> getString("layout_slot_landscape_page_top")
+            UPPER_TOP_BAR -> getString("layout_slot_landscape_upper_top_bar")
+            LOWER_TOP_BAR -> getString("layout_slot_landscape_lower_top_bar")
             ABOVE_PLAYER -> getString("layout_slot_landscape_above_player")
             BELOW_PLAYER -> getString("layout_slot_landscape_below_player")
         }
@@ -119,19 +152,24 @@ enum class LandscapeLayoutSlot: LayoutSlot {
     override fun getDefaultContentBar(): ContentBar? =
         when (this) {
             SIDE_LEFT -> InternalContentBar.NAVIGATION
-            PAGE_TOP -> InternalContentBar.PRIMARY
-            BELOW_PLAYER -> InternalContentBar.SECONDARY
             SIDE_RIGHT -> InternalContentBar.NAVIGATION
+
+            UPPER_TOP_BAR -> InternalContentBar.NAVIGATION
+            LOWER_TOP_BAR -> InternalContentBar.NAVIGATION
+
+            ABOVE_PLAYER -> InternalContentBar.NAVIGATION
+            BELOW_PLAYER -> InternalContentBar.NAVIGATION
 
             else -> null
         }
 
-    override fun getDefaultBackgroundColour(theme: Theme): Color =
+    override fun getDefaultBackgroundColour(theme: Theme): ColourSource =
         when (this) {
-            SIDE_LEFT -> theme.card
-            SIDE_RIGHT -> theme.card
-            PAGE_TOP -> theme.background
-            ABOVE_PLAYER -> theme.accent
-            BELOW_PLAYER -> theme.card
+            SIDE_LEFT -> ThemeColourSource(Theme.Colour.CARD)
+            SIDE_RIGHT -> ThemeColourSource(Theme.Colour.CARD)
+            UPPER_TOP_BAR -> ThemeColourSource(Theme.Colour.CARD)
+            LOWER_TOP_BAR -> ThemeColourSource(Theme.Colour.CARD)
+            ABOVE_PLAYER -> ThemeColourSource(Theme.Colour.ACCENT)
+            BELOW_PLAYER -> ThemeColourSource(Theme.Colour.CARD)
         }
 }

@@ -376,8 +376,6 @@
     <string name="s_key_hp_show_timed_lyrics">Show timed lyrics</string>
     <string name="s_sub_hp_show_timed_lyrics">Timed lyrics will appear on the top bar if available</string>
 
-    <string name="s_key_feed_show_filter_bar">Show filter bar</string>
-    <string name="s_sub_feed_show_filter_bar">If hidden, the search page still can be accessed by long-pressing the library search button</string>
     <string name="s_key_feed_show_song_download_indicators">Show song download indicators</string>
     <string name="s_key_feed_initial_rows">Initial feed rows</string>
     <string name="s_key_feed_square_preview_text_lines">Square item max text rows</string>
@@ -795,6 +793,14 @@
 
     <string name="layout_slot_content_bar_selection">Select content bar</string>
 
+    <string name="content_bar_empty">Empty</string>
+    <string name="content_bar_primary">Primary</string>
+    <string name="content_bar_desc_primary">Primary page-specific content</string>
+    <string name="content_bar_secondary">Secondary</string>
+    <string name="content_bar_desc_secondary">Secondary page-specific content</string>
+    <string name="content_bar_navigation">Navigation</string>
+    <string name="content_bar_desc_navigation">Controls for navigating between app pages</string>
+
     <string name="layout_slot_portrait_upper_top_bar">Upper top bar</string>
     <string name="layout_slot_portrait_lower_top_bar">Lower top bar</string>
     <string name="layout_slot_portrait_above_player">Above mini-player</string>
@@ -802,7 +808,8 @@
 
     <string name="layout_slot_landscape_side_left">Left sidebar</string>
     <string name="layout_slot_landscape_side_right">Right sidebar</string>
-    <string name="layout_slot_landscape_page_top">Page top</string>
+    <string name="layout_slot_landscape_upper_top_bar">Upper top bar</string>
+    <string name="layout_slot_landscape_lower_top_bar">Lower top bar</string>
     <string name="layout_slot_landscape_above_player">Above mini-player</string>
     <string name="layout_slot_landscape_below_player">Below mini-player</string>
 

@@ -354,8 +354,6 @@
     <string name="s_key_hp_show_timed_lyrics">同期可能の歌詞を表示する</string>
     <string name="s_sub_hp_show_timed_lyrics">流れてる曲に同期可能の歌詞があればトップバーに表示されます</string>
 
-    <string name="s_key_feed_show_filter_bar">フィルターバーを表示する</string>
-    <string name="s_sub_feed_show_filter_bar">バーが無表示でも、検索ページはライブラリの検索ボタンを長押ししてアクセスできます</string>
     <string name="s_key_feed_show_song_download_indicators">曲のダウンロード状態を表示する</string>
     <string name="s_key_feed_initial_rows">最初のフィード行数</string>
     <string name="s_key_feed_square_preview_text_lines">四角形アイテムの最高テキスト行数</string>

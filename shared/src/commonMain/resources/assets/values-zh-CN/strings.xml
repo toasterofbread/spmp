@@ -351,8 +351,6 @@
     <string name="s_key_hp_show_timed_lyrics">显示定时歌词</string>
     <string name="s_sub_hp_show_timed_lyrics">如果有定时歌词，将在顶部栏显示</string>
 
-    <string name="s_key_feed_show_filter_bar">显示过滤器栏</string>
-    <string name="s_sub_feed_show_filter_bar">如果隐藏，仍可以通过长按库搜索按钮访问搜索页面</string>
     <string name="s_key_feed_show_song_download_indicators">显示歌曲下载指示器</string>
     <string name="s_key_feed_initial_rows">初始 feed 行</string>
     <string name="s_key_feed_square_preview_text_lines">方形项目最大文本行</string>
@@ -413,7 +411,7 @@
 
     <string name="s_key_np_queue_item_swipe_sensitivity">队列项滑动灵敏度</string>
     <string name="s_sub_np_queue_item_swipe_sensitivity">如果队列项容易被意外移除，请降低灵敏度</string>
-    
+
     <string name="s_key_np_queue_extra_side_padding">增加队列侧面的填充</string>
     <string name="s_sub_np_queue_extra_side_padding">用于增加轻扫关闭区域</string>
 
@@ -481,7 +479,7 @@
 
     <string name="s_key_lyrics_extra_padding">额外的填充</string>
     <string name="s_sub_lyrics_extra_padding">在歌词上下添加额外的填充以增加滚动范围</string>
-    
+
     <string name="s_key_lyrics_enable_word_sync">启用单词同步</string>
     <string name="s_sub_lyrics_enable_word_sync">如果可用，歌词同步将按单词显示，而不是按行显示</string>
 

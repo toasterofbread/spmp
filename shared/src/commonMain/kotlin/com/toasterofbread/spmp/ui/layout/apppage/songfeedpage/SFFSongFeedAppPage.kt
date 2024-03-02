@@ -36,7 +36,7 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
 
 @Composable
-fun SongFeedAppPage.SFFSongFeedAppPage(
+internal fun SongFeedAppPage.SFFSongFeedAppPage(
     multiselect_context: MediaItemMultiSelectContext,
     modifier: Modifier,
     content_padding: PaddingValues,

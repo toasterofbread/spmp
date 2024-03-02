@@ -52,7 +52,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabNarrow(page_height: Dp, top_
             .padding(content_padding)
             .padding(horizontal = horizontal_padding)
             .padding(top = top_padding, bottom = bottom_padding)
-    ) { weight ->
+    ) {
         val spacing: Dp = 10.dp
 
         if (vertical) {
@@ -111,7 +111,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabNarrow(page_height: Dp, top_
             }
         }
 
-        Spacer(Modifier.fillMaxSize().then(weight(1f)))
+        Spacer(Modifier.fillMaxSize().weight(1f))
     }
 }
 

@@ -243,7 +243,6 @@
 	<string name="s_key_enable_thumbnail_cache">Habilitar caché de miniaturas</string>
 	<string name="s_key_feed_initial_rows">Filas de alimentación inicial</string>
 	<string name="s_key_feed_show_charts_row">Habilitar la fila \'Rankings\'</string>
-	<string name="s_key_feed_show_filter_bar">Mostrar filtros si están disponibles</string>
 	<string name="s_key_feed_show_listen_row">Habilitar la fila \'Volver a escuchar\'</string>
 	<string name="s_key_feed_show_mix_row">Enable \'Mixed for you\' row</string>
 	<string name="s_key_feed_show_moods_row">Habilitar la fila \'Playlist recomendadas\'</string>

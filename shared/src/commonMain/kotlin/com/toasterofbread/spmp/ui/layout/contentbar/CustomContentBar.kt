@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.layout.PaddingValues
 
 @Serializable
 data class CustomContentBar(
@@ -25,8 +26,9 @@ data class CustomContentBar(
     override fun getIcon(): ImageVector = Icons.Default.Build
 
     @Composable
-    override fun BarContent(slot: LayoutSlot, modifier: Modifier) {
+    override fun BarContent(slot: LayoutSlot, content_padding: PaddingValues, modifier: Modifier): Boolean {
         Text(buttons.toString())
+        return true
     }
 
     fun serialise(): String = Json.encodeToString(this)

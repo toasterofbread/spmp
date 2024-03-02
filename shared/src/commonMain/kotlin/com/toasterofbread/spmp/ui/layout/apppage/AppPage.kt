@@ -42,7 +42,9 @@ abstract class AppPage {
     open fun showTopBarContent() = false
 
     @Composable
-    open fun PrimaryBarContent(slot: LayoutSlot, modifier: Modifier) {}
+    open fun PrimaryBarContent(slot: LayoutSlot, content_padding: PaddingValues, modifier: Modifier): Boolean = false
+    @Composable
+    open fun SecondaryBarContent(slot: LayoutSlot, content_padding: PaddingValues, modifier: Modifier): Boolean = false
 
     open fun onOpened(from_item: MediaItemHolder? = null) {}
     open fun onReopened() {}

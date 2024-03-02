@@ -11,16 +11,16 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import LocalPlayerState
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.calculateEndPadding
 import com.toasterofbread.composekit.utils.composable.getTop
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material.icons.filled.LooksOne
 import androidx.compose.material.icons.filled.LooksTwo
-import androidx.compose.ui.graphics.Color
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.height
 
 sealed class InternalContentBar(
     val ordinal: Int
@@ -36,46 +36,49 @@ sealed class InternalContentBar(
 }
 
 private class PrimaryInternalContentBar: InternalContentBar(0) {
-    override fun getName(): String = "Primary // TODO"
-    override fun getDescription(): String = "An informative description of this bar's function // TODO"
+    override fun getName(): String = getString("content_bar_primary")
+    override fun getDescription(): String = getString("content_bar_desc_primary")
     override fun getIcon(): ImageVector = Icons.Default.LooksOne
 
     @Composable
-    override fun BarContent(slot: LayoutSlot, modifier: Modifier) {
-        LocalPlayerState.current.app_page.PrimaryBarContent(slot, modifier)
+    override fun BarContent(slot: LayoutSlot, content_padding: PaddingValues, modifier: Modifier): Boolean {
+        return LocalPlayerState.current.app_page.PrimaryBarContent(slot, content_padding, modifier)
     }
 }
 
 private class SecondaryInternalContentBar: InternalContentBar(1) {
-    override fun getName(): String = "Secondary // TODO"
-    override fun getDescription(): String = "An informative description of this bar's function // TODO"
+    override fun getName(): String = getString("content_bar_secondary")
+    override fun getDescription(): String = getString("content_bar_desc_secondary")
     override fun getIcon(): ImageVector = Icons.Default.LooksTwo
 
     @Composable
-    override fun BarContent(slot: LayoutSlot, modifier: Modifier) {
-        Row(modifier.height(50.dp)) {
-            Text("Secondary content")
-        }
+    override fun BarContent(slot: LayoutSlot, content_padding: PaddingValues, modifier: Modifier): Boolean {
+        return LocalPlayerState.current.app_page.SecondaryBarContent(slot, content_padding, modifier)
     }
 }
 
 private class NavigationInternalContentBar: InternalContentBar(2) {
-    override fun getName(): String = "Navigation // TODO"
-    override fun getDescription(): String = "An informative description of this bar's function // TODO"
+    override fun getName(): String = getString("content_bar_navigation")
+    override fun getDescription(): String = getString("content_bar_desc_navigation")
     override fun getIcon(): ImageVector = Icons.Default.Widgets
 
     @Composable
-    override fun BarContent(slot: LayoutSlot, modifier: Modifier) {
+    override fun BarContent(slot: LayoutSlot, content_padding: PaddingValues, modifier: Modifier): Boolean {
         val player: PlayerState = LocalPlayerState.current
+
+        // TODO
         AppPageSidebar(
+            slot,
             modifier,
             content_padding = PaddingValues(
-                top = 10.dp + WindowInsets.getTop(),
-                bottom = 10.dp,
-                start = 10.dp,
-                end = 10.dp
+                top = WindowInsets.getTop() + content_padding.calculateTopPadding(),
+                bottom = content_padding.calculateBottomPadding(),
+                start = content_padding.calculateStartPadding(LocalLayoutDirection.current),
+                end = content_padding.calculateEndPadding(LocalLayoutDirection.current)
             ),
             multiselect_context = player.main_multiselect_context
         )
+
+        return true
     }
 }

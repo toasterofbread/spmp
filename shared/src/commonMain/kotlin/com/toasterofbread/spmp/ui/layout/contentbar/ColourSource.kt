@@ -5,10 +5,12 @@ import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.composekit.utils.common.fromHexString
 import androidx.compose.runtime.State
 import com.toasterofbread.spmp.model.settings.category.LayoutSettings
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import androidx.compose.runtime.*
 import kotlinx.serialization.json.Json
+import LocalPlayerState
 
-internal interface ColourSource {
+interface ColourSource {
     fun get(theme: Theme): Color
     val theme_colour: Theme.Colour? get() = null
 
@@ -40,12 +42,14 @@ internal class CustomColourSource(val colour: Color): ColourSource {
 }
 
 @Composable
-internal fun LayoutSlot.rememberColourSource(): State<ColourSource?> {
+internal fun LayoutSlot.rememberColourSource(): State<ColourSource> {
+    val player: PlayerState = LocalPlayerState.current
     val colours_data: String by LayoutSettings.Key.SLOT_COLOURS.rememberMutableState()
 
     return remember { derivedStateOf {
         val colours: Map<String, String> = Json.decodeFromString(colours_data)
-        val colour: String = colours[getKey()] ?: return@derivedStateOf null
-        return@derivedStateOf ColourSource.fromSlotColour(colour)
+        return@derivedStateOf colours[getKey()]?.let { colour ->
+            ColourSource.fromSlotColour(colour)
+        } ?: getDefaultBackgroundColour(player.theme)
     } }
 }

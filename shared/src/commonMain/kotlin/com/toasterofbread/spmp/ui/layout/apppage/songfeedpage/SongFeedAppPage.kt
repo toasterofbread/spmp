@@ -1,58 +1,33 @@
 package com.toasterofbread.spmp.ui.layout.apppage.songfeedpage
 
 import LocalPlayerState
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
+import androidx.compose.animation.*
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CloudOff
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.common.anyCauseIs
-import com.toasterofbread.composekit.utils.common.launchSingle
+import com.toasterofbread.composekit.utils.common.*
+import com.toasterofbread.composekit.utils.composable.RowOrColumn
 import com.toasterofbread.spmp.model.FilterChip
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.artist.Artist
-import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
-import com.toasterofbread.spmp.model.mediaitem.db.SongFeedCache
-import com.toasterofbread.spmp.model.mediaitem.db.SongFeedData
+import com.toasterofbread.spmp.model.mediaitem.artist.*
+import com.toasterofbread.spmp.model.mediaitem.db.*
 import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
-import com.toasterofbread.spmp.model.settings.Settings
+import com.toasterofbread.spmp.model.settings.*
 import com.toasterofbread.spmp.model.settings.category.FeedSettings
-import com.toasterofbread.spmp.model.settings.mutableSettingsState
-import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.platform.form_factor
-import com.toasterofbread.spmp.service.playercontroller.FeedLoadState
+import com.toasterofbread.spmp.platform.*
+import com.toasterofbread.spmp.service.playercontroller.*
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.apppage.AppPage
-import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedLoadResult
+import com.toasterofbread.spmp.ui.layout.apppage.*
+import com.toasterofbread.spmp.ui.layout.contentbar.*
+import com.toasterofbread.spmp.youtubeapi.endpoint.*
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.withContext
-import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
-import com.toasterofbread.composekit.utils.composable.RowOrColumn
 
 internal const val ARTISTS_ROW_DEFAULT_MIN_OCCURRENCES: Int = 2
 internal const val ARTISTS_ROW_MIN_ARTISTS: Int = 4
@@ -71,6 +46,15 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
     internal var layouts: List<MediaItemLayout>? by mutableStateOf(null)
     internal var filter_chips: List<FilterChip>? by mutableStateOf(null)
     internal var selected_filter_chip: Int? by mutableStateOf(null)
+
+    internal var artists_layout: MediaItemLayout by mutableStateOf(
+        MediaItemLayout(
+            emptyList(),
+            null,
+            null,
+            type = MediaItemLayout.Type.GRID
+        )
+    )
 
     var retrying: Boolean = false
 
@@ -105,50 +89,6 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
     }
 
     @Composable
-    fun FeedFiltersRowOrColumn(row: Boolean, modifier: Modifier = Modifier, show_scrollbar: Boolean = true, onSelected: (Int?) -> Unit = {}) {
-        val player: PlayerState = LocalPlayerState.current
-
-        Crossfade(filter_chips, modifier) { chips ->
-            if (chips.isNullOrEmpty()) {
-                if (load_state != FeedLoadState.LOADING && load_state != FeedLoadState.CONTINUING) {
-                    Box(Modifier.padding(end = 40.dp), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.CloudOff, null)
-                    }
-                }
-            }
-            else {
-                FilterChipsRowOrColumn(
-                    row,
-                    chips.size,
-                    { it == selected_filter_chip },
-                    {
-                        selectFilterChip(it)
-                        onSelected(selected_filter_chip)
-                    }
-                ) { index ->
-                    Text(chips[index].text.getString(player.context))
-                }
-            }
-        }
-    }
-
-    @Composable
-    override fun PrimaryBarContent(slot: LayoutSlot, modifier: Modifier) {
-        val player: PlayerState = LocalPlayerState.current
-        val show: Boolean by mutableSettingsState(FeedSettings.Key.SHOW_FILTER_BAR)
-
-        AnimatedVisibility(show) {
-            RowOrColumn(!slot.is_vertical, alignment = 0) {
-                IconButton({ player.openAppPage(player.app_page_state.Search) }) {
-                    Icon(Icons.Default.Search, null)
-                }
-
-                FeedFiltersRowOrColumn(!slot.is_vertical)
-            }
-        }
-    }
-
-    @Composable
     override fun ColumnScope.Page(
         multiselect_context: MediaItemMultiSelectContext,
         modifier: Modifier,
@@ -156,11 +96,68 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
         close: () -> Unit
     ) {
         val player: PlayerState = LocalPlayerState.current
+
+        LaunchedEffect(Unit) {
+            if (layouts.isNullOrEmpty()) {
+                coroutine_scope.launchSingle {
+                    loadFeed(allow_cached = !retrying, continue_feed = false)
+                    retrying = false
+                }
+            }
+        }
+
+        LaunchedEffect(layouts) {
+            artists_layout = artists_layout.copy(
+                items = populateArtistsLayout(
+                    layouts,
+                    player.context.ytapi.user_auth_state?.own_channel,
+                    player.context
+                )
+            )
+        }
+
         when (player.form_factor) {
             FormFactor.PORTRAIT -> SFFSongFeedAppPage(multiselect_context, modifier, content_padding, close)
             FormFactor.LANDSCAPE -> LFFSongFeedAppPage(multiselect_context, modifier, content_padding, close)
         }
     }
+
+    @Composable
+    override fun PrimaryBarContent(slot: LayoutSlot, content_padding: PaddingValues, modifier: Modifier): Boolean {
+        val player: PlayerState = LocalPlayerState.current
+        return when (player.form_factor) {
+            FormFactor.PORTRAIT -> SFFSongFeedPrimaryBar(slot, modifier, content_padding)
+            FormFactor.LANDSCAPE -> LFFSongFeedPrimaryBar(slot, modifier, content_padding)
+        }
+    }
+
+    // @Composable
+    // fun FeedFiltersRowOrColumn(row: Boolean, modifier: Modifier = Modifier, show_scrollbar: Boolean = true, onSelected: (Int?) -> Unit = {}) {
+    //     val player: PlayerState = LocalPlayerState.current
+
+    //     Crossfade(filter_chips, modifier) { chips ->
+    //         if (chips.isNullOrEmpty()) {
+    //             if (load_state != FeedLoadState.LOADING && load_state != FeedLoadState.CONTINUING) {
+    //                 Box(Modifier.padding(end = 40.dp), contentAlignment = Alignment.Center) {
+    //                     Icon(Icons.Default.CloudOff, null)
+    //                 }
+    //             }
+    //         }
+    //         else {
+    //             FilterChipsRowOrColumn(
+    //                 row,
+    //                 chips.size,
+    //                 { it == selected_filter_chip },
+    //                 {
+    //                     selectFilterChip(it)
+    //                     onSelected(selected_filter_chip)
+    //                 }
+    //             ) { index ->
+    //                 Text(chips[index].text.getString(player.context))
+    //             }
+    //         }
+    //     }
+    // }
 
     internal fun loadFeed(continuation: Boolean) {
         coroutine_scope.launchSingle {

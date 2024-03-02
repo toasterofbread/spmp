@@ -115,7 +115,11 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         SwipeableState(0)
     )
     private var np_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
-    private var np_bottom_bar_height: Dp by mutableStateOf(0.dp)
+    private var _np_bottom_bar_height: Dp by mutableStateOf(0.dp)
+    private var np_bottom_bar_height: Dp
+        get() = if (!np_bottom_bar_showing) 0.dp else _np_bottom_bar_height
+        set(value) { _np_bottom_bar_height = value }
+    private var np_bottom_bar_showing: Boolean by mutableStateOf(false)
 
     private var download_request_songs: List<Song>? by mutableStateOf(null)
     private var download_request_always_show_options: Boolean by mutableStateOf(false)
@@ -230,10 +234,24 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
     }
 
     private var now_playing_top_offset_id: Int = 0
-    private var now_playing_top_offset_item_sizes: MutableMap<Int, Dp> = mutableStateMapOf()
+    private var now_playing_top_offset_items: MutableMap<Int, TopOffsetItem> = mutableStateMapOf()
+    private data class TopOffsetItem(
+        val height: Dp,
+        val apply_spacing: Boolean = true
+    )
+
+    private fun getTopItemsHeight(spacing: Dp = 15.dp, filter: (Int) -> Boolean = { true }): Dp =
+        now_playing_top_offset_items.entries.sumOf {
+            val height: Float =
+                if (!filter(it.key)) 0f
+                else (it.value.height + (if (it.value.apply_spacing) spacing else 0.dp)).value
+
+            // https://youtrack.jetbrains.com/issue/KT-43310/Add-sumOf-with-Float-return-type
+            return@sumOf height.toDouble()
+        }.dp
 
     @Composable
-    fun nowPlayingTopOffset(base: Modifier, force_top: Boolean = false): Modifier {
+    fun nowPlayingTopOffset(base: Modifier, force_top: Boolean = false, apply_spacing: Boolean = true): Modifier {
         val system_insets: WindowInsets = WindowInsets.systemBars
         val navigation_insets: WindowInsets = WindowInsets.navigationBars
         val keyboard_insets: WindowInsets = WindowInsets.ime
@@ -246,16 +264,12 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
 
         DisposableEffect(Unit) {
             onDispose {
-                now_playing_top_offset_item_sizes.remove(id)
+                now_playing_top_offset_items.remove(id)
             }
         }
 
         val additional_offset: Dp by animateDpAsState(
-            if (force_top)
-                now_playing_top_offset_item_sizes.entries.sumOf {
-                    if (it.key <= id) 0.0
-                    else it.value.value + 15.0
-                }.dp
+            if (force_top) getTopItemsHeight(filter = { it > id })
             else 0.dp
         )
 
@@ -268,32 +282,41 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
 
                 IntOffset(
                     0,
-                    swipe_offset.roundToPx() - bottom_padding - additional_offset.roundToPx()
+                    swipe_offset.roundToPx() - bottom_padding - additional_offset.roundToPx() + 1 // Avoid single-pixel gap
                 )
             }
             .padding(start = system_insets.getStart(), end = system_insets.getEnd())
             .onSizeChanged {
                 with (density) {
-                    now_playing_top_offset_item_sizes[id] = it.height.toDp()
+                    now_playing_top_offset_items[id] = TopOffsetItem(
+                        height = it.height.toDp(),
+                        apply_spacing = apply_spacing
+                    )
                 }
             }
     }
 
     @Composable
-    fun nowPlayingBottomPadding(include_np: Boolean = false): Dp {
-        val bottom_padding = with(LocalDensity.current) {
-            LocalDensity.current.getNpBottomPadding(WindowInsets.systemBars, WindowInsets.navigationBars, WindowInsets.ime).toDp()
-        }
+    fun nowPlayingBottomPadding(include_np: Boolean = false, include_top_items: Boolean = include_np): Dp {
+        var bottom_padding: Dp =
+            with(LocalDensity.current) {
+                LocalDensity.current.getNpBottomPadding(WindowInsets.systemBars, WindowInsets.navigationBars, WindowInsets.ime).toDp()
+            }
 
         if (include_np) {
-            val np by animateDpAsState(
-                np_bottom_bar_height +(
+            bottom_padding += animateDpAsState(
+                np_bottom_bar_height + (
                     if (session_started && !hide_player) MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
                     else 0.dp
                 )
-            )
-            return np + bottom_padding
+            ).value
         }
+        if (include_top_items) {
+            bottom_padding += animateDpAsState(
+                getTopItemsHeight()
+            ).value
+        }
+
         return bottom_padding
     }
 
@@ -360,7 +383,6 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
     }
 
     fun openNowPlayingPlayerOverlayMenu(menu: PlayerOverlayMenu? = null) {
-
         np_overlay_menu.value = menu
         expansion.scrollTo(1)
     }
@@ -476,7 +498,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
                     FormFactor.PORTRAIT -> PortraitLayoutSlot.BELOW_PLAYER
                 }
 
-            val bar_showing: Boolean = layout_slot.DisplayBar(
+            np_bottom_bar_showing = layout_slot.DisplayBar(
                 Modifier
                     .fillMaxWidth()
                     .onSizeChanged {
@@ -485,12 +507,6 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
                         }
                     }
             )
-
-            LaunchedEffect(bar_showing) {
-                if (!bar_showing) {
-                    np_bottom_bar_height = 0.dp
-                }
-            }
         }
     }
 
@@ -549,18 +565,6 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
                         )
                     }
                 }
-            }
-        }
-
-        Box(Modifier.fillMaxSize()) {
-            val layout_slot: LayoutSlot =
-                when (form_factor) {
-                    FormFactor.LANDSCAPE -> LandscapeLayoutSlot.ABOVE_PLAYER
-                    FormFactor.PORTRAIT -> PortraitLayoutSlot.ABOVE_PLAYER
-                }
-
-            Box(nowPlayingTopOffset(Modifier, true).align(Alignment.BottomEnd)) {
-                layout_slot.DisplayBar()
             }
         }
     }

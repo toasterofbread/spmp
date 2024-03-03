@@ -51,8 +51,9 @@ actual val LocalSongMetadataProcessor: MetadataProcessor =
                     }
                 }
                 catch (e: Throwable) {
-                    e.printStackTrace()
-                    throw e
+                    val error: Throwable = RuntimeException("Reading metadata failed for $file ${file.uri}", e)
+                    error.printStackTrace()
+                    throw error
                 }
             }
     }

@@ -159,6 +159,20 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
     }
 
     private val player_listener: Player.Listener = object : Player.Listener {
+        private fun createLoudnessEnhancer(): LoudnessEnhancer {
+            loudness_enhancer?.also {
+                return it
+            }
+
+            try {
+                loudness_enhancer = LoudnessEnhancer(player.audioSessionId)
+                return loudness_enhancer!!
+            }
+            catch (e: Throwable) {
+                throw RuntimeException("Creating loudness enhancer failed ${player.audioSessionId}", e)
+            }
+        }
+
         override fun onMediaItemTransition(media_item: MediaItem?, reason: Int) {
             val song: Song? = media_item?.getSong()
             if (song?.id == current_song?.id) {
@@ -168,16 +182,12 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
             current_song = song
             updatePlayerCustomActions()
 
-            if (loudness_enhancer == null) {
-                loudness_enhancer = LoudnessEnhancer(player.audioSessionId)
-            }
-
-            loudness_enhancer?.update(song)
+            createLoudnessEnhancer().update(song)
         }
 
         override fun onAudioSessionIdChanged(audioSessionId: Int) {
             loudness_enhancer?.release()
-            loudness_enhancer = LoudnessEnhancer(audioSessionId).apply {
+            createLoudnessEnhancer().apply {
                 update(current_song)
                 enabled = true
             }

@@ -1,0 +1,792 @@
+<resources>
+    <string name="language_name">Français</string>
+
+    <string name="version_string" translatable="false">0.3.0</string>
+    <string name="version_code" translatable="false">11</string>
+
+    <string name="app_name" translatable="false">SpMp</string>
+    <string name="app_name_debug" translatable="false">SpMp (debug)</string>
+    <string name="project_url" translatable="false">https://github.com/toasterofbread/spmp</string>
+    <string name="report_issue_url" translatable="false">https://github.com/toasterofbread/spmp/issues/new?labels=Bug&amp;template=bug_report.md&amp;title=%5BBug%5D+</string>
+    <string name="server_info_url" translatable="false">https://spmp.toastbits.dev/docs/server/about/</string>
+    <string name="documentation_url" translatable="false">https://spmp.toastbits.dev/docs/about</string>
+    <string name="server_documentation_url" translatable="false">https://spmp.toastbits.dev/docs/server/about</string>
+
+    <string name="project_url_name">URL du projet</string>
+
+    <string name="info_using_release_$x">Version utilisée $x</string>
+    <string name="info_using_non_release_commit_$x">Utilisation du commit non publié $x</string>
+
+    <string name="version_message_release_$appver_$apiver_$split">Version de publication SpMp $appver $split et version de l'API $apiver</string>
+    <string name="version_message_non_release_$commit_$apiver_$split">Version non publiée de SpMp sur le commit $commit $split et version de l'API $apiver</string>
+    <string name="help_message">À faire</string>
+
+    <string name="spms_client_type_spmp_player">SpMp (lecteur)</string>
+    <string name="spms_client_type_info_spmp_player">Une instance graphique de SpMp qui lit sa propre musique</string>
+    <string name="spms_client_type_spmp_standalone">SpMp (autonome)</string>
+    <string name="spms_client_type_info_spmp_standalone">Une instance graphique de SpMp qui dépend d'un lecteur externe pour la musique</string>
+    <string name="spms_client_type_player">Lecteur</string>
+    <string name="spms_client_type_info_player">Un lecteur audio autonome sans interface graphique</string>
+    <string name="spms_client_type_command_line">Ligne de commande</string>
+    <string name="spms_client_type_info_command_line">Un outil ou un script qui communique avec le serveur</string>
+    <string name="spms_client_type_server">Serveur</string>
+    <string name="spms_client_type_info_server">Le serveur auquel ce client est connecté</string>
+
+    <string name="spms_client_type_info_url_spmp_player">https://spmp.toastbits.dev/docs/client/about</string>
+    <string name="spms_client_type_info_url_spmp_standalone">https://spmp.toastbits.dev/docs/client/about</string>
+    <string name="spms_client_type_info_url_player">https://spmp.toastbits.dev/docs/player/about</string>
+    <string name="spms_client_type_info_url_command_line">https://spmp.toastbits.dev/docs/server/cli</string>
+    <string name="spms_client_type_info_url_server">https://spmp.toastbits.dev/docs/server/about/</string>
+
+    <string name="font_option_default_$x">Par défaut ($x)</string>
+    <string name="font_option_system">Police système</string>
+    <string name="font_option_hc_maru_gothic">HC Maru Gothic</string>
+
+    <string name="home_feed_listen_again">Réécouter</string>
+    <string name="home_feed_mixed_for_you">Mix personnalisé</string>
+    <string name="home_feed_new_releases">Nouveautés</string>
+    <string name="home_feed_moods_and_genres">Liste de lecture recommandées</string>
+    <string name="home_feed_charts">Classements</string>
+
+    <string name="home_feed_rec_general">Recommandé</string>
+    <string name="home_feed_rec_songs">Titres recommandés</string>
+    <string name="home_feed_rec_artists">Artistes recommandés</string>
+    <string name="home_feed_rec_albums">Albums recommandés</string>
+    <string name="home_feed_rec_playlists">Liste de lecture recommandées</string>
+    <string name="home_feed_rec_music_videos">Clips musicaux recommandés</string>
+    <string name="home_feed_rec_albums_playlists">Artistes et albums</string>
+    <string name="home_feed_similar_to">Similaire à</string>
+    <string name="home_feed_more_from">Plus de</string>
+
+    <string name="home_feed_filter_energise">Énergisant</string>
+    <string name="home_feed_filter_relax">Détente</string>
+    <string name="home_feed_filter_workout">Sport</string>
+    <string name="home_feed_filter_commute">Pour la route</string>
+    <string name="home_feed_filter_focus">Concentration</string>
+
+    <string name="library_local">Local</string>
+    <string name="library_account">Compte</string>
+
+    <string name="library_songs_downloaded">Téléchargés</string>
+    <string name="library_songs_downloaded_title">Titres téléchargés</string>
+    <string name="library_songs_liked">Aimés</string>
+    <string name="library_songs_liked_title">Titres aimés</string>
+
+    <string name="library_no_local_songs">Aucun titre local</string>
+    <string name="library_no_local_artists">Aucun artiste local</string>
+    <string name="library_no_liked_artists">Aucun artiste de la bibliothèque</string>
+    <string name="library_no_liked_albums">Aucun album de la bibliothèque</string>
+    <string name="library_no_liked_songs">Aucun titre aimée</string>
+    <string name="library_no_playlists">Aucune liste de lecture</string>
+    <string name="library_no_items_match_filter">Aucun élément correspondant au filtre</string>
+
+    <string name="library_$x_songs">$x titres</string>
+    <string name="library_$x_playlists">$x listes de lecture</string>
+    <string name="artist_$x_songs">$x titres</string>
+
+    <string name="library_recent_songs_all">Tout</string>
+    <string name="library_recent_songs_year">Année</string>
+    <string name="library_recent_songs_month">Mois</string>
+    <string name="library_recent_songs_week">Semaine</string>
+    <string name="library_recent_songs_day">Jour</string>
+
+    <string name="mediaitem_play_count_$x_short">$x lectures</string>
+    <string name="song_name">Nom de la chanson</string>
+    <string name="videos">Vidéos</string>
+
+    <string name="songs">Titres</string>
+    <string name="song">Titre</string>
+
+    <string name="artists">Artistes</string>
+    <string name="artist">Artiste</string>
+
+    <string name="playlists">Listes de lecture</string>
+    <string name="playlist">Liste de lecture</string>
+    <string name="albums">Albums</string>
+    <string name="album">Album</string>
+    <string name="audiobook">Livre audio</string>
+    <string name="audiobooks">Livres audio</string>
+    <string name="podcast">Podcast</string>
+    <string name="podcasts">Podcasts</string>
+    <string name="radio">Radio</string>
+    <string name="radios">Radios</string>
+
+    <string name="system_language">Langue du système</string>
+
+    <string name="edit_$x_title_dialog_title">Modifier le titre de $x</string>
+
+    <string name="new_playlist_title">Nouvelle liste de lecture</string>
+    <string name="playlist_empty">La liste de lecture est vide</string>
+    <string name="song_add_to_playlist">Ajouter à la liste de lecture</string>
+    <string name="song_remove_from_playlist">Supprimer de la liste de lecture</string>
+    <string name="playlist_create">Créer une liste de lecture</string>
+    <string name="playlist_delete">Supprimer la liste de lecture</string>
+    <string name="toast_playlist_added">Ajouté à la liste de lecture</string>
+    <string name="playlist_select_image">Sélectionner l'image de la liste de lecture</string>
+    <string name="playlist_image_url_field_label">URL de l'image</string>
+    <string name="playlist_info_local">Liste de lecture locale</string>
+    <string name="playlist_info_account">Liste de lecture du compte</string>
+
+    <string name="feed_row_artists">Artistes recommandés</string>
+    <string name="feed_row_playlists">Listes de lecture</string>
+
+    <string name="action_close">Fermer</string>
+    <string name="action_cancel">Annuler</string>
+    <string name="action_share">Partager</string>
+    <string name="action_confirm_action">Oui</string>
+    <string name="action_deny_action">Non</string>
+    <string name="action_warning_accept">Accepter</string>
+    <string name="action_load_retry">Réessayer</string>
+    <string name="action_save">Enregistrer</string>
+    <string name="action_open_documentation">Ouvrir la documentation</string>
+    <string name="prompt_confirm_action">Veuillez confirmer</string>
+    <string name="prompt_confirm_settings_page_reset">Réinitialiser toutes les valeurs de cette page ?</string>
+    <string name="prompt_hide_feed_rows_with_$title">Masquer les lignes de flux avec le titre « $title » ?</string>
+
+    <string name="action_download_start">Télécharger</string>
+    <string name="action_download_pause">Pause</string>
+    <string name="action_download_resume">Reprendre</string>
+
+    <string name="player_overlay_menu_action_open_main_menu">Ouvrir le menu principal superposé</string>
+    <string name="player_overlay_menu_action_open_theming">Ouvrir le thème</string>
+    <string name="player_overlay_menu_action_pick_theme_colour">Choisir une couleur d'accentuation à partir de l'image</string>
+    <string name="player_overlay_menu_action_adjust_notification_image_offset">Ajuster le décalage de l'image de notification</string>
+    <string name="player_overlay_menu_action_open_lyrics">Ouvrir les paroles</string>
+    <string name="player_overlay_menu_action_open_related">Ouvrir les titres similaires</string>
+    <string name="player_overlay_menu_action_download">Télécharger</string>
+
+    <string name="song_theme_menu_corner_radius">Rayon des coins</string>
+    <string name="song_theme_menu_gradient_depth">Profondeur du dégradé</string>
+    <string name="song_theme_menu_background_image_opacity">Opacité de l'image d'arrière-plan</string>
+    <string name="song_theme_menu_image_shadow_radius">Rayon de l'ombre de l'image</string>
+
+    <string name="song_notif_image_menu_open">Ajuster l'image de notification</string>
+    <string name="song_notif_image_menu_adjust_offset">Changer le décalage de l'image</string>
+    <string name="song_notif_image_menu_adjust_offset_desc">Les modifications seront appliquées après le changement de titre</string>
+
+    <string name="theme_title_default">Thème par défaut</string>
+    <string name="theme_title_new">Nouveau thème</string>
+    <string name="theme_title_system">Thème du système</string>
+
+    <string name="queue_shuffle">Mélanger</string>
+    <string name="queue_clear">Effacer</string>
+
+    <string name="playlist_upload_to_account">Télécharger sur le compte</string>
+
+    <string name="sort_type_playlist">Ordre de la liste de lecture</string>
+    <string name="sort_type_alphabet">Nom</string>
+    <string name="sort_type_duration">Durée</string>
+    <string name="sort_type_playcount">Nombre d'écoutes</string>
+    <string name="sort_type_artist">Artiste</string>
+
+    <string name="playlist_chip_play">Lire</string>
+    <string name="playlist_chip_shuffle">Mélanger</string>
+    <string name="playlist_chip_radio">Radio</string>
+    <string name="playlist_chip_details">Détails</string>
+    <string name="playlist_chip_open">Ouvrir</string>
+    <string name="playlist_x_songs">$x titres</string>
+
+    <string name="artist_chip_play">Lire</string>
+    <string name="artist_chip_shuffle">Mélanger</string>
+    <string name="artist_chip_radio">Radio</string>
+    <string name="artist_chip_details">Détails</string>
+    <string name="artist_chip_open">Ouvrir</string>
+    <string name="artist_info_label">Infos sur l'artiste</string>
+
+    <string name="artist_x_subscribers">$x abonnés</string>
+
+    <string name="loading_feed">Chargement du flux</string>
+
+    <string name="media_pause">Pause</string>
+    <string name="media_play">Lecture</string>
+
+    <string name="player_service_name">Service de lecture</string>
+    <string name="download_service_name">Service de téléchargement</string>
+    <string name="download_service_error_name">Erreurs du service de téléchargement</string>
+
+    <string name="downloading_song_$title">Téléchargement de $title</string>
+    <string name="downloading_$x_songs">Téléchargement de $x titre(s)</string>
+    <string name="download_just_started">Vient de commencer</string>
+    <string name="download_started_$x_minutes_ago">Commencé il y a $x min(s)</string>
+
+    <string name="download_method_select_title">Sélectionner la méthode de téléchargement</string>
+    <string name="download_method_title_library">Bibliothèque</string>
+    <string name="download_method_desc_library">Télécharger dans le dossier de bibliothèque de SpMp</string>
+    <string name="download_method_title_custom">Personnalisé</string>
+    <string name="download_method_desc_custom">Télécharger dans un emplacement spécifique</string>
+
+    <string name="search_filter_all">Tout</string>
+    <string name="search_filter_videos">Vidéos</string>
+    <string name="search_entry_field_hint">Rechercher</string>
+    <string name="search_results_loading">Chargement</string>
+    <string name="search_suggested_correction_$x">Vouliez-vous dire $x ?</string>
+
+    <string name="lyrics_none_found">Aucune paroles trouvées</string>
+    <string name="lyrics_no_more_results">Fin des résultats</string>
+    <string name="lyrics_search_on_$source">Rechercher les paroles sur $source</string>
+    <string name="lyrics_loading">Chargement des paroles</string>
+    <string name="lyrics_source_cannot_search">La source ne prend pas en charge la recherche</string>
+    <string name="lyrics_sync_long_press_line">Appuyez longuement sur la ligne pour synchroniser par</string>
+    <string name="lyrics_sync_press_button_when_line_begins">Appuyez sur le bouton lorsque cette ligne commence</string>
+    <string name="lyrics_no_lyrics_set_confirmation_title">Désactiver les paroles pour cette chanson ?</string>
+    <string name="lyrics_no_lyrics_set_for_song">Les paroles ont été désactivées manuellement pour ce titre</string>
+
+    <string name="lyrics_info_key_source">Source</string>
+    <string name="lyrics_info_key_id">ID</string>
+    <string name="lyrics_info_key_sync_type">Type de synchronisation</string>
+    <string name="lyrics_info_key_local_file">Fichier local</string>
+    <string name="lyrics_source_petit">PetitLyrics</string>
+    <string name="lyrics_source_kugou">KuGou</string>
+    <string name="lyrics_source_ytm">YouTube Music</string>
+
+    <string name="lyrics_sync_none">Aucune synchronisation</string>
+    <string name="lyrics_sync_line">Synchronisation par ligne</string>
+    <string name="lyrics_sync_word">Synchronisation par mot</string>
+
+    <string name="video_format_endpoint_piped">API Piped</string>
+    <string name="video_format_endpoint_youtubei">Youtubei</string>
+    <string name="video_format_endpoint_newpipe">NewPipe</string>
+
+    <string name="error_message_generic">Une erreur s'est produite</string>
+    <string name="error_yt_feed_parse_failed">Échec de l'analyse du flux YouTube</string>
+    <string name="error_player_service_not_connected">Le service de lecture ne se connecte pas&#xA;Un bug s'est peut-être produit</string>
+    <string name="error_on_server_command_execution">Une erreur s'est produite lors de l'appel de la commande du serveur</string>
+
+    <string name="desktop_splash_connecting_to_server_at_$x">Connexion au serveur à $x</string>
+    <string name="desktop_splash_setting_initial_state">Configuration de l'état initial</string>
+    <string name="desktop_splash_button_configure_connection">Configurer la connexion</string>
+    <string name="desktop_splash_title_configure_server_connection">Configurer la connexion au serveur</string>
+    <string name="desktop_splash_button_start_server">Démarrer le serveur local</string>
+    <string name="desktop_splash_button_stop_process">Arrêter le processus</string>
+    <string name="desktop_splash_process_running_with_command_$x">Processus en cours d'exécution avec cette commande :&#xA;$x</string>
+    <string name="desktop_splash_local_server_command_not_set">Commande du serveur local non définie</string>
+
+    <string name="throw_error">Lancer</string>
+    <string name="report_error">Signaler</string>
+    <string name="wrap_text_switch_label">Envelopper le texte</string>
+    <string name="upload_to_paste_dot_ee">Télécharger sur Paste.ee</string>
+    <string name="error_info_display_show_json_data">Afficher les données JSON</string>
+
+    <string name="lpm_action_radio">Démarrer la radio</string>
+    <string name="lpm_action_play">Lecture</string>
+    <string name="lpm_action_shuffle_playlist">Mélanger</string>
+    <string name="lpm_action_play_after_1_song">Lire après le prochain titre</string>
+    <string name="lpm_action_play_after_x_songs">Lire après $x titres</string>
+    <string name="lpm_action_download">Télécharger</string>
+    <string name="lpm_action_delete_local_song_file">Supprimer le fichier local</string>
+    <string name="lpm_action_go_to_artist">Aller à l'artiste</string>
+    <string name="lpm_action_go_to_album">Ouvrir l'album</string>
+    <string name="lpm_action_song_related">Afficher le contenu lié à la chanson</string>
+    <string name="lpm_action_print_info">Afficher les informations</string>
+    <string name="lpm_action_share">Partager</string>
+    <string name="lpm_action_open_artist">Ouvrir</string>
+    <string name="lpm_action_open_playlist">Ouvrir</string>
+    <string name="lpm_action_open_external">Ouvrir avec une application externe</string>
+    <string name="lpm_action_hide">Masquer</string>
+
+    <string name="lpm_long_press_actions">Actions appui long</string>
+    <string name="lpm_action_radio_at_song_pos">Démarrer la radio à la position du titre dans la file d'attente</string>
+    <string name="lpm_action_radio_after_x_songs">Démarrer la radio après X titre(s)</string>
+    <string name="lpm_action_play_shuffled_after_x_songs">Lire en mode aléatoire après X titre(s)</string>
+    <string name="lpm_song_now_playing">En cours de lecture</string>
+    <string name="lpm_song_played_$x_ago">Jouée il y a $x</string>
+    <string name="lpm_song_playing_in_$x">Lecture dans $x</string>
+
+    <string name="lpm_info_queue_index">Index de la file d'attente : $index</string>
+    <string name="lpm_info_id">ID : $id</string>
+
+    <string name="song_related_group_other">Autre</string>
+
+    <string name="multiselect_x_items_selected">$x éléments sélectionnés</string>
+    <string name="multiselect_begin">Commencer la sélection multiple</string>
+    <string name="multiselect_end">Terminer la sélection multiple</string>
+
+    <string name="topbar_mode_unavailable">(Indisponible)</string>
+
+    <string name="notif_download_finished">Téléchargement terminé</string>
+    <string name="notif_download_already_finished">Déjà téléchargé</string>
+    <string name="notif_download_cancelled">Le téléchargement a été annulé</string>
+    <string name="notif_download_already_downloading">Déjà en cours de téléchargement</string>
+    <string name="notif_copied_to_clipboard">Copié dans le presse-papiers</string>
+    <string name="notif_copied_x_to_clipboard">Copié $x dans le presse-papiers</string>
+
+    <string name="radio_builder_title">Créer une radio</string>
+    <string name="radio_builder_no_songs_match_criteria">Aucun titre ne correspond aux critères</string>
+    <string name="radio_builder_next_button">Suivant</string>
+    <string name="radio_builder_play_last_button">Lire la dernière radio</string>
+    <string name="radio_builder_recent_button">Radios récentes</string>
+    <string name="radio_builder_artists_title">Sélectionner des artistes</string>
+    <string name="radio_builder_modifiers_title">Sélectionner des préférences</string>
+    <string name="radio_builder_modifier_selection_type">Type de sélection des titres</string>
+    <string name="radio_builder_modifier_selection_type_familiar">Familier</string>
+    <string name="radio_builder_modifier_selection_type_blend">Mélanger</string>
+    <string name="radio_builder_modifier_selection_type_discover">Recommandé</string>
+    <string name="radio_builder_modifier_variety">Variété des artistes</string>
+    <string name="radio_builder_modifier_variety_low">Faible</string>
+    <string name="radio_builder_modifier_variety_medium">Moyenne</string>
+    <string name="radio_builder_modifier_variety_high">Élevée</string>
+    <string name="radio_builder_modifier_filter_a">Filtrer</string>
+    <string name="radio_builder_modifier_filter_a_popular">Populaire</string>
+    <string name="radio_builder_modifier_filter_a_hidden">Caché</string>
+    <string name="radio_builder_modifier_filter_a_new">Nouveau</string>
+    <string name="radio_builder_modifier_filter_b">Genre</string>
+    <string name="radio_builder_modifier_filter_pump_up">Motivant</string>
+    <string name="radio_builder_modifier_filter_chill">Détente</string>
+    <string name="radio_builder_modifier_filter_upbeat">Animé</string>
+    <string name="radio_builder_modifier_filter_downbeat">Calme</string>
+    <string name="radio_builder_modifier_filter_focus">Concentration</string>
+    <string name="radio_filter_all">Tout</string>
+
+    <string name="radio_title_of_$artists">Radio de $artists</string>
+    <string name="radio_title_artists_splitter">, </string>
+    <string name="radio_title_overflow">…</string>
+
+    <string name="settings_string_set_item_empty">Aucun élément ajouté</string>
+    <string name="settings_string_set_item_already_added">Élément déjà ajouté</string>
+    <string name="settings_value_out_of_$range">Hors de la plage ($range)</string>
+    <string name="settings_value_not_int">Pas un entier</string>
+    <string name="settings_value_not_float">Pas un nombre décimal</string>
+    <string name="settings_value_not_ipv4">Pas une adresse IPv4 valide</string>
+    <string name="settings_value_not_port">Pas un port valide</string>
+
+    <string name="s_page_preferences">Paramètres</string>
+
+    <string name="s_key_interface_lang">Langue de l'interface</string>
+    <string name="s_sub_interface_lang">Langue utilisée pour le texte de l'interface</string>
+    <string name="s_key_data_lang">Langue des données</string>
+    <string name="s_sub_data_lang">Langue utilisée pour les titres de chansons et d'artistes, etc.</string>
+    <string name="language_change_restart_notice">Un redémarrage de l'application est nécessaire pour que les modifications de langue et de police prennent effet</string>
+    <string name="s_group_long_press_menu">Menu appui long</string>
+    <string name="s_key_lpm_close_on_action">Fermer le menu lors d'une action</string>
+    <string name="s_key_lpm_increment_play_after">Incrémenter l'action "Lire après" lors de son utilisation</string>
+    <string name="s_key_desktop_lpm_keep_on_background_scroll">Conserver le menu lors du défilement</string>
+    <string name="s_sub_desktop_lpm_keep_on_background_scroll">Lors du défilement de la vue derrière le menu, le menu sera déplacé dans un coin au lieu d'être masqué</string>
+
+    <string name="s_key_filter_enable">Activer le filtre d'éléments</string>
+    <string name="s_key_filter_title_keywords">Mots-clés du filtre de titre</string>
+    <string name="s_sub_filter_title_keywords">Si le titre d'un élément contient l'un de ces mots-clés, il sera masqué</string>
+    <string name="s_key_filter_apply_to_playlist_items">Appliquer le filtre aux éléments de la liste de lecture</string>
+    <string name="s_key_filter_apply_to_artists">Appliquer le filtre aux artistes</string>
+    <string name="s_key_filter_apply_to_artist_items">Appliquer le filtre aux éléments d'artiste</string>
+    <string name="s_filter_title_keywords_dialog_title">Ajouter un mot-clé</string>
+
+    <string name="s_key_hp_show_visualiser">Afficher le visualiseur de musique</string>
+    <string name="s_sub_hp_show_visualiser">Affiché dans la barre supérieure pendant la lecture</string>
+    <string name="s_key_hp_show_timed_lyrics">Afficher les paroles synchronisées</string>
+    <string name="s_sub_hp_show_timed_lyrics">Les paroles synchronisées apparaîtront dans la barre supérieure si elles sont disponibles</string>
+
+    <string name="s_key_feed_show_filter_bar">Afficher la barre de filtre</string>
+    <string name="s_sub_feed_show_filter_bar">Si elle est masquée, la page de recherche peut toujours être consultée en appuyant longuement sur le bouton de recherche de la bibliothèque</string>
+    <string name="s_key_feed_show_song_download_indicators">Afficher les indicateurs de téléchargement des titres</string>
+    <string name="s_key_feed_initial_rows">Lignes initiales de la liste du flux</string>
+    <string name="s_key_feed_square_preview_text_lines">Nombre maximal de lignes de texte dans un élément carré</string>
+    <string name="s_key_feed_grid_row_count">Nombre de lignes par défaut dans la grille</string>
+    <string name="s_key_feed_grid_row_count_expanded">Nombre de lignes étendues dans la grille</string>
+    <string name="s_key_feed_alt_grid_row_count">Nombre de lignes par défaut dans la grille alternative</string>
+    <string name="s_key_feed_alt_grid_row_count_expanded">Nombre de lignes étendues dans la grille alternative</string>
+    <string name="s_sub_feed_initial_rows">Nombre minimal de lignes du flux à charger automatiquement</string>
+    <string name="s_key_feed_show_radios">Afficher les éléments radio dans le flux</string>
+    <string name="s_key_hidden_feed_rows">Lignes masquées</string>
+    <string name="s_sub_hidden_feed_rows">Les lignes peuvent également être masquées en appuyant longuement sur leur titre</string>
+    <string name="s_hidden_feed_rows_dialog_title">Masquer la ligne par titre</string>
+
+    <string name="s_key_open_np_on_song_played">Ouvrir le lecteur lorsqu'une chanson est cliquée</string>
+    <string name="s_sub_open_np_on_song_played">Le menu de lecture en cours s'ouvrira automatiquement lorsqu'un titre est cliqué et lancé</string>
+
+    <string name="s_key_multiselect_cancel_on_action">Annuler la sélection multiple après une action</string>
+    <string name="s_sub_multiselect_cancel_on_action">Désactivez les états de sélection multiple des éléments multimédias une fois qu'une action a été effectuée</string>
+
+    <string name="s_key_multiselect_cancel_on_none_selected">Annuler la sélection multiple une fois que rien n'est sélectionné</string>
+
+    <string name="s_key_start_radio_on_song_press">Démarrer la radio lors de la pression sur un titre</string>
+    <string name="s_sub_start_radio_on_song_press">Au lieu de jouer simplement le titre, sa radio YouTube sera ajoutée à la file d'attente</string>
+
+    <string name="s_key_persistent_queue">File d'attente de titre persistante</string>
+    <string name="s_sub_persistent_queue">La file d'attente de titre persistera même en fermant l'application</string>
+
+    <string name="s_key_add_songs_to_history">Ajouter la chanson à l'historique YouTube</string>
+    <string name="s_sub_add_songs_to_history">Les titres écoutés seront envoyés à YouTube et ajoutés à l'historique du compte</string>
+
+    <string name="s_key_treat_singles_as_song">Considérer les singles comme un titre</string>
+    <string name="s_sub_treat_singles_as_song">Les listes de lecture contenues dans l'onglet "Singles" de la page d'un artiste seront considérées comme le titre contenu, s'il n'y en a qu'un seul</string>
+
+    <string name="s_key_treat_any_single_item_playlist_as_single">Considérer toutes les listes de lecture à un seul élément comme des singles</string>
+
+    <string name="s_key_font">Police de caractères</string>
+    <string name="s_key_ui_scale">Échelle de l'interface utilisateur</string>
+
+    <string name="s_key_stop_player_on_app_close">Arrêter le lecteur à la fermeture de l'application</string>
+    <string name="s_sub_stop_player_on_app_close">Le lecteur de musique sera arrêté si l'application est supprimée des applications récentes</string>
+
+    <string name="s_key_mini_player_show_prev_button">Afficher le bouton précédent dans le mini lecteur</string>
+    <string name="s_key_mini_player_overscroll_clear_enabled">Faites glisser vers le bas le mini lecteur pour effacer la file d'attente</string>
+    <string name="s_key_mini_player_overscroll_clear_time">Temps de maintien du glissement pour effacer</string>
+    <string name="s_key_mini_player_overscroll_clear_mode">Lors de l'effacement</string>
+    <string name="s_option_mini_player_overscroll_clear_mode_always_hide">Toujours masquer le lecteur</string>
+    <string name="s_option_mini_player_overscroll_clear_mode_hide_if_queue_empty">Masquer le lecteur si la file d'attente est vide</string>
+    <string name="s_option_mini_player_overscroll_clear_mode_none_if_queue_empty">Effacer uniquement la file d'attente</string>
+
+    <string name="s_key_player_show_repeat_shuffle_buttons">Afficher les boutons de répétition et de lecture aléatoire dans le lecteur</string>
+    <string name="s_sub_player_show_repeat_shuffle_buttons">Ils seront affichés dans la file d'attente indépendamment de cette option</string>
+
+    <string name="s_key_player_show_progress_bar_gradient">Afficher un dégradé dans la barre de recherche</string>
+
+    <string name="s_key_player_overlay_menu_custom_action">Action personnalisée du menu superposé</string>
+    <string name="s_sub_player_overlay_menu_custom_action">Par défaut, se déclenche lors d'un appui long</string>
+    <string name="s_key_player_overlay_menu_swap_long_short_press_actions">Permuter les actions d'appui long et d'appui court du menu superposé</string>
+
+    <string name="s_key_np_queue_item_swipe_sensitivity">Sensibilité de balayage des éléments de la file d'attente</string>
+    <string name="s_sub_np_queue_item_swipe_sensitivity">Diminuer si les éléments de la file d'attente sont facilement supprimés par accident</string>
+
+    <string name="s_key_np_queue_extra_side_padding">Ajouter un espacement supplémentaire aux côtés de la file d'attente</string>
+    <string name="s_sub_np_queue_extra_side_padding">Utiliser pour augmenter la zone de balayage pour supprimer</string>
+
+    <string name="s_key_np_queue_wave_border_mode">Mode de bordure d'ondulation de la file d'attente</string>
+    <string name="s_sub_np_queue_wave_border_mode">Mode d'animation de la bordure d'ondulation entre les titres en file d'attente et les boutons d'options</string>
+    <string name="s_option_wave_border_mode_time">Animer au fil du temps</string>
+    <string name="s_option_wave_border_mode_time_sync">Animer au fil du temps pendant la lecture</string>
+    <string name="s_option_wave_border_mode_scroll">Animer lors du défilement de la file d'attente</string>
+    <string name="s_option_wave_border_mode_none">Pas d'animation</string>
+    <string name="s_option_wave_border_mode_line">Bordure en ligne</string>
+
+    <string name="s_key_np_queue_radio_info_position">Position des informations sur la radio dans la file d'attente</string>
+    <string name="s_option_np_queue_radio_info_top_bar">Barre de boutons</string>
+    <string name="s_option_np_queue_radio_info_above_items">Au-dessus des éléments de la file d'attente</string>
+
+    <string name="s_key_resume_on_bt_connect">Reprise lors de la connexion d'un appareil Bluetooth</string>
+    <string name="s_sub_resume_on_bt_connect">Si la lecture a été mise en pause par une déconnexion de l'appareil, la lecture reprendra lorsqu'un appareil audio Bluetooth sera connecté</string>
+    <string name="s_key_pause_on_bt_disconnect">Mettre en pause lors de la déconnexion d'un appareil Bluetooth</string>
+    <string name="s_key_resume_on_wired_connect">Reprise lors de la connexion d'un appareil filaire</string>
+    <string name="s_sub_resume_on_wired_connect">Si la lecture a été mise en pause par une déconnexion de l'appareil, la lecture reprendra lorsqu'un appareil audio filaire sera connecté</string>
+    <string name="s_key_pause_on_wired_disconnect">Mettre en pause lors de la déconnexion d'un appareil filaire</string>
+
+    <string name="s_key_library_path">Chemin de stockage de la bibliothèque</string>
+    <string name="s_sub_library_path">Emplacement à utiliser pour stocker les listes de lecture et les titres locaux</string>
+    <string name="s_key_show_likes_playlist">Afficher la liste de lecture des favoris</string>
+
+    <string name="s_key_current_theme">Thème actuel</string>
+    <string name="s_theme_editor_title">Modifier le thème</string>
+    <string name="s_theme_editor_field_name">Nom</string>
+    <string name="s_theme_editor_field_background">Arrière-plan</string>
+    <string name="s_theme_editor_field_on_background">Sur l'arrière-plan</string>
+    <string name="s_theme_editor_field_card">Carte</string>
+    <string name="s_theme_editor_field_accent">Accent</string>
+    <string name="s_theme_editor_button_preview">Aperçu</string>
+
+    <string name="s_key_accent_source">Couleur d'accent</string>
+    <string name="s_option_accent_theme">À partir du thème</string>
+    <string name="s_option_accent_thumbnail">À partir de la miniature</string>
+
+    <string name="s_key_np_theme_mode">Mode de thème de lecture en cours</string>
+    <string name="s_option_np_accent_background">Fond de couleur avec accent</string>
+    <string name="s_option_np_accent_elements">Éléments de couleur avec accent</string>
+    <string name="s_option_np_accent_none">Ne pas utiliser de couleur d'accent</string>
+
+    <string name="s_key_np_default_gradient_depth">Profondeur de dégradé par défaut</string>
+    <string name="s_key_np_default_background_image_opacity">Opacité par défaut de l'image d'arrière-plan en mode paysage</string>
+    <string name="s_key_np_default_shadow_radius">Taille d'ombre par défaut</string>
+    <string name="s_key_np_default_image_corner_rounding">Arrondi par défaut des coins des images</string>
+
+    <string name="s_key_show_expanded_player_wave">Afficher l'onde du lecteur étendue</string>
+
+    <string name="s_group_theming_desktop">Options uniquement pour le bureau</string>
+
+    <string name="s_key_enable_window_transparency">Activer la transparence de la fenêtre</string>
+    <string name="s_sub_enable_window_transparency">Redémarrage requis pour que le changement s'applique</string>
+    <string name="s_key_window_background_opacity">Opacité de l'arrière-plan de la fenêtre</string>
+    <string name="s_sub_window_background_opacity">La transparence de la fenêtre doit être activée pour que cela prenne effet</string>
+
+    <string name="s_key_lyrics_default_source">Source de paroles par défaut</string>
+
+    <string name="s_key_lyrics_follow_enabled">Suivre la ligne actuelle</string>
+    <string name="s_sub_lyrics_follow_enabled">Lors de l'affichage de paroles synchronisées, faire défiler automatiquement jusqu'à la ligne actuelle</string>
+
+    <string name="s_key_lyrics_follow_offset">Position de la ligne suivie</string>
+    <string name="s_sub_lyrics_follow_offset">Lors du défilement jusqu'à la ligne actuelle, position dans la vue pour placer la ligne</string>
+    <string name="s_option_lyrics_follow_offset_top">Haut</string>
+    <string name="s_option_lyrics_follow_offset_bottom">Bas</string>
+
+    <string name="s_key_lyrics_default_furigana">Afficher les furigana par défaut</string>
+
+    <string name="s_key_lyrics_text_alignment">Alignement du texte</string>
+    <string name="s_option_lyrics_text_alignment_left">Gauche</string>
+    <string name="s_option_lyrics_text_alignment_center">Centre</string>
+    <string name="s_option_lyrics_text_alignment_right">Droite</string>
+
+    <string name="s_key_lyrics_extra_padding">Rembourrage supplémentaire</string>
+    <string name="s_sub_lyrics_extra_padding">Ajouter un rembourrage supplémentaire au-dessus et en dessous des paroles pour augmenter la plage de défilement</string>
+
+    <string name="s_key_lyrics_enable_word_sync">Activer la synchronisation des mots</string>
+    <string name="s_sub_lyrics_enable_word_sync">Lorsque disponible, la synchronisation des paroles sera affichée par mot au lieu de par ligne</string>
+
+    <string name="s_key_lyrics_font_size">Taille de la police</string>
+
+    <string name="s_key_lyrics_top_bar_enable">Activer les paroles dans la barre supérieure</string>
+    <string name="s_key_lyrics_top_bar_max_lines">Nombre maximal de lignes</string>
+    <string name="s_key_lyrics_top_bar_preapply_max_lines">Pré-allouer l'espace nécessaire pour afficher le nombre maximal de lignes</string>
+    <string name="s_key_lyrics_sync_delay">Délai de synchronisation des paroles</string>
+    <string name="s_sub_lyrics_sync_delay">Un délai en secondes appliqué à la synchronisation des paroles</string>
+    <string name="s_key_lyrics_sync_delay_topbar">Délai de synchronisation des paroles dans la barre supérieure</string>
+    <string name="s_sub_lyrics_sync_delay_topbar">Un délai supplémentaire appliqué uniquement aux paroles dans la barre supérieure</string>
+    <string name="s_key_lyrics_sync_delay_bluetooth">Délai de synchronisation des paroles via Bluetooth</string>
+    <string name="s_sub_lyrics_sync_delay_bluetooth">Un délai supplémentaire appliqué uniquement lors de l'écoute avec un périphérique audio Bluetooth</string>
+
+    <string name="s_key_top_bar_lyrics_show_furigana">Afficher les furigana</string>
+    <string name="s_key_top_bar_lyrics_show_in_library">Afficher dans la bibliothèque</string>
+    <string name="s_key_top_bar_lyrics_show_in_radiobuilder">Afficher dans le générateur de radio</string>
+    <string name="s_key_top_bar_lyrics_show_in_settings">Afficher dans les paramètres</string>
+    <string name="s_key_top_bar_lyrics_show_in_login">Afficher dans les pages de connexion</string>
+    <string name="s_key_top_bar_lyrics_show_in_playlist">Afficher dans les pages de playlist</string>
+    <string name="s_key_top_bar_lyrics_show_in_artist">Afficher dans les pages d'artiste</string>
+    <string name="s_key_top_bar_lyrics_show_in_viewmore">Afficher dans les pages "Voir plus" du flux principal</string>
+    <string name="s_key_top_bar_lyrics_show_in_search">Afficher dans la page de recherche</string>
+
+    <string name="s_key_stream_audio_quality">Qualité audio en streaming</string>
+    <string name="s_sub_stream_audio_quality">Qualité audio cible lors de l'écoute en streaming</string>
+    <string name="s_key_download_audio_quality">Qualité audio lors du téléchargement</string>
+    <string name="s_sub_download_audio_quality">Qualité audio par défaut lors du téléchargement de musique</string>
+
+    <string name="s_option_audio_quality_high">Élevée</string>
+    <string name="s_option_audio_quality_medium">Moyenne</string>
+    <string name="s_option_audio_quality_low">Faible</string>
+
+    <string name="s_key_video_formats_endpoint">Méthode de diffusion/téléchargement des titres</string>
+
+    <string name="s_key_auto_download_enabled">Activer le téléchargement automatique des titres</string>
+    <string name="s_key_auto_download_threshold">Seuil de téléchargement automatique</string>
+    <string name="s_sub_auto_download_threshold">Les titres que vous avez écoutés au moins ce nombre de fois seront automatiquement téléchargés</string>
+    <string name="s_key_auto_download_quality">Qualité de téléchargement automatique</string>
+    <string name="s_sub_auto_download_quality">Qualité audio des titres téléchargés automatiquement</string>
+    <string name="s_key_auto_download_on_metered">Téléchargement automatique sur connexion limitée</string>
+
+    <string name="s_cat_stats">Statistiques d'écoute</string>
+
+    <string name="s_key_enable_stats">Activer les statistiques d'écoute</string>
+    <string name="s_sub_enable_stats">Si désactivé, les statistiques d'écoute ne seront pas enregistrées</string>
+    <string name="s_key_listen_count_threshold">Durée d'écoute minimale pour être comptabilisée</string>
+    <string name="s_sub_listen_count_threshold">Le nombre d'écoutes d'un titre sera incrémenté uniquement lorsqu'il aura été écouté pendant au moins cette durée</string>
+    <string name="s_key_listen_count_type">Type de durée d'écoute minimale</string>
+    <string name="soption_listen_count_threshold_type_absolute">Absolue</string>
+    <string name="s_option_listen_count_threshold_type_percent">Pourcentage</string>
+    <string name="s_button_reset_stats">Réinitialiser les statistiques d'écoute</string>
+    <string name="s_confirm_reset_stats">Toutes les statistiques enregistrées seront supprimées</string>
+
+    <string name="s_key_search_show_suggestions">Afficher les suggestions de recherche</string>
+    <string name="s_key_navbar_height_multiplier">Multiplicateur de hauteur de la barre de navigation</string>
+    <string name="s_sub_navbar_height_multiplier">Utiliser si votre système ne signale pas correctement la hauteur de la barre de navigation (nécessite le redémarrage de l'application)</string>
+
+    
+    <string name="s_key_enable_audio_normalisation">Activer la normalisation audio</string>
+    <string name="s_sub_enable_audio_normalisation">La disponibilité peut être limitée à certaines vidéos, car les données d'intensité sonore sont fournies par YouTube</string>
+
+    <string name="s_key_enable_silence_skipping">Activer la suppression des silences</string>
+
+    <string name="s_key_download_method">Méthode de téléchargement</string>
+    <string name="s_sub_download_method">La méthode à utiliser lors du téléchargement manuel d'un titre</string>
+    <string name="s_key_skip_download_method_confirmation">Ignorer la confirmation de la méthode de téléchargement</string>
+    <string name="s_sub_skip_download_method_confirmation">Si vrai, la méthode de téléchargement par défaut sera utilisée immédiatement lors du démarrage d'un téléchargement</string>
+    <string name="s_key_status_webhook_url">URL du webhook d'état</string>
+    <string name="s_sub_status_webhook_url">Lorsque la chanson en cours de lecture change, une requête POST JSON sera envoyée à cette URL dans le format suivant : `{"youtube_video_id": "&lt;ID de la vidéo&gt;"}`</string>
+
+    <string name="s_key_status_webhook_payload">Payload du webhook d'état</string>
+    <string name="s_sub_status_webhook_payload">Données JSON supplémentaires à envoyer au webhook d'état</string>
+
+    <string name="s_group_caching">Mise en cache</string>
+    <string name="s_key_enable_thumbnail_cache">Activer la mise en cache des miniatures</string>
+
+    <string name="s_discord_status_enabled">Le statut Discord est activé</string>
+    <string name="s_discord_status_disabled">Le statut Discord est désactivé</string>
+    <string name="s_discord_status_enable">Activer</string>
+    <string name="s_discord_status_disable">Désactiver</string>
+
+    <string name="s_group_desktop_system">Système</string>
+
+    <string name="s_key_startup_command">Commande de démarrage</string>
+    <string name="s_sub_startup_command">Commande à exécuter au démarrage du programme</string>
+
+    <string name="s_group_server">Serveur</string>
+    <string name="s_info_server">Le composant serveur SpMp (SpMs) doit être en cours d'exécution à l'adresse IP et au port spécifiés. https://github.com/toasterofbread/spmp-server</string>
+
+    <string name="s_key_server_ip">Adresse IP du serveur</string>
+    <string name="s_key_server_port">Port du serveur</string>
+    <string name="s_key_local_server_command">Commande du serveur</string>
+    <string name="s_sub_local_server_command">Commande à exécuter lors du démarrage manuel du serveur depuis SpMp&#xA;. La première occurrence de '$@' sera remplacée par les arguments du serveur, sinon ils seront ajoutés à la commande</string>
+    <string name="s_key_server_local_start_automatically">Démarrer automatiquement le serveur local</string>
+    <string name="s_sub_server_local_start_automatically">Au démarrage, si aucun serveur n'est trouvé immédiatement, un serveur sera démarré automatiquement en utilisant la commande spécifiée</string>
+    <string name="s_key_server_kill_child_on_exit">Arrêter le serveur enfant à la sortie</string>
+
+    <string name="s_cat_development">Développement</string>
+
+    <string name="s_subpage_ui_debug_info">Informations de débogage de l'interface utilisateur</string>
+
+    <string name="s_group_localisation">Localisation</string>
+    <string name="s_key_unlocalised_strings">Chaînes non localisées</string>
+    <string name="s_sub_unlocalised_strings">Chaînes qui n'ont pas été localisées pour la langue actuelle</string>
+
+    <string name="s_group_discord_status_disable_when">Désactiver le statut lorsque</string>
+    <string name="s_key_discord_status_disable_when_invisible">Invisible</string>
+    <string name="s_key_discord_status_disable_when_dnd">Ne pas déranger</string>
+    <string name="s_key_discord_status_disable_when_idle">Inactif</string>
+    <string name="s_key_discord_status_disable_when_offline">Hors ligne</string>
+    <string name="s_key_discord_status_disable_when_online">En ligne</string>
+
+    <string name="s_group_discord_status_content">Contenu du statut</string>
+    <string name="s_discord_status_text_info">Pour afficher des informations sur la chanson en cours, utilisez les chaînes ci-dessous :&#xA;- $song&#xA;- $artist</string>
+
+    <string name="s_key_discord_status_name">Titre du statut</string>
+    <string name="s_sub_discord_status_name">Le texte affiché après "Écoute"</string>
+    <string name="s_key_discord_status_text_a">Texte principal du statut</string>
+    <string name="s_sub_discord_status_text_a"></string>
+    <string name="s_key_discord_status_text_b">Texte secondaire du statut</string>
+    <string name="s_sub_discord_status_text_b"></string>
+    <string name="s_key_discord_status_text_c">Texte tertiaire du statut</string>
+    <string name="s_sub_discord_status_text_c">Utilisé également pour le texte contextuel de l'image</string>
+
+    <string name="s_key_discord_status_show_button_song">Afficher le bouton "Ouvrir la chanson"</string>
+    <string name="s_sub_discord_status_show_button_song">Ouvre la chanson en cours sur YouTube Music</string>
+    <string name="s_key_discord_status_button_song_text">Texte du bouton "Ouvrir la chanson"</string>
+
+    <string name="s_key_discord_status_show_button_project">Afficher le bouton "Ouvrir la page du projet"</string>
+    <string name="s_sub_discord_status_show_button_project">Ouvre le dépôt du projet sur GitHub</string>
+    <string name="s_key_discord_status_button_project_text">Texte du bouton "Ouvrir la page du projet"</string>
+
+    <string name="s_key_topbar_lyrics_linger">Durée d'affichage des paroles</string>
+    <string name="s_sub_topbar_lyrics_linger">Lorsqu'une ligne se termine, elle restera visible jusqu'à ce que la ligne suivante commence</string>
+    <string name="s_key_topbar_visualiser_width">Largeur du visualiseur</string>
+    <string name="s_key_topbar_show_lyrics_in_queue">Afficher les paroles dans la file de lecture de musique</string>
+    <string name="s_key_topbar_show_visualiser_in_queue">Afficher le visualiseur dans la file de lecture de musique</string>
+    <string name="s_key_topbar_display_over_artist_image">Afficher par-dessus l'image principale sur la page de l'artiste</string>
+
+    <string name="s_cat_general">Général</string>
+    <string name="s_cat_desc_general">Langue et autres options</string>
+
+    <string name="s_cat_behaviour">Comportement</string>
+    <string name="s_cat_desc_behaviour">Divers ajustements d'affichage et d'action</string>
+
+    <string name="s_cat_player">Lecteur</string>
+    <string name="s_cat_desc_player">Ajuster l'affichage du lecteur de musique</string>
+
+    <string name="s_cat_feed">Flux de titres</string>
+    <string name="s_cat_desc_feed">Sélectionner manuellement des recommandations de titres</string>
+
+    <string name="s_cat_theme">Thèmes</string>
+    <string name="s_cat_desc_theme">Personnaliser les couleurs de l'application et changer la source d'accentuation</string>
+
+    <string name="s_cat_lyrics">Paroles</string>
+    <string name="s_cat_desc_lyrics">Apparence et comportement des paroles</string>
+
+    <string name="s_cat_topbar">Barre supérieure de musique</string>
+    <string name="s_cat_desc_topbar">Afficher, masquer et personnaliser la barre supérieure</string>
+
+    <string name="s_cat_discord_status">Statut sur Discord</string>
+    <string name="s_cat_desc_discord_status">Gérer le compte Discord et personnaliser l'apparence du statut</string>
+
+    <string name="s_cat_filter">Filtre</string>
+    <string name="s_cat_desc_filter">Masquer des titres et des listes de lecture par mot-clé</string>
+    
+    <string name="s_cat_streaming">Lecture</string>
+    <string name="s_cat_desc_streaming">Qualité audio et paramètres de lecture</string>
+
+    <string name="s_cat_desktop">Bureau</string>
+    <string name="s_cat_desc_desktop">Configuration spécifique à la plateforme</string>
+
+    <string name="s_cat_misc">Autre</string>
+    <string name="s_cat_desc_misc">Cache et autres options diverses</string>
+
+    <string name="s_cat_youtube_auth">Identifiants YouTube</string>
+    <string name="s_cat_discord_auth">Identifiants Discord</string>
+
+    <string name="song_related_page_no_content">Le titre n'a pas de contenu associé</string>
+    <string name="song_related_page_empty_row">Aucun contenu</string>
+
+    <string name="discord_status_default_name">$artist</string>
+    <string name="discord_status_default_text_a">$song</string>
+    <string name="discord_status_default_text_b">$artist</string>
+    <string name="discord_status_default_text_c">Écoute sur SpMp</string>
+    <string name="discord_status_default_button_song">Ouvrir le titre sur YouTube</string>
+    <string name="discord_status_default_button_project">Visiter la page du projet</string>
+    <string name="discord_status_unknown_artist_replacement">Inconnu</string>
+
+    <string name="control_panel_downloads_label">Téléchargements</string>
+    <string name="control_panel_downloads_title">Téléchargements en cours</string>
+    <string name="control_panel_downloads_in_progress">En cours</string>
+    <string name="control_panel_downloads_completed">Terminés</string>
+
+    <string name="control_panel_server_label">Serveur</string>
+    <string name="control_panel_server_title">État du serveur</string>
+    <string name="control_panel_server_connected_to_server">Connecté au serveur</string>
+    <string name="control_panel_server_ip_address_$x">Adresse IP : $x</string>
+    <string name="control_panel_server_port_$x">Port : $x</string>
+    <string name="control_panel_server_name_$x">Nom : $x</string>
+    <string name="control_panel_server_device_name_$x">Appareil hôte : $x</string>
+    <string name="control_panel_server_spms_api_version_$x">Version de l'API SpMs : $x</string>
+    <string name="control_panel_server_connected_clients">Autres clients connectés</string>
+    <string name="control_panel_server_connected_clients_loading">Chargement</string>
+    <string name="control_panel_server_this_client">Ce client</string>
+    <string name="control_panel_server_client_more_info">Plus d'informations</string>
+    <string name="control_panel_server_client_player_port_$x">Port du lecteur : $x</string>
+    <string name="control_panel_server_same_machine">Même appareil</string>
+
+    <string name="action_login_manually">Se connecter manuellement</string>
+    <string name="auth_not_signed_in">Non connecté(e)</string>
+    <string name="auth_sign_in">Se connecter</string>
+    <string name="auth_sign_out">Se déconnecter</string>
+
+    <string name="warning_ytm_login">Une fois connecté, votre cookie de session sera extrait, stocké et utilisé uniquement pour les requêtes API vers YouTube Music telles que l'obtention de votre flux recommandé et l'abonnement à des artistes.&#xA;&#xA;Continuer ?</string>
+    <string name="info_ytm_login">Une fois connecté, votre cookie de session sera extrait, stocké et utilisé uniquement pour les requêtes API vers YouTube Music telles que l'obtention de votre flux recommandé et l'abonnement à des artistes.</string>
+    <string name="warning_discord_login">Vous serez redirigé vers une vue Web intégrée à l'application afin de vous connecter à Discord.&#xA;&#xA;Une fois connecté, votre jeton de compte sera extrait, stocké et utilisé uniquement pour les connexions de passerelle vers Discord afin de définir votre statut actuel.&#xA;&#xA;Voir https://github.com/dead8309/Kizzy pour plus d'informations.&#xA;&#xA;Continuer ?</string>
+    <string name="info_discord_login">Vous serez redirigé vers une vue Web intégrée à l'application afin de vous connecter à Discord.&#xA;&#xA;Une fois connecté, votre jeton de compte sera extrait, stocké et utilisé uniquement pour les connexions de passerelle vers Discord afin de définir votre statut actuel.&#xA;&#xA;Voir https://github.com/dead8309/Kizzy pour plus d'informations.</string>
+    <string name="warning_discord_kizzy">SpMp utilise la bibliothèque KizzyRPC pour définir le statut de votre compte Discord. Cela implique l'utilisation de la connexion Gateway Discord, ce qui peut être considéré comme une violation des conditions d'utilisation de Discord. Cependant, il n'y a aucun cas connu de suspension de compte utilisateur pour cette raison. Utilisez à vos propres risques.&#xA;&#xA;Voir https://github.com/dead8309/Kizzy pour plus d'informations.</string>
+
+    <string name="warning_spms_api_version_mismatch">Incompatibilité de version de l'API SpMs</string>
+    <string name="warning_spms_api_version_mismatch_$theirs_$ours">La version de l'API du serveur connecté ($theirs) ne correspond pas à la version de l'API pour laquelle cette version de SpMp a été conçue ($ours). Cela peut entraîner un comportement inattendu ou des plantages.</string>
+
+    <string name="youtube_manual_login_title">Connexion manuelle à YouTube</string>
+    <string-array name="youtube_manual_login_steps">
+        <item>Ouvrez un nouvel onglet de navigateur</item>
+        <item>Ouvrez la console de développement (ctrl+shift+I sur la plupart des navigateurs)</item>
+        <item>Accédez à l'onglet Réseau</item>
+        <item>Accédez à https://music.youtube.com/</item>
+        <item>Recherchez une requête POST vers https://music.youtube.com/youtubei/v1/... telle que /browse ou /account_menu</item>
+        <item>Cliquez avec le bouton droit de la souris sur la requête et sélectionnez 'Copier' (ou 'Copier la valeur') puis 'Copier en tant que cURL' pour copier les en-têtes de la requête, puis collez-les ci-dessous</item>
+    </string-array>
+    <string name="youtube_manual_login_suffix"></string>
+    <string name="youtube_manual_login_field">En-têtes</string>
+
+    <string name="youtube_login_load_message">Chargement de la page de connexion</string>
+    <string name="youtube_account_selection_title">Sélectionner un compte</string>
+    <string name="youtube_channel_creation_load_message">Chargement du formulaire de création de chaîne</string>
+
+    <string name="youtube_channel_creation_title">Créer un profil YouTube Music</string>
+    <string name="youtube_channel_creation_subtitle">Cela peut également être fait sur https://music.youtube.com/ en vous connectant et en allant sur 'Votre chaîne'</string>
+    <string name="youtube_channel_creation_confirm">Créer</string>
+
+    <string name="manual_login_error_missing_following_headers">En-têtes suivantes manquantes :</string>
+    <string name="manual_login_desktop_browser_may_be_needed">Vous devrez peut-être utiliser un navigateur de bureau pour effectuer ces étapes</string>
+
+    <string name="discord_manual_login_title">Connexion manuelle à Discord</string>
+    <string-array name="discord_manual_login_steps">
+        <item>Ouvrez un nouvel onglet de navigateur</item>
+        <item>Ouvrez la console de développement (ctrl+shift+I sur la plupart des navigateurs)</item>
+        <item>Accédez à l'onglet Réseau</item>
+        <item>Accédez à https://discord.com/app</item>
+        <item>Recherchez une requête POST vers https://discord.com/api/v9/... telle que /survey ou /player</item>
+        <item>Copiez l'en-tête 'Authorization' de la section des en-têtes de la requête et entrez-le ci-dessous</item>
+    </string-array>
+    <string name="discord_manual_login_suffix"></string>
+    <string name="discord_manual_login_field">Authorization</string>
+
+    <string name="err_root_not_granted">Impossible d'obtenir les privilèges root</string>
+    <string name="err_secure_settings_grant_failed">Échec de l'octroi de l'autorisation des paramètres sécurisés</string>
+
+    <string name="settings_export_filename_$date">SpMp_settings_$date</string>
+
+    <string name="settings_import_prep_title">Importation des paramètres</string>
+    <string name="settings_import_category_selection_subtitle">Sélectionnez les catégories à importer</string>
+    <string name="settings_import_button_import">Importer</string>
+    <string name="settings_import_error_title">Échec de l'importation</string>
+    <string name="settings_import_result_title">Importation réussie</string>
+    <string name="settings_import_result_$x_from_file">$x valeur(s) importée(s) à partir du fichier</string>
+    <string name="settings_import_result_$x_from_default">$x valeur(s) restaurée(s) par défaut</string>
+
+</resources>

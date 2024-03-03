@@ -7,5 +7,6 @@ fun getHoursMinutesSecondsSuffixes(hl: String?): HMSData? =
         "en", null -> HMSData("hours", "minutes", "seconds", " ")
         "ja" -> HMSData("時間", "分", "秒")
         "zh" -> HMSData("时间", "分", "秒")
+        "fr" -> HMSData("heures", "minutes", "secondes", " ")
         else -> null
     }

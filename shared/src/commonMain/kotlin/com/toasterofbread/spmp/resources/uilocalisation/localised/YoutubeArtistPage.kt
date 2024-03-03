@@ -68,8 +68,8 @@ fun getYoutubeArtistPageLocalisations(languages: UILanguages): YoutubeUILocalisa
                 en to "Featured on",
                 ja to "収録プレイリスト" ,
                 zh to "精选" ,
-                es to "Aparece en"
-                fr to "Mis en avant sur",
+                es to "Aparece en",
+                fr to "Mis en avant sur"
             )
         }
     }

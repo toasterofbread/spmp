@@ -128,7 +128,10 @@ fun PlayerState.getDefaultVerticalPadding(): Dp =
 fun PlayerState.getDefaultPaddingValues(): PaddingValues = PaddingValues(horizontal = getDefaultHorizontalPadding(), vertical = getDefaultVerticalPadding())
 
 fun AppContext.getUiLanguage(): String =
-    SystemSettings.Key.LANG_UI.get<String>(getPrefs()).ifEmpty { Locale.getDefault().toLanguageTag() }
+    SystemSettings.Key.LANG_UI.get<String>(getPrefs()).ifEmpty { getDefaultLanguage() }
 
 fun AppContext.getDataLanguage(): String =
-    SystemSettings.Key.LANG_DATA.get<String>(getPrefs()).ifEmpty { Locale.getDefault().toLanguageTag() }
+    SystemSettings.Key.LANG_DATA.get<String>(getPrefs()).ifEmpty { getDefaultLanguage() }
+
+fun AppContext.getDefaultLanguage(): String =
+    Locale.getDefault().toLanguageTag()

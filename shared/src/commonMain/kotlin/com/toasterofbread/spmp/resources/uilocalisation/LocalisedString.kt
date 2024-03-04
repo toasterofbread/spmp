@@ -5,6 +5,7 @@ import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getDataLanguage
 import com.toasterofbread.spmp.platform.getUiLanguage
+import com.toasterofbread.spmp.platform.getDefaultLanguage
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.localised.getByLanguage
 
@@ -111,16 +112,37 @@ data class YoutubeLocalisedString(
     private var localised: Pair<String, String?>? = null
     private fun getLocalised(context: AppContext): Pair<String, String?> {
         if (localised == null) {
-            val strings = type.getStringData()
-            try {
-                return strings.items[index].getByLanguage(context.getUiLanguage())!!.value.value
+            val strings: YoutubeUILocalisation.LocalisationSet = type.getStringData()
+
+            val item: Map<String, Pair<String, String?>>? = strings.items.getOrNull(index)
+            if (item == null) {
+                throw RuntimeException("Could not get localised string item ($index, ${strings.items.toList()})")
             }
-            catch (e: Throwable) {
-                throw RuntimeException("Could not get localised string ($index, ${context.getUiLanguage()}, ${strings.items.toList()})", e)
-            }
+
+            val ui_language: String = context.getUiLanguage()
+            localised = getLocalisationSetItemString(context, item, ui_language)
         }
 
         return localised!!
+    }
+
+    private fun getLocalisationSetItemString(
+        context: AppContext,
+        item: Map<String, Pair<String, String?>>,
+        language: String
+    ): Pair<String, String?> {
+        try {
+            return item.getByLanguage(language)!!.value.value
+        }
+        catch (e: Throwable) {
+            val default_language: String = context.getDefaultLanguage()
+            if (default_language == language) {
+                throw RuntimeException("Could not get localised string ($index, $language, $item)")
+            }
+
+            println("Could not get localised string, falling back to default language ($index, $language, $item)")
+            return getLocalisationSetItemString(context, item, default_language)
+        }
     }
 
     companion object {

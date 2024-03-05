@@ -324,6 +324,13 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
             return
         }
 
+        if (item is Song) {
+            withPlayer {
+                playSong(item, start_radio = false)
+            }
+            return
+        }
+
         val page: AppPageWithItem =
             if (item is Artist)
                 ArtistAppPage(

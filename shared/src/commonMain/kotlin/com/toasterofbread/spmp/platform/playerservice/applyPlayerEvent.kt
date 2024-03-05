@@ -123,6 +123,18 @@ internal fun SpMsPlayerService.applyPlayerEvent(event: SpMsPlayerEvent) {
                 it.onEvents()
             }
         }
-        else -> throw NotImplementedError(event.toString())
+        SpMsPlayerEvent.Type.CLEARED -> {
+            for (i in playlist.indices.reversed()) {
+                playlist.removeAt(i)
+                listeners.forEach {
+                    it.onSongRemoved(i)
+                }
+            }
+            listeners.forEach {
+                it.onEvents()
+            }
+        }
+
+        SpMsPlayerEvent.Type.READY_TO_PLAY -> {}
     }
 }

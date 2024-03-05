@@ -79,13 +79,6 @@ internal suspend fun SpMsPlayerService.applyServerState(
             it.onEvents()
         }
     }
-    if (state.volume != _volume) {
-        _volume = state.volume
-        listeners.forEach {
-            it.onVolumeChanged(_volume)
-            it.onEvents()
-        }
-    }
     if (state.repeat_mode != _repeat_mode) {
         _repeat_mode = state.repeat_mode
         listeners.forEach {

@@ -6,6 +6,7 @@ object UILanguages {
     val pl: String = "pl-PL"
     val es: String = "es-US"
     val zh: String = "zh-CN"
+    val fr: String = "fr-FR"
 }
 
 fun <T> Map<String, T>.getByLanguage(language: String): IndexedValue<Map.Entry<String, T>>? {

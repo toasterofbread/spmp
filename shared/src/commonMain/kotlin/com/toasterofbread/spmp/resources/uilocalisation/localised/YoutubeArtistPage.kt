@@ -60,7 +60,7 @@ fun getYoutubeArtistPageLocalisations(languages: UILanguages): YoutubeUILocalisa
                 ja to "似てるかも",
                 es to "A los fans también podrían gustarles",
                 zh to "粉丝可能还会喜欢",
-                fr to "Les fans pourraient également aimer"
+                fr to "Les fans pourraient également aimer",
                 fr to "Artistes similaires",
                 id = YoutubeUILocalisation.StringID.ARTIST_ROW_ARTISTS
             )

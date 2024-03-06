@@ -7,7 +7,7 @@ import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
 import kotlin.Unit
 
 @Composable
-internal fun SongFeedAppPage.SFFSongFeedPrimaryBar(
+internal fun SongFeedAppPage.SFFSongFeedPagePrimaryBar(
     slot: LayoutSlot,
     modifier: Modifier,
     content_padding: PaddingValues

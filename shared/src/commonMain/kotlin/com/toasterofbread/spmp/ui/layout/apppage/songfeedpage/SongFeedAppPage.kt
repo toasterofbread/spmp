@@ -126,38 +126,10 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
     override fun PrimaryBarContent(slot: LayoutSlot, content_padding: PaddingValues, modifier: Modifier): Boolean {
         val player: PlayerState = LocalPlayerState.current
         return when (player.form_factor) {
-            FormFactor.PORTRAIT -> SFFSongFeedPrimaryBar(slot, modifier, content_padding)
-            FormFactor.LANDSCAPE -> LFFSongFeedPrimaryBar(slot, modifier, content_padding)
+            FormFactor.PORTRAIT -> SFFSongFeedPagePrimaryBar(slot, modifier, content_padding)
+            FormFactor.LANDSCAPE -> LFFSongFeedPagePrimaryBar(slot, modifier, content_padding)
         }
     }
-
-    // @Composable
-    // fun FeedFiltersRowOrColumn(row: Boolean, modifier: Modifier = Modifier, show_scrollbar: Boolean = true, onSelected: (Int?) -> Unit = {}) {
-    //     val player: PlayerState = LocalPlayerState.current
-
-    //     Crossfade(filter_chips, modifier) { chips ->
-    //         if (chips.isNullOrEmpty()) {
-    //             if (load_state != FeedLoadState.LOADING && load_state != FeedLoadState.CONTINUING) {
-    //                 Box(Modifier.padding(end = 40.dp), contentAlignment = Alignment.Center) {
-    //                     Icon(Icons.Default.CloudOff, null)
-    //                 }
-    //             }
-    //         }
-    //         else {
-    //             FilterChipsRowOrColumn(
-    //                 row,
-    //                 chips.size,
-    //                 { it == selected_filter_chip },
-    //                 {
-    //                     selectFilterChip(it)
-    //                     onSelected(selected_filter_chip)
-    //                 }
-    //             ) { index ->
-    //                 Text(chips[index].text.getString(player.context))
-    //             }
-    //         }
-    //     }
-    // }
 
     internal fun loadFeed(continuation: Boolean) {
         coroutine_scope.launchSingle {

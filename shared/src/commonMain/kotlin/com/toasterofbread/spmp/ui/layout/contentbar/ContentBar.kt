@@ -73,7 +73,7 @@ sealed class ContentBar {
 }
 
 @Composable
-fun LayoutSlot.DisplayBar(modifier: Modifier = Modifier): Boolean {
+fun LayoutSlot.DisplayBar(modifier: Modifier = Modifier, container_modifier: Modifier = Modifier): Boolean {
     val player: PlayerState = LocalPlayerState.current
     val content_bar: ContentBar? by observeContentBar()
 
@@ -93,7 +93,7 @@ fun LayoutSlot.DisplayBar(modifier: Modifier = Modifier): Boolean {
 
     var content_bar_result: Boolean by remember { mutableStateOf(false) }
 
-    Crossfade(ContentBar.bar_selection_state) { selection_state ->
+    Crossfade(ContentBar.bar_selection_state, container_modifier) { selection_state ->
         if (selection_state == null) {
             content_bar_result = content_bar?.Bar(this, content_padding, modifier) ?: false
             return@Crossfade

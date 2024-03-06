@@ -63,6 +63,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNowPlayingVerticalPageCount
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
+import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -74,6 +75,7 @@ import com.toasterofbread.spmp.ui.layout.contentbar.DisplayBar
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import com.toasterofbread.composekit.utils.composable.getTop
+import com.toasterofbread.composekit.utils.composable.OnChangedEffect
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.requiredWidth
@@ -233,44 +235,86 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         return system_insets.getBottom(this) + ime_padding
     }
 
-    private var now_playing_top_offset_id: Int = 0
-    private var now_playing_top_offset_items: MutableMap<Int, TopOffsetItem> = mutableStateMapOf()
+    private var now_playing_top_offset_items: MutableMap<NowPlayingTopOffsetSection, MutableList<TopOffsetItem?>> = mutableStateMapOf()
     private data class TopOffsetItem(
         val height: Dp,
-        val apply_spacing: Boolean = true
+        val apply_spacing: Boolean = true,
+        val displaying: Boolean = true
     )
 
-    private fun getTopItemsHeight(spacing: Dp = 15.dp, filter: (Int) -> Boolean = { true }): Dp =
-        now_playing_top_offset_items.entries.sumOf {
-            val height: Float =
-                if (!filter(it.key)) 0f
-                else (it.value.height + (if (it.value.apply_spacing) spacing else 0.dp)).value
+    private fun getTopItemsHeight(spacing: Dp = 15.dp, filter: ((NowPlayingTopOffsetSection, Int) -> Boolean)? = null): Dp =
+        now_playing_top_offset_items.entries.sumOf { items ->
+            var acc: Float = 0f
+
+            for (item in items.value.withIndex()) {
+                if (item.value?.displaying != true) {
+                    continue
+                }
+
+                if (filter?.invoke(items.key, item.index) == false) {
+                    continue
+                }
+
+                val height: Float =
+                    (item.value!!.height + (if (item.value!!.apply_spacing) spacing else 0.dp)).value
+
+                if (items.key.isMerged()) {
+                    acc = maxOf(acc, height)
+                }
+                else {
+                    acc += height
+                }
+            }
 
             // https://youtrack.jetbrains.com/issue/KT-43310/Add-sumOf-with-Float-return-type
-            return@sumOf height.toDouble()
+            return@sumOf acc.toDouble()
         }.dp
 
     @Composable
-    fun nowPlayingTopOffset(base: Modifier, force_top: Boolean = false, apply_spacing: Boolean = true): Modifier {
+    fun nowPlayingTopOffset(
+        base: Modifier,
+        section: NowPlayingTopOffsetSection,
+        apply_spacing: Boolean = true,
+        displaying: Boolean = true
+    ): Modifier {
+        val density: Density = LocalDensity.current
         val system_insets: WindowInsets = WindowInsets.systemBars
         val navigation_insets: WindowInsets = WindowInsets.navigationBars
         val keyboard_insets: WindowInsets = WindowInsets.ime
 
-        val id: Int = remember {
-            if (force_top) -(now_playing_top_offset_id++)
-            else now_playing_top_offset_id++
+        val offset_items: MutableList<TopOffsetItem?> = remember (section) {
+            now_playing_top_offset_items.getOrPut(section) {
+                mutableStateListOf()
+            }
         }
-        val density: Density = LocalDensity.current
+        val index: Int = remember(offset_items) {
+            offset_items.add(null)
+            return@remember offset_items.size - 1
+        }
+
+        OnChangedEffect(displaying) {
+            val item: TopOffsetItem? = offset_items.getOrNull(index)
+            if (item != null) {
+                offset_items[index] = item.copy(
+                    displaying = displaying
+                )
+            }
+        }
 
         DisposableEffect(Unit) {
             onDispose {
-                now_playing_top_offset_items.remove(id)
+                offset_items[index] = null
             }
         }
 
         val additional_offset: Dp by animateDpAsState(
-            if (force_top) getTopItemsHeight(filter = { it > id })
-            else 0.dp
+            getTopItemsHeight(filter = { item_section, item_index ->
+                !section.shouldIgnoreSection(item_section)
+                && (
+                    item_section.ordinal > section.ordinal
+                    || (item_section.ordinal == section.ordinal && item_index < index)
+                )
+            })
         )
 
         return base
@@ -288,9 +332,10 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
             .padding(start = system_insets.getStart(), end = system_insets.getEnd())
             .onSizeChanged {
                 with (density) {
-                    now_playing_top_offset_items[id] = TopOffsetItem(
+                    offset_items[index] = TopOffsetItem(
                         height = it.height.toDp(),
-                        apply_spacing = apply_spacing
+                        apply_spacing = apply_spacing,
+                        displaying = displaying
                     )
                 }
             }
@@ -550,7 +595,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
                             Modifier
                                 .width(IntrinsicSize.Max)
                                 .align(Alignment.BottomEnd)
-                                .then(nowPlayingTopOffset(Modifier, true))
+                                .then(nowPlayingTopOffset(Modifier, NowPlayingTopOffsetSection.MULTISELECT))
                                 .background(background_colour, MaterialTheme.shapes.small)
                                 .padding(10.dp)
                                 .onSizeChanged {

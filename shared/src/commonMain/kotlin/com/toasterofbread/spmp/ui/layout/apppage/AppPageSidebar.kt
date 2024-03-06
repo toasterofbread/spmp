@@ -2,54 +2,34 @@ package com.toasterofbread.spmp.ui.layout.apppage
 
 import LocalPlayerState
 import androidx.compose.animation.*
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
+import androidx.compose.ui.unit.*
 import com.toasterofbread.composekit.platform.Platform
-import com.toasterofbread.composekit.utils.common.amplify
-import com.toasterofbread.composekit.utils.common.getContrasted
-import com.toasterofbread.composekit.utils.composable.SidebarButtonSelector
-import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.composekit.utils.composable.RowOrColumn
-import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.composekit.utils.common.*
+import com.toasterofbread.composekit.utils.composable.*
+import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.rememberPinnedItems
-import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
-import com.toasterofbread.spmp.ui.component.mediaitempreview.getLongPressMenuData
-import com.toasterofbread.spmp.ui.component.mediaitempreview.getThumbShape
-import com.toasterofbread.spmp.ui.component.mediaitempreview.loadIfLocalPlaylist
+import com.toasterofbread.spmp.ui.component.mediaitempreview.*
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
 import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
 import com.toasterofbread.spmp.ui.shortcut.*
+import kotlin.math.*
 import kotlinx.coroutines.delay
-import kotlin.math.absoluteValue
-import kotlin.math.roundToLong
 
 private fun PlayerState.getOwnChannel(): Artist? = context.ytapi.user_auth_state?.own_channel
 
@@ -253,10 +233,17 @@ fun AppPageSidebar(
                 val fill_modifier: Modifier =
                     if (slot.is_vertical) Modifier.fillMaxHeight()
                     else Modifier.fillMaxWidth()
-                Column(fill_modifier.weight(1f).padding(vertical = 10.dp)) {
+
+                Column(
+                    fill_modifier
+                        .weight(1f)
+                        .then(
+                            if (slot.is_vertical) Modifier.padding(vertical = 10.dp)
+                            else Modifier.padding(horizontal = 10.dp)
+                        )
+                ) {
                     Spacer(fill_modifier.weight(1f))
-                    // TODO
-                    // PinnedItems(multiselect_context = multiselect_context)
+                    PinnedItems(slot.is_vertical, multiselect_context = multiselect_context)
                 }
             }
         }
@@ -303,15 +290,22 @@ fun AppPageSidebar(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun PinnedItems(modifier: Modifier = Modifier, multiselect_context: MediaItemMultiSelectContext? = null) {
+private fun PinnedItems(
+    vertical: Boolean,
+    modifier: Modifier = Modifier,
+    multiselect_context: MediaItemMultiSelectContext? = null
+) {
     val pinned_items: List<MediaItem> = rememberPinnedItems() ?: emptyList()
 
-    Column(modifier) {
+    RowOrColumn(!vertical, modifier) {
         multiselect_context?.CollectionToggleButton(pinned_items, enter = expandVertically(), exit = shrinkVertically())
 
-        LazyColumn(
+        ScrollBarLazyRowOrColumn(
+            !vertical,
             modifier,
-            verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top)
+            arrangement = Arrangement.spacedBy(10.dp),
+            alignment = -1,
+            show_scrollbar = false
         ) {
             items(pinned_items.reversed()) { item ->
                 val long_press_menu_data: LongPressMenuData = remember(item) {
@@ -323,27 +317,28 @@ private fun PinnedItems(modifier: Modifier = Modifier, multiselect_context: Medi
                     return@items
                 }
 
-                Box(
+                val fill_modifier: Modifier =
                     Modifier
-                        .fillMaxWidth()
+                        .then(
+                            if (vertical) Modifier.fillMaxWidth()
+                            else Modifier.fillMaxHeight()
+                        )
                         .aspectRatio(1f)
+
+                Box(
+                    fill_modifier
                         .clip(item.getType().getThumbShape())
                         .animateItemPlacement()
                 ) {
                     item.Thumbnail(
                         MediaItemThumbnailProvider.Quality.LOW,
-                        Modifier
-                            .mediaItemPreviewInteraction(loaded_item, long_press_menu_data)
-                            .fillMaxWidth()
-                            .aspectRatio(1f)
+                        fill_modifier.mediaItemPreviewInteraction(loaded_item, long_press_menu_data)
                     )
 
                     multiselect_context?.also { ctx ->
                         ctx.SelectableItemOverlay(
                             loaded_item,
-                            Modifier
-                                .fillMaxWidth()
-                                .aspectRatio(1f),
+                            fill_modifier,
                             key = long_press_menu_data.multiselect_key
                         )
                     }

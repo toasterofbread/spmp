@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.ui.layout.apppage
+package com.toasterofbread.spmp.ui.layout.apppage.searchpage
 
 import LocalNowPlayingExpansion
 import LocalPlayerState
@@ -6,12 +6,14 @@ import SpMp.isDebugBuild
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.*
@@ -35,6 +37,8 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
+import com.toasterofbread.spmp.ui.layout.apppage.AppPage
+import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.contentbar.*
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.theme.appHover
@@ -42,11 +46,9 @@ import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
 import com.toasterofbread.spmp.youtubeapi.endpoint.*
 import kotlinx.coroutines.*
 
-val SEARCH_FIELD_FONT_SIZE: TextUnit = 18.sp
-private const val SEARCH_BAR_HEIGHT_DP = 45f
-private const val SEARCH_BAR_V_PADDING_DP = 15f
-private const val SEARCH_SUGGESTIONS_LOAD_DELAY_MS: Long = 200
-private const val SEARCH_MAX_SUGGESTIONS: Int = 5
+internal val SEARCH_FIELD_FONT_SIZE: TextUnit = 18.sp
+internal const val SEARCH_SUGGESTIONS_LOAD_DELAY_MS: Long = 200
+internal const val SEARCH_MAX_SUGGESTIONS: Int = 5
 
 class SearchAppPage(override val state: AppPageState, val context: AppContext): AppPage() {
     private val coroutine_scope = CoroutineScope(Job())
@@ -56,10 +58,10 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
     private var clearFocus: (() -> Unit)? = null
     private var multiselect_context: MediaItemMultiSelectContext? = null
 
-    private var search_in_progress: Boolean by mutableStateOf(false)
-    private var current_results: SearchResults? by mutableStateOf(null)
-    private var current_query: String by mutableStateOf("")
-    private var current_filter: SearchType? by mutableStateOf(null)
+    internal var search_in_progress: Boolean by mutableStateOf(false)
+    internal var current_results: SearchResults? by mutableStateOf(null)
+    internal var current_query: String by mutableStateOf("")
+    internal var current_filter: SearchType? by mutableStateOf(null)
     private var error: Throwable? by mutableStateOf(null)
 
     override fun onOpened(from_item: MediaItemHolder?) {
@@ -71,7 +73,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
         error = null
     }
 
-    private fun setFilter(filter: SearchType?) {
+    internal fun setFilter(filter: SearchType?) {
         if (filter == current_filter) {
             return
         }
@@ -90,38 +92,56 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
 
     @Composable
     override fun PrimaryBarContent(slot: LayoutSlot, content_padding: PaddingValues, modifier: Modifier): Boolean {
-        slot.OrientedLayout(content_padding, modifier) {
-            SearchFiltersRow()
+        val show_suggestions: Boolean by BehaviourSettings.Key.SEARCH_SHOW_SUGGESTIONS.rememberMutableState()
+        var suggestions: List<SearchSuggestion> by remember { mutableStateOf(emptyList()) }
+
+        LaunchedEffect(current_query, show_suggestions) {
+            if (!show_suggestions) {
+                suggestions = emptyList()
+                return@LaunchedEffect
+            }
+
+            if (search_in_progress) {
+                return@LaunchedEffect
+            }
+
+            val query: String = current_query
+            if (query.isBlank()) {
+                suggestions = emptyList()
+                return@LaunchedEffect
+            }
+
+            delay(SEARCH_SUGGESTIONS_LOAD_DELAY_MS)
+
+            val suggestions_endpoint = context.ytapi.SearchSuggestions
+            if (!suggestions_endpoint.isImplemented()) {
+                suggestions = emptyList()
+                return@LaunchedEffect
+            }
+
+            suggestions = suggestions_endpoint
+                .getSearchSuggestions(query).getOrNull()?.take(SEARCH_MAX_SUGGESTIONS)?.asReversed()
+                    ?: emptyList()
+        }
+
+        if (slot.is_vertical) {
+            VerticalSearchPrimaryBar(suggestions, slot, modifier, content_padding)
+        }
+        else {
+            HorizontalSearchPrimaryBar(suggestions, slot, modifier, content_padding)
         }
         return true
     }
 
     @Composable
-    private fun SearchFiltersRow(
-        modifier: Modifier = Modifier,
-        alignment: Int = 0
-    ) {
-        FilterChipsRowOrColumn(
-            true,
-            SearchType.entries.size + 1,
-            { index ->
-                if (current_filter == null) index == 0 else current_filter!!.ordinal == index - 1
-            },
-            { index ->
-                if (index == 0) {
-                    setFilter(null)
-                }
-                else {
-                    setFilter(SearchType.entries[index - 1])
-                }
-            },
-            modifier.height(SEARCH_BAR_HEIGHT_DP.dp),
-            alignment = alignment,
-            spacing = 5.dp
-        ) { index ->
-            val search_type: SearchType? = if (index == 0) null else SearchType.entries[index - 1]
-            Text(search_type.getReadable())
+    override fun SecondaryBarContent(slot: LayoutSlot, content_padding: PaddingValues, modifier: Modifier): Boolean {
+        if (slot.is_vertical) {
+            VerticalSearchSecondaryBar(slot, modifier, content_padding)
         }
+        else {
+            HorizontalSearchSecondaryBar(slot, modifier, content_padding)
+        }
+        return true
     }
 
     @OptIn(ExperimentalComposeUiApi::class)
@@ -210,18 +230,6 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
                     }
                 }
             }
-
-            SearchBar(
-                focus_state,
-                player.nowPlayingTopOffset(
-                    Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .padding(horizontal = player.getDefaultHorizontalPadding())
-                        .zIndex(1f)
-                ),
-                close = close
-            )
         }
     }
 
@@ -270,201 +278,6 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
                         }
                     }
                 )
-            }
-        }
-    }
-
-    @Composable
-    private fun SearchSuggestion(
-        suggestion: SearchSuggestion,
-        shape: Shape,
-        modifier: Modifier = Modifier,
-        onSelected: () -> Unit,
-    ) {
-        Row(
-            modifier
-                .clickable(onClick = onSelected)
-                .clip(shape)
-                .background(context.theme.background)
-                .border(2.dp, context.theme.accent, shape)
-                .padding(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Text(suggestion.text, Modifier.weight(1f, false), softWrap = false, overflow = TextOverflow.Ellipsis)
-
-            if (suggestion.is_from_history) {
-                Icon(Icons.Default.History, null, Modifier.alpha(0.75f))
-            }
-        }
-    }
-
-    @Composable
-    private fun SearchBar(
-        focus_state: MutableState<Boolean>,
-        modifier: Modifier = Modifier,
-        shape: Shape = CircleShape,
-        close: () -> Unit
-    ) {
-        val player: PlayerState = LocalPlayerState.current
-        val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
-        val focus_requester: FocusRequester = remember { FocusRequester() }
-
-        LaunchedEffect(Unit) {
-            if (expansion.getPage() == 0 && current_results == null && !search_in_progress) {
-                focus_requester.requestFocus()
-            }
-        }
-
-        val show_suggestions: Boolean by BehaviourSettings.Key.SEARCH_SHOW_SUGGESTIONS.rememberMutableState()
-        var suggestions: List<SearchSuggestion> by remember { mutableStateOf(emptyList()) }
-
-        LaunchedEffect(focus_state.value) {
-            if (!focus_state.value) {
-                suggestions = emptyList()
-            }
-        }
-
-        LaunchedEffect(current_query, focus_state.value, show_suggestions) {
-            if (search_in_progress || !focus_state.value) {
-                return@LaunchedEffect
-            }
-
-            if (!show_suggestions) {
-                suggestions = emptyList()
-                return@LaunchedEffect
-            }
-
-            val query = current_query
-            if (query.isBlank()) {
-                suggestions = emptyList()
-                return@LaunchedEffect
-            }
-
-            delay(SEARCH_SUGGESTIONS_LOAD_DELAY_MS)
-
-            val suggestions_endpoint = player.context.ytapi.SearchSuggestions
-            if (!suggestions_endpoint.isImplemented()) {
-                suggestions = emptyList()
-                return@LaunchedEffect
-            }
-
-            suggestions = suggestions_endpoint
-                .getSearchSuggestions(query).getOrNull()?.take(SEARCH_MAX_SUGGESTIONS)?.asReversed()
-                    ?: emptyList()
-        }
-
-        Column(modifier) {
-            AnimatedVisibility(show_suggestions && suggestions.isNotEmpty(), Modifier.weight(1f)) {
-                var current_suggestions: List<SearchSuggestion> by remember { mutableStateOf(suggestions) }
-                LaunchedEffect(suggestions) {
-                    if (suggestions.isNotEmpty()) {
-                        current_suggestions = suggestions
-                    }
-                }
-
-                AlignableCrossfade(
-                    current_suggestions,
-                    contentAlignment = Alignment.BottomCenter
-                ) {
-                    Column(
-                        Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Bottom)
-                    ) {
-                        for (suggestion in it) {
-                            SearchSuggestion(suggestion, shape) {
-                                if (!search_in_progress) {
-                                    current_query = suggestion.text
-                                    current_suggestions = emptyList()
-                                    performSearch()
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (LocalPlayerState.current.form_factor.is_large) {
-                SearchFiltersRow(Modifier.fillMaxWidth(), -1)
-            }
-
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = SEARCH_BAR_V_PADDING_DP.dp)
-                    .height(IntrinsicSize.Max),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.Bottom
-            ) {
-                BasicTextField(
-                    value = current_query,
-                    onValueChange = { current_query = it },
-                    singleLine = true,
-                    textStyle = LocalTextStyle.current.copy(
-                        fontSize = SEARCH_FIELD_FONT_SIZE,
-                        color = context.theme.vibrant_accent.getContrasted()
-                    ),
-                    modifier = Modifier
-                        .height(SEARCH_BAR_HEIGHT_DP.dp)
-                        .weight(1f)
-                        .appTextField(focus_requester)
-                        .onFocusChanged {
-                            focus_state.value = it.isFocused
-                        },
-                    decorationBox = { innerTextField ->
-                        Row(
-                            Modifier
-                                .background(
-                                    context.theme.vibrant_accent,
-                                    shape
-                                )
-                                .padding(horizontal = 10.dp)
-                                .fillMaxSize(),
-                            horizontalArrangement = Arrangement.End,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            // Search field
-                            Box(Modifier.fillMaxWidth(1f).weight(1f), contentAlignment = Alignment.CenterStart) {
-
-                                // Query hint
-                                if (current_query.isEmpty()) {
-                                    Text(getString("search_entry_field_hint"), fontSize = SEARCH_FIELD_FONT_SIZE, color = context.theme.on_accent)
-                                }
-
-                                // Text input
-                                innerTextField()
-                            }
-
-                            // Clear field button
-                            IconButton({ current_query = "" }, Modifier.bounceOnClick().appHover(true)) {
-                                Icon(Icons.Filled.Clear, null, Modifier, context.theme.on_accent)
-                            }
-                        }
-                    },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    keyboardActions = KeyboardActions(
-                        onSearch = {
-                            if (!search_in_progress) {
-                                performSearch()
-                            }
-                        }
-                    )
-                )
-
-                ShapedIconButton(
-                    { performSearch() },
-                    IconButtonDefaults.iconButtonColors(
-                        containerColor = context.theme.vibrant_accent,
-                        contentColor = context.theme.vibrant_accent.getContrasted()
-                    ),
-                    Modifier
-                        .fillMaxHeight()
-                        .aspectRatio(1f)
-                        .bounceOnClick()
-                        .appHover(true)
-                ) {
-                    Icon(Icons.Filled.Search, null)
-                }
             }
         }
     }

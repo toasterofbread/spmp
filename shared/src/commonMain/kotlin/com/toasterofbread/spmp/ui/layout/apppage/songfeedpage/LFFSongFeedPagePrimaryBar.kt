@@ -3,31 +3,30 @@ package com.toasterofbread.spmp.ui.layout.apppage.songfeedpage
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.*
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.*
 import com.toasterofbread.composekit.platform.Platform
-import com.toasterofbread.composekit.utils.common.*
 import com.toasterofbread.composekit.utils.composable.*
-import com.toasterofbread.composekit.utils.composable.RowOrColumn
+import com.toasterofbread.composekit.utils.common.copy
+import com.toasterofbread.composekit.utils.common.getContrasted
+import com.toasterofbread.composekit.utils.common.getValue
 import com.toasterofbread.composekit.utils.modifier.horizontal
 import com.toasterofbread.spmp.model.mediaitem.*
-import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.ui.component.LargeFilterList
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
-import kotlin.Unit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun SongFeedAppPage.LFFSongFeedPrimaryBar(
+internal fun SongFeedAppPage.LFFSongFeedPagePrimaryBar(
     slot: LayoutSlot,
     modifier: Modifier,
     content_padding: PaddingValues
@@ -88,55 +87,38 @@ internal fun SongFeedAppPage.LFFSongFeedPrimaryBar(
                 }
             }
 
-            ScrollBarLazyRowOrColumn(
-                !slot.is_vertical,
-                Modifier.weight(1f),
-                contentPadding = content_padding.copy(top = 0.dp, start = 0.dp),
-                arrangement = Arrangement.spacedBy(15.dp),
-                reverseScrollBarLayout = slot.is_vertical,
-                scrollBarColour = LocalContentColor.current.copy(alpha = 0.6f)
-            ) {
-                if (filters) {
-                    itemsIndexed(filter_chips ?: emptyList()) { index, filter ->
-                        val selected: Boolean = index == selected_filter_chip
+            val inner_modifier: Modifier = Modifier.weight(1f)
+            val inner_content_padding: PaddingValues = content_padding.copy(top = 0.dp, start = 0.dp)
 
-                        Card(
-                            { selectFilterChip(index) },
-                            Modifier.aspectRatio(1f),
-                            colors =
-                                if (selected) CardDefaults.cardColors(
-                                    containerColor = player.theme.vibrant_accent,
-                                    contentColor = player.theme.vibrant_accent.getContrasted()
-                                )
-                                else CardDefaults.cardColors(
-                                    containerColor = player.theme.accent.blendWith(player.theme.background, 0.05f),
-                                    contentColor = player.theme.on_background
-                                ),
-                            shape = RoundedCornerShape(25.dp)
-                        ) {
-                            Column(Modifier.fillMaxSize().padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                                val icon: ImageVector? = filter.getIcon()
-                                if (icon != null) {
-                                    Icon(
-                                        icon,
-                                        null,
-                                        Modifier.aspectRatio(1f).fillMaxHeight().weight(1f).padding(10.dp),
-                                        tint =
-                                            if (selected) LocalContentColor.current
-                                            else player.theme.vibrant_accent
-                                    )
-                                }
-
-                                WidthShrinkText(
-                                    filter.text.getString(player.context),
-                                    style = MaterialTheme.typography.labelLarge,
-                                    alignment = TextAlign.Center
-                                )
-                            }
-                        }
-                    }
-                }
-                else {
+            if (filters) {
+                LargeFilterList(
+                    filter_chips?.size ?: 0,
+                    getItemText = { i ->
+                        filter_chips?.get(i)?.text?.getString(player.context) ?: ""
+                    },
+                    getItemIcon = { i ->
+                        filter_chips?.get(i)?.getIcon()
+                    },
+                    isItemSelected = { i ->
+                        selected_filter_chip == i
+                    },
+                    onSelected = { i ->
+                        selectFilterChip(i)
+                    },
+                    modifier = inner_modifier,
+                    content_padding = inner_content_padding,
+                    vertical = slot.is_vertical
+                )
+            }
+            else {
+                ScrollBarLazyRowOrColumn(
+                    !slot.is_vertical,
+                    inner_modifier,
+                    contentPadding = inner_content_padding,
+                    arrangement = Arrangement.spacedBy(15.dp),
+                    reverseScrollBarLayout = slot.is_vertical,
+                    scrollBarColour = LocalContentColor.current.copy(alpha = 0.6f)
+                ) {
                     items(artists ?: emptyList()) { item ->
                         MediaItemPreviewSquare(
                             item,

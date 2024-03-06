@@ -16,47 +16,55 @@ import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageSidebar
 import com.toasterofbread.spmp.ui.layout.contentbar.*
 import com.toasterofbread.spmp.ui.layout.contentbar.PortraitLayoutSlot
+import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 
 @Composable
 fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
     val player: PlayerState = LocalPlayerState.current
-    val density: Density = LocalDensity.current
     val horizontal_padding: Dp by animateDpAsState(player.getDefaultHorizontalPadding())
 
-    var start_bar_width: Dp by remember { mutableStateOf(0.dp) }
-    var start_bar_showing: Boolean by remember { mutableStateOf(false) }
-    var end_bar_width: Dp by remember { mutableStateOf(0.dp) }
-    var end_bar_showing: Boolean by remember { mutableStateOf(false) }
+    var start_bar_widths: Pair<Dp, Dp> by remember { mutableStateOf(Pair(0.dp, 0.dp)) }
+    var end_bar_widths: Pair<Dp, Dp> by remember { mutableStateOf(Pair(0.dp, 0.dp)) }
+
+    var start_bars_displaying: Pair<Boolean, Boolean> by remember { mutableStateOf(Pair(false, false)) }
+    var end_bars_displaying: Pair<Boolean, Boolean> by remember { mutableStateOf(Pair(false, false)) }
+
+    val side_bar_modifier: Modifier = Modifier.zIndex(1f)
 
     Row {
         val top_padding: Dp = WindowInsets.getTop()
 
         if (player.form_factor == FormFactor.LANDSCAPE) {
-            start_bar_showing = LandscapeLayoutSlot.SIDE_LEFT.DisplayBar(
-                Modifier.fillMaxHeight().zIndex(1f).onSizeChanged {
-                    start_bar_width = with (density) {
-                        it.width.toDp()
-                    }
+            start_bars_displaying =
+                LandscapeSideBars(true, side_bar_modifier) { width: Dp, outer: Boolean ->
+                    start_bar_widths =
+                        if (outer) start_bar_widths.copy(first = width)
+                        else start_bar_widths.copy(second = width)
                 }
-            )
         }
         else {
-            start_bar_width = 0.dp
-            start_bar_showing = false
+            start_bar_widths = Pair(0.dp, 0.dp)
         }
 
         Crossfade(player.app_page, Modifier.fillMaxWidth().weight(1f)) { page ->
             Column {
                 val vertical_padding: Dp = player.getDefaultVerticalPadding()
 
-                // val top_bar_slot: LayoutSlot =
-                //     if (player.form_factor == FormFactor.LANDSCAPE) LandscapeLayoutSlot.UPPER_TOP_BAR
-                //     else PortraitLayoutSlot.UPPER_TOP_BAR
-
-                // top_bar_slot.DisplayBar(Modifier.fillMaxWidth())
-                if (page.showTopBar()) {
-                    MainPageTopBar(PaddingValues(horizontal = horizontal_padding), Modifier.padding(top = top_padding).zIndex(1f))
+                val upper_top_bar_slot: LayoutSlot
+                val lower_top_bar_slot: LayoutSlot
+                when (player.form_factor) {
+                    FormFactor.LANDSCAPE -> {
+                        upper_top_bar_slot = LandscapeLayoutSlot.UPPER_TOP_BAR
+                        lower_top_bar_slot = LandscapeLayoutSlot.LOWER_TOP_BAR
+                    }
+                    FormFactor.PORTRAIT -> {
+                        upper_top_bar_slot = PortraitLayoutSlot.UPPER_TOP_BAR
+                        lower_top_bar_slot = PortraitLayoutSlot.LOWER_TOP_BAR
+                    }
                 }
+
+                upper_top_bar_slot.DisplayBar(Modifier.fillMaxWidth())
+                lower_top_bar_slot.DisplayBar(Modifier.fillMaxWidth())
 
                 with(page) {
                     Page(
@@ -74,17 +82,15 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
         }
 
         if (player.form_factor == FormFactor.LANDSCAPE) {
-            end_bar_showing = LandscapeLayoutSlot.SIDE_RIGHT.DisplayBar(
-                Modifier.fillMaxHeight().zIndex(1f).onSizeChanged {
-                    end_bar_width = with (density) {
-                        it.width.toDp()
-                    }
+            end_bars_displaying =
+                LandscapeSideBars(false, side_bar_modifier) { width: Dp, outer: Boolean ->
+                    end_bar_widths =
+                        if (outer) end_bar_widths.copy(first = width)
+                        else end_bar_widths.copy(second = width)
                 }
-            )
         }
         else {
-            end_bar_width = 0.dp
-            end_bar_showing = false
+            end_bar_widths = Pair(0.dp, 0.dp)
         }
     }
 
@@ -92,8 +98,12 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
         Modifier
             .fillMaxSize()
             .padding(
-                start = if (start_bar_showing) start_bar_width else 0.dp,
-                end = if (end_bar_showing) end_bar_width else 0.dp
+                start =
+                    (if (start_bars_displaying.first) start_bar_widths.first else 0.dp)
+                    + if (start_bars_displaying.second) start_bar_widths.second else 0.dp,
+                end =
+                    (if (end_bars_displaying.first) end_bar_widths.first else 0.dp)
+                    + if (end_bars_displaying.second) end_bar_widths.second else 0.dp
             )
     ) {
         val layout_slot: LayoutSlot =
@@ -102,8 +112,51 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
                 FormFactor.PORTRAIT -> PortraitLayoutSlot.ABOVE_PLAYER
             }
 
-        Box(player.nowPlayingTopOffset(Modifier, apply_spacing = false).fillMaxWidth().align(Alignment.BottomEnd)) {
+        Box(
+            player
+                .nowPlayingTopOffset(Modifier, NowPlayingTopOffsetSection.LAYOUT_SLOT, apply_spacing = false)
+                .fillMaxWidth()
+                .align(Alignment.BottomEnd)
+        ) {
             layout_slot.DisplayBar(Modifier.fillMaxWidth())
         }
     }
+}
+
+@Composable
+private fun RowScope.LandscapeSideBars(
+    start: Boolean,
+    container_modifier: Modifier = Modifier,
+    onSizeChanged: (Dp, Boolean) -> Unit
+): Pair<Boolean, Boolean> {
+    val density: Density = LocalDensity.current
+
+    val first: LayoutSlot =
+        if (start) LandscapeLayoutSlot.OUTER_SIDE_LEFT
+        else LandscapeLayoutSlot.INNER_SIDE_RIGHT
+    val second: LayoutSlot =
+        if (start) LandscapeLayoutSlot.INNER_SIDE_LEFT
+        else LandscapeLayoutSlot.OUTER_SIDE_RIGHT
+
+    val modifier: Modifier = Modifier.fillMaxHeight()
+
+    val first_displaying: Boolean = first.DisplayBar(
+        modifier.onSizeChanged {
+            with (density) {
+                onSizeChanged(it.width.toDp(), true)
+            }
+        },
+        container_modifier
+    )
+
+    val second_displaying: Boolean = second.DisplayBar(
+        modifier.onSizeChanged {
+            with (density) {
+                onSizeChanged(it.width.toDp(), false)
+            }
+        },
+        container_modifier
+    )
+
+    return Pair(first_displaying, second_displaying)
 }

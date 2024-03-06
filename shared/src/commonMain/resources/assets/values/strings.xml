@@ -806,8 +806,10 @@
     <string name="layout_slot_portrait_above_player">Above mini-player</string>
     <string name="layout_slot_portrait_below_player">Below mini-player</string>
 
-    <string name="layout_slot_landscape_side_left">Left sidebar</string>
-    <string name="layout_slot_landscape_side_right">Right sidebar</string>
+    <string name="layout_slot_landscape_outer_side_left">Outer left sidebar</string>
+    <string name="layout_slot_landscape_inner_side_left">Inner left sidebar</string>
+    <string name="layout_slot_landscape_outer_side_right">Outer right sidebar</string>
+    <string name="layout_slot_landscape_inner_side_right">Inner right sidebar</string>
     <string name="layout_slot_landscape_upper_top_bar">Upper top bar</string>
     <string name="layout_slot_landscape_lower_top_bar">Lower top bar</string>
     <string name="layout_slot_landscape_above_player">Above mini-player</string>

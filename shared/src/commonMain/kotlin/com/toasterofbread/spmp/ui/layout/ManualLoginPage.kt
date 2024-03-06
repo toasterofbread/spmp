@@ -41,6 +41,7 @@ import com.toasterofbread.composekit.utils.modifier.horizontal
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
+import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 
 @Composable
 fun ManualLoginPage(
@@ -151,7 +152,8 @@ fun ManualLoginPage(
                 Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 20.dp)
+                    .padding(bottom = 20.dp),
+                NowPlayingTopOffsetSection.PAGE_BAR
             )
             .onGloballyPositioned {
                 info_entry_position = with (density) {

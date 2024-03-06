@@ -16,6 +16,7 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
 import kotlin.math.absoluteValue
 import kotlinx.serialization.json.Json
+import com.toasterofbread.composekit.utils.composable.RowOrColumnScope
 
 sealed interface LayoutSlot {
     fun getKey(): String
@@ -25,6 +26,7 @@ sealed interface LayoutSlot {
     fun getDefaultBackgroundColour(theme: Theme): ColourSource
 
     val is_vertical: Boolean
+    val is_start: Boolean
     val slots_key: SettingsKey
 }
 
@@ -56,7 +58,7 @@ fun LayoutSlot.observeContentBar(): State<ContentBar?> {
 fun LayoutSlot.OrientedLayout(
     content_padding: PaddingValues,
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
+    content: @Composable RowOrColumnScope.() -> Unit
 ) {
     val player: PlayerState = LocalPlayerState.current
 
@@ -91,6 +93,13 @@ enum class PortraitLayoutSlot: LayoutSlot {
     BELOW_PLAYER;
 
     override val is_vertical: Boolean = false
+    override val is_start: Boolean get() =
+        when (this) {
+            UPPER_TOP_BAR -> true
+            LOWER_TOP_BAR -> true
+            ABOVE_PLAYER -> false
+            BELOW_PLAYER -> false
+        }
     override val slots_key: SettingsKey = LayoutSettings.Key.PORTRAIT_SLOTS
 
     override fun getKey(): String = name
@@ -122,8 +131,10 @@ enum class PortraitLayoutSlot: LayoutSlot {
 }
 
 enum class LandscapeLayoutSlot: LayoutSlot {
-    SIDE_LEFT,
-    SIDE_RIGHT,
+    OUTER_SIDE_LEFT,
+    INNER_SIDE_LEFT,
+    OUTER_SIDE_RIGHT,
+    INNER_SIDE_RIGHT,
     UPPER_TOP_BAR,
     LOWER_TOP_BAR,
     ABOVE_PLAYER,
@@ -131,8 +142,23 @@ enum class LandscapeLayoutSlot: LayoutSlot {
 
     override val is_vertical: Boolean get() =
         when (this) {
-            SIDE_LEFT, SIDE_RIGHT -> true
+            OUTER_SIDE_LEFT,
+            INNER_SIDE_LEFT,
+            OUTER_SIDE_RIGHT,
+            INNER_SIDE_RIGHT -> true
             else -> false
+        }
+
+    override val is_start: Boolean get() =
+        when (this) {
+            OUTER_SIDE_LEFT -> true
+            INNER_SIDE_LEFT -> true
+            OUTER_SIDE_RIGHT -> false
+            INNER_SIDE_RIGHT -> false
+            UPPER_TOP_BAR -> true
+            LOWER_TOP_BAR -> true
+            ABOVE_PLAYER -> false
+            BELOW_PLAYER -> false
         }
 
     override val slots_key: SettingsKey = LayoutSettings.Key.LANDSCAPE_SLOTS
@@ -141,8 +167,10 @@ enum class LandscapeLayoutSlot: LayoutSlot {
 
     override fun getName(): String =
         when (this) {
-            SIDE_LEFT -> getString("layout_slot_landscape_side_left")
-            SIDE_RIGHT -> getString("layout_slot_landscape_side_right")
+            OUTER_SIDE_LEFT -> getString("layout_slot_landscape_outer_side_left")
+            INNER_SIDE_LEFT -> getString("layout_slot_landscape_inner_side_left")
+            OUTER_SIDE_RIGHT -> getString("layout_slot_landscape_outer_side_right")
+            INNER_SIDE_RIGHT -> getString("layout_slot_landscape_inner_side_right")
             UPPER_TOP_BAR -> getString("layout_slot_landscape_upper_top_bar")
             LOWER_TOP_BAR -> getString("layout_slot_landscape_lower_top_bar")
             ABOVE_PLAYER -> getString("layout_slot_landscape_above_player")
@@ -151,8 +179,10 @@ enum class LandscapeLayoutSlot: LayoutSlot {
 
     override fun getDefaultContentBar(): ContentBar? =
         when (this) {
-            SIDE_LEFT -> InternalContentBar.NAVIGATION
-            SIDE_RIGHT -> InternalContentBar.NAVIGATION
+            OUTER_SIDE_LEFT -> InternalContentBar.NAVIGATION
+            INNER_SIDE_LEFT -> InternalContentBar.NAVIGATION
+            OUTER_SIDE_RIGHT -> InternalContentBar.NAVIGATION
+            INNER_SIDE_RIGHT -> InternalContentBar.NAVIGATION
 
             UPPER_TOP_BAR -> InternalContentBar.NAVIGATION
             LOWER_TOP_BAR -> InternalContentBar.NAVIGATION
@@ -165,8 +195,10 @@ enum class LandscapeLayoutSlot: LayoutSlot {
 
     override fun getDefaultBackgroundColour(theme: Theme): ColourSource =
         when (this) {
-            SIDE_LEFT -> ThemeColourSource(Theme.Colour.CARD)
-            SIDE_RIGHT -> ThemeColourSource(Theme.Colour.CARD)
+            OUTER_SIDE_LEFT -> ThemeColourSource(Theme.Colour.CARD)
+            INNER_SIDE_LEFT -> ThemeColourSource(Theme.Colour.CARD)
+            OUTER_SIDE_RIGHT -> ThemeColourSource(Theme.Colour.CARD)
+            INNER_SIDE_RIGHT -> ThemeColourSource(Theme.Colour.CARD)
             UPPER_TOP_BAR -> ThemeColourSource(Theme.Colour.CARD)
             LOWER_TOP_BAR -> ThemeColourSource(Theme.Colour.CARD)
             ABOVE_PLAYER -> ThemeColourSource(Theme.Colour.ACCENT)

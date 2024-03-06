@@ -1,8 +1,7 @@
 package com.toasterofbread.spmp.youtubeapi.endpoint
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Album
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
@@ -45,6 +44,16 @@ fun SearchType?.getReadable(): String =
         SearchType.ARTIST -> MediaItemType.ARTIST.getReadable(true)
         SearchType.PLAYLIST -> PlaylistType.PLAYLIST.getReadable(true)
         SearchType.ALBUM -> PlaylistType.ALBUM.getReadable(true)
+    }
+
+fun SearchType?.getIcon(): ImageVector =
+    when (this) {
+        null -> Icons.Default.SelectAll
+        SearchType.VIDEO -> Icons.Default.Movie
+        SearchType.SONG -> MediaItemType.SONG.getIcon()
+        SearchType.ARTIST -> MediaItemType.ARTIST.getIcon()
+        SearchType.PLAYLIST -> MediaItemType.PLAYLIST_REM.getIcon()
+        SearchType.ALBUM -> Icons.Default.Album
     }
 
 data class SearchFilter(val type: SearchType, val params: String)

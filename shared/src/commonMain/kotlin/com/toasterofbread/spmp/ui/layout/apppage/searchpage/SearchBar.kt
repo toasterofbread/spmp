@@ -3,7 +3,7 @@ package com.toasterofbread.spmp.ui.layout.apppage.searchpage
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -23,13 +23,14 @@ import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.theme.appHover
 
+internal val SEARCH_BAR_SHAPE: Shape = RoundedCornerShape(20.dp)
 internal const val SEARCH_BAR_HEIGHT_DP = 45f
 internal const val SEARCH_BAR_V_PADDING_DP = 15f
 
 @Composable
 internal fun SearchAppPage.SearchBar(
     modifier: Modifier = Modifier,
-    shape: Shape = CircleShape,
+    shape: Shape = SEARCH_BAR_SHAPE,
     apply_padding: Boolean = true,
     onFocusChanged: (Boolean) -> Unit
 ) {
@@ -115,7 +116,8 @@ internal fun SearchAppPage.SearchBar(
             Modifier
                 .size(SEARCH_BAR_HEIGHT_DP.dp)
                 .bounceOnClick()
-                .appHover(true)
+                .appHover(true),
+            shape = SEARCH_BAR_SHAPE
         ) {
             Icon(Icons.Filled.Search, null)
         }

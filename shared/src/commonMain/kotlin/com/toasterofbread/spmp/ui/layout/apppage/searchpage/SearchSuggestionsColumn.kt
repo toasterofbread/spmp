@@ -2,7 +2,6 @@ package com.toasterofbread.spmp.ui.layout.apppage.searchpage
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -56,14 +55,12 @@ private fun SearchAppPage.SearchSuggestion(
     modifier: Modifier = Modifier,
     onSelected: () -> Unit,
 ) {
-    val shape: Shape = CircleShape
-
     Row(
         modifier
             .clickable(onClick = onSelected)
-            .clip(shape)
+            .clip(SEARCH_BAR_SHAPE)
             .background(context.theme.background)
-            .border(2.dp, context.theme.accent, shape)
+            .border(2.dp, context.theme.accent, SEARCH_BAR_SHAPE)
             .padding(10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)

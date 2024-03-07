@@ -128,9 +128,11 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
     private var download_request_callback: DownloadRequestCallback? by mutableStateOf(null)
 
     val expansion = NowPlayingExpansionState(this, np_swipe_state, coroutine_scope)
-    val session_started: Boolean get() = _player?.service_player?.session_started == true
     var screen_size: DpSize by mutableStateOf(DpSize.Zero)
+    
+    val session_started: Boolean get() = _player?.service_player?.session_started == true
     var hide_player: Boolean by mutableStateOf(false)
+    val player_showing: Boolean get() = session_started && !hide_player
 
     val app_page_state = AppPageState(this)
     val main_multiselect_context: MediaItemMultiSelectContext = AppPageMultiSelectContext(this)
@@ -321,7 +323,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
             .offset {
                 val bottom_padding: Int = getNpBottomPadding(system_insets, navigation_insets, keyboard_insets)
                 val swipe_offset: Dp =
-                    if (session_started && !hide_player) -np_swipe_state.value.offset.value.dp - ((screen_size.height + np_bottom_bar_height) * 0.5f)
+                    if (player_showing) -np_swipe_state.value.offset.value.dp - ((screen_size.height + np_bottom_bar_height) * 0.5f)
                     else -np_bottom_bar_height
 
                 IntOffset(
@@ -351,7 +353,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         if (include_np) {
             bottom_padding += animateDpAsState(
                 np_bottom_bar_height + (
-                    if (session_started && !hide_player) MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
+                    if (player_showing) MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
                     else 0.dp
                 )
             ).value

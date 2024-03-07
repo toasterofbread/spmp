@@ -179,7 +179,7 @@ fun NowPlaying(
     }
 
     AnimatedVisibility(
-        player.session_started && !player.hide_player,
+        player.player_showing,
         modifier,
         exit = slideOutVertically() { it },
         enter = slideInVertically() { it }

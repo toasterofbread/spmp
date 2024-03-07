@@ -20,6 +20,7 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.LargeFilterList
 import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.youtubeapi.endpoint.*
 
 @Composable
@@ -44,6 +45,8 @@ internal fun SearchAppPage.VerticalSearchPrimaryBar(
         if (slot.is_start) content_padding.calculateEndPadding(LocalLayoutDirection.current)
         else content_padding.calculateStartPadding(LocalLayoutDirection.current)
 
+    val gap: Dp = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp * (if (player.player_showing) 2 else 1)
+
     Column(
         modifier
             .width(bar_width)
@@ -53,10 +56,11 @@ internal fun SearchAppPage.VerticalSearchPrimaryBar(
     ) {
         Box(Modifier.requiredSize(search_button_size)) {
             val search_bar_offset_modifier: Modifier =
-                Modifier.offset(
-                    // No idea where these magic values come from
-                    y = 100.dp + ((search_button_size + SEARCH_BAR_HEIGHT_DP.dp) / 2)
-                )
+                Modifier
+                    .offset(
+                        y = gap - ((SEARCH_BAR_HEIGHT_DP.dp - search_button_size) / 2f)
+                    )
+                    .padding(bottom = 15.dp)
 
             IconButton(
                 { show_search_bar = !show_search_bar },
@@ -83,8 +87,7 @@ internal fun SearchAppPage.VerticalSearchPrimaryBar(
                 outer_content_modifier
                     .wrapContentHeight(unbounded = true)
                     .offset(
-                        // No idea where these magic values come from
-                        y = 200.dp - (SEARCH_BAR_HEIGHT_DP.dp / 2)
+                        y = gap + (search_button_size / 2)
                     )
                     .offset {
                         IntOffset(0, -suggestions_height / 2)
@@ -110,7 +113,7 @@ internal fun SearchAppPage.VerticalSearchPrimaryBar(
                     SearchSuggestionsColumn(
                         suggestions,
                         Alignment.Bottom,
-                        Modifier.padding(bottom = 15.dp)
+                        // Modifier.padding(bottom = 15.dp)
                     )
                 }
             }

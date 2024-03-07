@@ -3,8 +3,11 @@ package com.toasterofbread.spmp.ui.layout.contentbar
 import LocalPlayerState
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.border
+import androidx.compose.foundation.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -17,7 +20,7 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
-import com.toasterofbread.composekit.platform.composable.platformClickable
+import com.toasterofbread.composekit.platform.composable.*
 import com.toasterofbread.composekit.utils.common.*
 import com.toasterofbread.composekit.utils.modifier.background
 import com.toasterofbread.spmp.resources.getString
@@ -37,7 +40,6 @@ internal fun ContentBarSelector(
     val density: Density = LocalDensity.current
     val slot_colour_source: ColourSource by slot.rememberColourSource()
 
-    // var show_expanded_options: Boolean by remember { mutableStateOf(false) }
     var show_colour_selector: Boolean by remember { mutableStateOf(false) }
 
     if (show_colour_selector) {
@@ -102,7 +104,7 @@ internal fun ContentBarSelector(
                     }
                 }
 
-                ContentBarSelectorMainRow(state, slot, rotate_modifier = rotate_modifier)
+                ContentBarSelectorMainRow(state, slot, rotate_modifier)
             }
         }
     }
@@ -117,17 +119,24 @@ private fun ContentBarSelectorMainRow(
 ) {
     val player: PlayerState = LocalPlayerState.current
     val content_bar: ContentBar? by slot.observeContentBar()
+
     var show_bar_selector: Boolean by remember { mutableStateOf(false) }
 
     if (show_bar_selector) {
         BarSelectorPopup(
-            slot = slot,
-            bars = state.available_bars,
-            modifier = Modifier.requiredWidth(player.screen_size.width * 0.6f)
-        ) { bar ->
-            show_bar_selector = false
-            state.onBarSelected(slot, bar)
-        }
+            state,
+            slot,
+            size_modifier = Modifier
+                .widthIn(min = player.screen_size.width * 0.8f)
+                .heightIn(max = player.screen_size.height * 0.8f),
+            onSelected = { bar ->
+                show_bar_selector = false
+                state.onBarSelected(slot, bar)
+            },
+            onDismissed = {
+                show_bar_selector = false
+            }
+        )
     }
 
     Crossfade(content_bar) { bar ->
@@ -176,19 +185,21 @@ private fun ConfigButton(
 
 @Composable
 private fun BarSelectorPopup(
+    state: ContentBar.BarSelectionState,
     slot: LayoutSlot,
-    bars: List<Pair<ContentBar, Int>>,
+    onSelected: (ContentBarReference?) -> Unit,
+    onDismissed: () -> Unit,
     modifier: Modifier = Modifier,
-    onSelected: (Pair<ContentBar, Int>?) -> Unit
+    size_modifier: Modifier = Modifier
 ) {
     val player: PlayerState = LocalPlayerState.current
 
     AlertDialog(
-        { onSelected(null) },
+        onDismissed,
         modifier = modifier,
         confirmButton = {
             Button(
-                { onSelected(null) },
+                onDismissed,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = player.theme.background,
                     contentColor = player.theme.on_background
@@ -198,35 +209,68 @@ private fun BarSelectorPopup(
                 Text(getString("action_cancel"))
             }
         },
+        dismissButton = {
+            Button({ onSelected(null) }) {
+                Icon(Icons.Default.Close, null)
+                Text(getString("content_bar_empty"))
+            }
+        },
         title = {
-            Text(getString("layout_slot_content_bar_selection"))
+            Text(getString("content_bar_selection"))
         },
         text = {
-            LazyColumn(
-                Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                items(bars) { bar ->
-                    ContentBarPreview(
-                        bar.first.getName(),
-                        bar.first.getDescription(),
-                        bar.first.getIcon(),
-                        Modifier
-                            .contentBarPreview()
-                            .platformClickable(onClick = { onSelected(bar) })
-                    )
+            Row(size_modifier, horizontalArrangement = Arrangement.spacedBy(15.dp)) {
+                ContentBarList(
+                    state.built_in_bars,
+                    getString("content_bar_selection_list_built_in"),
+                    Modifier.fillMaxWidth(0.5f)
+                ) {
+                    onSelected(state.built_in_bars[it])
                 }
 
-                item {
-                    ContentBarPreview(
-                        getString("content_bar_empty"),
-                        null,
-                        Icons.Default.Close,
-                        Modifier
-                            .padding(top = 20.dp)
-                            .contentBarPreview()
-                            .platformClickable(onClick = { onSelected(null) })
-                    )
+                ContentBarList(
+                    state.custom_bars,
+                    getString("content_bar_selection_list_custom"),
+                    Modifier.fillMaxWidth(),
+                    topContent = {
+                        item {
+                            val background_colour: Color = player.theme.vibrant_accent
+                            CompositionLocalProvider(LocalContentColor provides background_colour.getContrasted()) {
+                                ContentBarPreview(
+                                    getString("content_bar_selection_create_new"),
+                                    null,
+                                    Icons.Default.Add,
+                                    Modifier
+                                        .contentBarPreview(background_colour = background_colour)
+                                        .platformClickable(onClick = {
+                                            state.createCustomBar()
+                                        })
+                                )
+                            }
+                        }
+                    },
+                    buttonBottomContent = { index ->
+                        Row {
+                            IconButton(
+                                {
+                                    state.onCustomBarEditRequested(state.custom_bars[index])
+                                    onDismissed()
+                                }
+                            ) {
+                                Icon(Icons.Default.Edit, null)
+                            }
+
+                            IconButton(
+                                {
+                                    state.deleteCustomBar(state.custom_bars[index])
+                                }
+                            ) {
+                                Icon(Icons.Default.Delete, null)
+                            }
+                        }
+                    }
+                ) {
+                    onSelected(state.custom_bars[it])
                 }
             }
         }
@@ -234,7 +278,48 @@ private fun BarSelectorPopup(
 }
 
 @Composable
-private fun ContentBarPreview(name: String, description: String?, icon: ImageVector, modifier: Modifier = Modifier) {
+private fun ContentBarList(
+    bars: List<ContentBarReference>,
+    title: String,
+    modifier: Modifier = Modifier,
+    topContent: LazyListScope.() -> Unit = {},
+    buttonBottomContent: @Composable (Int) -> Unit = {},
+    onSelected: (Int) -> Unit
+) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(title)
+
+        ScrollBarLazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            topContent()
+
+            itemsIndexed(bars) { index, bar ->
+                ContentBarPreview(
+                    bar.first.getName(),
+                    bar.first.getDescription(),
+                    bar.first.getIcon(),
+                    Modifier
+                        .contentBarPreview()
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) { onSelected(index) },
+                    bottomContent = {
+                        buttonBottomContent(index)
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ContentBarPreview(
+    name: String,
+    description: String?,
+    icon: ImageVector,
+    modifier: Modifier = Modifier,
+    bottomContent: @Composable () -> Unit = {}
+) {
     Row(
         modifier,
         verticalAlignment = Alignment.CenterVertically,
@@ -242,12 +327,14 @@ private fun ContentBarPreview(name: String, description: String?, icon: ImageVec
     ) {
         Icon(icon, null)
 
-        Column(Modifier.fillMaxWidth().weight(1f)) {
-            Text(name, style = MaterialTheme.typography.titleLarge)
+        Column(Modifier.fillMaxWidth().weight(1f), horizontalAlignment = Alignment.End) {
+            Text(name, Modifier.align(Alignment.Start), style = MaterialTheme.typography.titleLarge)
 
             if (description != null) {
-                Text(description, style = MaterialTheme.typography.labelLarge)
+                Text(description, Modifier.align(Alignment.Start), style = MaterialTheme.typography.labelLarge)
             }
+
+            bottomContent()
         }
     }
 }

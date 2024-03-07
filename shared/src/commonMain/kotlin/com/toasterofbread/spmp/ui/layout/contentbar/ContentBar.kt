@@ -18,6 +18,8 @@ import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.serialization.json.Json
 
+internal typealias ContentBarReference = Pair<ContentBar, Int>
+
 sealed class ContentBar {
     abstract fun getName(): String
     abstract fun getDescription(): String?
@@ -33,7 +35,7 @@ sealed class ContentBar {
         var result: Boolean by remember { mutableStateOf(false) }
 
         CompositionLocalProvider(LocalContentColor provides background_colour.getContrasted()) {
-            result =  BarContent(
+            result = BarContent(
                 slot,
                 content_padding,
                 modifier.background(background_colour)
@@ -47,10 +49,15 @@ sealed class ContentBar {
     protected abstract fun BarContent(slot: LayoutSlot, content_padding: PaddingValues, modifier: Modifier): Boolean
 
     interface BarSelectionState {
-        val available_bars: List<Pair<ContentBar, Int>>
-        fun onBarSelected(slot: LayoutSlot, bar: Pair<ContentBar, Int>?)
+        val built_in_bars: List<ContentBarReference>
+        val custom_bars: List<ContentBarReference>
+        fun onBarSelected(slot: LayoutSlot, bar: ContentBarReference?)
         fun onThemeColourSelected(slot: LayoutSlot, colour: Theme.Colour)
         fun onCustomColourSelected(slot: LayoutSlot, colour: Color)
+
+        fun createCustomBar(): ContentBarReference
+        fun deleteCustomBar(bar: ContentBarReference)
+        fun onCustomBarEditRequested(bar: ContentBarReference)
     }
 
     companion object {
@@ -77,7 +84,7 @@ fun LayoutSlot.DisplayBar(modifier: Modifier = Modifier, container_modifier: Mod
     val player: PlayerState = LocalPlayerState.current
     val content_bar: ContentBar? by observeContentBar()
 
-    val base_padding: Dp = 10.dp
+    val base_padding: Dp = 5.dp
     val content_padding: PaddingValues = PaddingValues(
         top = base_padding,
         start = base_padding,
@@ -99,7 +106,7 @@ fun LayoutSlot.DisplayBar(modifier: Modifier = Modifier, container_modifier: Mod
             return@Crossfade
         }
 
-        val selctor_size: Dp = 70.dp
+        val selctor_size: Dp = 50.dp
         val selector_modifier: Modifier =
             if (this.is_vertical) modifier.width(selctor_size)
             else modifier.height(selctor_size)

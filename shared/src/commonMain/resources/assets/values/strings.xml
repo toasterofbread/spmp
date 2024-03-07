@@ -791,7 +791,10 @@
     <string name="settings_import_result_$x_from_file">$x value(s) imported from file</string>
     <string name="settings_import_result_$x_from_default">$x value(s) restored from defaults</string>
 
-    <string name="layout_slot_content_bar_selection">Select content bar</string>
+    <string name="content_bar_selection">Select content bar</string>
+    <string name="content_bar_selection_list_built_in">Built-in</string>
+    <string name="content_bar_selection_list_custom">Custom</string>
+    <string name="content_bar_selection_create_new">Create</string>
 
     <string name="content_bar_empty">Empty</string>
     <string name="content_bar_primary">Primary</string>
@@ -801,6 +804,14 @@
     <string name="content_bar_navigation">Navigation</string>
     <string name="content_bar_desc_navigation">Controls for navigating between app pages</string>
 
+    <string name="content_bar_custom_no_$x">Custom bar #$x</string>
+    <string name="content_bar_custom_invalid">Invalid custom bar</string>
+
+    <string name="layout_editor_preview_options">Preview options</string>
+    <string name="layout_editor_preview_option_show_bar_content">Show bar content</string>
+    <string name="layout_editor_preview_option_hide_player">Hide player</string>
+    <string name="layout_editor_preview_option_portrait_mode">Portrait mode</string>
+    
     <string name="layout_slot_portrait_upper_top_bar">Upper top bar</string>
     <string name="layout_slot_portrait_lower_top_bar">Lower top bar</string>
     <string name="layout_slot_portrait_above_player">Above mini-player</string>

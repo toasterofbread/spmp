@@ -5,6 +5,7 @@ import kotlinx.serialization.json.Json
 import androidx.compose.ui.Modifier
 import androidx.compose.runtime.Composable
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
+import com.toasterofbread.spmp.resources.getString
 import kotlinx.serialization.encodeToString
 import androidx.compose.material3.Text
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -14,14 +15,15 @@ import androidx.compose.foundation.layout.PaddingValues
 
 @Serializable
 data class CustomContentBar(
-    val buttons: List<ContentBarButton>,
-    val alignment: Alignment
+    val bar_name: String,
+    val buttons: List<ContentBarButton> = emptyList(),
+    val alignment: Int = -1
 ): ContentBar() {
     enum class Alignment {
         START, CENTER, END;
     }
 
-    override fun getName(): String = "Custom // TODO"
+    override fun getName(): String = bar_name
     override fun getDescription(): String? = null
     override fun getIcon(): ImageVector = Icons.Default.Build
 
@@ -29,11 +31,5 @@ data class CustomContentBar(
     override fun BarContent(slot: LayoutSlot, content_padding: PaddingValues, modifier: Modifier): Boolean {
         Text(buttons.toString())
         return true
-    }
-
-    fun serialise(): String = Json.encodeToString(this)
-
-    companion object {
-        fun deserialise(data: String): ContentBar = Json.decodeFromString(data)
     }
 }

@@ -1,54 +1,35 @@
 package com.toasterofbread.spmp.ui.layout.contentbar
 
-import androidx.compose.ui.Modifier
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import LocalPlayerState
-import kotlinx.serialization.json.Json
-import org.burnoutcrew.reorderable.ReorderableLazyListState
-import org.burnoutcrew.reorderable.rememberReorderableLazyListState
-import com.toasterofbread.composekit.platform.composable.ScrollBarLazyColumn
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.layout.fillMaxSize
-import org.burnoutcrew.reorderable.reorderable
-import androidx.compose.ui.Alignment
-import androidx.compose.foundation.layout.Arrangement
-import org.burnoutcrew.reorderable.ReorderableItem
-import org.burnoutcrew.reorderable.detectReorder
+import androidx.compose.animation.*
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.height
-import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
-import com.toasterofbread.spmp.platform.form_factor
-import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.model.settings.SettingsKey
-import androidx.compose.runtime.*
-import androidx.compose.animation.Crossfade
-import com.toasterofbread.spmp.model.settings.category.LayoutSettings
-import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.Text
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Button
-import kotlinx.serialization.encodeToString
-import com.toasterofbread.composekit.settings.ui.item.SettingsItem
-import com.toasterofbread.composekit.settings.ui.item.ComposableSettingsItem
-import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.composekit.utils.common.getContrasted
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.material3.Switch
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.runtime.LaunchedEffect
-import com.toasterofbread.composekit.utils.common.fromHexString
-import com.toasterofbread.composekit.utils.common.toHexString
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.*
+import com.toasterofbread.composekit.platform.composable.ScrollBarLazyColumn
+import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.composekit.settings.ui.Theme
+import com.toasterofbread.composekit.settings.ui.item.*
+import com.toasterofbread.composekit.utils.common.*
+import com.toasterofbread.composekit.utils.composable.OnChangedEffect
+import com.toasterofbread.spmp.model.settings.SettingsKey
+import com.toasterofbread.spmp.model.settings.category.LayoutSettings
+import com.toasterofbread.spmp.platform.*
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import org.burnoutcrew.reorderable.*
 
 @OptIn(ExperimentalLayoutApi::class)
 fun getLayoutSlotEditorSettingsItems(): List<SettingsItem> {
@@ -57,54 +38,76 @@ fun getLayoutSlotEditorSettingsItems(): List<SettingsItem> {
             emptyList(),
             composable = {
                 val player: PlayerState = LocalPlayerState.current
+                var preview_options_expanded: Boolean by remember { mutableStateOf(false) }
+
+                DisposableEffect(Unit) {
+                    onDispose {
+                        FormFactor.form_factor_override = null
+                    }
+                }
 
                 Column(
                     Modifier
                         .border(2.dp, player.theme.vibrant_accent, RoundedCornerShape(10.dp))
                         .padding(10.dp)
                         .fillMaxWidth()
-                        .height(IntrinsicSize.Min)
+                ) {
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .platformClickable(
+                                onClick = { preview_options_expanded = !preview_options_expanded }
+                            ),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                    Text(
-                        "Preview options",
-                        Modifier.padding(bottom = 10.dp),
-                        style = MaterialTheme.typography.headlineSmall
-                    )
+                        Text(
+                            getString("layout_editor_preview_options"),
+                            Modifier.padding(bottom = 10.dp),
+                            style = MaterialTheme.typography.headlineSmall
+                        )
 
-                    Spacer(Modifier.fillMaxWidth().weight(1f))
-
-                    SwitchButton(
-                        checked = ContentBar.disable_bar_selection,
-                        onCheckedChange = { checked ->
-                            ContentBar.disable_bar_selection = checked
+                        Crossfade(preview_options_expanded) { expanded ->
+                            IconButton({ preview_options_expanded = !expanded }) {
+                                Icon(
+                                    if (expanded) Icons.Default.KeyboardArrowUp
+                                    else Icons.Default.KeyboardArrowDown,
+                                    null
+                                )
+                            }
                         }
-                    ) {
-                        Text("Show bar content")
                     }
 
-                    SwitchButton(
-                        checked = player.hide_player,
-                        onCheckedChange = { checked ->
-                            player.hide_player = checked
-                        }
-                    ) {
-                        Text("Hide player")
-                    }
+                    AnimatedVisibility(preview_options_expanded) {
+                        Column {
+                            SwitchButton(
+                                checked = ContentBar.disable_bar_selection,
+                                onCheckedChange = { checked ->
+                                    ContentBar.disable_bar_selection = checked
+                                }
+                            ) {
+                                Text(getString("layout_editor_preview_option_show_bar_content"))
+                            }
 
-                    SwitchButton(
-                        checked = player.form_factor == FormFactor.PORTRAIT,
-                        onCheckedChange = { checked ->
-                            FormFactor.form_factor_override =
-                                if (checked) FormFactor.PORTRAIT
-                                else FormFactor.LANDSCAPE
-                        }
-                    ) {
-                        Text("Portrait mode")
-                    }
+                            SwitchButton(
+                                checked = player.hide_player,
+                                onCheckedChange = { checked ->
+                                    player.hide_player = checked
+                                }
+                            ) {
+                                Text(getString("layout_editor_preview_option_hide_player"))
+                            }
 
-                    DisposableEffect(Unit) {
-                        onDispose {
-                            FormFactor.form_factor_override = null
+                            SwitchButton(
+                                checked = player.form_factor == FormFactor.PORTRAIT,
+                                onCheckedChange = { checked ->
+                                    FormFactor.form_factor_override =
+                                        if (checked) FormFactor.PORTRAIT
+                                        else FormFactor.LANDSCAPE
+                                }
+                            ) {
+                                Text(getString("layout_editor_preview_option_portrait_mode"))
+                            }
                         }
                     }
                 }
@@ -127,7 +130,7 @@ fun getLayoutSlotEditorSettingsItems(): List<SettingsItem> {
 fun LayoutSlotEditor(modifier: Modifier = Modifier) {
     val player: PlayerState = LocalPlayerState.current
 
-    val custom_bars_data: String by LayoutSettings.Key.CUSTOM_BARS.rememberMutableState()
+    var custom_bars_data: String by LayoutSettings.Key.CUSTOM_BARS.rememberMutableState()
     var slot_colours_data: String by LayoutSettings.Key.SLOT_COLOURS.rememberMutableState()
 
     val slots_key: SettingsKey = when (player.form_factor) {
@@ -139,19 +142,27 @@ fun LayoutSlotEditor(modifier: Modifier = Modifier) {
         FormFactor.LANDSCAPE -> LandscapeLayoutSlot.entries
     }
 
+    var editing_custom_bar: ContentBarReference? by remember { mutableStateOf(null) }
+
     DisposableEffect(Unit) {
         ContentBar.bar_selection_state = object : ContentBar.BarSelectionState {
-            override val available_bars: List<Pair<ContentBar, Int>>
-                get() {
-                    val custom_bars: List<CustomContentBar> = Json.decodeFromString(custom_bars_data)
-                    return (
-                        InternalContentBar.getAll().mapIndexed { index, bar -> Pair(bar, index + 1) }
-                        + custom_bars.mapIndexed { index, bar -> Pair(bar, -(index + 1)) }
-                    )
-                }
+            private fun parseSlots(): Map<String, Int> =
+                Json.decodeFromString(slots_key.get<String>())
 
-            override fun onBarSelected(slot: LayoutSlot, bar: Pair<ContentBar, Int>?) {
-                val slots: MutableMap<String, Int> = Json.decodeFromString<Map<String, Int>>(slots_key.get<String>()).toMutableMap()
+            override val built_in_bars: List<ContentBarReference> get() =
+                InternalContentBar.getAll()
+                    .mapIndexed { index, bar ->
+                        ContentBarReference(bar, index + 1)
+                    }
+
+            override val custom_bars: List<ContentBarReference> get() =
+                Json.decodeFromString<List<CustomContentBar>>(custom_bars_data)
+                    .mapIndexed { index, bar ->
+                        ContentBarReference(bar, -(index + 1))
+                    }
+
+            override fun onBarSelected(slot: LayoutSlot, bar: ContentBarReference?) {
+                val slots: MutableMap<String, Int> = parseSlots().toMutableMap()
                 slots[slot.getKey()] = bar?.second ?: 0
                 slots_key.set(Json.encodeToString(slots))
             }
@@ -162,6 +173,46 @@ fun LayoutSlotEditor(modifier: Modifier = Modifier) {
 
             override fun onCustomColourSelected(slot: LayoutSlot, colour: Color) {
                 setColour(slot, colour.toHexString())
+            }
+
+            override fun createCustomBar(): ContentBarReference {
+                val bars: List<CustomContentBar> = Json.decodeFromString(custom_bars_data)
+
+                val new_bar: CustomContentBar = CustomContentBar(
+                    bar_name = getString("content_bar_custom_no_\$x").replace("\$x", (bars.size + 1).toString())
+                )
+                custom_bars_data = Json.encodeToString(bars + new_bar)
+
+                return ContentBarReference(new_bar, -(bars.size + 1))
+            }
+
+            override fun onCustomBarEditRequested(bar: ContentBarReference) {
+                editing_custom_bar = bar
+            }
+
+            override fun deleteCustomBar(bar: ContentBarReference) {
+                val bars = Json.decodeFromString<List<CustomContentBar>>(custom_bars_data).toMutableList()
+
+                val removed_index: Int = -bar.second - 1
+                bars.removeAt(removed_index)
+
+                val slots: MutableMap<String, Int> = parseSlots().toMutableMap()
+                for (slot in slots.entries) {
+                    if (slot.value >= 0) {
+                        continue
+                    }
+
+                    val slot_index: Int = -slot.value - 1
+                    if (slot_index == removed_index) {
+                        slots[slot.key] = 0
+                    }
+                    else if (slot_index > removed_index) {
+                        slots[slot.key] = slot.value + 1
+                    }
+                }
+
+                custom_bars_data = Json.encodeToString(bars)
+                slots_key.set(Json.encodeToString(slots))
             }
 
             private fun setColour(slot: LayoutSlot, colour: String) {
@@ -178,90 +229,23 @@ fun LayoutSlotEditor(modifier: Modifier = Modifier) {
         }
     }
 
-    Crossfade(Pair(slots_key, available_slots), modifier) {
-        val (key, available) = it
-        SlotEditor(key, available)
-    }
-}
+    Crossfade(Triple(slots_key, available_slots, editing_custom_bar), modifier) {
+        val (key, available, editing_bar) = it
 
-@Composable
-private fun SlotEditor(slots_key: SettingsKey, available_slots: List<LayoutSlot>, modifier: Modifier = Modifier) {
-    val slots_data: String by slots_key.rememberMutableState()
+        if (editing_bar != null) {
+            CustomContentBarEditor(editing_bar.first as CustomContentBar) {
 
-    var slots: List<Int?> by remember { mutableStateOf(
-        available_slots.map { Json.decodeFromString<Map<String, Int>>(slots_data).get(it.getKey()) }
-    ) }
-
-    val bar_height: Dp = 100.dp
-
-    val slot_list_state: ReorderableLazyListState = rememberReorderableLazyListState(
-        onMove = { from, to ->
-            val new = slots.toMutableList()
-            new.add(to.index, new.removeAt(from.index))
-            slots = new
-        },
-        onDragEnd = { from, to ->
-
-        }
-    )
-
-    Column(modifier) {
-        SlotOrderEditorLandscape(available_slots, slots, slot_list_state)
-    }
-}
-
-@Composable
-private fun SlotOrderEditorPortrait(
-    available_slots: List<LayoutSlot>,
-    slots: List<Int?>,
-    slot_list_state: ReorderableLazyListState,
-    modifier: Modifier = Modifier
-) {
-    TODO()
-}
-
-@Composable
-private fun SlotOrderEditorLandscape(
-    available_slots: List<LayoutSlot>,
-    slots: List<Int?>,
-    slot_list_state: ReorderableLazyListState,
-    modifier: Modifier = Modifier
-) {
-    val player: PlayerState = LocalPlayerState.current
-    val slot_height: Dp = 30.dp
-
-    Row(modifier) {
-        Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            for (slot in available_slots) {
-                Text(slot.getName(), Modifier.height(slot_height))
             }
         }
+    }
+}
 
-        // ScrollBarLazyColumn(
-        //     state = slot_list_state.listState,
-        //     modifier = Modifier
-        //         .fillMaxHeight()
-        //         .fillMaxWidth()
-        //         .weight(1f)
-        //         .reorderable(slot_list_state),
-        //     horizontalAlignment = Alignment.CenterHorizontally,
-        //     verticalArrangement = Arrangement.spacedBy(20.dp)
-        // ) {
-        //     items(slots) { slot ->
-        //         ReorderableItem(
-        //             slot_list_state,
-        //             slot,
-        //             Modifier.detectReorder(slot_list_state)
-        //         ) {
-        //             slot.Bar(
-        //                 player.app_page,
-        //                 Modifier
-        //                     .border(2.dp, Color.White)
-        //                     .height(slot_height)
-        //             )
-        //         }
-        //     }
-        // }
+@Composable
+private fun CustomContentBarEditor(bar: CustomContentBar, commit: (CustomContentBar) -> Unit) {
+    var editing_bar: CustomContentBar by remember { mutableStateOf(bar) }
+
+    OnChangedEffect(bar) {
+        editing_bar = bar
     }
 }
 

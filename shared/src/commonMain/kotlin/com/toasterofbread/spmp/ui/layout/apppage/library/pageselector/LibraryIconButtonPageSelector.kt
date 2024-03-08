@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.*
 import androidx.compose.ui.unit.*
 import com.toasterofbread.composekit.utils.common.amplify
+import com.toasterofbread.composekit.utils.common.toInt
 import com.toasterofbread.composekit.utils.composable.*
 import com.toasterofbread.composekit.utils.composable.RowOrColumn
 import com.toasterofbread.composekit.utils.modifier.scrollWithoutClip
@@ -53,33 +54,34 @@ fun LibraryAppPage.LibraryIconButtonPageSelector(
         ) {
             SidebarButtonSelector(
                 vertical = slot.is_vertical,
-                selected_button = current_tab,
+                selected_button = tabs.indexOf(current_tab).takeIf { it != -1 },
                 buttons = tabs,
                 indicator_colour = player.theme.vibrant_accent,
                 scrolling = false,
-                onButtonSelected = { tab ->
-                    if (tab != current_tab) {
-                        val increasing: Boolean = tabs.indexOf(tab) > tabs.indexOf(current_tab)
-                        current_tab = tab
-                        // coroutine_scope.launchSingle {
-                            // wave_border_offset.animateTo(
-                            //     if (increasing) wave_border_offset.value + 20f
-                            //     else wave_border_offset.value - 20f,
-                            //     tween(500)
-                            // )
-                        // }
-                    }
-                },
                 showButton = { tab ->
                     !tab.isHidden()
                 }
-            ) { tab ->
+            ) { _, tab ->
                 val colour: Color =
                     if (tab == current_tab) player.theme.on_accent
                     else player.theme.on_background
 
                 CompositionLocalProvider(LocalContentColor provides colour) {
-                    Icon(tab.getIcon(), null, Modifier.requiredSizeIn(minWidth = 20.dp, minHeight = 20.dp))
+                    IconButton({
+                        if (tab != current_tab) {
+                            val increasing: Boolean = tabs.indexOf(tab) > tabs.indexOf(current_tab)
+                            current_tab = tab
+                            // coroutine_scope.launchSingle {
+                                // wave_border_offset.animateTo(
+                                //     if (increasing) wave_border_offset.value + 20f
+                                //     else wave_border_offset.value - 20f,
+                                //     tween(500)
+                                // )
+                            // }
+                        }
+                    }) {
+                        Icon(tab.getIcon(), null, Modifier.requiredSizeIn(minWidth = 20.dp, minHeight = 20.dp))
+                    }
                 }
             }
 
@@ -94,85 +96,86 @@ fun LibraryAppPage.LibraryIconButtonPageSelector(
 
             SidebarButtonSelector(
                 vertical = slot.is_vertical,
-                selected_button = showing_alt_content,
+                selected_button = showing_alt_content.toInt(),
                 buttons = listOf(false, true),
                 indicator_colour = player.theme.vibrant_accent,
                 scrolling = false,
-                onButtonSelected = {
-                    showing_alt_content = it
-                },
                 showButton = {
                     current_tab.canShowAltContent()
                 },
-                extraContent = {
-                    if (!it) {
-                        current_tab.SideContent(showing_alt_content)
+                extraContent = { _, it ->
+                    if (it) {
+                        return@SidebarButtonSelector
+                    }
 
-                        AnimatedVisibility(current_tab.enableSearching()) {
-                            SearchButton(Icons.Default.FilterAlt)
-                        }
+                    current_tab.SideContent(showing_alt_content)
 
-                        BoxWithConstraints(
+                    AnimatedVisibility(current_tab.enableSearching()) {
+                        SearchButton(Icons.Default.FilterAlt)
+                    }
+
+                    BoxWithConstraints(
+                        Modifier
+                            .fillMaxWidth()
+                            .weight(1f, false)
+                            .requiredHeight(0.dp)
+                            .zIndex(-10f)
+                    ) {
+                        val field_size: DpSize = DpSize(250.dp, 65.dp)
+                        val focus_requester: FocusRequester = remember { FocusRequester() }
+
+                        this@SidebarButtonSelector.AnimatedVisibility(
+                            showing_search_field && current_tab.enableSearching(),
                             Modifier
-                                .fillMaxWidth()
-                                .weight(1f, false)
-                                .requiredHeight(0.dp)
-                                .zIndex(-10f)
+                                .requiredSize(field_size)
+                                .offset(x = (field_size.width + maxWidth) / 2, y = (-45f / 2f).dp),
+                            enter = slideInHorizontally() { -it * 2 },
+                            exit = slideOutHorizontally() { -it * 2 }
                         ) {
-                            val field_size: DpSize = DpSize(250.dp, 65.dp)
-                            val focus_requester: FocusRequester = remember { FocusRequester() }
+                            LaunchedEffect(Unit) {
+                                focus_requester.requestFocus()
+                            }
 
-                            this@SidebarButtonSelector.AnimatedVisibility(
-                                showing_search_field && current_tab.enableSearching(),
+                            Row(
                                 Modifier
+                                    .background(player.theme.background.amplify(0.025f), MaterialTheme.shapes.small)
                                     .requiredSize(field_size)
-                                    .offset(x = (field_size.width + maxWidth) / 2, y = (-45f / 2f).dp),
-                                enter = slideInHorizontally() { -it * 2 },
-                                exit = slideOutHorizontally() { -it * 2 }
+                                    .padding(10.dp)
+                                    .padding(end = 10.dp),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
-                                LaunchedEffect(Unit) {
-                                    focus_requester.requestFocus()
+                                AnimatedVisibility(current_tab.enableSorting()) {
+                                    SortButton()
                                 }
 
-                                Row(
-                                    Modifier
-                                        .background(player.theme.background.amplify(0.025f), MaterialTheme.shapes.small)
-                                        .requiredSize(field_size)
-                                        .padding(10.dp)
-                                        .padding(end = 10.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                ) {
-                                    AnimatedVisibility(current_tab.enableSorting()) {
-                                        SortButton()
-                                    }
-
-                                    ResizableOutlinedTextField(
-                                        search_filter ?: "",
-                                        { search_filter = it },
-                                        Modifier.fillMaxWidth().weight(1f).focusRequester(focus_requester),
-                                        singleLine = true
-                                    )
-                                }
+                                ResizableOutlinedTextField(
+                                    search_filter ?: "",
+                                    { search_filter = it },
+                                    Modifier.fillMaxWidth().weight(1f).focusRequester(focus_requester),
+                                    singleLine = true
+                                )
                             }
                         }
+                    }
 
-                        AnimatedVisibility(current_tab.canShowAltContent()) {
-                            Spacer(Modifier.height(20.dp))
-                        }
+                    AnimatedVisibility(current_tab.canShowAltContent()) {
+                        Spacer(Modifier.height(20.dp))
                     }
                 }
-            ) {
+            ) { _, show ->
                 val colour: Color =
-                    if (it == showing_alt_content) player.theme.on_accent
+                    if (show == showing_alt_content) player.theme.on_accent
                     else player.theme.on_background
 
                 CompositionLocalProvider(LocalContentColor provides colour) {
-                    Icon(
-                        if (it) alt_button.second
-                        else main_button.second,
-                        null,
-                        Modifier.requiredSizeIn(minWidth = 20.dp, minHeight = 20.dp)
-                    )
+                    IconButton({ showing_alt_content = show }) {
+                        Icon(
+                            if (show) alt_button.second
+                            else main_button.second,
+                            null,
+                            Modifier.requiredSizeIn(minWidth = 20.dp, minHeight = 20.dp)
+                        )
+                    }
                 }
             }
         }

@@ -203,19 +203,9 @@ fun AppPageSidebar(
                 if (slot.is_vertical) Modifier.width(50.dp)
                 else Modifier.height(50.dp)
             ),
-        selected_button = current_button,
+        selected_button = AppPageSidebarButton.buttons.indexOf(current_button).takeIf { it != -1 },
         buttons = AppPageSidebarButton.buttons,
         indicator_colour = player.theme.vibrant_accent,
-        onButtonSelected = { button ->
-            if (button == null) {
-                return@SidebarButtonSelector
-            }
-
-            val page: AppPage? = AppPageSidebarButton.entries[button.ordinal].getPage(player)
-            with (button) {
-                player.onButtonClicked(page)
-            }
-        },
         isSpacing = {
             it == null
         },
@@ -228,7 +218,7 @@ fun AppPageSidebar(
             val page: AppPage? = AppPageSidebarButton.entries[button.ordinal].getPage(player)
             return@SidebarButtonSelector button.shouldShow(page)
         },
-        extraContent = { button ->
+        extraContent = { _, button ->
             if (button == null) {
                 val fill_modifier: Modifier =
                     if (slot.is_vertical) Modifier.fillMaxHeight()
@@ -247,41 +237,52 @@ fun AppPageSidebar(
                 }
             }
         }
-    ) { button ->
+    ) { _, button ->
         val colour: Color =
             if (button == current_button) player.theme.on_accent
             else LocalContentColor.current
 
         CompositionLocalProvider(LocalContentColor provides colour) {
-            button?.ButtonContent()
+            IconButton({
+                if (button == null) {
+                    return@IconButton
+                }
 
-            val shortcut_index: Int? = remember(button, player) { AppPageSidebarButton.getButtonShortcutButton(button, player) }
-            if (shortcut_index == null) {
-                return@CompositionLocalProvider
-            }
+                val page: AppPage? = AppPageSidebarButton.entries[button.ordinal].getPage(player)
+                with (button) {
+                    player.onButtonClicked(page)
+                }
+            }) {
+                button?.ButtonContent()
 
-            val show_shortcut_indicator: Boolean by remember(shortcut_index) { derivedStateOf { showing_shortcut_indices > shortcut_index } }
+                val shortcut_index: Int? = remember(button, player) { AppPageSidebarButton.getButtonShortcutButton(button, player) }
+                if (shortcut_index == null) {
+                    return@IconButton
+                }
 
-            AnimatedVisibility(
-                show_shortcut_indicator,
-                Modifier.offset(17.dp, 17.dp).zIndex(1f),
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                val indicator_colour: Color =
-                    if (button == current_button) player.theme.on_accent
-                    else player.theme.accent
+                val show_shortcut_indicator: Boolean by remember(shortcut_index) { derivedStateOf { showing_shortcut_indices > shortcut_index } }
 
-                Box(
-                    Modifier.size(20.dp).background(indicator_colour, SHORTCUT_INDICATOR_SHAPE),
-                    contentAlignment = Alignment.Center
+                AnimatedVisibility(
+                    show_shortcut_indicator,
+                    Modifier.offset(17.dp, 17.dp).zIndex(1f),
+                    enter = fadeIn(),
+                    exit = fadeOut()
                 ) {
-                    Text(
-                        (shortcut_index + 1).toString(),
-                        Modifier.offset(y = (-5).dp),
-                        fontSize = 10.sp,
-                        color = indicator_colour.getContrasted()
-                    )
+                    val indicator_colour: Color =
+                        if (button == current_button) player.theme.on_accent
+                        else player.theme.accent
+
+                    Box(
+                        Modifier.size(20.dp).background(indicator_colour, SHORTCUT_INDICATOR_SHAPE),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            (shortcut_index + 1).toString(),
+                            Modifier.offset(y = (-5).dp),
+                            fontSize = 10.sp,
+                            color = indicator_colour.getContrasted()
+                        )
+                    }
                 }
             }
         }

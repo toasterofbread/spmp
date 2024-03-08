@@ -46,8 +46,8 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.platform.PlatformPreferencesListener
-import com.toasterofbread.spmp.exovisualiser.ExoVisualizer
-import com.toasterofbread.spmp.exovisualiser.FFTAudioProcessor
+import com.toasterofbread.spmp.platform.visualiser.Visualiser
+import com.toasterofbread.spmp.platform.visualiser.FFTAudioProcessor
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
@@ -767,7 +767,7 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
 
     @Composable
     actual override fun Visualiser(colour: Color, modifier: Modifier, opacity: Float) {
-        val visualiser = remember { ExoVisualizer(fft_audio_processor) }
+        val visualiser: Visualiser = remember { Visualiser(fft_audio_processor) }
         visualiser.Visualiser(colour, modifier, opacity)
     }
 }

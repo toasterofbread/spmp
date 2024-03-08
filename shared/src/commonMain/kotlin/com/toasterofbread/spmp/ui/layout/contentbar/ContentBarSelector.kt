@@ -145,9 +145,6 @@ private fun ContentBarSelectorMainRow(
                 .platformClickable(
                     onClick = {
                         show_bar_selector = true
-                    },
-                    onAltClick = {
-                        state.onBarSelected(slot, null)
                     }
                 )
                 .fillMaxWidth()
@@ -228,85 +225,126 @@ private fun BarSelectorPopup(
                     onSelected(state.built_in_bars[it])
                 }
 
-                ContentBarList(
-                    state.custom_bars,
-                    getString("content_bar_selection_list_custom"),
-                    Modifier.fillMaxWidth(),
-                    topContent = {
-                        item {
-                            val background_colour: Color = player.theme.vibrant_accent
-                            CompositionLocalProvider(LocalContentColor provides background_colour.getContrasted()) {
-                                ContentBarPreview(
-                                    getString("content_bar_selection_create_new"),
-                                    null,
-                                    Icons.Default.Add,
-                                    Modifier
-                                        .contentBarPreview(background_colour = background_colour)
-                                        .platformClickable(onClick = {
-                                            state.createCustomBar()
-                                        })
-                                )
-                            }
-                        }
-                    },
-                    buttonBottomContent = { index ->
-                        Row {
-                            IconButton(
-                                {
-                                    state.onCustomBarEditRequested(state.custom_bars[index])
-                                    onDismissed()
-                                }
-                            ) {
-                                Icon(Icons.Default.Edit, null)
-                            }
-
-                            IconButton(
-                                {
-                                    state.deleteCustomBar(state.custom_bars[index])
-                                }
-                            ) {
-                                Icon(Icons.Default.Delete, null)
-                            }
-                        }
-                    }
-                ) {
-                    onSelected(state.custom_bars[it])
-                }
+                CustomBarsContentBarList(
+                    state,
+                    onSelected = onSelected,
+                    onDismissed = onDismissed,
+                    lazy = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         }
     )
 }
 
 @Composable
-private fun ContentBarList(
+internal fun CustomBarsContentBarList(
+    state: ContentBar.BarSelectionState,
+    onSelected: ((ContentBarReference) -> Unit)?,
+    onDismissed: () -> Unit,
+    modifier: Modifier = Modifier,
+    lazy: Boolean = false
+) {
+    val player: PlayerState = LocalPlayerState.current
+
+    ContentBarList(
+        state.custom_bars,
+        getString("content_bar_selection_list_custom"),
+        modifier,
+        topContent = {
+            val background_colour: Color = player.theme.vibrant_accent
+            CompositionLocalProvider(LocalContentColor provides background_colour.getContrasted()) {
+                ContentBarPreview(
+                    getString("content_bar_selection_create_new"),
+                    null,
+                    Icons.Default.Add,
+                    Modifier
+                        .contentBarPreview(background_colour = background_colour)
+                        .platformClickable(onClick = {
+                            state.createCustomBar()
+                        })
+                )
+            }
+        },
+        buttonBottomContent = { index ->
+            Row {
+                IconButton(
+                    {
+                        state.onCustomBarEditRequested(state.custom_bars[index])
+                        onDismissed()
+                    }
+                ) {
+                    Icon(Icons.Default.Edit, null)
+                }
+
+                IconButton(
+                    {
+                        state.deleteCustomBar(state.custom_bars[index])
+                    }
+                ) {
+                    Icon(Icons.Default.Delete, null)
+                }
+            }
+        },
+        onSelected =
+            if (onSelected != null) {{ onSelected(state.custom_bars[it]) }}
+            else null,
+        lazy = lazy
+    )
+}
+
+@Composable
+internal fun ContentBarList(
     bars: List<ContentBarReference>,
     title: String,
     modifier: Modifier = Modifier,
-    topContent: LazyListScope.() -> Unit = {},
+    lazy: Boolean = false,
+    topContent: @Composable () -> Unit = {},
     buttonBottomContent: @Composable (Int) -> Unit = {},
-    onSelected: (Int) -> Unit
+    onSelected: ((Int) -> Unit)?
 ) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(title)
 
-        ScrollBarLazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            topContent()
-
-            itemsIndexed(bars) { index, bar ->
-                ContentBarPreview(
-                    bar.first.getName(),
-                    bar.first.getDescription(),
-                    bar.first.getIcon(),
-                    Modifier
-                        .contentBarPreview()
-                        .clickable(
+        @Composable
+        fun Bar(bar: ContentBarReference, index: Int) {
+            ContentBarPreview(
+                bar.first.getName(),
+                bar.first.getDescription(),
+                bar.first.getIcon(),
+                Modifier
+                    .contentBarPreview(interactive = onSelected != null)
+                    .thenWith(onSelected) {
+                        clickable(
                             indication = null,
                             interactionSource = remember { MutableInteractionSource() }
-                        ) { onSelected(index) },
-                    bottomContent = {
-                        buttonBottomContent(index)
-                    }
-                )
+                        ) { it(index) }
+                    },
+                bottomContent = {
+                    buttonBottomContent(index)
+                }
+            )
+        }
+
+        val arrangement: Arrangement.Vertical = Arrangement.spacedBy(10.dp)
+        if (lazy) {
+            ScrollBarLazyColumn(verticalArrangement = arrangement) {
+                item {
+                    topContent()
+                }
+
+                itemsIndexed(bars) { index, bar ->
+                    Bar(bar, index)
+                }
+            }
+        }
+        else {
+            Column(verticalArrangement = arrangement) {
+                topContent()
+
+                for (bar in bars.withIndex()) {
+                    Bar(bar.value, bar.index)
+                }
             }
         }
     }
@@ -340,17 +378,23 @@ private fun ContentBarPreview(
 }
 
 @Composable
-private fun Modifier.contentBarPreview(background_colour: Color? = null, border_colour: Color? = null): Modifier {
+private fun Modifier.contentBarPreview(
+    background_colour: Color? = null,
+    border_colour: Color? = null,
+    interactive: Boolean = true
+): Modifier {
     val player: PlayerState = LocalPlayerState.current
     val shape: Shape = RoundedCornerShape(20.dp)
 
     return (
-        appHover(
-            button = true,
-            expand = true,
-            hover_scale = 0.98f,
-            animation_spec = tween(200)
-        )
+        thenIf(interactive) {
+            appHover(
+                button = true,
+                expand = true,
+                hover_scale = 0.98f,
+                animation_spec = tween(200)
+            )
+        }
         .thenWith(border_colour) {
             border(2.dp, it, shape)
         }

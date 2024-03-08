@@ -122,8 +122,7 @@ actual class PlatformPlayerService: SpMsPlayerService(), PlayerService {
     }
 
     @Composable
-    actual override fun Visualiser(colour: Color, modifier: Modifier, opacity: Float) {
-    }
+    actual override fun Visualiser(colour: Color, modifier: Modifier, opacity: Float) {}
 
     override fun onBind(): PlatformBinder? {
         return PlayerServiceBinder(this)

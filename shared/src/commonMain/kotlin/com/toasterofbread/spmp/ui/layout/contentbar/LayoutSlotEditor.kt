@@ -2,10 +2,13 @@ package com.toasterofbread.spmp.ui.layout.contentbar
 
 import LocalPlayerState
 import androidx.compose.animation.*
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -15,18 +18,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.*
-import com.toasterofbread.composekit.platform.composable.ScrollBarLazyColumn
-import com.toasterofbread.composekit.platform.composable.platformClickable
+import com.toasterofbread.composekit.platform.composable.*
 import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.composekit.settings.ui.item.*
 import com.toasterofbread.composekit.utils.common.*
-import com.toasterofbread.composekit.utils.composable.OnChangedEffect
+import com.toasterofbread.composekit.utils.composable.*
 import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.model.settings.category.LayoutSettings
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
+import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElement
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.burnoutcrew.reorderable.*
@@ -144,8 +147,12 @@ fun LayoutSlotEditor(modifier: Modifier = Modifier) {
 
     var editing_custom_bar: ContentBarReference? by remember { mutableStateOf(null) }
 
-    DisposableEffect(Unit) {
-        ContentBar.bar_selection_state = object : ContentBar.BarSelectionState {
+    BackHandler(editing_custom_bar != null) {
+        editing_custom_bar = null
+    }
+
+    val state: ContentBar.BarSelectionState = remember {
+        object : ContentBar.BarSelectionState {
             private fun parseSlots(): Map<String, Int> =
                 Json.decodeFromString(slots_key.get<String>())
 
@@ -223,7 +230,10 @@ fun LayoutSlotEditor(modifier: Modifier = Modifier) {
                 slot_colours_data = Json.encodeToString(colours)
             }
         }
+    }
 
+    DisposableEffect(Unit) {
+        ContentBar.bar_selection_state = state
         onDispose {
             ContentBar.bar_selection_state = null
         }
@@ -233,19 +243,19 @@ fun LayoutSlotEditor(modifier: Modifier = Modifier) {
         val (key, available, editing_bar) = it
 
         if (editing_bar != null) {
-            CustomContentBarEditor(editing_bar.first as CustomContentBar) {
-
+            CustomContentBarEditor(editing_bar.first as CustomContentBar) { edited_bar: CustomContentBar ->
+                val bars = Json.decodeFromString<List<CustomContentBar>>(custom_bars_data).toMutableList()
+                bars[-editing_bar.second - 1] = edited_bar
+                custom_bars_data = Json.encodeToString(bars)
             }
         }
-    }
-}
-
-@Composable
-private fun CustomContentBarEditor(bar: CustomContentBar, commit: (CustomContentBar) -> Unit) {
-    var editing_bar: CustomContentBar by remember { mutableStateOf(bar) }
-
-    OnChangedEffect(bar) {
-        editing_bar = bar
+        else {
+            CustomBarsContentBarList(
+                state,
+                onSelected = null,
+                onDismissed = {}
+            )
+        }
     }
 }
 

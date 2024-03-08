@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.exovisualiser
+package com.toasterofbread.spmp.platform.visualiser
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
@@ -16,7 +16,7 @@ import kotlin.math.cos
 import kotlin.math.floor
 import kotlin.math.pow
 
-// https://github.com/dzolnai/ExoVisualizer
+// https://github.com/dzolnai/Visualiser
 // Modified for use with Compose
 
 // Taken from: https://en.wikipedia.org/wiki/Preferred_number#Audio_frequencies
@@ -27,7 +27,7 @@ private val FREQUENCY_BAND_LIMITS = arrayOf(
 )
 
 @UnstableApi
-class ExoVisualizer(
+actual class Visualiser(
     private val processor: FFTAudioProcessor
 ): FFTAudioProcessor.FFTListener {
 
@@ -54,11 +54,11 @@ class ExoVisualizer(
     }
 
     @Composable
-    fun Visualiser(colour: Color, modifier: Modifier, opacity: Float = 1f) {
+    actual fun Visualiser(colour: Color, modifier: Modifier, opacity: Float) {
         DisposableEffect(Unit) {
-            processor.listeners.add(this@ExoVisualizer)
+            processor.listeners.add(this@Visualiser)
             onDispose {
-                processor.listeners.remove(this@ExoVisualizer)
+                processor.listeners.remove(this@Visualiser)
             }
         }
 
@@ -74,12 +74,12 @@ class ExoVisualizer(
             var currentFrequencyBandLimitIndex = 0
 
             // Iterate over the entire FFT result array
-            while (currentFftPosition < this@ExoVisualizer.size) {
+            while (currentFftPosition < this@Visualiser.size) {
                 var accum = 0f
 
                 // We divide the bands by frequency.
                 // Check until which index we need to stop for the current band
-                val nextLimitAtPosition = floor(FREQUENCY_BAND_LIMITS[currentFrequencyBandLimitIndex] / 20_000.toFloat() * this@ExoVisualizer.size).toInt()
+                val nextLimitAtPosition = floor(FREQUENCY_BAND_LIMITS[currentFrequencyBandLimitIndex] / 20_000.toFloat() * this@Visualiser.size).toInt()
 
                 synchronized(fft) {
                     // Here we iterate within this single band
@@ -143,5 +143,9 @@ class ExoVisualizer(
                 currentFrequencyBandLimitIndex++
             }
         }
+    }
+
+    companion object {
+        actual fun isSupported(): Boolean = true
     }
 }

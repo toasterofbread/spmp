@@ -24,7 +24,7 @@ SOFTWARE.
 
  */
 
-package com.toasterofbread.spmp.exovisualiser
+package com.toasterofbread.spmp.platform.visualiser
 
 import android.media.AudioTrack
 import android.media.AudioTrack.ERROR_BAD_VALUE

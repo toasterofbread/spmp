@@ -773,6 +773,6 @@
     <string name="theme_colour_background">バックグラウンド</string>
     <string name="theme_colour_accent">アクセント</string>
     <string name="theme_colour_vibrant_accent">明るいアクセント</string>
-    <string name="theme_colour_card">カードard</string>
+    <string name="theme_colour_card">カード</string>
 
 </resources>

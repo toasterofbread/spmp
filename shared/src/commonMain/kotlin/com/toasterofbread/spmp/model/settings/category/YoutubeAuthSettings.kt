@@ -17,8 +17,8 @@ import okhttp3.Headers.Companion.toHeaders
 data object YoutubeAuthSettings: SettingsCategory("ytauth") {
     override val keys: List<SettingsKey> = Key.entries.toList() + listOf(SystemSettings.Key.ADD_SONGS_TO_HISTORY)
 
-    override fun getPage(): Page? =
-        object : Page(
+    override fun getPage(): CategoryPage? =
+        object : CategoryPage(
             this,
             getString("s_cat_youtube_auth")
         ) {

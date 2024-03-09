@@ -11,8 +11,8 @@ import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getMiscCa
 data object MiscSettings: SettingsCategory("misc") {
     override val keys: List<SettingsKey> = Key.entries.toList()
 
-    override fun getPage(): Page? =
-        Page(
+    override fun getPage(): CategoryPage? =
+        SimplePage(
             getString("s_cat_misc"),
             getString("s_cat_desc_misc"),
             { getMiscCategoryItems() }

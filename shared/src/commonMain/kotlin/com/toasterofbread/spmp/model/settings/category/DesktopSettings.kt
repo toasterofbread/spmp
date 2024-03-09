@@ -11,9 +11,9 @@ import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getDeskto
 data object DesktopSettings: SettingsCategory("desktop") {
     override val keys: List<SettingsKey> = Key.entries.toList()
 
-    override fun getPage(): Page? =
+    override fun getPage(): CategoryPage? =
         if (Platform.DESKTOP.isCurrent())
-            Page(
+            SimplePage(
                 getString("s_cat_desktop"),
                 getString("s_cat_desc_desktop"),
                 { getDesktopCategoryItems() }

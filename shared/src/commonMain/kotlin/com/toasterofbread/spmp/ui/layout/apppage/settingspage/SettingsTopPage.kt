@@ -103,7 +103,7 @@ internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, cont
     }
 
     val horizontal_padding: PaddingValues = content_padding.horizontal
-    val category_pages: List<SettingsCategory.Page> = remember { SettingsCategory.pages }
+    val category_pages: List<SettingsCategory.CategoryPage> = remember { SettingsCategory.pages }
     val item_spacing: Dp = 10.dp
 
     LazyColumn(
@@ -441,7 +441,7 @@ private fun peformExport(context: AppContext, categories: List<SettingsCategory>
 private fun ImportExportButtons(
     exporting: Boolean,
     export_categories: MutableList<SettingsCategory>,
-    category_pages: List<SettingsCategory.Page>,
+    category_pages: List<SettingsCategory.CategoryPage>,
     beginExport: () -> Unit,
     completeExport: () -> Unit,
     setExporting: (Boolean) -> Unit,

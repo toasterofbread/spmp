@@ -9,7 +9,7 @@ import com.toasterofbread.spmp.model.settings.SettingsKey
 data object InternalSettings: SettingsCategory("internal") {
     override val keys: List<SettingsKey> = Key.entries.toList()
 
-    override fun getPage(): Page? = null
+    override fun getPage(): CategoryPage? = null
 
     enum class Key: SettingsKey {
         TOPBAR_MODE_HOME,

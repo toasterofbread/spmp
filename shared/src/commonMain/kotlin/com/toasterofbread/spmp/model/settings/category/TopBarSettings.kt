@@ -10,8 +10,8 @@ import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getTopBar
 data object TopBarSettings: SettingsCategory("topbar") {
     override val keys: List<SettingsKey> = Key.entries.toList()
 
-    override fun getPage(): Page? =
-        Page(
+    override fun getPage(): CategoryPage? =
+        SimplePage(
             getString("s_cat_topbar"),
             getString("s_cat_desc_topbar"),
             { getTopBarCategoryItems() }

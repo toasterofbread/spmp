@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.calculateEndPadding
 import com.toasterofbread.composekit.utils.composable.getTop
+import com.toasterofbread.composekit.settings.ui.Theme
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -41,7 +42,7 @@ private class PrimaryInternalContentBar: InternalContentBar(0) {
     override fun getIcon(): ImageVector = Icons.Default.LooksOne
 
     @Composable
-    override fun BarContent(slot: LayoutSlot, content_padding: PaddingValues, modifier: Modifier): Boolean {
+    override fun BarContent(slot: LayoutSlot, background_colour: Theme.Colour?, content_padding: PaddingValues, modifier: Modifier): Boolean {
         return LocalPlayerState.current.app_page.PrimaryBarContent(slot, content_padding, modifier)
     }
 }
@@ -52,7 +53,7 @@ private class SecondaryInternalContentBar: InternalContentBar(1) {
     override fun getIcon(): ImageVector = Icons.Default.LooksTwo
 
     @Composable
-    override fun BarContent(slot: LayoutSlot, content_padding: PaddingValues, modifier: Modifier): Boolean {
+    override fun BarContent(slot: LayoutSlot, background_colour: Theme.Colour?, content_padding: PaddingValues, modifier: Modifier): Boolean {
         return LocalPlayerState.current.app_page.SecondaryBarContent(slot, content_padding, modifier)
     }
 }
@@ -63,7 +64,7 @@ private class NavigationInternalContentBar: InternalContentBar(2) {
     override fun getIcon(): ImageVector = Icons.Default.Widgets
 
     @Composable
-    override fun BarContent(slot: LayoutSlot, content_padding: PaddingValues, modifier: Modifier): Boolean {
+    override fun BarContent(slot: LayoutSlot, background_colour: Theme.Colour?, content_padding: PaddingValues, modifier: Modifier): Boolean {
         val player: PlayerState = LocalPlayerState.current
 
         // TODO

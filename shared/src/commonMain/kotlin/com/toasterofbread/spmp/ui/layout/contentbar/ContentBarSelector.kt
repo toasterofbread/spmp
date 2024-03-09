@@ -139,7 +139,7 @@ private fun ContentBarSelectorMainRow(
         )
     }
 
-    Crossfade(content_bar) { bar ->
+    content_bar?.also { bar ->
         ConfigButton(
             modifier
                 .platformClickable(

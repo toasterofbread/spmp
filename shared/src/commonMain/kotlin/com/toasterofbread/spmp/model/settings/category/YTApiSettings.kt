@@ -6,7 +6,7 @@ import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 data object YTApiSettings: SettingsCategory("ytapi") {
     override val keys: List<SettingsKey> = Key.entries.toList()
 
-    override fun getPage(): Page? = null // TODO
+    override fun getPage(): CategoryPage? = null // TODO
 
     enum class Key: SettingsKey {
         API_TYPE,

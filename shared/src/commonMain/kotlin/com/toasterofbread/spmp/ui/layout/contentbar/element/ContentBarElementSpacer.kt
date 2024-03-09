@@ -36,11 +36,7 @@ class ContentBarElementSpacer(data: JsonObject?): ContentBarElement {
     override fun Element(vertical: Boolean, modifier: Modifier) {}
 
     @Composable
-    fun RowOrColumnScope.SpacerElement(
-        vertical: Boolean,
-        modifier: Modifier = Modifier,
-        content: @Composable () -> Unit = {}
-    ) {
+    fun RowOrColumnScope.getSpacerModifier(vertical: Boolean): Modifier {
         val player: PlayerState = LocalPlayerState.current
 
         val spacer_modifier: Modifier
@@ -62,17 +58,11 @@ class ContentBarElementSpacer(data: JsonObject?): ContentBarElement {
         }
 
         val size: Dp = 30.dp
-        Box(
-            modifier
-                .then(spacer_modifier)
-                .then(
-                    if (vertical) Modifier.width(size)
-                    else Modifier.height(size)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            content()
-        }
+        return spacer_modifier
+            .then(
+                if (vertical) Modifier.width(size)
+                else Modifier.height(size)
+            )
     }
 
     @Composable

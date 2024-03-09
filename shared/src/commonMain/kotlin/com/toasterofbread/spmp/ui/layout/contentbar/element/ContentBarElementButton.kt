@@ -48,14 +48,46 @@ class ContentBarElementButton(data: JsonObject?): ContentBarElement {
     override fun isSelected(): Boolean = type == Type.current
 
     @Composable
+    override fun shouldShow(): Boolean {
+        val player: PlayerState = LocalPlayerState.current
+        return when (type) {
+            Type.RELOAD -> Platform.DESKTOP.isCurrent() && player.app_page.canReload()
+            else -> type.getPage(player) != null
+        }
+    }
+
+    @Composable
     override fun Element(vertical: Boolean, modifier: Modifier) {
         val player: PlayerState = LocalPlayerState.current
 
-        IconButton({
-            val page: AppPage? = type.getPage(player)
-            onButtonClicked(page, player)
-        }) {
-            ButtonContent()
+        IconButton(
+            {
+                val page: AppPage? = type.getPage(player)
+                onButtonClicked(page, player)
+            },
+            modifier
+        ) {
+            if (type == Type.PROFILE) {
+                val own_channel: Artist? = player.getOwnChannel()
+                if (own_channel != null) {
+                    own_channel.Thumbnail(MediaItemThumbnailProvider.Quality.LOW, Modifier.size(40.dp).clip(CircleShape))
+                }
+                return@IconButton
+            }
+
+            if (type == Type.RELOAD) {
+                Crossfade(player.app_page.isReloading()) { reloading ->
+                    if (reloading) {
+                        SubtleLoadingIndicator()
+                    }
+                    else {
+                        Icon(type.getIcon(), null)
+                    }
+                }
+                return@IconButton
+            }
+
+            Icon(type.getIcon(), null)
 
             // TODO Shortcuts
             // val shortcut_index: Int? = remember(type) { getButtonShortcutButton(type, player) }
@@ -116,39 +148,6 @@ class ContentBarElementButton(data: JsonObject?): ContentBarElement {
                 Text(getString("content_bar_element_builtin_config_type"))
             }
         }
-    }
-
-    @Composable
-    private fun ButtonContent() {
-        val player: PlayerState = LocalPlayerState.current
-
-        if (type == Type.PROFILE) {
-            val own_channel: Artist? = player.getOwnChannel()
-            if (own_channel != null) {
-                own_channel.Thumbnail(MediaItemThumbnailProvider.Quality.LOW, Modifier.size(40.dp).clip(CircleShape))
-            }
-            return
-        }
-
-        if (type == Type.RELOAD) {
-            Crossfade(player.app_page.isReloading()) { reloading ->
-                if (reloading) {
-                    SubtleLoadingIndicator()
-                }
-                else {
-                    Icon(type.getIcon(), null)
-                }
-            }
-            return
-        }
-
-        Icon(type.getIcon(), null)
-    }
-
-    @Composable
-    fun shouldShow(page: AppPage?) = when (type) {
-        Type.RELOAD -> Platform.DESKTOP.isCurrent() && LocalPlayerState.current.app_page.canReload()
-        else -> page != null
     }
 
     private fun onButtonClicked(page: AppPage?, player: PlayerState) {

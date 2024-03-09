@@ -15,8 +15,8 @@ import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 data object LayoutSettings: SettingsCategory("player") {
     override val keys: List<SettingsKey> = Key.entries.toList()
 
-    override fun getPage(): Page? =
-        Page(
+    override fun getPage(): CategoryPage? =
+        SimplePage(
             getString("s_cat_layout"),
             getString("s_cat_desc_layout"),
             { getLayoutCategoryItems() }

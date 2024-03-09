@@ -12,8 +12,8 @@ import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpointType
 data object StreamingSettings: SettingsCategory("streaming") {
     override val keys: List<SettingsKey> = Key.entries.toList()
 
-    override fun getPage(): Page? =
-        Page(
+    override fun getPage(): CategoryPage? =
+        SimplePage(
             getString("s_cat_streaming"),
             getString("s_cat_desc_streaming"),
             { getStreamingCategoryItems() }

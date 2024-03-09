@@ -9,6 +9,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.Serializable
 import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.platform.visualiser.Visualiser
 
 interface ContentBarElement {
     fun getData(): ContentBarElementData
@@ -17,28 +18,40 @@ interface ContentBarElement {
     fun isSelected(): Boolean = false
 
     @Composable
+    fun shouldShow(): Boolean = true
+
+    @Composable
     fun Element(vertical: Boolean, modifier: Modifier)
 
     @Composable
     fun Configuration(modifier: Modifier, onModification: () -> Unit)
 
     enum class Type {
-        BUILT_IN,
         BUTTON,
-        SPACER;
+        SPACER,
+        LYRICS,
+        VISUALISER;
+
+        fun isAvailable(): Boolean =
+            when (this) {
+                VISUALISER -> Visualiser.isSupported()
+                else -> true
+            }
 
         fun getName(): String =
             when (this) {
-                BUILT_IN -> getString("content_bar_element_type_builtin")
                 BUTTON -> getString("content_bar_element_type_button")
                 SPACER -> getString("content_bar_element_type_spacer")
+                LYRICS -> getString("content_bar_element_type_lyrics")
+                VISUALISER -> getString("content_bar_element_type_visualiser")
             }
 
         fun getIcon(): ImageVector =
             when (this) {
-                BUILT_IN -> Icons.Default.Fullscreen
                 BUTTON -> Icons.Default.TouchApp
                 SPACER -> Icons.Default.Expand
+                LYRICS -> Icons.Default.MusicNote
+                VISUALISER -> Icons.Default.Waves
             }
     }
 }
@@ -50,8 +63,9 @@ data class ContentBarElementData(
 ) {
     fun toElement(): ContentBarElement =
         when (type) {
-            ContentBarElement.Type.BUILT_IN -> ContentBarElementBuiltIn(data)
             ContentBarElement.Type.BUTTON -> ContentBarElementButton(data)
             ContentBarElement.Type.SPACER -> ContentBarElementSpacer(data)
+            ContentBarElement.Type.LYRICS -> ContentBarElementLyrics(data)
+            ContentBarElement.Type.VISUALISER -> ContentBarElementVisualiser(data)
         }
 }

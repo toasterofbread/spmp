@@ -807,13 +807,16 @@
     <string name="content_bar_custom_no_$x">Custom bar #$x</string>
     <string name="content_bar_custom_invalid">Invalid custom bar</string>
 
+    <string name="content_bar_editor_bar_name">Bar name</string>
     <string name="content_bar_editor_bar_size">Bar size</string>
     <string name="content_bar_editor_add_element">Add element</string>
+    <string name="content_bar_editor_move_element">Move element</string>
     <string name="content_bar_editor_configure_element_$x">Configure element</string>
 
-    <string name="content_bar_element_type_builtin">Element</string>
     <string name="content_bar_element_type_button">Button</string>
     <string name="content_bar_element_type_spacer">Spacer</string>
+    <string name="content_bar_element_type_lyrics">Lyrics</string>
+    <string name="content_bar_element_type_visualiser">Visualiser</string>
 
     <string name="content_bar_element_spacer_config_fill">Fill width/height</string>
     <string name="content_bar_element_spacer_config_size">Size</string>

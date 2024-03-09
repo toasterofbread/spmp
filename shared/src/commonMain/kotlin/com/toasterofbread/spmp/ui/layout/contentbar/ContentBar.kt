@@ -37,6 +37,7 @@ sealed class ContentBar {
         CompositionLocalProvider(LocalContentColor provides background_colour.getContrasted()) {
             result = BarContent(
                 slot,
+                slot_colour_source.theme_colour,
                 content_padding,
                 modifier.background(background_colour)
             )
@@ -46,7 +47,7 @@ sealed class ContentBar {
     }
 
     @Composable
-    protected abstract fun BarContent(slot: LayoutSlot, content_padding: PaddingValues, modifier: Modifier): Boolean
+    protected abstract fun BarContent(slot: LayoutSlot, background_colour: Theme.Colour?, content_padding: PaddingValues, modifier: Modifier): Boolean
 
     interface BarSelectionState {
         val built_in_bars: List<ContentBarReference>

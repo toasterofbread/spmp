@@ -10,8 +10,8 @@ import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getBehavi
 data object BehaviourSettings: SettingsCategory("behaviour") {
     override val keys: List<SettingsKey> = Key.entries.toList()
 
-    override fun getPage(): Page? =
-        Page(
+    override fun getPage(): CategoryPage? =
+        SimplePage(
             getString("s_cat_behaviour"),
             getString("s_cat_desc_behaviour"),
             { getBehaviourCategoryItems() }

@@ -29,7 +29,7 @@ sealed class SettingsCategory(id: String) {
     val id: String = id.uppercase()
     abstract val keys: List<SettingsKey>
 
-    abstract fun getPage(): Page?
+    abstract fun getPage(): CategoryPage?
     open fun showPage(exporting: Boolean): Boolean = true
 
     fun getNameOfKey(key: SettingsKey): String =
@@ -46,7 +46,7 @@ sealed class SettingsCategory(id: String) {
         }
     }
 
-    abstract class Page(
+    abstract class CategoryPage(
         val category: SettingsCategory,
         val name: String
     ) {
@@ -55,82 +55,63 @@ sealed class SettingsCategory(id: String) {
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
-    protected fun Page(
-        title: String,
-        description: String,
-        getPage: (AppContext, List<SettingsItem>) -> SettingsPage,
-        getPageItems: (AppContext) -> List<SettingsItem>,
-        getPageIcon: @Composable () -> ImageVector
-    ): Page =
-        object : Page(
-            this,
-            title
-        ) {
-            private var items: List<SettingsItem>? = null
+    protected inner class SimplePage(
+        val title: String,
+        val description: String,
+        private val getPageItems: (AppContext) -> List<SettingsItem>,
+        private val getPageIcon: @Composable () -> ImageVector
+    ): CategoryPage(this, title) {
+        private var items: List<SettingsItem>? = null
 
-            override fun getItems(context: AppContext): List<SettingsItem>? {
-                if (items == null) {
-                    items = getPageItems(context).filter {
-                        it.getKeys().none { key_name ->
-                            for (cat in listOf(category) + SettingsCategory.all) {
-                                val key: SettingsKey? = cat.getKeyOfName(key_name)
-                                if (key != null) {
-                                    return@none key.isHidden()
-                                }
+        override fun getItems(context: AppContext): List<SettingsItem> {
+            if (items == null) {
+                items = getPageItems(context).filter {
+                    it.getKeys().none { key_name ->
+                        for (cat in listOf(category) + SettingsCategory.all) {
+                            val key: SettingsKey? = cat.getKeyOfName(key_name)
+                            if (key != null) {
+                                return@none key.isHidden()
                             }
-                            throw RuntimeException("Key not found: $key_name (category: $category)")
                         }
+                        throw RuntimeException("Key not found: $key_name (category: $category)")
                     }
                 }
-                return items!!
             }
-
-            override fun getTitleItem(context: AppContext): SettingsItem? =
-                ComposableSettingsItem { modifier ->
-                    ElevatedCard(
-                        onClick = {
-                            openPage(getPage(context, getItems(context)!!))
-                        },
-                        modifier = modifier.fillMaxWidth(),
-                        colors = CardDefaults.elevatedCardColors(
-                            containerColor = theme.background.amplifyPercent(0.03f),
-                            contentColor = theme.on_background
-                        )
-                    ) {
-                        Row(
-                            Modifier.padding(15.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(15.dp)
-                        ) {
-                            Icon(getPageIcon(), null)
-                            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                                Text(title, style = MaterialTheme.typography.titleMedium)
-                                Text(description, style = MaterialTheme.typography.labelMedium)
-                            }
-                        }
-                    }
-                }
+            return items!!
         }
 
-    protected fun Page(
-        title: String,
-        description: String,
-        getPageItems: (AppContext) -> List<SettingsItem>,
-        getPageIcon: @Composable () -> ImageVector
-    ): Page =
-        Page(
-            title,
-            description,
-            { context, items ->
-                SettingsPageWithItems(
-                    getTitle = { title },
-                    getItems = { items },
-                    getIcon = { getPageIcon() }
-                )
-            },
-            getPageItems,
-            getPageIcon
-        )
+        override fun getTitleItem(context: AppContext): SettingsItem? =
+            ComposableSettingsItem { modifier ->
+                ElevatedCard(
+                    onClick = {
+                        val page = SettingsPageWithItems(
+                            getTitle = { title },
+                            getItems = { getItems(context) },
+                            getIcon = { getPageIcon() }
+                        )
+
+                        openPage(page)
+                    },
+                    modifier = modifier.fillMaxWidth(),
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = theme.background.amplifyPercent(0.03f),
+                        contentColor = theme.on_background
+                    )
+                ) {
+                    Row(
+                        Modifier.padding(15.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(15.dp)
+                    ) {
+                        Icon(getPageIcon(), null)
+                        Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                            Text(title, style = MaterialTheme.typography.titleMedium)
+                            Text(description, style = MaterialTheme.typography.labelMedium)
+                        }
+                    }
+                }
+            }
+    }
 
     companion object {
         val all: List<SettingsCategory> get() =
@@ -159,7 +140,7 @@ sealed class SettingsCategory(id: String) {
         val with_page: List<SettingsCategory> get() =
             all.filter { it.getPage() != null }
 
-        val pages: List<Page> get() =
+        val pages: List<CategoryPage> get() =
             all.mapNotNull { it.getPage() }
 
         fun fromId(id: String): SettingsCategory =

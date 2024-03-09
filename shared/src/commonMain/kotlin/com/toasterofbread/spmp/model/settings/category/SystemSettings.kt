@@ -9,8 +9,8 @@ import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getSystem
 data object SystemSettings: SettingsCategory("system") {
     override val keys: List<SettingsKey> = Key.entries.toList()
 
-    override fun getPage(): Page? =
-        Page(
+    override fun getPage(): CategoryPage? =
+        SimplePage(
             getString("s_cat_general"),
             getString("s_cat_desc_general"),
             { getSystemCategoryItems(it) }

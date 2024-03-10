@@ -15,8 +15,9 @@ data object MiscSettings: SettingsCategory("misc") {
         SimplePage(
             getString("s_cat_misc"),
             getString("s_cat_desc_misc"),
-            { getMiscCategoryItems() }
-        ) { Icons.Outlined.MoreHoriz }
+            { getMiscCategoryItems() },
+            { Icons.Outlined.MoreHoriz }
+        )
 
     enum class Key: SettingsKey {
         NAVBAR_HEIGHT_MULTIPLIER,

@@ -16,8 +16,9 @@ data object DesktopSettings: SettingsCategory("desktop") {
             SimplePage(
                 getString("s_cat_desktop"),
                 getString("s_cat_desc_desktop"),
-                { getDesktopCategoryItems() }
-            ) { Icons.Outlined.DesktopWindows }
+                { getDesktopCategoryItems() },
+                { Icons.Outlined.DesktopWindows }
+            )
         else null
 
     enum class Key: SettingsKey {

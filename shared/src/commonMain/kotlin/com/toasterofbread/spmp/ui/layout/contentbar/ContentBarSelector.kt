@@ -58,54 +58,53 @@ internal fun ContentBarSelector(
         )
     }
 
-    CompositionLocalProvider(LocalContentColor provides player.theme.on_accent) {
-        BoxWithConstraints(
-            modifier
-                .clipToBounds()
-                .background { player.theme.accent }
-                .fillMaxSize()
-                .padding(content_padding)
+    BoxWithConstraints(
+        modifier
+            .clipToBounds()
+            .fillMaxSize()
+            .background(player.theme.background)
+            .border(1.dp, player.theme.vibrant_accent)
+            .padding(content_padding)
+    ) {
+        Row(
+            Modifier
+                .thenIf(slot.is_vertical) {
+                    rotate(-90f)
+                    .vertical()
+                    .requiredSize(maxHeight, maxWidth)
+                    .offset { with (density) {
+                        IntOffset(
+                            (maxWidth - maxHeight).roundToPx() / 2,
+                            0
+                        )
+                    } }
+                    .wrapContentHeight()
+                },
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Row(
+            val rotate_modifier: Modifier = Modifier.thenIf(slot.is_vertical) { rotate(90f) }
+
+            Text(slot.getName())
+
+            val colour_button_background_colour: Color = slot_colour_source.get(player.theme)
+
+            ConfigButton(
                 Modifier
-                    .thenIf(slot.is_vertical) {
-                        rotate(-90f)
-                        .vertical()
-                        .requiredSize(maxHeight, maxWidth)
-                        .offset { with (density) {
-                            IntOffset(
-                                (maxWidth - maxHeight).roundToPx() / 2,
-                                0
-                            )
-                        } }
-                        .wrapContentHeight()
-                    },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    .platformClickable(
+                        onClick = { show_colour_selector = !show_colour_selector }
+                    ),
+                background_colour = colour_button_background_colour,
+                border_colour = colour_button_background_colour.getContrasted()
             ) {
-                val rotate_modifier: Modifier = Modifier.thenIf(slot.is_vertical) { rotate(90f) }
+                Icon(Icons.Default.Palette, null, rotate_modifier)
 
-                Text(slot.getName())
-
-                val colour_button_background_colour: Color = slot_colour_source.get(player.theme)
-
-                ConfigButton(
-                    Modifier
-                        .platformClickable(
-                            onClick = { show_colour_selector = !show_colour_selector }
-                        ),
-                    background_colour = colour_button_background_colour,
-                    border_colour = colour_button_background_colour.getContrasted()
-                ) {
-                    Icon(Icons.Default.Palette, null, rotate_modifier)
-
-                    slot_colour_source?.theme_colour?.also {
-                        Text(it.getReadable())
-                    }
+                slot_colour_source?.theme_colour?.also {
+                    Text(it.getReadable())
                 }
-
-                ContentBarSelectorMainRow(state, slot, rotate_modifier)
             }
+
+            ContentBarSelectorMainRow(state, slot, rotate_modifier)
         }
     }
 }
@@ -139,23 +138,22 @@ private fun ContentBarSelectorMainRow(
         )
     }
 
-    content_bar?.also { bar ->
-        ConfigButton(
-            modifier
-                .platformClickable(
-                    onClick = {
-                        show_bar_selector = true
-                    }
-                )
-                .fillMaxWidth()
-        ) {
-            if (bar != null) {
-                Icon(bar.getIcon(), null)
-                Text(bar.getName())
-            }
-            else {
-                Text(getString("content_bar_empty"))
-            }
+    ConfigButton(
+        modifier
+            .platformClickable(
+                onClick = {
+                    show_bar_selector = true
+                }
+            )
+            .fillMaxWidth()
+    ) {
+        val bar: ContentBar? = content_bar
+        if (bar != null) {
+            Icon(bar.getIcon(), null)
+            Text(bar.getName())
+        }
+        else {
+            Text(getString("content_bar_empty"))
         }
     }
 }
@@ -163,7 +161,7 @@ private fun ContentBarSelectorMainRow(
 @Composable
 private fun ConfigButton(
     modifier: Modifier = Modifier,
-    background_colour: Color = LocalPlayerState.current.theme.background,
+    background_colour: Color = LocalPlayerState.current.theme.accent,
     border_colour: Color? = null,
     content: @Composable RowScope.() -> Unit
 ) {
@@ -396,7 +394,7 @@ private fun Modifier.contentBarPreview(
             )
         }
         .thenWith(border_colour) {
-            border(2.dp, it, shape)
+            border(1.dp, it, shape)
         }
         .background(shape) { background_colour ?: player.theme.background }
         .padding(10.dp)

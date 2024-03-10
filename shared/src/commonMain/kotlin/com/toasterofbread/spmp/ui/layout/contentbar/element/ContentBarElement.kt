@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.ui.layout.contentbar.element
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.Dp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.Icons
 import kotlinx.serialization.json.JsonObject
@@ -10,6 +11,7 @@ import kotlinx.serialization.Serializable
 import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.platform.visualiser.Visualiser
+import com.toasterofbread.composekit.utils.composable.RowOrColumnScope
 
 interface ContentBarElement {
     fun getData(): ContentBarElementData
@@ -20,11 +22,13 @@ interface ContentBarElement {
     @Composable
     fun shouldShow(): Boolean = true
 
-    @Composable
-    fun Element(vertical: Boolean, modifier: Modifier)
+    fun shouldFillLength(): Boolean = false
 
     @Composable
-    fun Configuration(modifier: Modifier, onModification: () -> Unit)
+    fun Element(vertical: Boolean, bar_width: Dp, modifier: Modifier)
+
+    @Composable
+    fun ConfigurationItems(modifier: Modifier, onModification: () -> Unit)
 
     enum class Type {
         BUTTON,

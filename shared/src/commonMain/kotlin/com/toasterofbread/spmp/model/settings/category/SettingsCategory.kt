@@ -55,11 +55,12 @@ sealed class SettingsCategory(id: String) {
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
-    protected inner class SimplePage(
+    protected open inner class SimplePage(
         val title: String,
         val description: String,
         private val getPageItems: (AppContext) -> List<SettingsItem>,
-        private val getPageIcon: @Composable () -> ImageVector
+        private val getPageIcon: @Composable () -> ImageVector,
+        private val titleBarEndContent: @Composable () -> Unit = {}
     ): CategoryPage(this, title) {
         private var items: List<SettingsItem>? = null
 
@@ -84,11 +85,17 @@ sealed class SettingsCategory(id: String) {
             ComposableSettingsItem { modifier ->
                 ElevatedCard(
                     onClick = {
-                        val page = SettingsPageWithItems(
+                        val page = object : SettingsPageWithItems(
                             getTitle = { title },
                             getItems = { getItems(context) },
                             getIcon = { getPageIcon() }
-                        )
+                        ) {
+                            @Composable
+                            override fun TitleBarEndContent() {
+                                titleBarEndContent()
+                                super.TitleBarEndContent()
+                            }
+                        }
 
                         openPage(page)
                     },

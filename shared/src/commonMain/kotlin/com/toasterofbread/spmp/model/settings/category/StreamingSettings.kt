@@ -16,8 +16,9 @@ data object StreamingSettings: SettingsCategory("streaming") {
         SimplePage(
             getString("s_cat_streaming"),
             getString("s_cat_desc_streaming"),
-            { getStreamingCategoryItems() }
-        ) { Icons.Outlined.Speaker }
+            { getStreamingCategoryItems() },
+            { Icons.Outlined.Speaker }
+        )
 
     enum class Key: SettingsKey {
         VIDEO_FORMATS_METHOD,

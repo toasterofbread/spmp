@@ -13,8 +13,9 @@ data object SystemSettings: SettingsCategory("system") {
         SimplePage(
             getString("s_cat_general"),
             getString("s_cat_desc_general"),
-            { getSystemCategoryItems(it) }
-        ) { Icons.Outlined.Tune }
+            { getSystemCategoryItems(it) },
+            { Icons.Outlined.Tune }
+        )
 
     enum class Key: SettingsKey {
         LANG_UI,

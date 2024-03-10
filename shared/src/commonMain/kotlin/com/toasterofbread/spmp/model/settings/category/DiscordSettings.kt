@@ -22,8 +22,9 @@ data object DiscordSettings: SettingsCategory("discord") {
         else SimplePage(
             getString("s_cat_discord_status"),
             getString("s_cat_desc_discord_status"),
-            { getDiscordCategoryItems(it) }
-        ) { getIcon() }
+            { getDiscordCategoryItems(it) },
+            { getIcon() }
+        )
 
     @OptIn(ExperimentalResourceApi::class)
     @Composable

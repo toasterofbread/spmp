@@ -14,8 +14,9 @@ data object LyricsSettings: SettingsCategory("lyrics") {
         SimplePage(
             getString("s_cat_lyrics"),
             getString("s_cat_desc_lyrics"),
-            { getLyricsCategoryItems() }
-        ) { Icons.Outlined.MusicNote }
+            { getLyricsCategoryItems() },
+            { Icons.Outlined.MusicNote }
+        )
 
     enum class Key: SettingsKey {
         DEFAULT_SOURCE,

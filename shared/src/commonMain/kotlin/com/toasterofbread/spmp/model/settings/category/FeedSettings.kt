@@ -14,8 +14,9 @@ data object FeedSettings: SettingsCategory("feed") {
         SimplePage(
             getString("s_cat_feed"),
             getString("s_cat_desc_feed"),
-            { getFeedCategoryItems() }
-        ) { Icons.Outlined.FormatListBulleted }
+            { getFeedCategoryItems() },
+            { Icons.Outlined.FormatListBulleted }
+        )
 
     enum class Key: SettingsKey {
         SHOW_SONG_DOWNLOAD_INDICATORS,

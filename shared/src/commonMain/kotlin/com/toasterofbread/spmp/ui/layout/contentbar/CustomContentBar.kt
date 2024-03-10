@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.ui.layout.contentbar
 import LocalPlayerState
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material3.*
@@ -11,7 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.Alignment
 import com.toasterofbread.composekit.utils.common.getContrasted
+import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.composekit.utils.composable.SidebarButtonSelector
 import com.toasterofbread.composekit.utils.composable.RowOrColumnScope
 import com.toasterofbread.composekit.settings.ui.Theme
@@ -50,10 +54,11 @@ data class CustomContentBar(
         background_colour: Theme.Colour? = null,
         modifier: Modifier = Modifier,
         selected_element_override: Int? = null,
+        apply_size: Boolean = true,
         getSpacerElementModifier: (@Composable RowOrColumnScope.(Int, ContentBarElementSpacer) -> Modifier)? = null,
         shouldShowButton: @Composable (ContentBarElement) -> Boolean = { it.shouldShow() },
-        buttonContent: @Composable (Int, ContentBarElement) -> Unit =
-            { _, element -> element.Element(vertical, Modifier) }
+        buttonContent: @Composable (Int, ContentBarElement, Dp) -> Unit =
+            { _, element, width -> element.Element(vertical, width, Modifier) }
     ) {
         val player: PlayerState = LocalPlayerState.current
         val selected_element: Int? =
@@ -69,38 +74,50 @@ data class CustomContentBar(
                 else -> content_colour
             }
 
-        SidebarButtonSelector(
-            selected_button = selected_element,
-            buttons = elements,
-            indicator_colour = indicator_colour,
-            modifier = modifier
-                .padding(content_padding)
-                .then(if (vertical) Modifier.width(size_dp.dp) else Modifier.height(size_dp.dp)),
-            vertical = vertical,
-            alignment = 0,
-            isSpacing = { it is ContentBarElementSpacer },
-            arrangement = Arrangement.spacedBy(1.dp),
-            showButton = { element ->
-                return@SidebarButtonSelector shouldShowButton(element)
-            },
-            getButtonModifier = { index, element ->
-                if (element !is ContentBarElementSpacer) {
-                    return@SidebarButtonSelector Modifier
+        BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
+            SidebarButtonSelector(
+                selected_button = selected_element,
+                buttons = elements,
+                indicator_colour = indicator_colour,
+                modifier = Modifier
+                    .padding(content_padding)
+                    .thenIf(apply_size) {
+                        if (vertical) width(size_dp.dp)
+                        else height(size_dp.dp)
+                    },
+                vertical = vertical,
+                alignment = 0,
+                isSpacing = { it is ContentBarElementSpacer },
+                arrangement = Arrangement.spacedBy(1.dp),
+                showButton = { element ->
+                    return@SidebarButtonSelector shouldShowButton(element)
+                },
+                getButtonModifier = { index, element ->
+                    val base_modifier: Modifier =
+                        if (element.shouldFillLength())
+                            Modifier
+                                .weight(1f)
+                                .then(if (vertical) Modifier.fillMaxHeight() else Modifier.fillMaxWidth())
+                        else Modifier
+
+                    if (element !is ContentBarElementSpacer) {
+                        return@SidebarButtonSelector base_modifier
+                    }
+                    if (getSpacerElementModifier != null) {
+                        return@SidebarButtonSelector base_modifier.then(getSpacerElementModifier(index, element))
+                    }
+                    with (element) {
+                        return@SidebarButtonSelector base_modifier.then(getSpacerModifier(vertical))
+                    }
                 }
-                if (getSpacerElementModifier != null) {
-                    return@SidebarButtonSelector getSpacerElementModifier(index, element)
+            ) { index, element ->
+                CompositionLocalProvider(
+                    LocalContentColor provides
+                        if (index == selected_element) indicator_colour.getContrasted()
+                        else background_colour?.get(player.theme)?.getContrasted() ?: LocalContentColor.current
+                ) {
+                    buttonContent(index, element, this@BoxWithConstraints.maxWidth)
                 }
-                with (element) {
-                    return@SidebarButtonSelector getSpacerModifier(vertical)
-                }
-            }
-        ) { index, element ->
-            CompositionLocalProvider(
-                LocalContentColor provides
-                    if (index == selected_element) indicator_colour.getContrasted()
-                    else LocalContentColor.current
-            ) {
-                buttonContent(index, element)
             }
         }
     }

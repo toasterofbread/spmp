@@ -812,6 +812,13 @@
     <string name="content_bar_editor_add_element">Add element</string>
     <string name="content_bar_editor_move_element">Move element</string>
     <string name="content_bar_editor_configure_element_$x">Configure element</string>
+    <string name="content_bar_editor_no_elements_added">No elements added</string>
+    <string name="content_bar_editor_pick_template">Pick template</string>
+
+    <string name="content_bar_editor_template_dialog_title">Pick template</string>
+
+    <string name="content_bar_template_navigation">Navigation</string>
+    <string name="content_bar_template_lyrics">Lyrics</string>
 
     <string name="content_bar_element_type_button">Button</string>
     <string name="content_bar_element_type_spacer">Spacer</string>
@@ -822,6 +829,12 @@
     <string name="content_bar_element_spacer_config_size">Size</string>
 
     <string name="content_bar_element_builtin_config_type">Type</string>
+
+    <string name="content_bar_element_lyrics_config_size_mode">Size mode</string>
+    <string name="content_bar_element_lyrics_config_size_mode_fill">Fill</string>
+    <string name="content_bar_element_lyrics_config_size_mode_static">Static</string>
+    <string name="content_bar_element_lyrics_config_size_mode_percentage">Percentage</string>
+    <string name="content_bar_element_lyrics_config_size">Size</string>
 
     <string name="content_bar_element_builtin_lyrics">Lyrics</string>
     <string name="content_bar_element_builtin_visualiser">Music visualiser</string>
@@ -843,8 +856,8 @@
 
     <string name="layout_slot_portrait_upper_top_bar">Upper top bar</string>
     <string name="layout_slot_portrait_lower_top_bar">Lower top bar</string>
-    <string name="layout_slot_portrait_above_player">Above mini-player</string>
-    <string name="layout_slot_portrait_below_player">Below mini-player</string>
+    <string name="layout_slot_portrait_above_player">Above player</string>
+    <string name="layout_slot_portrait_below_player">Below player</string>
 
     <string name="layout_slot_landscape_outer_side_left">Outer left sidebar</string>
     <string name="layout_slot_landscape_inner_side_left">Inner left sidebar</string>
@@ -852,8 +865,8 @@
     <string name="layout_slot_landscape_inner_side_right">Inner right sidebar</string>
     <string name="layout_slot_landscape_upper_top_bar">Upper top bar</string>
     <string name="layout_slot_landscape_lower_top_bar">Lower top bar</string>
-    <string name="layout_slot_landscape_above_player">Above mini-player</string>
-    <string name="layout_slot_landscape_below_player">Below mini-player</string>
+    <string name="layout_slot_landscape_above_player">Above player</string>
+    <string name="layout_slot_landscape_below_player">Below player</string>
 
     <string name="colour_selector_dialog_title">Select a colour</string>
     <string name="colour_selector_dialog_select_theme">From theme</string>

@@ -15,8 +15,9 @@ data object ThemeSettings: SettingsCategory("theme") {
         SimplePage(
             getString("s_cat_theme"),
             getString("s_cat_desc_theme"),
-            { getThemeCategoryItems(it) }
-        ) { Icons.Outlined.Palette }
+            { getThemeCategoryItems(it) },
+            { Icons.Outlined.Palette }
+        )
 
     enum class Key: SettingsKey {
         CURRENT_THEME,

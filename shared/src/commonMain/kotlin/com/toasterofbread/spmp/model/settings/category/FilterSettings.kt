@@ -14,8 +14,9 @@ data object FilterSettings: SettingsCategory("filter") {
         SimplePage(
             getString("s_cat_filter"),
             getString("s_cat_desc_filter"),
-            { getFilterCategoryItems() }
-        ) { Icons.Outlined.FilterAlt }
+            { getFilterCategoryItems() },
+            { Icons.Outlined.FilterAlt }
+        )
 
     enum class Key: SettingsKey {
         ENABLE,

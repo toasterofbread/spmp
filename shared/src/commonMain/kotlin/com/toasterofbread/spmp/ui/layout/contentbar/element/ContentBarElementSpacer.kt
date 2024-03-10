@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.contentbar.element
 
 import LocalPlayerState
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -19,10 +19,18 @@ import kotlinx.serialization.json.*
 private const val SIZE_DP_STEP: Float = 10f
 private const val MIN_SIZE_DP: Float = 10f
 
-class ContentBarElementSpacer(data: JsonObject?): ContentBarElement {
+class ContentBarElementSpacer(size_dp: Float? = null): ContentBarElement {
     // If negative, spacer will fill width/height
-    private var size_dp: Float by mutableStateOf(
-        data?.get("size_dp")?.jsonPrimitive?.float ?: MIN_SIZE_DP
+    private var size_dp: Float by mutableStateOf(MIN_SIZE_DP)
+    
+    init {
+        if (size_dp != null) {
+            this.size_dp = size_dp
+        }
+    }
+
+    constructor(data: JsonObject?): this(
+        data?.get("size_dp")?.jsonPrimitive?.float
     )
 
     private fun getJsonData(): JsonObject = Json.encodeToJsonElement(
@@ -33,12 +41,10 @@ class ContentBarElementSpacer(data: JsonObject?): ContentBarElement {
         ContentBarElementData(type = ContentBarElement.Type.SPACER, data = getJsonData())
 
     @Composable
-    override fun Element(vertical: Boolean, modifier: Modifier) {}
+    override fun Element(vertical: Boolean, bar_width: Dp, modifier: Modifier) {}
 
     @Composable
     fun RowOrColumnScope.getSpacerModifier(vertical: Boolean): Modifier {
-        val player: PlayerState = LocalPlayerState.current
-
         val spacer_modifier: Modifier
         if (size_dp >= 0) {
             // Static size
@@ -66,51 +72,53 @@ class ContentBarElementSpacer(data: JsonObject?): ContentBarElement {
     }
 
     @Composable
-    override fun Configuration(modifier: Modifier, onModification: () -> Unit) {
+    override fun ConfigurationItems(modifier: Modifier, onModification: () -> Unit) {
         var previous_static_size: Float by remember { mutableStateOf(0f) }
 
-        Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(getString("content_bar_element_spacer_config_fill"))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(getString("content_bar_element_spacer_config_fill"))
+
+            Spacer(Modifier.fillMaxWidth().weight(1f))
+
+            Switch(
+                checked = size_dp < 0,
+                onCheckedChange = { checked ->
+                    if (checked) {
+                        previous_static_size = size_dp.coerceAtLeast(0f)
+                    }
+                    size_dp = if (checked) -1f else previous_static_size
+                    onModification()
+                }
+            )
+        }
+
+        AnimatedVisibility(
+            size_dp >= 0,
+            enter = expandVertically(),
+            exit = shrinkVertically()
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                Text(getString("content_bar_element_spacer_config_size"))
 
                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                Switch(
-                    checked = size_dp < 0,
-                    onCheckedChange = { checked ->
-                        if (checked) {
-                            previous_static_size = size_dp.coerceAtLeast(0f)
-                        }
-                        size_dp = if (checked) -1f else previous_static_size
-                        onModification()
-                    }
-                )
-            }
+                IconButton({
+                    size_dp = (size_dp - SIZE_DP_STEP).coerceAtLeast(MIN_SIZE_DP)
+                    onModification()
+                }) {
+                    Icon(Icons.Default.Remove, null)
+                }
 
-            AnimatedVisibility(size_dp >= 0) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(5.dp)
-                ) {
-                    Text(getString("content_bar_element_spacer_config_size"))
+                Text(size_dp.roundToInt().toString() + "dp")
 
-                    Spacer(Modifier.fillMaxWidth().weight(1f))
-
-                    IconButton({
-                        size_dp = (size_dp - SIZE_DP_STEP).coerceAtLeast(MIN_SIZE_DP)
-                        onModification()
-                    }) {
-                        Icon(Icons.Default.Remove, null)
-                    }
-
-                    Text(size_dp.roundToInt().toString() + "dp")
-
-                    IconButton({
-                        size_dp += SIZE_DP_STEP
-                        onModification()
-                    }) {
-                        Icon(Icons.Default.Add, null)
-                    }
+                IconButton({
+                    size_dp += SIZE_DP_STEP
+                    onModification()
+                }) {
+                    Icon(Icons.Default.Add, null)
                 }
             }
         }

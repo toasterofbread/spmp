@@ -14,6 +14,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.Alignment
 import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.utils.composable.*
@@ -28,11 +29,19 @@ import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
 import com.toasterofbread.spmp.ui.shortcut.SHORTCUT_INDICATOR_SHAPE
 import kotlinx.serialization.json.*
 
-class ContentBarElementButton(data: JsonObject?): ContentBarElement {
-    private var type: Type by mutableStateOf(
-        data?.get("type")?.jsonPrimitive?.int?.let { type ->
-            Type.entries[type]
-        } ?: Type.DEFAULT
+class ContentBarElementButton(type: Type? = null): ContentBarElement {
+    private var type: Type by mutableStateOf(Type.DEFAULT)
+
+    init {
+        if (type != null) {
+            this.type = type
+        }
+    }
+
+    constructor(data: JsonObject?): this(
+        data?.get("type")?.jsonPrimitive?.int?.let {
+            Type.entries[it]
+        }
     )
 
     private fun getJsonData(): JsonObject = Json.encodeToJsonElement(
@@ -57,7 +66,7 @@ class ContentBarElementButton(data: JsonObject?): ContentBarElement {
     }
 
     @Composable
-    override fun Element(vertical: Boolean, modifier: Modifier) {
+    override fun Element(vertical: Boolean, bar_width: Dp, modifier: Modifier) {
         val player: PlayerState = LocalPlayerState.current
 
         IconButton(
@@ -125,7 +134,7 @@ class ContentBarElementButton(data: JsonObject?): ContentBarElement {
     }
 
     @Composable
-    override fun Configuration(modifier: Modifier, onModification: () -> Unit) {
+    override fun ConfigurationItems(modifier: Modifier, onModification: () -> Unit) {
         var show_type_selector: Boolean by remember { mutableStateOf(false) }
 
         LargeDropdownMenu(

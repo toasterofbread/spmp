@@ -14,8 +14,9 @@ data object TopBarSettings: SettingsCategory("topbar") {
         SimplePage(
             getString("s_cat_topbar"),
             getString("s_cat_desc_topbar"),
-            { getTopBarCategoryItems() }
-        ) { Icons.Outlined.Waves }
+            { getTopBarCategoryItems() },
+            { Icons.Outlined.Waves }
+        )
 
     enum class Key: SettingsKey {
         LYRICS_LINGER,

@@ -14,8 +14,9 @@ data object PlayerSettings: SettingsCategory("player") {
         SimplePage(
             getString("s_cat_player"),
             getString("s_cat_desc_player"),
-            { getPlayerCategoryItems() }
-        ) { Icons.Outlined.PlayArrow }
+            { getPlayerCategoryItems() },
+            { Icons.Outlined.PlayArrow }
+        )
 
     enum class Key: SettingsKey {
         MINI_SHOW_PREV_BUTTON,

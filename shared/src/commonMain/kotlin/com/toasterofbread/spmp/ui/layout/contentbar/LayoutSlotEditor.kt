@@ -1,121 +1,28 @@
 package com.toasterofbread.spmp.ui.layout.contentbar
 
 import LocalPlayerState
-import androidx.compose.animation.*
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.requiredSize
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.runtime.*
-import androidx.compose.ui.*
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.*
-import com.toasterofbread.composekit.platform.composable.*
+import androidx.compose.animation.Crossfade
+import com.toasterofbread.composekit.settings.ui.item.SettingsItem
+import com.toasterofbread.composekit.settings.ui.item.ComposableSettingsItem
 import com.toasterofbread.composekit.settings.ui.Theme
-import com.toasterofbread.composekit.settings.ui.item.*
-import com.toasterofbread.composekit.utils.common.*
-import com.toasterofbread.composekit.utils.composable.*
-import com.toasterofbread.spmp.model.settings.SettingsKey
+import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.spmp.model.settings.category.LayoutSettings
-import com.toasterofbread.spmp.platform.*
-import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
-import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElement
-import kotlinx.serialization.encodeToString
+import com.toasterofbread.spmp.platform.FormFactor
+import com.toasterofbread.spmp.platform.form_factor
+import com.toasterofbread.spmp.resources.getString
 import kotlinx.serialization.json.Json
-import org.burnoutcrew.reorderable.*
+import kotlinx.serialization.*
+import com.toasterofbread.composekit.utils.common.toHexString
 
 @OptIn(ExperimentalLayoutApi::class)
 fun getLayoutSlotEditorSettingsItems(): List<SettingsItem> {
     return listOf(
-        ComposableSettingsItem(
-            emptyList(),
-            composable = {
-                val player: PlayerState = LocalPlayerState.current
-                var preview_options_expanded: Boolean by remember { mutableStateOf(false) }
-
-                DisposableEffect(Unit) {
-                    onDispose {
-                        FormFactor.form_factor_override = null
-                    }
-                }
-
-                Column(
-                    Modifier
-                        .border(2.dp, player.theme.vibrant_accent, RoundedCornerShape(10.dp))
-                        .padding(10.dp)
-                        .fillMaxWidth()
-                ) {
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .platformClickable(
-                                onClick = { preview_options_expanded = !preview_options_expanded }
-                            ),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            getString("layout_editor_preview_options"),
-                            Modifier.padding(bottom = 10.dp),
-                            style = MaterialTheme.typography.headlineSmall
-                        )
-
-                        Crossfade(preview_options_expanded) { expanded ->
-                            IconButton({ preview_options_expanded = !expanded }) {
-                                Icon(
-                                    if (expanded) Icons.Default.KeyboardArrowUp
-                                    else Icons.Default.KeyboardArrowDown,
-                                    null
-                                )
-                            }
-                        }
-                    }
-
-                    AnimatedVisibility(preview_options_expanded) {
-                        Column {
-                            SwitchButton(
-                                checked = ContentBar.disable_bar_selection,
-                                onCheckedChange = { checked ->
-                                    ContentBar.disable_bar_selection = checked
-                                }
-                            ) {
-                                Text(getString("layout_editor_preview_option_show_bar_content"))
-                            }
-
-                            SwitchButton(
-                                checked = player.hide_player,
-                                onCheckedChange = { checked ->
-                                    player.hide_player = checked
-                                }
-                            ) {
-                                Text(getString("layout_editor_preview_option_hide_player"))
-                            }
-
-                            SwitchButton(
-                                checked = player.form_factor == FormFactor.PORTRAIT,
-                                onCheckedChange = { checked ->
-                                    FormFactor.form_factor_override =
-                                        if (checked) FormFactor.PORTRAIT
-                                        else FormFactor.LANDSCAPE
-                                }
-                            ) {
-                                Text(getString("layout_editor_preview_option_portrait_mode"))
-                            }
-                        }
-                    }
-                }
-            }
-        ),
         ComposableSettingsItem(
             listOf(
                 LayoutSettings.Key.PORTRAIT_SLOTS.getName(),
@@ -256,25 +163,5 @@ fun LayoutSlotEditor(modifier: Modifier = Modifier) {
                 onDismissed = {}
             )
         }
-    }
-}
-
-@Composable
-private fun SwitchButton(
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    text: @Composable () -> Unit
-) {
-    Row(
-        Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        text()
-
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange
-        )
     }
 }

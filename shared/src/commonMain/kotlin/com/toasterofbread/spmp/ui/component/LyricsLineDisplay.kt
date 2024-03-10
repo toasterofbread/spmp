@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.*
@@ -99,7 +100,7 @@ fun LyricsLineDisplay(
 
         @Composable
         fun phase(show: Boolean, index: Int?) {
-            AnimatedVisibility(show, Modifier.height(IntrinsicSize.Min).fillMaxWidth(), enter = enter, exit = exit) {
+            AnimatedVisibility(show, Modifier.height(IntrinsicSize.Min).width(IntrinsicSize.Max), enter = enter, exit = exit) {
                 var line: Int? by remember { mutableStateOf(index) }
                 LaunchedEffect(index) {
                     if (index != null) {

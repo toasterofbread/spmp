@@ -14,8 +14,9 @@ data object BehaviourSettings: SettingsCategory("behaviour") {
         SimplePage(
             getString("s_cat_behaviour"),
             getString("s_cat_desc_behaviour"),
-            { getBehaviourCategoryItems() }
-        ) { Icons.Outlined.TouchApp }
+            { getBehaviourCategoryItems() },
+            { Icons.Outlined.TouchApp }
+        )
 
     enum class Key: SettingsKey {
         OPEN_NP_ON_SONG_PLAYED,

@@ -61,7 +61,6 @@ import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.LyricsSettings
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.component.AnnotatedReadingTerm
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
@@ -90,7 +89,7 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
         var show_furigana: Boolean by remember { mutableStateOf(LyricsSettings.Key.DEFAULT_FURIGANA.get()) }
 
         var submenu: Submenu? by remember { mutableStateOf(null) }
-        var lyrics_sync_line_data: Pair<Int, List<AnnotatedReadingTerm>>? by remember { mutableStateOf(null) }
+        var lyrics_sync_line_index: Int? by remember { mutableStateOf(null) }
 
         var special_mode: SpecialMode? by remember { mutableStateOf(null) }
 
@@ -115,7 +114,7 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
 
         LaunchedEffect(lyrics_state.lyrics) {
             submenu = null
-            lyrics_sync_line_data = null
+            lyrics_sync_line_index = null
             special_mode = null
         }
 
@@ -238,12 +237,11 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
                 }
                 else if (current_submenu == Submenu.SYNC) {
                     if (lyrics is SongLyrics) {
-                        lyrics_sync_line_data?.also { line_data ->
+                        lyrics_sync_line_index?.also { line_index ->
                             LyricsSyncMenu(
-                                song, 
-                                lyrics, 
-                                line_data.first, 
-                                line_data.second, 
+                                song,
+                                lyrics,
+                                line_index,
                                 Modifier.fillMaxSize()
                             ) {
                                 submenu = null
@@ -265,15 +263,15 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
                             getExpansion,
                             show_furigana,
                             Modifier.fillMaxSize(),
-                            enable_autoscroll = lyrics_follow_enabled && special_mode != SpecialMode.SELECT_SYNC_LINE
-                        ) {
-                            if (special_mode == SpecialMode.SELECT_SYNC_LINE) { line_data ->
-                                submenu = Submenu.SYNC
-                                lyrics_sync_line_data = line_data
-                                special_mode = null
-                            }
-                            else null
-                        }
+                            enable_autoscroll = lyrics_follow_enabled && special_mode != SpecialMode.SELECT_SYNC_LINE,
+                            onLineAltClick =
+                                if (special_mode == SpecialMode.SELECT_SYNC_LINE) {{ line_index ->
+                                    submenu = Submenu.SYNC
+                                    lyrics_sync_line_index = line_index
+                                    special_mode = null
+                                }}
+                                else null
+                        )
 
                         AnimatedVisibility(
                             special_mode != null,
@@ -304,7 +302,7 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
 fun getLyricsTextStyle(font_size: TextUnit): TextStyle =
     LocalTextStyle.current.copy(
         fontSize = font_size,
-        lineHeight = (font_size.value * 1.5).sp,
+        lineHeight = font_size,
         letterSpacing = 0.sp,
         textAlign = TextAlign.Start
     )

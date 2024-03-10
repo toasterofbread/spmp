@@ -311,7 +311,7 @@ fun LargeThumbnailRow(
             }
 
             val lyrics_state: SongLyricsLoader.ItemState? = remember(current_song?.id) { current_song?.let { SongLyricsLoader.getItemState(it, player.context) } }
-            val lyrics_sync_offset: Long? by current_song?.getLyricsSyncOffset(player.database, false)
+            val lyrics_sync_offset: Long? by current_song?.getLyricsSyncOffset(player.database, true)
 
             AnimatedVisibility(
                 lyrics_state?.lyrics?.synced == true,

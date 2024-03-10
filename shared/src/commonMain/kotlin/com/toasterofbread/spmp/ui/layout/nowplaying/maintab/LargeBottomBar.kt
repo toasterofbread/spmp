@@ -44,35 +44,42 @@ internal fun LargeBottomBar(
             modifier,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
+            Box(
                 Modifier
-                    .thenIf(
-                        inset_depth > 0.dp,
-                        elseAction = {
-                            width(IntrinsicSize.Min)
-                        }
-                    ) {
+                    .fillMaxWidth(0.5f)
+                    .thenIf(inset_depth > 0.dp) {
                         align(Alignment.Top)
-                        .offset(x = inset_start, y = inset_depth)
-                        .width(inset_end - inset_start)
-                    },
-                verticalAlignment = Alignment.CenterVertically
+                    }
             ) {
-                NowPlayingMainTabActionButtons.OpenExternalButton(current_song)
-                NowPlayingMainTabActionButtons.LikeDislikeButton(current_song, Modifier.minimumInteractiveComponentSize())
+                Row(
+                    Modifier
+                        .thenIf(
+                            inset_depth > 0.dp,
+                            elseAction = {
+                                width(IntrinsicSize.Min)
+                            }
+                        ) {
+                            offset(x = inset_start, y = inset_depth)
+                            .width(inset_end - inset_start)
+                        },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    NowPlayingMainTabActionButtons.OpenExternalButton(current_song)
+                    NowPlayingMainTabActionButtons.LikeDislikeButton(current_song, Modifier.minimumInteractiveComponentSize())
 
-                Spacer(Modifier.fillMaxWidth().weight(1f))
+                    Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                NowPlayingMainTabActionButtons.DownloadButton(current_song)
-                NowPlayingMainTabActionButtons.RadioButton(current_song)
+                    NowPlayingMainTabActionButtons.DownloadButton(current_song)
+                    NowPlayingMainTabActionButtons.RadioButton(current_song)
+                }
             }
 
             Row(
-                Modifier.fillMaxWidth().weight(1f),
+                Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val lyrics_state: SongLyricsLoader.ItemState? = remember(current_song?.id) { current_song?.let { SongLyricsLoader.getItemState(it, player.context) } }
-                val lyrics_sync_offset: Long? by current_song?.getLyricsSyncOffset(player.database, false)
+                val lyrics_sync_offset: Long? by current_song?.getLyricsSyncOffset(player.database, true)
 
                 Crossfade(lyrics_state?.lyrics, Modifier.fillMaxWidth().weight(1f)) { lyrics ->
                     if (lyrics?.synced != true) {

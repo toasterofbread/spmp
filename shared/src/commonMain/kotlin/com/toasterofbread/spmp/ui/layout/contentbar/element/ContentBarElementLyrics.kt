@@ -5,7 +5,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.layout.fillMaxWidth
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.ui.component.LyricsLineDisplay
@@ -25,7 +24,7 @@ class ContentBarElementLyrics(data: JsonObject?): ContentBarElement {
         val lyrics_state: SongLyricsLoader.ItemState? = remember(current_song?.id) { current_song?.let { SongLyricsLoader.getItemState(it, player.context) } }
         val lyrics_sync_offset: Long? by current_song?.getLyricsSyncOffset(player.database, true)
 
-        Crossfade(lyrics_state?.lyrics, modifier.fillMaxWidth()) { lyrics ->
+        Crossfade(lyrics_state?.lyrics, modifier) { lyrics ->
             if (lyrics?.synced != true) {
                 return@Crossfade
             }
@@ -41,5 +40,6 @@ class ContentBarElementLyrics(data: JsonObject?): ContentBarElement {
 
     @Composable
     override fun Configuration(modifier: Modifier, onModification: () -> Unit) {
+        TODO("With config")
     }
 }

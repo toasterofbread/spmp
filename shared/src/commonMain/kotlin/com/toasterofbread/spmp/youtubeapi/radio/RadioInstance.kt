@@ -38,6 +38,7 @@ import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.platform.AppContext
@@ -341,22 +342,23 @@ class RadioInstance(val context: AppContext) {
                 )
             }
             is RemotePlaylist -> {
-                val (items, continuation) = context.database.transactionWithResult {
-                    Pair(item.Items.get(context.database), item.Continuation.get(context.database))
-                }
+                val playlist_data: RemotePlaylistData = item.loadData(context).fold(
+                    { it },
+                    { return Result.failure(it) }
+                )
 
-                if (items == null) {
+                if (playlist_data.items == null) {
                     state = state.copy(
-                        continuation = continuation ?: MediaItemLayout.Continuation(item.id, MediaItemLayout.Continuation.Type.PLAYLIST_INITIAL)
+                        continuation = playlist_data.continuation ?: MediaItemLayout.Continuation(item.id, MediaItemLayout.Continuation.Type.PLAYLIST_INITIAL)
                     )
                     return Result.success(emptyList())
                 }
 
                 state = state.copy(
-                    continuation = continuation
+                    continuation = playlist_data.continuation
                 )
 
-                return Result.success(items)
+                return Result.success(playlist_data.items!!)
             }
             is LocalPlaylist -> {
                 val data: LocalPlaylistData = item.loadData(context).fold(

@@ -46,9 +46,9 @@ internal fun LargeBottomBar(
         ) {
             Box(
                 Modifier
-                    .fillMaxWidth(0.5f)
                     .thenIf(inset_depth > 0.dp) {
-                        align(Alignment.Top)
+                        fillMaxWidth(0.5f)
+                        .align(Alignment.Top)
                     }
             ) {
                 Row(
@@ -75,7 +75,7 @@ internal fun LargeBottomBar(
             }
 
             Row(
-                Modifier.fillMaxWidth(),
+                Modifier.fillMaxWidth().weight(1f),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val lyrics_state: SongLyricsLoader.ItemState? = remember(current_song?.id) { current_song?.let { SongLyricsLoader.getItemState(it, player.context) } }

@@ -8,17 +8,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.*
 import com.toasterofbread.composekit.platform.Platform
-import com.toasterofbread.composekit.utils.composable.*
 import com.toasterofbread.composekit.utils.common.getValue
+import com.toasterofbread.composekit.utils.composable.*
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.resources.getString
@@ -29,29 +25,25 @@ import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
 import com.toasterofbread.spmp.ui.shortcut.SHORTCUT_INDICATOR_SHAPE
 import kotlinx.serialization.json.*
 
-class ContentBarElementButton(type: Type? = null): ContentBarElement {
-    private var type: Type by mutableStateOf(Type.DEFAULT)
-
-    init {
-        if (type != null) {
-            this.type = type
-        }
-    }
-
-    constructor(data: JsonObject?): this(
-        data?.get("type")?.jsonPrimitive?.int?.let {
+class ContentBarElementButton(data: ContentBarElementData): ContentBarElement(data) {
+    private var type: Type by mutableStateOf(
+        data.data?.get("type")?.jsonPrimitive?.int?.let {
             Type.entries[it]
-        }
+        } ?: Type.DEFAULT
     )
 
-    private fun getJsonData(): JsonObject = Json.encodeToJsonElement(
-        mapOf(
-            "type" to type.ordinal
+    constructor(type: Type): this(
+        ContentBarElementData(
+            ContentBarElement.Type.BUTTON,
+            data = buildJsonObject {
+                put("type", type.ordinal)
+            }
         )
-    ).jsonObject
+    )
 
-    override fun getData(): ContentBarElementData =
-        ContentBarElementData(type = ContentBarElement.Type.BUTTON, data = getJsonData())
+    override fun getSubData(): JsonObject = buildJsonObject {
+        put("type", type.ordinal)
+    }
 
     @Composable
     override fun isSelected(): Boolean = type == Type.current
@@ -66,7 +58,7 @@ class ContentBarElementButton(type: Type? = null): ContentBarElement {
     }
 
     @Composable
-    override fun Element(vertical: Boolean, bar_width: Dp, modifier: Modifier) {
+    override fun ElementContent(vertical: Boolean, modifier: Modifier) {
         val player: PlayerState = LocalPlayerState.current
 
         IconButton(
@@ -134,7 +126,7 @@ class ContentBarElementButton(type: Type? = null): ContentBarElement {
     }
 
     @Composable
-    override fun ConfigurationItems(modifier: Modifier, onModification: () -> Unit) {
+    override fun SubConfigurationItems(onModification: () -> Unit) {
         var show_type_selector: Boolean by remember { mutableStateOf(false) }
 
         LargeDropdownMenu(
@@ -152,9 +144,13 @@ class ContentBarElementButton(type: Type? = null): ContentBarElement {
             }
         )
 
-        Column {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(getString("content_bar_element_button_config_type"))
+
+            Spacer(Modifier.fillMaxWidth().weight(1f))
+
             Button({ show_type_selector = !show_type_selector }) {
-                Text(getString("content_bar_element_builtin_config_type"))
+                Text(type.getName())
             }
         }
     }

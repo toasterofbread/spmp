@@ -214,7 +214,7 @@ internal fun CustomContentBarEditor(editing_bar: CustomContentBar, commit: (Cust
                         .height(60.dp)
                         .padding(5.dp),
                     getSpacerElementModifier = { index, spacer -> with(spacer) {
-                        getSpacerModifier(vertical_bar)
+                        Modifier
                             .clickable { onElementClicked(index) }
                             .border(2.dp, player.theme.vibrant_accent)
                             .thenIf(index == selected_element) {
@@ -362,6 +362,6 @@ private fun ElementEditor(
             }
         }
 
-        element.ConfigurationItems(modifier, onModification = commit)
+        element.ConfigurationItems(onModification = commit)
     }
 }

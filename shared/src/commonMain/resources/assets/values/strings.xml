@@ -825,16 +825,13 @@
     <string name="content_bar_element_type_lyrics">Lyrics</string>
     <string name="content_bar_element_type_visualiser">Visualiser</string>
 
-    <string name="content_bar_element_spacer_config_fill">Fill width/height</string>
-    <string name="content_bar_element_spacer_config_size">Size</string>
-
-    <string name="content_bar_element_builtin_config_type">Type</string>
-
-    <string name="content_bar_element_lyrics_config_size_mode">Size mode</string>
-    <string name="content_bar_element_lyrics_config_size_mode_fill">Fill</string>
-    <string name="content_bar_element_lyrics_config_size_mode_static">Static</string>
-    <string name="content_bar_element_lyrics_config_size_mode_percentage">Percentage</string>
-    <string name="content_bar_element_lyrics_config_size">Size</string>
+    <string name="content_bar_element_builtin_config_size_mode">Size mode</string>
+    <string name="content_bar_element_builtin_config_size_mode_fill">Fill</string>
+    <string name="content_bar_element_builtin_config_size_mode_static">Static</string>
+    <string name="content_bar_element_builtin_config_size_mode_percentage">Percentage</string>
+    <string name="content_bar_element_builtin_config_size">Size</string>
+    
+    <string name="content_bar_element_button_config_type">Button type</string>
 
     <string name="content_bar_element_builtin_lyrics">Lyrics</string>
     <string name="content_bar_element_builtin_visualiser">Music visualiser</string>

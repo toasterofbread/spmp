@@ -100,15 +100,10 @@ data class CustomContentBar(
                                 .then(if (vertical) Modifier.fillMaxHeight() else Modifier.fillMaxWidth())
                         else Modifier
 
-                    if (element !is ContentBarElementSpacer) {
-                        return@SidebarButtonSelector base_modifier
-                    }
-                    if (getSpacerElementModifier != null) {
+                    if (element is ContentBarElementSpacer && getSpacerElementModifier != null) {
                         return@SidebarButtonSelector base_modifier.then(getSpacerElementModifier(index, element))
                     }
-                    with (element) {
-                        return@SidebarButtonSelector base_modifier.then(getSpacerModifier(vertical))
-                    }
+                    return@SidebarButtonSelector base_modifier
                 }
             ) { index, element ->
                 CompositionLocalProvider(

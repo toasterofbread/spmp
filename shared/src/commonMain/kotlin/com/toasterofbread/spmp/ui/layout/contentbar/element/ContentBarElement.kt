@@ -1,34 +1,139 @@
 package com.toasterofbread.spmp.ui.layout.contentbar.element
 
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.Dp
-import androidx.compose.material.icons.filled.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.Serializable
-import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
-import com.toasterofbread.spmp.resources.getString
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.*
+import com.toasterofbread.composekit.utils.common.thenWith
+import com.toasterofbread.composekit.utils.composable.*
 import com.toasterofbread.spmp.platform.visualiser.Visualiser
-import com.toasterofbread.composekit.utils.composable.RowOrColumnScope
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
+import kotlinx.serialization.*
+import kotlinx.serialization.json.JsonObject
 
-interface ContentBarElement {
-    fun getData(): ContentBarElementData
+private const val SIZE_DP_STEP: Float = 10f
+private const val MIN_SIZE_DP: Float = 10f
+private val DEFAULT_SIZE_MODE: ContentBarElement.SizeMode = ContentBarElement.SizeMode.STATIC
+private const val DEFAULT_SIZE: Int = 50
+
+abstract class ContentBarElement(data: ContentBarElementData) {
+    private val type: Type = data.type
+    private var size_mode: SizeMode by mutableStateOf(data.size_mode)
+    private var size: Int by mutableStateOf(data.size)
+
+    fun getData(): ContentBarElementData =
+        ContentBarElementData(
+            type = type,
+            size_mode = size_mode,
+            size = size,
+            data = getSubData()
+        )
+
+    open fun getSubData(): JsonObject? = null
 
     @Composable
-    fun isSelected(): Boolean = false
+    open fun isSelected(): Boolean = false
 
     @Composable
-    fun shouldShow(): Boolean = true
+    open fun shouldShow(): Boolean = true
 
-    fun shouldFillLength(): Boolean = false
-
-    @Composable
-    fun Element(vertical: Boolean, bar_width: Dp, modifier: Modifier)
+    fun shouldFillLength(): Boolean = size_mode == SizeMode.FILL
 
     @Composable
-    fun ConfigurationItems(modifier: Modifier, onModification: () -> Unit)
+    fun Element(vertical: Boolean, bar_width: Dp, modifier: Modifier = Modifier) {
+        val size_dp: Dp? =
+            when (size_mode) {
+                SizeMode.FILL -> null
+                SizeMode.STATIC -> size.dp
+                SizeMode.PERCENTAGE -> bar_width * size * 0.01f
+            }
+
+        ElementContent(
+            vertical,
+            modifier.thenWith(size_dp) {
+                if (vertical) height(it)
+                else width(it)
+            }
+        )
+    }
+
+    @Composable
+    protected abstract fun ElementContent(vertical: Boolean, modifier: Modifier)
+
+    @Composable
+    open fun SubConfigurationItems(onModification: () -> Unit) {}
+
+    @Composable
+    fun ConfigurationItems(onModification: () -> Unit) {
+        SubConfigurationItems(onModification)
+
+        var show_mode_selector: Boolean by remember { mutableStateOf(false) }
+
+        LargeDropdownMenu(
+            show_mode_selector,
+            onDismissRequest = {
+                show_mode_selector = false
+            },
+            SizeMode.entries.size,
+            size_mode.ordinal,
+            { SizeMode.entries[it].getName() }
+        ) {
+            show_mode_selector = false
+            size_mode = SizeMode.entries[it]
+            size = 50
+            onModification()
+        }
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(getString("content_bar_element_builtin_config_size_mode"))
+
+            Spacer(Modifier.fillMaxWidth().weight(1f))
+
+            Button({ show_mode_selector = !show_mode_selector }) {
+                Text(size_mode.getName())
+            }
+        }
+
+        AnimatedVisibility(size_mode != SizeMode.FILL) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(getString("content_bar_element_builtin_config_size"))
+
+                Spacer(Modifier.fillMaxWidth().weight(1f))
+
+                IconButton({
+                    size = (size - size_mode.getStep()).coerceAtLeast(10)
+                    onModification()
+                }) {
+                    Icon(Icons.Default.Remove, null)
+                }
+
+                Text(
+                    if (size_mode == SizeMode.STATIC) "${size}dp"
+                    else "${size}%"
+                )
+
+                IconButton({
+                    size = size + size_mode.getStep()
+                    if (size_mode == SizeMode.PERCENTAGE) {
+                        size = size.coerceAtMost(100)
+                    }
+
+                    onModification()
+                }) {
+                    Icon(Icons.Default.Add, null)
+                }
+            }
+        }
+    }
 
     enum class Type {
         BUTTON,
@@ -58,18 +163,40 @@ interface ContentBarElement {
                 VISUALISER -> Icons.Default.Waves
             }
     }
+
+    enum class SizeMode {
+        FILL,
+        STATIC,
+        PERCENTAGE;
+
+        fun getName(): String =
+            when (this) {
+                FILL -> getString("content_bar_element_builtin_config_size_mode_fill")
+                STATIC -> getString("content_bar_element_builtin_config_size_mode_static")
+                PERCENTAGE -> getString("content_bar_element_builtin_config_size_mode_percentage")
+            }
+
+        fun getStep(): Int =
+            when (this) {
+                FILL -> 0
+                STATIC -> 10
+                PERCENTAGE -> 10
+            }
+    }
 }
 
 @Serializable
 data class ContentBarElementData(
     val type: ContentBarElement.Type,
+    val size_mode: ContentBarElement.SizeMode = DEFAULT_SIZE_MODE,
+    val size: Int = DEFAULT_SIZE,
     val data: JsonObject? = null
 ) {
     fun toElement(): ContentBarElement =
         when (type) {
-            ContentBarElement.Type.BUTTON -> ContentBarElementButton(data)
-            ContentBarElement.Type.SPACER -> ContentBarElementSpacer(data)
-            ContentBarElement.Type.LYRICS -> ContentBarElementLyrics(data)
-            ContentBarElement.Type.VISUALISER -> ContentBarElementVisualiser(data)
+            ContentBarElement.Type.BUTTON -> ContentBarElementButton(this)
+            ContentBarElement.Type.SPACER -> ContentBarElementSpacer(this)
+            ContentBarElement.Type.LYRICS -> ContentBarElementLyrics(this)
+            ContentBarElement.Type.VISUALISER -> ContentBarElementVisualiser(this)
         }
 }

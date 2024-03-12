@@ -56,6 +56,12 @@ data class CustomContentBar(
         modifier: Modifier = Modifier,
         selected_element_override: Int? = null,
         apply_size: Boolean = true,
+        scrolling: Boolean = true,
+        getFillLengthModifier: RowOrColumnScope.() -> Modifier = {
+            Modifier
+                .weight(1f)
+                .then(if (vertical) Modifier.fillMaxHeight() else Modifier.fillMaxWidth())
+        },
         getSpacerElementModifier: (@Composable RowOrColumnScope.(Int, ContentBarElementSpacer) -> Modifier)? = null,
         shouldShowButton: @Composable (ContentBarElement) -> Boolean = { it.shouldShow() },
         buttonContent: @Composable (Int, ContentBarElement, DpSize) -> Unit =
@@ -87,6 +93,7 @@ data class CustomContentBar(
                         else height(size_dp.dp)
                     },
                 vertical = vertical,
+                scrolling = scrolling,
                 alignment = 0,
                 isSpacing = {
                     it.blocksIndicatorAnimation()
@@ -97,10 +104,7 @@ data class CustomContentBar(
                 },
                 getButtonModifier = { index, element ->
                     val base_modifier: Modifier =
-                        if (element.shouldFillLength())
-                            Modifier
-                                .weight(1f)
-                                .then(if (vertical) Modifier.fillMaxHeight() else Modifier.fillMaxWidth())
+                        if (element.shouldFillLength()) getFillLengthModifier()
                         else Modifier
 
                     if (element is ContentBarElementSpacer && getSpacerElementModifier != null) {

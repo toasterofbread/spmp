@@ -1,19 +1,18 @@
 package com.toasterofbread.spmp.ui.layout.contentbar.element
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.*
-import androidx.compose.ui.unit.DpSize
-import androidx.compose.ui.draw.clipToBounds
 import com.toasterofbread.composekit.utils.common.thenWith
 import com.toasterofbread.composekit.utils.composable.*
-import com.toasterofbread.spmp.platform.visualiser.Visualiser
+import com.toasterofbread.spmp.platform.visualiser.MusicVisualiser
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
 import kotlinx.serialization.*
@@ -82,6 +81,7 @@ abstract class ContentBarElement(data: ContentBarElementData) {
     @Composable
     open fun SubConfigurationItems(onModification: () -> Unit) {}
 
+    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     fun ConfigurationItems(onModification: () -> Unit) {
         SubConfigurationItems(onModification)
@@ -103,46 +103,58 @@ abstract class ContentBarElement(data: ContentBarElementData) {
             onModification()
         }
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(getString("content_bar_element_builtin_config_size_mode"))
-
-            Spacer(Modifier.fillMaxWidth().weight(1f))
+        FlowRow(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                getString("content_bar_element_builtin_config_size_mode"),
+                Modifier.align(Alignment.CenterVertically),
+                softWrap = false
+            )
 
             Button({ show_mode_selector = !show_mode_selector }) {
                 Text(size_mode.getName())
             }
         }
 
-        AnimatedVisibility(size_mode != SizeMode.FILL) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
-                verticalAlignment = Alignment.CenterVertically
+        if (size_mode != SizeMode.FILL) {
+            FlowRow(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(getString("content_bar_element_builtin_config_size"))
-
-                Spacer(Modifier.fillMaxWidth().weight(1f))
-
-                IconButton({
-                    size = (size - size_mode.getStep()).coerceAtLeast(10)
-                    onModification()
-                }) {
-                    Icon(Icons.Default.Remove, null)
-                }
-
                 Text(
-                    if (size_mode == SizeMode.STATIC) "${size}dp"
-                    else "${size}%"
+                    getString("content_bar_element_builtin_config_size"),
+                    Modifier.align(Alignment.CenterVertically),
+                    softWrap = false
                 )
 
-                IconButton({
-                    size = size + size_mode.getStep()
-                    if (size_mode == SizeMode.PERCENTAGE) {
-                        size = size.coerceAtMost(100)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    IconButton({
+                        size = (size - size_mode.getStep()).coerceAtLeast(10)
+                        onModification()
+                    }) {
+                        Icon(Icons.Default.Remove, null)
                     }
 
-                    onModification()
-                }) {
-                    Icon(Icons.Default.Add, null)
+                    Text(
+                        if (size_mode == SizeMode.STATIC) "${size}dp"
+                        else "${size}%"
+                    )
+
+                    IconButton({
+                        size = size + size_mode.getStep()
+                        if (size_mode == SizeMode.PERCENTAGE) {
+                            size = size.coerceAtMost(100)
+                        }
+
+                        onModification()
+                    }) {
+                        Icon(Icons.Default.Add, null)
+                    }
                 }
             }
         }
@@ -157,7 +169,7 @@ abstract class ContentBarElement(data: ContentBarElementData) {
 
         fun isAvailable(): Boolean =
             when (this) {
-                VISUALISER -> Visualiser.isSupported()
+                VISUALISER -> MusicVisualiser.isSupported()
                 else -> true
             }
 

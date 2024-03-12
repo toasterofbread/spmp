@@ -36,9 +36,6 @@ abstract class AppPage {
     )
 
     @Composable
-    open fun showTopBar() = false
-
-    @Composable
     open fun showTopBarContent() = false
 
     @Composable

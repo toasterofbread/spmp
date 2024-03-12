@@ -23,9 +23,10 @@ import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getLayoutCategoryItems
-import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlotEditorPreviewOptionsList
+import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlotEditorPreviewOptions
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
 import com.toasterofbread.composekit.utils.modifier.disableGestures
+import com.toasterofbread.composekit.platform.composable.platformClickable
 
 data object LayoutSettings: SettingsCategory("player") {
     override val keys: List<SettingsKey> = Key.entries.toList()
@@ -80,20 +81,17 @@ data object LayoutSettings: SettingsCategory("player") {
                         exit = fadeOut() + slideOutVertically()
                     ) {
                         val shape: Shape = RoundedCornerShape(16.dp)
-
-                        Column(
+                        LayoutSlotEditorPreviewOptions(
                             Modifier
                                 .width(IntrinsicSize.Max)
-                                .disableGestures()
                                 .onSizeChanged {
                                     options_height = it.height
                                 }
+                                .platformClickable(onClick = {})
                                 .background(player.theme.background, shape)
                                 .border(1.dp, player.theme.vibrant_accent, shape)
                                 .padding(20.dp)
-                        ) {
-                            LayoutSlotEditorPreviewOptionsList(Modifier.fillMaxWidth())
-                        }
+                        )
                     }
                 }
             }

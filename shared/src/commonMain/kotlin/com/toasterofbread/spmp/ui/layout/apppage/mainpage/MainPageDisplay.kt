@@ -21,6 +21,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 @Composable
 fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
     val player: PlayerState = LocalPlayerState.current
+    val density: Density = LocalDensity.current
     val horizontal_padding: Dp by animateDpAsState(player.getDefaultHorizontalPadding())
 
     var start_bar_widths: Pair<Dp, Dp> by remember { mutableStateOf(Pair(0.dp, 0.dp)) }
@@ -47,36 +48,66 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
         }
 
         Crossfade(player.app_page, Modifier.fillMaxWidth().weight(1f)) { page ->
-            Column {
-                val vertical_padding: Dp = player.getDefaultVerticalPadding()
-
-                val upper_top_bar_slot: LayoutSlot
-                val lower_top_bar_slot: LayoutSlot
+            Box {
+                val upper_bar_slot: LayoutSlot
+                val lower_bar_slot: LayoutSlot
                 when (player.form_factor) {
                     FormFactor.LANDSCAPE -> {
-                        upper_top_bar_slot = LandscapeLayoutSlot.UPPER_TOP_BAR
-                        lower_top_bar_slot = LandscapeLayoutSlot.LOWER_TOP_BAR
+                        upper_bar_slot = LandscapeLayoutSlot.UPPER_TOP_BAR
+                        lower_bar_slot = LandscapeLayoutSlot.LOWER_TOP_BAR
                     }
                     FormFactor.PORTRAIT -> {
-                        upper_top_bar_slot = PortraitLayoutSlot.UPPER_TOP_BAR
-                        lower_top_bar_slot = PortraitLayoutSlot.LOWER_TOP_BAR
+                        upper_bar_slot = PortraitLayoutSlot.UPPER_TOP_BAR
+                        lower_bar_slot = PortraitLayoutSlot.LOWER_TOP_BAR
                     }
                 }
 
-                upper_top_bar_slot.DisplayBar(Modifier.fillMaxWidth())
-                lower_top_bar_slot.DisplayBar(Modifier.fillMaxWidth())
+                var upper_bar_height: Dp by remember { mutableStateOf(0.dp) }
+                var lower_bar_height: Dp by remember { mutableStateOf(0.dp) }
 
-                with(page) {
-                    Page(
-                        player.main_multiselect_context,
-                        Modifier,
-                        PaddingValues(
-                            top = if (page.showTopBar()) WAVE_BORDER_HEIGHT_DP.dp / 2 else (top_padding + vertical_padding),
-                            bottom = player.nowPlayingBottomPadding(true) + vertical_padding + bottom_padding,
-                            start = horizontal_padding + WindowInsets.getStart(),
-                            end = horizontal_padding + WindowInsets.getEnd()
-                        )
-                    ) { player.navigateBack() }
+                var upper_bar_displaying: Boolean by remember { mutableStateOf(false) }
+                var lower_bar_displaying: Boolean by remember { mutableStateOf(false) }
+
+                Column(
+                    Modifier
+                        .padding(top = top_padding)
+                        .zIndex(1f)
+                ) {
+                    upper_bar_displaying = upper_bar_slot.DisplayBar(
+                        Modifier
+                            .fillMaxWidth()
+                            .onSizeChanged {
+                                upper_bar_height = with (density) { it.height.toDp() }
+                            }
+                    )
+                    lower_bar_displaying = lower_bar_slot.DisplayBar(
+                        Modifier
+                            .fillMaxWidth()
+                            .onSizeChanged {
+                                lower_bar_height = with (density) { it.height.toDp() }
+                            }
+                    )
+                }
+
+                val vertical_padding: Dp = player.getDefaultVerticalPadding()
+                val top_bar_padding: Dp = (
+                    (if (upper_bar_displaying) upper_bar_height else 0.dp)
+                    + (if (lower_bar_displaying) lower_bar_height else 0.dp)
+                )
+
+                Column {
+                    with(page) {
+                        Page(
+                            player.main_multiselect_context,
+                            Modifier,
+                            PaddingValues(
+                                top = top_padding + vertical_padding + top_bar_padding,
+                                bottom = player.nowPlayingBottomPadding(true) + vertical_padding + bottom_padding,
+                                start = horizontal_padding + WindowInsets.getStart(),
+                                end = horizontal_padding + WindowInsets.getEnd()
+                            )
+                        ) { player.navigateBack() }
+                    }
                 }
             }
         }

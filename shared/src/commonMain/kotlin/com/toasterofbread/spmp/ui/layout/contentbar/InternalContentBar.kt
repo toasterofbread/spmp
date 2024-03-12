@@ -67,16 +67,11 @@ private class NavigationInternalContentBar: InternalContentBar(2) {
     override fun BarContent(slot: LayoutSlot, background_colour: Theme.Colour?, content_padding: PaddingValues, modifier: Modifier): Boolean {
         val player: PlayerState = LocalPlayerState.current
 
-        // TODO
+        // TODO | Use custom bar template
         AppPageSidebar(
             slot,
             modifier,
-            content_padding = PaddingValues(
-                top = WindowInsets.getTop() + content_padding.calculateTopPadding(),
-                bottom = content_padding.calculateBottomPadding(),
-                start = content_padding.calculateStartPadding(LocalLayoutDirection.current),
-                end = content_padding.calculateEndPadding(LocalLayoutDirection.current)
-            ),
+            content_padding = content_padding,
             multiselect_context = player.main_multiselect_context
         )
 

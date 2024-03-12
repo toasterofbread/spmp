@@ -13,7 +13,7 @@ import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
 import com.toasterofbread.composekit.platform.composable.platformClickable
 
 @Composable
-fun LayoutSlotEditorPreviewOptionsList(item_modifier: Modifier = Modifier) {
+fun LayoutSlotEditorPreviewOptions(modifier: Modifier = Modifier) {
     val player: PlayerState = LocalPlayerState.current
 
     DisposableEffect(Unit) {
@@ -22,36 +22,38 @@ fun LayoutSlotEditorPreviewOptionsList(item_modifier: Modifier = Modifier) {
         }
     }
 
-    SwitchButton(
-        checked = ContentBar.disable_bar_selection,
-        onCheckedChange = { checked ->
-            ContentBar.disable_bar_selection = checked
-        },
-        modifier = item_modifier
-    ) {
-        Text(getString("layout_editor_preview_option_show_bar_content"))
-    }
+    Column(modifier) {
+        SwitchButton(
+            checked = ContentBar.disable_bar_selection,
+            onCheckedChange = { checked ->
+                ContentBar.disable_bar_selection = checked
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(getString("layout_editor_preview_option_show_bar_content"))
+        }
 
-    SwitchButton(
-        checked = player.hide_player,
-        onCheckedChange = { checked ->
-            player.hide_player = checked
-        },
-        modifier = item_modifier
-    ) {
-        Text(getString("layout_editor_preview_option_hide_player"))
-    }
+        SwitchButton(
+            checked = player.hide_player,
+            onCheckedChange = { checked ->
+                player.hide_player = checked
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(getString("layout_editor_preview_option_hide_player"))
+        }
 
-    SwitchButton(
-        checked = player.form_factor == FormFactor.PORTRAIT,
-        onCheckedChange = { checked ->
-            FormFactor.form_factor_override =
-                if (checked) FormFactor.PORTRAIT
-                else FormFactor.LANDSCAPE
-        },
-        modifier = item_modifier
-    ) {
-        Text(getString("layout_editor_preview_option_portrait_mode"))
+        SwitchButton(
+            checked = player.form_factor == FormFactor.PORTRAIT,
+            onCheckedChange = { checked ->
+                FormFactor.form_factor_override =
+                    if (checked) FormFactor.PORTRAIT
+                    else FormFactor.LANDSCAPE
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(getString("layout_editor_preview_option_portrait_mode"))
+        }
     }
 }
 

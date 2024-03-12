@@ -3,6 +3,8 @@ package com.toasterofbread.spmp.ui.layout.contentbar.element
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -65,6 +67,10 @@ class ContentBarElementButton(data: ContentBarElementData): ContentBarElement(da
 
         IconButton(
             {
+                if (!enable_interaction) {
+                    return@IconButton
+                }
+
                 val page: AppPage? = button_type.getPage(player)
                 onButtonClicked(page, player)
             },
@@ -127,6 +133,7 @@ class ContentBarElementButton(data: ContentBarElementData): ContentBarElement(da
         }
     }
 
+    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     override fun SubConfigurationItems(onModification: () -> Unit) {
         var show_type_selector: Boolean by remember { mutableStateOf(false) }
@@ -146,13 +153,18 @@ class ContentBarElementButton(data: ContentBarElementData): ContentBarElement(da
             }
         )
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(getString("content_bar_element_button_config_type"))
-
-            Spacer(Modifier.fillMaxWidth().weight(1f))
+        FlowRow(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                getString("content_bar_element_button_config_type"),
+                Modifier.align(Alignment.CenterVertically),
+                softWrap = false
+            )
 
             Button({ show_type_selector = !show_type_selector }) {
-                Text(button_type.getName())
+                Text(button_type.getName(), softWrap = false)
             }
         }
     }

@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.composekit.settings.ui.Theme
-import com.toasterofbread.composekit.utils.modifier.disableGestures
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.element.*
@@ -74,13 +73,13 @@ enum class CustomContentBarTemplate {
             }
 
             bar.CustomBarContent(
-                modifier =
-                    Modifier
-                        .background(player.theme.vibrant_accent, RoundedCornerShape(16.dp))
-                        .disableGestures(),
+                modifier = Modifier.background(player.theme.vibrant_accent, RoundedCornerShape(16.dp)),
                 background_colour = Theme.Colour.VIBRANT_ACCENT,
                 vertical = false,
-                content_padding = PaddingValues(5.dp)
+                content_padding = PaddingValues(5.dp),
+                buttonContent = { _, element, size ->
+                    element.Element(false, size, enable_interaction = false)
+                }
             )
         }
     }

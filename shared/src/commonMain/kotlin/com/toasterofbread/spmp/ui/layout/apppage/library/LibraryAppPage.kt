@@ -119,9 +119,6 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
     }
 
     @Composable
-    override fun showTopBar(): Boolean = LocalPlayerState.current.form_factor == FormFactor.PORTRAIT
-
-    @Composable
     override fun showTopBarContent(): Boolean = true
 
     @Composable

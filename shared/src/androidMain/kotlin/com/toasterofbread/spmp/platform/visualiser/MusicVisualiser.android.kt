@@ -27,7 +27,7 @@ private val FREQUENCY_BAND_LIMITS = arrayOf(
 )
 
 @UnstableApi
-actual class Visualiser(
+actual class MusicVisualiser(
     private val processor: FFTAudioProcessor
 ): FFTAudioProcessor.FFTListener {
 
@@ -56,9 +56,9 @@ actual class Visualiser(
     @Composable
     actual fun Visualiser(colour: Color, modifier: Modifier, opacity: Float) {
         DisposableEffect(Unit) {
-            processor.listeners.add(this@Visualiser)
+            processor.listeners.add(this@MusicVisualiser)
             onDispose {
-                processor.listeners.remove(this@Visualiser)
+                processor.listeners.remove(this@MusicVisualiser)
             }
         }
 
@@ -74,12 +74,12 @@ actual class Visualiser(
             var currentFrequencyBandLimitIndex = 0
 
             // Iterate over the entire FFT result array
-            while (currentFftPosition < this@Visualiser.size) {
+            while (currentFftPosition < this@MusicVisualiser.size) {
                 var accum = 0f
 
                 // We divide the bands by frequency.
                 // Check until which index we need to stop for the current band
-                val nextLimitAtPosition = floor(FREQUENCY_BAND_LIMITS[currentFrequencyBandLimitIndex] / 20_000.toFloat() * this@Visualiser.size).toInt()
+                val nextLimitAtPosition = floor(FREQUENCY_BAND_LIMITS[currentFrequencyBandLimitIndex] / 20_000.toFloat() * this@MusicVisualiser.size).toInt()
 
                 synchronized(fft) {
                     // Here we iterate within this single band
@@ -145,7 +145,7 @@ actual class Visualiser(
         }
     }
 
-    companion object {
+    actual companion object {
         actual fun isSupported(): Boolean = true
     }
 }

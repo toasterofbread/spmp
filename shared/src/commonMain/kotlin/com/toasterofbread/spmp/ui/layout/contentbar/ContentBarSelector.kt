@@ -8,8 +8,11 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -178,6 +181,7 @@ private fun ConfigButton(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun BarSelectorPopup(
     state: ContentBar.BarSelectionState,
@@ -214,11 +218,14 @@ private fun BarSelectorPopup(
             Text(getString("content_bar_selection"))
         },
         text = {
-            Row(size_modifier, horizontalArrangement = Arrangement.spacedBy(15.dp)) {
+            FlowRow(
+                size_modifier.verticalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
                 ContentBarList(
                     state.built_in_bars,
-                    getString("content_bar_selection_list_built_in"),
-                    Modifier.fillMaxWidth(0.5f)
+                    getString("content_bar_selection_list_built_in")
                 ) {
                     onSelected(state.built_in_bars[it])
                 }
@@ -227,8 +234,7 @@ private fun BarSelectorPopup(
                     state,
                     onSelected = onSelected,
                     onDismissed = onDismissed,
-                    lazy = true,
-                    modifier = Modifier.fillMaxWidth()
+                    lazy = false
                 )
             }
         }

@@ -58,7 +58,7 @@ fun LayoutSlotEditor(modifier: Modifier = Modifier) {
         editing_custom_bar = null
     }
 
-    val state: ContentBar.BarSelectionState = remember {
+    val state: ContentBar.BarSelectionState = remember(slots_key, available_slots) {
         object : ContentBar.BarSelectionState {
             private fun parseSlots(): Map<String, Int> =
                 Json.decodeFromString(slots_key.get<String>())
@@ -76,6 +76,8 @@ fun LayoutSlotEditor(modifier: Modifier = Modifier) {
                     }
 
             override fun onBarSelected(slot: LayoutSlot, bar: ContentBarReference?) {
+                println("Selected $slot ${slot::class} $bar")
+
                 val slots: MutableMap<String, Int> = parseSlots().toMutableMap()
                 slots[slot.getKey()] = bar?.second ?: 0
                 slots_key.set(Json.encodeToString(slots))
@@ -139,7 +141,7 @@ fun LayoutSlotEditor(modifier: Modifier = Modifier) {
         }
     }
 
-    DisposableEffect(Unit) {
+    DisposableEffect(state) {
         ContentBar.bar_selection_state = state
         onDispose {
             ContentBar.bar_selection_state = null
@@ -150,11 +152,17 @@ fun LayoutSlotEditor(modifier: Modifier = Modifier) {
         val (key, available, editing_bar) = it
 
         if (editing_bar != null) {
-            CustomContentBarEditor(editing_bar.first as CustomContentBar) { edited_bar: CustomContentBar ->
-                val bars = Json.decodeFromString<List<CustomContentBar>>(custom_bars_data).toMutableList()
-                bars[-editing_bar.second - 1] = edited_bar
-                custom_bars_data = Json.encodeToString(bars)
+            val editor: CustomContentBarEditor = remember {
+                object : CustomContentBarEditor() {
+                    override fun commit(edited_bar: CustomContentBar) {
+                        val bars = Json.decodeFromString<List<CustomContentBar>>(custom_bars_data).toMutableList()
+                        bars[-editing_bar.second - 1] = edited_bar
+                        custom_bars_data = Json.encodeToString(bars)
+                    }
+                }
             }
+
+            editor.Editor(editing_bar.first as CustomContentBar)
         }
         else {
             CustomBarsContentBarList(

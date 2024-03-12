@@ -85,9 +85,6 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
     }
 
     @Composable
-    override fun showTopBar(): Boolean = !LocalPlayerState.current.form_factor.is_large
-
-    @Composable
     override fun showTopBarContent(): Boolean = true
 
     @Composable

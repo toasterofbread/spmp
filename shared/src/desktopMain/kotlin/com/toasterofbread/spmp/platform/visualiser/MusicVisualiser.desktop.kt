@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 
-actual class Visualiser {
+actual class MusicVisualiser {
     @Composable
     actual fun Visualiser(colour: Color, modifier: Modifier, opacity: Float) {}
 

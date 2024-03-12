@@ -261,7 +261,8 @@ internal fun QueueTab(
                             list_position = with(density) { coords.positionInParent().y.toDp() }
                         }
                     ) {
-                        val side_padding: Dp = maxWidth * PlayerSettings.Key.QUEUE_EXTRA_SIDE_PADDING.get<Float>() * 0.25f
+                        val extra_side_padding: Float by PlayerSettings.Key.QUEUE_EXTRA_SIDE_PADDING.rememberMutableState()
+                        val side_padding: Dp = maxWidth * extra_side_padding * 0.25f
 
                         ScrollBarLazyColumn(
                             state = queue_list_state.listState,

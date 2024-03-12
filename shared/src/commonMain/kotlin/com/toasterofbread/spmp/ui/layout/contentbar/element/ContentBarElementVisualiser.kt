@@ -7,7 +7,7 @@ import androidx.compose.ui.unit.Dp
 
 class ContentBarElementVisualiser(data: ContentBarElementData): ContentBarElement(data) {
     @Composable
-    override fun ElementContent(vertical: Boolean, modifier: Modifier) {
+    override fun ElementContent(vertical: Boolean, enable_interaction: Boolean, modifier: Modifier) {
         // TODO
     }
 }

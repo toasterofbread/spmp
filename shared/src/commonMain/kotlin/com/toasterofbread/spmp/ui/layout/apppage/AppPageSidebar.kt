@@ -25,6 +25,7 @@ import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.mediaitempreview.*
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.component.PinnedItemsList
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
 import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
 import com.toasterofbread.spmp.ui.shortcut.*
@@ -233,7 +234,7 @@ fun AppPageSidebar(
                         )
                 ) {
                     Spacer(fill_modifier.weight(1f))
-                    PinnedItems(slot.is_vertical, multiselect_context = multiselect_context)
+                    PinnedItemsList(slot.is_vertical, multiselect_context = multiselect_context)
                 }
             }
         }
@@ -281,66 +282,6 @@ fun AppPageSidebar(
                             Modifier.offset(y = (-5).dp),
                             fontSize = 10.sp,
                             color = indicator_colour.getContrasted()
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun PinnedItems(
-    vertical: Boolean,
-    modifier: Modifier = Modifier,
-    multiselect_context: MediaItemMultiSelectContext? = null
-) {
-    val pinned_items: List<MediaItem> = rememberPinnedItems() ?: emptyList()
-
-    RowOrColumn(!vertical, modifier) {
-        multiselect_context?.CollectionToggleButton(pinned_items, enter = expandVertically(), exit = shrinkVertically())
-
-        ScrollBarLazyRowOrColumn(
-            !vertical,
-            modifier,
-            arrangement = Arrangement.spacedBy(10.dp),
-            alignment = -1,
-            show_scrollbar = false
-        ) {
-            items(pinned_items.reversed()) { item ->
-                val long_press_menu_data: LongPressMenuData = remember(item) {
-                    item.getLongPressMenuData(multiselect_context)
-                }
-
-                val loaded_item: MediaItem? = item.loadIfLocalPlaylist()
-                if (loaded_item == null) {
-                    return@items
-                }
-
-                val fill_modifier: Modifier =
-                    Modifier
-                        .then(
-                            if (vertical) Modifier.fillMaxWidth()
-                            else Modifier.fillMaxHeight()
-                        )
-                        .aspectRatio(1f)
-
-                Box(
-                    fill_modifier
-                        .clip(item.getType().getThumbShape())
-                        .animateItemPlacement()
-                ) {
-                    item.Thumbnail(
-                        MediaItemThumbnailProvider.Quality.LOW,
-                        fill_modifier.mediaItemPreviewInteraction(loaded_item, long_press_menu_data)
-                    )
-
-                    multiselect_context?.also { ctx ->
-                        ctx.SelectableItemOverlay(
-                            loaded_item,
-                            fill_modifier,
-                            key = long_press_menu_data.multiselect_key
                         )
                     }
                 }

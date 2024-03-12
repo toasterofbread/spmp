@@ -9,6 +9,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.draw.clipToBounds
 import com.toasterofbread.composekit.utils.common.thenWith
 import com.toasterofbread.composekit.utils.composable.*
 import com.toasterofbread.spmp.platform.visualiser.Visualiser
@@ -23,9 +25,11 @@ private val DEFAULT_SIZE_MODE: ContentBarElement.SizeMode = ContentBarElement.Si
 private const val DEFAULT_SIZE: Int = 50
 
 abstract class ContentBarElement(data: ContentBarElementData) {
-    private val type: Type = data.type
-    private var size_mode: SizeMode by mutableStateOf(data.size_mode)
-    private var size: Int by mutableStateOf(data.size)
+    val type: Type = data.type
+    var size_mode: SizeMode by mutableStateOf(data.size_mode)
+    var size: Int by mutableStateOf(data.size)
+
+    fun shouldFillLength(): Boolean = size_mode == SizeMode.FILL
 
     fun getData(): ContentBarElementData =
         ContentBarElementData(
@@ -34,37 +38,46 @@ abstract class ContentBarElement(data: ContentBarElementData) {
             size = size,
             data = getSubData()
         )
-
     open fun getSubData(): JsonObject? = null
 
     @Composable
     open fun isSelected(): Boolean = false
-
     @Composable
     open fun shouldShow(): Boolean = true
-
-    fun shouldFillLength(): Boolean = size_mode == SizeMode.FILL
+    open fun blocksIndicatorAnimation(): Boolean = false
 
     @Composable
-    fun Element(vertical: Boolean, bar_width: Dp, modifier: Modifier = Modifier) {
+    fun Element(
+        vertical: Boolean,
+        bar_size: DpSize,
+        modifier: Modifier = Modifier,
+        enable_interaction: Boolean = true
+    ) {
         val size_dp: Dp? =
             when (size_mode) {
                 SizeMode.FILL -> null
                 SizeMode.STATIC -> size.dp
-                SizeMode.PERCENTAGE -> bar_width * size * 0.01f
+                SizeMode.PERCENTAGE -> bar_size.width * size * 0.01f
             }
 
         ElementContent(
             vertical,
-            modifier.thenWith(size_dp) {
-                if (vertical) height(it)
-                else width(it)
-            }
+            enable_interaction,
+            modifier
+                .thenWith(size_dp) {
+                    if (vertical) height(it)
+                    else width(it)
+                }
+                .run {
+                    if (vertical) width(bar_size.height)
+                    else height(bar_size.height)
+                }
+                .clipToBounds()
         )
     }
 
     @Composable
-    protected abstract fun ElementContent(vertical: Boolean, modifier: Modifier)
+    protected abstract fun ElementContent(vertical: Boolean, enable_interaction: Boolean, modifier: Modifier)
 
     @Composable
     open fun SubConfigurationItems(onModification: () -> Unit) {}
@@ -139,7 +152,8 @@ abstract class ContentBarElement(data: ContentBarElementData) {
         BUTTON,
         SPACER,
         LYRICS,
-        VISUALISER;
+        VISUALISER,
+        PINNED_ITEMS;
 
         fun isAvailable(): Boolean =
             when (this) {
@@ -153,6 +167,7 @@ abstract class ContentBarElement(data: ContentBarElementData) {
                 SPACER -> getString("content_bar_element_type_spacer")
                 LYRICS -> getString("content_bar_element_type_lyrics")
                 VISUALISER -> getString("content_bar_element_type_visualiser")
+                PINNED_ITEMS -> getString("content_bar_element_type_pinned_items")
             }
 
         fun getIcon(): ImageVector =
@@ -161,6 +176,7 @@ abstract class ContentBarElement(data: ContentBarElementData) {
                 SPACER -> Icons.Default.Expand
                 LYRICS -> Icons.Default.MusicNote
                 VISUALISER -> Icons.Default.Waves
+                PINNED_ITEMS -> Icons.Default.PushPin
             }
     }
 
@@ -198,5 +214,6 @@ data class ContentBarElementData(
             ContentBarElement.Type.SPACER -> ContentBarElementSpacer(this)
             ContentBarElement.Type.LYRICS -> ContentBarElementLyrics(this)
             ContentBarElement.Type.VISUALISER -> ContentBarElementVisualiser(this)
+            ContentBarElement.Type.PINNED_ITEMS -> ContentBarElementPinnedItems(this)
         }
 }

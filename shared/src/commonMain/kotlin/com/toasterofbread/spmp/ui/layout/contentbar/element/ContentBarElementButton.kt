@@ -8,6 +8,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -26,49 +28,49 @@ import com.toasterofbread.spmp.ui.shortcut.SHORTCUT_INDICATOR_SHAPE
 import kotlinx.serialization.json.*
 
 class ContentBarElementButton(data: ContentBarElementData): ContentBarElement(data) {
-    private var type: Type by mutableStateOf(
-        data.data?.get("type")?.jsonPrimitive?.int?.let {
+    private var button_type: Type by mutableStateOf(
+        data.data?.get("button_type")?.jsonPrimitive?.int?.let {
             Type.entries[it]
         } ?: Type.DEFAULT
     )
 
-    constructor(type: Type): this(
+    constructor(button_type: Type): this(
         ContentBarElementData(
             ContentBarElement.Type.BUTTON,
             data = buildJsonObject {
-                put("type", type.ordinal)
+                put("button_type", button_type.ordinal)
             }
         )
     )
 
     override fun getSubData(): JsonObject = buildJsonObject {
-        put("type", type.ordinal)
+        put("button_type", button_type.ordinal)
     }
 
     @Composable
-    override fun isSelected(): Boolean = type == Type.current
+    override fun isSelected(): Boolean = button_type == Type.current
 
     @Composable
     override fun shouldShow(): Boolean {
         val player: PlayerState = LocalPlayerState.current
-        return when (type) {
+        return when (button_type) {
             Type.RELOAD -> Platform.DESKTOP.isCurrent() && player.app_page.canReload()
-            else -> type.getPage(player) != null
+            else -> button_type.getPage(player) != null
         }
     }
 
     @Composable
-    override fun ElementContent(vertical: Boolean, modifier: Modifier) {
+    override fun ElementContent(vertical: Boolean, enable_interaction: Boolean, modifier: Modifier) {
         val player: PlayerState = LocalPlayerState.current
 
         IconButton(
             {
-                val page: AppPage? = type.getPage(player)
+                val page: AppPage? = button_type.getPage(player)
                 onButtonClicked(page, player)
             },
             modifier
         ) {
-            if (type == Type.PROFILE) {
+            if (button_type == Type.PROFILE) {
                 val own_channel: Artist? = player.getOwnChannel()
                 if (own_channel != null) {
                     own_channel.Thumbnail(MediaItemThumbnailProvider.Quality.LOW, Modifier.size(40.dp).clip(CircleShape))
@@ -76,22 +78,22 @@ class ContentBarElementButton(data: ContentBarElementData): ContentBarElement(da
                 return@IconButton
             }
 
-            if (type == Type.RELOAD) {
+            if (button_type == Type.RELOAD) {
                 Crossfade(player.app_page.isReloading()) { reloading ->
                     if (reloading) {
                         SubtleLoadingIndicator()
                     }
                     else {
-                        Icon(type.getIcon(), null)
+                        Icon(button_type.getIcon(), null)
                     }
                 }
                 return@IconButton
             }
 
-            Icon(type.getIcon(), null)
+            Icon(button_type.getIcon(), null)
 
             // TODO Shortcuts
-            // val shortcut_index: Int? = remember(type) { getButtonShortcutButton(type, player) }
+            // val shortcut_index: Int? = remember(button_type) { getButtonShortcutButton(button_type, player) }
             // if (shortcut_index == null) {
             //     return@IconButton
             // }
@@ -133,12 +135,12 @@ class ContentBarElementButton(data: ContentBarElementData): ContentBarElement(da
             expanded = show_type_selector,
             onDismissRequest = { show_type_selector = false },
             item_count = Type.entries.size,
-            selected = type.ordinal,
+            selected = button_type.ordinal,
             getItem = {
                 Type.entries[it].getName()
             },
             onSelected = {
-                type = Type.entries[it]
+                button_type = Type.entries[it]
                 show_type_selector = false
                 onModification()
             }
@@ -150,13 +152,13 @@ class ContentBarElementButton(data: ContentBarElementData): ContentBarElement(da
             Spacer(Modifier.fillMaxWidth().weight(1f))
 
             Button({ show_type_selector = !show_type_selector }) {
-                Text(type.getName())
+                Text(button_type.getName())
             }
         }
     }
 
     private fun onButtonClicked(page: AppPage?, player: PlayerState) {
-        if (type == Type.RELOAD) {
+        if (button_type == Type.RELOAD) {
             player.app_page.onReload()
             return
         }

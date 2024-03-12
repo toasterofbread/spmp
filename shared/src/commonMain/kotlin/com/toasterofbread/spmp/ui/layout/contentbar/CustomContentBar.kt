@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.Alignment
 import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.common.thenIf
@@ -57,8 +58,8 @@ data class CustomContentBar(
         apply_size: Boolean = true,
         getSpacerElementModifier: (@Composable RowOrColumnScope.(Int, ContentBarElementSpacer) -> Modifier)? = null,
         shouldShowButton: @Composable (ContentBarElement) -> Boolean = { it.shouldShow() },
-        buttonContent: @Composable (Int, ContentBarElement, Dp) -> Unit =
-            { _, element, width -> element.Element(vertical, width, Modifier) }
+        buttonContent: @Composable (Int, ContentBarElement, DpSize) -> Unit =
+            { _, element, size -> element.Element(vertical, size, Modifier) }
     ) {
         val player: PlayerState = LocalPlayerState.current
         val selected_element: Int? =
@@ -87,7 +88,9 @@ data class CustomContentBar(
                     },
                 vertical = vertical,
                 alignment = 0,
-                isSpacing = { it is ContentBarElementSpacer },
+                isSpacing = {
+                    it.blocksIndicatorAnimation()
+                },
                 arrangement = Arrangement.spacedBy(1.dp),
                 showButton = { element ->
                     return@SidebarButtonSelector shouldShowButton(element)
@@ -111,7 +114,7 @@ data class CustomContentBar(
                         if (index == selected_element) indicator_colour.getContrasted()
                         else background_colour?.get(player.theme)?.getContrasted() ?: LocalContentColor.current
                 ) {
-                    buttonContent(index, element, this@BoxWithConstraints.maxWidth)
+                    buttonContent(index, element, DpSize(this@BoxWithConstraints.maxWidth, this@BoxWithConstraints.maxHeight))
                 }
             }
         }

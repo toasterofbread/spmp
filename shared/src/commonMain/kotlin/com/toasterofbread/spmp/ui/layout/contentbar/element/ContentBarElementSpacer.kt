@@ -17,6 +17,8 @@ import kotlin.math.roundToInt
 import kotlinx.serialization.json.*
 
 class ContentBarElementSpacer(data: ContentBarElementData): ContentBarElement(data) {
+    override fun blocksIndicatorAnimation(): Boolean = true
+
     @Composable
-    override fun ElementContent(vertical: Boolean, modifier: Modifier) {}
+    override fun ElementContent(vertical: Boolean, enable_interaction: Boolean, modifier: Modifier) {}
 }

@@ -25,28 +25,33 @@ import com.toasterofbread.spmp.ui.theme.appHover
 
 enum class CustomContentBarTemplate {
     NAVIGATION;
-    // LYRICS;
 
     fun getName(): String =
         when (this) {
             NAVIGATION -> getString("content_bar_template_navigation")
-            // LYRICS -> getString("content_bar_template_lyrics")
         }
 
     fun getIcon(): ImageVector =
         when (this) {
             NAVIGATION -> Icons.Default.Widgets
-            // LYRICS -> Icons.Default.MusicNote
         }
 
     fun getElements(): List<ContentBarElement> =
         when (this) {
             NAVIGATION -> listOf(
-                ContentBarElementButton(type = ContentBarElementButton.Type.LIBRARY)
+                ContentBarElementButton(ContentBarElementButton.Type.FEED),
+                ContentBarElementButton(ContentBarElementButton.Type.LIBRARY),
+                ContentBarElementButton(ContentBarElementButton.Type.SEARCH),
+                ContentBarElementButton(ContentBarElementButton.Type.RADIOBUILDER),
+                ContentBarElementButton(ContentBarElementButton.Type.RELOAD),
+                ContentBarElementData(
+                    ContentBarElement.Type.PINNED_ITEMS,
+                    size_mode = ContentBarElement.SizeMode.FILL
+                ).toElement(),
+                ContentBarElementButton(ContentBarElementButton.Type.PROFILE),
+                ContentBarElementButton(ContentBarElementButton.Type.CONTROL),
+                ContentBarElementButton(ContentBarElementButton.Type.SETTINGS)
             )
-            // LYRICS -> listOf(
-            //     ContentBarElementLyrics(ContentBarElementLyrics.SizeMode.FILL)
-            // )
         }
 
     @Composable

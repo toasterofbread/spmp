@@ -818,19 +818,19 @@
     <string name="content_bar_editor_template_dialog_title">Pick template</string>
 
     <string name="content_bar_template_navigation">Navigation</string>
-    <string name="content_bar_template_lyrics">Lyrics</string>
 
     <string name="content_bar_element_type_button">Button</string>
     <string name="content_bar_element_type_spacer">Spacer</string>
     <string name="content_bar_element_type_lyrics">Lyrics</string>
     <string name="content_bar_element_type_visualiser">Visualiser</string>
+    <string name="content_bar_element_type_pinned_items">Pinned items</string>
 
     <string name="content_bar_element_builtin_config_size_mode">Size mode</string>
     <string name="content_bar_element_builtin_config_size_mode_fill">Fill</string>
     <string name="content_bar_element_builtin_config_size_mode_static">Static</string>
     <string name="content_bar_element_builtin_config_size_mode_percentage">Percentage</string>
     <string name="content_bar_element_builtin_config_size">Size</string>
-    
+
     <string name="content_bar_element_button_config_type">Button type</string>
 
     <string name="content_bar_element_builtin_lyrics">Lyrics</string>

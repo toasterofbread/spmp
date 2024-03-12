@@ -222,14 +222,19 @@ internal fun CustomContentBarEditor(editing_bar: CustomContentBar, commit: (Cust
                             }
                     }},
                     shouldShowButton = { true },
-                    buttonContent = { index, element, width ->
+                    buttonContent = { index, element, size ->
                         Box(
                             Modifier
                                 .fillMaxSize()
                                 .platformClickable(onClick = { onElementClicked(index) }),
                             contentAlignment = Alignment.Center
                         ) {
-                            element.Element(vertical_bar, width, Modifier.disableGestures())
+                            element.Element(
+                                vertical_bar,
+                                size,
+                                Modifier.disableGestures(),
+                                enable_interaction = false
+                            )
                         }
 
                         IconButton(

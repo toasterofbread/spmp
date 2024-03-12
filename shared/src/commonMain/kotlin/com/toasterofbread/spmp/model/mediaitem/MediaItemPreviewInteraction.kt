@@ -65,12 +65,13 @@ enum class MediaItemPreviewInteractionPressStage {
 fun Modifier.mediaItemPreviewInteraction(
     item: MediaItem,
     long_press_menu_data: LongPressMenuData,
+    enabled: Boolean = true,
     onClick: ((item: MediaItem, multiselect_key: Int?) -> Unit)? = null,
     onLongClick: ((item: MediaItem, long_press_menu_data: LongPressMenuData) -> Unit)? = null
 ): Modifier {
     val base: Modifier = when (Platform.current) {
-        Platform.ANDROID -> androidMediaItemPreviewInteraction(item, long_press_menu_data, onClick, onLongClick)
-        Platform.DESKTOP -> desktopMediaItemPreviewInteraction(item, long_press_menu_data, onClick, onLongClick)
+        Platform.ANDROID -> androidMediaItemPreviewInteraction(item, long_press_menu_data, enabled, onClick, onLongClick)
+        Platform.DESKTOP -> desktopMediaItemPreviewInteraction(item, long_press_menu_data, enabled, onClick, onLongClick)
     }
     return base.longPressItem(long_press_menu_data)
 }
@@ -79,6 +80,7 @@ fun Modifier.mediaItemPreviewInteraction(
 private fun Modifier.desktopMediaItemPreviewInteraction(
     item: MediaItem,
     long_press_menu_data: LongPressMenuData,
+    enabled: Boolean = true,
     onClick: ((item: MediaItem, multiselect_key: Int?) -> Unit)? = null,
     onLongClick: ((item: MediaItem, long_press_menu_data: LongPressMenuData) -> Unit)? = null
 ): Modifier {
@@ -92,6 +94,7 @@ private fun Modifier.desktopMediaItemPreviewInteraction(
         onClick = { MediaItemPreviewInteractionPressStage.INSTANT.execute(item, long_press_menu_data, it, onItemClick, onItemLongClick) },
         onAltClick = { MediaItemPreviewInteractionPressStage.LONG_1.execute(item, long_press_menu_data, it, onItemClick, onItemLongClick) },
         onAlt2Click = { MediaItemPreviewInteractionPressStage.LONG_2.execute(item, long_press_menu_data, it, onItemClick, onItemLongClick) },
+        enabled = enabled,
         indication = null
     )
 }
@@ -100,6 +103,7 @@ private fun Modifier.desktopMediaItemPreviewInteraction(
 private fun Modifier.androidMediaItemPreviewInteraction(
     item: MediaItem,
     long_press_menu_data: LongPressMenuData,
+    enabled: Boolean = true,
     onClick: ((item: MediaItem, multiselect_key: Int?) -> Unit)? = null,
     onLongClick: ((item: MediaItem, long_press_menu_data: LongPressMenuData) -> Unit)? = null
 ): Modifier {
@@ -150,7 +154,12 @@ private fun Modifier.androidMediaItemPreviewInteraction(
         }
     }
 
-    return clickable(interaction_source, null, onClick = {
-        current_press_stage.execute(item, long_press_menu_data, Offset.Zero, onItemClick, onItemLongClick)
-    })
+    return clickable(
+        interaction_source,
+        null,
+        onClick = {
+            current_press_stage.execute(item, long_press_menu_data, Offset.Zero, onItemClick, onItemLongClick)
+        },
+        enabled = enabled
+    )
 }

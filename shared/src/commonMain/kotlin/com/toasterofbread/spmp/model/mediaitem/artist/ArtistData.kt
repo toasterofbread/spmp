@@ -4,6 +4,9 @@ import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer
+import com.toasterofbread.spmp.model.mediaitem.song.SongData
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmArtist
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmSong
 
 class ArtistData(
     override var id: String,
@@ -48,3 +51,17 @@ class ArtistData(
         }}
     }
 }
+
+fun YtmArtist.toArtistData(): ArtistData =
+    ArtistData(
+        id = id,
+        subscribe_channel_id = subscribe_channel_id,
+        shuffle_playlist_id = shuffle_playlist_id,
+        layouts = layouts?.map { it.toArtistLayoutData(id) }?.toMutableList(),
+        subscriber_count = subscriber_count,
+        subscribed = subscribed
+    ).also { data ->
+        data.name = name
+        data.description = description
+        data.thumbnail_provider = thumbnail_provider
+    }

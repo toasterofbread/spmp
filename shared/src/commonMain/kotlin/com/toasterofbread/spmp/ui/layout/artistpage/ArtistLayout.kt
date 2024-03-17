@@ -29,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
@@ -46,7 +45,7 @@ import com.toasterofbread.composekit.utils.modifier.brushBackground
 import com.toasterofbread.composekit.utils.modifier.drawScopeBackground
 import com.toasterofbread.composekit.utils.modifier.horizontal
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.settings.category.TopBarSettings
@@ -74,14 +73,14 @@ fun ArtistLayout(
     val player: PlayerState = LocalPlayerState.current
     val density: Density = LocalDensity.current
 
-    val thumbnail_provider: MediaItemThumbnailProvider? by artist.ThumbnailProvider.observe(player.database)
+    val thumbnail_provider: ThumbnailProvider? by artist.ThumbnailProvider.observe(player.database)
 
     LaunchedEffect(thumbnail_provider) {
         thumbnail_provider?.also { provider ->
             MediaItemThumbnailLoader.loadItemThumbnail(
                 artist,
                 provider,
-                MediaItemThumbnailProvider.Quality.HIGH,
+                ThumbnailProvider.Quality.HIGH,
                 player.context
             )
         }
@@ -155,7 +154,7 @@ fun ArtistLayout(
             }
 
             artist.Thumbnail(
-                MediaItemThumbnailProvider.Quality.HIGH,
+                ThumbnailProvider.Quality.HIGH,
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f)

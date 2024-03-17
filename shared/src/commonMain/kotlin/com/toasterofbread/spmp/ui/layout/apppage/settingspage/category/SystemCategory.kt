@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
-import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -39,8 +38,6 @@ import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.Languages
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.net.URI

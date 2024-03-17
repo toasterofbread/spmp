@@ -83,7 +83,10 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: Platfor
     }
 
     // If enable is null, action will only be undoable if already in an enabled undo scope
-    fun customUndoableAction(enable: Boolean? = true, action: UndoHandler.(furtherAction: (UndoHandler.() -> UndoRedoAction?) -> Unit) -> UndoRedoAction?) {
+    fun customUndoableAction(
+        enable: Boolean? = true,
+        action: UndoHandler.(furtherAction: (UndoHandler.() -> UndoRedoAction?) -> Unit) -> UndoRedoAction?
+    ) {
         if (enable == false || (enable == null && current_action == null)) {
             action(this) { it() }?.redo(service)
             return

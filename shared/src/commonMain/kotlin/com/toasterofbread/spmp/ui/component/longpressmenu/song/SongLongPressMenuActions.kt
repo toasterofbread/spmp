@@ -49,8 +49,10 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.library.createLocalPlaylist
+import com.toasterofbread.spmp.model.mediaitem.playlist.InteractivePlaylistEditor
+import com.toasterofbread.spmp.model.mediaitem.playlist.InteractivePlaylistEditor.Companion.getEditorOrNull
+import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
-import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.getEditorOrNull
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
 import com.toasterofbread.spmp.platform.download.DownloadStatus
@@ -58,7 +60,6 @@ import com.toasterofbread.spmp.platform.download.rememberDownloadStatus
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuActionProvider
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 
@@ -124,9 +125,8 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
                     Button(
                         {
                             coroutine_scope.launch {
-                                val playlist =
-                                    MediaItemLibrary.createLocalPlaylist(player.context).getOrReport(player.context, "SongLongPressMenuActionsCreateLocalPlaylist")
-                                        ?: return@launch
+                                val playlist: LocalPlaylistData = MediaItemLibrary.createLocalPlaylist(player.context).getOrNull()
+                                    ?: return@launch
                                 selected_playlists.add(playlist)
                             }
                         },
@@ -144,7 +144,8 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
                                 withSong { song ->
                                     coroutine_scope.launch(NonCancellable) {
                                         for (playlist in selected_playlists) {
-                                            val editor = playlist.getEditorOrNull(player.context).getOrNull() ?: continue
+                                            val editor: InteractivePlaylistEditor =
+                                                playlist.getEditorOrNull(player.context).getOrNull() ?: continue
                                             editor.addItem(song, null)
                                             editor.applyChanges()
                                         }

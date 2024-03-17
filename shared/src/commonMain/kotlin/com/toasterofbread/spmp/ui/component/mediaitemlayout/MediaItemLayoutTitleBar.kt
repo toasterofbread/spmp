@@ -36,12 +36,15 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.utils.composable.PlatformClickableIconButton
 import com.toasterofbread.composekit.utils.composable.WidthShrinkText
+import com.toasterofbread.spmp.model.getString
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
-import com.toasterofbread.spmp.model.mediaitem.layout.ViewMore
+import com.toasterofbread.spmp.model.mediaitem.layout.open
 import com.toasterofbread.spmp.model.mediaitem.layout.shouldShowTitleBar
-import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
+import com.toasterofbread.spmp.model.MediaItemLayoutParams
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.ytmkt.model.external.YoutubePage
+import dev.toastbits.ytmkt.uistrings.UiString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -51,23 +54,20 @@ private const val BUTTON_SCROLL_ITEMS: Int = 2
 @Composable
 fun TitleBar(
     items: List<MediaItemHolder>,
-    title: LocalisedString?,
-    subtitle: LocalisedString?,
+    layout_params: MediaItemLayoutParams,
     modifier: Modifier = Modifier,
-    view_more: ViewMore? = null,
     font_size: TextUnit? = null,
-    multiselect_context: MediaItemMultiSelectContext? = null,
     scrollable_state: ScrollableState? = null
 ) {
     val player: PlayerState = LocalPlayerState.current
 
     AnimatedVisibility(
-        shouldShowTitleBar(title, subtitle, view_more, scrollable_state),
+        shouldShowTitleBar(layout_params, scrollable_state),
         enter = slideInVertically(),
         exit = slideOutVertically()
     ) {
-        val title_string: String? = remember { title?.getString(player.context) }
-        val subtitle_string: String? = remember { subtitle?.getString(player.context) }
+        val title_string: String? = remember(layout_params) { layout_params.title?.getString(player.context) }
+        val subtitle_string: String? = remember(layout_params) { layout_params.subtitle?.getString(player.context) }
 
         Row(
             Modifier
@@ -76,7 +76,10 @@ fun TitleBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Column(verticalArrangement = Arrangement.Center, modifier = modifier.weight(1f)) {
+            Column(
+                verticalArrangement = Arrangement.Center,
+                modifier = modifier.weight(1f)
+            ) {
                 if (subtitle_string != null) {
                     WidthShrinkText(subtitle_string, style = MaterialTheme.typography.titleSmall.copy(color = player.theme.on_background))
                 }
@@ -96,15 +99,15 @@ fun TitleBar(
             }
 
             Row {
-                if (view_more != null) {
-                    IconButton({ view_more.execute(player, title) }) {
+                if (layout_params.view_more != null) {
+                    IconButton({ layout_params.view_more.open(player, layout_params.title) }) {
                         Icon(Icons.Default.MoreHoriz, null)
                     }
                 }
 
                 scrollable_state?.ScrollButtons()
 
-                multiselect_context?.CollectionToggleButton(
+                layout_params.multiselect_context?.CollectionToggleButton(
                     remember(items) {
                         items.mapIndexedNotNull { index, item -> item.item?.let { Pair(it, index) } }
                     }

@@ -83,12 +83,13 @@ class MusicTopBar(val player: PlayerState) {
         }
 
         coroutine_scope.launchSingle {
-            val result: Result<SongLyrics>? =
+            val result: SongLyrics? = (
                 if (reference != null) SongLyricsLoader.loadByLyrics(reference, player.context, createFuriganaTokeniser())
                 else SongLyricsLoader.loadBySong(song, player.context)
+            )?.getOrNull()
 
-            result?.onSuccess {
-                lyrics = it
+            if (result != null) {
+                lyrics = result
             }
         }
     }
@@ -259,9 +260,11 @@ class MusicTopBar(val player: PlayerState) {
                     }
                     else {
                         coroutine_scope.launchSingle {
-                            val result = SongLyricsLoader.loadBySong(song, player.context)
-                            result?.onSuccess {
-                                lyrics = it
+                            val result: SongLyrics? =
+                                SongLyricsLoader.loadBySong(song, player.context)?.getOrNull()
+
+                            if (result != null) {
+                                lyrics = result
                             }
                         }
                     }

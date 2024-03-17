@@ -24,10 +24,6 @@ import com.toasterofbread.spmp.platform.playerservice.ClientServerPlayerService
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringOrNull
 import com.toasterofbread.spmp.resources.initResources
-import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
-import com.toasterofbread.spmp.resources.uilocalisation.UnlocalisedStringCollector
-import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
-import com.toasterofbread.spmp.resources.uilocalisation.localised.UILanguages
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.service.playercontroller.openUri
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.LoadingSplashView
@@ -38,9 +34,6 @@ import com.toasterofbread.spmp.ui.shortcut.LocalPressedShortcutModifiers
 import com.toasterofbread.spmp.ui.shortcut.PressedShortcutModifiers
 import com.toasterofbread.spmp.ui.theme.ApplicationTheme
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
 import spms.socketapi.shared.SPMS_API_VERSION
 import java.util.logging.Logger
 
@@ -63,26 +56,14 @@ object SpMp {
 
     val prefs: PlatformPreferences get() = context.getPrefs()
 
-    private var _yt_ui_localisation: YoutubeUILocalisation? = null
-    val yt_ui_localisation: YoutubeUILocalisation get() = _yt_ui_localisation!!
-
     private val low_memory_listeners: MutableList<() -> Unit> = mutableListOf()
-    private val coroutine_scope = CoroutineScope(Dispatchers.Main)
 
     fun init(context: AppContext) {
         this.context = context
-
-        coroutine_scope.launch {
-            context.ytapi.init()
-        }
-
         initResources(context.getUiLanguage(), context)
-        _yt_ui_localisation = YoutubeUILocalisation(UILanguages)
     }
 
     fun release() {
-        _yt_ui_localisation = null
-        coroutine_scope.cancel()
         _player_state?.release()
     }
 
@@ -221,18 +202,4 @@ object SpMp {
     }
 
     val app_name: String get() = getStringOrNull("app_name") ?: "SpMp"
-
-    val unlocalised_string_collector: UnlocalisedStringCollector? = UnlocalisedStringCollector()
-
-    fun onUnlocalisedStringFound(string: UnlocalisedStringCollector.UnlocalisedString) {
-        if (unlocalised_string_collector?.add(string) == true) {
-            Log.warning("String key '${string.key}' of type ${string.type} has not been localised (source lang=${string.source_language})")
-        }
-    }
-
-    fun onUnlocalisedStringFound(type: String, key: String?, source_language: String) =
-        onUnlocalisedStringFound(UnlocalisedStringCollector.UnlocalisedString(type, key, source_language))
-
-    fun onUnlocalisedStringFound(string: LocalisedString) =
-        onUnlocalisedStringFound(UnlocalisedStringCollector.UnlocalisedString.fromLocalised(string))
 }

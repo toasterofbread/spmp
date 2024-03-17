@@ -27,8 +27,9 @@ import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.composable.SidebarButtonSelector
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.db.rememberPinnedItems
 import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction
 import com.toasterofbread.spmp.ui.component.Thumbnail
@@ -39,12 +40,13 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.loadIfLocalPlaylist
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
+import com.toasterofbread.spmp.ui.layout.playlistpage.PlaylistAppPage
 import com.toasterofbread.spmp.ui.shortcut.*
 import kotlinx.coroutines.delay
 import kotlin.math.absoluteValue
 import kotlin.math.roundToLong
 
-private fun PlayerState.getOwnChannel(): Artist? = context.ytapi.user_auth_state?.own_channel
+private fun PlayerState.getOwnChannel(): Artist? = context.ytapi.user_auth_state?.own_channel_id?.let { ArtistRef(it) }
 
 enum class AppPageSidebarButton {
     FEED,
@@ -63,7 +65,7 @@ enum class AppPageSidebarButton {
         if (this == PROFILE) {
             val own_channel: Artist? = player.getOwnChannel()
             if (own_channel != null) {
-                own_channel.Thumbnail(MediaItemThumbnailProvider.Quality.LOW, Modifier.size(40.dp).clip(CircleShape))
+                own_channel.Thumbnail(ThumbnailProvider.Quality.LOW, Modifier.size(40.dp).clip(CircleShape))
             }
             return
         }
@@ -95,10 +97,11 @@ enum class AppPageSidebarButton {
     }
 
     @Composable
-    fun shouldShow(page: AppPage?) = when (this) {
-        RELOAD -> Platform.DESKTOP.isCurrent() && LocalPlayerState.current.app_page.canReload()
-        else -> page != null
-    }
+    fun shouldShow(page: AppPage?): Boolean =
+        when (this) {
+            RELOAD -> Platform.DESKTOP.isCurrent() && LocalPlayerState.current.app_page.canReload()
+            else -> page != null
+        }
 
     fun getPage(player: PlayerState): AppPage? =
         with (player.app_page_state) {
@@ -144,8 +147,8 @@ enum class AppPageSidebarButton {
                     RadioBuilder -> RADIOBUILDER
                     ControlPanel -> CONTROL
                     Settings -> SETTINGS
-                    is MediaItemAppPage ->
-                        if (page.item.item?.id == LocalPlayerState.current.getOwnChannel()?.id) PROFILE
+                    is PlaylistAppPage ->
+                        if (page.playlist.id == LocalPlayerState.current.getOwnChannel()?.id) PROFILE
                         else null
                     else -> null
                 }
@@ -317,7 +320,7 @@ private fun PinnedItems(modifier: Modifier = Modifier, multiselect_context: Medi
                         .animateItemPlacement()
                 ) {
                     item.Thumbnail(
-                        MediaItemThumbnailProvider.Quality.LOW,
+                        ThumbnailProvider.Quality.LOW,
                         Modifier
                             .mediaItemPreviewInteraction(loaded_item, long_press_menu_data)
                             .fillMaxWidth()

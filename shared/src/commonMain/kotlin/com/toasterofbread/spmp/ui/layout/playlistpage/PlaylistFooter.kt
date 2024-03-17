@@ -19,15 +19,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
+import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.ytmkt.radio.RadioContinuation
 import kotlinx.coroutines.launch
+import LocalPlayerState
 
 @Composable
-fun PlaylistPage.PlaylistFooter(
+fun PlaylistAppPage.PlaylistFooter(
     items: List<Pair<MediaItem, Int>>?,
     accent_colour: Color,
     loading: Boolean,
@@ -35,8 +38,9 @@ fun PlaylistPage.PlaylistFooter(
     modifier: Modifier = Modifier,
     onRetry: (() -> Unit)?
 ) {
+    val player: PlayerState = LocalPlayerState.current
     val remote_playlist: RemotePlaylist? = playlist as? RemotePlaylist
-    val continuation: MediaItemLayout.Continuation? = remote_playlist?.Continuation?.observe(player.database)?.value
+    val continuation: RadioContinuation? = remote_playlist?.Continuation?.observe(player.database)?.value
 
     Crossfade(
         if (load_error != null) load_error
@@ -64,10 +68,10 @@ fun PlaylistPage.PlaylistFooter(
                     Text(getString("playlist_empty"))
                 }
             }
-            is MediaItemLayout.Continuation, true -> {
+            is RadioContinuation, true -> {
                 remote_playlist?.also { remote ->
                     Box(Modifier.fillMaxSize().heightIn(min = 50.dp), contentAlignment = Alignment.Center) {
-                        if (state is MediaItemLayout.Continuation) {
+                        if (state is RadioContinuation) {
                             Button({
                                 coroutine_scope.launch {
                                     MediaItemLoader.loadRemotePlaylist(remote.getEmptyData(), player.context, continuation = state)

@@ -80,11 +80,11 @@ sealed interface Artist: MediaItem {
 
         data.subscribe_channel_id = SubscribeChannelId.get(db)
         data.shuffle_playlist_id = ShufflePlaylistId.get(db)
-        data.layouts = mutableListOf<ArtistLayoutData>().apply {
-            for (layout in Layouts.get(db).orEmpty()) {
-                add(ArtistLayoutData(layout.layout_index, layout.artist_id))
-            }
-        }
+
+        data.layouts =
+            Layouts.get(db).orEmpty().map { layout ->
+                ArtistLayoutData(layout.layout_index, layout.artist_id)
+            }.toMutableList()
         data.subscriber_count = SubscriberCount.get(db)
     }
     override suspend fun loadData(context: AppContext, populate_data: Boolean, force: Boolean, save: Boolean): Result<ArtistData> {

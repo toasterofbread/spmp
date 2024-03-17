@@ -28,13 +28,13 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.PlayerSettings
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.resources.uilocalisation.durationToString
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.theme.appHover
+import dev.toastbits.ytmkt.uistrings.durationToString
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.detectReorder
 import kotlin.math.roundToInt
@@ -158,7 +158,7 @@ class QueueTabItem(val song: Song, val key: Int) {
                     )
                 }
 
-                val radio_item_index = player.controller?.radio_state?.item?.second
+                val radio_item_index: Int? = player.controller?.radio_instance?.state?.item_queue_index
                 if (radio_item_index == index) {
                     Icon(Icons.Default.Radio, null, Modifier.size(20.dp))
                 }

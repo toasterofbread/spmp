@@ -24,13 +24,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.utils.common.anyCauseIs
 import com.toasterofbread.composekit.utils.common.launchSingle
-import com.toasterofbread.spmp.model.FilterChip
+import com.toasterofbread.spmp.model.getString
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.db.SongFeedCache
 import com.toasterofbread.spmp.model.mediaitem.db.SongFeedData
-import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
+import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.FeedSettings
 import com.toasterofbread.spmp.model.settings.mutableSettingsState
@@ -42,9 +42,12 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedLoadResult
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
+import dev.toastbits.ytmkt.endpoint.SongFeedEndpoint
+import dev.toastbits.ytmkt.endpoint.SongFeedFilterChip
+import dev.toastbits.ytmkt.endpoint.SongFeedLoadResult
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmSong
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmArtist
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -58,7 +61,7 @@ internal const val ARTISTS_ROW_MIN_ARTISTS: Int = 4
 class SongFeedAppPage(override val state: AppPageState): AppPage() {
     internal val scroll_state: LazyListState = LazyListState()
 
-    internal val feed_endpoint: HomeFeedEndpoint = state.context.ytapi.HomeFeed
+    internal val feed_endpoint: SongFeedEndpoint = state.context.ytapi.SongFeed
 
     internal var load_state by mutableStateOf(FeedLoadState.PREINIT)
     internal var load_error: Throwable? by mutableStateOf(null)
@@ -67,7 +70,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
 
     internal var continuation: String? by mutableStateOf(null)
     internal var layouts: List<MediaItemLayout>? by mutableStateOf(null)
-    internal var filter_chips: List<FilterChip>? by mutableStateOf(null)
+    internal var filter_chips: List<SongFeedFilterChip>? by mutableStateOf(null)
     internal var selected_filter_chip: Int? by mutableStateOf(null)
 
     var retrying: Boolean = false
@@ -105,7 +108,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
     @Composable
     fun FeedFiltersRow(modifier: Modifier = Modifier, show_scrollbar: Boolean = true, onSelected: (Int?) -> Unit = {}) {
         val player: PlayerState = LocalPlayerState.current
-        
+
         Crossfade(filter_chips, modifier) { chips ->
             if (chips.isNullOrEmpty()) {
                 if (load_state != FeedLoadState.LOADING && load_state != FeedLoadState.CONTINUING) {
@@ -184,7 +187,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
             if (allow_cached && !continue_feed && filter_chip == null) {
                 val cached: SongFeedData? = SongFeedCache.loadFeedLayouts(state.context.database)
                 if (cached?.layouts?.isNotEmpty() == true) {
-                    layouts = cached.layouts
+                    layouts = cached.layouts.map { it.layout }
                     filter_chips = cached.filter_chips
                     continuation = cached.continuation_token
                     return@withContext Result.success(Unit)
@@ -194,9 +197,8 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
             val filter_params: String? = filter_chip?.let { filter_chips!![it].params }
             load_state = if (continue_feed) FeedLoadState.CONTINUING else FeedLoadState.LOADING
 
-            val result: Result<HomeFeedLoadResult> = loadFeedLayouts(
+            val result: Result<SongFeedLoadResult> = loadFeedLayouts(
                 if (continue_feed && continuation != null) -1 else Settings.get(FeedSettings.Key.INITIAL_ROWS),
-                allow_cached,
                 filter_params,
                 if (continue_feed) continuation else null
             )
@@ -227,7 +229,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
                     if (allow_cached) {
                         val cached = SongFeedCache.loadFeedLayouts(state.context.database)
                         if (cached?.layouts?.isNotEmpty() == true) {
-                            layouts = cached.layouts
+                            layouts = cached.layouts.map { it.layout }
                             filter_chips = cached.filter_chips
                             continuation = cached.continuation_token
                         }
@@ -255,57 +257,67 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
 
     internal suspend fun loadFeedLayouts(
         min_rows: Int,
-        allow_cached: Boolean,
         params: String?,
         continuation: String? = null
-    ): Result<HomeFeedLoadResult> {
-        val result: Result<HomeFeedLoadResult> =
-            feed_endpoint.getHomeFeed(
-                allow_cached = allow_cached,
+    ): Result<SongFeedLoadResult> = runCatching {
+        val load_result: SongFeedLoadResult =
+            feed_endpoint.getSongFeed(
                 min_rows = min_rows,
                 params = params,
                 continuation = continuation
-            )
+            ).getOrThrow()
 
-        val data: HomeFeedLoadResult = result.getOrNull() ?: return result.cast()
-        return Result.success(
-            data.copy(
-                layouts = data.layouts.filter { it.items.isNotEmpty() }
-            )
+        return@runCatching load_result.copy(
+            layouts = load_result.layouts.filter { it.items.isNotEmpty() }
         )
     }
 }
 
 internal fun populateArtistsLayout(
     layouts: List<MediaItemLayout>?,
-    own_channel: Artist?,
+    own_channel_id: String?,
     context: AppContext
 ): List<MediaItem> {
     val artists_map: MutableMap<String, Int?> = mutableMapOf()
     for (layout in layouts.orEmpty()) {
         for (item in layout.items) {
-            if (item is Artist) {
+            if (item is Artist || item is YtmArtist) {
                 artists_map[item.id] = null
                 continue
             }
 
-            if (item !is MediaItem.WithArtist) {
+            val artist_id: String
+
+            if (item is MediaItem.WithArtist) {
+                val artist: Artist = item.Artist.get(context.database) ?: continue
+                if (artist.isForItem()) {
+                    continue
+                }
+
+                artist_id = artist.id
+            }
+            else if (item is YtmSong) {
+                artist_id = item.artist?.id ?: continue
+            }
+            else if (item is YtmPlaylist) {
+                artist_id = item.artist?.id ?: continue
+            }
+            else {
                 continue
             }
 
-            val artist = item.Artist.get(context.database) ?: continue
-            if (artist.id == own_channel?.id || artist.isForItem()) {
+            if (artist_id == own_channel_id) {
                 continue
             }
 
-            if (artists_map.containsKey(artist.id)) {
-                val current = artists_map[artist.id]
+            if (artists_map.containsKey(artist_id)) {
+                val current = artists_map[artist_id]
                 if (current != null) {
-                    artists_map[artist.id] = current + 1
+                    artists_map[artist_id] = current + 1
                 }
             }
             else {
-                artists_map[artist.id] = 1
+                artists_map[artist_id] = 1
             }
         }
     }

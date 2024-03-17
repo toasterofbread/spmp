@@ -36,14 +36,15 @@ import com.toasterofbread.composekit.utils.common.blendWith
 import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.composable.LinkifyText
 import com.toasterofbread.composekit.utils.composable.ShapedIconButton
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
 import com.toasterofbread.spmp.model.mediaitem.artist.toReadableSubscriberCount
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
-import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
-import com.toasterofbread.spmp.resources.uilocalisation.YoutubeLocalisedString
-import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
+import com.toasterofbread.spmp.model.mediaitem.layout.Layout
+import com.toasterofbread.spmp.model.MediaItemLayoutParams
+import com.toasterofbread.spmp.model.MediaItemGridParams
+import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.WaveBorder
@@ -52,6 +53,9 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistInfoDialog
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistSubscribeButton
+import dev.toastbits.ytmkt.model.external.ItemLayoutType
+import dev.toastbits.ytmkt.uistrings.YoutubeUILocalisation
+import dev.toastbits.ytmkt.uistrings.YoutubeUiString
 
 @Composable
 fun LFFArtistStartPane(
@@ -92,7 +96,7 @@ fun LFFArtistStartPane(
                     contentAlignment = Alignment.Center
                 ) {
                     artist.Thumbnail(
-                        MediaItemThumbnailProvider.Quality.HIGH,
+                        ThumbnailProvider.Quality.HIGH,
                         Modifier.fillMaxWidth().aspectRatio(1f)
                     )
 
@@ -211,21 +215,25 @@ fun LFFArtistStartPane(
                 Spacer(Modifier.height(20.dp).fillMaxWidth())
 
                 for (item_layout in item_layouts ?: emptyList()) {
-                    val layout: MediaItemLayout = item_layout.rememberMediaItemLayout(player.database)
-                    if ((layout.title as? YoutubeLocalisedString)?.getYoutubeStringId() != YoutubeUILocalisation.StringID.ARTIST_ROW_ARTISTS) {
+                    val layout: MediaItemLayout = item_layout.rememberMediaItemLayout(player.database).layout
+                    if ((layout.title as? YoutubeUiString)?.getYoutubeStringId() != YoutubeUILocalisation.StringID.ARTIST_ROW_ARTISTS) {
                         continue
                     }
 
-                    MediaItemLayout.Type.ROW.Layout(
+                    ItemLayoutType.ROW.Layout(
                         layout,
-                        Modifier.height(200.dp),
-                        multiselect_context = multiselect_context,
-                        apply_filter = apply_filter,
-                        content_padding = PaddingValues(start = start_padding),
-                        itemSizeProvider = {
-                            DpSize(100.dp, 120.dp)
-                        },
-                        title_modifier = Modifier.height(25.dp).alpha(0.75f)
+                        MediaItemLayoutParams(
+                            modifier = Modifier.height(200.dp),
+                            multiselect_context = multiselect_context,
+                            apply_filter = apply_filter,
+                            content_padding = PaddingValues(start = start_padding),
+                            title_modifier = Modifier.height(25.dp).alpha(0.75f)
+                        ),
+                        grid_params = MediaItemGridParams(
+                            itemSizeProvider = {
+                                DpSize(100.dp, 120.dp)
+                            }
+                        )
                     )
                 }
 

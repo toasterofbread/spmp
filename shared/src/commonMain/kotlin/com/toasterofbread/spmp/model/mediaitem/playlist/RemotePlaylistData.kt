@@ -3,19 +3,22 @@ package com.toasterofbread.spmp.model.mediaitem.playlist
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
+import com.toasterofbread.spmp.model.mediaitem.artist.toArtistData
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
-import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.song.toSongData
 import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
+import dev.toastbits.ytmkt.radio.RadioContinuation
 
 class RemotePlaylistData(
     id: String,
     var item_set_ids: List<String>? = null,
-    var continuation: MediaItemLayout.Continuation? = null
+    var continuation: RadioContinuation? = null
 ): PlaylistData(id), RemotePlaylist {
     var playlist_url: String? = null
 
-    override fun toString(): String = "RemotePlaylistData($id, type=$playlist_type, title=$title)"
+    override fun toString(): String = "RemotePlaylistData($id, type=$playlist_type, title=$name)"
     override fun getType(): MediaItemType = MediaItemType.PLAYLIST_REM
     override fun getReference(): RemotePlaylistRef = RemotePlaylistRef(id)
 
@@ -28,7 +31,7 @@ class RemotePlaylistData(
     override val property_rememberer: PropertyRememberer = PropertyRememberer()
 
     override fun createDbEntry(db: Database) {
-        if (playlist_type == PlaylistType.LOCAL) {
+        if (playlist_type == YtmPlaylist.Type.LOCAL) {
             throw IllegalStateException(id)
         }
         db.playlistQueries.insertById(id, playlist_type?.ordinal?.toLong())
@@ -65,3 +68,21 @@ class RemotePlaylistData(
         }}
     }
 }
+
+fun YtmPlaylist.toRemotePlaylistData(): RemotePlaylistData =
+    RemotePlaylistData(
+        id = id,
+        continuation = continuation,
+        item_set_ids = item_set_ids
+    ).also { data ->
+        data.name = name
+        data.description = description
+        data.thumbnail_provider = thumbnail_provider
+        data.playlist_type = type
+        data.artist = artist?.toArtistData()
+        data.year = year
+        data.items = items?.map { it.toSongData() }
+        data.owner = owner_id?.let { ArtistRef(it) }
+        data.item_count = item_count
+        data.total_duration = total_duration
+    }

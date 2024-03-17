@@ -2,11 +2,9 @@ package com.toasterofbread.spmp.model.settings
 
 import SpMp
 import androidx.compose.runtime.*
-import com.google.gson.Gson
 import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.spmp.model.settings.category.SettingsCategory
-import com.toasterofbread.spmp.model.settings.category.YTApiSettings
-import com.toasterofbread.spmp.youtubeapi.fromJson
+import kotlinx.serialization.json.Json
 import java.util.*
 
 object Settings {
@@ -43,8 +41,8 @@ object Settings {
         } as T
     }
 
-    inline fun <reified T> getJsonArray(enum_key: SettingsKey, gson: Gson = Gson(), preferences: PlatformPreferences = prefs, default: String? = null): List<T> {
-        return gson.fromJson(get(enum_key, preferences, default))!!
+    inline fun <reified T> getJsonArray(enum_key: SettingsKey, preferences: PlatformPreferences = prefs, default: String? = null): List<T> {
+        return Json.decodeFromString(get(enum_key, preferences, default))
     }
 
     inline fun <reified T: Enum<T>> getEnum(enum_key: SettingsKey, preferences: PlatformPreferences = prefs, default: T? = null): T {

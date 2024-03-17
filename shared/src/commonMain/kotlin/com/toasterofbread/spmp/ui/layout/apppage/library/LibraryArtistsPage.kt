@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.apppage.library
 
 import LocalPlayerState
+import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
@@ -26,6 +27,7 @@ import com.toasterofbread.composekit.utils.composable.LoadActionIconButton
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
+import com.toasterofbread.spmp.model.mediaitem.artist.toArtistData
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.download.DownloadStatus
@@ -35,11 +37,11 @@ import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverride
 import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageWithItem
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.artistpage.LocalArtistPage
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 
 class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =
@@ -175,18 +177,31 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
                     }
 
                     if (artists == null) {
-                        val text: String? =
-                            if (library_page.search_filter != null) getString("library_no_items_match_filter")
-                            else if (showing_alt_content) if (loaded) getString("library_no_liked_artists") else null
-                            else getString("library_no_local_artists")
-
-                        if (text != null) {
+                        val error: Throwable? = load_error
+                        if (error != null) {
                             item {
-                                Text(
-                                    text,
-                                    Modifier.fillMaxWidth(),
-                                    textAlign = TextAlign.Center
+                                ErrorInfoDisplay(
+                                    error,
+                                    onDismiss = {
+                                        load_error = null
+                                    }
                                 )
+                            }
+                        }
+                        else {
+                            val text: String? =
+                                if (library_page.search_filter != null) getString("library_no_items_match_filter")
+                                else if (showing_alt_content) if (loaded) getString("library_no_liked_artists") else null
+                                else getString("library_no_local_artists")
+
+                            if (text != null) {
+                                item {
+                                    Text(
+                                        text,
+                                        Modifier.fillMaxWidth(),
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
                             }
                         }
                     }
@@ -219,7 +234,7 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
     @Composable
     override fun SideContent(showing_alt_content: Boolean) {
         val player: PlayerState = LocalPlayerState.current
-        val auth_state: YoutubeApi.UserAuthState? =
+        val auth_state: ApiAuthenticationState? =
             if (showing_alt_content) player.context.ytapi.user_auth_state
             else null
 
@@ -228,7 +243,7 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
             LoadActionIconButton(
                 {
                     liked_artists_endpoint.getLikedArtists().fold(
-                        { liked_artists = it },
+                        { liked_artists = it.map { it.toArtistData() } },
                         { load_error = it }
                     )
                     loaded = true

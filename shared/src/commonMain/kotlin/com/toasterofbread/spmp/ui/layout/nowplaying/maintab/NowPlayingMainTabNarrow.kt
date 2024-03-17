@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.utils.common.getValue
 import com.toasterofbread.composekit.utils.common.isJP
 import com.toasterofbread.composekit.utils.common.thenIf
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.ui.component.RowOrColumn
 import com.toasterofbread.spmp.ui.component.Thumbnail
@@ -56,7 +56,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabNarrow(page_height: Dp, top_
         val spacing: Dp = 10.dp
 
         if (vertical) {
-            song?.Thumbnail(MediaItemThumbnailProvider.Quality.LOW, Modifier.aspectRatio(1f)) {
+            song?.Thumbnail(ThumbnailProvider.Quality.LOW, Modifier.aspectRatio(1f)) {
                 onThumbnailLoaded(song, it)
             }
             Spacer(Modifier.height(spacing))
@@ -72,7 +72,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabNarrow(page_height: Dp, top_
             player.NextButton()
             Spacer(Modifier.width(spacing))
 
-            song?.Thumbnail(MediaItemThumbnailProvider.Quality.LOW, Modifier.aspectRatio(1f)) {
+            song?.Thumbnail(ThumbnailProvider.Quality.LOW, Modifier.aspectRatio(1f)) {
                 onThumbnailLoaded(song, it)
             }
             Spacer(Modifier.width(spacing))

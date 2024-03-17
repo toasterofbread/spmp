@@ -15,9 +15,11 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -29,8 +31,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
@@ -51,11 +53,12 @@ import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
-import com.toasterofbread.spmp.model.mediaitem.layout.LambdaViewMore
-import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.LambdaYoutubePage
+import com.toasterofbread.spmp.model.mediaitem.layout.Layout
+import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
+import com.toasterofbread.spmp.model.MediaItemLayoutParams
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
@@ -63,11 +66,13 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.ui.component.NotImplementedMessage
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.theme.appHover
-import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
-import com.toasterofbread.spmp.youtubeapi.endpoint.*
+import dev.toastbits.ytmkt.endpoint.*
+import dev.toastbits.ytmkt.model.external.ItemLayoutType
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
@@ -167,6 +172,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
         close: () -> Unit
     ) {
         if (!search_endpoint.isImplemented()) {
+
             search_endpoint.NotImplementedMessage(modifier.fillMaxSize().padding(content_padding))
             return
         }
@@ -284,16 +290,22 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
             coroutine_scope.launchSingle {
                 search_endpoint.searchMusic(query, filter?.params).fold(
                     { results ->
-                        for (result in results.categories) {
-                            if (result.second != null) {
-                                result.first.view_more = LambdaViewMore { _, _ ->
-                                    performSearch(result.second)
-                                }
+                        val processed_results = results.copy(
+                            categories = results.categories.map { result ->
+                                if (result.second != null)
+                                    result.copy(
+                                        first = result.first.copy(
+                                            view_more = LambdaYoutubePage { _, _ ->
+                                                performSearch(result.second)
+                                            }
+                                        )
+                                    )
+                                else result
                             }
-                        }
+                        )
 
                         synchronized(search_lock) {
-                            current_results = results
+                            current_results = processed_results
                             search_in_progress = false
                         }
                     },
@@ -513,10 +525,10 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
             if (results.suggested_correction != null) {
                 item {
                     SuggestedSearchCorrection(
-                        results.suggested_correction,
+                        results.suggested_correction ?: "",
                         Modifier.fillMaxWidth(),
                         onSelected = {
-                            current_query = results.suggested_correction
+                            current_query = results.suggested_correction ?: ""
                             performSearch()
                         },
                         onDismissed = {
@@ -529,7 +541,12 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
             for (category in results.categories.withIndex()) {
                 val layout = category.value.first
                 item {
-                    (layout.type ?: MediaItemLayout.Type.LIST).Layout(layout, multiselect_context = multiselect_context)
+                    (layout.type ?: ItemLayoutType.LIST).Layout(
+                        layout,
+                        MediaItemLayoutParams(
+                            multiselect_context = multiselect_context
+                        )
+                    )
                 }
             }
         }
@@ -555,3 +572,22 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
         }
     }
 }
+
+fun SearchType?.getReadable(): String =
+    when (this) {
+        null -> getString("search_filter_all")
+        SearchType.VIDEO -> getString("search_filter_videos")
+        SearchType.SONG -> MediaItemType.SONG.getReadable(true)
+        SearchType.ARTIST -> MediaItemType.ARTIST.getReadable(true)
+        SearchType.PLAYLIST -> YtmPlaylist.Type.PLAYLIST.getReadable(true)
+        SearchType.ALBUM -> YtmPlaylist.Type.ALBUM.getReadable(true)
+    }
+
+fun SearchType.getIcon(): ImageVector =
+    when (this) {
+        SearchType.SONG -> MediaItemType.SONG.getIcon()
+        SearchType.PLAYLIST -> MediaItemType.ARTIST.getIcon()
+        SearchType.ARTIST -> MediaItemType.PLAYLIST_REM.getIcon()
+        SearchType.VIDEO -> Icons.Default.PlayArrow
+        SearchType.ALBUM -> Icons.Default.Album
+    }

@@ -6,7 +6,8 @@ import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
-import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
+import com.toasterofbread.spmp.model.radio.RadioInstance
+import com.toasterofbread.spmp.model.radio.RadioState
 import spms.socketapi.shared.SpMsPlayerRepeatMode
 import spms.socketapi.shared.SpMsPlayerState
 
@@ -32,7 +33,7 @@ interface PlayerService {
     val duration_ms: Long
     val has_focus: Boolean
 
-    val radio_state: RadioInstance.RadioState
+    val radio_instance: RadioInstance
 
     var repeat_mode: SpMsPlayerRepeatMode
     var volume: Float
@@ -96,7 +97,7 @@ expect class PlatformPlayerService: PlayerService {
     override val duration_ms: Long
     override val has_focus: Boolean
 
-    override val radio_state: RadioInstance.RadioState
+    override val radio_instance: RadioInstance
 
     override var repeat_mode: SpMsPlayerRepeatMode
     override var volume: Float

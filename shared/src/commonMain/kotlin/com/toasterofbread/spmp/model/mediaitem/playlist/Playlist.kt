@@ -9,11 +9,11 @@ import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.db.AltSetterProperty
 import com.toasterofbread.spmp.model.mediaitem.db.ListProperty
 import com.toasterofbread.spmp.model.mediaitem.db.Property
-import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
 
 sealed interface Playlist: MediaItem.WithArtist {
     override fun getEmptyData(): PlaylistData
@@ -42,11 +42,11 @@ sealed interface Playlist: MediaItem.WithArtist {
         get() = property_rememberer.rememberSingleQueryProperty(
             "ItemCount", { playlistQueries.itemCountById(id) }, { item_count?.toInt() }, { playlistQueries.updateItemCountById(it?.toLong(), id) }
         )
-    val TypeOfPlaylist: Property<PlaylistType?>
+    val TypeOfPlaylist: Property<YtmPlaylist.Type?>
         get() = property_rememberer.rememberSingleQueryProperty(
             "TypeOfPlaylist",
             { playlistQueries.playlistTypeById(id) },
-            { playlist_type?.let { PlaylistType.entries[it.toInt()] } },
+            { playlist_type?.let { YtmPlaylist.Type.entries[it.toInt()] } },
             { playlistQueries.updatePlaylistTypeById(it?.ordinal?.toLong(), id) }
         )
     val TotalDuration: Property<Long?>

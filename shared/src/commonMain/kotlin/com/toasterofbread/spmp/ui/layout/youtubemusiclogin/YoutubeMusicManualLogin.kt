@@ -10,11 +10,10 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringArray
 import com.toasterofbread.spmp.ui.layout.ManualLoginPage
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
+import dev.toastbits.ytmkt.impl.youtubei.YoutubeiAuthenticationState
+import io.ktor.http.Headers
+import io.ktor.http.HeadersBuilder
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import okhttp3.Headers
 
 @Composable
 internal fun YoutubeMusicManualLogin(
@@ -72,8 +71,8 @@ private fun getHeadersFromManualEntry(text: String): Result<Headers> {
         return getHeadersFromCurlCommand(headers_text)
     }
 
-    val headers_builder: Headers.Builder = Headers.Builder()
-    val required_keys: MutableList<String> = YoutubeMusicAuthInfo.REQUIRED_HEADERS.toMutableList()
+    val headers_builder: HeadersBuilder = HeadersBuilder()
+    val required_keys: MutableList<String> = YoutubeiAuthenticationState.REQUIRED_HEADERS.toMutableList()
 
     for (line in headers_text.lines()) {
         val colon = line.indexOfOrNull(':') ?: continue
@@ -88,7 +87,7 @@ private fun getHeadersFromManualEntry(text: String): Result<Headers> {
             continue
         }
 
-        headers_builder.add(key, line.substring(colon + 1).trim())
+        headers_builder.append(key, line.substring(colon + 1).trim())
         required_keys.remove(key)
     }
 
@@ -100,8 +99,8 @@ private fun getHeadersFromManualEntry(text: String): Result<Headers> {
 }
 
 private fun getHeadersFromCurlCommand(command: String): Result<Headers> {
-    val headers_builder: Headers.Builder = Headers.Builder()
-    val required_keys: MutableList<String> = YoutubeMusicAuthInfo.REQUIRED_HEADERS.toMutableList()
+    val headers_builder: HeadersBuilder = HeadersBuilder()
+    val required_keys: MutableList<String> = YoutubeiAuthenticationState.REQUIRED_HEADERS.toMutableList()
 
     var header_end: Int = -1
     while (true) {
@@ -121,7 +120,7 @@ private fun getHeadersFromCurlCommand(command: String): Result<Headers> {
         }
 
         val key: String = split_header[0].trim().lowercase()
-        headers_builder.add(key, split_header[1].trim())
+        headers_builder.append(key, split_header[1].trim())
         required_keys.remove(key)
     }
 

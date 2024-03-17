@@ -12,7 +12,7 @@ import com.toasterofbread.spmp.model.settings.category.StreamingSettings
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.playerservice.AUTO_DOWNLOAD_SOFT_TIMEOUT
-import com.toasterofbread.spmp.youtubeapi.YoutubeVideoFormat
+import dev.toastbits.ytmkt.model.external.YoutubeVideoFormat
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -87,10 +87,15 @@ internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppConte
         }
     }
 
+    println("Loading stream format for song ${song.id}")
+
     val format: YoutubeVideoFormat =
         getSongStreamFormat(song.id, context).fold(
             { it },
-            { throw it }
+            {
+                it.printStackTrace()
+                throw it
+            }
         )
 
     try {
@@ -100,12 +105,6 @@ internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppConte
         e.printStackTrace()
     }
 
-    if (local_file != null) {
-        println("Playing song ${song.id} from local file $local_file")
-        return data_spec.withUri(Uri.parse(local_file!!.uri))
-    }
-    else {
-        println("Playing song ${song.id} from external format $format stream_url=${format.url}")
-        return data_spec.withUri(Uri.parse(format.url))
-    }
+    println("Playing song ${song.id} from external format $format stream_url=${format.url}")
+    return data_spec.withUri(Uri.parse(format.url))
 }

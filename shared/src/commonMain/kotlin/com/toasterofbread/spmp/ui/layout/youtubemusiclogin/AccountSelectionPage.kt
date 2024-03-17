@@ -21,7 +21,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.composable.rememberImagePainter
 import com.toasterofbread.spmp.resources.getString
-import okhttp3.Headers
+import com.toasterofbread.spmp.youtubeapi.AccountSwitcherEndpoint
+import io.ktor.http.Headers
 
 internal data class AccountSelectionData(val accounts: List<AccountSwitcherEndpoint.AccountItem>, val headers: Headers)
 

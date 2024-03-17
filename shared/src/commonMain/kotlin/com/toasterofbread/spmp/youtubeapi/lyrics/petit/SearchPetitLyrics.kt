@@ -1,31 +1,35 @@
 package com.toasterofbread.spmp.youtubeapi.lyrics.petit
 
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
-import com.toasterofbread.spmp.youtubeapi.executeResult
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource.SearchResult
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.request.get
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import org.jsoup.Jsoup
 
 private const val SEARCH_RESULT_START = "<a href=\"/lyrics/"
 private const val SEARCH_RESULT_END = "</a>"
 private const val SEARCH_RESULT_SYNC_TYPE_START = "<span class=\"lyrics-list-sync "
 
-internal suspend fun searchPetitLyrics(params: String): Result<List<SearchResult>> = withContext(Dispatchers.IO) {
-    val request = Request.Builder()
-        .url("https://petitlyrics.com/search_lyrics$params")
-        .header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/114.0")
-        .build()
+internal suspend fun searchPetitLyrics(
+    title: String,
+    artist: String? = null
+): Result<List<SearchResult>> = runCatching {
+    val response: HttpResponse =
+        HttpClient(CIO).get("https://petitlyrics.com/search_lyrics") {
+            url {
+                parameters.append("title", title)
+                if (artist != null) {
+                    parameters.append("artist", artist)
+                }
+            }
 
-    val result = OkHttpClient().executeResult(request)
-    val response = result.fold(
-        { it },
-        { return@withContext Result.failure(it) }
-    )
+            headers.append("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/114.0")
+        }
 
-    val ret = mutableListOf<SearchResult>()
+    val ret: MutableList<SearchResult> = mutableListOf()
 
     var r_id: Int? = null
     var r_name: String? = null
@@ -33,7 +37,7 @@ internal suspend fun searchPetitLyrics(params: String): Result<List<SearchResult
     var r_artist_name: String? = null
     var r_album_name: String? = null
 
-    val lines = response.body!!.string().split('\n')
+    val lines: List<String> = response.bodyAsText().split('\n')
     for (element in lines) {
         val line = element.trim()
 
@@ -97,5 +101,5 @@ internal suspend fun searchPetitLyrics(params: String): Result<List<SearchResult
         )
     }
 
-    return@withContext Result.success(ret)
+    return@runCatching ret
 }

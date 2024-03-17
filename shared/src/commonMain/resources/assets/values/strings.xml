@@ -267,7 +267,6 @@
     <string name="report_error">Report</string>
     <string name="wrap_text_switch_label">Wrap text</string>
     <string name="upload_to_paste_dot_ee">Upload to Paste.ee</string>
-    <string name="error_info_display_show_json_data">Show JSON data</string>
 
     <string name="lpm_action_radio">Start radio</string>
     <string name="lpm_action_play">Play</string>
@@ -752,7 +751,7 @@
         <item>Go to the network tab</item>
         <item>Go to https://music.youtube.com/</item>
         <item>Find any POST request to https://music.youtube.com/youtubei/v1/... such as /browse or /account_menu</item>
-        <item>Right-click the request and selecting 'Copy' (or 'Copy value') and then 'Copy as cURL' to copy the request headers, then paste them below</item>
+        <item>Right-click the request and select 'Copy' (or 'Copy value') and then 'Copy as cURL' to copy the request headers, then paste them below</item>
     </string-array>
     <string name="youtube_manual_login_suffix"></string>
     <string name="youtube_manual_login_field">Headers</string>
@@ -764,6 +763,8 @@
     <string name="youtube_channel_creation_title">Register YouTube Music profile</string>
     <string name="youtube_channel_creation_subtitle">This can also be done on https://music.youtube.com/ by logging in and going to 'Your channel'</string>
     <string name="youtube_channel_creation_confirm">Create</string>
+    <string name="youtube_channel_creation_field_given_name">Given name</string>
+    <string name="youtube_channel_creation_field_family_name">Family name</string>
 
     <string name="manual_login_error_missing_following_headers">Missing the following headers:</string>
     <string name="manual_login_desktop_browser_may_be_needed">You may need to use a desktop browser to complete these steps</string>

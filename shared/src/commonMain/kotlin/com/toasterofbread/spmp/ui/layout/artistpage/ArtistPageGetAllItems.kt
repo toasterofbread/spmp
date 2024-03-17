@@ -2,10 +2,11 @@ package com.toasterofbread.spmp.ui.layout.artistpage
 
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
-import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
+import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsRow
+import dev.toastbits.ytmkt.endpoint.ArtistWithParamsRow
+import dev.toastbits.ytmkt.model.external.ItemLayoutType
 
 internal fun artistPageGetAllItems(player: PlayerState, browse_params_rows: List<ArtistWithParamsRow>?, item_layouts: List<ArtistLayout>?): List<List<MultiSelectItem>> {
     if (browse_params_rows == null) {
@@ -13,7 +14,7 @@ internal fun artistPageGetAllItems(player: PlayerState, browse_params_rows: List
         for (layout in item_layouts ?: emptyList()) {
             val items: List<MediaItem> = layout.Items.get(player.database) ?: continue
             val include_index: Boolean = when (layout.Type.get(player.database)) {
-                MediaItemLayout.Type.LIST, MediaItemLayout.Type.NUMBERED_LIST -> true
+                ItemLayoutType.LIST, ItemLayoutType.NUMBERED_LIST -> true
                 else -> false
             }
             

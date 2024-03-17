@@ -152,7 +152,6 @@
     <string name="throw_error">Rzut</string>
     <string name="wrap_text_switch_label">Zawijaj tekst</string>
     <string name="upload_to_paste_dot_ee">Prześlij do Paste.ee</string>
-    <string name="error_info_display_show_json_data">Pokaż dane JSON</string>
 
     <string name="lpm_action_radio">Uruchom radio</string>
     <string name="lpm_action_play">Odtwórz</string>

@@ -32,7 +32,7 @@ sealed interface LocalPlaylist: Playlist {
 
     override suspend fun setActiveTitle(value: String?, context: AppContext) {
         val data: LocalPlaylistData = loadData(context).getOrNull() ?: return
-        data.title = value
+        data.name = value
 
         val file = MediaItemLibrary.getLocalPlaylistFile(this, context)
         data.saveToFile(file, context)

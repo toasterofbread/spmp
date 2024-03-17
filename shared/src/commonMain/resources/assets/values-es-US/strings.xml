@@ -39,7 +39,6 @@
 	<string name="edit_$x_title_dialog_title">Editar título de $x</string>
 	<string name="err_root_not_granted">No se pudieron obtener privilegios root</string>
 	<string name="err_secure_settings_grant_failed">Error al otorgar permisos de configuración segura</string>
-	<string name="error_info_display_show_json_data">Mostrar datos JSON</string>
 	<string name="error_message_generic">Se ha producido un error</string>
 	<string name="error_player_service_not_connected">El servicio del reproductor no se conecta\nQuizás ocurrido un error</string>
 	<string name="error_yt_feed_parse_failed">Falló el análisis del feed de YouTube</string>

@@ -35,26 +35,24 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.isMediaItemHidden
 import com.toasterofbread.spmp.model.mediaitem.db.rememberThemeColour
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
-import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.TitleBar
+import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.toMediaItemRef
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
@@ -65,6 +63,7 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLon
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getThumbShape
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -77,7 +76,7 @@ fun MediaItemCard(
     val player: PlayerState = LocalPlayerState.current
     val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
-    val item: MediaItem = layout.items.first()
+    val item: MediaItem = remember(layout) { layout.items.first().toMediaItemRef() }
     if (apply_filter && isMediaItemHidden(item, player.database)) {
         return
     }
@@ -110,7 +109,7 @@ fun MediaItemCard(
         ) {
             layout.TitleBar(Modifier.fillMaxWidth().weight(1f), multiselect_context = multiselect_context)
 
-            val playlist_type: State<PlaylistType?>? =
+            val playlist_type: State<YtmPlaylist.Type?>? =
                 if (item is RemotePlaylist) item.TypeOfPlaylist.observe(player.database)
                 else null
 
@@ -126,11 +125,13 @@ fun MediaItemCard(
                     is Artist -> Icons.Filled.Person
                     is RemotePlaylist -> {
                         when (playlist_type?.value) {
-                            PlaylistType.PLAYLIST, PlaylistType.LOCAL, null -> Icons.Filled.PlaylistPlay
-                            PlaylistType.ALBUM -> Icons.Filled.Album
-                            PlaylistType.AUDIOBOOK -> Icons.Filled.Book
-                            PlaylistType.PODCAST -> Icons.Filled.Podcasts
-                            PlaylistType.RADIO -> Icons.Filled.Radio
+                            YtmPlaylist.Type.PLAYLIST,
+                            YtmPlaylist.Type.LOCAL,
+                            null -> Icons.Filled.PlaylistPlay
+                            YtmPlaylist.Type.ALBUM -> Icons.Filled.Album
+                            YtmPlaylist.Type.AUDIOBOOK -> Icons.Filled.Book
+                            YtmPlaylist.Type.PODCAST -> Icons.Filled.Podcasts
+                            YtmPlaylist.Type.RADIO -> Icons.Filled.Radio
                         }
                     }
 
@@ -149,7 +150,7 @@ fun MediaItemCard(
         ) {
             Box(Modifier.width(IntrinsicSize.Min).height(IntrinsicSize.Min)) {
                 item.Thumbnail(
-                    MediaItemThumbnailProvider.Quality.HIGH,
+                    ThumbnailProvider.Quality.HIGH,
                     Modifier
                         .longPressMenuIcon(long_press_menu_data)
                         .size(100.dp),

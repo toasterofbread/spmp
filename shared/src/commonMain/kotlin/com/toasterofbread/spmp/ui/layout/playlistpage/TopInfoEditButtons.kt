@@ -28,11 +28,15 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.downloadAsLocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.uploadAsAccountPlaylist
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
+import com.toasterofbread.spmp.platform.getOrNotify
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.launch
+import LocalPlayerState
 
 @Composable
-internal fun PlaylistPage.PlaylistTopInfoEditButtons(modifier: Modifier = Modifier) {
+internal fun PlaylistAppPage.PlaylistTopInfoEditButtons(modifier: Modifier = Modifier) {
+    val player: PlayerState = LocalPlayerState.current
+
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
         IconButton({
             finishEdit()
@@ -75,8 +79,8 @@ internal fun PlaylistPage.PlaylistTopInfoEditButtons(modifier: Modifier = Modifi
                             conversion_coroutine_scope.launch {
                                 conversion_in_progress = true
 
-                                val uploaded_playlist: Playlist? = playlist.uploadAsAccountPlaylist(auth_state)
-                                    .getOrReport(player.context, "ConvertPlaylistToAccountPlaylist")
+                                val uploaded_playlist: Playlist? = playlist.uploadAsAccountPlaylist(player.context, auth_state)
+                                    .getOrNotify(player.context, "ConvertPlaylistToAccountPlaylist")
 
                                 if (uploaded_playlist != null) {
                                     player.openMediaItem(uploaded_playlist, replace_current = true)
@@ -98,7 +102,7 @@ internal fun PlaylistPage.PlaylistTopInfoEditButtons(modifier: Modifier = Modifi
                         conversion_in_progress = true
 
                         val local_playlist: LocalPlaylistData? = playlist.downloadAsLocalPlaylist(player.context)
-                            .getOrReport(player.context, "ConvertPlaylistToLocalPlaylist")
+                            .getOrNotify(player.context, "ConvertPlaylistToLocalPlaylist")
 
                         if (local_playlist != null) {
                             player.openMediaItem(local_playlist, replace_current = true)

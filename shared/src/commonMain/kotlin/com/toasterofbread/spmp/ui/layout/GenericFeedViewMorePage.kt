@@ -2,7 +2,6 @@ package com.toasterofbread.spmp.ui.layout
 
 import LocalPlayerState
 import SpMp.isDebugBuild
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,14 +36,16 @@ import com.toasterofbread.composekit.utils.modifier.horizontal
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
 import com.toasterofbread.spmp.model.mediaitem.layout.getMediaItemPreviewSquareAdditionalHeight
+import com.toasterofbread.spmp.model.mediaitem.toMediaItemData
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.settings.category.TopBarSettings
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_SQUARE_DEFAULT_MAX_LINES
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlin.math.absoluteValue
 
 @Composable
@@ -55,7 +56,21 @@ fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, co
     var items_result: Result<List<MediaItem>>? by remember { mutableStateOf(null) }
     LaunchedEffect(browse_id) {
         items_result = null
-        items_result = player.context.ytapi.GenericFeedViewMorePage.getGenericFeedViewMorePage(browse_id)
+        items_result =
+            player.context.ytapi.GenericFeedViewMorePage.getGenericFeedViewMorePage(browse_id).fold(
+                {
+                    val item_data: List<MediaItemData> = player.database.transactionWithResult {
+                        it.map {
+                            val data: MediaItemData = it.toMediaItemData()
+                            data.saveToDatabase(player.database)
+                            return@map data
+                        }
+                    }
+
+                    Result.success(item_data)
+                },
+                { Result.failure(it) }
+            )
     }
 
     Column(modifier) {

@@ -15,6 +15,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter.saveToFile
 import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -47,7 +48,7 @@ suspend fun MediaItem.incrementPlayCount(context: AppContext, by: Int = 1): Resu
     }
 }
 
-fun MediaItem.getPlayCount(db: Database, range_days: Long? = null): Int {
+fun YtmMediaItem.getPlayCount(db: Database, range_days: Long? = null): Int {
     if (this is LocalPlaylistData) {
         return play_count
     }

@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.maintab
 
 import LocalPlayerState
+import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.Icon
@@ -20,7 +21,6 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.theme.appHover
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 
 internal object NowPlayingMainTabActionButtons {
     @Composable
@@ -30,7 +30,7 @@ internal object NowPlayingMainTabActionButtons {
         }
         
         val player: PlayerState = LocalPlayerState.current
-        val auth_state: YoutubeApi.UserAuthState? = player.context.ytapi.user_auth_state
+        val auth_state: ApiAuthenticationState? = player.context.ytapi.user_auth_state
 
         LikeDislikeButton(
             song,

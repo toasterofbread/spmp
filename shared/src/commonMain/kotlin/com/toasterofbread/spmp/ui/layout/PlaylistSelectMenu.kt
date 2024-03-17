@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout
 
 import LocalPlayerState
+import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,12 +31,11 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.rememberOwnedPlaylists
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 
 @Composable
 fun PlaylistSelectMenu(
     selected: SnapshotStateList<Playlist>,
-    auth_state: YoutubeApi.UserAuthState?,
+    auth_state: ApiAuthenticationState?,
     modifier: Modifier = Modifier
 ) {
     val player = LocalPlayerState.current
@@ -44,8 +44,8 @@ fun PlaylistSelectMenu(
     var loading by remember { mutableStateOf(false) }
 
     val local_playlists: List<Playlist> = MediaItemLibrary.rememberLocalPlaylists(player.context) ?: emptyList()
-    val account_playlists: List<Playlist>? = auth_state?.own_channel?.let { channel ->
-        rememberOwnedPlaylists(channel, player.context)
+    val account_playlists: List<Playlist>? = auth_state?.own_channel_id?.let { channel_id ->
+        rememberOwnedPlaylists(channel_id, player.context)
     }
 
     fun refreshAccountPlaylists() {

@@ -7,10 +7,10 @@ import com.toasterofbread.composekit.settings.ui.item.ToggleSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.model.settings.category.StreamingSettings
+import com.toasterofbread.spmp.model.settings.category.VideoFormatsEndpointType
 import com.toasterofbread.spmp.platform.download.DownloadMethod
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
-import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpointType
 
 internal fun getStreamingCategoryItems(): List<SettingsItem> {
     return listOf(

@@ -11,7 +11,8 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
-import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.ContinuableMediaItemLayout
+import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
@@ -21,7 +22,10 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
+import com.toasterofbread.spmp.youtubeapi.SpMpYoutubeiApi
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmSong
+import dev.toastbits.ytmkt.radio.RadioContinuation
 import java.util.concurrent.locks.ReentrantLock
 
 internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
@@ -47,16 +51,36 @@ internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
             else -> throw NotImplementedError(item::class.toString())
         }
 
-    suspend fun loadSong(song: SongData, context: AppContext, save: Boolean = true): Result<SongData> {
+    suspend fun loadSong(
+        song: SongData,
+        context: AppContext,
+        save: Boolean = true
+    ): Result<SongData> {
         return loadItem(song, loading_songs, song_lock, context, save)
     }
-    suspend fun loadArtist(artist: ArtistData, context: AppContext, save: Boolean = true): Result<ArtistData> {
+
+    suspend fun loadArtist(
+        artist: ArtistData,
+        context: AppContext,
+        save: Boolean = true
+    ): Result<ArtistData> {
         return loadItem(artist, loading_artists, artist_lock, context, save)
     }
-    suspend fun loadRemotePlaylist(playlist: RemotePlaylistData, context: AppContext, save: Boolean = true, continuation: MediaItemLayout.Continuation? = null): Result<RemotePlaylistData> {
+
+    suspend fun loadRemotePlaylist(
+        playlist: RemotePlaylistData,
+        context: AppContext,
+        save: Boolean = true,
+        continuation: RadioContinuation? = null
+    ): Result<RemotePlaylistData> {
         return loadItem(playlist, loading_remote_playlists, playlist_lock, context, save, continuation)
     }
-    suspend fun loadLocalPlaylist(playlist: LocalPlaylistData, context: AppContext, save: Boolean = true): Result<LocalPlaylistData> {
+
+    suspend fun loadLocalPlaylist(
+        playlist: LocalPlaylistData,
+        context: AppContext,
+        save: Boolean = true
+    ): Result<LocalPlaylistData> {
         return loadItem(playlist, loading_local_playlists, playlist_lock, context, save)
     }
 
@@ -80,55 +104,39 @@ internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
         lock: ReentrantLock,
         context: AppContext,
         save: Boolean,
-        continuation: MediaItemLayout.Continuation? = null
-    ): Result<ItemType> {
-        return performSafeLoad(
+        continuation: RadioContinuation? = null
+    ): Result<ItemType> =
+        performSafeLoad(
             item.id,
             lock,
             loading_items,
             listeners = listeners
-        ) {
-            val result: Result<ItemType> = when (item) {
+        ) { runCatching {
+            val api: SpMpYoutubeiApi = context.ytapi as SpMpYoutubeiApi
+
+            when (item) {
                 is SongData -> {
-                    with(context.ytapi.LoadSong) {
-                        if (!isImplemented()) {
-                            return@performSafeLoad Result.failure(EndpointNotImplementedException(this))
-                        }
-                        loadSong(item, save) as Result<ItemType>
-                    }
+                    val song_data: SongData = api.LoadSong.loadSongData(item.id, save = save).getOrThrow()
+                    song_data.loaded = true
+                    return@runCatching song_data as ItemType
                 }
                 is ArtistData -> {
-                    with(context.ytapi.LoadArtist) {
-                        if (!isImplemented()) {
-                            return@performSafeLoad Result.failure(EndpointNotImplementedException(this))
-                        }
-                        loadArtist(item, save) as Result<ItemType>
-                    }
+                    val artist_data: ArtistData = api.LoadArtist.loadArtistData(item.id, save = save).getOrThrow()
+                    artist_data.loaded = true
+                    return@runCatching artist_data as ItemType
                 }
                 is RemotePlaylistData -> {
-                    with(context.ytapi.LoadPlaylist) {
-                        if (!isImplemented()) {
-                            return@performSafeLoad Result.failure(EndpointNotImplementedException(this))
-                        }
-                        loadPlaylist(item, save, continuation) as Result<ItemType>
-                    }
+                    val playlist_data: RemotePlaylistData = api.LoadPlaylist.loadPlaylistData(item.id, continuation, save = save).getOrThrow()
+                    playlist_data.loaded = true
+                    return@runCatching playlist_data as ItemType
                 }
                 is LocalPlaylistData -> {
-                    kotlin.runCatching {
-                        val file = MediaItemLibrary.getLocalPlaylistFile(item, context)
-                        PlaylistFileConverter.loadFromFile(file, context, save = save)
-                    } as Result<ItemType>
+                    val file = MediaItemLibrary.getLocalPlaylistFile(item, context)
+                    return@runCatching PlaylistFileConverter.loadFromFile(file, context, save = save) as ItemType
                 }
                 else -> throw NotImplementedError(item::class.toString())
             }
-
-            return@performSafeLoad result.fold(
-                { Result.success(item) },
-                { Result.failure(it) }
-            )
-        }
-    }
-
+        } }
 }
 
 @Composable

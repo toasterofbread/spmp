@@ -16,19 +16,23 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.getUiLanguage
-import com.toasterofbread.spmp.resources.uilocalisation.durationToString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getLongPressMenuData
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.ytmkt.uistrings.durationToString
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.detectReorder
+import LocalPlayerState
 
-internal fun PlaylistPage.PlaylistItems(
+internal fun PlaylistAppPage.PlaylistItems(
     list_scope: LazyListScope,
     list_state: ReorderableLazyListState,
     sorted_items: List<Pair<MediaItem, Int>>?
 ) {
     list_scope.itemsIndexed(sorted_items ?: emptyList(), key = { _, item -> item.second }) { i, data ->
+        val player: PlayerState = LocalPlayerState.current
+
         val (item, index) = data
         check(item is Song)
 

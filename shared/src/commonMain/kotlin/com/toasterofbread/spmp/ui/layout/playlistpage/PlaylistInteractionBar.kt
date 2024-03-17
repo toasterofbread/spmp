@@ -23,7 +23,7 @@ import com.toasterofbread.spmp.ui.component.WaveBorder
 import kotlinx.coroutines.launch
 
 @Composable
-internal fun PlaylistPage.PlaylistInteractionBar(
+internal fun PlaylistAppPage.PlaylistInteractionBar(
     items: List<Pair<MediaItem, Int>>?,
     list_state: LazyListState,
     loading: Boolean,
@@ -75,17 +75,13 @@ internal fun PlaylistPage.PlaylistInteractionBar(
                                     SubtleLoadingIndicator()
                                 }
 
-                                playlist_editor?.also { editor ->
+                                if (playlist_editor != null) {
                                     // Reorder
-                                    AnimatedVisibility(editor.canMoveItems()) {
-                                        IconButton({
-                                            if (editor.canMoveItems()) {
-                                                setReorderable(!reordering)
-                                            }
-                                        }) {
-                                            Crossfade(reordering) { reordering ->
-                                                Icon(if (reordering) Icons.Default.Done else Icons.Default.Reorder, null)
-                                            }
+                                    IconButton({
+                                        setReorderable(!reordering)
+                                    }) {
+                                        Crossfade(reordering) { reordering ->
+                                            Icon(if (reordering) Icons.Default.Done else Icons.Default.Reorder, null)
                                         }
                                     }
                                 }

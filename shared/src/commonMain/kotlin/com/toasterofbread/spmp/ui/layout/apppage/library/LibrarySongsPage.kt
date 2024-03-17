@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.ui.layout.apppage.library
 
 import LocalPlayerState
 import SpMp.isDebugBuild
+import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
@@ -43,15 +44,14 @@ import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.platform.download.rememberSongDownloads
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.resources.uilocalisation.durationToString
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
-import com.toasterofbread.spmp.youtubeapi.endpoint.LoadPlaylistEndpoint
-import com.toasterofbread.spmp.youtubeapi.implementedOrNull
+import dev.toastbits.ytmkt.endpoint.LoadPlaylistEndpoint
+import dev.toastbits.ytmkt.model.implementedOrNull
+import dev.toastbits.ytmkt.uistrings.durationToString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -78,7 +78,7 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
         modifier: Modifier
     ) {
         val player: PlayerState = LocalPlayerState.current
-        val auth_state: YoutubeApi.UserAuthState? = player.context.ytapi.user_auth_state
+        val auth_state: ApiAuthenticationState? = player.context.ytapi.user_auth_state
 
         val downloads: List<DownloadStatus> by rememberSongDownloads()
         val local_liked_songs: List<Song>? by rememberLocalLikedSongs()
@@ -202,7 +202,7 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
     @Composable
     override fun SideContent(showing_alt_content: Boolean) {
         val player: PlayerState = LocalPlayerState.current
-        val auth_state: YoutubeApi.UserAuthState? = player.context.ytapi.user_auth_state
+        val auth_state: ApiAuthenticationState? = player.context.ytapi.user_auth_state
 
         val load_endpoint: LoadPlaylistEndpoint? = player.context.ytapi.LoadPlaylist.implementedOrNull()
 

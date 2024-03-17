@@ -87,40 +87,40 @@ open class PropertyRememberer {
     }
 
     fun <T> rememberLocalListProperty(
-        key: String,
+        list_key: String,
         getValue: () -> List<T>
     ): ListProperty<T> {
-        return properties.getOrPut(key) {
+        return properties.getOrPut(list_key) {
             object : ListProperty<T> {
                 override fun get(db: Database): List<T>? {
-                    onRead(key)
+                    onRead(list_key)
                     return getValue()
                 }
 
                 @Composable
-                override fun observe(db: Database): State<List<T>?> {
-                    onRead(key)
-                    return remember { mutableStateOf(getValue()) }
+                override fun observe(db: Database, key: Any): State<List<T>?> {
+                    onRead(list_key)
+                    return remember(key) { mutableStateOf(getValue()) }
                 }
 
                 override fun removeItem(index: Int, db: Database) {
-                    onWrite(key)
-                    throw NotImplementedError(key)
+                    onWrite(list_key)
+                    throw NotImplementedError(list_key)
                 }
 
                 override fun moveItem(from: Int, to: Int, db: Database) {
-                    onWrite(key)
-                    throw NotImplementedError(key)
+                    onWrite(list_key)
+                    throw NotImplementedError(list_key)
                 }
 
                 override fun addItem(item: T, index: Int?, db: Database) {
-                    onWrite(key)
-                    throw NotImplementedError(key)
+                    onWrite(list_key)
+                    throw NotImplementedError(list_key)
                 }
 
                 override fun overwriteItems(items: List<T>, db: Database) {
-                    onWrite(key)
-                    throw NotImplementedError(key)
+                    onWrite(list_key)
+                    throw NotImplementedError(list_key)
                 }
             }
         } as ListProperty<T>

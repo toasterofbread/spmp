@@ -38,7 +38,7 @@ import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.composekit.utils.composable.OnChangedEffect
 import com.toasterofbread.composekit.utils.modifier.background
 import com.toasterofbread.composekit.utils.modifier.disableParentScroll
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.observeThumbnailRounding
@@ -52,7 +52,6 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.EXPANDED_THRESHOLD
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.OVERLAY_MENU_ANIMATION_DURATION
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.*
-import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 import kotlin.math.absoluteValue
 import kotlin.math.min
 
@@ -170,13 +169,7 @@ fun SmallThumbnailRow(
                         player.openNpOverlayMenu(PlayerOverlayMenu.getLyricsMenu())
                     }
                     PlayerOverlayMenuAction.OPEN_RELATED -> {
-                        val related_endpoint = player.context.ytapi.SongRelatedContent
-                        if (related_endpoint.isImplemented()) {
-                            player.openNpOverlayMenu(RelatedContentPlayerOverlayMenu(related_endpoint))
-                        }
-                        else {
-                            throw EndpointNotImplementedException(related_endpoint)
-                        }
+                        player.openNpOverlayMenu(RelatedContentPlayerOverlayMenu(player.context.ytapi.SongRelatedContent))
                     }
                     PlayerOverlayMenuAction.DOWNLOAD -> {
                         current_song?.also { song ->
@@ -192,7 +185,7 @@ fun SmallThumbnailRow(
                 }
 
                 song.Thumbnail(
-                    MediaItemThumbnailProvider.Quality.HIGH,
+                    ThumbnailProvider.Quality.HIGH,
                     getContentColour = { player.getNPOnBackground() },
                     onLoaded = {
                         current_thumb_image = it

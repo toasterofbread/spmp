@@ -1,18 +1,17 @@
 package com.toasterofbread.spmp.model.settings.category
 
-import com.google.gson.Gson
+import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.ProjectBuildConfig
-import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.SettingsKey
+import com.toasterofbread.spmp.model.settings.packSetData
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.getYtmAuthItem
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
-import com.toasterofbread.spmp.youtubeapi.fromJson
-import okhttp3.Headers.Companion.toHeaders
+import io.ktor.http.Headers
+import kotlinx.serialization.json.Json
 
 data object YoutubeAuthSettings: SettingsCategory("ytauth") {
     override val keys: List<SettingsKey> = Key.entries.toList() + listOf(SystemSettings.Key.ADD_SONGS_TO_HISTORY)
@@ -41,9 +40,14 @@ data object YoutubeAuthSettings: SettingsCategory("ytauth") {
                 YTM_AUTH -> {
                     with(ProjectBuildConfig) {
                         if (YTM_CHANNEL_ID != null && YTM_HEADERS != null)
-                            YoutubeApi.UserAuthState.packSetData(
-                                ArtistRef(YTM_CHANNEL_ID),
-                                Gson().fromJson<Map<String, String>>(YTM_HEADERS.reader()).toHeaders()
+                            ApiAuthenticationState.packSetData(
+                                YTM_CHANNEL_ID,
+                                Headers.build {
+                                    val headers: Map<String, String> = Json.decodeFromString(YTM_HEADERS)
+                                    for ((key, value) in headers) {
+                                        append(key, value)
+                                    }
+                                }
                             )
                         else emptySet()
                     }

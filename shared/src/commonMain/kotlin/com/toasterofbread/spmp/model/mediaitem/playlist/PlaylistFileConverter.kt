@@ -3,7 +3,7 @@ package com.toasterofbread.spmp.model.mediaitem.playlist
 import SpMp
 import com.toasterofbread.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.db.getPlayCount
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
@@ -24,7 +24,7 @@ object PlaylistFileConverter {
             buildString {
                 appendLine("#EXTM3U")
 
-                val title: String? = playlist.title
+                val title: String? = playlist.name
                 if (title != null) {
                     appendLine("#PLAYLIST:$title")
                 }
@@ -39,7 +39,7 @@ object PlaylistFileConverter {
                     appendLine("#SORTTYPE:${sort_type.ordinal}")
                 }
 
-                val image_url: String? = playlist.custom_image_url ?: playlist.thumbnail_provider?.getThumbnailUrl(MediaItemThumbnailProvider.Quality.HIGH)
+                val image_url: String? = playlist.custom_image_url ?: playlist.thumbnail_provider?.getThumbnailUrl(ThumbnailProvider.Quality.HIGH)
                 if (image_url != null) {
                     appendLine("#IMAGE:$image_url")
                 }
@@ -125,7 +125,7 @@ object PlaylistFileConverter {
                         val line_split: List<String> = line.split(':', limit = 2)
 
                         when (line_split[0]) {
-                            "#PLAYLIST" -> playlist.title = line_split[1]
+                            "#PLAYLIST" -> playlist.name = line_split[1]
                             "#PLAYCOUNT" -> playlist.play_count = line_split[1].toInt()
                             "#SORTTYPE" -> playlist.sort_type = MediaItemSortType.entries[line_split[1].toInt()]
                             "#IMAGE" -> playlist.custom_image_url = line_split[1]
@@ -144,7 +144,7 @@ object PlaylistFileConverter {
 
                                 val song_title: String? = split.getOrNull(1)
                                 if (song_title != null) {
-                                    current_song.title = song_title
+                                    current_song.name = song_title
                                 }
                             }
                         }
@@ -163,8 +163,8 @@ object PlaylistFileConverter {
             }
         }
 
-        if (playlist.title == null) {
-            playlist.title = getString("new_playlist_title")
+        if (playlist.name == null) {
+            playlist.name = getString("new_playlist_title")
         }
 
         if (save) {

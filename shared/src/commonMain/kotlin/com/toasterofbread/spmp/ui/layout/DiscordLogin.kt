@@ -35,7 +35,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.google.gson.Gson
 import com.toasterofbread.composekit.platform.composable.rememberImagePainter
 import com.toasterofbread.composekit.utils.composable.LinkifyText
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
@@ -45,18 +44,11 @@ import com.toasterofbread.spmp.platform.getDiscordAccountInfo
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.youtubeapi.executeResult
-import com.toasterofbread.spmp.youtubeapi.fromJson
-import com.toasterofbread.spmp.youtubeapi.fromMap
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
-import java.io.Reader
 import androidx.compose.foundation.layout.PaddingValues
+import com.toasterofbread.spmp.platform.getOrNotify
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.encodeToJsonElement
 
 private const val DISCORD_LOGIN_URL = "https://discord.com/login"
 private const val DISCORD_API_URL = "https://discord.com/api/"
@@ -132,7 +124,7 @@ private val DiscordMeResponseSaver: Saver<DiscordMeResponse?, Any> = run {
             )}
         },
         restore = { map: Map<String, Any?> ->
-            Gson().fromMap(map)
+            Json.decodeFromJsonElement(Json.encodeToJsonElement(map))
         }
     )
 }
@@ -150,7 +142,7 @@ fun DiscordAccountPreview(account_token: String, modifier: Modifier = Modifier) 
             account_info = DiscordMeResponse.EMPTY
             loading = true
             started = true
-            account_info = getDiscordAccountInfo(account_token).getOrReport(player.context, "DiscordAccountPreview") ?: DiscordMeResponse.EMPTY
+            account_info = getDiscordAccountInfo(account_token).getOrNotify(player.context, "DiscordAccountPreview") ?: DiscordMeResponse.EMPTY
         }
         loading = false
     }

@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.artistpage
 
 import LocalPlayerState
+import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import androidx.compose.animation.Crossfade
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PersonRemove
@@ -21,14 +22,12 @@ import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.updateSubscribed
 import com.toasterofbread.spmp.model.mediaitem.loader.ArtistSubscribedLoader
 import com.toasterofbread.spmp.resources.getStringTODO
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.isOwnChannel
 import kotlinx.coroutines.launch
 
 @Composable
 fun ArtistSubscribeButton(
     artist: Artist,
-    auth_state: YoutubeApi.UserAuthState,
+    auth_state: ApiAuthenticationState,
     modifier: Modifier = Modifier,
     getAccentColour: (() -> Color)? = null,
     icon_modifier: Modifier = Modifier
@@ -42,7 +41,7 @@ fun ArtistSubscribeButton(
     LaunchedEffect(artist.id) {
         assert(!artist.isForItem()) { artist.toString() }
 
-        if (!artist.isOwnChannel(auth_state.api)) {
+        if (artist.id != auth_state.own_channel_id) {
             coroutine_scope.launch {
                 ArtistSubscribedLoader.loadArtistSubscribed(artist, player.context)
             }

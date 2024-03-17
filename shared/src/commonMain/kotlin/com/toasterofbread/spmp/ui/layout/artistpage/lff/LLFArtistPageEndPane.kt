@@ -5,6 +5,7 @@ import SpMp.isDebugBuild
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -16,14 +17,18 @@ import com.toasterofbread.composekit.platform.composable.ScrollBarLazyColumn
 import com.toasterofbread.composekit.utils.common.copy
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.composekit.utils.modifier.vertical
+import com.toasterofbread.spmp.model.mediaitem.MediaItemRef
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
-import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.Layout
+import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.toMediaItemRef
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
-import com.toasterofbread.spmp.resources.uilocalisation.RawLocalisedString
-import com.toasterofbread.spmp.resources.uilocalisation.YoutubeLocalisedString
-import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
+import com.toasterofbread.spmp.model.MediaItemLayoutParams
+import com.toasterofbread.spmp.model.MediaItemGridParams
+import com.toasterofbread.spmp.model.MediaItemListParams
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
@@ -35,7 +40,11 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
 import com.toasterofbread.spmp.ui.layout.artistpage.artistPageGetAllItems
-import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsRow
+import dev.toastbits.ytmkt.endpoint.ArtistWithParamsRow
+import dev.toastbits.ytmkt.model.external.ItemLayoutType
+import dev.toastbits.ytmkt.uistrings.RawUiString
+import dev.toastbits.ytmkt.uistrings.YoutubeUILocalisation
+import dev.toastbits.ytmkt.uistrings.YoutubeUiString
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -103,15 +112,23 @@ internal fun ArtistAppPage.LFFArtistEndPane(
                 val row = browse_params_rows?.firstOrNull()
                 if (row != null) {
                     item {
+                        val items: List<MediaItem> = remember(row) {
+                            row.items.map { it.toMediaItemRef() }
+                        }
+
                         MediaItemList(
-                            row.items,
-                            Modifier.fillMaxHeight(),
-                            content_padding = PaddingValues(end = end_padding),
-                            title = row.title?.let { title ->
-                                RawLocalisedString(title)
-                            },
-                            multiselect_context = multiselect_context,
-                            play_as_list = true
+                            MediaItemLayoutParams(
+                                items = items,
+                                modifier = Modifier.fillMaxHeight(),
+                                content_padding = PaddingValues(end = end_padding),
+                                title = row.title?.let { title ->
+                                    RawUiString(title)
+                                },
+                                multiselect_context = multiselect_context
+                            ),
+                            list_params = MediaItemListParams(
+                                play_as_list = true
+                            )
                         )
                     }
                 }
@@ -123,9 +140,9 @@ internal fun ArtistAppPage.LFFArtistEndPane(
                         verticalArrangement = Arrangement.spacedBy(30.dp)
                     ) {
                         for (item_layout in item_layouts ?: emptyList()) {
-                            val layout: MediaItemLayout = item_layout.rememberMediaItemLayout(player.database)
+                            val layout: MediaItemLayout = item_layout.rememberMediaItemLayout(player.database).layout
 
-                            val layout_id: YoutubeUILocalisation.StringID? = (layout.title as? YoutubeLocalisedString)?.getYoutubeStringId()
+                            val layout_id: YoutubeUILocalisation.StringID? = (layout.title as? YoutubeUiString)?.getYoutubeStringId()
                             if (layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_ARTISTS) {
                                 continue
                             }
@@ -162,17 +179,22 @@ internal fun ArtistAppPage.LFFArtistEndPane(
                                         )
                                     }
                             )) {
-                                val type: MediaItemLayout.Type =
-                                    if (layout.type == null) MediaItemLayout.Type.GRID
-                                    else if (layout.type == MediaItemLayout.Type.NUMBERED_LIST) MediaItemLayout.Type.LIST
-                                    else layout.type
+                                val type: ItemLayoutType = layout.type.let { type ->
+                                    if (type == null) ItemLayoutType.GRID
+                                    else if (type == ItemLayoutType.NUMBERED_LIST) ItemLayoutType.LIST
+                                    else type
+                                }
 
                                 type.Layout(
                                     if (previous_item == null) layout else layout.copy(title = null, subtitle = null),
-                                    multiselect_context = multiselect_context,
-                                    apply_filter = apply_filter,
-                                    content_padding = PaddingValues(end = end_padding),
-                                    grid_rows = Pair(1, 1)
+                                    MediaItemLayoutParams(
+                                        multiselect_context = multiselect_context,
+                                        apply_filter = apply_filter,
+                                        content_padding = PaddingValues(end = end_padding)
+                                    ),
+                                    grid_params = MediaItemGridParams(
+                                        rows = Pair(1, 1)
+                                    )
                                 )
                             }
                         }

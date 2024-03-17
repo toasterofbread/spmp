@@ -51,16 +51,16 @@ class MainActivity : ComponentActivity() {
         }
 
         if (isDebugBuild()) {
-            StrictMode.setVmPolicy(VmPolicy.Builder()
-                .detectLeakedClosableObjects()
-                .penaltyLog()
-                .build()
+            StrictMode.setVmPolicy(
+                VmPolicy.Builder()
+                    .detectLeakedClosableObjects()
+                    .penaltyLog()
+                    .build()
             )
         }
 
         val context = AppContext(this, coroutine_scope, ApplicationContext(this))
         SpMp.init(context)
-        context.init()
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 

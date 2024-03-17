@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.platform.download
 
 import SpMp
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -93,6 +94,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
             }
         }
 
+        @SuppressLint("MissingPermission")
         suspend fun updateNotification() = withContext(Dispatchers.IO) {
             synchronized(downloads) {
                 if (downloads.isNotEmpty() && downloads.all { it.silent }) {

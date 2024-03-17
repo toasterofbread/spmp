@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.ui.layout.apppage.library
 import LocalPlayerState
 import SpMp
 import SpMp.isDebugBuild
+import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
@@ -24,13 +25,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.composekit.utils.composable.LoadActionIconButton
 import com.toasterofbread.composekit.utils.composable.spanItem
-import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
 import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
 import com.toasterofbread.spmp.model.mediaitem.layout.getMediaItemPreviewSquareAdditionalHeight
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
+import com.toasterofbread.spmp.model.mediaitem.playlist.toRemotePlaylistData
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
@@ -38,8 +38,8 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
-import com.toasterofbread.spmp.youtubeapi.endpoint.LikedAlbumsEndpoint
+import dev.toastbits.ytmkt.endpoint.LikedAlbumsEndpoint
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
 
 internal class LibraryAlbumsPage(context: AppContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =
@@ -61,7 +61,7 @@ internal class LibraryAlbumsPage(context: AppContext): LibrarySubPage(context) {
         modifier: Modifier
     ) {
         val player: PlayerState = LocalPlayerState.current
-        val auth_state: YoutubeApi.UserAuthState = player.context.ytapi.user_auth_state ?: return
+        val auth_state: ApiAuthenticationState = player.context.ytapi.user_auth_state ?: return
         
         val load_endpoint: LikedAlbumsEndpoint = auth_state.LikedAlbums
         if (!load_endpoint.isImplemented()) {
@@ -87,7 +87,7 @@ internal class LibraryAlbumsPage(context: AppContext): LibrarySubPage(context) {
             horizontalArrangement = Arrangement.spacedBy(item_spacing)
         ) {
             spanItem {
-                LibraryPageTitle(PlaylistType.ALBUM.getReadable(true))
+                LibraryPageTitle(YtmPlaylist.Type.ALBUM.getReadable(true))
             }
 
             load_error?.also { error ->
@@ -108,7 +108,7 @@ internal class LibraryAlbumsPage(context: AppContext): LibrarySubPage(context) {
     @Composable
     override fun SideContent(showing_alt_content: Boolean) {
         val player: PlayerState = LocalPlayerState.current
-        val auth_state: YoutubeApi.UserAuthState = player.context.ytapi.user_auth_state ?: return
+        val auth_state: ApiAuthenticationState = player.context.ytapi.user_auth_state ?: return
         
         val load_endpoint: LikedAlbumsEndpoint = auth_state.LikedAlbums
         if (!load_endpoint.isImplemented()) {
@@ -119,9 +119,9 @@ internal class LibraryAlbumsPage(context: AppContext): LibrarySubPage(context) {
             LoadActionIconButton(
                 {
                     load_endpoint.getLikedAlbums().fold(
-                        {
+                        { albums ->
                             load_error = null
-                            liked_albums = it
+                            liked_albums = albums.map { it.toRemotePlaylistData() }
                         },
                         { load_error = it }
                     )

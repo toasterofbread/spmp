@@ -30,16 +30,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
+import LocalPlayerState
 
 @Composable
-internal fun PlaylistPage.ThumbnailSelectionDialog(
+internal fun PlaylistAppPage.ThumbnailSelectionDialog(
     close: () -> Unit
 ) {
+    val player: PlayerState = LocalPlayerState.current
     var url_input_mode: Boolean by remember { mutableStateOf(false) }
     var url_input: String by remember(url_input_mode) { mutableStateOf("") }
 
@@ -112,7 +115,7 @@ internal fun PlaylistPage.ThumbnailSelectionDialog(
                                 onClickOverride = { item, _ ->
                                     setEditedImageUrl(
                                         item.ThumbnailProvider.get(player.database)
-                                            ?.getThumbnailUrl(MediaItemThumbnailProvider.Quality.HIGH)
+                                            ?.getThumbnailUrl(ThumbnailProvider.Quality.HIGH)
                                     )
                                     close()
                                 }

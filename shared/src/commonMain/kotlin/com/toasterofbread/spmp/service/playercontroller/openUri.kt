@@ -43,7 +43,12 @@ suspend fun PlayerState.openUri(uri_string: String): Result<Unit> {
     item.loadData(context, populate_data = false, force = true)
 
     withPlayer {
-        openMediaItem(item)
+        if (item is Song) {
+            playMediaItem(item)
+        }
+        else {
+            openMediaItem(item)
+        }
     }
 
     return Result.success(Unit)

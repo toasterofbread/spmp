@@ -93,16 +93,19 @@ fun Task.buildConfig(debug_mode: Boolean) {
 }
 
 val buildConfigDebug = tasks.register("buildConfigDebug") {
+    outputs.upToDateWhen { false }
     doFirst {
         buildConfig(debug_mode = true)
     }
 }
 val buildConfigRelease = tasks.register("buildConfigRelease") {
+    outputs.upToDateWhen { false }
     doFirst {
         buildConfig(debug_mode = false)
     }
 }
 val buildConfigDesktop = tasks.register("buildConfigDesktop") {
+    outputs.upToDateWhen { false }
     doFirst {
         var debug: Boolean = gradle.taskGraph.getAllTasks().none { task ->
             task.name.startsWith("packageRelease") || task.name == "runRelease"

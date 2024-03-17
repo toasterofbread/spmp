@@ -265,7 +265,6 @@
     <string name="report_error">Signaler</string>
     <string name="wrap_text_switch_label">Envelopper le texte</string>
     <string name="upload_to_paste_dot_ee">Télécharger sur Paste.ee</string>
-    <string name="error_info_display_show_json_data">Afficher les données JSON</string>
 
     <string name="lpm_action_radio">Démarrer la radio</string>
     <string name="lpm_action_play">Lecture</string>

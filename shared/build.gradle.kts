@@ -16,6 +16,9 @@ kotlin {
     jvm("desktop")
 
     sourceSets {
+        val ytmkt_version: String = extra["ytmkt.version"] as String
+        val ktor_version: String = extra["ktor.version"] as String
+
         commonMain {
             kotlin {
                 srcDir(rootProject.file("spmp-server/src/commonMain/kotlin/spms/socketapi/shared/"))
@@ -33,8 +36,6 @@ kotlin {
 
                 implementation(project(":ComposeKit:lib"))
 
-                implementation("com.squareup.okhttp3:okhttp:4.11.0")
-                implementation("com.google.code.gson:gson:2.10.1")
                 implementation("org.apache.commons:commons-text:1.10.0")
                 implementation("com.atilika.kuromoji:kuromoji-ipadic:0.9.0")
                 implementation("org.jsoup:jsoup:1.16.1")
@@ -45,8 +46,13 @@ kotlin {
                 implementation("org.kobjects.ktxml:core:0.2.3")
                 implementation("org.bitbucket.ijabz:jaudiotagger:v3.0.1")
                 implementation("com.github.teamnewpipe:NewPipeExtractor:v0.22.7")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
                 implementation("org.zeromq:jeromq:0.5.3")
+
+                implementation("io.ktor:ktor-client-core:$ktor_version")
+                implementation("io.ktor:ktor-client-cio:$ktor_version")
+                implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
+                implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
             }
 
             kotlin.srcDir(buildConfigDir)
@@ -76,6 +82,8 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.6.0")
                 implementation("io.github.jan-tennert.supabase:functions-kt:1.3.2")
                 implementation("io.ktor:ktor-client-cio:2.3.6")
+
+                implementation("dev.toastbits.ytm-kt:library-android:$ytmkt_version")
             }
         }
 
@@ -85,6 +93,8 @@ kotlin {
                 implementation("com.github.ltttttttttttt:load-the-image:1.0.5")
                 implementation("app.cash.sqldelight:sqlite-driver:2.0.0")
                 implementation("com.github.caoimhebyrne:KDiscordIPC:0.2.2")
+
+                implementation("dev.toastbits.ytm-kt:library-jvm:$ytmkt_version")
             }
         }
     }
@@ -102,6 +112,9 @@ android {
     sourceSets.getByName("main") {
         res.srcDirs("src/androidMain/res")
         resources.srcDirs("src/commonMain/resources")
+    }
+    defaultConfig {
+        minSdk = 23
     }
 }
 

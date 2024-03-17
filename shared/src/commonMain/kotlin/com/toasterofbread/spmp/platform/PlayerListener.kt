@@ -15,7 +15,7 @@ expect abstract class PlayerListener() {
     open fun onUndoStateChanged()
 
     open fun onSongAdded(index: Int, song: Song)
-    open fun onSongRemoved(index: Int)
+    open fun onSongRemoved(index: Int, song: Song)
     open fun onSongMoved(from: Int, to: Int)
 
     open fun onEvents()

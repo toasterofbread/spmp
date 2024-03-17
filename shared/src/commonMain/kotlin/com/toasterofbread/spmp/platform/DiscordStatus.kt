@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.platform
 
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 
 expect class DiscordStatus(
     context: AppContext,
@@ -37,7 +37,7 @@ expect class DiscordStatus(
         buttons: List<Pair<String, String>>? = null
     )
 
-    suspend fun getCustomImages(image_items: List<MediaItem>, target_quality: MediaItemThumbnailProvider.Quality): Result<List<String?>>
+    suspend fun getCustomImages(image_items: List<MediaItem>, target_quality: ThumbnailProvider.Quality): Result<List<String?>>
 }
 
 private const val DISCORD_DEFAULT_AVATAR = "https://discord.com/assets/1f0bfc0865d324c2587920a7d80c609b.png"

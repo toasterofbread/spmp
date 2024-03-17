@@ -31,7 +31,6 @@ import com.toasterofbread.composekit.utils.composable.getStart
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
-import com.toasterofbread.spmp.model.mediaitem.layout.BrowseParamsData
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.Settings
@@ -54,7 +53,7 @@ import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageWithItem
-import com.toasterofbread.spmp.ui.layout.apppage.MediaItemAppPage
+import com.toasterofbread.spmp.ui.layout.apppage.SongAppPage
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MainPageDisplay
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
@@ -63,6 +62,8 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNowPlayingVerticalPageCount
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
+import com.toasterofbread.spmp.ui.layout.playlistpage.PlaylistAppPage
+import dev.toastbits.ytmkt.model.external.YoutubePage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -292,7 +293,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
 
     fun openAppPage(page: AppPage?, from_current: Boolean = false, replace_current: Boolean = false) {
         if (page == app_page) {
-            page?.onReopened()
+            page.onReopened()
             return
         }
 
@@ -318,29 +319,31 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         item: MediaItem,
         from_current: Boolean = false,
         replace_current: Boolean = false,
-        browse_params: BrowseParamsData? = null
+        browse_params: YoutubePage.BrowseParamsData? = null
     ) {
         if (item is Artist && item.isForItem()) {
             return
         }
 
-        if (item is Song) {
-            withPlayer {
-                playSong(item, start_radio = false)
-            }
-            return
-        }
-
         val page: AppPageWithItem =
-            if (item is Artist)
-                ArtistAppPage(
-                    app_page_state,
-                    item,
-                    browse_params = browse_params?.let { params ->
-                        Pair(params, context.ytapi.ArtistWithParams)
-                    }
-                )
-            else MediaItemAppPage(app_page_state, item.getHolder(), browse_params)
+            when (item) {
+                is Song ->
+                    SongAppPage(app_page_state, item, browse_params)
+                is Artist ->
+                    ArtistAppPage(
+                        app_page_state,
+                        item,
+                        browse_params = browse_params?.let { params ->
+                            Pair(params, context.ytapi.ArtistWithParams)
+                        }
+                    )
+                is Playlist ->
+                    PlaylistAppPage(
+                        app_page_state,
+                        item
+                    )
+                else -> throw NotImplementedError(item::class.toString())
+            }
 
         openAppPage(page, from_current, replace_current)
     }
@@ -382,15 +385,11 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
             startRadioAtIndex(
                 0,
                 playlist,
-                onLoad =
-                    if (from_index <= 0) null
-                    else { success ->
-                        if (success) {
-                            withContext(Dispatchers.Main) {
-                                seekToSong(from_index)
-                            }
-                        }
+                onSuccessfulLoad = {
+                    if (from_index > 0) {
+                        seekToSong(from_index)
                     }
+                }
             )
         }
     }

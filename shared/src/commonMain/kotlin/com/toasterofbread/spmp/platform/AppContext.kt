@@ -9,11 +9,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.TypeAdapter
-import com.google.gson.stream.JsonReader
-import com.google.gson.stream.JsonWriter
 import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.platform.PlatformContext
 import com.toasterofbread.composekit.platform.PlatformPreferences
@@ -30,34 +25,13 @@ import com.toasterofbread.spmp.model.settings.getEnum
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
+import dev.toastbits.ytmkt.model.YtmApi
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.util.*
 
 internal class ThemeImpl(private val context: AppContext): Theme(getString("theme_title_system")) {
     private var accent_colour_source: AccentColourSource? by mutableStateOf(null)
-
-    private val gson: Gson
-        get() = GsonBuilder().let { builder ->
-            builder.registerTypeAdapter(
-                StaticThemeData::class.java,
-                object : TypeAdapter<StaticThemeData>() {
-                    override fun write(writer: JsonWriter, value: StaticThemeData?) {
-                        if (value == null) {
-                            writer.nullValue()
-                        }
-                        else {
-                            writer.value(value.serialise())
-                        }
-                    }
-
-                    override fun read(reader: JsonReader): StaticThemeData {
-                        return StaticThemeData.deserialise(reader.nextString())
-                    }
-                }
-            )
-
-            builder.create()
-        }
 
     private val prefs_listener: PlatformPreferencesListener =
         object : PlatformPreferencesListener {
@@ -90,15 +64,15 @@ internal class ThemeImpl(private val context: AppContext): Theme(getString("them
     override fun getLightColorScheme(): ColorScheme =
         context.getLightColorScheme()
 
-    override fun loadThemes(): List<ThemeData> {
-        val themes: List<String> = Settings.getJsonArray(ThemeSettings.Key.THEMES, gson, context.getPrefs())
+    override fun loadThemes(): List<StaticThemeData> {
+        val themes: List<String> = Settings.getJsonArray(ThemeSettings.Key.THEMES, context.getPrefs())
         return themes.map { serialised ->
             StaticThemeData.deserialise(serialised)
         }
     }
 
     override fun saveThemes(themes: List<ThemeData>) {
-        Settings.set(ThemeSettings.Key.THEMES, gson.toJson(themes))
+        Settings.set(ThemeSettings.Key.THEMES, Json.encodeToString(themes))
     }
 
     override fun selectAccentColour(theme_data: ThemeData, thumbnail_colour: Color?): Color =
@@ -111,7 +85,7 @@ internal class ThemeImpl(private val context: AppContext): Theme(getString("them
 expect class AppContext: PlatformContext {
     val database: Database
     val download_manager: PlayerDownloadManager
-    val ytapi: YoutubeApi
+    val ytapi: YtmApi
     val theme: Theme
 
     fun getPrefs(): PlatformPreferences
@@ -135,3 +109,12 @@ fun AppContext.getDataLanguage(): String =
 
 fun AppContext.getDefaultLanguage(): String =
     Locale.getDefault().toLanguageTag()
+
+fun <T> Result<T>.getOrNotify(context: AppContext, error_key: String): T? =
+    fold(
+        { return@fold it },
+        {
+            context.sendNotification(it)
+            return@fold null
+        }
+    )

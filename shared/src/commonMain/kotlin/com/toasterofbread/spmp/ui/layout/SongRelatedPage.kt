@@ -33,14 +33,17 @@ import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.composekit.utils.modifier.horizontal
 import com.toasterofbread.composekit.utils.modifier.vertical
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.toMediaItemData
+import com.toasterofbread.spmp.model.MediaItemLayoutParams
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.youtubeapi.SongRelatedContentEndpoint
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.RelatedGroup
+import dev.toastbits.ytmkt.endpoint.SongRelatedContentEndpoint
+import dev.toastbits.ytmkt.model.external.RelatedGroup
 
 @Composable
 fun SongRelatedPage(
@@ -60,10 +63,10 @@ fun SongRelatedPage(
 
     var related_result: Result<List<RelatedGroup>>? by remember { mutableStateOf(null) }
     var retry: Boolean by remember { mutableStateOf(false) }
-    
+
     LaunchedEffect(song, retry) {
         related_result = null
-        related_result = related_endpoint.getSongRelated(song)
+        related_result = related_endpoint.getSongRelated(song.id)
     }
 
     Crossfade(related_result, modifier) { result ->
@@ -109,13 +112,20 @@ fun SongRelatedPage(
 
                         items(related) { group ->
                             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                Text(group.title, Modifier.padding(horizontal_padding), style = title_text_style)
+                                Text(group.title ?: "", Modifier.padding(horizontal_padding), style = title_text_style)
 
-                                if (group.items != null) {
-                                    MediaItemGrid(group.items, multiselect_context = multiselect_context, content_padding = horizontal_padding)
+                                val items: List<MediaItemData>? = remember(group) { group.items?.map { it.toMediaItemData() } }
+                                if (items != null) {
+                                    MediaItemGrid(
+                                        MediaItemLayoutParams(
+                                            items,
+                                            multiselect_context = multiselect_context,
+                                            content_padding = horizontal_padding
+                                            )
+                                    )
                                 }
                                 else if (group.description != null) {
-                                    Text(group.description, Modifier.padding(horizontal_padding), style = description_text_style)
+                                    Text(group.description ?: "", Modifier.padding(horizontal_padding), style = description_text_style)
                                 }
                                 else {
                                     Text(getString("song_related_page_empty_row"), Modifier.padding(horizontal_padding))

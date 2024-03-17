@@ -23,7 +23,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anggrayudi.storage.extension.count
-import com.google.gson.Gson
 import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.platform.AppContext
@@ -31,16 +30,22 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.ui.component.uploadErrorToPasteEe
 import com.toasterofbread.spmp.ui.theme.ApplicationTheme
+import com.toasterofbread.spmp.model.JsonHttpClient
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.request.request
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.HttpMethod
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
@@ -58,7 +63,7 @@ class ErrorReportActivity : ComponentActivity() {
         val stack_trace = intent.getStringExtra("stack_trace") ?: "No stack trace"
 
         try {
-            context = AppContext(this, coroutine_scope).init()
+            context = AppContext(this, coroutine_scope)
         }
         catch (_: Throwable) {}
 
@@ -147,32 +152,11 @@ class ErrorReportActivity : ComponentActivity() {
 
                                 val discord_webhook_url = ProjectBuildConfig.DISCORD_ERROR_REPORT_WEBHOOK
                                 if (discord_webhook_url != null) {
-                                    val coroutine_scope = rememberCoroutineScope()
+                                    val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
                                     IconButton({
-                                        coroutine_scope.launch(Dispatchers.IO) {
-                                            val client = OkHttpClient()
-                                            val gson = Gson()
-
-                                            for (chunk in listOf("---\nMESSAGE: $message\n\n") + error_text.chunked(2000)) {
-                                                val body = gson.toJson(mapOf(
-                                                    "content" to chunk,
-                                                    "username" to message.take(78) + if (message.length > 78) ".." else "",
-                                                    "avatar_url" to "https://raw.githubusercontent.com/toasterofbread/spmp/main/androidApp/src/main/ic_launcher-playstore.png"
-                                                )).toRequestBody("application/json".toMediaType())
-
-                                                val request = Request.Builder()
-                                                    .url(discord_webhook_url)
-                                                    .post(body)
-                                                    .build()
-
-                                                val response = client.newCall(request).execute()
-                                                context?.sendToast(response.code.toString())
-
-                                                response.close()
-
-                                                delay(500)
-                                            }
+                                        coroutine_scope.launch {
+                                            sendErrorWebhook(context, message, error_text, discord_webhook_url)
                                         }
                                     }) {
                                         Icon(painterResource("assets/drawable/ic_discord.xml"), null)
@@ -262,5 +246,31 @@ private fun retrieveLogcat(lines: Int): String {
     }
     finally {
         process.destroy()
+    }
+}
+
+private suspend fun sendErrorWebhook(
+    context: AppContext?,
+    message: String,
+    error_text: String,
+    webhook_url: String
+) {
+    val client: HttpClient = JsonHttpClient
+
+    for (chunk in listOf("---\nMESSAGE: $message\n\n") + error_text.chunked(2000)) {
+        val body: JsonObject = buildJsonObject {
+            put("content", chunk)
+            put("username", message.take(78) + if (message.length > 78) ".." else "")
+            put("avatar_url", "https://raw.githubusercontent.com/toasterofbread/spmp/7ebb7c1525bc9c8f7e9fb7cd0d0ff8108dde9345/metadata/en-US/images/icon.png")
+        }
+
+        val response: HttpResponse = client.request(webhook_url) {
+            method = HttpMethod.Post
+            setBody(body)
+        }
+
+        context?.sendToast(response.status.value.toString())
+
+        delay(500)
     }
 }

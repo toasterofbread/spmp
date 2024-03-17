@@ -31,9 +31,13 @@ internal suspend fun SpMsPlayerService.applyServerState(
         }
 
         coroutine_scope.launch(Dispatchers.IO) {
-            song.loadData(context, force = true, save = false).onSuccess { data ->
-                items[i] = data
-            }
+            song.loadData(context, force = true, save = false).fold(
+                { items[i] = it },
+                { error ->
+                    error.printStackTrace()
+                    items[i] = song
+                }
+            )
             onProgress("${++completed}/${items.size}")
         }
     }.joinAll()

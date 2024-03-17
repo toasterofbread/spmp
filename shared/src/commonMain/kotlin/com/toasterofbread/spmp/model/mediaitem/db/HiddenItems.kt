@@ -15,7 +15,6 @@ import com.toasterofbread.spmp.db.mediaitem.SongQueries
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
-import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
@@ -23,6 +22,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.settings.category.FilterSettings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
 
 fun isMediaItemHidden(item: MediaItem, db: Database, hidden_items: List<MediaItem>? = null): Boolean {
     if (hidden_items?.any { it.id == item.id } ?: item.Hidden.get(db)) {
@@ -101,7 +101,7 @@ fun ArtistQueries.getByHidden(hidden: Boolean): List<Artist> =
 
 fun PlaylistQueries.getByHidden(hidden: Boolean): List<Playlist> =
     byHidden(hidden.toSQLBoolean()).executeAsList().map { playlist ->
-        val type = playlist.playlist_type?.let { PlaylistType.entries[it.toInt()] }
-        if (type == PlaylistType.LOCAL) LocalPlaylistRef(playlist.id)
+        val type = playlist.playlist_type?.let { YtmPlaylist.Type.entries[it.toInt()] }
+        if (type == YtmPlaylist.Type.LOCAL) LocalPlaylistRef(playlist.id)
         else RemotePlaylistRef(playlist.id)
     }

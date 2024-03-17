@@ -35,9 +35,6 @@ fun main(args: Array<String>) {
     val context: AppContext = AppContext(SpMp.app_name, coroutine_scope)
 
     SpMp.init(context)
-    coroutine_scope.launch {
-        context.init()
-    }
 
     val arguments: ProgramArguments = ProgramArguments.parse(args) ?: return
 

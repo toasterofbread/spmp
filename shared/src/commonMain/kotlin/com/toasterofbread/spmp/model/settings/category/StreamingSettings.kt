@@ -7,7 +7,11 @@ import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.platform.download.DownloadMethod
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getStreamingCategoryItems
-import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpointType
+import com.toasterofbread.spmp.youtubeapi.NewPipeVideoFormatsEndpoint
+import dev.toastbits.ytmkt.model.YtmApi
+import dev.toastbits.ytmkt.formats.PipedVideoFormatsEndpoint
+import dev.toastbits.ytmkt.formats.VideoFormatsEndpoint
+import dev.toastbits.ytmkt.formats.YoutubeiVideoFormatsEndpoint
 
 data object StreamingSettings: SettingsCategory("streaming") {
     override val keys: List<SettingsKey> = Key.entries.toList()
@@ -48,5 +52,29 @@ data object StreamingSettings: SettingsCategory("streaming") {
                 DOWNLOAD_METHOD -> DownloadMethod.DEFAULT.ordinal
                 SKIP_DOWNLOAD_METHOD_CONFIRMATION -> false
             } as T
+    }
+}
+
+enum class VideoFormatsEndpointType {
+    YOUTUBEI,
+    PIPED,
+    NEWPIPE;
+
+    fun instantiate(api: YtmApi): VideoFormatsEndpoint =
+        when (this) {
+            YOUTUBEI -> YoutubeiVideoFormatsEndpoint(api)
+            PIPED -> PipedVideoFormatsEndpoint(api)
+            NEWPIPE -> NewPipeVideoFormatsEndpoint(api)
+        }
+
+    fun getReadable(): String =
+        when (this) {
+            YOUTUBEI -> getString("video_format_endpoint_youtubei")
+            PIPED -> getString("video_format_endpoint_piped")
+            NEWPIPE -> getString("video_format_endpoint_newpipe")
+        }
+
+    companion object {
+        val DEFAULT: VideoFormatsEndpointType = YOUTUBEI
     }
 }

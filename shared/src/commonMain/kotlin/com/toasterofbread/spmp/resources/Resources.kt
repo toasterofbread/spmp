@@ -108,7 +108,6 @@ fun initResources(language: String, context: AppContext) {
             if (language_best_match != null) {
                 loadFile("$language_best_match/strings.xml")
             }
-            loadFile("values/ytm.xml")
 
             _strings = strs
             _string_arrays = str_arrays

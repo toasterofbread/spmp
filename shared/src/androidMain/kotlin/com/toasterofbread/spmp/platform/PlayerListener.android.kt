@@ -19,7 +19,7 @@ actual abstract class PlayerListener {
     actual open fun onUndoStateChanged() {}
 
     actual open fun onSongAdded(index: Int, song: Song) {}
-    actual open fun onSongRemoved(index: Int) {}
+    actual open fun onSongRemoved(index: Int, song: Song) {}
     actual open fun onSongMoved(from: Int, to: Int) {}
 
     actual open fun onEvents() {}

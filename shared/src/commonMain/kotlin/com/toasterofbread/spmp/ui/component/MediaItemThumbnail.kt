@@ -26,24 +26,25 @@ import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.composekit.utils.composable.OnChangedEffect
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider.Quality
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider.Quality
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistDefaultThumbnail
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider.Companion.fromImageUrl
 import kotlinx.coroutines.CoroutineScope
 
 private suspend inline fun MediaItem.loadThumb(
     player: PlayerState,
     target_quality: Quality,
-    base_provider: MediaItemThumbnailProvider?,
+    base_provider: ThumbnailProvider?,
     disable_cache: Boolean,
     onLoaded: (ImageBitmap, Quality) -> Unit
 ) {
-    var provider: MediaItemThumbnailProvider? = base_provider
+    var provider: ThumbnailProvider? = base_provider
     if (provider == null) {
         loadData(player.context)
         provider = ThumbnailProvider.get(player.database)
@@ -72,7 +73,7 @@ fun MediaItem.Thumbnail(
     target_quality: Quality,
     modifier: Modifier = Modifier,
     load_failed_icon: ImageVector? = Icons.Default.CloudOff,
-    provider_override: MediaItemThumbnailProvider? = null,
+    provider_override: ThumbnailProvider? = null,
     getContentColour: (() -> Color)? = null,
     container_modifier: Modifier = Modifier,
     disable_cache: Boolean = false,
@@ -85,13 +86,13 @@ fun MediaItem.Thumbnail(
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     val custom_image_url: State<String?>? = (this as? Playlist)?.CustomImageUrl?.observe(player.database)
-    val thumbnail_provider: MediaItemThumbnailProvider? by ThumbnailProvider.observe(player.database)
+    val thumbnail_provider: ThumbnailProvider? by ThumbnailProvider.observe(player.database)
 
-    fun getThumbnailProvider(): MediaItemThumbnailProvider? =
-        provider_override ?: custom_image_url?.value?.let { MediaItemThumbnailProvider.fromImageUrl(it) } ?: thumbnail_provider
+    fun getThumbnailProvider(): ThumbnailProvider? =
+        provider_override ?: custom_image_url?.value?.let { fromImageUrl(it) } ?: thumbnail_provider
 
     var image: Pair<ImageBitmap, Quality>? by remember(id) {
-        val provider: MediaItemThumbnailProvider? = getThumbnailProvider()
+        val provider: ThumbnailProvider? = getThumbnailProvider()
         if (provider != null) {
             for (quality in Quality.byQuality(target_quality)) {
                 val loaded_image = MediaItemThumbnailLoader.getLoadedItemThumbnail(this@Thumbnail, quality, provider)

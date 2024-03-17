@@ -54,11 +54,11 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.ui.component.radio.StatusDisplay
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.rememberTopBarShouldShowInQueue
-import com.toasterofbread.spmp.youtubeapi.radio.StatusDisplay
 import kotlinx.coroutines.delay
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
@@ -101,7 +101,7 @@ internal fun QueueTab(
             override fun onSongAdded(index: Int, song: Song) {
                 song_items.add(index, QueueTabItem(song, key_inc++))
             }
-            override fun onSongRemoved(index: Int) {
+            override fun onSongRemoved(index: Int, song: Song) {
                 try {
                     song_items.removeAt(index)
                 }
@@ -296,9 +296,9 @@ internal fun QueueTab(
                             )
 
                             item {
-                                player.controller?.radio_state?.StatusDisplay(
+                                player.controller?.radio_instance?.StatusDisplay(
                                     Modifier
-                                        .heightIn(min = 50.dp)
+                                        .heightIn(min = 50.dp, max = 500.dp)
                                         .padding(top = list_padding, start = list_padding, end = list_padding)
                                         .fillMaxWidth(),
                                     expanded_modifier = Modifier.thenWith(page_height) {
@@ -314,11 +314,11 @@ internal fun QueueTab(
                                         + list_position
                                     )
 
-                                    if (player.controller?.radio_state?.loading == true && page_height != null) {
+                                    if (player.controller?.radio_instance?.is_loading == true && page_height != null) {
                                         bottom_padding = page_height - bottom_padding
                                     }
 
-                                    if (player.controller?.radio_state?.load_error != null) {
+                                    if (player.controller?.radio_instance?.load_error != null) {
                                         bottom_padding += 60.dp
                                     }
 

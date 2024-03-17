@@ -15,7 +15,7 @@ actual abstract class PlatformBinder: Binder()
 actual open class PlatformServiceImpl: Service(), PlatformService {
     private val coroutine_scope = CoroutineScope(Job())
 
-    actual override val context: AppContext by lazy { AppContext(this, coroutine_scope).init() }
+    actual override val context: AppContext by lazy { AppContext(this, coroutine_scope) }
     actual override fun onCreate() {
         super.onCreate()
     }

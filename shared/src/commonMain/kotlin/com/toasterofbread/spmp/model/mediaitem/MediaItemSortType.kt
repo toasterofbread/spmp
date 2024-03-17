@@ -6,6 +6,7 @@ import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.db.getPlayCount
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.resources.getString
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
 
 enum class MediaItemSortType {
      NATIVE, ALPHABET, DURATION, ARTIST, PLAY_COUNT;
@@ -19,11 +20,11 @@ enum class MediaItemSortType {
             PLAY_COUNT -> "sort_type_playcount"
         })
 
-    fun <T: MediaItem> sortItems(items: List<T>, db: Database, reversed: Boolean = false): List<T> {
+    fun <T: YtmMediaItem> sortItems(items: List<T>, db: Database, reversed: Boolean = false): List<T> {
         return sortItems(items, db, reversed) { it }
     }
 
-    fun <T: MediaItem, V> sortItems(items: List<V>, db: Database, reversed: Boolean = false, mapValue: (V) -> T): List<V> {
+    fun <T: YtmMediaItem, V> sortItems(items: List<V>, db: Database, reversed: Boolean = false, mapValue: (V) -> T): List<V> {
         var reverse: Boolean = reversed
         val selector: (V) -> Comparable<*> = when (this) {
             NATIVE ->
@@ -31,7 +32,7 @@ enum class MediaItemSortType {
                 else items
 
             ALPHABET -> {
-                { mapValue(it).getActiveTitle(db) ?: "" }
+                { mapValue(it).getItemActiveTitle(db) ?: "" }
             }
 
             DURATION -> {
@@ -53,13 +54,13 @@ enum class MediaItemSortType {
         return items.sortedWith(if (reverse) compareByDescending(selector) else compareBy(selector))
     }
 
-    fun <T: MediaItem> sortAndFilterItems(items: List<T>, filter: String?, db: Database, reversed: Boolean): List<T> {
+    fun <T: YtmMediaItem> sortAndFilterItems(items: List<T>, filter: String?, db: Database, reversed: Boolean): List<T> {
         val sorted = sortItems(items, db, reversed)
         if (filter == null) {
             return sorted
         }
 
-        return sorted.filter { it.getActiveTitle(db)?.contains(filter, true) == true }
+        return sorted.filter { it.getItemActiveTitle(db)?.contains(filter, true) == true }
     }
 
     companion object {

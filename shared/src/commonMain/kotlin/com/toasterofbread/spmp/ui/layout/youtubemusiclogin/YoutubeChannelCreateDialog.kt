@@ -37,21 +37,22 @@ import com.toasterofbread.composekit.utils.composable.LinkifyText
 import com.toasterofbread.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.composekit.utils.composable.WidthShrinkText
-import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
-import com.toasterofbread.spmp.youtubeapi.endpoint.YoutubeChannelCreationFormEndpoint.YoutubeAccountCreationForm.ChannelCreationForm
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicApi
+import dev.toastbits.ytmkt.impl.youtubei.YoutubeiApi
+import dev.toastbits.ytmkt.model.external.YoutubeAccountCreationForm
+import dev.toastbits.ytmkt.model.external.YoutubeAccountCreationForm.InputField
+import io.ktor.http.Headers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
-import okhttp3.Headers
 
 @Composable
 fun YoutubeChannelCreateDialog(
     headers: Headers,
-    form: ChannelCreationForm,
-    api: YoutubeMusicApi,
-    onFinished: (Result<Artist>?) -> Unit
+    form: YoutubeAccountCreationForm.ChannelCreationForm,
+    api: YoutubeiApi,
+    onFinished: (Result<String>?) -> Unit
 ) {
     val player = LocalPlayerState.current
     val coroutine_scope = rememberCoroutineScope()
@@ -60,11 +61,11 @@ fun YoutubeChannelCreateDialog(
     val params = remember(fields) {
         mutableStateMapOf<String, String>().apply {
             for (field in fields) {
-                put(field.key, field.default ?: "")
+                put(field.key.getParameterName(), field.initial_value ?: "")
             }
         }
     }
-    val can_create = params[fields[0].key]!!.isNotBlank()
+    val can_create = params[fields[0].key.getParameterName()]!!.isNotBlank()
 
     AlertDialog(
         onDismissRequest = { onFinished(null) },
@@ -84,7 +85,12 @@ fun YoutubeChannelCreateDialog(
                         }
 
                         onFinished(runCatching {
-                            api.CreateYoutubeChannel.createYoutubeChannel(headers, form.getChannelCreationToken()!!, params).getOrThrow()
+                            val channel = api.CreateYoutubeChannel.createYoutubeChannel(headers, form.getChannelCreationToken()!!, params).getOrThrow()
+
+                            // Give YouTube time to update the account before we proceed
+                            delay(1000)
+
+                            return@runCatching channel.id
                         })
                     }
                 },
@@ -126,26 +132,29 @@ fun YoutubeChannelCreateDialog(
         },
         text = {
             Column(Modifier.padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                with(form.contents.createCoreIdentityChannelContentRenderer) {
-                    for (item in fields.withIndex()) {
-                        val field = item.value
-                        val is_error = item.index == 0 && !can_create
+                for ((index, field) in fields.withIndex()) {
+                    val is_error: Boolean = index == 0 && !can_create
+                    val parameter_name: String = field.key.getParameterName()
 
-                        TextField(
-                            params[field.key]!!,
-                            { params[field.key] = it },
-                            Modifier.appTextField(),         
-                            label = {
-                                Text(field.label ?: field.key)
-                            },
-                            supportingText = {
-                                AnimatedVisibility(is_error) {
-                                    Text(missingNameErrorMessage.firstTextOrNull() ?: getString("error_message_generic"))
+                    TextField(
+                        params[parameter_name]!!,
+                        { params[parameter_name] = it },
+                        Modifier.appTextField(),
+                        label = {
+                            Text(
+                                when (field.key) {
+                                    InputField.Key.GIVEN_NAME -> getString("youtube_channel_creation_field_given_name")
+                                    InputField.Key.FAMILY_NAME -> getString("youtube_channel_creation_field_family_name")
                                 }
-                            },
-                            isError = is_error
-                        )
-                    }
+                            )
+                        },
+                        supportingText = {
+                            AnimatedVisibility(is_error) {
+                                Text(getString("error_message_generic"))
+                            }
+                        },
+                        isError = is_error
+                    )
                 }
 
                 LinkifyText(

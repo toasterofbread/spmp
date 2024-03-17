@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
@@ -42,7 +41,7 @@ import androidx.compose.ui.unit.sp
 import com.toasterofbread.composekit.utils.common.getValue
 import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.observePlayCount
 import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
@@ -150,7 +149,7 @@ fun MediaItemPreviewSquare(
     ) {
         Box(Modifier.fillMaxWidth().longPressMenuIcon(long_press_menu_data, enable_long_press_menu), contentAlignment = Alignment.Center) {
             loaded_item.Thumbnail(
-                MediaItemThumbnailProvider.Quality.LOW,
+                ThumbnailProvider.Quality.LOW,
                 Modifier.aspectRatio(1f),
                 getContentColour = contentColour
             )
@@ -258,7 +257,7 @@ fun MediaItemPreviewLong(
     ) {
         Box(Modifier.fillMaxHeight().aspectRatio(1f), contentAlignment = Alignment.Center) {
             loaded_item.Thumbnail(
-                MediaItemThumbnailProvider.Quality.LOW,
+                ThumbnailProvider.Quality.LOW,
                 Modifier
                     .longPressMenuIcon(long_press_menu_data, enable_long_press_menu)
                     .fillMaxSize(),

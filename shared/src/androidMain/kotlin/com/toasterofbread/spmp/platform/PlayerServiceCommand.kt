@@ -12,11 +12,15 @@ sealed class PlayerServiceCommand {
     fun getSessionCommand(): SessionCommand =
         SessionCommand(
             "com.toasterofbread.spmp.${this::class.simpleName}",
-            bundleOf("data" to Json.encodeToString(this))
+            bundleOf("data" to serialise())
         )
 
+    protected abstract fun serialise(): String
+
     @Serializable
-    data class SetLiked(val value: SongLikedStatus): PlayerServiceCommand()
+    data class SetLiked(val value: SongLikedStatus): PlayerServiceCommand() {
+        override fun serialise(): String = Json.encodeToString(this)
+    }
 
     companion object {
         fun getBaseSessionCommands(): List<SessionCommand> =

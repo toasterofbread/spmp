@@ -40,7 +40,7 @@ open class MediaItemMultiSelectContext {
     internal val selected_items: MutableList<MultiSelectItem> = mutableStateListOf()
     var is_active: Boolean by mutableStateOf(false)
         private set
-    
+
     internal val ordered_selectable_items: MutableList<List<MultiSelectItem>> = mutableStateListOf()
 
     @Composable
@@ -106,10 +106,10 @@ open class MediaItemMultiSelectContext {
             if (!is_active) {
                 setActive(true)
             }
-            
+
             selected_items.add(item)
             onSelectedItemsChanged()
-            
+
             return true
         }
         else if (selected_items.removeIf { it.first == item.first && it.second == item.second }) {
@@ -183,7 +183,7 @@ open class MediaItemMultiSelectContext {
             exit
         )
     }
-    
+
     @Composable
     fun CollectionToggleButton(
         items: List<MultiSelectItem>,
@@ -196,7 +196,7 @@ open class MediaItemMultiSelectContext {
             if (ordered) {
                 ordered_selectable_items.add(items)
             }
-            
+
             onDispose {
                 ordered_selectable_items.remove(items)
             }

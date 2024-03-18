@@ -25,11 +25,20 @@ fun UiString.Companion.deserialise(data: String): UiString {
     val split: List<String> = data.split(",", limit = 3)
 
     try {
-        val type: String = split[0]
+        var type: String = split[0]
+
+        // For backwards-compatibility
+        type.toIntOrNull()?.also { int ->
+            when (int) {
+                0 -> type = "R"
+                1 -> type = "A"
+                2 -> type = "Y"
+            }
+        }
 
         when (type) {
-            "A" -> return AppUiString(split[1])
             "R" -> return RawUiString(split[1])
+            "A" -> return AppUiString(split[1])
             "Y" -> {
                 return YoutubeUiString(
                     YoutubeUiString.Type.entries[split[1].toInt()],
@@ -40,7 +49,9 @@ fun UiString.Companion.deserialise(data: String): UiString {
         }
     }
     catch (e: Throwable) {
-        throw RuntimeException("UiString deserialisation failed '$data' $split", e)
+        val exception = RuntimeException("UiString deserialisation failed '$data' $split", e)
+        exception.printStackTrace()
+        throw exception
     }
 }
 

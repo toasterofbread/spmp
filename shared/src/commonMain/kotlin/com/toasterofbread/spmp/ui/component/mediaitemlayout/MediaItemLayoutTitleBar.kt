@@ -109,7 +109,7 @@ fun TitleBar(
 
                 layout_params.multiselect_context?.CollectionToggleButton(
                     remember(items) {
-                        items.mapIndexedNotNull { index, item -> item.item?.let { Pair(it, index) } }
+                        items.mapNotNull { it.item?.let { Pair(it, null) } }
                     }
                 )
             }

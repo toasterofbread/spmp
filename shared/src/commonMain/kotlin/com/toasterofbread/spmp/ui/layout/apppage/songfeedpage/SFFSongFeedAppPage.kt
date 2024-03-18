@@ -69,7 +69,13 @@ fun SongFeedAppPage.SFFSongFeedAppPage(
             type = ItemLayoutType.ROW
         )
     }
+
     val hidden_rows: Set<String> by FeedSettings.Key.HIDDEN_ROWS.rememberMutableState()
+    val hidden_row_titles: List<String> = remember(hidden_rows) {
+        hidden_rows.map { row_title ->
+            UiString.deserialise(row_title).getString(player.context)
+        }
+    }
 
     val square_item_max_text_rows: Int by FeedSettings.Key.SQUARE_PREVIEW_TEXT_LINES.rememberMutableState()
     val show_download_indicators: Boolean by FeedSettings.Key.SHOW_SONG_DOWNLOAD_INDICATORS.rememberMutableState()
@@ -149,7 +155,6 @@ fun SongFeedAppPage.SFFSongFeedAppPage(
                 onDismissRequest = { hiding_layout = null },
                 confirmButton = {
                     Button({
-                        val hidden_rows: Set<String> = FeedSettings.Key.HIDDEN_ROWS.get()
                         FeedSettings.Key.HIDDEN_ROWS.set(
                             hidden_rows.plus(title.serialise())
                         )
@@ -216,15 +221,15 @@ fun SongFeedAppPage.SFFSongFeedAppPage(
                             return@items
                         }
 
-                        layout.title?.also { layout_title ->
-                            val title: String = layout_title.getString(player.context)
-                            if (
-                                hidden_rows.any { row_title ->
-                                    UiString.deserialise(row_title).getString(player.context) == title
-                                }
-                            ) {
-                                return@items
-                            }
+                        val is_hidden: Boolean = remember(layout.title, hidden_row_titles) {
+                            layout.title?.let { layout_title ->
+                                val title: String = layout_title.getString(player.context)
+                                hidden_row_titles.any { it == title }
+                            } ?: false
+                        }
+
+                        if (is_hidden) {
+                            return@items
                         }
 
                         val type: ItemLayoutType = layout.type ?: ItemLayoutType.GRID

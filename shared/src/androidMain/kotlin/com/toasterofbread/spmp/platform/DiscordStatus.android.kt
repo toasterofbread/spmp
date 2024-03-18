@@ -96,6 +96,7 @@ actual class DiscordStatus actual constructor(
         fun getStatus(): String = status.status.status
     }
 
+    @Serializable
     private data class ProtoSettingsResponse(
         val settings: String
     )

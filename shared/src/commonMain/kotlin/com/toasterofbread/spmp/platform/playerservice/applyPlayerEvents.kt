@@ -7,11 +7,13 @@ import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.float
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.long
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
 import spms.socketapi.shared.SpMsPlayerEvent
 import spms.socketapi.shared.SpMsPlayerRepeatMode
 import spms.socketapi.shared.SpMsPlayerState
 
-internal fun SpMsPlayerService.applyPlayerEvents(events: List<SpMsPlayerEvent>) {
+internal suspend fun SpMsPlayerService.applyPlayerEvents(events: List<SpMsPlayerEvent>) = withContext(Dispatchers.IO) {
     var item_transition_event: SpMsPlayerEvent? = null
 
     for (event in events) {

@@ -204,11 +204,9 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
                     while (true) {
                         delay(POLL_STATE_INTERVAL)
 
-                        synchronized(this@launch) {
-                            if (server_state_applied && queued_events != null) {
-                                applyPlayerEvents(queued_events!!)
-                                queued_events = null
-                            }
+                        if (server_state_applied && queued_events != null) {
+                            applyPlayerEvents(queued_events!!)
+                            queued_events = null
                         }
 
                         val poll_successful: Boolean =
@@ -248,18 +246,18 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
         }
     }
 
-    private fun ZMQ.Socket.pollServerState(
+    private suspend fun ZMQ.Socket.pollServerState(
         poller: ZMQ.Poller,
         timeout: Long = -1,
-        onEvents: (List<SpMsPlayerEvent>) -> Unit
-    ): Boolean {
+        onEvents: suspend (List<SpMsPlayerEvent>) -> Unit
+    ): Boolean = withContext(Dispatchers.IO) {
         val events: ZMsg
         if (poller.poll(timeout) > 0) {
-            events = ZMsg.recvMsg(this)
+            events = ZMsg.recvMsg(this@pollServerState)
         }
         else {
             println("Polling server timed out after ${timeout}ms")
-            return false
+            return@withContext false
         }
 
         val decoded_events: List<SpMsPlayerEvent> =
@@ -294,16 +292,16 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
 
             val reply_result: Boolean = reply.send(this@pollServerState)
             if (!reply_result || actions_expecting_result.isEmpty()) {
-                return reply_result
+                return@withContext reply_result
             }
 
             val results: ZMsg
             if (poller.poll(timeout) > 0) {
-                results = ZMsg.recvMsg(this)
+                results = ZMsg.recvMsg(this@pollServerState)
             }
             else {
                 println("Getting results timed out after ${timeout}ms")
-                return false
+                return@withContext false
             }
 
             val result_str: String = SpMsSocketApi.decode(results.map { it.data.decodeToString() }).first()
@@ -327,7 +325,7 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
                 }
             }
 
-            return true
+            return@withContext true
         }
     }
 

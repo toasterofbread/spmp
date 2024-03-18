@@ -60,6 +60,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.toasterofbread.composekit.platform.PlatformFile
 import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.composekit.platform.vibrateShort
@@ -75,10 +76,14 @@ import com.toasterofbread.spmp.model.settings.category.SettingsCategory
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import spms.socketapi.shared.SPMS_API_VERSION
@@ -256,13 +261,7 @@ internal fun SettingsImportDialog(modifier: Modifier = Modifier, onFinished: () 
                 Text(getString("settings_import_error_title"))
             },
             text = {
-                Text(
-                    error.stackTraceToString(),
-                    Modifier
-                        .verticalScroll(rememberScrollState())
-                        .horizontalScroll(rememberScrollState()),
-                    softWrap = false
-                )
+                ErrorInfoDisplay(error, onDismiss = null)
             }
         )
         return
@@ -307,7 +306,7 @@ internal fun SettingsImportDialog(modifier: Modifier = Modifier, onFinished: () 
                 Button(
                     {
                         try {
-                            import_result = SettingsImportExport.importData(context, data, import_categories)
+                            import_result = SettingsImportExport.importSettingsData(context.getPrefs(), data, import_categories)
                         }
                         catch (e: Throwable) {
                             import_error = e
@@ -427,12 +426,18 @@ private fun peformExport(context: AppContext, categories: List<SettingsCategory>
             return@promptUserForFileCreation
         }
 
-        GlobalScope.launch {
-            SettingsImportExport.exportSettings(
-                context = context,
-                file = context.getUserDirectoryFile(path)!!,
-                categories = categories
-            )
+        GlobalScope.launch(Dispatchers.IO) {
+            val settings_data: SettingsImportExport.SettingsExportData =
+                SettingsImportExport.exportSettingsData(
+                    prefs = context.getPrefs(),
+                    categories = categories
+                )
+
+            val file: PlatformFile = context.getUserDirectoryFile(path)!!
+            file.outputStream().writer().use { writer ->
+                writer.write(Json.encodeToString(settings_data))
+                writer.flush()
+            }
         }
     }
 }

@@ -40,8 +40,10 @@ private fun SpMsPlayerService.applyEvent(event: SpMsPlayerEvent) {
             _current_song_index = event.properties["index"]!!.int
             _duration_ms = -1
             updateCurrentSongPosition(0)
+
+            val song: Song? = if (_current_song_index < 0) null else getSong(_current_song_index)
             listeners.forEach {
-                it.onSongTransition(getSong(_current_song_index), false)
+                it.onSongTransition(song, false)
                 it.onEvents()
             }
         }

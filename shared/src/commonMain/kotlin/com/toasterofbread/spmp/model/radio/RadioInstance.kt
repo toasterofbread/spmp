@@ -48,7 +48,7 @@ abstract class RadioInstance(val context: AppContext) {
         if (filter_index == state.current_filter_index) {
             return
         }
-        state = state.copy()
+        state = state.copy(current_filter_index = filter_index)
     }
 
     fun cancelRadio() {

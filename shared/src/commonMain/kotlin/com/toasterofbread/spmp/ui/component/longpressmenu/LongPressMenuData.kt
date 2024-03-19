@@ -40,8 +40,8 @@ data class LongPressMenuData(
     val multiselect_key: Int? = null,
     val playlist_as_song: Boolean = false
 ) {
+    var layout_offset: Offset? = null
     var layout_size: IntSize by Delegates.notNull()
-    var layout_offset: Offset by Delegates.notNull()
     var click_offset: Offset by Delegates.notNull()
 
     var current_interaction_stage: MediaItemPreviewInteractionPressStage? by mutableStateOf(null)

@@ -92,9 +92,11 @@ internal fun DesktopLongPressMenu(
         var menu_height: Dp by remember { mutableStateOf(0.dp) }
 
         fun Density.getTargetPosition(): Offset {
-            val left: Float = data.layout_offset.x + data.click_offset.x
+            val layout_offset: Offset = data.layout_offset ?: return Offset.Zero
+
+            val left: Float = layout_offset.x + data.click_offset.x
             val right: Float = left + menu_width.toPx()
-            val top: Float = data.layout_offset.y + data.click_offset.y
+            val top: Float = layout_offset.y + data.click_offset.y
             val bottom: Float = top + menu_height.toPx()
 
             val max_width: Float = this@BoxWithConstraints.maxWidth.toPx()

@@ -33,7 +33,7 @@ abstract class RadioInstance(val context: AppContext) {
         private set
 
     fun isContinuationAvailable(): Boolean =
-        state.continuation != null
+        state.isContinuationAvailable()
 
     fun setRadioState(
         state: RadioState,
@@ -76,7 +76,7 @@ abstract class RadioInstance(val context: AppContext) {
         onCompletedOverride: ((List<Song>) -> Unit)? = null,
         onCompleted: (List<Song>) -> Unit = {}
     ) {
-        if (is_loading) {
+        if (is_loading || !isContinuationAvailable()) {
             return
         }
 

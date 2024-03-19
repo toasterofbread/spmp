@@ -67,7 +67,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 private const val PLAYLIST_IMAGE_MIN_HEIGHT_DP: Float = 120f
 
 @Composable
-internal fun PlaylistAppPage.PlaylistTopInfo(items: List<Pair<MediaItem, Int>>?, modifier: Modifier = Modifier) {
+internal fun PlaylistAppPage.PlaylistTopInfo(items: List<MediaItem>?, modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
     val density = LocalDensity.current
     val db = player.database

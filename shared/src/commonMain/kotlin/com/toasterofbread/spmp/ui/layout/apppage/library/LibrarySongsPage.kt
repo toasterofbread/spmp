@@ -159,12 +159,10 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
                             item {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     InfoRow(current_songs, Modifier.fillMaxWidth().weight(1f), !showing_alt_content)
-                                    
+
                                     multiselect_context.CollectionToggleButton(
-                                        remember(current_songs) { 
-                                            current_songs.mapIndexed { index, item -> 
-                                                Pair(item, index)
-                                            } 
+                                        remember(current_songs) {
+                                            current_songs.map { Pair(it, null) }
                                         }
                                     )
                                 }
@@ -175,7 +173,6 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
                                     song,
                                     Modifier.fillMaxWidth(),
                                     multiselect_context = multiselect_context,
-                                    multiselect_key = index,
                                     show_type = false,
                                     show_play_count = true,
                                     show_download_indicator = false,

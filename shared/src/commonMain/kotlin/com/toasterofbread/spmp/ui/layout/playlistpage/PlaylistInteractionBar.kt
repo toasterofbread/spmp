@@ -24,7 +24,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 internal fun PlaylistAppPage.PlaylistInteractionBar(
-    items: List<Pair<MediaItem, Int>>?,
+    items: List<MediaItem>?,
     list_state: LazyListState,
     loading: Boolean,
     modifier: Modifier = Modifier
@@ -37,7 +37,7 @@ internal fun PlaylistAppPage.PlaylistInteractionBar(
     Column(modifier) {
         multiselect_context.InfoDisplay(
             getAllItems = {
-                listOfNotNull(items)
+                listOfNotNull(items?.map { Pair(it, null) })
             },
             altContent = {
                 Row {
@@ -96,7 +96,7 @@ internal fun PlaylistAppPage.PlaylistInteractionBar(
                         Row {
                             IconButton({
                                 for (item in items ?: emptyList()) {
-                                    multiselect_context.setItemSelected(item.first, true, item.second)
+                                    multiselect_context.setItemSelected(item, true)
                                 }
                             }) {
                                 Icon(Icons.Default.SelectAll, null)

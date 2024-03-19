@@ -89,7 +89,7 @@ fun MediaItemList(
                         }
                     }
                     else {
-                        click_overrides.onMediaItemClicked(item, player, multiselect_key = index)
+                        click_overrides.onMediaItemClicked(item, player)
                     }
                 }
             )
@@ -110,8 +110,7 @@ fun MediaItemList(
                         item.value,
                         Modifier.height(getDefaultMediaItemPreviewSize(true).height).fillMaxWidth(),
                         multiselect_context = layout_params.multiselect_context,
-                        show_download_indicator = layout_params.show_download_indicators,
-                        multiselect_key = item.index
+                        show_download_indicator = layout_params.show_download_indicators
                     )
                 }
             }

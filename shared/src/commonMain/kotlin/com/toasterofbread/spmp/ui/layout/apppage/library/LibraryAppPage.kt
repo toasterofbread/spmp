@@ -164,7 +164,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
                     }
                     showing_search_field = !searching
                     search_filter = null
-                          },
+                },
                 onAltClick = {
                     if (!searching) {
                         player.openAppPage(player.app_page_state.Search)

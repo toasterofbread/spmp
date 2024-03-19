@@ -302,7 +302,7 @@ class PlaylistAppPage(
         val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
         val playlist_items: List<MediaItem>? by playlist.Items.observe(db, key = items_reload_key)
-        var sorted_items: List<Pair<MediaItem, Int>>? by remember { mutableStateOf(null) }
+        var sorted_items: List<MediaItem>? by remember { mutableStateOf(null) }
 
         val load_state: State<Boolean> = playlist.loadDataOnChange(
             player.context,
@@ -360,11 +360,7 @@ class PlaylistAppPage(
                     }
                 }
 
-                sort_type
-                    .sortItems(filtered_items, db)
-                    .mapIndexed { index, value ->
-                        Pair(value, index)
-                    }
+                sort_type.sortItems(filtered_items, db)
             }
         }
 
@@ -434,7 +430,7 @@ class PlaylistAppPage(
                             else {
                                 sorted_items?.also { items ->
                                     player.withPlayer {
-                                        addMultipleToQueue(items.mapNotNull { it.first as? Song }, clear = true)
+                                        addMultipleToQueue(items.filterIsInstance<Song>(), clear = true)
                                         seekToSong(multiselect_key)
                                         player.onPlayActionOccurred()
                                     }

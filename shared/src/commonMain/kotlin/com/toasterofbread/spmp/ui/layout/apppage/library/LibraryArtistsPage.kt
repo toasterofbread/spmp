@@ -213,7 +213,6 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
                                 artist,
                                 Modifier.height(75.dp).fillMaxWidth(),
                                 multiselect_context = multiselect_context,
-                                multiselect_key = index,
                                 show_type = false,
                                 show_play_count = true,
                                 font_size = 18.sp,

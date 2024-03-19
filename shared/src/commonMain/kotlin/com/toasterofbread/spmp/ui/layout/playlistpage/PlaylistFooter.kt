@@ -31,7 +31,7 @@ import LocalPlayerState
 
 @Composable
 fun PlaylistAppPage.PlaylistFooter(
-    items: List<Pair<MediaItem, Int>>?,
+    items: List<MediaItem>?,
     accent_colour: Color,
     loading: Boolean,
     load_error: Throwable?,

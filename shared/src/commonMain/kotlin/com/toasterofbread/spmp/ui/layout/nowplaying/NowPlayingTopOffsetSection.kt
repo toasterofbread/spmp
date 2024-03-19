@@ -19,6 +19,7 @@ enum class NowPlayingTopOffsetSection {
         when (this) {
             SEARCH_PAGE_SUGGESTIONS -> true
             SEARCH_PAGE_BAR -> true
+            LAYOUT_SLOT -> true
             else -> false
         }
 }

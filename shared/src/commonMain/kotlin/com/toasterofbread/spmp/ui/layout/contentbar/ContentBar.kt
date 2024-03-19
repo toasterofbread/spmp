@@ -26,7 +26,12 @@ sealed class ContentBar {
     abstract fun getIcon(): ImageVector
 
     @Composable
-    fun Bar(slot: LayoutSlot, content_padding: PaddingValues, modifier: Modifier): Boolean {
+    fun Bar(
+        slot: LayoutSlot,
+        content_padding: PaddingValues,
+        distance_to_page: Dp,
+        modifier: Modifier
+    ): Boolean {
         val player: PlayerState = LocalPlayerState.current
         val slot_colour_source: ColourSource by slot.rememberColourSource()
 
@@ -39,6 +44,7 @@ sealed class ContentBar {
                 slot,
                 slot_colour_source.theme_colour,
                 content_padding,
+                distance_to_page,
                 modifier.background(background_colour)
             )
         }
@@ -47,7 +53,13 @@ sealed class ContentBar {
     }
 
     @Composable
-    protected abstract fun BarContent(slot: LayoutSlot, background_colour: Theme.Colour?, content_padding: PaddingValues, modifier: Modifier): Boolean
+    protected abstract fun BarContent(
+        slot: LayoutSlot,
+        background_colour: Theme.Colour?,
+        content_padding: PaddingValues,
+        distance_to_page: Dp,
+        modifier: Modifier
+    ): Boolean
 
     interface BarSelectionState {
         val built_in_bars: List<ContentBarReference>
@@ -81,7 +93,11 @@ sealed class ContentBar {
 }
 
 @Composable
-fun LayoutSlot.DisplayBar(modifier: Modifier = Modifier, container_modifier: Modifier = Modifier): Boolean {
+fun LayoutSlot.DisplayBar(
+    distance_to_page: Dp,
+    modifier: Modifier = Modifier,
+    container_modifier: Modifier = Modifier
+): Boolean {
     val player: PlayerState = LocalPlayerState.current
     val content_bar: ContentBar? by observeContentBar()
 
@@ -103,7 +119,7 @@ fun LayoutSlot.DisplayBar(modifier: Modifier = Modifier, container_modifier: Mod
 
     Crossfade(ContentBar.bar_selection_state, container_modifier) { selection_state ->
         if (selection_state == null) {
-            content_bar_result = content_bar?.Bar(this, content_padding, modifier) ?: false
+            content_bar_result = content_bar?.Bar(this, content_padding, distance_to_page, modifier) ?: false
             return@Crossfade
         }
 

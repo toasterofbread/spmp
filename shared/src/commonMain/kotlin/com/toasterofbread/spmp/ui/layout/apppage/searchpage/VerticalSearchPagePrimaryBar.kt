@@ -10,23 +10,24 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.layout.*
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.Dp
 import com.toasterofbread.composekit.utils.common.copy
 import com.toasterofbread.composekit.utils.modifier.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.LargeFilterList
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.youtubeapi.endpoint.*
 
 @Composable
 internal fun SearchAppPage.VerticalSearchPrimaryBar(
     suggestions: List<SearchSuggestion>,
     slot: LayoutSlot,
+    distance_to_page: Dp,
     modifier: Modifier,
     content_padding: PaddingValues
 ) {
@@ -50,7 +51,8 @@ internal fun SearchAppPage.VerticalSearchPrimaryBar(
     Column(
         modifier
             .width(bar_width)
-            .padding(content_padding),
+            .padding(content_padding)
+            .padding(bottom = 20.dp),
         verticalArrangement = Arrangement.Bottom,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -78,7 +80,7 @@ internal fun SearchAppPage.VerticalSearchPrimaryBar(
                 Modifier
                     .requiredWidth(suggestions_width)
                     .offset(
-                        x = (suggestions_width + bar_width + suggestions_side_padding) / 2 * suggestions_direction
+                        x = (((suggestions_width + bar_width + suggestions_side_padding) / 2) + distance_to_page + 10.dp) * suggestions_direction
                     )
 
             val show_suggestions: Boolean = show_search_bar && is_focused && suggestions.isNotEmpty()
@@ -107,8 +109,8 @@ internal fun SearchAppPage.VerticalSearchPrimaryBar(
             ) {
                 androidx.compose.animation.AnimatedVisibility(
                     show_suggestions,
-                    enter = slideInVertically { it },
-                    exit = slideOutVertically { it }
+                    enter = slideInVertically { it } + fadeIn(),
+                    exit = slideOutVertically { it } + fadeOut()
                 ) {
                     SearchSuggestionsColumn(
                         suggestions,

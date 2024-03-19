@@ -14,7 +14,6 @@ import androidx.compose.ui.draw.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.*
-import androidx.compose.ui.zIndex
 import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.composable.*
 import com.toasterofbread.composekit.utils.modifier.bounceOnClick
@@ -27,7 +26,6 @@ import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.theme.appHover
 import com.toasterofbread.spmp.youtubeapi.endpoint.SearchSuggestion
-import kotlinx.coroutines.delay
 
 @Composable
 internal fun SearchAppPage.HorizontalSearchPrimaryBar(
@@ -44,7 +42,11 @@ internal fun SearchAppPage.HorizontalSearchPrimaryBar(
     val suggestions_height: Dp = player.screen_size.height
     val suggestions_direction: Int = if (slot.is_start) 1 else -1
 
-    Box(modifier.requiredHeight(bar_height)) {
+    Box(
+        modifier
+            .padding(content_padding)
+            .requiredHeight(bar_height)
+    ) {
         Box(
             Modifier
                 .requiredHeight(suggestions_height)
@@ -56,8 +58,8 @@ internal fun SearchAppPage.HorizontalSearchPrimaryBar(
             AnimatedVisibility(
                 is_focused && suggestions.isNotEmpty(),
                 Modifier.fillMaxHeight(),
-                enter = slideInVertically { (it / -2) * suggestions_direction },
-                exit = slideOutVertically { (it / -2) * suggestions_direction }
+                enter = slideInVertically { (it / -2) * suggestions_direction } + fadeIn(),
+                exit = slideOutVertically { (it / -2) * suggestions_direction } + fadeOut()
             ) {
                 SearchSuggestionsColumn(
                     suggestions,

@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.Dp
 import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.composekit.utils.common.*
@@ -163,6 +164,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
     override fun PrimaryBarContent(
         slot: LayoutSlot,
         content_padding: PaddingValues,
+        distance_to_page: Dp,
         modifier: Modifier
     ): Boolean {
         LibraryIconButtonPageSelector(slot, content_padding, modifier)

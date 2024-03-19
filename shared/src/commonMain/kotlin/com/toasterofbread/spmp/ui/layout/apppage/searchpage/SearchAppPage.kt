@@ -88,7 +88,12 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
     override fun showTopBarContent(): Boolean = true
 
     @Composable
-    override fun PrimaryBarContent(slot: LayoutSlot, content_padding: PaddingValues, modifier: Modifier): Boolean {
+    override fun PrimaryBarContent(
+        slot: LayoutSlot,
+        content_padding: PaddingValues,
+        distance_to_page: Dp,
+        modifier: Modifier
+    ): Boolean {
         val show_suggestions: Boolean by BehaviourSettings.Key.SEARCH_SHOW_SUGGESTIONS.rememberMutableState()
         var suggestions: List<SearchSuggestion> by remember { mutableStateOf(emptyList()) }
 
@@ -122,7 +127,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
         }
 
         if (slot.is_vertical) {
-            VerticalSearchPrimaryBar(suggestions, slot, modifier, content_padding)
+            VerticalSearchPrimaryBar(suggestions, slot, distance_to_page, modifier, content_padding)
         }
         else {
             HorizontalSearchPrimaryBar(suggestions, slot, modifier, content_padding)
@@ -131,7 +136,12 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
     }
 
     @Composable
-    override fun SecondaryBarContent(slot: LayoutSlot, content_padding: PaddingValues, modifier: Modifier): Boolean {
+    override fun SecondaryBarContent(
+        slot: LayoutSlot,
+        content_padding: PaddingValues,
+        distance_to_page: Dp,
+        modifier: Modifier
+    ): Boolean {
         if (slot.is_vertical) {
             VerticalSearchSecondaryBar(slot, modifier, content_padding)
         }

@@ -81,7 +81,7 @@ fun MainPageTopBar(content_padding: PaddingValues, modifier: Modifier = Modifier
             Modifier.fillMaxWidth(),
             show_alt_content = player.app_page.showTopBarContent(),
             altContent = {
-                PortraitLayoutSlot.LOWER_TOP_BAR.DisplayBar(Modifier.fillMaxWidth())
+                PortraitLayoutSlot.LOWER_TOP_BAR.DisplayBar(0.dp, Modifier.fillMaxWidth())
             }
         )
 

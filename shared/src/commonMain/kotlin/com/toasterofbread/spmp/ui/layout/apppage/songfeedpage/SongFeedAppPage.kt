@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 import com.toasterofbread.composekit.utils.common.*
 import com.toasterofbread.composekit.utils.composable.RowOrColumn
 import com.toasterofbread.spmp.model.FilterChip
@@ -119,7 +120,12 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
     }
 
     @Composable
-    override fun PrimaryBarContent(slot: LayoutSlot, content_padding: PaddingValues, modifier: Modifier): Boolean {
+    override fun PrimaryBarContent(
+        slot: LayoutSlot,
+        content_padding: PaddingValues,
+        distance_to_page: Dp,
+        modifier: Modifier
+    ): Boolean {
         val player: PlayerState = LocalPlayerState.current
         return when (player.form_factor) {
             FormFactor.PORTRAIT -> SFFSongFeedPagePrimaryBar(slot, modifier, content_padding)

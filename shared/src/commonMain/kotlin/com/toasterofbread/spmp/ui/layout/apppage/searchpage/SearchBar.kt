@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.ui.layout.apppage.searchpage
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.*
 import androidx.compose.material.icons.Icons
@@ -114,7 +115,7 @@ internal fun SearchAppPage.SearchBar(
                 contentColor = context.theme.vibrant_accent.getContrasted()
             ),
             Modifier
-                .size(SEARCH_BAR_HEIGHT_DP.dp)
+                .aspectRatio(1f)
                 .bounceOnClick()
                 .appHover(true),
             shape = SEARCH_BAR_SHAPE

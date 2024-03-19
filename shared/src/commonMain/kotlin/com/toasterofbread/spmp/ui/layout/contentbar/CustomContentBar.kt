@@ -43,7 +43,13 @@ data class CustomContentBar(
     override fun getIcon(): ImageVector = Icons.Default.Build
 
     @Composable
-    override fun BarContent(slot: LayoutSlot, background_colour: Theme.Colour?, content_padding: PaddingValues, modifier: Modifier): Boolean {
+    override fun BarContent(
+        slot: LayoutSlot,
+        background_colour: Theme.Colour?,
+        content_padding: PaddingValues,
+        distance_to_page: Dp,
+        modifier: Modifier
+    ): Boolean {
         CustomBarContent(slot.is_vertical, content_padding, background_colour, modifier)
         return true
     }

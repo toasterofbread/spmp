@@ -17,6 +17,7 @@ import com.toasterofbread.composekit.utils.composable.getTop
 import com.toasterofbread.composekit.settings.ui.Theme
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Widgets
@@ -42,8 +43,14 @@ private class PrimaryInternalContentBar: InternalContentBar(0) {
     override fun getIcon(): ImageVector = Icons.Default.LooksOne
 
     @Composable
-    override fun BarContent(slot: LayoutSlot, background_colour: Theme.Colour?, content_padding: PaddingValues, modifier: Modifier): Boolean {
-        return LocalPlayerState.current.app_page.PrimaryBarContent(slot, content_padding, modifier)
+    override fun BarContent(
+        slot: LayoutSlot,
+        background_colour: Theme.Colour?,
+        content_padding: PaddingValues,
+        distance_to_page: Dp,
+        modifier: Modifier
+    ): Boolean {
+        return LocalPlayerState.current.app_page.PrimaryBarContent(slot, content_padding, distance_to_page, modifier)
     }
 }
 
@@ -53,8 +60,14 @@ private class SecondaryInternalContentBar: InternalContentBar(1) {
     override fun getIcon(): ImageVector = Icons.Default.LooksTwo
 
     @Composable
-    override fun BarContent(slot: LayoutSlot, background_colour: Theme.Colour?, content_padding: PaddingValues, modifier: Modifier): Boolean {
-        return LocalPlayerState.current.app_page.SecondaryBarContent(slot, content_padding, modifier)
+    override fun BarContent(
+        slot: LayoutSlot,
+        background_colour: Theme.Colour?,
+        content_padding: PaddingValues,
+        distance_to_page: Dp,
+        modifier: Modifier
+    ): Boolean {
+        return LocalPlayerState.current.app_page.SecondaryBarContent(slot, content_padding, distance_to_page, modifier)
     }
 }
 
@@ -64,7 +77,13 @@ private class NavigationInternalContentBar: InternalContentBar(2) {
     override fun getIcon(): ImageVector = Icons.Default.Widgets
 
     @Composable
-    override fun BarContent(slot: LayoutSlot, background_colour: Theme.Colour?, content_padding: PaddingValues, modifier: Modifier): Boolean {
+    override fun BarContent(
+        slot: LayoutSlot,
+        background_colour: Theme.Colour?,
+        content_padding: PaddingValues,
+        distance_to_page: Dp,
+        modifier: Modifier
+    ): Boolean {
         val player: PlayerState = LocalPlayerState.current
 
         // TODO | Use custom bar template

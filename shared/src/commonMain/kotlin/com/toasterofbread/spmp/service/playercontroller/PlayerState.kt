@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.platform.PlatformPreferencesListener
 import com.toasterofbread.composekit.platform.composable.BackHandler
@@ -127,14 +128,14 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
     private var download_request_always_show_options: Boolean by mutableStateOf(false)
     private var download_request_callback: DownloadRequestCallback? by mutableStateOf(null)
 
-    val expansion = NowPlayingExpansionState(this, np_swipe_state, coroutine_scope)
+    val expansion: NowPlayingExpansionState = NowPlayingExpansionState(this, np_swipe_state, coroutine_scope)
     var screen_size: DpSize by mutableStateOf(DpSize.Zero)
-    
+
     val session_started: Boolean get() = _player?.service_player?.session_started == true
     var hide_player: Boolean by mutableStateOf(false)
     val player_showing: Boolean get() = session_started && !hide_player
 
-    val app_page_state = AppPageState(this)
+    val app_page_state: AppPageState = AppPageState(this)
     val main_multiselect_context: MediaItemMultiSelectContext = AppPageMultiSelectContext(this)
     var np_theme_mode: ThemeMode by mutableStateOf(Settings.getEnum(ThemeSettings.Key.NOWPLAYING_THEME_MODE, context.getPrefs()))
     val top_bar: MusicTopBar = MusicTopBar(this)
@@ -379,7 +380,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
 
     fun openAppPage(page: AppPage?, from_current: Boolean = false, replace_current: Boolean = false) {
         if (page == app_page) {
-            page?.onReopened()
+            page.onReopened()
             return
         }
 
@@ -501,7 +502,6 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         val vertical_page_count: Int = getNowPlayingVerticalPageCount(this)
         val minimised_now_playing_height: Dp = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
 
-
         val player_height: Dp = screen_size.height - np_bottom_bar_height
 
         LaunchedEffect(player_height, bottom_padding, vertical_page_count) {
@@ -546,6 +546,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
                 }
 
             np_bottom_bar_showing = layout_slot.DisplayBar(
+                0.dp,
                 Modifier
                     .fillMaxWidth()
                     .onSizeChanged {

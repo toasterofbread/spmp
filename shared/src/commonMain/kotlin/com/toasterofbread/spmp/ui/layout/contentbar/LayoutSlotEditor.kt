@@ -60,26 +60,24 @@ fun LayoutSlotEditor(modifier: Modifier = Modifier) {
 
     val state: ContentBar.BarSelectionState = remember(slots_key, available_slots) {
         object : ContentBar.BarSelectionState {
-            private fun parseSlots(): Map<String, Int> =
+            private fun parseSlots(): Map<String, ContentBarReference?> =
                 Json.decodeFromString(slots_key.get<String>())
 
             override val built_in_bars: List<ContentBarReference> get() =
-                InternalContentBar.getAll()
-                    .mapIndexed { index, bar ->
-                        ContentBarReference(bar, index + 1)
-                    }
+                InternalContentBar.ALL.map { bar ->
+                    ContentBarReference.ofInternalBar(bar)
+                }
 
             override val custom_bars: List<ContentBarReference> get() =
-                Json.decodeFromString<List<CustomContentBar>>(custom_bars_data)
-                    .mapIndexed { index, bar ->
-                        ContentBarReference(bar, -(index + 1))
-                    }
+                Json.decodeFromString<List<CustomContentBar>>(custom_bars_data).indices.map { index ->
+                    ContentBarReference.ofCustomBar(index)
+                }
 
             override fun onBarSelected(slot: LayoutSlot, bar: ContentBarReference?) {
                 println("Selected $slot ${slot::class} $bar")
 
-                val slots: MutableMap<String, Int> = parseSlots().toMutableMap()
-                slots[slot.getKey()] = bar?.second ?: 0
+                val slots: MutableMap<String, ContentBarReference?> = parseSlots().toMutableMap()
+                slots[slot.getKey()] = bar
                 slots_key.set(Json.encodeToString(slots))
             }
 
@@ -99,7 +97,7 @@ fun LayoutSlotEditor(modifier: Modifier = Modifier) {
                 )
                 custom_bars_data = Json.encodeToString(bars + new_bar)
 
-                return ContentBarReference(new_bar, -(bars.size + 1))
+                return ContentBarReference.ofCustomBar(bars.size)
             }
 
             override fun onCustomBarEditRequested(bar: ContentBarReference) {
@@ -107,23 +105,24 @@ fun LayoutSlotEditor(modifier: Modifier = Modifier) {
             }
 
             override fun deleteCustomBar(bar: ContentBarReference) {
+                check(bar.type == ContentBarReference.Type.CUSTOM)
+
                 val bars = Json.decodeFromString<List<CustomContentBar>>(custom_bars_data).toMutableList()
 
-                val removed_index: Int = -bar.second - 1
+                val removed_index: Int = bar.index
                 bars.removeAt(removed_index)
 
-                val slots: MutableMap<String, Int> = parseSlots().toMutableMap()
-                for (slot in slots.entries) {
-                    if (slot.value >= 0) {
+                val slots: MutableMap<String, ContentBarReference?> = parseSlots().toMutableMap()
+                for ((key, slot) in slots.entries) {
+                    if (slot?.type != ContentBarReference.Type.CUSTOM) {
                         continue
                     }
 
-                    val slot_index: Int = -slot.value - 1
-                    if (slot_index == removed_index) {
-                        slots[slot.key] = 0
+                    if (slot.index == removed_index) {
+                        slots[key] = null
                     }
-                    else if (slot_index > removed_index) {
-                        slots[slot.key] = slot.value + 1
+                    else if (slot.index > removed_index) {
+                        slots[key] = slot.copy(index = slot.index - 1)
                     }
                 }
 
@@ -156,13 +155,14 @@ fun LayoutSlotEditor(modifier: Modifier = Modifier) {
                 object : CustomContentBarEditor() {
                     override fun commit(edited_bar: CustomContentBar) {
                         val bars = Json.decodeFromString<List<CustomContentBar>>(custom_bars_data).toMutableList()
-                        bars[-editing_bar.second - 1] = edited_bar
+                        bars[editing_bar.index] = edited_bar
                         custom_bars_data = Json.encodeToString(bars)
                     }
                 }
             }
 
-            editor.Editor(editing_bar.first as CustomContentBar)
+            val bar: ContentBar? = remember(editing_bar) { editing_bar.getBar() }
+            editor.Editor(bar as CustomContentBar)
         }
         else {
             CustomBarsContentBarList(

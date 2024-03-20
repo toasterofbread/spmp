@@ -142,7 +142,7 @@ internal abstract class CustomContentBarEditor() {
                                     column_height = with (density) { it.height.toDp() }
                                 }
                         ) {
-                            BarContentButtons(Modifier.padding(bottom = 20.dp))
+                            BarContentButtons()
                             SelectedElementOptions()
                         }
                     }

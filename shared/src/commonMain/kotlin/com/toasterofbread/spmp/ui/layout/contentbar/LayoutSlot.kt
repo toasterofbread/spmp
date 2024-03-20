@@ -14,10 +14,13 @@ import com.toasterofbread.spmp.model.settings.category.LayoutSettings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
+import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
 import kotlin.math.absoluteValue
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.Serializable
 import com.toasterofbread.composekit.utils.composable.RowOrColumnScope
 
+@Serializable
 sealed interface LayoutSlot {
     fun getKey(): String
     fun getName(): String
@@ -32,25 +35,13 @@ sealed interface LayoutSlot {
 
 @Composable
 fun LayoutSlot.observeContentBar(): State<ContentBar?> {
-    val slots: String by slots_key.rememberMutableState()
+    val slots_data: String by slots_key.rememberMutableState()
     val custom_bars: String by LayoutSettings.Key.CUSTOM_BARS.rememberMutableState()
 
     return remember { derivedStateOf {
-        val slot: Int? =
-            Json.decodeFromString<Map<String, Int>>(slots)
-                .get(getKey())
-
-        return@derivedStateOf when(slot) {
-            null -> getDefaultContentBar()
-            0 -> null
-            in 1..Int.MAX_VALUE -> {
-                InternalContentBar.getAll().getOrNull(slot - 1)
-            }
-            else -> {
-                val bars: List<CustomContentBar> = Json.decodeFromString(custom_bars)
-                bars.getOrNull(slot.absoluteValue - 1)
-            }
-        }
+        val slots: Map<String, ContentBarReference?> = Json.decodeFromString(slots_data)
+        val bar: ContentBar? = slots.get(getKey())?.getBar()
+        return@derivedStateOf bar ?: getDefaultContentBar()
     } }
 }
 

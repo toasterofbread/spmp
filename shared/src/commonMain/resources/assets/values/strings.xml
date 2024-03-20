@@ -832,6 +832,7 @@
     <string name="content_bar_element_builtin_config_size">Size</string>
 
     <string name="content_bar_element_button_config_type">Button type</string>
+    <string name="content_bar_element_button_config_shortcut">Shortcut</string>
 
     <string name="content_bar_element_builtin_lyrics">Lyrics</string>
     <string name="content_bar_element_builtin_visualiser">Music visualiser</string>
@@ -874,4 +875,11 @@
     <string name="theme_colour_vibrant_accent">Vibrant accent</string>
     <string name="theme_colour_card">Card</string>
 
+    <string name="shortcut_trigger_none">None</string>
+    <string name="shortcut_key_config_selected_key">Selected key</string>
+    <string name="shortcut_key_config_none_selected">None</string>
+    <string name="shortcut_key_config_detecting_key">Detecing key...</string>
+    <string name="shortcut_key_modifier_ctrl">Ctrl modifier</string>
+    <string name="shortcut_key_modifier_alt">Alt modifier</string>
+    <string name="shortcut_key_modifier_shift">Shift modifier</string>
 </resources>

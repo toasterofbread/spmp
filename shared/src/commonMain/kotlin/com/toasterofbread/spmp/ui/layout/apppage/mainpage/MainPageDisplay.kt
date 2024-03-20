@@ -15,7 +15,6 @@ import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
-import com.toasterofbread.spmp.ui.layout.apppage.AppPageSidebar
 import com.toasterofbread.spmp.ui.layout.contentbar.*
 import com.toasterofbread.spmp.ui.layout.contentbar.PortraitLayoutSlot
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
@@ -86,7 +85,7 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
                     + (if (lower_bar_displaying) lower_bar_height else 0.dp)
                 )
 
-                Box(Modifier.zIndex(1f)) {
+                Box {
                     Column {
                         with(page) {
                             Page(

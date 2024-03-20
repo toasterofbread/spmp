@@ -98,10 +98,7 @@ data object LayoutSettings: SettingsCategory("player") {
         )
 
     enum class Key: SettingsKey {
-        // Map of LayoutSlot to int where values are:
-        // - Positive = InternalContentBar index + 1
-        // - Negative = CUSTOM_BARS index + 1
-        // - Zero = none
+        // Map of LayoutSlot to ContentBarReference?
         PORTRAIT_SLOTS,
         LANDSCAPE_SLOTS,
 

@@ -2,11 +2,11 @@ package com.toasterofbread.spmp.ui.layout.contentbar
 
 import androidx.compose.ui.Modifier
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.resources.getString
 import androidx.compose.material3.Text
 import androidx.compose.foundation.layout.Row
-import com.toasterofbread.spmp.ui.layout.apppage.AppPageSidebar
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import LocalPlayerState
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.calculateEndPadding
 import com.toasterofbread.composekit.utils.composable.getTop
 import com.toasterofbread.composekit.settings.ui.Theme
+import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElement
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
@@ -23,21 +24,21 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material.icons.filled.LooksOne
 import androidx.compose.material.icons.filled.LooksTwo
+import kotlinx.serialization.Serializable
 
-sealed class InternalContentBar(
-    val ordinal: Int
-): ContentBar() {
+@Serializable
+sealed class InternalContentBar(val index: Int): ContentBar() {
     companion object {
-        val PRIMARY: InternalContentBar = PrimaryInternalContentBar()
-        val SECONDARY: InternalContentBar = SecondaryInternalContentBar()
-        val NAVIGATION: InternalContentBar = NavigationInternalContentBar()
+        val PRIMARY: InternalContentBar = PrimaryInternalContentBar(0)
+        val SECONDARY: InternalContentBar = SecondaryInternalContentBar(1)
+        val NAVIGATION: InternalContentBar = NavigationInternalContentBar(2)
 
-        fun getAll(): List<InternalContentBar> = listOf(PRIMARY, SECONDARY, NAVIGATION)
+        val ALL: List<InternalContentBar> = listOf(PRIMARY, SECONDARY, NAVIGATION)
         val REQUIRED: List<InternalContentBar> = listOf(PRIMARY, SECONDARY)
     }
 }
 
-private class PrimaryInternalContentBar: InternalContentBar(0) {
+private class PrimaryInternalContentBar(index: Int): InternalContentBar(index) {
     override fun getName(): String = getString("content_bar_primary")
     override fun getDescription(): String = getString("content_bar_desc_primary")
     override fun getIcon(): ImageVector = Icons.Default.LooksOne
@@ -54,7 +55,7 @@ private class PrimaryInternalContentBar: InternalContentBar(0) {
     }
 }
 
-private class SecondaryInternalContentBar: InternalContentBar(1) {
+private class SecondaryInternalContentBar(index: Int): InternalContentBar(index) {
     override fun getName(): String = getString("content_bar_secondary")
     override fun getDescription(): String = getString("content_bar_desc_secondary")
     override fun getIcon(): ImageVector = Icons.Default.LooksTwo
@@ -71,7 +72,7 @@ private class SecondaryInternalContentBar: InternalContentBar(1) {
     }
 }
 
-private class NavigationInternalContentBar: InternalContentBar(2) {
+private class NavigationInternalContentBar(index: Int): InternalContentBar(index) {
     override fun getName(): String = getString("content_bar_navigation")
     override fun getDescription(): String = getString("content_bar_desc_navigation")
     override fun getIcon(): ImageVector = Icons.Default.Widgets
@@ -84,16 +85,8 @@ private class NavigationInternalContentBar: InternalContentBar(2) {
         distance_to_page: Dp,
         modifier: Modifier
     ): Boolean {
-        val player: PlayerState = LocalPlayerState.current
-
-        // TODO | Use custom bar template
-        AppPageSidebar(
-            slot,
-            modifier,
-            content_padding = content_padding,
-            multiselect_context = player.main_multiselect_context
-        )
-
+        val elements: List<ContentBarElement> = remember { CustomContentBarTemplate.NAVIGATION.getElements() }
+        CustomBarContent(elements, 50.dp, slot.is_vertical, content_padding, background_colour, modifier)
         return true
     }
 }

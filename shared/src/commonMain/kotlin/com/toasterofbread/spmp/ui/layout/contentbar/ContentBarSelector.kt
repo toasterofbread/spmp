@@ -30,6 +30,7 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.*
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.vertical
+import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
 import com.toasterofbread.spmp.ui.theme.appHover
 
 @Composable
@@ -299,7 +300,7 @@ internal fun CustomBarsContentBarList(
 
 @Composable
 internal fun ContentBarList(
-    bars: List<ContentBarReference>,
+    bar_references: List<ContentBarReference>,
     title: String,
     modifier: Modifier = Modifier,
     lazy: Boolean = false,
@@ -307,15 +308,17 @@ internal fun ContentBarList(
     buttonBottomContent: @Composable (Int) -> Unit = {},
     onSelected: ((Int) -> Unit)?
 ) {
+    val bars: List<ContentBar> = remember(bar_references) { bar_references.mapNotNull { it.getBar() } }
+
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(title)
 
         @Composable
-        fun Bar(bar: ContentBarReference, index: Int) {
+        fun Bar(bar: ContentBar, index: Int) {
             ContentBarPreview(
-                bar.first.getName(),
-                bar.first.getDescription(),
-                bar.first.getIcon(),
+                bar.getName(),
+                bar.getDescription(),
+                bar.getIcon(),
                 Modifier
                     .contentBarPreview(interactive = onSelected != null)
                     .thenWith(onSelected) {
@@ -346,8 +349,8 @@ internal fun ContentBarList(
             Column(verticalArrangement = arrangement) {
                 topContent()
 
-                for (bar in bars.withIndex()) {
-                    Bar(bar.value, bar.index)
+                for ((index, bar) in bars.withIndex()) {
+                    Bar(bar, index)
                 }
             }
         }

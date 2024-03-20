@@ -34,8 +34,8 @@ import com.toasterofbread.spmp.ui.layout.apppage.mainpage.LoadingSplashView
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.RootView
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.SplashMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
-import com.toasterofbread.spmp.ui.shortcut.LocalPressedShortcutModifiers
-import com.toasterofbread.spmp.ui.shortcut.PressedShortcutModifiers
+import com.toasterofbread.spmp.ui.shortcut.LocalShortcutState
+import com.toasterofbread.spmp.ui.shortcut.ShortcutState
 import com.toasterofbread.spmp.ui.theme.ApplicationTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -97,10 +97,11 @@ object SpMp {
     fun App(
         arguments: ProgramArguments,
         modifier: Modifier = Modifier,
-        pressed_shortcut_modifiers: PressedShortcutModifiers = PressedShortcutModifiers(emptyList()),
+        shortcut_state: ShortcutState = ShortcutState(),
         open_uri: String? = null
     ) {
         context.theme.Update()
+        shortcut_state.ObserveState()
 
         context.theme.ApplicationTheme(context, getFontFamily(context) ?: FontFamily.Default) {
             val player_coroutine_scope: CoroutineScope = rememberCoroutineScope()
@@ -130,7 +131,7 @@ object SpMp {
 
                 CompositionLocalProvider(
                     LocalPlayerState provides player_state,
-                    LocalPressedShortcutModifiers provides pressed_shortcut_modifiers,
+                    LocalShortcutState provides shortcut_state,
                     LocalDensity provides Density(LocalDensity.current.density * ui_scale, 1f)
                 ) {
                     var mismatched_server_api_version: Int? by remember { mutableStateOf(null) }

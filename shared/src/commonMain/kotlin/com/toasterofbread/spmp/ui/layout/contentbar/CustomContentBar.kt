@@ -50,7 +50,7 @@ data class CustomContentBar(
         distance_to_page: Dp,
         modifier: Modifier
     ): Boolean {
-        CustomBarContent(slot.is_vertical, content_padding, background_colour, modifier)
+        CustomBarContent(elements, size_dp.dp, slot.is_vertical, content_padding, background_colour, modifier)
         return true
     }
 
@@ -73,59 +73,97 @@ data class CustomContentBar(
         buttonContent: @Composable (Int, ContentBarElement, DpSize) -> Unit =
             { _, element, size -> element.Element(vertical, size, Modifier) }
     ) {
-        val player: PlayerState = LocalPlayerState.current
-        val selected_element: Int? =
-            selected_element_override ?: elements.indexOfFirst { it.isSelected() }.takeIf { it != -1 }
+        CustomBarContent(
+            elements,
+            size_dp.dp,
+            vertical,
+            content_padding,
+            background_colour,
+            modifier,
+            selected_element_override,
+            apply_size,
+            scrolling,
+            getFillLengthModifier,
+            getSpacerElementModifier,
+            shouldShowButton,
+            buttonContent
+        )
+    }
+}
 
-        val content_colour: Color = LocalContentColor.current
-        val indicator_colour: Color =
-            when (background_colour) {
-                Theme.Colour.BACKGROUND -> player.theme.vibrant_accent
-                Theme.Colour.CARD -> player.theme.vibrant_accent
-                Theme.Colour.ACCENT -> player.theme.background
-                Theme.Colour.VIBRANT_ACCENT -> player.theme.background
-                else -> content_colour
+@Composable
+internal fun CustomBarContent(
+    elements: List<ContentBarElement>,
+    size: Dp,
+    vertical: Boolean,
+    content_padding: PaddingValues,
+    background_colour: Theme.Colour? = null,
+    modifier: Modifier = Modifier,
+    selected_element_override: Int? = null,
+    apply_size: Boolean = true,
+    scrolling: Boolean = true,
+    getFillLengthModifier: RowOrColumnScope.() -> Modifier = {
+        Modifier
+            .weight(1f)
+            .then(if (vertical) Modifier.fillMaxHeight() else Modifier.fillMaxWidth())
+    },
+    getSpacerElementModifier: (@Composable RowOrColumnScope.(Int, ContentBarElementSpacer) -> Modifier)? = null,
+    shouldShowButton: @Composable (ContentBarElement) -> Boolean = { it.shouldShow() },
+    buttonContent: @Composable (Int, ContentBarElement, DpSize) -> Unit =
+        { _, element, size -> element.Element(vertical, size, Modifier) }
+) {
+    val player: PlayerState = LocalPlayerState.current
+    val selected_element: Int? =
+        selected_element_override ?: elements.indexOfFirst { it.isSelected() }.takeIf { it != -1 }
+
+    val content_colour: Color = LocalContentColor.current
+    val indicator_colour: Color =
+        when (background_colour) {
+            Theme.Colour.BACKGROUND -> player.theme.vibrant_accent
+            Theme.Colour.CARD -> player.theme.vibrant_accent
+            Theme.Colour.ACCENT -> player.theme.background
+            Theme.Colour.VIBRANT_ACCENT -> player.theme.background
+            else -> content_colour
+        }
+
+    BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
+        SidebarButtonSelector(
+            selected_button = selected_element,
+            buttons = elements,
+            indicator_colour = indicator_colour,
+            modifier = Modifier
+                .padding(content_padding)
+                .thenIf(apply_size) {
+                    if (vertical) width(size)
+                    else height(size)
+                },
+            vertical = vertical,
+            scrolling = scrolling,
+            alignment = 0,
+            isSpacing = {
+                it.blocksIndicatorAnimation()
+            },
+            arrangement = Arrangement.spacedBy(1.dp),
+            showButton = { element ->
+                return@SidebarButtonSelector shouldShowButton(element)
+            },
+            getButtonModifier = { index, element ->
+                val base_modifier: Modifier =
+                    if (element.shouldFillLength()) getFillLengthModifier()
+                    else Modifier
+
+                if (element is ContentBarElementSpacer && getSpacerElementModifier != null) {
+                    return@SidebarButtonSelector base_modifier.then(getSpacerElementModifier(index, element))
+                }
+                return@SidebarButtonSelector base_modifier
             }
-
-        BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
-            SidebarButtonSelector(
-                selected_button = selected_element,
-                buttons = elements,
-                indicator_colour = indicator_colour,
-                modifier = Modifier
-                    .padding(content_padding)
-                    .thenIf(apply_size) {
-                        if (vertical) width(size_dp.dp)
-                        else height(size_dp.dp)
-                    },
-                vertical = vertical,
-                scrolling = scrolling,
-                alignment = 0,
-                isSpacing = {
-                    it.blocksIndicatorAnimation()
-                },
-                arrangement = Arrangement.spacedBy(1.dp),
-                showButton = { element ->
-                    return@SidebarButtonSelector shouldShowButton(element)
-                },
-                getButtonModifier = { index, element ->
-                    val base_modifier: Modifier =
-                        if (element.shouldFillLength()) getFillLengthModifier()
-                        else Modifier
-
-                    if (element is ContentBarElementSpacer && getSpacerElementModifier != null) {
-                        return@SidebarButtonSelector base_modifier.then(getSpacerElementModifier(index, element))
-                    }
-                    return@SidebarButtonSelector base_modifier
-                }
-            ) { index, element ->
-                CompositionLocalProvider(
-                    LocalContentColor provides
-                        if (index == selected_element) indicator_colour.getContrasted()
-                        else background_colour?.get(player.theme)?.getContrasted() ?: LocalContentColor.current
-                ) {
-                    buttonContent(index, element, DpSize(this@BoxWithConstraints.maxWidth, this@BoxWithConstraints.maxHeight))
-                }
+        ) { index, element ->
+            CompositionLocalProvider(
+                LocalContentColor provides
+                    if (index == selected_element) indicator_colour.getContrasted()
+                    else background_colour?.get(player.theme)?.getContrasted() ?: LocalContentColor.current
+            ) {
+                buttonContent(index, element, DpSize(this@BoxWithConstraints.maxWidth, this@BoxWithConstraints.maxHeight))
             }
         }
     }

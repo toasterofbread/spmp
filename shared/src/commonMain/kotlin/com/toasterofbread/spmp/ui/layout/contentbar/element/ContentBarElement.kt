@@ -15,6 +15,7 @@ import com.toasterofbread.composekit.utils.composable.*
 import com.toasterofbread.spmp.platform.visualiser.MusicVisualiser
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
+import com.toasterofbread.spmp.ui.shortcut.Shortcut
 import kotlinx.serialization.*
 import kotlinx.serialization.json.JsonObject
 
@@ -38,6 +39,8 @@ abstract class ContentBarElement(data: ContentBarElementData) {
             data = getSubData()
         )
     open fun getSubData(): JsonObject? = null
+
+    open fun getShortcut(): Shortcut? = null
 
     @Composable
     open fun isSelected(): Boolean = false
@@ -79,13 +82,11 @@ abstract class ContentBarElement(data: ContentBarElementData) {
     protected abstract fun ElementContent(vertical: Boolean, enable_interaction: Boolean, modifier: Modifier)
 
     @Composable
-    open fun SubConfigurationItems(onModification: () -> Unit) {}
+    open fun SubConfigurationItems(item_modifier: Modifier, onModification: () -> Unit) {}
 
     @OptIn(ExperimentalLayoutApi::class)
     @Composable
     fun ConfigurationItems(onModification: () -> Unit) {
-        SubConfigurationItems(onModification)
-
         var show_mode_selector: Boolean by remember { mutableStateOf(false) }
 
         LargeDropdownMenu(
@@ -158,7 +159,11 @@ abstract class ContentBarElement(data: ContentBarElementData) {
                 }
             }
         }
+
+        SubConfigurationItems(Modifier.fillMaxWidth(), onModification)
     }
+
+    override fun toString(): String = "ContentBarElement(data=${getData()})"
 
     enum class Type {
         BUTTON,

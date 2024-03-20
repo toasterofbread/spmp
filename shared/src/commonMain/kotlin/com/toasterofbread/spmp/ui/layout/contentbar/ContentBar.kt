@@ -16,10 +16,11 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.Serializable
 
-internal typealias ContentBarReference = Pair<ContentBar, Int>
-
+@Serializable
 sealed class ContentBar {
     abstract fun getName(): String
     abstract fun getDescription(): String?
@@ -80,15 +81,6 @@ sealed class ContentBar {
             set(value) { _bar_selection_state = value }
 
         var disable_bar_selection: Boolean by mutableStateOf(false)
-
-        fun deserialise(data: String): ContentBar {
-            val internal_bar_index: Int? = data.toIntOrNull()
-            if (internal_bar_index != null) {
-                return InternalContentBar.getAll()[internal_bar_index]
-            }
-
-            return Json.decodeFromString<CustomContentBar>(data)
-        }
     }
 }
 

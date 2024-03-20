@@ -16,6 +16,7 @@ import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.utils.common.getValue
 import com.toasterofbread.composekit.utils.composable.*
@@ -27,13 +28,23 @@ import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.apppage.*
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
 import com.toasterofbread.spmp.ui.shortcut.SHORTCUT_INDICATOR_SHAPE
+import com.toasterofbread.spmp.ui.shortcut.trigger.ShortcutTrigger
+import com.toasterofbread.spmp.ui.shortcut.ShortcutSelector
+import com.toasterofbread.spmp.ui.shortcut.Shortcut
+import com.toasterofbread.spmp.ui.shortcut.action.ContentBarButtonShortcutAction
 import kotlinx.serialization.json.*
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.encodeToJsonElement
 
 class ContentBarElementButton(data: ContentBarElementData): ContentBarElement(data) {
     private var button_type: Type by mutableStateOf(
         data.data?.get("button_type")?.jsonPrimitive?.int?.let {
             Type.entries[it]
         } ?: Type.DEFAULT
+    )
+
+    private var shortcut_trigger: ShortcutTrigger? by mutableStateOf(
+        data.data?.get("shortcut_trigger")?.let { Json.decodeFromJsonElement(it) }
     )
 
     constructor(button_type: Type): this(
@@ -47,19 +58,20 @@ class ContentBarElementButton(data: ContentBarElementData): ContentBarElement(da
 
     override fun getSubData(): JsonObject = buildJsonObject {
         put("button_type", button_type.ordinal)
+        put("shortcut_trigger", Json.encodeToJsonElement(shortcut_trigger))
     }
+
+    override fun getShortcut(): Shortcut? =
+        shortcut_trigger?.let { trigger ->
+            Shortcut(trigger, ContentBarButtonShortcutAction(button_type))
+        }
 
     @Composable
     override fun isSelected(): Boolean = button_type == Type.current
 
     @Composable
-    override fun shouldShow(): Boolean {
-        val player: PlayerState = LocalPlayerState.current
-        return when (button_type) {
-            Type.RELOAD -> Platform.DESKTOP.isCurrent() && player.app_page.canReload()
-            else -> button_type.getPage(player) != null
-        }
-    }
+    override fun shouldShow(): Boolean =
+        button_type.shouldShow(LocalPlayerState.current)
 
     @Composable
     override fun ElementContent(vertical: Boolean, enable_interaction: Boolean, modifier: Modifier) {
@@ -67,12 +79,7 @@ class ContentBarElementButton(data: ContentBarElementData): ContentBarElement(da
 
         IconButton(
             {
-                if (!enable_interaction) {
-                    return@IconButton
-                }
-
-                val page: AppPage? = button_type.getPage(player)
-                onButtonClicked(page, player)
+                button_type.executeAction(player)
             },
             modifier
         ) {
@@ -135,7 +142,7 @@ class ContentBarElementButton(data: ContentBarElementData): ContentBarElement(da
 
     @OptIn(ExperimentalLayoutApi::class)
     @Composable
-    override fun SubConfigurationItems(onModification: () -> Unit) {
+    override fun SubConfigurationItems(item_modifier: Modifier, onModification: () -> Unit) {
         var show_type_selector: Boolean by remember { mutableStateOf(false) }
 
         LargeDropdownMenu(
@@ -143,8 +150,8 @@ class ContentBarElementButton(data: ContentBarElementData): ContentBarElement(da
             onDismissRequest = { show_type_selector = false },
             item_count = Type.entries.size,
             selected = button_type.ordinal,
-            getItem = {
-                Type.entries[it].getName()
+            itemContent = {
+                Text(Type.entries[it].getName())
             },
             onSelected = {
                 button_type = Type.entries[it]
@@ -154,7 +161,7 @@ class ContentBarElementButton(data: ContentBarElementData): ContentBarElement(da
         )
 
         FlowRow(
-            Modifier.fillMaxWidth(),
+            item_modifier,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
@@ -166,6 +173,27 @@ class ContentBarElementButton(data: ContentBarElementData): ContentBarElement(da
             Button({ show_type_selector = !show_type_selector }) {
                 Text(button_type.getName(), softWrap = false)
             }
+        }
+
+        FlowRow(
+            item_modifier,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                getString("content_bar_element_button_config_shortcut"),
+                Modifier.align(Alignment.CenterVertically),
+                softWrap = false
+            )
+
+            ShortcutSelector(shortcut_trigger) { new_shortcut ->
+                shortcut_trigger = new_shortcut
+                onModification()
+            }
+        }
+
+        shortcut_trigger?.ConfigurationItems(item_modifier.padding(start = 50.dp)) { new_shortcut ->
+            shortcut_trigger = new_shortcut
+            onModification()
         }
     }
 
@@ -186,6 +214,20 @@ class ContentBarElementButton(data: ContentBarElementData): ContentBarElement(da
         CONTROL,
         SETTINGS,
         PROFILE;
+
+        fun executeAction(player: PlayerState) {
+            if (this == Type.RELOAD) {
+                player.app_page.onReload()
+                return
+            }
+            player.openAppPage(getPage(player))
+        }
+
+        fun shouldShow(player: PlayerState): Boolean =
+            when (this) {
+                RELOAD -> Platform.DESKTOP.isCurrent() && player.app_page.canReload()
+                else -> getPage(player) != null
+            }
 
         fun getName(): String =
             when (this) {
@@ -211,7 +253,7 @@ class ContentBarElementButton(data: ContentBarElementData): ContentBarElement(da
                 Type.PROFILE -> Icons.Default.Person
             }
 
-        fun getPage(player: PlayerState): AppPage? =
+        private fun getPage(player: PlayerState): AppPage? =
             with (player.app_page_state) {
                 when (this@Type) {
                     FEED -> SongFeed
@@ -243,44 +285,6 @@ class ContentBarElementButton(data: ContentBarElementData): ContentBarElement(da
                         else -> null
                     }
                 }
-        }
-    }
-
-    companion object {
-        val navigation_buttons: List<Type?> = listOf(
-            Type.FEED,
-            Type.LIBRARY,
-            Type.SEARCH,
-            Type.RADIOBUILDER,
-            Type.RELOAD,
-            null,
-            Type.PROFILE,
-            Type.CONTROL,
-            Type.SETTINGS
-        )
-
-        fun getShortcutButtonPage(button_index: Int, player: PlayerState): AppPage? {
-            return navigation_buttons.mapNotNull { it?.getPage(player) }.getOrNull(button_index)
-        }
-
-        fun getButtonShortcutButton(button: Type?, player: PlayerState): Int? {
-            if (button == null) {
-                return null
-            }
-
-            var i: Int = 0
-            for (other_button in navigation_buttons) {
-                if (other_button?.getPage(player) == null) {
-                    continue
-                }
-
-                if (other_button == button) {
-                    return i
-                }
-
-                i++
-            }
-            return null
         }
     }
 }

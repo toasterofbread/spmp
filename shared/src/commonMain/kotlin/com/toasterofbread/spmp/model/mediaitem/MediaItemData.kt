@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.artist.toArtistData
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.toRemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.toSongData
@@ -58,7 +59,9 @@ abstract class MediaItemData: MediaItem, YtmMediaItem {
         fun fromBrowseEndpointType(page_type: String, id: String): MediaItemData {
             val data = MediaItemType.fromBrowseEndpointType(page_type).referenceFromId(id).getEmptyData()
             if (data is RemotePlaylistData) {
-                data.playlist_type = YtmPlaylist.Type.fromBrowseEndpointType(page_type)
+                data.playlist_type = PlaylistType.fromYtmPlaylistType(
+                    YtmPlaylist.Type.fromBrowseEndpointType(page_type)
+                )
             }
             return data
         }

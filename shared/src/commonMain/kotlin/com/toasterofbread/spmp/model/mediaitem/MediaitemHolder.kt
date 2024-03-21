@@ -12,6 +12,7 @@ import com.toasterofbread.spmp.model.mediaitem.db.isMediaItemHidden
 import com.toasterofbread.spmp.model.mediaitem.db.rememberHiddenItems
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.FeedSettings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
@@ -37,7 +38,7 @@ private fun List<MediaItemHolder>.filterItems(
             return@mapNotNull null
         }
 
-        if (hide_radios && item is RemotePlaylist && item.TypeOfPlaylist.get(database) == YtmPlaylist.Type.RADIO) {
+        if (hide_radios && item is RemotePlaylist && item.TypeOfPlaylist.get(database) == PlaylistType.RADIO) {
             return@mapNotNull null
         }
 

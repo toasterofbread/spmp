@@ -2,13 +2,28 @@ package com.toasterofbread.spmp.model.mediaitem.enums
 
 import com.toasterofbread.spmp.resources.getString
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
+import java.lang.reflect.Type
 
-fun YtmPlaylist.Type?.getReadable(plural: Boolean): String {
-    return getString(when (this) {
-        YtmPlaylist.Type.PLAYLIST, YtmPlaylist.Type.LOCAL, null -> if (plural) "playlists" else "playlist"
-        YtmPlaylist.Type.ALBUM -> if (plural) "albums" else "album"
-        YtmPlaylist.Type.AUDIOBOOK -> if (plural) "audiobooks" else "audiobook"
-        YtmPlaylist.Type.PODCAST -> if (plural) "podcasts" else "podcast"
-        YtmPlaylist.Type.RADIO -> if (plural) "radios" else "radio"
-    })
+enum class PlaylistType {
+    PLAYLIST, LOCAL, ALBUM, AUDIOBOOK, PODCAST, RADIO;
+
+    companion object {
+        fun fromYtmPlaylistType(type: YtmPlaylist.Type): PlaylistType =
+            when (type) {
+                YtmPlaylist.Type.PLAYLIST -> PLAYLIST
+                YtmPlaylist.Type.ALBUM -> ALBUM
+                YtmPlaylist.Type.AUDIOBOOK -> AUDIOBOOK
+                YtmPlaylist.Type.PODCAST -> PODCAST
+                YtmPlaylist.Type.RADIO  -> RADIO
+            }
+    }
 }
+
+fun PlaylistType?.getReadable(plural: Boolean): String =
+    getString(when (this) {
+        PlaylistType.PLAYLIST, PlaylistType.LOCAL, null -> if (plural) "playlists" else "playlist"
+        PlaylistType.ALBUM -> if (plural) "albums" else "album"
+        PlaylistType.AUDIOBOOK -> if (plural) "audiobooks" else "audiobook"
+        PlaylistType.PODCAST -> if (plural) "podcasts" else "podcast"
+        PlaylistType.RADIO -> if (plural) "radios" else "radio"
+    })

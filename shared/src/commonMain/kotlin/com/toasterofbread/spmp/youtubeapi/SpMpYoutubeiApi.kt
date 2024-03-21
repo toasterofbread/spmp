@@ -16,6 +16,7 @@ import com.toasterofbread.spmp.model.mediaitem.artist.toArtistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.toRemotePlaylistData
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.AppUiString
 import com.toasterofbread.spmp.youtubeapi.SpMpYoutubeiAuthenticationState
 import com.toasterofbread.spmp.db.Database
@@ -132,7 +133,7 @@ internal class SpMpYoutubeiApi(
                 data.loaded = true
                 data.saveToDatabase(
                     database,
-                    uncertain = data.playlist_type != YtmPlaylist.Type.PLAYLIST,
+                    uncertain = data.playlist_type != PlaylistType.PLAYLIST,
                     subitems_uncertain = true
                 )
             }
@@ -151,7 +152,7 @@ internal class SpMpYoutubeiApi(
             if (save) {
                 playlist.saveToDatabase(
                     database,
-                    uncertain = playlist.playlist_type != YtmPlaylist.Type.PLAYLIST,
+                    uncertain = playlist.playlist_type != PlaylistType.PLAYLIST,
                     subitems_uncertain = true
                 )
             }

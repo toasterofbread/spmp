@@ -4,6 +4,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
 
@@ -13,7 +14,7 @@ abstract class PlaylistData(
 
     var items: List<SongData>? = null,
     var item_count: Int? = null,
-    var playlist_type: YtmPlaylist.Type? = null,
+    var playlist_type: PlaylistType? = null,
     var browse_params: String? = null,
     var total_duration: Long? = null,
     var year: Int? = null,

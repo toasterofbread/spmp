@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.composekit.utils.composable.LoadActionIconButton
 import com.toasterofbread.composekit.utils.composable.spanItem
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
 import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
 import com.toasterofbread.spmp.model.mediaitem.layout.getMediaItemPreviewSquareAdditionalHeight
@@ -87,7 +88,7 @@ internal class LibraryAlbumsPage(context: AppContext): LibrarySubPage(context) {
             horizontalArrangement = Arrangement.spacedBy(item_spacing)
         ) {
             spanItem {
-                LibraryPageTitle(YtmPlaylist.Type.ALBUM.getReadable(true))
+                LibraryPageTitle(PlaylistType.ALBUM.getReadable(true))
             }
 
             load_error?.also { error ->

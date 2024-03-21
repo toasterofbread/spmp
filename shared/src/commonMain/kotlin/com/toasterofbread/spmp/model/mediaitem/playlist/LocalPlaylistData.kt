@@ -23,6 +23,7 @@ import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter.saveToFile
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
 
@@ -117,7 +118,7 @@ class LocalPlaylistData(id: String): PlaylistData(id), LocalPlaylist {
         get() = property_rememberer.rememberLocalSingleProperty(
             "ItemCount", { item_count }, { item_count = it }
         )
-    override val TypeOfPlaylist: Property<YtmPlaylist.Type?>
+    override val TypeOfPlaylist: Property<PlaylistType?>
         get() = property_rememberer.rememberLocalSingleProperty(
             "TypeOfPlaylist", { playlist_type }, { playlist_type = it }
         )

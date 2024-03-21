@@ -47,6 +47,7 @@ import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.isMediaItemHidden
 import com.toasterofbread.spmp.model.mediaitem.db.rememberThemeColour
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
 import com.toasterofbread.spmp.model.mediaitem.layout.TitleBar
 import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
@@ -109,7 +110,7 @@ fun MediaItemCard(
         ) {
             layout.TitleBar(Modifier.fillMaxWidth().weight(1f), multiselect_context = multiselect_context)
 
-            val playlist_type: State<YtmPlaylist.Type?>? =
+            val playlist_type: State<PlaylistType?>? =
                 if (item is RemotePlaylist) item.TypeOfPlaylist.observe(player.database)
                 else null
 
@@ -125,13 +126,13 @@ fun MediaItemCard(
                     is Artist -> Icons.Filled.Person
                     is RemotePlaylist -> {
                         when (playlist_type?.value) {
-                            YtmPlaylist.Type.PLAYLIST,
-                            YtmPlaylist.Type.LOCAL,
+                            PlaylistType.PLAYLIST,
+                            PlaylistType.LOCAL,
                             null -> Icons.Filled.PlaylistPlay
-                            YtmPlaylist.Type.ALBUM -> Icons.Filled.Album
-                            YtmPlaylist.Type.AUDIOBOOK -> Icons.Filled.Book
-                            YtmPlaylist.Type.PODCAST -> Icons.Filled.Podcasts
-                            YtmPlaylist.Type.RADIO -> Icons.Filled.Radio
+                            PlaylistType.ALBUM -> Icons.Filled.Album
+                            PlaylistType.AUDIOBOOK -> Icons.Filled.Book
+                            PlaylistType.PODCAST -> Icons.Filled.Podcasts
+                            PlaylistType.RADIO -> Icons.Filled.Radio
                         }
                     }
 

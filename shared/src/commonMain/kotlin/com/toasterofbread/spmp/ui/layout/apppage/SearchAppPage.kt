@@ -53,6 +53,7 @@ import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
 import com.toasterofbread.spmp.model.mediaitem.layout.LambdaYoutubePage
 import com.toasterofbread.spmp.model.mediaitem.layout.Layout
@@ -579,8 +580,8 @@ fun SearchType?.getReadable(): String =
         SearchType.VIDEO -> getString("search_filter_videos")
         SearchType.SONG -> MediaItemType.SONG.getReadable(true)
         SearchType.ARTIST -> MediaItemType.ARTIST.getReadable(true)
-        SearchType.PLAYLIST -> YtmPlaylist.Type.PLAYLIST.getReadable(true)
-        SearchType.ALBUM -> YtmPlaylist.Type.ALBUM.getReadable(true)
+        SearchType.PLAYLIST -> PlaylistType.PLAYLIST.getReadable(true)
+        SearchType.ALBUM -> PlaylistType.ALBUM.getReadable(true)
     }
 
 fun SearchType.getIcon(): ImageVector =

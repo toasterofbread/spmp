@@ -20,6 +20,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.settings.category.FilterSettings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
@@ -101,7 +102,7 @@ fun ArtistQueries.getByHidden(hidden: Boolean): List<Artist> =
 
 fun PlaylistQueries.getByHidden(hidden: Boolean): List<Playlist> =
     byHidden(hidden.toSQLBoolean()).executeAsList().map { playlist ->
-        val type = playlist.playlist_type?.let { YtmPlaylist.Type.entries[it.toInt()] }
-        if (type == YtmPlaylist.Type.LOCAL) LocalPlaylistRef(playlist.id)
+        val type = playlist.playlist_type?.let { PlaylistType.entries[it.toInt()] }
+        if (type == PlaylistType.LOCAL) LocalPlaylistRef(playlist.id)
         else RemotePlaylistRef(playlist.id)
     }

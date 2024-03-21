@@ -6,6 +6,7 @@ import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.artist.toArtistData
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.song.toSongData
 import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
@@ -31,7 +32,7 @@ class RemotePlaylistData(
     override val property_rememberer: PropertyRememberer = PropertyRememberer()
 
     override fun createDbEntry(db: Database) {
-        if (playlist_type == YtmPlaylist.Type.LOCAL) {
+        if (playlist_type == PlaylistType.LOCAL) {
             throw IllegalStateException(id)
         }
         db.playlistQueries.insertById(id, playlist_type?.ordinal?.toLong())
@@ -78,8 +79,8 @@ fun YtmPlaylist.toRemotePlaylistData(): RemotePlaylistData =
         data.name = name
         data.description = description
         data.thumbnail_provider = thumbnail_provider
-        data.playlist_type = type
-        data.artist = artist?.toArtistData()
+        data.playlist_type = type?.let { PlaylistType.fromYtmPlaylistType(it) }
+        data.artist = artists?.firstOrNull()?.toArtistData()
         data.year = year
         data.items = items?.map { it.toSongData() }
         data.owner = owner_id?.let { ArtistRef(it) }

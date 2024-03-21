@@ -25,8 +25,8 @@ internal class SpMpItemCache(val database: Database): MediaItemCache() {
                 for (key in keys) {
                     when (key) {
                         SongKey.ARTIST_ID -> {
-                            artist = song.Artist.get(database)?.id?.let { YtmArtist(it) }
-                            if (artist == null) {
+                            artists = song.Artist.get(database)?.id?.let { listOf(YtmArtist(it)) }
+                            if (artists == null) {
                                 filled = false
                             }
                         }
@@ -87,8 +87,8 @@ internal class SpMpItemCache(val database: Database): MediaItemCache() {
                 for (key in keys) {
                     when (key) {
                         PlaylistKey.ARTIST_ID -> {
-                            artist = playlist.Artist.get(database)?.let { YtmArtist(it.id) }
-                            if (artist == null) {
+                            artists = playlist.Artist.get(database)?.let { listOf(YtmArtist(it.id)) }
+                            if (artists == null) {
                                 filled = false
                             }
                         }

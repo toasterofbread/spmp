@@ -74,7 +74,7 @@ class SongData(
 fun YtmSong.toSongData(): SongData =
     SongData(
         id = id,
-        artist = artist?.toArtistData(),
+        artist = artists?.firstOrNull()?.toArtistData(),
         song_type = type,
         duration = duration,
         album = album?.toRemotePlaylistData(),

@@ -297,10 +297,10 @@ internal fun populateArtistsLayout(
                 artist_id = artist.id
             }
             else if (item is YtmSong) {
-                artist_id = item.artist?.id ?: continue
+                artist_id = item.artists?.firstOrNull()?.id ?: continue
             }
             else if (item is YtmPlaylist) {
-                artist_id = item.artist?.id ?: continue
+                artist_id = item.artists?.firstOrNull()?.id ?: continue
             }
             else {
                 continue

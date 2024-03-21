@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.platform
 
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
+import kotlinx.serialization.Serializable
 
 expect class DiscordStatus(
     context: AppContext,
@@ -42,6 +43,7 @@ expect class DiscordStatus(
 
 private const val DISCORD_DEFAULT_AVATAR = "https://discord.com/assets/1f0bfc0865d324c2587920a7d80c609b.png"
 
+@Serializable
 data class DiscordMeResponse(
     val id: String? = null,
     val username: String? = null,

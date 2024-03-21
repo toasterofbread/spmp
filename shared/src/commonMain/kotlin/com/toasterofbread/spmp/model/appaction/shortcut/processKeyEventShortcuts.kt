@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.ui.shortcut
+package com.toasterofbread.spmp.model.appaction.shortcut
 
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.input.key.*
@@ -8,11 +8,10 @@ import com.toasterofbread.spmp.model.settings.category.SystemSettings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.isTextFieldFocused
-import com.toasterofbread.spmp.ui.shortcut.ShortcutState
+import com.toasterofbread.spmp.ui.component.shortcut.trigger.KeyboardShortcutTrigger
+import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
 import kotlin.math.roundToLong
-
-// TODO | In-app list of shortcuts
-// TODO | Configuration
+import kotlinx.coroutines.launch
 
 private val NUMBER_KEYS: List<Key?> = listOf(
     Key.Zero, Key.One, Key.Two, Key.Three, Key.Four, Key.Five, Key.Six, Key.Seven, Key.Eight, Key.Nine, null
@@ -48,28 +47,31 @@ fun PlayerState.processKeyEventShortcuts(
 
         else -> {
             val number_index: Int = NUMBER_KEYS.indexOf(event.key)
-            if (number_index != -1) {
-                if (event.isCtrlPressed) {
-                    // val page_index: Int = if (number_index == 0) 9 else number_index - 1
-                    // val page: AppPage? = AppPageSidebarButton.getShortcutButtonPage(page_index, this)
-                    // if (page != null) {
-                    //     openAppPage(page)
-                    //     return true
-                    // }
+            if (number_index != -1 && KeyboardShortcutTrigger.KeyboardModifier.entries.none { it.isPressedInEvent(event) }) {
+                withPlayer {
+                    val seek_target: Long = (duration_ms * (number_index.toFloat() / NUMBER_KEYS.size)).roundToLong()
+                    seekTo(seek_target)
                 }
-                else {
-                    withPlayer {
-                        val seek_target: Long = (duration_ms * (number_index.toFloat() / NUMBER_KEYS.size)).roundToLong()
-                        seekTo(seek_target)
-                    }
-                    return true
-                }
+                return true
             }
         }
     }
 
     if (isTextFieldFocused(text_field_focus_state)) {
         return false
+    }
+
+    for (shortcut in shortcut_state.all_shortcuts) {
+        if (shortcut.trigger !is KeyboardShortcutTrigger) {
+            continue
+        }
+
+        if (shortcut.trigger.isTriggeredBy(event)) {
+            coroutine_scope.launch {
+                shortcut.action.executeAction(this@processKeyEventShortcuts)
+            }
+            return true
+        }
     }
 
     when (event.key) {

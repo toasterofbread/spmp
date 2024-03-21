@@ -18,10 +18,10 @@ import com.toasterofbread.composekit.platform.composable.onWindowBackPressed
 import com.toasterofbread.spmp.model.settings.category.DesktopSettings
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.ui.component.shortcut.trigger.KeyboardShortcutTrigger
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.getTextFieldFocusState
-import com.toasterofbread.spmp.ui.shortcut.ShortcutState
-import com.toasterofbread.spmp.ui.shortcut.trigger.KeyboardShortcutTrigger
-import com.toasterofbread.spmp.ui.shortcut.processKeyEventShortcuts
+import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
+import com.toasterofbread.spmp.model.appaction.shortcut.processKeyEventShortcuts
 import kotlinx.coroutines.*
 import org.jetbrains.skiko.OS
 import org.jetbrains.skiko.hostOs

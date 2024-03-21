@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.ui.shortcut
+package com.toasterofbread.spmp.model.appaction.shortcut
 
 import androidx.compose.runtime.Composable
 

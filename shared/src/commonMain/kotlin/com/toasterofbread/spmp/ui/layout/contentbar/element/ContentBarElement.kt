@@ -15,7 +15,6 @@ import com.toasterofbread.composekit.utils.composable.*
 import com.toasterofbread.spmp.platform.visualiser.MusicVisualiser
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
-import com.toasterofbread.spmp.ui.shortcut.Shortcut
 import kotlinx.serialization.*
 import kotlinx.serialization.json.JsonObject
 
@@ -39,8 +38,6 @@ abstract class ContentBarElement(data: ContentBarElementData) {
             data = getSubData()
         )
     open fun getSubData(): JsonObject? = null
-
-    open fun getShortcut(): Shortcut? = null
 
     @Composable
     open fun isSelected(): Boolean = false

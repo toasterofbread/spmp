@@ -137,12 +137,15 @@ sealed class SettingsCategory(id: String) {
                 DiscordAuthSettings,
                 FilterSettings,
                 StreamingSettings,
+                ShortcutSettings,
                 DesktopSettings,
                 MiscSettings,
 
                 YTApiSettings,
                 InternalSettings
-            )
+            ).apply {
+                check(distinctBy { it.id }.size == size)
+            }
 
         val with_page: List<SettingsCategory> get() =
             all.filter { it.getPage() != null }

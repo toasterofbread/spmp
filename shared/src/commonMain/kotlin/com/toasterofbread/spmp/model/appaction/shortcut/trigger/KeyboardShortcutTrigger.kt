@@ -1,13 +1,15 @@
-package com.toasterofbread.spmp.ui.shortcut.trigger
+package com.toasterofbread.spmp.ui.component.shortcut.trigger
 
 import kotlinx.serialization.Serializable
-import com.toasterofbread.spmp.ui.shortcut.ShortcutState
-import com.toasterofbread.spmp.ui.shortcut.LocalShortcutState
+import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
+import com.toasterofbread.spmp.model.appaction.shortcut.LocalShortcutState
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.shortcut.trigger.ShortcutTrigger
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.runtime.*
 import androidx.compose.material3.Text
 import androidx.compose.material3.Button
@@ -23,12 +25,24 @@ data class KeyboardShortcutTrigger(
 ): ShortcutTrigger {
     private val key: Key? get() = key_code?.let { Key(it) }
 
+    fun isTriggeredBy(event: KeyEvent): Boolean {
+        if (event.key.keyCode != key_code) {
+            return false
+        }
+
+        if (!modifiers.all { it.isPressedInEvent(event) }) {
+            return false
+        }
+
+        return true
+    }
+
     override fun getType(): ShortcutTrigger.Type =
-        ShortcutTrigger.Type.KEYBOARD_SHORTCUT
+        ShortcutTrigger.Type.KEYBOARD
 
     @Composable
     override fun IndicatorContent(modifier: Modifier) {
-        Text(key.toString())
+        Text(key.getName(), softWrap = false)
     }
 
     @OptIn(ExperimentalLayoutApi::class)
@@ -70,7 +84,7 @@ data class KeyboardShortcutTrigger(
                     Text(getString("shortcut_key_config_detecting_key"))
                 }
                 else {
-                    Text(key?.getName() ?: getString("shortcut_key_config_none_selected"))
+                    Text(key.getName())
                 }
             }
         }
@@ -103,6 +117,13 @@ data class KeyboardShortcutTrigger(
     enum class KeyboardModifier {
         CTRL, ALT, SHIFT;
 
+        fun isPressedInEvent(event: KeyEvent): Boolean =
+            when (this) {
+                CTRL -> event.isCtrlPressed
+                ALT -> event.isAltPressed
+                SHIFT -> event.isShiftPressed
+            }
+
         fun getName(): String =
             when (this) {
                 CTRL -> getString("shortcut_key_modifier_ctrl")
@@ -122,7 +143,11 @@ data class KeyboardShortcutTrigger(
     }
 }
 
-private fun Key.getName(): String {
+private fun Key?.getName(): String {
+    if (this == null) {
+        return getString("shortcut_key_config_none_selected")
+    }
+
     val name: String = toString().removePrefix("Key: ")
     return when (name) {
         "Windows" -> "Super"

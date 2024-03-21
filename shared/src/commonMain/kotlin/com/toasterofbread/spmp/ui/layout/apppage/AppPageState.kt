@@ -19,11 +19,11 @@ class AppPageState(val player: PlayerState) {
     val Search = SearchAppPage(this, context)
     val RadioBuilder = RadioBuilderAppPage(this)
     val ControlPanel = ControlPanelAppPage(this)
-    val Settings = SettingsAppPage(this) { 
+    val Settings = SettingsAppPage(this) {
         LocalPlayerState.current.nowPlayingTopOffset(Modifier, NowPlayingTopOffsetSection.PAGE_BAR)
     }
 
-    val Default: AppPage = SongFeed
+    val Default: AppPage = AppPage.Type.DEFAULT.getPage(player, this)!!
     val context: AppContext get() = player.context
 
     var current_page by mutableStateOf(Default)

@@ -28,7 +28,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAct
 import com.toasterofbread.composekit.utils.modifier.disableGestures
 import com.toasterofbread.composekit.platform.composable.platformClickable
 
-data object LayoutSettings: SettingsCategory("player") {
+data object LayoutSettings: SettingsCategory("layout") {
     override val keys: List<SettingsKey> = Key.entries.toList()
 
     override fun getPage(): CategoryPage? =
@@ -110,7 +110,7 @@ data object LayoutSettings: SettingsCategory("player") {
         // List of serialised CustomBars
         CUSTOM_BARS;
 
-        override val category: SettingsCategory get() = PlayerSettings
+        override val category: SettingsCategory get() = LayoutSettings
 
         @Suppress("UNCHECKED_CAST")
         override fun <T> getDefaultValue(): T =

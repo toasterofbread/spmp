@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.ui.shortcut
+package com.toasterofbread.spmp.model.appaction.shortcut
 
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
@@ -9,13 +9,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.Button
-import com.toasterofbread.spmp.ui.shortcut.trigger.ShortcutTrigger
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.shortcut.trigger.ShortcutTrigger
 import com.toasterofbread.composekit.utils.composable.LargeDropdownMenu
+import com.toasterofbread.spmp.ui.component.shortcut.trigger.getName
 
 @Composable
-fun ShortcutSelector(
-    shortcut: ShortcutTrigger? = null,
+fun ShortcutTriggerSelector(
+    trigger: ShortcutTrigger? = null,
     modifier: Modifier = Modifier,
     onModification: (ShortcutTrigger?) -> Unit
 ) {
@@ -25,7 +26,7 @@ fun ShortcutSelector(
         selecting_type,
         { selecting_type = false },
         ShortcutTrigger.Type.entries.size + 1,
-        shortcut?.getType()?.ordinal?.plus(1) ?: 0,
+        trigger?.getType()?.ordinal?.plus(1) ?: 0,
         itemContent = {
             val type: ShortcutTrigger.Type? = if (it == 0) null else ShortcutTrigger.Type.entries[it - 1]
             type.Preview()
@@ -45,7 +46,7 @@ fun ShortcutSelector(
         { selecting_type = true },
         modifier,
     ) {
-        shortcut?.getType().Preview()
+        trigger?.getType().Preview()
     }
 }
 
@@ -58,12 +59,10 @@ private fun ShortcutTrigger.Type?.Preview(modifier: Modifier = Modifier) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        if (type == null) {
-            Text(getString("shortcut_trigger_none"))
-        }
-        else {
+        if (type != null) {
             Icon(type.getIcon(), null)
-            Text(type.getName())
         }
+
+        Text(type.getName())
     }
 }

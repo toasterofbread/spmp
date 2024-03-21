@@ -1,12 +1,11 @@
-package com.toasterofbread.spmp.ui.shortcut
+package com.toasterofbread.spmp.model.appaction.shortcut
 
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.ProvidableCompositionLocal
-import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.input.key.Key
 import com.toasterofbread.composekit.utils.common.addUnique
-import com.toasterofbread.spmp.ui.shortcut.trigger.KeyboardShortcutTrigger
+import com.toasterofbread.spmp.ui.component.shortcut.trigger.KeyboardShortcutTrigger
+import com.toasterofbread.spmp.model.settings.category.ShortcutSettings
+import kotlinx.serialization.json.Json
 
 val LocalShortcutState: ProvidableCompositionLocal<ShortcutState> = compositionLocalOf { ShortcutState() }
 
@@ -15,11 +14,14 @@ typealias KeyDetectionState = (Key) -> Unit
 class ShortcutState {
     private val pressed_modifiers: MutableList<KeyboardShortcutTrigger.KeyboardModifier> = mutableStateListOf()
     private var key_detection_state: KeyDetectionState? = null
-    internal var user_shortcuts: List<Shortcut> = emptyList()
+
+    var all_shortcuts: List<Shortcut> = emptyList()
+        private set
 
     @Composable
     fun ObserveState() {
-        user_shortcuts = ObserveAllShortcuts()
+        val shortcuts_data: String by ShortcutSettings.Key.CONFIGURED_SHORTCUTS.rememberMutableState()
+        all_shortcuts = remember(shortcuts_data) { Json.decodeFromString(shortcuts_data) }
     }
 
     fun onModifierDown(modifier: KeyboardShortcutTrigger.KeyboardModifier) {

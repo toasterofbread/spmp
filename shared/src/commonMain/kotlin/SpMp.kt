@@ -34,8 +34,8 @@ import com.toasterofbread.spmp.ui.layout.apppage.mainpage.LoadingSplashView
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.RootView
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.SplashMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
-import com.toasterofbread.spmp.ui.shortcut.LocalShortcutState
-import com.toasterofbread.spmp.ui.shortcut.ShortcutState
+import com.toasterofbread.spmp.model.appaction.shortcut.LocalShortcutState
+import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
 import com.toasterofbread.spmp.ui.theme.ApplicationTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

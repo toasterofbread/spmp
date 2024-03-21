@@ -27,11 +27,6 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.apppage.*
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
-import com.toasterofbread.spmp.ui.shortcut.SHORTCUT_INDICATOR_SHAPE
-import com.toasterofbread.spmp.ui.shortcut.trigger.ShortcutTrigger
-import com.toasterofbread.spmp.ui.shortcut.ShortcutSelector
-import com.toasterofbread.spmp.ui.shortcut.Shortcut
-import com.toasterofbread.spmp.ui.shortcut.action.ContentBarButtonShortcutAction
 import kotlinx.serialization.json.*
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
@@ -41,10 +36,6 @@ class ContentBarElementButton(data: ContentBarElementData): ContentBarElement(da
         data.data?.get("button_type")?.jsonPrimitive?.int?.let {
             Type.entries[it]
         } ?: Type.DEFAULT
-    )
-
-    private var shortcut_trigger: ShortcutTrigger? by mutableStateOf(
-        data.data?.get("shortcut_trigger")?.let { Json.decodeFromJsonElement(it) }
     )
 
     constructor(button_type: Type): this(
@@ -58,13 +49,7 @@ class ContentBarElementButton(data: ContentBarElementData): ContentBarElement(da
 
     override fun getSubData(): JsonObject = buildJsonObject {
         put("button_type", button_type.ordinal)
-        put("shortcut_trigger", Json.encodeToJsonElement(shortcut_trigger))
     }
-
-    override fun getShortcut(): Shortcut? =
-        shortcut_trigger?.let { trigger ->
-            Shortcut(trigger, ContentBarButtonShortcutAction(button_type))
-        }
 
     @Composable
     override fun isSelected(): Boolean = button_type == Type.current
@@ -173,27 +158,6 @@ class ContentBarElementButton(data: ContentBarElementData): ContentBarElement(da
             Button({ show_type_selector = !show_type_selector }) {
                 Text(button_type.getName(), softWrap = false)
             }
-        }
-
-        FlowRow(
-            item_modifier,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                getString("content_bar_element_button_config_shortcut"),
-                Modifier.align(Alignment.CenterVertically),
-                softWrap = false
-            )
-
-            ShortcutSelector(shortcut_trigger) { new_shortcut ->
-                shortcut_trigger = new_shortcut
-                onModification()
-            }
-        }
-
-        shortcut_trigger?.ConfigurationItems(item_modifier.padding(start = 50.dp)) { new_shortcut ->
-            shortcut_trigger = new_shortcut
-            onModification()
         }
     }
 

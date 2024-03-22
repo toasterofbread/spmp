@@ -34,6 +34,7 @@ data class SongAppAction(
     val action: Action = Action.DEFAULT
 ): AppAction {
     override fun getType(): AppAction.Type = AppAction.Type.SONG
+    override fun getIcon(): ImageVector = action.getIcon()
     override suspend fun executeAction(player: PlayerState) {
         val song: Song = player.status.song ?: return
         val index: Int = player.status.index

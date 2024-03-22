@@ -12,11 +12,11 @@ data class ContentBarReference(val type: Type, val index: Int) {
         CUSTOM
     }
 
-    fun getBar(): ContentBar? =
+    fun getBar(custom_bars: String? = null): ContentBar? =
         when (type) {
             Type.INTERNAL -> InternalContentBar.ALL.getOrNull(index)
             Type.CUSTOM -> {
-                val bars: List<CustomContentBar> = Json.decodeFromString(LayoutSettings.Key.CUSTOM_BARS.get())
+                val bars: List<CustomContentBar> = Json.decodeFromString(custom_bars ?: LayoutSettings.Key.CUSTOM_BARS.get())
                 bars.getOrNull(index)
             }
         }

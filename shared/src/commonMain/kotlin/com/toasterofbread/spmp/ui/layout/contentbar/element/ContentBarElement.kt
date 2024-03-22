@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.contentbar.element
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -17,7 +16,6 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
 import kotlinx.serialization.*
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.Serializable
 
 internal val DEFAULT_SIZE_MODE: ContentBarElement.SizeMode = ContentBarElement.SizeMode.STATIC
 internal const val DEFAULT_SIZE: Int = 50
@@ -89,7 +87,9 @@ sealed class ContentBarElement {
             },
             SizeMode.entries.size,
             size_mode.ordinal,
-            { SizeMode.entries[it].getName() }
+            {
+                Text(SizeMode.entries[it].getName())
+            }
         ) {
             onModification(copyWithSize(SizeMode.entries[it], 50))
             show_mode_selector = false
@@ -141,7 +141,7 @@ sealed class ContentBarElement {
                     IconButton({
                         var new_size: Int = size + size_mode.getStep()
                         if (size_mode == SizeMode.PERCENTAGE) {
-                            new_size = size.coerceAtMost(100)
+                            new_size = new_size.coerceAtMost(100)
                         }
 
                         onModification(copyWithSize(size_mode, new_size))

@@ -22,6 +22,8 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.element.*
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.theme.appHover
+import com.toasterofbread.spmp.model.appaction.OtherAppAction
+import com.toasterofbread.spmp.model.appaction.action.navigation.AppPageNavigationAction
 
 enum class CustomContentBarTemplate {
     NAVIGATION;
@@ -43,7 +45,7 @@ enum class CustomContentBarTemplate {
                 ContentBarElementButton.ofAppPage(AppPage.Type.LIBRARY),
                 ContentBarElementButton.ofAppPage(AppPage.Type.SEARCH),
                 ContentBarElementButton.ofAppPage(AppPage.Type.RADIO_BUILDER),
-                ContentBarElementButton.ofType(ContentBarElementButton.Type.RELOAD),
+                ContentBarElementButton(OtherAppAction(OtherAppAction.Action.RELOAD_PAGE)),
                 ContentBarElementPinnedItems(size_mode = ContentBarElement.SizeMode.FILL),
                 ContentBarElementButton.ofAppPage(AppPage.Type.PROFILE),
                 ContentBarElementButton.ofAppPage(AppPage.Type.CONTROL_PANEL),

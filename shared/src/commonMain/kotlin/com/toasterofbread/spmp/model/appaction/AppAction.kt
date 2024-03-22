@@ -1,18 +1,22 @@
 package com.toasterofbread.spmp.model.appaction
 
-import kotlinx.serialization.Serializable
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.ui.Modifier
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.*
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.resources.getString
+import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.appaction.action.playback.*
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import kotlinx.serialization.Serializable
 
 @Serializable
 sealed interface AppAction {
     fun getType(): Type
+    fun getIcon(): ImageVector
     fun isUsableDuringTextInput(): Boolean = false
 
     suspend fun executeAction(player: PlayerState)
@@ -56,5 +60,17 @@ sealed interface AppAction {
                 OTHER -> OtherAppAction()
                 // MODIFY_SETTING -> TODO()
             }
+
+        @Composable
+        fun Preview(modifier: Modifier = Modifier) {
+            Row(
+                modifier,
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Icon(getIcon(), null)
+                Text(getName(), softWrap = false)
+            }
+        }
     }
 }

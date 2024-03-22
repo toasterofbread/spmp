@@ -844,8 +844,7 @@
     <string name="content_bar_element_builtin_config_size_mode_percentage">Percentage</string>
     <string name="content_bar_element_builtin_config_size">Size</string>
 
-    <string name="content_bar_element_button_config_type">Button type</string>
-    <string name="content_bar_element_button_reload">Reload</string>
+    <string name="content_bar_element_button_config_type">Action type</string>
 
     <string name="content_bar_element_builtin_lyrics">Lyrics</string>
     <string name="content_bar_element_builtin_visualiser">Music visualiser</string>
@@ -944,6 +943,7 @@
 
     <string name="appaction_other_action_navigate_back">Navigate back</string>
     <string name="appaction_other_action_toggle_fullscreen">Toggle fullscreen</string>
+    <string name="appaction_other_action_reload_page">Reload page</string>
     <string name="appaction_other_action_increase_ui_scale">Increase UI scale</string>
     <string name="appaction_other_action_decrease_ui_scale">Decrease UI scale</string>
 </resources>

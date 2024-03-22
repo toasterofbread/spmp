@@ -68,8 +68,7 @@ fun ShortcutsEditor(modifier: Modifier = Modifier) {
                         val new_shortcut: Shortcut = Shortcut(trigger = null, action = action_type.createAction())
                         shortcuts_data = Json.encodeToString(listOf(new_shortcut) + shortcuts)
                     }) {
-                        Icon(action_type.getIcon(), null, Modifier.padding(end = 10.dp))
-                        Text(action_type.getName())
+                        action_type.Preview()
                     }
                 }
             }

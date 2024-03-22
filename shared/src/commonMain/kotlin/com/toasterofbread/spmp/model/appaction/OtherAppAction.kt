@@ -29,6 +29,7 @@ data class OtherAppAction(
     val action: Action = Action.DEFAULT
 ): AppAction {
     override fun getType(): AppAction.Type = AppAction.Type.OTHER
+    override fun getIcon(): ImageVector = action.getIcon()
     override fun isUsableDuringTextInput(): Boolean = action.isUsableDuringTextInput()
 
     override suspend fun executeAction(player: PlayerState) {
@@ -92,6 +93,7 @@ data class OtherAppAction(
     enum class Action {
         NAVIGATE_BACK,
         TOGGLE_FULLSCREEN,
+        RELOAD_PAGE,
         INCREASE_UI_SCALE,
         DECREASE_UI_SCALE;
 
@@ -104,6 +106,7 @@ data class OtherAppAction(
             when (this) {
                 NAVIGATE_BACK -> getString("appaction_other_action_navigate_back")
                 TOGGLE_FULLSCREEN -> getString("appaction_other_action_toggle_fullscreen")
+                RELOAD_PAGE -> getString("appaction_other_action_reload_page")
                 INCREASE_UI_SCALE -> getString("appaction_other_action_increase_ui_scale")
                 DECREASE_UI_SCALE -> getString("appaction_other_action_decrease_ui_scale")
             }
@@ -112,6 +115,7 @@ data class OtherAppAction(
             when (this) {
                 NAVIGATE_BACK -> Icons.Default.ArrowBack
                 TOGGLE_FULLSCREEN -> Icons.Default.Fullscreen
+                RELOAD_PAGE -> Icons.Default.Refresh
                 INCREASE_UI_SCALE -> Icons.Default.UnfoldMore
                 DECREASE_UI_SCALE -> Icons.Default.UnfoldLess
             }
@@ -134,6 +138,8 @@ data class OtherAppAction(
                 NAVIGATE_BACK -> onWindowBackPressed(player.context)
 
                 TOGGLE_FULLSCREEN -> SpMp.toggleFullscreenWindow()
+
+                RELOAD_PAGE -> TODO()
 
                 INCREASE_UI_SCALE, DECREASE_UI_SCALE -> {
                     val delta: Float = if (this == INCREASE_UI_SCALE) 0.1f else -0.1f

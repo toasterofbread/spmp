@@ -40,7 +40,7 @@ fun LayoutSlot.observeContentBar(): State<ContentBar?> {
 
     return remember { derivedStateOf {
         val slots: Map<String, ContentBarReference?> = Json.decodeFromString(slots_data)
-        val bar: ContentBar? = slots.get(getKey())?.getBar()
+        val bar: ContentBar? = slots.get(getKey())?.getBar(custom_bars)
         return@derivedStateOf bar ?: getDefaultContentBar()
     } }
 }
@@ -51,16 +51,14 @@ fun LayoutSlot.OrientedLayout(
     modifier: Modifier = Modifier,
     content: @Composable RowOrColumnScope.() -> Unit
 ) {
-    val player: PlayerState = LocalPlayerState.current
-
     val top_padding: Dp = content_padding.calculateTopPadding()
     val bottom_padding: Dp = content_padding.calculateBottomPadding()
     val start_padding: Dp = content_padding.calculateStartPadding(LocalLayoutDirection.current)
     val end_padding: Dp = content_padding.calculateEndPadding(LocalLayoutDirection.current)
 
-    val padding_modifier: Modifier =
-        if (is_vertical) Modifier.padding(start = start_padding, end = end_padding)
-        else Modifier.padding(top = top_padding, end = end_padding)
+    // val padding_modifier: Modifier =
+    //     if (is_vertical) Modifier.padding(start = start_padding, end = end_padding)
+    //     else Modifier.padding(top = top_padding, end = end_padding)
 
     RowOrColumn(!is_vertical, modifier, alignment = 0) {
         Spacer(
@@ -180,8 +178,6 @@ enum class LandscapeLayoutSlot: LayoutSlot {
 
             ABOVE_PLAYER -> InternalContentBar.NAVIGATION
             BELOW_PLAYER -> InternalContentBar.NAVIGATION
-
-            else -> null
         }
 
     override fun getDefaultBackgroundColour(theme: Theme): ColourSource =

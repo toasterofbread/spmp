@@ -22,6 +22,7 @@ data class PlaybackAppAction(
     val action: PlaybackAction = PlaybackAction.Type.DEFAULT.createAction()
 ): AppAction {
     override fun getType(): AppAction.Type = AppAction.Type.PLAYBACK
+    override fun getIcon(): ImageVector = action.getType().getIcon()
     override suspend fun executeAction(player: PlayerState) {
         action.execute(player)
     }

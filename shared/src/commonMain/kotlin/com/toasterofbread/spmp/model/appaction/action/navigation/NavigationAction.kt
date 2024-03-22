@@ -18,6 +18,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed interface NavigationAction {
     fun getType(): Type
+    fun getIcon(): ImageVector
     suspend fun execute(player: PlayerState)
 
     @Composable

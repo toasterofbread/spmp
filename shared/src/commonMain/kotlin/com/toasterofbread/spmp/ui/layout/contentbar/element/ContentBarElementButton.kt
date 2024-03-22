@@ -5,23 +5,33 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.IconButtonColors
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.Alignment
 import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.utils.common.getValue
 import com.toasterofbread.composekit.utils.composable.*
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.appaction.AppAction
+import com.toasterofbread.spmp.model.appaction.NavigationAppAction
+import com.toasterofbread.spmp.model.appaction.action.navigation.AppPageNavigationAction
+import com.toasterofbread.spmp.model.appaction.OtherAppAction
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.Thumbnail
@@ -31,10 +41,12 @@ import kotlinx.serialization.json.*
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.Serializable
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 @Serializable
 data class ContentBarElementButton(
-    val data: ButtonData = ButtonData.DEFAULT,
+    val action: AppAction = AppAction.Type.NAVIGATION.createAction(),
     override val size_mode: ContentBarElement.SizeMode = DEFAULT_SIZE_MODE,
     override val size: Int = DEFAULT_SIZE,
 ): ContentBarElement() {
@@ -44,15 +56,70 @@ data class ContentBarElementButton(
         copy(size_mode = size_mode, size = size)
 
     @Composable
-    override fun isSelected(): Boolean = data.isSelected()
+    override fun isSelected(): Boolean {
+        if (action is NavigationAppAction && action.action is AppPageNavigationAction) {
+            return action.action.page == getCurrentAppPageType()
+        }
+        return false
+    }
 
     @Composable
     override fun shouldShow(): Boolean =
-        data.shouldShow(LocalPlayerState.current)
+        when (action) {
+            is NavigationAppAction ->
+                if (action.action is AppPageNavigationAction)
+                    action.action.page.getPage(LocalPlayerState.current, LocalPlayerState.current.app_page_state) != null
+                else true
+            is OtherAppAction ->
+                if (action.action == OtherAppAction.Action.RELOAD_PAGE)
+                    Platform.DESKTOP.isCurrent() && LocalPlayerState.current.app_page.canReload()
+                else true
+            else -> true
+        }
 
     @Composable
     override fun ElementContent(vertical: Boolean, enable_interaction: Boolean, modifier: Modifier) {
-        data.ElementContent(vertical, enable_interaction, modifier)
+        val player: PlayerState = LocalPlayerState.current
+        val coroutine_scope: CoroutineScope = rememberCoroutineScope()
+        val colours: IconButtonColors =
+            IconButtonDefaults.iconButtonColors(
+                disabledContentColor = LocalContentColor.current
+            )
+
+        IconButton(
+            {
+                coroutine_scope.launch {
+                    println(action)
+                    action.executeAction(player)
+                }
+            },
+            modifier,
+            enabled = enable_interaction,
+            colors = colours
+        ) {
+            if (action is NavigationAppAction) {
+                if (action.action is AppPageNavigationAction && action.action.page == AppPage.Type.PROFILE) {
+                    val own_channel: Artist? = player.getOwnChannel()
+                    if (own_channel != null) {
+                        own_channel.Thumbnail(MediaItemThumbnailProvider.Quality.LOW, Modifier.size(40.dp).clip(CircleShape))
+                    }
+                    return@IconButton
+                }
+            }
+            else if (action is OtherAppAction && action.action == OtherAppAction.Action.RELOAD_PAGE) {
+                Crossfade(player.app_page.isReloading()) { reloading ->
+                    if (reloading) {
+                        SubtleLoadingIndicator()
+                    }
+                    else {
+                        Icon(action.action.getIcon(), null)
+                    }
+                }
+                return@IconButton
+            }
+
+            Icon(action.getIcon(), null)
+        }
     }
 
     @OptIn(ExperimentalLayoutApi::class)
@@ -63,27 +130,13 @@ data class ContentBarElementButton(
         LargeDropdownMenu(
             expanded = show_type_selector,
             onDismissRequest = { show_type_selector = false },
-            item_count = ContentBarElementButton.Type.entries.size - 1 + AppPage.Type.entries.size,
-            selected =
-                if (data.button_type == Type.APP_PAGE) data.app_page!!.ordinal + ContentBarElementButton.Type.entries.size - 1
-                else data.button_type.ordinal - 1,
+            item_count = AppAction.Type.entries.size,
+            selected = action.getType().ordinal,
             itemContent = {
-                if (it < ContentBarElementButton.Type.entries.size - 1) {
-                    Text(ContentBarElementButton.Type.entries[it].getName())
-                }
-                else {
-                    Text(AppPage.Type.entries[it - ContentBarElementButton.Type.entries.size + 1].toString() + "// TODO")
-                }
+                AppAction.Type.entries[it].Preview()
             },
             onSelected = {
-                if (it < ContentBarElementButton.Type.entries.size - 1) {
-                    onModification(copy(data = ButtonData(ContentBarElementButton.Type.entries[it])))
-                }
-                else {
-                    val app_page: AppPage.Type = AppPage.Type.entries[it - ContentBarElementButton.Type.entries.size + 1]
-                    onModification(copy(data = ButtonData(Type.APP_PAGE, app_page)))
-                }
-
+                onModification(copy(action = AppAction.Type.entries[it].createAction()))
                 show_type_selector = false
             }
         )
@@ -99,108 +152,18 @@ data class ContentBarElementButton(
             )
 
             Button({ show_type_selector = !show_type_selector }) {
-                Text(data.getName(), softWrap = false)
+                action.getType().Preview()
             }
         }
-    }
 
-    enum class Type {
-        APP_PAGE,
-        RELOAD;
-
-        fun getName(): String =
-            when (this) {
-                APP_PAGE -> ""
-                RELOAD -> getString("content_bar_element_button_reload")
-            }
+        action.ConfigurationItems(item_modifier) {
+            onModification(copy(action = it))
+        }
     }
 
     companion object {
         fun ofAppPage(page_type: AppPage.Type): ContentBarElementButton =
-            ContentBarElementButton(ButtonData(Type.APP_PAGE, page_type))
-
-        fun ofType(type: Type): ContentBarElementButton =
-            ContentBarElementButton(ButtonData(type))
-    }
-}
-
-@Serializable
-data class ButtonData(
-    val button_type: ContentBarElementButton.Type,
-    val app_page: AppPage.Type? = null,
-) {
-    fun executeAction(player: PlayerState) {
-        when (button_type) {
-            ContentBarElementButton.Type.RELOAD -> player.app_page.onReload()
-            ContentBarElementButton.Type.APP_PAGE -> player.openAppPage(getPage(player))
-        }
-    }
-
-    fun shouldShow(player: PlayerState): Boolean =
-        when (button_type) {
-            ContentBarElementButton.Type.RELOAD -> Platform.DESKTOP.isCurrent() && player.app_page.canReload()
-            ContentBarElementButton.Type.APP_PAGE -> getPage(player) != null
-        }
-
-    @Composable
-    fun isSelected(): Boolean =
-        app_page != null && app_page == getCurrentAppPageType()
-
-    fun getName(): String =
-        when (button_type) {
-            ContentBarElementButton.Type.APP_PAGE -> app_page!!.getName()
-            else -> button_type.getName()
-        }
-
-    fun getIcon(): ImageVector =
-        when (button_type) {
-            ContentBarElementButton.Type.RELOAD -> Icons.Default.Refresh
-            ContentBarElementButton.Type.APP_PAGE -> app_page!!.getIcon()
-        }
-
-    private fun getPage(player: PlayerState): AppPage? =
-        when (button_type) {
-            ContentBarElementButton.Type.RELOAD -> null
-            ContentBarElementButton.Type.APP_PAGE -> app_page!!.getPage(player, player.app_page_state)
-        }
-
-    companion object {
-        val DEFAULT: ButtonData = ButtonData(ContentBarElementButton.Type.APP_PAGE, AppPage.Type.SONG_FEED)
-    }
-}
-
-@Composable
-private fun ButtonData.ElementContent(vertical: Boolean, enable_interaction: Boolean, modifier: Modifier) {
-    val player: PlayerState = LocalPlayerState.current
-
-    IconButton(
-        { executeAction(player) },
-        modifier,
-        enabled = enable_interaction
-    ) {
-        when (button_type) {
-            ContentBarElementButton.Type.RELOAD -> {
-                Crossfade(player.app_page.isReloading()) { reloading ->
-                    if (reloading) {
-                        SubtleLoadingIndicator()
-                    }
-                    else {
-                        Icon(getIcon(), null)
-                    }
-                }
-            }
-            ContentBarElementButton.Type.APP_PAGE -> when (app_page!!) {
-                AppPage.Type.PROFILE -> {
-                    val own_channel: Artist? = player.getOwnChannel()
-                    if (own_channel != null) {
-                        own_channel.Thumbnail(MediaItemThumbnailProvider.Quality.LOW, Modifier.size(40.dp).clip(CircleShape))
-                    }
-                }
-                else -> {
-                    Icon(getIcon(), null)
-                }
-            }
-        }
+            ContentBarElementButton(NavigationAppAction(AppPageNavigationAction(page_type)))
     }
 }
 

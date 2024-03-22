@@ -166,7 +166,8 @@ fun LayoutSlotEditor(modifier: Modifier = Modifier) {
             CustomBarsContentBarList(
                 state,
                 onSelected = null,
-                onDismissed = {}
+                onDismissed = {},
+                bar_background_colour = player.theme.vibrant_accent.copy(alpha = 0.15f)
             )
         }
     }

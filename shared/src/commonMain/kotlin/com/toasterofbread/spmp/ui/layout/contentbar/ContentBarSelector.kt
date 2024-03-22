@@ -103,7 +103,7 @@ internal fun ContentBarSelector(
             ) {
                 Icon(Icons.Default.Palette, null, rotate_modifier)
 
-                slot_colour_source?.theme_colour?.also {
+                slot_colour_source.theme_colour?.also {
                     Text(it.getReadable())
                 }
             }
@@ -248,7 +248,8 @@ internal fun CustomBarsContentBarList(
     onSelected: ((ContentBarReference) -> Unit)?,
     onDismissed: () -> Unit,
     modifier: Modifier = Modifier,
-    lazy: Boolean = false
+    lazy: Boolean = false,
+    bar_background_colour: Color? = null
 ) {
     val player: PlayerState = LocalPlayerState.current
 
@@ -271,7 +272,7 @@ internal fun CustomBarsContentBarList(
                 )
             }
         },
-        buttonBottomContent = { index ->
+        buttonEndContent = { index ->
             Row {
                 IconButton(
                     {
@@ -294,7 +295,8 @@ internal fun CustomBarsContentBarList(
         onSelected =
             if (onSelected != null) {{ onSelected(state.custom_bars[it]) }}
             else null,
-        lazy = lazy
+        lazy = lazy,
+        bar_background_colour = bar_background_colour
     )
 }
 
@@ -304,8 +306,9 @@ internal fun ContentBarList(
     title: String,
     modifier: Modifier = Modifier,
     lazy: Boolean = false,
+    bar_background_colour: Color? = null,
     topContent: @Composable () -> Unit = {},
-    buttonBottomContent: @Composable (Int) -> Unit = {},
+    buttonEndContent: @Composable (Int) -> Unit = {},
     onSelected: ((Int) -> Unit)?
 ) {
     val bars: List<ContentBar> = remember(bar_references) { bar_references.mapNotNull { it.getBar() } }
@@ -320,15 +323,15 @@ internal fun ContentBarList(
                 bar.getDescription(),
                 bar.getIcon(),
                 Modifier
-                    .contentBarPreview(interactive = onSelected != null)
+                    .contentBarPreview(interactive = onSelected != null, background_colour = bar_background_colour)
                     .thenWith(onSelected) {
                         clickable(
                             indication = null,
                             interactionSource = remember { MutableInteractionSource() }
                         ) { it(index) }
                     },
-                bottomContent = {
-                    buttonBottomContent(index)
+                endContent = {
+                    buttonEndContent(index)
                 }
             )
         }
@@ -363,7 +366,7 @@ private fun ContentBarPreview(
     description: String?,
     icon: ImageVector,
     modifier: Modifier = Modifier,
-    bottomContent: @Composable () -> Unit = {}
+    endContent: @Composable () -> Unit = {}
 ) {
     Row(
         modifier,
@@ -378,9 +381,9 @@ private fun ContentBarPreview(
             if (description != null) {
                 Text(description, Modifier.align(Alignment.Start), style = MaterialTheme.typography.labelLarge)
             }
-
-            bottomContent()
         }
+
+        endContent()
     }
 }
 

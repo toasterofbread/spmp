@@ -6,6 +6,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.composekit.utils.composable.LargeDropdownMenu
 import com.toasterofbread.spmp.model.appaction.AppAction
 import com.toasterofbread.spmp.model.settings.category.SettingsCategory
@@ -22,6 +23,8 @@ data class AppPageNavigationAction(
 ): NavigationAction {
     override fun getType(): NavigationAction.Type =
         NavigationAction.Type.APP_PAGE
+    override fun getIcon(): ImageVector =
+        page.getIcon()
 
     override suspend fun execute(player: PlayerState) {
         val page: AppPage = page.getPage(player, player.app_page_state) ?: return

@@ -26,6 +26,7 @@ data class NavigationAppAction(
     val action: NavigationAction = NavigationAction.Type.DEFAULT.createAction()
 ): AppAction {
     override fun getType(): AppAction.Type = AppAction.Type.NAVIGATION
+    override fun getIcon(): ImageVector = action.getIcon()
     override suspend fun executeAction(player: PlayerState) {
         action.execute(player)
     }

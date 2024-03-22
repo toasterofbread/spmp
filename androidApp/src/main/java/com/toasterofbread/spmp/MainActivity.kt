@@ -26,7 +26,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 
-class MainActivity : ComponentActivity() {
+class MainActivity: ComponentActivity() {
     private val coroutine_scope = CoroutineScope(Job())
 
     override fun onCreate(savedInstanceState: Bundle?) {

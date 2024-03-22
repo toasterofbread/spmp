@@ -45,7 +45,7 @@ fun ShortcutPreview(
                 Text(action_type.getName(), item_modifier, softWrap = false)
 
                 CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.bodySmall) {
-                    shortcut.action?.Preview(item_modifier.padding(start = 20.dp))
+                    shortcut.action.Preview(item_modifier.padding(start = 20.dp))
 
                     Spacer(Modifier.fillMaxWidth().weight(1f))
 

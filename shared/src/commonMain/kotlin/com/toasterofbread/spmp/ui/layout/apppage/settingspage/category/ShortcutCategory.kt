@@ -10,6 +10,7 @@ internal fun getShortcutCategoryItems(): List<SettingsItem> =
         ComposableSettingsItem(
             listOf(
                 ShortcutSettings.Key.CONFIGURED_SHORTCUTS.getName(),
+                ShortcutSettings.Key.NAVIGATE_SONG_WITH_NUMBERS.getName()
             ),
             composable = {
                 ShortcutsEditor(it)

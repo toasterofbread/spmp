@@ -68,6 +68,7 @@ object SpMp {
 
     private val low_memory_listeners: MutableList<() -> Unit> = mutableListOf()
     private val coroutine_scope = CoroutineScope(Dispatchers.Main)
+    private var window_fullscreen_toggler: (() -> Unit)? = null
 
     fun init(context: AppContext) {
         this.context = context
@@ -93,15 +94,28 @@ object SpMp {
         _player_state?.onStop()
     }
 
+    fun toggleFullscreenWindow() {
+        window_fullscreen_toggler?.invoke()
+    }
+
     @Composable
     fun App(
         arguments: ProgramArguments,
         modifier: Modifier = Modifier,
-        shortcut_state: ShortcutState = ShortcutState(),
-        open_uri: String? = null
+        shortcut_state: ShortcutState,
+        open_uri: String? = null,
+        window_fullscreen_toggler: (() -> Unit)? = null,
+        onPlayerCreated: (PlayerState) -> Unit = {}
     ) {
         context.theme.Update()
         shortcut_state.ObserveState()
+
+        DisposableEffect(window_fullscreen_toggler) {
+            SpMp.window_fullscreen_toggler = window_fullscreen_toggler
+            onDispose {
+                SpMp.window_fullscreen_toggler = null
+            }
+        }
 
         context.theme.ApplicationTheme(context, getFontFamily(context) ?: FontFamily.Default) {
             val player_coroutine_scope: CoroutineScope = rememberCoroutineScope()
@@ -112,6 +126,7 @@ object SpMp {
                 _player_state = PlayerState(context, player_coroutine_scope)
                 _player_state?.onStart()
                 player_created = true
+                onPlayerCreated(player_state)
             }
 
             LaunchedEffect(open_uri) {

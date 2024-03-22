@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -14,6 +16,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.Switch
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,10 +35,24 @@ fun ShortcutsEditor(modifier: Modifier = Modifier) {
     var shortcuts_data: String by ShortcutSettings.Key.CONFIGURED_SHORTCUTS.rememberMutableState()
     val shortcuts: List<Shortcut> = remember(shortcuts_data) { Json.decodeFromString(shortcuts_data) }
 
+    @OptIn(ExperimentalLayoutApi::class)
     StickyHeightColumn(
         modifier,
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
+        var navigate_song_with_numbers: Boolean by ShortcutSettings.Key.NAVIGATE_SONG_WITH_NUMBERS.rememberMutableState()
+        FlowRow(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(getString("s_key_navigate_song_with_numbers"), Modifier.align(Alignment.CenterVertically))
+
+            Switch(
+                navigate_song_with_numbers,
+                { navigate_song_with_numbers = it }
+            )
+        }
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -49,7 +66,7 @@ fun ShortcutsEditor(modifier: Modifier = Modifier) {
                 items(AppAction.Type.entries) { action_type ->
                     Button({
                         val new_shortcut: Shortcut = Shortcut(trigger = null, action = action_type.createAction())
-                        shortcuts_data = Json.encodeToString(shortcuts.plus(new_shortcut))
+                        shortcuts_data = Json.encodeToString(listOf(new_shortcut) + shortcuts)
                     }) {
                         Icon(action_type.getIcon(), null, Modifier.padding(end = 10.dp))
                         Text(action_type.getName())

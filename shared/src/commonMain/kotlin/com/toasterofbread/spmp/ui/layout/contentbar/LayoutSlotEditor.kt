@@ -74,8 +74,6 @@ fun LayoutSlotEditor(modifier: Modifier = Modifier) {
                 }
 
             override fun onBarSelected(slot: LayoutSlot, bar: ContentBarReference?) {
-                println("Selected $slot ${slot::class} $bar")
-
                 val slots: MutableMap<String, ContentBarReference?> = parseSlots().toMutableMap()
                 slots[slot.getKey()] = bar
                 slots_key.set(Json.encodeToString(slots))

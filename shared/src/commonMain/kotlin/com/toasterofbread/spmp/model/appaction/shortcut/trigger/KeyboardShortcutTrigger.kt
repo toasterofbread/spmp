@@ -6,7 +6,6 @@ import com.toasterofbread.spmp.model.appaction.shortcut.LocalShortcutState
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.shortcut.trigger.ShortcutTrigger
 import androidx.compose.ui.input.key.*
-import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.vector.ImageVector

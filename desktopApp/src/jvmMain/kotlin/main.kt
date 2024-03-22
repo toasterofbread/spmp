@@ -14,14 +14,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import androidx.compose.ui.window.WindowPlacement
 import com.toasterofbread.composekit.platform.composable.onWindowBackPressed
 import com.toasterofbread.spmp.model.settings.category.DesktopSettings
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.component.shortcut.trigger.KeyboardShortcutTrigger
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.getTextFieldFocusState
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.isTextFieldFocused
 import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
-import com.toasterofbread.spmp.model.appaction.shortcut.processKeyEventShortcuts
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.*
 import org.jetbrains.skiko.OS
 import org.jetbrains.skiko.hostOs
@@ -57,6 +59,7 @@ fun main(args: Array<String>) {
     val enable_window_transparency: Boolean = ThemeSettings.Key.ENABLE_WINDOW_TRANSPARENCY.get(context.getPrefs())
 
     val shortcut_state: ShortcutState = ShortcutState()
+    var player: PlayerState? = null
 
     application {
         val text_field_focus_state: Any = getTextFieldFocusState()
@@ -76,7 +79,15 @@ fun main(args: Array<String>) {
                     return@Window false
                 }
 
-                return@Window SpMp.player_state.processKeyEventShortcuts(event, window, text_field_focus_state, shortcut_state)
+                if (event.type != KeyEventType.KeyDown) {
+                    return@Window false
+                }
+
+                player?.also {
+                    return@Window shortcut_state.onKeyPress(event, isTextFieldFocused(text_field_focus_state), it)
+                }
+
+                return@Window false
             },
             state = rememberWindowState(
                 size = DpSize(1280.dp, 720.dp)
@@ -116,12 +127,23 @@ fun main(args: Array<String>) {
             SpMp.App(
                 arguments,
                 Modifier.onPointerEvent(PointerEventType.Press) { event ->
-                    // Mouse back click
-                    if (event.button?.index == 5) {
-                        onWindowBackPressed()
+                    val index: Int = event.button?.index ?: return@onPointerEvent
+                    player?.also {
+                        shortcut_state.onButtonPress(index, it)
                     }
                 },
-                shortcut_state = shortcut_state
+                shortcut_state = shortcut_state,
+                window_fullscreen_toggler = {
+                    if (window.placement == WindowPlacement.Fullscreen) {
+                        window.placement = WindowPlacement.Floating
+                    }
+                    else {
+                        window.placement = WindowPlacement.Fullscreen
+                    }
+                },
+                onPlayerCreated = {
+                    player = it
+                }
             )
         }
     }

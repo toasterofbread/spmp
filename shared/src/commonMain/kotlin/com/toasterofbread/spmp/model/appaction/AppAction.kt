@@ -13,6 +13,8 @@ import com.toasterofbread.spmp.model.appaction.action.playback.*
 @Serializable
 sealed interface AppAction {
     fun getType(): Type
+    fun isUsableDuringTextInput(): Boolean = false
+
     suspend fun executeAction(player: PlayerState)
 
     @Composable
@@ -24,7 +26,8 @@ sealed interface AppAction {
     enum class Type {
         NAVIGATION,
         SONG,
-        PLAYBACK;
+        PLAYBACK,
+        OTHER;
         // MODIFY_SETTING; // TODO
 
         fun getName(): String =
@@ -32,6 +35,7 @@ sealed interface AppAction {
                 NAVIGATION -> getString("appaction_navigation")
                 SONG -> getString("appaction_song")
                 PLAYBACK -> getString("appaction_playback")
+                OTHER -> getString("appaction_other")
                 // MODIFY_SETTING -> getString("appaction_modify_setting")
             }
 
@@ -40,6 +44,7 @@ sealed interface AppAction {
                 NAVIGATION -> Icons.Default.NearMe
                 SONG -> Icons.Default.MusicNote
                 PLAYBACK -> Icons.Default.PlayArrow
+                OTHER -> Icons.Default.MoreHoriz
                 // MODIFY_SETTING -> Icons.Default.ToggleOn
             }
 
@@ -47,7 +52,8 @@ sealed interface AppAction {
             when (this) {
                 NAVIGATION -> NavigationAppAction()
                 SONG -> SongAppAction()
-                PLAYBACK   -> PlaybackAppAction()
+                PLAYBACK -> PlaybackAppAction()
+                OTHER -> OtherAppAction()
                 // MODIFY_SETTING -> TODO()
             }
     }

@@ -656,6 +656,8 @@
     <string name="s_key_topbar_show_visualiser_in_queue">Show visualiser in music queue</string>
     <string name="s_key_topbar_display_over_artist_image">Display over main image on artist page</string>
 
+    <string name="s_key_navigate_song_with_numbers">Seek through song with number keys</string>
+
     <string name="s_cat_general">General</string>
     <string name="s_cat_desc_general">Language, and other options</string>
 
@@ -870,6 +872,7 @@
 
     <string name="shortcut_trigger_none">None</string>
     <string name="shortcut_trigger_keyboard">Keyboard</string>
+    <string name="shortcut_trigger_mouse_button">Mouse button</string>
 
     <string name="shortcut_key_config_selected_key">Selected key</string>
     <string name="shortcut_key_config_none_selected">None</string>
@@ -878,6 +881,10 @@
     <string name="shortcut_key_modifier_alt">Alt modifier</string>
     <string name="shortcut_key_modifier_shift">Shift modifier</string>
 
+    <string name="shortcut_button_config_selected_button">Button</string>
+    <string name="shortcut_button_config_detecting_button">Detecting button...</string>
+    <string name="shortcut_button_config_none_selected">None</string>
+
     <string name="shortcut_editor_trigger_label">Trigger:</string>
     <string name="shortcut_editor_trigger">Trigger</string>
     <string name="shortcut_editor_empty_trigger">Unset</string>
@@ -885,12 +892,14 @@
     <string name="appaction_navigation">Navigation</string>
     <string name="appaction_song">Song action</string>
     <string name="appaction_playback">Playback</string>
+    <string name="appaction_other">Other</string>
     <string name="appaction_modify_setting">Setting</string>
 
     <string name="appaction_config_navigation_action">Action</string>
     <string name="appaction_config_navigation_settings_category">Settings category</string>
     <string name="appaction_config_navigation_settings_category_none">None</string>
     <string name="appaction_config_song_action">Action</string>
+    <string name="appaction_config_other_action">Action</string>
     <string name="appaction_config_playback_action_type">Action type</string>
     <string name="appaction_config_playback_seek_to_time_seek_ms">Seek amount (ms)</string>
 
@@ -923,4 +932,9 @@
     <string name="appaction_playback_action_seek_previous">Seek to previous</string>
     <string name="appaction_playback_action_seek_random">Seek to random</string>
     <string name="appaction_playback_action_undo_seek">Undo song seek</string>
+
+    <string name="appaction_other_action_navigate_back">Navigate back</string>
+    <string name="appaction_other_action_toggle_fullscreen">Toggle fullscreen</string>
+    <string name="appaction_other_action_increase_ui_scale">Increase UI scale</string>
+    <string name="appaction_other_action_decrease_ui_scale">Decrease UI scale</string>
 </resources>

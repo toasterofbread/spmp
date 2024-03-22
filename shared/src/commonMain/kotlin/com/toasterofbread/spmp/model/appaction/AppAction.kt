@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.model.appaction.action.playback.*
 
 @Serializable
 sealed interface AppAction {
@@ -21,37 +22,33 @@ sealed interface AppAction {
     fun ConfigurationItems(item_modifier: Modifier, onModification: (AppAction) -> Unit)
 
     enum class Type {
-        OPEN_PAGE,
+        NAVIGATION,
         SONG,
-        PLAYBACK,
-        SYSTEM,
-        MODIFY_SETTING;
+        PLAYBACK;
+        // MODIFY_SETTING; // TODO
 
         fun getName(): String =
             when (this) {
-                OPEN_PAGE -> getString("appaction_open_page")
+                NAVIGATION -> getString("appaction_navigation")
                 SONG -> getString("appaction_song")
                 PLAYBACK -> getString("appaction_playback")
-                SYSTEM -> getString("appaction_system")
-                MODIFY_SETTING -> getString("appaction_modify_setting")
+                // MODIFY_SETTING -> getString("appaction_modify_setting")
             }
 
         fun getIcon(): ImageVector =
             when (this) {
-                OPEN_PAGE -> Icons.Default.OpenInBrowser
+                NAVIGATION -> Icons.Default.NearMe
                 SONG -> Icons.Default.MusicNote
                 PLAYBACK -> Icons.Default.PlayArrow
-                SYSTEM -> Icons.Default.Settings
-                MODIFY_SETTING -> Icons.Default.ToggleOn
+                // MODIFY_SETTING -> Icons.Default.ToggleOn
             }
 
         fun createAction(): AppAction =
             when (this) {
-                OPEN_PAGE -> OpenPageAppAction()
+                NAVIGATION -> NavigationAppAction()
                 SONG -> SongAppAction()
-                PLAYBACK   -> TODO()
-                SYSTEM -> TODO()
-                MODIFY_SETTING -> TODO()
+                PLAYBACK   -> PlaybackAppAction()
+                // MODIFY_SETTING -> TODO()
             }
     }
 }

@@ -8,11 +8,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
+import com.toasterofbread.composekit.settings.ui.SettingsInterface
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.getDiscordAuthItem
+import com.toasterofbread.spmp.ui.layout.apppage.settingspage.PrefsPageScreen
 
 data object DiscordAuthSettings: SettingsCategory("discordauth") {
     override val keys: List<SettingsKey> = Key.entries.toList()
@@ -22,6 +24,11 @@ data object DiscordAuthSettings: SettingsCategory("discordauth") {
             this,
             getString("s_cat_discord_auth")
         ) {
+            override fun openPageOnInterface(context: AppContext, settings_interface: SettingsInterface) {
+                val manual: Boolean = false
+                settings_interface.openPageById(PrefsPageScreen.DISCORD_LOGIN.ordinal, manual)
+            }
+
             override fun getTitleItem(context: AppContext): SettingsItem? =
                 getDiscordAuthItem(
                     context,

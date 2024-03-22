@@ -24,6 +24,7 @@ import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.composekit.utils.common.amplifyPercent
 import com.toasterofbread.composekit.settings.ui.SettingsPage
+import com.toasterofbread.composekit.settings.ui.SettingsInterface
 
 sealed class SettingsCategory(id: String) {
     val id: String = id.uppercase()
@@ -51,6 +52,7 @@ sealed class SettingsCategory(id: String) {
         val name: String
     ) {
         abstract fun getTitleItem(context: AppContext): SettingsItem?
+        abstract fun openPageOnInterface(context: AppContext, settings_interface: SettingsInterface)
         open fun getItems(context: AppContext): List<SettingsItem>? = null
     }
 
@@ -63,6 +65,22 @@ sealed class SettingsCategory(id: String) {
         private val titleBarEndContent: @Composable () -> Unit = {}
     ): CategoryPage(this, title) {
         private var items: List<SettingsItem>? = null
+
+        override fun openPageOnInterface(context: AppContext, settings_interface: SettingsInterface) {
+            settings_interface.openPage(
+                object : SettingsPageWithItems(
+                    getTitle = { title },
+                    getItems = { getItems(context) },
+                    getIcon = { getPageIcon() }
+                ) {
+                    @Composable
+                    override fun TitleBarEndContent() {
+                        titleBarEndContent()
+                        super.TitleBarEndContent()
+                    }
+                }
+            )
+        }
 
         override fun getItems(context: AppContext): List<SettingsItem> {
             if (items == null) {
@@ -85,19 +103,7 @@ sealed class SettingsCategory(id: String) {
             ComposableSettingsItem { modifier ->
                 ElevatedCard(
                     onClick = {
-                        val page = object : SettingsPageWithItems(
-                            getTitle = { title },
-                            getItems = { getItems(context) },
-                            getIcon = { getPageIcon() }
-                        ) {
-                            @Composable
-                            override fun TitleBarEndContent() {
-                                titleBarEndContent()
-                                super.TitleBarEndContent()
-                            }
-                        }
-
-                        openPage(page)
+                        openPageOnInterface(context, this)
                     },
                     modifier = modifier.fillMaxWidth(),
                     colors = CardDefaults.elevatedCardColors(

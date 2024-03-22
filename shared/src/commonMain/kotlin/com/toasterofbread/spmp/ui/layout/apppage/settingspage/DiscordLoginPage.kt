@@ -11,6 +11,7 @@ import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.settings.category.DiscordSettings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.DiscordLogin
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
 internal fun getDiscordLoginPage(discord_auth: SettingsValueState<String>, manual: Boolean = false): SettingsPage {
     return object : SettingsPage() {
@@ -32,7 +33,7 @@ internal fun getDiscordLoginPage(discord_auth: SettingsValueState<String>, manua
             openCustomPage: (SettingsPage) -> Unit,
             goBack: () -> Unit,
         ) {
-            val player = LocalPlayerState.current
+            val player: PlayerState = LocalPlayerState.current
 
             DiscordLogin(content_padding, Modifier.fillMaxSize(), manual = manual) { auth_info ->
                 if (auth_info == null) {

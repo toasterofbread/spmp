@@ -45,7 +45,7 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
                 AccentColourSource.THEME -> getString("s_option_accent_theme")
                 AccentColourSource.THUMBNAIL -> getString("s_option_accent_thumbnail")
             }
-          },
+        },
 
         MultipleChoiceSettingsItem(
             SettingsValueState(ThemeSettings.Key.NOWPLAYING_THEME_MODE.getName()),

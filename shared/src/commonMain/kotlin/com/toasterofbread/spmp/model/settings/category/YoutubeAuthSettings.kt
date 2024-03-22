@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.model.settings.category
 import com.google.gson.Gson
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
+import com.toasterofbread.composekit.settings.ui.SettingsInterface
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.settings.Settings
@@ -10,6 +11,7 @@ import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.getYtmAuthItem
+import com.toasterofbread.spmp.ui.layout.apppage.settingspage.PrefsPageScreen
 import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import com.toasterofbread.spmp.youtubeapi.fromJson
 import okhttp3.Headers.Companion.toHeaders
@@ -22,6 +24,11 @@ data object YoutubeAuthSettings: SettingsCategory("ytauth") {
             this,
             getString("s_cat_youtube_auth")
         ) {
+            override fun openPageOnInterface(context: AppContext, settings_interface: SettingsInterface) {
+                val manual: Boolean = false
+                settings_interface.openPageById(PrefsPageScreen.YOUTUBE_MUSIC_LOGIN.ordinal, manual)
+            }
+
             override fun getTitleItem(context: AppContext): SettingsItem? =
                 getYtmAuthItem(
                     context,

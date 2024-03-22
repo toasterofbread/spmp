@@ -628,6 +628,7 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
     fun seekToSong(index: Int) = service.seekToSong(index)
     fun seekToNext() = service.seekToNext()
     fun seekToPrevious() = service.seekToPrevious()
+    fun undoSeek() = service.undoSeek()
 
     fun getSong(): Song? = service.getSong()
     fun getSong(index: Int): Song? = service.getSong(index)

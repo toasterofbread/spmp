@@ -26,7 +26,7 @@ class AppPageState(val player: PlayerState) {
     val Default: AppPage = AppPage.Type.DEFAULT.getPage(player, this)!!
     val context: AppContext get() = player.context
 
-    var current_page by mutableStateOf(Default)
+    var current_page: AppPage by mutableStateOf(Default)
 
     fun setPage(page: AppPage? = null, from_current: Boolean, going_back: Boolean): Boolean {
         val new_page = page ?: Default

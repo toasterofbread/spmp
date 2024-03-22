@@ -30,8 +30,10 @@ data class KeyboardShortcutTrigger(
             return false
         }
 
-        if (!modifiers.all { it.isPressedInEvent(event) }) {
-            return false
+        for (modifier in KeyboardModifier.entries) {
+            if (modifiers.contains(modifier) != modifier.isPressedInEvent(event)) {
+                return false
+            }
         }
 
         return true

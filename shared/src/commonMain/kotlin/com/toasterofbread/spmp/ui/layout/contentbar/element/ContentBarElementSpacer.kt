@@ -15,8 +15,18 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlin.math.roundToInt
 import kotlinx.serialization.json.*
+import kotlinx.serialization.Serializable
 
-class ContentBarElementSpacer(data: ContentBarElementData): ContentBarElement(data) {
+@Serializable
+data class ContentBarElementSpacer(
+    override val size_mode: ContentBarElement.SizeMode = DEFAULT_SIZE_MODE,
+    override val size: Int = DEFAULT_SIZE,
+): ContentBarElement() {
+    override fun getType(): ContentBarElement.Type = ContentBarElement.Type.SPACER
+
+    override fun copyWithSize(size_mode: ContentBarElement.SizeMode, size: Int): ContentBarElement =
+        copy(size_mode = size_mode, size = size)
+
     override fun blocksIndicatorAnimation(): Boolean = true
 
     @Composable

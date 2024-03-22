@@ -15,8 +15,8 @@ import com.toasterofbread.spmp.ui.layout.contentbar.element.*
 
 @Composable
 internal fun CustomContentBarCopyPasteButtons(
-    element_data: List<ContentBarElementData>,
-    onPaste: (List<ContentBarElementData>) -> Unit
+    elements: List<ContentBarElement>,
+    onPaste: (List<ContentBarElement>) -> Unit
 ) {
     val player: PlayerState = LocalPlayerState.current
     val clipboard: ClipboardManager = LocalClipboardManager.current
@@ -27,7 +27,7 @@ internal fun CustomContentBarCopyPasteButtons(
     )
 
     ShapedIconButton(
-        { clipboard.setText(AnnotatedString(Json.encodeToString(element_data))) },
+        { clipboard.setText(AnnotatedString(Json.encodeToString(elements))) },
         colours
     ) {
         Icon(Icons.Default.ContentCopy, null)

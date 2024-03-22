@@ -4,7 +4,6 @@ import LocalPlayerState
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -45,10 +44,10 @@ internal abstract class CustomContentBarEditor() {
 
     private fun useVerticalBarLayout(): Boolean = true
 
-    private fun editElementData(action: MutableList<ContentBarElementData>.() -> Unit) {
-        val data: MutableList<ContentBarElementData> = bar.element_data.toMutableList()
+    private fun editElementData(action: MutableList<ContentBarElement>.() -> Unit) {
+        val data: MutableList<ContentBarElement> = bar.elements.toMutableList()
         action(data)
-        bar = bar.copy(element_data = data)
+        bar = bar.copy(elements = data)
         commit(bar)
     }
 
@@ -105,7 +104,7 @@ internal abstract class CustomContentBarEditor() {
 
                 editElementData {
                     clear()
-                    addAll(template.getElements().map { it.getData() })
+                    addAll(template.getElements())
                 }
             }
         }
@@ -200,9 +199,9 @@ internal abstract class CustomContentBarEditor() {
                                 selected_element = to
                             }
                         }
-                    ) {
+                    ) { edited ->
                         editElementData {
-                            this[element_index] = element.getData()
+                            this[element_index] = edited
                         }
                     }
                 }
@@ -226,15 +225,15 @@ internal abstract class CustomContentBarEditor() {
         ) {
             ElementSelector(button_colours, Modifier.fillMaxWidth().weight(1f)) { element_type ->
                 bar = bar.copy(
-                    element_data = listOf(ContentBarElementData(element_type)) + bar.element_data
+                    elements = listOf(element_type.createElement()) + bar.elements
                 )
                 selected_element = 0
 
                 commit(bar)
             }
 
-            CustomContentBarCopyPasteButtons (bar.element_data) {
-                bar = bar.copy(element_data = it)
+            CustomContentBarCopyPasteButtons (bar.elements) {
+                bar = bar.copy(elements = it)
                 commit(bar)
             }
 
@@ -254,7 +253,14 @@ internal abstract class CustomContentBarEditor() {
         val vertical_bar: Boolean = useVerticalBarLayout()
         val delete_button_offset: Dp = 42.dp
 
-        Box(modifier.then(size_modifier)) {
+        var text_height: Dp by remember { mutableStateOf(0.dp) }
+        var bar_height: Dp by remember { mutableStateOf(0.dp) }
+
+        Box(
+            modifier
+                .then(size_modifier)
+                .background(player.theme.background, RoundedCornerShape(16.dp))
+        ) {
             bar.CustomBarContent(
                 scrolling = !vertical_bar,
                 vertical = vertical_bar,
@@ -267,7 +273,6 @@ internal abstract class CustomContentBarEditor() {
                         if (vertical_bar) width(PREVIEW_BAR_SIZE_DP.dp)
                         else fillMaxWidth().height(PREVIEW_BAR_SIZE_DP.dp)
                     }
-                    .background(player.theme.background, RoundedCornerShape(16.dp))
                     .padding(5.dp),
                 getSpacerElementModifier = { index, spacer -> with(spacer) {
                     Modifier
@@ -316,7 +321,7 @@ internal abstract class CustomContentBarEditor() {
                     Modifier
                         .align(Alignment.Center)
                         .thenIf(vertical_bar) {
-                            rotate(-90f).vertical()
+                            rotate(-90f).vertical().padding(horizontal = 10.dp)
                         },
                     color = player.theme.on_background
                 )
@@ -331,7 +336,7 @@ internal abstract class CustomContentBarEditor() {
         index: Int,
         move: (Int) -> Unit,
         modifier: Modifier = Modifier,
-        commit: () -> Unit
+        onModification: (ContentBarElement) -> Unit
     ) {
         Column(
             modifier,
@@ -377,7 +382,7 @@ internal abstract class CustomContentBarEditor() {
                 }
             }
 
-            element.ConfigurationItems(onModification = commit)
+            element.ConfigurationItems(onModification = onModification)
         }
     }
 }

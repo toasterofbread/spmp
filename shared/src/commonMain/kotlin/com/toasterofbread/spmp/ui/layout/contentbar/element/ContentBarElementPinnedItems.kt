@@ -6,8 +6,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.padding
 import com.toasterofbread.spmp.ui.component.PinnedItemsList
+import kotlinx.serialization.Serializable
 
-class ContentBarElementPinnedItems(data: ContentBarElementData): ContentBarElement(data) {
+@Serializable
+data class ContentBarElementPinnedItems(
+    override val size_mode: ContentBarElement.SizeMode = DEFAULT_SIZE_MODE,
+    override val size: Int = DEFAULT_SIZE,
+): ContentBarElement() {
+    override fun getType(): ContentBarElement.Type = ContentBarElement.Type.PINNED_ITEMS
+
+    override fun copyWithSize(size_mode: ContentBarElement.SizeMode, size: Int): ContentBarElement =
+        copy(size_mode = size_mode, size = size)
+
     override fun blocksIndicatorAnimation(): Boolean = true
 
     @Composable

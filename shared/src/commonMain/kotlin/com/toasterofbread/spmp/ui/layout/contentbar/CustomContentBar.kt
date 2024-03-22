@@ -33,11 +33,8 @@ const val CUSTOM_CONTENT_BAR_DEFAULT_SIZE_DP: Float = 50f
 data class CustomContentBar(
     val bar_name: String,
     val size_dp: Float = CUSTOM_CONTENT_BAR_DEFAULT_SIZE_DP,
-    val element_data: List<ContentBarElementData> = emptyList()
+    val elements: List<ContentBarElement> = emptyList()
 ): ContentBar() {
-    @Transient
-    val elements: List<ContentBarElement> = element_data.map { it.toElement() }
-
     override fun getName(): String = bar_name
     override fun getDescription(): String? = null
     override fun getIcon(): ImageVector = Icons.Default.Build

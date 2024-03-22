@@ -20,6 +20,7 @@ import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.element.*
+import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.theme.appHover
 
 enum class CustomContentBarTemplate {
@@ -38,25 +39,22 @@ enum class CustomContentBarTemplate {
     fun getElements(): List<ContentBarElement> =
         when (this) {
             NAVIGATION -> listOf(
-                ContentBarElementButton(ContentBarElementButton.Type.FEED),
-                ContentBarElementButton(ContentBarElementButton.Type.LIBRARY),
-                ContentBarElementButton(ContentBarElementButton.Type.SEARCH),
-                ContentBarElementButton(ContentBarElementButton.Type.RADIOBUILDER),
-                ContentBarElementButton(ContentBarElementButton.Type.RELOAD),
-                ContentBarElementData(
-                    ContentBarElement.Type.PINNED_ITEMS,
-                    size_mode = ContentBarElement.SizeMode.FILL
-                ).toElement(),
-                ContentBarElementButton(ContentBarElementButton.Type.PROFILE),
-                ContentBarElementButton(ContentBarElementButton.Type.CONTROL),
-                ContentBarElementButton(ContentBarElementButton.Type.SETTINGS)
+                ContentBarElementButton.ofAppPage(AppPage.Type.SONG_FEED),
+                ContentBarElementButton.ofAppPage(AppPage.Type.LIBRARY),
+                ContentBarElementButton.ofAppPage(AppPage.Type.SEARCH),
+                ContentBarElementButton.ofAppPage(AppPage.Type.RADIO_BUILDER),
+                ContentBarElementButton.ofType(ContentBarElementButton.Type.RELOAD),
+                ContentBarElementPinnedItems(size_mode = ContentBarElement.SizeMode.FILL),
+                ContentBarElementButton.ofAppPage(AppPage.Type.PROFILE),
+                ContentBarElementButton.ofAppPage(AppPage.Type.CONTROL_PANEL),
+                ContentBarElementButton.ofAppPage(AppPage.Type.SETTINGS)
             )
         }
 
     @Composable
     private fun BarPreview(modifier: Modifier = Modifier) {
         val player: PlayerState = LocalPlayerState.current
-        val bar: CustomContentBar = remember { CustomContentBar("", element_data = getElements().map { it.getData() }) }
+        val bar: CustomContentBar = remember { CustomContentBar("", elements = getElements()) }
 
         Column(
             modifier

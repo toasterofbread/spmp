@@ -84,6 +84,17 @@ abstract class AppPage {
             val DEFAULT: Type = SONG_FEED
         }
 
+        fun getName(): String =
+            when (this) {
+                SONG_FEED -> getString("app_page_song_feed")
+                LIBRARY -> getString("app_page_library")
+                SEARCH -> getString("app_page_search")
+                RADIO_BUILDER -> getString("app_page_radio_builder")
+                CONTROL_PANEL -> getString("app_page_control_panel")
+                SETTINGS -> getString("app_page_settings")
+                PROFILE -> getString("app_page_profile")
+            }
+
         fun getIcon(): ImageVector =
             when (this) {
                 SONG_FEED -> Icons.Default.QueueMusic

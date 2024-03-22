@@ -17,27 +17,23 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
 import kotlinx.serialization.*
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.Serializable
+
+internal val DEFAULT_SIZE_MODE: ContentBarElement.SizeMode = ContentBarElement.SizeMode.STATIC
+internal const val DEFAULT_SIZE: Int = 50
 
 private const val SIZE_DP_STEP: Float = 10f
 private const val MIN_SIZE_DP: Float = 10f
-private val DEFAULT_SIZE_MODE: ContentBarElement.SizeMode = ContentBarElement.SizeMode.STATIC
-private const val DEFAULT_SIZE: Int = 50
 
-abstract class ContentBarElement(data: ContentBarElementData) {
-    val type: Type = data.type
-    var size_mode: SizeMode by mutableStateOf(data.size_mode)
-    var size: Int by mutableStateOf(data.size)
+@Serializable
+sealed class ContentBarElement {
+    abstract val size_mode: SizeMode
+    abstract val size: Int
+    abstract fun getType(): Type
+
+    protected abstract fun copyWithSize(size_mode: SizeMode, size: Int): ContentBarElement
 
     fun shouldFillLength(): Boolean = size_mode == SizeMode.FILL
-
-    fun getData(): ContentBarElementData =
-        ContentBarElementData(
-            type = type,
-            size_mode = size_mode,
-            size = size,
-            data = getSubData()
-        )
-    open fun getSubData(): JsonObject? = null
 
     @Composable
     open fun isSelected(): Boolean = false
@@ -79,11 +75,11 @@ abstract class ContentBarElement(data: ContentBarElementData) {
     protected abstract fun ElementContent(vertical: Boolean, enable_interaction: Boolean, modifier: Modifier)
 
     @Composable
-    open fun SubConfigurationItems(item_modifier: Modifier, onModification: () -> Unit) {}
+    open fun SubConfigurationItems(item_modifier: Modifier, onModification: (ContentBarElement) -> Unit) {}
 
     @OptIn(ExperimentalLayoutApi::class)
     @Composable
-    fun ConfigurationItems(onModification: () -> Unit) {
+    fun ConfigurationItems(onModification: (ContentBarElement) -> Unit) {
         var show_mode_selector: Boolean by remember { mutableStateOf(false) }
 
         LargeDropdownMenu(
@@ -95,10 +91,8 @@ abstract class ContentBarElement(data: ContentBarElementData) {
             size_mode.ordinal,
             { SizeMode.entries[it].getName() }
         ) {
+            onModification(copyWithSize(SizeMode.entries[it], 50))
             show_mode_selector = false
-            size_mode = SizeMode.entries[it]
-            size = 50
-            onModification()
         }
 
         FlowRow(
@@ -132,8 +126,9 @@ abstract class ContentBarElement(data: ContentBarElementData) {
                     horizontalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
                     IconButton({
-                        size = (size - size_mode.getStep()).coerceAtLeast(10)
-                        onModification()
+                        onModification(
+                            copyWithSize(size_mode, (size - size_mode.getStep()).coerceAtLeast(10))
+                        )
                     }) {
                         Icon(Icons.Default.Remove, null)
                     }
@@ -144,12 +139,12 @@ abstract class ContentBarElement(data: ContentBarElementData) {
                     )
 
                     IconButton({
-                        size = size + size_mode.getStep()
+                        var new_size: Int = size + size_mode.getStep()
                         if (size_mode == SizeMode.PERCENTAGE) {
-                            size = size.coerceAtMost(100)
+                            new_size = size.coerceAtMost(100)
                         }
 
-                        onModification()
+                        onModification(copyWithSize(size_mode, new_size))
                     }) {
                         Icon(Icons.Default.Add, null)
                     }
@@ -159,8 +154,6 @@ abstract class ContentBarElement(data: ContentBarElementData) {
 
         SubConfigurationItems(Modifier.fillMaxWidth(), onModification)
     }
-
-    override fun toString(): String = "ContentBarElement(data=${getData()})"
 
     enum class Type {
         BUTTON,
@@ -192,6 +185,15 @@ abstract class ContentBarElement(data: ContentBarElementData) {
                 VISUALISER -> Icons.Default.Waves
                 PINNED_ITEMS -> Icons.Default.PushPin
             }
+
+        fun createElement(): ContentBarElement =
+            when (this) {
+                ContentBarElement.Type.BUTTON -> ContentBarElementButton()
+                ContentBarElement.Type.SPACER -> ContentBarElementSpacer()
+                ContentBarElement.Type.LYRICS -> ContentBarElementLyrics()
+                ContentBarElement.Type.VISUALISER -> ContentBarElementVisualiser()
+                ContentBarElement.Type.PINNED_ITEMS -> ContentBarElementPinnedItems()
+            }
     }
 
     enum class SizeMode {
@@ -213,21 +215,4 @@ abstract class ContentBarElement(data: ContentBarElementData) {
                 PERCENTAGE -> 10
             }
     }
-}
-
-@Serializable
-data class ContentBarElementData(
-    val type: ContentBarElement.Type,
-    val size_mode: ContentBarElement.SizeMode = DEFAULT_SIZE_MODE,
-    val size: Int = DEFAULT_SIZE,
-    val data: JsonObject? = null
-) {
-    fun toElement(): ContentBarElement =
-        when (type) {
-            ContentBarElement.Type.BUTTON -> ContentBarElementButton(this)
-            ContentBarElement.Type.SPACER -> ContentBarElementSpacer(this)
-            ContentBarElement.Type.LYRICS -> ContentBarElementLyrics(this)
-            ContentBarElement.Type.VISUALISER -> ContentBarElementVisualiser(this)
-            ContentBarElement.Type.PINNED_ITEMS -> ContentBarElementPinnedItems(this)
-        }
 }

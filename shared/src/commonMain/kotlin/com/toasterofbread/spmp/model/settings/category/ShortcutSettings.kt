@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.pointer.PointerButton
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getShortcutCategoryItems
+import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.component.shortcut.trigger.*
 import com.toasterofbread.spmp.model.appaction.*
 import com.toasterofbread.spmp.model.appaction.action.playback.*
@@ -91,6 +92,12 @@ private fun getDefaultShortcuts(): List<Shortcut> =
         Shortcut(
             KeyboardShortcutTrigger(Key.Minus.keyCode, listOf(KeyboardShortcutTrigger.KeyboardModifier.CTRL)),
             OtherAppAction(OtherAppAction.Action.DECREASE_UI_SCALE)
+        ),
+
+        // Navigate to feed
+        Shortcut(
+            KeyboardShortcutTrigger(Key.Home.keyCode),
+            NavigationAppAction(AppPageNavigationAction(AppPage.Type.SONG_FEED))
         ),
 
         // Navigate back

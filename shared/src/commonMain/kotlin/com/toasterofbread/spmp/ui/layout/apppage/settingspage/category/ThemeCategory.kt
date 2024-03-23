@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
+import isWindowTransparencySupported
 import androidx.compose.ui.Modifier
 import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.settings.ui.Theme
@@ -99,11 +100,17 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
     }
 }
 
-private fun getDesktopGroupItems(): List<SettingsItem> = listOf(
-    GroupSettingsItem(
-        getString("s_group_theming_desktop")
-    ),
+private fun getDesktopGroupItems(): List<SettingsItem> =
+    listOf(
+        GroupSettingsItem(
+            getString("s_group_theming_desktop")
+        )
+    ) + (
+        if (isWindowTransparencySupported()) getWindowTransparencyItems()
+        else emptyList()
+    )
 
+private fun getWindowTransparencyItems(): List<SettingsItem> = listOf(
     ToggleSettingsItem(
         SettingsValueState(ThemeSettings.Key.ENABLE_WINDOW_TRANSPARENCY.getName()),
         getString("s_key_enable_window_transparency"),

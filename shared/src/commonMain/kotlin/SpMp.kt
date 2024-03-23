@@ -203,3 +203,5 @@ object SpMp {
 
     val app_name: String get() = getStringOrNull("app_name") ?: "SpMp"
 }
+
+expect fun isWindowTransparencySupported(): Boolean

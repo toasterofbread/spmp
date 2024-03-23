@@ -157,7 +157,7 @@ class YoutubeMusicLoginPage(val api: YoutubeiApi): LoginPage() {
 
             val parsed: AccountSwitcherEndpoint
             try {
-                parsed = Json.decodeFromString(response_body)
+                parsed = Json { ignoreUnknownKeys = true }.decodeFromString(response_body)
             }
             catch (e: Throwable) {
                 onFinished(Result.failure(

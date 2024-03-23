@@ -27,10 +27,16 @@ import kotlinx.coroutines.*
 import org.jetbrains.skiko.OS
 import org.jetbrains.skiko.hostOs
 import java.awt.Toolkit
+import java.awt.Frame
 import java.lang.reflect.Field
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main(args: Array<String>) {
+    Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
+        val dialog = ExceptionDialog(Frame(), error)
+        dialog.isVisible = true
+    }
+
     val coroutine_scope: CoroutineScope = CoroutineScope(Job())
     val context: AppContext = AppContext(SpMp.app_name, coroutine_scope)
 

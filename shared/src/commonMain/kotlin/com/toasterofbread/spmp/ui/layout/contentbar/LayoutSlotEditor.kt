@@ -1,24 +1,32 @@
 package com.toasterofbread.spmp.ui.layout.contentbar
 
 import LocalPlayerState
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.animation.*
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
-import androidx.compose.animation.Crossfade
-import com.toasterofbread.composekit.settings.ui.item.SettingsItem
-import com.toasterofbread.composekit.settings.ui.item.ComposableSettingsItem
-import com.toasterofbread.composekit.settings.ui.Theme
+import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.composable.BackHandler
-import com.toasterofbread.spmp.model.settings.category.LayoutSettings
-import com.toasterofbread.spmp.model.settings.SettingsKey
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.platform.form_factor
-import com.toasterofbread.spmp.resources.getString
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.*
+import com.toasterofbread.composekit.settings.ui.Theme
+import com.toasterofbread.composekit.settings.ui.item.*
 import com.toasterofbread.composekit.utils.common.toHexString
+import com.toasterofbread.composekit.utils.composable.NullableValueAnimatedVisibility
+import com.toasterofbread.spmp.model.settings.SettingsKey
+import com.toasterofbread.spmp.model.settings.category.LayoutSettings
+import com.toasterofbread.spmp.platform.*
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import kotlinx.serialization.*
+import kotlinx.serialization.json.Json
 
 @OptIn(ExperimentalLayoutApi::class)
 fun getLayoutSlotEditorSettingsItems(): List<SettingsItem> {
@@ -30,14 +38,19 @@ fun getLayoutSlotEditorSettingsItems(): List<SettingsItem> {
                 LayoutSettings.Key.CUSTOM_BARS.getName()
             ),
             composable = {
-                LayoutSlotEditor(it)
+                LayoutSlotEditor(it) {
+                    goBack()
+                }
             }
         )
     )
 }
 
 @Composable
-fun LayoutSlotEditor(modifier: Modifier = Modifier) {
+fun LayoutSlotEditor(
+    modifier: Modifier = Modifier,
+    onClose: () -> Unit
+) {
     val player: PlayerState = LocalPlayerState.current
 
     var custom_bars_data: String by LayoutSettings.Key.CUSTOM_BARS.rememberMutableState()
@@ -52,10 +65,81 @@ fun LayoutSlotEditor(modifier: Modifier = Modifier) {
         FormFactor.LANDSCAPE -> LandscapeLayoutSlot.entries
     }
 
+    val slots_data: String by slots_key.rememberMutableState()
+    val configured_slots: Map<String, ContentBarReference?> = remember(slots_data) { Json.decodeFromString(slots_data) }
+
+    val missing_bar_warnings: List<String> = remember(configured_slots) {
+        var has_primary: Boolean = false
+        var has_secondary: Boolean = false
+
+        for (slot in configured_slots.values) {
+            if (slot?.type != ContentBarReference.Type.INTERNAL) {
+                continue
+            }
+
+            if (slot.index == InternalContentBar.PRIMARY.index) {
+                has_primary = true
+            }
+            else if (slot.index == InternalContentBar.SECONDARY.index) {
+                has_secondary = true
+            }
+        }
+
+        return@remember listOfNotNull(
+            if (!has_primary) getString("content_bar_selection_warn_no_primary")
+            else null,
+            if (!has_secondary) getString("content_bar_selection_warn_no_secondary")
+            else null
+        )
+    }
+
+    var show_warning_exit_dialog: Boolean by remember { mutableStateOf(false) }
     var editing_custom_bar: ContentBarReference? by remember { mutableStateOf(null) }
 
-    BackHandler(editing_custom_bar != null) {
-        editing_custom_bar = null
+    BackHandler(editing_custom_bar != null || missing_bar_warnings.isNotEmpty()) {
+        if (editing_custom_bar != null) {
+            editing_custom_bar = null
+        }
+        else {
+            show_warning_exit_dialog = true
+        }
+    }
+
+    if (show_warning_exit_dialog) {
+        AlertDialog(
+            onDismissRequest = { show_warning_exit_dialog = false },
+            confirmButton = {
+                Button(onClose) {
+                    Text(getString("action_confirm_action"))
+                }
+            },
+            dismissButton = {
+                Button({ show_warning_exit_dialog = false }) {
+                    Text(getString("action_deny_action"))
+                }
+            },
+            title = { Text(getString("content_bar_selection_exit_warning_title")) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Icon(Icons.Default.Warning, null)
+
+                        Column {
+                            for (warning in missing_bar_warnings) {
+                                Text(warning)
+                            }
+                        }
+                    }
+
+                    Spacer(Modifier.height(10.dp))
+
+                    Text(getString("content_bar_selection_exit_warning_text"))
+                }
+            }
+        )
     }
 
     val state: ContentBar.BarSelectionState = remember(slots_key, available_slots) {
@@ -145,30 +229,63 @@ fun LayoutSlotEditor(modifier: Modifier = Modifier) {
         }
     }
 
-    Crossfade(Triple(slots_key, available_slots, editing_custom_bar), modifier) {
-        val (key, available, editing_bar) = it
+    Column(
+        verticalArrangement = Arrangement.spacedBy(20.dp)
+    ) {
+        NullableValueAnimatedVisibility(
+            missing_bar_warnings.takeIf { it.isNotEmpty() },
+            Modifier.fillMaxWidth(),
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
+        ) { warnings ->
+            if (warnings == null) {
+                return@NullableValueAnimatedVisibility
+            }
 
-        if (editing_bar != null) {
-            val editor: CustomContentBarEditor = remember {
-                object : CustomContentBarEditor() {
-                    override fun commit(edited_bar: CustomContentBar) {
-                        val bars = Json.decodeFromString<List<CustomContentBar>>(custom_bars_data).toMutableList()
-                        bars[editing_bar.index] = edited_bar
-                        custom_bars_data = Json.encodeToString(bars)
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .background(player.theme.card)
+                    .border(2.dp, Color.Red)
+                    .padding(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                Icon(Icons.Default.Warning, null)
+
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    for (warning in warnings) {
+                        Text(warning)
                     }
                 }
             }
-
-            val bar: ContentBar? = remember(editing_bar) { editing_bar.getBar() }
-            editor.Editor(bar as CustomContentBar)
         }
-        else {
-            CustomBarsContentBarList(
-                state,
-                onSelected = null,
-                onDismissed = {},
-                bar_background_colour = player.theme.vibrant_accent.copy(alpha = 0.15f)
-            )
+
+        Crossfade(Triple(slots_key, available_slots, editing_custom_bar), modifier) {
+            val (key, available, editing_bar) = it
+
+            if (editing_bar != null) {
+                val editor: CustomContentBarEditor = remember {
+                    object : CustomContentBarEditor() {
+                        override fun commit(edited_bar: CustomContentBar) {
+                            val bars = Json.decodeFromString<List<CustomContentBar>>(custom_bars_data).toMutableList()
+                            bars[editing_bar.index] = edited_bar
+                            custom_bars_data = Json.encodeToString(bars)
+                        }
+                    }
+                }
+
+                val bar: ContentBar? = remember(editing_bar) { editing_bar.getBar() }
+                editor.Editor(bar as CustomContentBar)
+            }
+            else {
+                CustomBarsContentBarList(
+                    state,
+                    onSelected = null,
+                    onDismissed = {},
+                    bar_background_colour = player.theme.vibrant_accent.copy(alpha = 0.15f)
+                )
+            }
         }
     }
 }

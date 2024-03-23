@@ -40,8 +40,10 @@ fun LayoutSlot.observeContentBar(): State<ContentBar?> {
 
     return remember { derivedStateOf {
         val slots: Map<String, ContentBarReference?> = Json.decodeFromString(slots_data)
-        val bar: ContentBar? = slots.get(getKey())?.getBar(custom_bars)
-        return@derivedStateOf bar ?: getDefaultContentBar()
+        if (!slots.contains(getKey())) {
+            return@derivedStateOf getDefaultContentBar()
+        }
+        return@derivedStateOf slots[getKey()]?.getBar(custom_bars)
     } }
 }
 

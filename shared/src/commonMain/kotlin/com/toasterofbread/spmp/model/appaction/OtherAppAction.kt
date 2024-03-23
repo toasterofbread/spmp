@@ -139,7 +139,7 @@ data class OtherAppAction(
 
                 TOGGLE_FULLSCREEN -> SpMp.toggleFullscreenWindow()
 
-                RELOAD_PAGE -> TODO()
+                RELOAD_PAGE -> player.app_page.onReload()
 
                 INCREASE_UI_SCALE, DECREASE_UI_SCALE -> {
                     val delta: Float = if (this == INCREASE_UI_SCALE) 0.1f else -0.1f

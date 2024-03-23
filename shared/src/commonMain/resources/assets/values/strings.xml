@@ -808,6 +808,10 @@
     <string name="content_bar_selection_list_built_in">Built-in</string>
     <string name="content_bar_selection_list_custom">Custom</string>
     <string name="content_bar_selection_create_new">Create</string>
+    <string name="content_bar_selection_warn_no_primary">Primary bar not visible</string>
+    <string name="content_bar_selection_warn_no_secondary">Secondary bar not visible</string>
+    <string name="content_bar_selection_exit_warning_title">Important bars not set</string>
+    <string name="content_bar_selection_exit_warning_text">Are you sure you want to exit?</string>
 
     <string name="content_bar_empty">Empty</string>
     <string name="content_bar_primary">Primary</string>
@@ -869,7 +873,7 @@
     <string name="layout_slot_landscape_above_player">Above player</string>
     <string name="layout_slot_landscape_below_player">Below player</string>
 
-    <string name="colour_selector_dialog_title">Select a colour</string>
+    <string name="colour_selector_dialog_title">Select colour</string>
     <string name="colour_selector_dialog_select_theme">From theme</string>
     <string name="colour_selector_dialog_select_custom">Custom</string>
 

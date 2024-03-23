@@ -121,7 +121,7 @@ internal abstract class CustomContentBarEditor() {
             RowOrColumn(
                 vertical_bar,
                 Modifier
-                    .background(player.theme.vibrant_accent.copy(alpha = 0.9f), RoundedCornerShape(16.dp))
+                    .background(player.theme.vibrant_accent.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                     .padding(15.dp),
                 alignment = -1
             ) {
@@ -129,7 +129,7 @@ internal abstract class CustomContentBarEditor() {
                     if (vertical_bar) {
                         var column_height: Dp by remember { mutableStateOf(0.dp) }
                         BarPreview(
-                            Modifier.padding(end = 30.dp),
+                            Modifier.padding(end = 40.dp),
                             Modifier.requiredHeightIn(min = column_height)
                         )
 

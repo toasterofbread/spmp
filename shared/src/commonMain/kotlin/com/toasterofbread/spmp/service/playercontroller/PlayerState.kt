@@ -29,6 +29,7 @@ import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.composekit.platform.composable.composeScope
 import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.composekit.utils.common.init
+import com.toasterofbread.composekit.utils.common.blendWith
 import com.toasterofbread.composekit.utils.composable.getEnd
 import com.toasterofbread.composekit.utils.composable.getStart
 import com.toasterofbread.db.Database
@@ -81,6 +82,7 @@ import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.requiredWidth
 import kotlin.math.roundToInt
+import kotlin.math.absoluteValue
 
 typealias DownloadRequestCallback = (DownloadStatus?) -> Unit
 
@@ -119,8 +121,14 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         SwipeableState(0)
     )
     private var np_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
-    private var np_bottom_bar_height: Dp by mutableStateOf(0.dp)
     private var np_bottom_bar_config: LayoutSlot.BelowPlayerConfig? by mutableStateOf(null)
+    private var np_bottom_bar_showing: Boolean by mutableStateOf(false)
+    private var _np_bottom_bar_height: Dp by mutableStateOf(0.dp)
+    private var np_bottom_bar_height: Dp
+        get() =
+            if (!np_bottom_bar_showing) 0.dp
+            else _np_bottom_bar_height
+        set(value) { _np_bottom_bar_height = value }
 
     private var download_request_songs: List<Song>? by mutableStateOf(null)
     private var download_request_always_show_options: Boolean by mutableStateOf(false)
@@ -349,7 +357,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         if (include_np) {
             bottom_padding += animateDpAsState(
                 (
-                    if (np_bottom_bar_config?.show_when_expanded == true) np_bottom_bar_height
+                    if (np_bottom_bar_config?.show_in_player == true) np_bottom_bar_height
                     else 0.dp
                 )
                 + (
@@ -509,8 +517,11 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
             }
 
         np_bottom_bar_config = bottom_layout_slot.observeConfig { LayoutSlot.BelowPlayerConfig() }
-        val show_bottom_slot_when_expanded: Boolean =
-            np_bottom_bar_config?.show_when_expanded == true || bottom_layout_slot.mustShow()
+
+        val show_bottom_slot_in_player: Boolean =
+            np_bottom_bar_config?.show_in_player == true || bottom_layout_slot.mustShow()
+        val show_bottom_slot_in_queue: Boolean =
+            np_bottom_bar_config?.show_in_queue == true || bottom_layout_slot.mustShow()
 
         val player_height: Dp = screen_size.height
 
@@ -539,7 +550,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
             if (np_swipe_anchors != null) {
                 val expanded_bottom_bar_height: Dp =
-                    if (show_bottom_slot_when_expanded) np_bottom_bar_height
+                    if (show_bottom_slot_in_player) np_bottom_bar_height
                     else 0.dp
 
                 val page_height: Dp = (
@@ -562,7 +573,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
                 )
             }
 
-            bottom_layout_slot.DisplayBar(
+            np_bottom_bar_showing = bottom_layout_slot.DisplayBar(
                 0.dp,
                 Modifier
                     .fillMaxWidth()
@@ -572,9 +583,14 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
                         }
                     }
                     .offset {
+                        val bounded: Float = player.expansion.getBounded()
                         val slot_expansion: Float =
-                            if (show_bottom_slot_when_expanded) 1f
-                            else (1f - player.expansion.getBounded()).coerceAtLeast(0f)
+                            if (!show_bottom_slot_in_player) {
+                                if (show_bottom_slot_in_queue) (bounded - 1f).absoluteValue.coerceIn(0f..1f)
+                                else (1f - bounded).coerceAtLeast(0f)
+                            }
+                            else if (!show_bottom_slot_in_queue) (2f - bounded).coerceIn(0f..1f)
+                            else 1f
 
                         IntOffset(
                             x = 0,
@@ -582,7 +598,22 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
                                 (np_bottom_bar_height.toPx() * (1f - slot_expansion)).roundToInt()
                             }
                         )
+                    },
+                getParentBackgroundColour = {
+                    getNPBackground()
+                },
+                getBackgroundColour = { background_colour ->
+                    if (background_colour.alpha >= 0.5f) {
+                        return@DisplayBar background_colour
                     }
+
+                    val bounded: Float = expansion.getBounded()
+                    val min_background_alpha: Float =
+                        if (bounded > 1f) bounded - 1f
+                        else 0f
+
+                    return@DisplayBar getNPBackground().blendWith(background_colour, our_ratio = min_background_alpha)
+                }
             )
         }
     }

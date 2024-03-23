@@ -52,11 +52,14 @@ sealed interface LayoutSlot {
     fun getContentBarSelectionState(): ContentBar.BarSelectionState? =
         ContentBar.bar_selection_state
 
-    fun mustShow(): Boolean = 
+    fun mustShow(): Boolean =
         getContentBarSelectionState() != null
 
     @Serializable
-    data class BelowPlayerConfig(val show_when_expanded: Boolean = false)
+    data class BelowPlayerConfig(
+        val show_in_player: Boolean = true,
+        val show_in_queue: Boolean = true
+    )
 }
 
 @Composable
@@ -124,9 +127,10 @@ fun LayoutSlot.OrientedLayout(
 
 @Composable
 internal fun BelowPlayerConfigurationItems(
+    slot: LayoutSlot,
     config_data: JsonElement?,
     item_modifier: Modifier,
-    onModification: (JsonElement?) -> Unit
+    onModification: (JsonElement) -> Unit
 ) {
     val config: LayoutSlot.BelowPlayerConfig =
         remember(config_data) {
@@ -138,15 +142,30 @@ internal fun BelowPlayerConfigurationItems(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(getString("layout_slot_config_below_player_show_when_expanded"))
+        Text(getString("layout_slot_config_below_player_show_in_player"))
 
         Switch(
-            config.show_when_expanded,
+            config.show_in_player,
             {
-                onModification(
-                    Json.encodeToJsonElement(config.copy(show_when_expanded = it))
-                )
+                onModification(Json.encodeToJsonElement(config.copy(show_in_player = it)))
             }
         )
+    }
+
+    if (slot is PortraitLayoutSlot) {
+        Row(
+            item_modifier,
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(getString("layout_slot_config_below_player_show_in_queue"))
+
+            Switch(
+                config.show_in_queue,
+                {
+                    onModification(Json.encodeToJsonElement(config.copy(show_in_queue = it)))
+                }
+            )
+        }
     }
 }

@@ -10,8 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.Text
@@ -67,7 +66,7 @@ enum class PortraitLayoutSlot: LayoutSlot {
             LOWER_TOP_BAR -> ThemeColourSource(Theme.Colour.CARD)
             ABOVE_PLAYER -> ThemeColourSource(Theme.Colour.ACCENT)
             BELOW_PLAYER -> ThemeColourSource(Theme.Colour.CARD)
-            PLAYER_TOP -> PlayerBackgroundColourSource()
+            PLAYER_TOP -> CustomColourSource(Color.Transparent.toArgb())
         }
 
     override fun hasConfig(): Boolean =
@@ -80,7 +79,7 @@ enum class PortraitLayoutSlot: LayoutSlot {
         onModification: (JsonElement?) -> Unit
     ) {
         if (this == BELOW_PLAYER) {
-            BelowPlayerConfigurationItems(config_data, item_modifier, onModification)
+            BelowPlayerConfigurationItems(this, config_data, item_modifier, onModification)
             return
         }
 

@@ -18,10 +18,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.border
 import androidx.compose.material3.AlertDialog
 import androidx.compose.animation.Crossfade
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.material3.Button
 import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.composekit.utils.composable.ColourPicker
@@ -127,11 +129,23 @@ private fun ThemeColourSelectionList(
                 }
             )
         }
+
+        item {
+            ColourCard(
+                colour = Color.Transparent,
+                name = getString("colour_selector_dialog_transparent"),
+                onSelected = {
+                    onSelected(CustomColourSource(Color.Transparent.toArgb()))
+                }
+            )
+        }
     }
 }
 
 @Composable
 private fun ColourCard(colour: Color, name: String, onSelected: () -> Unit) {
+    val shape: Shape = RoundedCornerShape(20.dp)
+
     Row(
         Modifier
             .bounceOnClick()
@@ -139,7 +153,8 @@ private fun ColourCard(colour: Color, name: String, onSelected: () -> Unit) {
             .platformClickable(
                 onClick = { onSelected() }
             )
-            .background(colour, RoundedCornerShape(20.dp))
+            .background(colour, shape)
+            .border(2.dp, colour.getContrasted(), shape)
             .padding(15.dp)
             .fillMaxWidth()
     ) {

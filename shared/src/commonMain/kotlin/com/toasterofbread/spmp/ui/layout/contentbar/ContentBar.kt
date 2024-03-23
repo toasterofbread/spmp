@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.settings.ui.Theme
@@ -35,16 +36,23 @@ sealed class ContentBar {
         slot: LayoutSlot,
         content_padding: PaddingValues,
         distance_to_page: Dp,
-        modifier: Modifier
+        modifier: Modifier,
+        getParentBackgroundColour: () -> Color? = { null },
+        getBackgroundColour: (Color) -> Color = { it }
     ): Boolean {
         val player: PlayerState = LocalPlayerState.current
         val slot_colour_source: ColourSource by slot.rememberColourSource()
 
-        val background_colour: Color = slot_colour_source.get(player)
-
         var result: Boolean by remember { mutableStateOf(false) }
 
-        CompositionLocalProvider(LocalContentColor provides background_colour.getContrasted()) {
+        val background_colour: Color = getBackgroundColour(slot_colour_source.get(player))
+        val parent_background_colour: Color? = getParentBackgroundColour()
+
+        val actual_background_colour: Color =
+            if (parent_background_colour == null) background_colour
+            else background_colour.compositeOver(parent_background_colour)
+
+        CompositionLocalProvider(LocalContentColor provides actual_background_colour.getContrasted()) {
             result = BarContent(
                 slot,
                 slot_colour_source.theme_colour,
@@ -93,6 +101,8 @@ fun LayoutSlot.DisplayBar(
     distance_to_page: Dp,
     modifier: Modifier = Modifier,
     container_modifier: Modifier = Modifier,
+    getParentBackgroundColour: () -> Color? = { null },
+    getBackgroundColour: (Color) -> Color = { it },
     onConfigDataChanged: (JsonElement?) -> Unit = {}
 ): Boolean {
     val player: PlayerState = LocalPlayerState.current
@@ -121,7 +131,14 @@ fun LayoutSlot.DisplayBar(
 
     Crossfade(getContentBarSelectionState(), container_modifier) { selection_state ->
         if (selection_state == null) {
-            content_bar_result = content_bar?.Bar(this, content_padding, distance_to_page, modifier) ?: false
+            content_bar_result = content_bar?.Bar(
+                this,
+                content_padding = content_padding,
+                distance_to_page = distance_to_page,
+                modifier = modifier,
+                getParentBackgroundColour = getParentBackgroundColour,
+                getBackgroundColour = getBackgroundColour
+            ) ?: false
             return@Crossfade
         }
 

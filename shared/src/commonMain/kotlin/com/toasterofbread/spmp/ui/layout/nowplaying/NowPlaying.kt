@@ -313,7 +313,12 @@ fun NowPlaying(
                 }
         ) {
             if (ThemeSettings.Key.SHOW_EXPANDED_PLAYER_WAVE.rememberMutableState<Boolean>().value) {
-                NowPlayingOverlappingWaveBackground(page_height, Modifier.align(Alignment.TopCenter).zIndex(1f))
+                NowPlayingOverlappingWaveBackground(
+                    page_height + content_padding.calculateBottomPadding(),
+                    Modifier
+                        .align(Alignment.TopCenter)
+                        .zIndex(1f)
+                )
             }
 
             if (NowPlayingPage.getFormFactor(player) == FormFactor.LANDSCAPE) {

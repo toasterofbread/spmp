@@ -846,7 +846,8 @@
     <string name="layout_slot_portrait_player_top">Player top</string>
 
     <string name="layout_slot_config_portrait_player_top_show_in_queue">Show in queue</string>
-    <string name="layout_slot_config_below_player_show_when_expanded">Show when player expanded</string>
+    <string name="layout_slot_config_below_player_show_in_player">Show when player expanded</string>
+    <string name="layout_slot_config_below_player_show_in_queue">Show in queue</string>
 
     <string name="layout_slot_landscape_outer_side_left">Outer left sidebar</string>
     <string name="layout_slot_landscape_inner_side_left">Inner left sidebar</string>
@@ -861,6 +862,7 @@
     <string name="colour_selector_dialog_select_theme">From theme</string>
     <string name="colour_selector_dialog_select_custom">Custom</string>
     <string name="colour_selector_dialog_player_background">Player background</string>
+    <string name="colour_selector_dialog_transparent">Transparent</string>
 
     <string name="theme_colour_background">Background</string>
     <string name="theme_colour_accent">Accent</string>

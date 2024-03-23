@@ -6,9 +6,13 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.InternalContentBar
 import com.toasterofbread.composekit.settings.ui.Theme
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.Serializable
 
 enum class LandscapeLayoutSlot: LayoutSlot {
     OUTER_SIDE_LEFT,
@@ -97,6 +101,6 @@ enum class LandscapeLayoutSlot: LayoutSlot {
             return
         }
 
-        BelowPlayerConfigurationItems(config_data, item_modifier, onModification)
+        BelowPlayerConfigurationItems(this, config_data, item_modifier, onModification)
     }
 }

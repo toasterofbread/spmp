@@ -22,7 +22,9 @@ enum class LandscapeLayoutSlot: LayoutSlot {
     UPPER_TOP_BAR,
     LOWER_TOP_BAR,
     ABOVE_PLAYER,
-    BELOW_PLAYER;
+    BELOW_PLAYER,
+    PLAYER_BOTTOM_START,
+    PLAYER_BOTTOM_END;
 
     override val is_vertical: Boolean get() =
         when (this) {
@@ -43,6 +45,8 @@ enum class LandscapeLayoutSlot: LayoutSlot {
             LOWER_TOP_BAR -> true
             ABOVE_PLAYER -> false
             BELOW_PLAYER -> false
+            PLAYER_BOTTOM_START -> true
+            PLAYER_BOTTOM_END -> false
         }
 
     override val slots_key: SettingsKey = LayoutSettings.Key.LANDSCAPE_SLOTS
@@ -59,6 +63,8 @@ enum class LandscapeLayoutSlot: LayoutSlot {
             LOWER_TOP_BAR -> getString("layout_slot_landscape_lower_top_bar")
             ABOVE_PLAYER -> getString("layout_slot_landscape_above_player")
             BELOW_PLAYER -> getString("layout_slot_landscape_below_player")
+            PLAYER_BOTTOM_START -> getString("layout_slot_landscape_player_bottom_start")
+            PLAYER_BOTTOM_END -> getString("layout_slot_landscape_player_bottom_end")
         }
 
     override fun getDefaultContentBar(): ContentBar? =
@@ -73,6 +79,9 @@ enum class LandscapeLayoutSlot: LayoutSlot {
 
             ABOVE_PLAYER -> InternalContentBar.NAVIGATION
             BELOW_PLAYER -> InternalContentBar.NAVIGATION
+
+            PLAYER_BOTTOM_START -> InternalContentBar.SONG_ACTIONS
+            PLAYER_BOTTOM_END -> InternalContentBar.LYRICS
         }
 
     override fun getDefaultBackgroundColour(theme: Theme): ColourSource =
@@ -85,8 +94,9 @@ enum class LandscapeLayoutSlot: LayoutSlot {
             LOWER_TOP_BAR -> ThemeColourSource(Theme.Colour.CARD)
             ABOVE_PLAYER -> ThemeColourSource(Theme.Colour.ACCENT)
             BELOW_PLAYER -> ThemeColourSource(Theme.Colour.CARD)
+            PLAYER_BOTTOM_START -> ThemeColourSource(Theme.Colour.CARD)
+            PLAYER_BOTTOM_END -> ThemeColourSource(Theme.Colour.CARD)
         }
-
 
     override fun hasConfig(): Boolean =
         this == BELOW_PLAYER

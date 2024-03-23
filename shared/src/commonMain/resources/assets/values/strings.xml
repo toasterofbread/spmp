@@ -799,6 +799,8 @@
     <string name="content_bar_desc_navigation">Controls for navigating between app pages</string>
     <string name="content_bar_lyrics">Lyrics</string>
     <string name="content_bar_desc_lyrics">Synchronised lyrics for the current song</string>
+    <string name="content_bar_song_actions">Song actions</string>
+    <string name="content_bar_desc_song_actions">Actions for interacting with the playing song</string>
 
     <string name="content_bar_custom_no_$x">Custom bar #$x</string>
     <string name="content_bar_custom_invalid">Invalid custom bar</string>
@@ -815,6 +817,7 @@
 
     <string name="content_bar_template_navigation">Navigation</string>
     <string name="content_bar_template_lyrics">Lyrics</string>
+    <string name="content_bar_template_song_actions">Song actions</string>
 
     <string name="content_bar_element_type_button">Button</string>
     <string name="content_bar_element_type_spacer">Spacer</string>
@@ -857,6 +860,8 @@
     <string name="layout_slot_landscape_lower_top_bar">Lower top bar</string>
     <string name="layout_slot_landscape_above_player">Above player</string>
     <string name="layout_slot_landscape_below_player">Below player</string>
+    <string name="layout_slot_landscape_player_bottom_start">Bottom bar start</string>
+    <string name="layout_slot_landscape_player_bottom_end">Bottom bar end</string>
 
     <string name="colour_selector_dialog_title">Select colour</string>
     <string name="colour_selector_dialog_select_theme">From theme</string>
@@ -920,6 +925,9 @@
     <string name="appaction_song_action_open_album">Open album</string>
     <string name="appaction_song_action_open_related">Open related</string>
     <string name="appaction_song_action_remove_from_queue">Remove from queue</string>
+    <string name="appaction_song_action_share">Share</string>
+    <string name="appaction_song_action_open_externally">Open externally</string>
+    <string name="appaction_song_action_copy_url">Copy URL</string>
 
     <string name="appaction_playback_action_pause">Pause</string>
     <string name="appaction_playback_action_play">Play</string>

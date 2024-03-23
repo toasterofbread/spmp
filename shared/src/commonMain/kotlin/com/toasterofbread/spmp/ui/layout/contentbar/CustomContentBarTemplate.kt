@@ -24,21 +24,25 @@ import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.theme.appHover
 import com.toasterofbread.spmp.model.appaction.OtherAppAction
 import com.toasterofbread.spmp.model.appaction.action.navigation.AppPageNavigationAction
+import com.toasterofbread.spmp.model.appaction.SongAppAction
 
 enum class CustomContentBarTemplate {
     NAVIGATION,
-    LYRICS;
+    LYRICS,
+    SONG_ACTIONS;
 
     fun getName(): String =
         when (this) {
             NAVIGATION -> getString("content_bar_template_navigation")
             LYRICS -> getString("content_bar_template_lyrics")
+            SONG_ACTIONS -> getString("content_bar_template_song_actions")
         }
 
     fun getIcon(): ImageVector =
         when (this) {
             NAVIGATION -> Icons.Default.Widgets
             LYRICS -> Icons.Default.Lyrics
+            SONG_ACTIONS -> Icons.Default.MusicNote
         }
 
     fun getElements(): List<ContentBarElement> =
@@ -56,6 +60,13 @@ enum class CustomContentBarTemplate {
             )
             LYRICS -> listOf(
                 ContentBarElementLyrics(size_mode = ContentBarElement.SizeMode.FILL)
+            )
+            SONG_ACTIONS -> listOf(
+                ContentBarElementButton(SongAppAction(SongAppAction.Action.OPEN_EXTERNALLY)),
+                ContentBarElementButton(SongAppAction(SongAppAction.Action.TOGGLE_LIKE)),
+                ContentBarElementSpacer(size_mode = ContentBarElement.SizeMode.FILL),
+                ContentBarElementButton(SongAppAction(SongAppAction.Action.DOWNLOAD)),
+                ContentBarElementButton(SongAppAction(SongAppAction.Action.START_RADIO))
             )
         }
 

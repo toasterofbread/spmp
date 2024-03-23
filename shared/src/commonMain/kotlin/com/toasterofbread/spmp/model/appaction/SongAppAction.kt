@@ -8,7 +8,9 @@ import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.platform.download.DownloadStatus
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.composekit.utils.composable.LargeDropdownMenu
+import com.toasterofbread.composekit.platform.Platform
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.Button
@@ -28,6 +30,7 @@ import com.toasterofbread.spmp.model.mediaitem.loader.SongLikedLoader
 import com.toasterofbread.spmp.model.appaction.AppAction
 import com.toasterofbread.spmp.youtubeapi.endpoint.SetSongLikedEndpoint
 import com.toasterofbread.spmp.youtubeapi.endpoint.SongLikedEndpoint
+import LocalPlayerState
 
 @Serializable
 data class SongAppAction(
@@ -59,25 +62,28 @@ data class SongAppAction(
     @OptIn(ExperimentalLayoutApi::class)
     @Composable
     override fun ConfigurationItems(item_modifier: Modifier, onModification: (AppAction) -> Unit) {
+        val player: PlayerState = LocalPlayerState.current
+
         var show_action_selector: Boolean by remember { mutableStateOf(false) }
+        val available_actions: List<Action> = remember { Action.getAvailable(player.context) }
 
         LargeDropdownMenu(
             expanded = show_action_selector,
             onDismissRequest = { show_action_selector = false },
-            item_count = Action.entries.size,
+            item_count = available_actions.size,
             selected = action.ordinal,
             itemContent = {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    val action: Action = Action.entries[it]
+                    val action: Action = available_actions[it]
                     Icon(action.getIcon(), null)
                     Text(action.getName())
                 }
             },
             onSelected = {
-                onModification(copy(action = Action.entries[it]))
+                onModification(copy(action = available_actions[it]))
                 show_action_selector = false
             }
         )
@@ -106,10 +112,16 @@ data class SongAppAction(
         DOWNLOAD,
         OPEN_ALBUM,
         OPEN_RELATED,
-        REMOVE_FROM_QUEUE;
+        REMOVE_FROM_QUEUE,
+        SHARE,
+        OPEN_EXTERNALLY,
+        COPY_URL;
 
         companion object {
             val DEFAULT: Action = TOGGLE_LIKE
+
+            fun getAvailable(context: AppContext): List<Action> =
+                entries.filter { it.isAvailable(context) }
         }
 
         fun getName(): String =
@@ -122,6 +134,9 @@ data class SongAppAction(
                 OPEN_ALBUM -> getString("appaction_song_action_open_album")
                 OPEN_RELATED -> getString("appaction_song_action_open_related")
                 REMOVE_FROM_QUEUE -> getString("appaction_song_action_remove_from_queue")
+                SHARE -> getString("appaction_song_action_share")
+                OPEN_EXTERNALLY -> getString("appaction_song_action_open_externally")
+                COPY_URL -> getString("appaction_song_action_copy_url")
             }
 
         fun getIcon(): ImageVector =
@@ -134,6 +149,17 @@ data class SongAppAction(
                 OPEN_ALBUM -> Icons.Default.Album
                 OPEN_RELATED -> Icons.Default.GridView
                 REMOVE_FROM_QUEUE -> Icons.Default.Close
+                SHARE -> Icons.Default.Share
+                OPEN_EXTERNALLY -> Icons.Default.OpenInNew
+                COPY_URL -> Icons.Default.ContentCopy
+            }
+
+        fun isAvailable(context: AppContext): Boolean =
+            when (this) {
+                SHARE -> context.canShare()
+                OPEN_EXTERNALLY -> context.canOpenUrl()
+                COPY_URL -> context.canCopyText()
+                else -> true
             }
 
         suspend fun execute(song: Song, queue_index: Int, player: PlayerState) {
@@ -193,6 +219,21 @@ data class SongAppAction(
                 REMOVE_FROM_QUEUE -> {
                     player.withPlayer {
                         removeFromQueue(queue_index)
+                    }
+                }
+                SHARE -> {
+                    if (player.context.canShare()) {
+                        player.context.shareText(song.getURL(player.context), song.Title.get(player.database))
+                    }
+                }
+                OPEN_EXTERNALLY -> {
+                    if (player.context.canOpenUrl()) {
+                        player.context.openUrl(song.getURL(player.context))
+                    }
+                }
+                COPY_URL -> {
+                    if (player.context.canCopyText()) {
+                        player.context.copyText(song.getURL(player.context))
                     }
                 }
             }

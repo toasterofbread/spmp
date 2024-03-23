@@ -32,8 +32,9 @@ sealed class InternalContentBar(val index: Int): ContentBar() {
         val SECONDARY: InternalContentBar = SecondaryInternalContentBar(1)
         val NAVIGATION: InternalContentBar = NavigationInternalContentBar(2)
         val LYRICS: InternalContentBar = LyricsInternalContentBar(3)
+        val SONG_ACTIONS: InternalContentBar = SongActionsInternalContentBar(4)
 
-        val ALL: List<InternalContentBar> = listOf(PRIMARY, SECONDARY, NAVIGATION, LYRICS)
+        val ALL: List<InternalContentBar> = listOf(PRIMARY, SECONDARY, NAVIGATION, LYRICS, SONG_ACTIONS)
     }
 }
 
@@ -104,5 +105,23 @@ private class LyricsInternalContentBar(index: Int): InternalContentBar(index) {
     ): Boolean {
         val elements: List<ContentBarElement> = remember { CustomContentBarTemplate.LYRICS.getElements() }
         return CustomBarContent(elements, 30.dp, slot.is_vertical, content_padding, background_colour, modifier)
+    }
+}
+
+private class SongActionsInternalContentBar(index: Int): InternalContentBar(index) {
+    override fun getName(): String = getString("content_bar_song_actions")
+    override fun getDescription(): String = getString("content_bar_desc_song_actions")
+    override fun getIcon(): ImageVector = Icons.Default.PlayArrow
+
+    @Composable
+    override fun BarContent(
+        slot: LayoutSlot,
+        background_colour: Theme.Colour?,
+        content_padding: PaddingValues,
+        distance_to_page: Dp,
+        modifier: Modifier
+    ): Boolean {
+        val elements: List<ContentBarElement> = remember { CustomContentBarTemplate.SONG_ACTIONS.getElements() }
+        return CustomBarContent(elements, 50.dp, slot.is_vertical, content_padding, background_colour, modifier)
     }
 }

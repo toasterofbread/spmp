@@ -119,12 +119,12 @@ fun LayoutSlot.DisplayBar(
         start = base_padding,
         end = base_padding,
         bottom = base_padding + (
-                if (is_vertical) player.nowPlayingBottomPadding(
-                    include_np = true,
-                    include_top_items = false
-                )
-                else 0.dp
+            if (is_vertical) player.nowPlayingBottomPadding(
+                include_np = true,
+                include_top_items = false
             )
+            else 0.dp
+        )
     )
 
     var content_bar_result: Boolean by remember { mutableStateOf(false) }

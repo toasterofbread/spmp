@@ -33,7 +33,7 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.*
-import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.apppage.library.pageselector.*
 
 abstract class LibrarySubPage(val context: AppContext) {
@@ -179,8 +179,6 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
         close: () -> Unit
     ) {
         val player: PlayerState = LocalPlayerState.current
-
-        val wave_border_offset: Animatable<Float, AnimationVector1D> = remember { Animatable(0f) }
 
         MediaItemSortType.SelectionMenu(
             show_sort_type_menu,

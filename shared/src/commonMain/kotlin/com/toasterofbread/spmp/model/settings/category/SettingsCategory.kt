@@ -138,7 +138,6 @@ sealed class SettingsCategory(id: String) {
                 FeedSettings,
                 ThemeSettings,
                 LyricsSettings,
-                TopBarSettings,
                 DiscordSettings,
                 DiscordAuthSettings,
                 FilterSettings,

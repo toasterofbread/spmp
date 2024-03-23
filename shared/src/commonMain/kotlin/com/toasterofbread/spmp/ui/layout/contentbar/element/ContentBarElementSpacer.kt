@@ -27,6 +27,9 @@ data class ContentBarElementSpacer(
     override fun copyWithSize(size_mode: ContentBarElement.SizeMode, size: Int): ContentBarElement =
         copy(size_mode = size_mode, size = size)
 
+    @Composable
+    override fun isDisplaying(): Boolean = false
+
     override fun blocksIndicatorAnimation(): Boolean = true
 
     @Composable

@@ -7,7 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.LargeFilterList
-import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.youtubeapi.endpoint.*
 import com.toasterofbread.composekit.utils.modifier.horizontal
 import com.toasterofbread.composekit.utils.modifier.vertical

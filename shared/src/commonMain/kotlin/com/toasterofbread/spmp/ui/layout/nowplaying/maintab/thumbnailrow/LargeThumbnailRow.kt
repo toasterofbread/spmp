@@ -261,7 +261,7 @@ fun LargeThumbnailRow(
                                 }),
                             contentAlignment = Alignment.Center
                         ) {
-                            BackHandler(overlay_menu != null) {
+                            BackHandler(overlay_menu != null, priority = 2) {
                                 player.navigateNpOverlayMenuBack()
                                 colourpick_callback = null
                             }

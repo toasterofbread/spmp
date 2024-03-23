@@ -18,7 +18,6 @@ import androidx.compose.ui.text.style.TextAlign
 import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.utils.composable.AlignableCrossfade
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
-import com.toasterofbread.spmp.model.settings.category.TopBarSettings
 import kotlinx.coroutines.delay
 
 private const val UPDATE_INTERVAL_MS = 100L
@@ -49,10 +48,11 @@ fun LyricsLineDisplay(
 ) {
     require(lyrics.synced)
 
-    val lyrics_linger: Boolean by TopBarSettings.Key.LYRICS_LINGER.rememberMutableState()
-    val show_furigana: Boolean by TopBarSettings.Key.LYRICS_SHOW_FURIGANA.rememberMutableState()
-    val max_lines: Int by TopBarSettings.Key.LYRICS_MAX_LINES.rememberMutableState()
-    val preallocate_max_space: Boolean by TopBarSettings.Key.LYRICS_PREAPPLY_MAX_LINES.rememberMutableState()
+    // TODO
+    val lyrics_linger: Boolean = false//by TopBarSettings.Key.LYRICS_LINGER.rememberMutableState()
+    val show_furigana: Boolean = false//by TopBarSettings.Key.LYRICS_SHOW_FURIGANA.rememberMutableState()
+    val max_lines: Int = 1//by TopBarSettings.Key.LYRICS_MAX_LINES.rememberMutableState()
+    val preallocate_max_space: Boolean = false//by TopBarSettings.Key.LYRICS_PREAPPLY_MAX_LINES.rememberMutableState()
 
     var current_line: Int? by remember { mutableStateOf(getCurrentLine(lyrics, getTime(), lyrics_linger)) }
     var line_a: Int? by remember { mutableStateOf(current_line) }
@@ -94,7 +94,10 @@ fun LyricsLineDisplay(
     val enter: EnterTransition = slideInVertically { it }
     val exit: ExitTransition = slideOutVertically { -it } + fadeOut()
 
-    Box(modifier.height(IntrinsicSize.Min), contentAlignment = Alignment.Center) {
+    Box(
+        modifier.height(IntrinsicSize.Min),
+        contentAlignment = Alignment.Center
+    ) {
         val show_a: Boolean = line_a != null && show_line_a
         val show_b: Boolean = line_b != null && !show_line_a
 

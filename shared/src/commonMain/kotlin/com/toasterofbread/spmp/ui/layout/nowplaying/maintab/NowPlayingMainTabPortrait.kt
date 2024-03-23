@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreHoriz
@@ -35,11 +37,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.platform.LocalDensity
 import com.toasterofbread.composekit.platform.composable.composeScope
 import com.toasterofbread.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.song.Song
@@ -58,6 +64,10 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.SmallThumbnailRow
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.RepeatButton
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.PortraitLayoutSlot
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.observeContentBar
+import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
+import com.toasterofbread.spmp.ui.layout.contentbar.DisplayBar
 import kotlin.math.absoluteValue
 
 internal const val MINIMISED_NOW_PLAYING_HORIZ_PADDING: Float = 10f
@@ -70,20 +80,42 @@ private fun BoxWithConstraintsScope.getThumbnailSize(): Dp {
 }
 
 @Composable
-internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(page_height: Dp, top_bar: NowPlayingTopBar, content_padding: PaddingValues, modifier: Modifier = Modifier) {
+internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(
+    page_height: Dp,
+    top_bar: NowPlayingTopBar,
+    content_padding: PaddingValues,
+    modifier: Modifier = Modifier
+) {
     val player: PlayerState = LocalPlayerState.current
+    val density: Density = LocalDensity.current
     val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
     val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
 
     val current_song: Song? by player.status.song_state
 
-    BoxWithConstraints(modifier.requiredHeight(page_height)) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    BoxWithConstraints(modifier.requiredHeight(page_height).clipToBounds()) {
+        top_bar.DisplayTopBar(
+            expansion,
+            0.dp,
+            container_modifier = Modifier.fillMaxWidth()
+        )
+
+        Column(
+            Modifier
+                .fillMaxSize()
+                .offset {
+                    IntOffset(
+                        0,
+                        with (density) {
+                            top_bar.height.roundToPx()
+                        }
+                    )
+                },
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             composeScope {
                 Spacer(Modifier.height(lerp(0.dp, top_padding, expansion.get().coerceIn(0f, 1f))))
             }
-
-            top_bar.NowPlayingTopBar()
 
             val thumbnail_size: Dp = this@BoxWithConstraints.getThumbnailSize()
             val controls_height: Dp = this@BoxWithConstraints.maxHeight - thumbnail_size
@@ -119,7 +151,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(page_height: Dp, to
                         .height(controls_height),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
-                    val button_modifier: Modifier = Modifier.alpha(0.35f)
+                    val button_modifier: Modifier = Modifier.alpha(0.5f)
                     val side_button_padding: Dp = 20.dp
                     val show_shuffle_repeat_buttons: Boolean by PlayerSettings.Key.SHOW_REPEAT_SHUFFLE_BUTTONS.rememberMutableState()
 

@@ -23,7 +23,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.settingspage.SettingsAppPage
 import com.toasterofbread.spmp.ui.layout.radiobuilder.RADIO_BUILDER_ICON_WIDTH_DP
 import com.toasterofbread.spmp.ui.layout.radiobuilder.RadioBuilderIcon
 import com.toasterofbread.spmp.ui.layout.contentbar.DisplayBar
-import com.toasterofbread.spmp.ui.layout.contentbar.PortraitLayoutSlot
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.PortraitLayoutSlot
 
 @Composable
 fun MainPageTopBar(content_padding: PaddingValues, modifier: Modifier = Modifier) {
@@ -45,12 +45,12 @@ fun MainPageTopBar(content_padding: PaddingValues, modifier: Modifier = Modifier
                 }
             }
 
-            player.top_bar.MusicTopBarWithVisualiser(
-                InternalSettings.Key.TOPBAR_MODE_HOME,
-                Modifier.fillMaxSize().weight(1f),
-                hide_while_inactive = false,
-                can_show_visualiser = true
-            )
+            // player.top_bar.MusicTopBarWithVisualiser(
+            //     InternalSettings.Key.TOPBAR_MODE_HOME,
+            //     Modifier.fillMaxSize().weight(1f),
+            //     hide_while_inactive = false,
+            //     can_show_visualiser = true
+            // )
 
             Crossfade(player.app_page == player.app_page_state.Library) { library_open ->
                 if (library_open) {

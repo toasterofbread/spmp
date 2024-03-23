@@ -25,6 +25,7 @@ import com.toasterofbread.spmp.service.playercontroller.*
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.*
 import com.toasterofbread.spmp.ui.layout.contentbar.*
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.youtubeapi.endpoint.*
 import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
 import kotlinx.coroutines.*

@@ -23,7 +23,7 @@ import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getLayoutCategoryItems
-import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlotEditorPreviewOptions
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlotEditorPreviewOptions
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
 import com.toasterofbread.composekit.utils.modifier.disableGestures
 import com.toasterofbread.composekit.platform.composable.platformClickable
@@ -107,6 +107,9 @@ data object LayoutSettings: SettingsCategory("layout") {
         // - Or an integer index of Theme.Colour
         SLOT_COLOURS,
 
+        // Map of LayoutSlot to slot-specific configuration
+        SLOT_CONFIGS,
+
         // List of serialised CustomBars
         CUSTOM_BARS;
 
@@ -118,6 +121,7 @@ data object LayoutSettings: SettingsCategory("layout") {
                 PORTRAIT_SLOTS -> "{}"
                 LANDSCAPE_SLOTS -> "{}"
                 SLOT_COLOURS -> "{}"
+                SLOT_CONFIGS -> "{}"
                 CUSTOM_BARS -> "[]"
             } as T
     }

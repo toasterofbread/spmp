@@ -6,17 +6,15 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.*
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.*
 import androidx.compose.ui.graphics.*
@@ -25,18 +23,25 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import com.toasterofbread.composekit.platform.composable.*
 import com.toasterofbread.composekit.utils.common.*
+import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.modifier.background
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.*
-import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.vertical
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.observeContentBar
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.rememberColourSource
+import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.vertical
 import com.toasterofbread.spmp.ui.theme.appHover
+import kotlinx.serialization.json.JsonElement
 
 @Composable
 internal fun ContentBarSelector(
     state: ContentBar.BarSelectionState,
     slot: LayoutSlot,
+    slot_config: JsonElement? = null,
     content_padding: PaddingValues,
     modifier: Modifier = Modifier
 ) {
@@ -51,12 +56,8 @@ internal fun ContentBarSelector(
             onDismissed = {
                 show_colour_selector = false
             },
-            onThemeColourSelected = {
-                state.onThemeColourSelected(slot, it)
-                show_colour_selector = false
-            },
-            onCustomColourSelected = {
-                state.onCustomColourSelected(slot, it)
+            onColourSelected = {
+                state.onColourSelected(slot, it)
                 show_colour_selector = false
             }
         )
@@ -70,45 +71,47 @@ internal fun ContentBarSelector(
             .border(1.dp, player.theme.vibrant_accent)
             .padding(content_padding)
     ) {
-        Row(
-            Modifier
-                .thenIf(slot.is_vertical) {
-                    rotate(-90f)
-                    .vertical()
-                    .requiredSize(maxHeight, maxWidth)
-                    .offset { with (density) {
-                        IntOffset(
-                            (maxWidth - maxHeight).roundToPx() / 2,
-                            0
-                        )
-                    } }
-                    .wrapContentHeight()
-                },
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            val rotate_modifier: Modifier = Modifier.thenIf(slot.is_vertical) { rotate(90f) }
-
-            Text(slot.getName())
-
-            val colour_button_background_colour: Color = slot_colour_source.get(player.theme)
-
-            ConfigButton(
+        CompositionLocalProvider(LocalContentColor provides player.theme.background.getContrasted()) {
+            Row(
                 Modifier
-                    .platformClickable(
-                        onClick = { show_colour_selector = !show_colour_selector }
-                    ),
-                background_colour = colour_button_background_colour,
-                border_colour = colour_button_background_colour.getContrasted()
+                    .thenIf(slot.is_vertical) {
+                        rotate(-90f)
+                        .vertical()
+                        .requiredSize(maxHeight, maxWidth)
+                        .offset { with (density) {
+                            IntOffset(
+                                (maxWidth - maxHeight).roundToPx() / 2,
+                                0
+                            )
+                        } }
+                        .wrapContentHeight()
+                    },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Icon(Icons.Default.Palette, null, rotate_modifier)
+                val rotate_modifier: Modifier = Modifier.thenIf(slot.is_vertical) { rotate(90f) }
 
-                slot_colour_source.theme_colour?.also {
-                    Text(it.getReadable())
+                Text(slot.getName())
+
+                val colour_button_background_colour: Color = slot_colour_source.get(player)
+
+                ConfigButton(
+                    Modifier
+                        .platformClickable(
+                            onClick = { show_colour_selector = !show_colour_selector }
+                        ),
+                    background_colour = colour_button_background_colour,
+                    border_colour = colour_button_background_colour.getContrasted()
+                ) {
+                    Icon(Icons.Default.Palette, null, rotate_modifier)
+
+                    slot_colour_source.theme_colour?.also {
+                        Text(it.getReadable())
+                    }
                 }
-            }
 
-            ContentBarSelectorMainRow(state, slot, rotate_modifier)
+                ContentBarSelectorMainRow(state, slot, slot_config, rotate_modifier)
+            }
         }
     }
 }
@@ -117,6 +120,7 @@ internal fun ContentBarSelector(
 private fun ContentBarSelectorMainRow(
     state: ContentBar.BarSelectionState,
     slot: LayoutSlot,
+    slot_config: JsonElement?,
     rotate_modifier: Modifier,
     modifier: Modifier = Modifier
 ) {
@@ -124,6 +128,7 @@ private fun ContentBarSelectorMainRow(
     val content_bar: ContentBar? by slot.observeContentBar()
 
     var show_bar_selector: Boolean by remember { mutableStateOf(false) }
+    var show_slot_config: Boolean by remember { mutableStateOf(false) }
 
     if (show_bar_selector) {
         BarSelectorPopup(
@@ -142,22 +147,58 @@ private fun ContentBarSelectorMainRow(
         )
     }
 
-    ConfigButton(
-        modifier
-            .platformClickable(
-                onClick = {
-                    show_bar_selector = true
+    if (show_slot_config) {
+        AlertDialog(
+            onDismissRequest = { show_slot_config = false },
+            confirmButton = {
+                Button({ show_slot_config = false }) {
+                    Text(getString("action_close"))
                 }
-            )
-            .fillMaxWidth()
+            },
+            title = { Text(slot.getName()) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    slot.ConfigurationItems(
+                        slot_config,
+                        Modifier.fillMaxWidth()
+                    ) {
+                        state.onSlotConfigChanged(slot, it)
+                    }
+                }
+            }
+        )
+    }
+
+    Row(
+        modifier,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        val bar: ContentBar? = content_bar
-        if (bar != null) {
-            Icon(bar.getIcon(), null)
-            Text(bar.getName())
+        if (slot.hasConfig()) {
+            ConfigButton(
+                Modifier.platformClickable(
+                    onClick = { show_slot_config = true }
+                )
+            ) {
+                Icon(Icons.Default.Settings, null)
+            }
         }
-        else {
-            Text(getString("content_bar_empty"))
+
+        ConfigButton(
+            Modifier
+                .platformClickable(
+                    onClick = { show_bar_selector = true }
+                )
+                .fillMaxWidth()
+                .weight(1f)
+        ) {
+            val bar: ContentBar? = content_bar
+            if (bar != null) {
+                Icon(bar.getIcon(), null)
+                Text(bar.getName())
+            }
+            else {
+                Text(getString("content_bar_empty"))
+            }
         }
     }
 }

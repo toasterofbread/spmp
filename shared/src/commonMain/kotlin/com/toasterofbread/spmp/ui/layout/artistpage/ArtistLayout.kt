@@ -49,7 +49,6 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
-import com.toasterofbread.spmp.model.settings.category.TopBarSettings
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -97,7 +96,7 @@ fun ArtistLayout(
     val gradient_size = 0.35f
     var accent_colour: Color? by remember { mutableStateOf(null) }
 
-    val top_bar_over_image: Boolean by TopBarSettings.Key.DISPLAY_OVER_ARTIST_IMAGE.rememberMutableState()
+    val top_bar_over_image: Boolean = true//by TopBarSettings.Key.DISPLAY_OVER_ARTIST_IMAGE.rememberMutableState()
     var music_top_bar_showing: Boolean by remember { mutableStateOf(false) }
     val top_bar_alpha: Float by animateFloatAsState(if (!top_bar_over_image || music_top_bar_showing || multiselect_context?.is_active == true) 1f else 0f)
 
@@ -118,29 +117,10 @@ fun ArtistLayout(
                 .pointerInput(Unit) {}
                 .zIndex(1f)
         ) {
-            val showing = music_top_bar_showing || multiselect_context?.is_active == true
-            AnimatedVisibility(showing) {
-                Spacer(Modifier.height(WindowInsets.getTop()))
-            }
-
-            music_top_bar_showing = player.top_bar.MusicTopBar(
-                TopBarSettings.Key.SHOW_IN_ARTIST,
-                Modifier.fillMaxWidth().zIndex(1f),
-                padding = content_padding.horizontal
-            ).showing
-
             multiselect_context?.InfoDisplay(
                 Modifier.padding(top = 10.dp).padding(content_padding.horizontal),
                 getAllItems = getAllSelectableItems
             )
-
-            AnimatedVisibility(showing) {
-                WaveBorder(
-                    Modifier.fillMaxWidth(),
-                    getColour = { background },
-                    getAlpha = { getBackgroundAlpha() }
-                )
-            }
         }
     }
 

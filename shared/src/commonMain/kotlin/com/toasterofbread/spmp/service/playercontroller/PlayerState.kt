@@ -22,9 +22,11 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.IntOffset
 import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.platform.PlatformPreferencesListener
 import com.toasterofbread.composekit.platform.composable.BackHandler
+import com.toasterofbread.composekit.platform.composable.composeScope
 import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.composekit.utils.common.init
 import com.toasterofbread.composekit.utils.composable.getEnd
@@ -45,7 +47,6 @@ import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
-import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenu
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.multiselect.AppPageMultiSelectContext
@@ -69,10 +70,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.toasterofbread.spmp.ui.layout.contentbar.LandscapeLayoutSlot
-import com.toasterofbread.spmp.ui.layout.contentbar.PortraitLayoutSlot
-import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
-import com.toasterofbread.spmp.ui.layout.contentbar.DisplayBar
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.*
+import com.toasterofbread.spmp.ui.layout.contentbar.*
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import com.toasterofbread.composekit.utils.composable.getTop
@@ -80,6 +80,7 @@ import com.toasterofbread.composekit.utils.composable.OnChangedEffect
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.requiredWidth
+import kotlin.math.roundToInt
 
 typealias DownloadRequestCallback = (DownloadStatus?) -> Unit
 
@@ -118,11 +119,8 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         SwipeableState(0)
     )
     private var np_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
-    private var _np_bottom_bar_height: Dp by mutableStateOf(0.dp)
-    private var np_bottom_bar_height: Dp
-        get() = if (!np_bottom_bar_showing) 0.dp else _np_bottom_bar_height
-        set(value) { _np_bottom_bar_height = value }
-    private var np_bottom_bar_showing: Boolean by mutableStateOf(false)
+    private var np_bottom_bar_height: Dp by mutableStateOf(0.dp)
+    private var np_bottom_bar_config: LayoutSlot.BelowPlayerConfig? by mutableStateOf(null)
 
     private var download_request_songs: List<Song>? by mutableStateOf(null)
     private var download_request_always_show_options: Boolean by mutableStateOf(false)
@@ -138,7 +136,6 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
     val app_page_state: AppPageState = AppPageState(this)
     val main_multiselect_context: MediaItemMultiSelectContext = AppPageMultiSelectContext(this)
     var np_theme_mode: ThemeMode by mutableStateOf(Settings.getEnum(ThemeSettings.Key.NOWPLAYING_THEME_MODE, context.getPrefs()))
-    val top_bar: MusicTopBar = MusicTopBar(this)
 
     val np_overlay_menu: MutableState<PlayerOverlayMenu?> = mutableStateOf(null)
     private val np_overlay_menu_queue: MutableList<PlayerOverlayMenu> = mutableListOf()
@@ -181,7 +178,6 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
     fun onStart() {
         SpMp.addLowMemoryListener(low_memory_listener)
         context.getPrefs().addListener(prefs_listener)
-        top_bar.reconnect()
 
         if (PlatformPlayerService.isServiceRunning(context)) {
             connectService(null)
@@ -206,7 +202,6 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         }
         service_connection = null
         _player = null
-        top_bar.release()
     }
 
     fun interactService(action: (player: PlatformPlayerService) -> Unit) {
@@ -353,7 +348,11 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
 
         if (include_np) {
             bottom_padding += animateDpAsState(
-                np_bottom_bar_height + (
+                (
+                    if (np_bottom_bar_config?.show_when_expanded == true) np_bottom_bar_height
+                    else 0.dp
+                )
+                + (
                     if (player_showing) MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
                     else 0.dp
                 )
@@ -496,22 +495,37 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
 
     @Composable
     fun NowPlaying() {
+        val player: PlayerState = LocalPlayerState.current
         val density: Density = LocalDensity.current
         val bottom_padding: Int = density.getNpBottomPadding(WindowInsets.systemBars, WindowInsets.navigationBars, WindowInsets.ime)
 
         val vertical_page_count: Int = getNowPlayingVerticalPageCount(this)
         val minimised_now_playing_height: Dp = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
 
-        val player_height: Dp = screen_size.height - np_bottom_bar_height
+        val bottom_layout_slot: LayoutSlot =
+            when (form_factor) {
+                FormFactor.LANDSCAPE -> LandscapeLayoutSlot.BELOW_PLAYER
+                FormFactor.PORTRAIT -> PortraitLayoutSlot.BELOW_PLAYER
+            }
 
-        LaunchedEffect(player_height, bottom_padding, vertical_page_count) {
+        np_bottom_bar_config = bottom_layout_slot.observeConfig { LayoutSlot.BelowPlayerConfig() }
+        val show_bottom_slot_when_expanded: Boolean =
+            np_bottom_bar_config?.show_when_expanded == true || bottom_layout_slot.mustShow()
+
+        val player_height: Dp = screen_size.height
+
+        LaunchedEffect(player_height, bottom_padding, vertical_page_count, np_bottom_bar_height) {
             val half_screen_height: Float = player_height.value * 0.5f
 
             with(density) {
                 np_swipe_anchors = (0..vertical_page_count)
                     .associateBy { anchor ->
-                        if (anchor == 0) minimised_now_playing_height.value - half_screen_height
-                        else ((player_height - bottom_padding.toDp()).value * anchor) + (np_bottom_bar_height.value * (anchor - 1)) - half_screen_height
+                        if (anchor == 0) minimised_now_playing_height.value - half_screen_height + (np_bottom_bar_height.value / 2)
+                        else (
+                            ((player_height - bottom_padding.toDp()).value * anchor)
+                            - half_screen_height
+                            -np_bottom_bar_height.value / 2
+                        )
                     }
             }
 
@@ -524,8 +538,13 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
 
         Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
             if (np_swipe_anchors != null) {
+                val expanded_bottom_bar_height: Dp =
+                    if (show_bottom_slot_when_expanded) np_bottom_bar_height
+                    else 0.dp
+
                 val page_height: Dp = (
                     player_height
+                    - expanded_bottom_bar_height
                     - nowPlayingBottomPadding()
                     - WindowInsets.getTop()
                 )
@@ -534,18 +553,16 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
                     page_height,
                     np_swipe_state.value,
                     np_swipe_anchors!!,
-                    PaddingValues(start = WindowInsets.getStart(), end = WindowInsets.getEnd()),
+                    PaddingValues(
+                        start = WindowInsets.getStart(),
+                        end = WindowInsets.getEnd(),
+                        bottom = np_bottom_bar_height
+                    ),
                     Modifier.weight(1f).offset(y = (page_height) / 2)
                 )
             }
 
-            val layout_slot: LayoutSlot =
-                when (form_factor) {
-                    FormFactor.LANDSCAPE -> LandscapeLayoutSlot.BELOW_PLAYER
-                    FormFactor.PORTRAIT -> PortraitLayoutSlot.BELOW_PLAYER
-                }
-
-            np_bottom_bar_showing = layout_slot.DisplayBar(
+            bottom_layout_slot.DisplayBar(
                 0.dp,
                 Modifier
                     .fillMaxWidth()
@@ -553,6 +570,18 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
                         np_bottom_bar_height = with (density) {
                             it.height.toDp()
                         }
+                    }
+                    .offset {
+                        val slot_expansion: Float =
+                            if (show_bottom_slot_when_expanded) 1f
+                            else (1f - player.expansion.getBounded()).coerceAtLeast(0f)
+
+                        IntOffset(
+                            x = 0,
+                            y = with (density) {
+                                (np_bottom_bar_height.toPx() * (1f - slot_expansion)).roundToInt()
+                            }
+                        )
                     }
             )
         }

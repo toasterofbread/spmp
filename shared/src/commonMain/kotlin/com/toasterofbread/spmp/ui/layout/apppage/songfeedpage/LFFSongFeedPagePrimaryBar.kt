@@ -22,7 +22,7 @@ import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.LargeFilterList
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
-import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

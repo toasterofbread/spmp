@@ -17,7 +17,11 @@ import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.*
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
+import com.toasterofbread.spmp.model.settings.category.LayoutSettings
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -36,7 +40,7 @@ sealed class ContentBar {
         val player: PlayerState = LocalPlayerState.current
         val slot_colour_source: ColourSource by slot.rememberColourSource()
 
-        val background_colour: Color = slot_colour_source.get(player.theme)
+        val background_colour: Color = slot_colour_source.get(player)
 
         var result: Boolean by remember { mutableStateOf(false) }
 
@@ -66,8 +70,8 @@ sealed class ContentBar {
         val built_in_bars: List<ContentBarReference>
         val custom_bars: List<ContentBarReference>
         fun onBarSelected(slot: LayoutSlot, bar: ContentBarReference?)
-        fun onThemeColourSelected(slot: LayoutSlot, colour: Theme.Colour)
-        fun onCustomColourSelected(slot: LayoutSlot, colour: Color)
+        fun onColourSelected(slot: LayoutSlot, colour: ColourSource)
+        fun onSlotConfigChanged(slot: LayoutSlot, config: JsonElement?)
 
         fun createCustomBar(): ContentBarReference
         fun deleteCustomBar(bar: ContentBarReference)
@@ -88,10 +92,16 @@ sealed class ContentBar {
 fun LayoutSlot.DisplayBar(
     distance_to_page: Dp,
     modifier: Modifier = Modifier,
-    container_modifier: Modifier = Modifier
+    container_modifier: Modifier = Modifier,
+    onConfigDataChanged: (JsonElement?) -> Unit = {}
 ): Boolean {
     val player: PlayerState = LocalPlayerState.current
     val content_bar: ContentBar? by observeContentBar()
+
+    val config_data: JsonElement? = observeConfigData()
+    LaunchedEffect(config_data) {
+        onConfigDataChanged(config_data)
+    }
 
     val base_padding: Dp = 5.dp
     val content_padding: PaddingValues = PaddingValues(
@@ -109,7 +119,7 @@ fun LayoutSlot.DisplayBar(
 
     var content_bar_result: Boolean by remember { mutableStateOf(false) }
 
-    Crossfade(ContentBar.bar_selection_state, container_modifier) { selection_state ->
+    Crossfade(getContentBarSelectionState(), container_modifier) { selection_state ->
         if (selection_state == null) {
             content_bar_result = content_bar?.Bar(this, content_padding, distance_to_page, modifier) ?: false
             return@Crossfade
@@ -123,10 +133,11 @@ fun LayoutSlot.DisplayBar(
         ContentBarSelector(
             selection_state,
             this,
+            config_data,
             content_padding,
             selector_modifier
         )
     }
 
-    return ContentBar.bar_selection_state != null || content_bar_result
+    return getContentBarSelectionState() != null || content_bar_result
 }

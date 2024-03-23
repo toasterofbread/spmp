@@ -22,7 +22,7 @@ import com.toasterofbread.composekit.utils.composable.*
 import com.toasterofbread.composekit.utils.composable.RowOrColumn
 import com.toasterofbread.composekit.utils.modifier.scrollWithoutClip
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.apppage.library.LibraryAppPage
 
 @Composable
@@ -69,7 +69,7 @@ fun LibraryAppPage.LibraryIconButtonPageSelector(
                 CompositionLocalProvider(LocalContentColor provides colour) {
                     IconButton({
                         if (tab != current_tab) {
-                            val increasing: Boolean = tabs.indexOf(tab) > tabs.indexOf(current_tab)
+                            // val increasing: Boolean = tabs.indexOf(tab) > tabs.indexOf(current_tab)
                             current_tab = tab
                             // coroutine_scope.launchSingle {
                                 // wave_border_offset.animateTo(

@@ -112,7 +112,7 @@ private fun PlayerState.getBackgroundColourOverride(): Color {
 private var derived_np_background: State<Color>? = null
 private var derived_np_background_player: PlayerState? = null
 
-internal fun PlayerState.getNPBackground(): Color {
+fun PlayerState.getNPBackground(): Color {
     if (derived_np_background == null || derived_np_background_player != this) {
         derived_np_background = derivedStateOf { getBackgroundColourOverride() }
         derived_np_background_player = this
@@ -320,7 +320,7 @@ fun NowPlaying(
                 NowPlayingThumbnailBackground(Modifier.requiredSize(maxOf(page_height, player.screen_size.width)))
             }
 
-            BackHandler({ !is_shut }) {
+            BackHandler({ !is_shut }, priority = 1) {
                 coroutine_scope.launch {
                     expansion.scroll(-1)
                 }
@@ -442,7 +442,7 @@ private fun NowPlayingCardContent(page_height: Dp, content_padding: PaddingValue
         }
 
         for (i in 1 until pages.size) {
-            pages[i].Page(page_height, top_bar, content_padding, swipe_modifier, Modifier.offset(0.dp, -player.nowPlayingBottomPadding()))
+            pages[i].Page(page_height, top_bar, content_padding, swipe_modifier, Modifier.fillMaxWidth().offset(0.dp, -player.nowPlayingBottomPadding()))
         }
     }
 }

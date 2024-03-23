@@ -59,7 +59,6 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.FilterSettings
-import com.toasterofbread.spmp.model.settings.category.TopBarSettings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
@@ -287,7 +286,7 @@ class PlaylistPage(
         )
 
         val playlist_data: Playlist = loaded_data ?: playlist
-        
+
         LaunchedEffect(playlist_data) {
             if (playlist_editor?.playlist == playlist_data) {
                 return@LaunchedEffect
@@ -348,25 +347,6 @@ class PlaylistPage(
                 }
             )
 
-            val top_bar_showing: Boolean = player.top_bar.MusicTopBar(
-                TopBarSettings.Key.SHOW_IN_SEARCH,
-                Modifier.fillMaxWidth().zIndex(2f),
-                padding = content_padding.copy(bottom = 0.dp)
-            ).showing
-
-            AnimatedVisibility(top_bar_showing, Modifier.zIndex(1f)) {
-                WaveBorder(
-                    Modifier.thenIf(list_state.listState.firstVisibleItemIndex >= items_above) {
-                        alpha(0f)
-                    }
-                )
-            }
-
-            val top_padding by animateDpAsState(
-                if (top_bar_showing) WAVE_BORDER_HEIGHT_DP.dp
-                else content_padding.calculateTopPadding()
-            )
-
             val remote_playlist: RemotePlaylist? = playlist as? RemotePlaylist
 
             SwipeRefresh(
@@ -409,7 +389,7 @@ class PlaylistPage(
                         state = list_state.listState,
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.reorderable(list_state),
-                        contentPadding = content_padding.copy(top = top_padding)
+                        contentPadding = content_padding
                     ) {
                         previous_item?.item?.also { prev ->
                             item {
@@ -442,7 +422,7 @@ class PlaylistPage(
 
                         stickyHeaderWithTopPadding(
                             list_state.listState,
-                            if (top_bar_showing) 0.dp else top_padding,
+                            content_padding.calculateTopPadding(),
                             Modifier.zIndex(1f).padding(bottom = 5.dp),
                             { player.theme.background }
                         ) {
@@ -470,7 +450,7 @@ class PlaylistPage(
                                 loading && load_type != LoadType.REFRESH && sorted_items == null,
                                 load_error,
                                 Modifier.fillMaxWidth().padding(top = 15.dp),
-                                onRetry = 
+                                onRetry =
                                     remote_playlist?.let { remote ->
                                         {
                                             load_type = LoadType.REFRESH

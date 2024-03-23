@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.ui.layout.contentbar
+package com.toasterofbread.spmp.ui.layout.contentbar.layoutslot
 
 import LocalPlayerState
 import androidx.compose.foundation.layout.*

@@ -221,9 +221,11 @@ fun LyricsSearchMenu(
                                 LyricsSource.SOURCE_AMOUNT,
                                 selected_source.source_index,
                                 { source_idx ->
-                                    remember(source_idx) {
-                                        LyricsSource.fromIdx(source_idx).getReadable()
-                                    }
+                                    Text(
+                                        remember(source_idx) {
+                                            LyricsSource.fromIdx(source_idx).getReadable()
+                                        }
+                                    )
                                 },
                                 selected_border_colour = player.theme.vibrant_accent
                             ) { source_idx ->

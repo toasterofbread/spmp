@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.spmp.model.settings.category.LyricsSettings
-import com.toasterofbread.spmp.model.settings.category.TopBarSettings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.PillMenu
@@ -79,11 +78,6 @@ fun RadioBuilderPage(
                     top = content_padding.calculateTopPadding()
                 )
         ) {
-            player.top_bar.MusicTopBar(
-                TopBarSettings.Key.SHOW_IN_RADIOBUILDER,
-                Modifier.fillMaxWidth()
-            )
-    
             Crossfade(selected_artists, Modifier.fillMaxSize()) { selected ->
                 Column(
                     Modifier.fillMaxSize(),

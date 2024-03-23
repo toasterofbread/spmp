@@ -93,7 +93,7 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
 
         var special_mode: SpecialMode? by remember { mutableStateOf(null) }
 
-        BackHandler(submenu != null || special_mode != null) {
+        BackHandler(submenu != null || special_mode != null, priority = 3) {
             if (submenu != null) {
                 submenu = null
             }

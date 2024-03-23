@@ -498,25 +498,12 @@
 
     <string name="s_key_lyrics_font_size">フォントサイズ</string>
 
-    <string name="s_key_lyrics_top_bar_enable">トップバーの歌詞を表示</string>
-    <string name="s_key_lyrics_top_bar_max_lines">最高テキスト行数</string>
-    <string name="s_key_lyrics_top_bar_preapply_max_lines">最高行数の表示に必要な場所をあらかじめ取る</string>
     <string name="s_key_lyrics_sync_delay">歌詞シンクの遅延</string>
     <string name="s_sub_lyrics_sync_delay">歌詞のシンクを遅らせる秒数</string>
     <string name="s_key_lyrics_sync_delay_topbar">トップバーの歌詞シンク遅延</string>
     <string name="s_sub_lyrics_sync_delay_topbar">トップバーで表示する歌詞のみに足される遅延</string>
     <string name="s_key_lyrics_sync_delay_bluetooth">Bluetooth 歌詞シンクの遅延</string>
     <string name="s_sub_lyrics_sync_delay_bluetooth">Bluetooth で聴いてる時のみ足される遅延</string>
-
-    <string name="s_key_top_bar_lyrics_show_furigana">ふりがなを表示</string>
-    <string name="s_key_top_bar_lyrics_show_in_library">ライブラリで表示</string>
-    <string name="s_key_top_bar_lyrics_show_in_radiobuilder">ラジオ作成画面で表示</string>
-    <string name="s_key_top_bar_lyrics_show_in_settings">設定で表示</string>
-    <string name="s_key_top_bar_lyrics_show_in_login">ログイン画面で表示</string>
-    <string name="s_key_top_bar_lyrics_show_in_playlist">プライリストで表示</string>
-    <string name="s_key_top_bar_lyrics_show_in_artist">アーティストで表示</string>
-    <string name="s_key_top_bar_lyrics_show_in_viewmore">ホームの「もっと見る」画面で表示</string>
-    <string name="s_key_top_bar_lyrics_show_in_search">検索画面で表示</string>
 
     <string name="s_key_stream_audio_quality">ストリームの音質</string>
     <string name="s_sub_stream_audio_quality">曲をストリーム再生する時の音質</string>
@@ -627,13 +614,6 @@
     <string name="s_sub_discord_status_show_button_project">押されるとこのプロジェクトのページが GitHub で開かれます</string>
     <string name="s_key_discord_status_button_project_text">プロジェクトページボタンに表示されるテキスト</string>
 
-    <string name="s_key_topbar_lyrics_linger">残り続ける歌詞</string>
-    <string name="s_sub_topbar_lyrics_linger">行が終わっても、次の行が始まるまで表示されます</string>
-    <string name="s_key_topbar_visualiser_width">ビジュアライザーの横幅</string>
-    <string name="s_key_topbar_show_lyrics_in_queue">歌詞を曲キューで表示</string>
-    <string name="s_key_topbar_show_visualiser_in_queue">ビジュアライザーを曲キューで表示</string>
-    <string name="s_key_topbar_display_over_artist_image">アーティストページのメイン画像の上に表示</string>
-
     <string name="s_cat_general">一般</string>
     <string name="s_cat_desc_general">言語などのオプション</string>
 
@@ -651,9 +631,6 @@
 
     <string name="s_cat_lyrics">歌詞</string>
     <string name="s_cat_desc_lyrics">歌詞の表示や動作の設定</string>
-
-    <string name="s_cat_topbar">音楽トップバー</string>
-    <string name="s_cat_desc_topbar">全画面の上に表示されるバーの変更</string>
 
     <string name="s_cat_discord_status">Discordステータス</string>
     <string name="s_cat_desc_discord_status">Discordアカウントとステータスの表示の調節</string>

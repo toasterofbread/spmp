@@ -16,7 +16,9 @@ import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.contentbar.*
-import com.toasterofbread.spmp.ui.layout.contentbar.PortraitLayoutSlot
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.PortraitLayoutSlot
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LandscapeLayoutSlot
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 
 @Composable
@@ -149,7 +151,7 @@ private fun RowScope.LandscapeSideBars(
                 inner_bar_width = with (density) { it.width.toDp() }
             }
         },
-        container_modifier.thenIf(start) { zIndex(1f) }
+        container_modifier = container_modifier.thenIf(start) { zIndex(1f) }
     )
 
     val second_displaying: Boolean = second.DisplayBar(
@@ -159,7 +161,7 @@ private fun RowScope.LandscapeSideBars(
                 inner_bar_width = with (density) { it.width.toDp() }
             }
         },
-        container_modifier.thenIf(!start) { zIndex(1f) }
+        container_modifier = container_modifier.thenIf(!start) { zIndex(1f) }
     )
 
     return Pair(first_displaying, second_displaying)

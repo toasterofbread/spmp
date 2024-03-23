@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.ui.layout.contentbar
+package com.toasterofbread.spmp.ui.layout.contentbar.layoutslot
 
 import LocalPlayerState
 import androidx.compose.animation.*
@@ -25,8 +25,16 @@ import com.toasterofbread.spmp.model.settings.category.LayoutSettings
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
+import com.toasterofbread.spmp.ui.layout.contentbar.InternalContentBar
+import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
+import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBar
+import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBarEditor
+import com.toasterofbread.spmp.ui.layout.contentbar.CustomBarsContentBarList
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
 import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 
 @OptIn(ExperimentalLayoutApi::class)
 fun getLayoutSlotEditorSettingsItems(): List<SettingsItem> {
@@ -55,6 +63,7 @@ fun LayoutSlotEditor(
 
     var custom_bars_data: String by LayoutSettings.Key.CUSTOM_BARS.rememberMutableState()
     var slot_colours_data: String by LayoutSettings.Key.SLOT_COLOURS.rememberMutableState()
+    var slot_config_data: String by LayoutSettings.Key.SLOT_CONFIGS.rememberMutableState()
 
     val slots_key: SettingsKey = when (player.form_factor) {
         FormFactor.PORTRAIT -> LayoutSettings.Key.PORTRAIT_SLOTS
@@ -163,12 +172,26 @@ fun LayoutSlotEditor(
                 slots_key.set(Json.encodeToString(slots))
             }
 
-            override fun onThemeColourSelected(slot: LayoutSlot, colour: Theme.Colour) {
-                setColour(slot, colour.ordinal.toString())
+            override fun onColourSelected(slot: LayoutSlot, colour: ColourSource) {
+                val colours: MutableMap<String, ColourSource> =
+                    Json.decodeFromString<Map<String, ColourSource>>(slot_colours_data).toMutableMap()
+
+                colours[slot.getKey()] = colour
+                slot_colours_data = Json.encodeToString(colours)
             }
 
-            override fun onCustomColourSelected(slot: LayoutSlot, colour: Color) {
-                setColour(slot, colour.toHexString())
+            override fun onSlotConfigChanged(slot: LayoutSlot, config: JsonElement?) {
+                val configs: MutableMap<String, JsonElement> =
+                    Json.decodeFromString<Map<String, JsonElement>>(slot_config_data).toMutableMap()
+
+                if (config == null) {
+                    configs.remove(slot.getKey())
+                }
+                else {
+                    configs[slot.getKey()] = config
+                }
+
+                slot_config_data = Json.encodeToString(configs)
             }
 
             override fun createCustomBar(): ContentBarReference {
@@ -210,14 +233,6 @@ fun LayoutSlotEditor(
 
                 custom_bars_data = Json.encodeToString(bars)
                 slots_key.set(Json.encodeToString(slots))
-            }
-
-            private fun setColour(slot: LayoutSlot, colour: String) {
-                val colours: MutableMap<String, String> =
-                    Json.decodeFromString<Map<String, String>>(slot_colours_data).toMutableMap()
-
-                colours[slot.getKey()] = colour
-                slot_colours_data = Json.encodeToString(colours)
             }
         }
     }

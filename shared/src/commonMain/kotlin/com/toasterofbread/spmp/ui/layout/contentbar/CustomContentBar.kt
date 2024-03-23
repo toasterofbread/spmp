@@ -4,6 +4,8 @@ import LocalPlayerState
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.requiredWidth
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material3.*
@@ -24,6 +26,7 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.contentbar.element.*
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
 
@@ -47,8 +50,7 @@ data class CustomContentBar(
         distance_to_page: Dp,
         modifier: Modifier
     ): Boolean {
-        CustomBarContent(elements, size_dp.dp, slot.is_vertical, content_padding, background_colour, modifier)
-        return true
+        return CustomBarContent(elements, size_dp.dp, slot.is_vertical, content_padding, background_colour, modifier)
     }
 
     @Composable
@@ -69,8 +71,8 @@ data class CustomContentBar(
         shouldShowButton: @Composable (ContentBarElement) -> Boolean = { it.shouldShow() },
         buttonContent: @Composable (Int, ContentBarElement, DpSize) -> Unit =
             { _, element, size -> element.Element(vertical, size, Modifier) }
-    ) {
-        CustomBarContent(
+    ): Boolean {
+        return CustomBarContent(
             elements,
             size_dp.dp,
             vertical,
@@ -108,7 +110,7 @@ internal fun CustomBarContent(
     shouldShowButton: @Composable (ContentBarElement) -> Boolean = { it.shouldShow() },
     buttonContent: @Composable (Int, ContentBarElement, DpSize) -> Unit =
         { _, element, size -> element.Element(vertical, size, Modifier) }
-) {
+): Boolean {
     val player: PlayerState = LocalPlayerState.current
     val selected_element: Int? =
         selected_element_override ?: elements.indexOfFirst { it.isSelected() }.takeIf { it != -1 }
@@ -123,17 +125,19 @@ internal fun CustomBarContent(
             else -> content_colour
         }
 
-    BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
+    BoxWithConstraints(
+        modifier
+            .padding(content_padding)
+            .thenIf(apply_size) {
+                if (vertical) requiredWidth(size)
+                else requiredHeight(size)
+            },
+        contentAlignment = Alignment.Center
+    ) {
         SidebarButtonSelector(
             selected_button = selected_element,
             buttons = elements,
             indicator_colour = indicator_colour,
-            modifier = Modifier
-                .padding(content_padding)
-                .thenIf(apply_size) {
-                    if (vertical) width(size)
-                    else height(size)
-                },
             vertical = vertical,
             scrolling = scrolling,
             alignment = 0,
@@ -164,4 +168,6 @@ internal fun CustomBarContent(
             }
         }
     }
+
+    return elements.any { it.isDisplaying() }
 }

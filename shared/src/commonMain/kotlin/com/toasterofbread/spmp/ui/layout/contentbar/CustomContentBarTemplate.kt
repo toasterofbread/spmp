@@ -26,16 +26,19 @@ import com.toasterofbread.spmp.model.appaction.OtherAppAction
 import com.toasterofbread.spmp.model.appaction.action.navigation.AppPageNavigationAction
 
 enum class CustomContentBarTemplate {
-    NAVIGATION;
+    NAVIGATION,
+    LYRICS;
 
     fun getName(): String =
         when (this) {
             NAVIGATION -> getString("content_bar_template_navigation")
+            LYRICS -> getString("content_bar_template_lyrics")
         }
 
     fun getIcon(): ImageVector =
         when (this) {
             NAVIGATION -> Icons.Default.Widgets
+            LYRICS -> Icons.Default.Lyrics
         }
 
     fun getElements(): List<ContentBarElement> =
@@ -50,6 +53,9 @@ enum class CustomContentBarTemplate {
                 ContentBarElementButton.ofAppPage(AppPage.Type.PROFILE),
                 ContentBarElementButton.ofAppPage(AppPage.Type.CONTROL_PANEL),
                 ContentBarElementButton.ofAppPage(AppPage.Type.SETTINGS)
+            )
+            LYRICS -> listOf(
+                ContentBarElementLyrics(size_mode = ContentBarElement.SizeMode.FILL)
             )
         }
 

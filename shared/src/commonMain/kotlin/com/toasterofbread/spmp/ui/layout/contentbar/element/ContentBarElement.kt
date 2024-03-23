@@ -13,7 +13,7 @@ import com.toasterofbread.composekit.utils.common.thenWith
 import com.toasterofbread.composekit.utils.composable.*
 import com.toasterofbread.spmp.platform.visualiser.MusicVisualiser
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.layout.contentbar.LayoutSlot
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import kotlinx.serialization.*
 import kotlinx.serialization.json.JsonObject
 
@@ -35,8 +35,13 @@ sealed class ContentBarElement {
 
     @Composable
     open fun isSelected(): Boolean = false
+
     @Composable
     open fun shouldShow(): Boolean = true
+
+    @Composable
+    open fun isDisplaying(): Boolean = true
+
     open fun blocksIndicatorAnimation(): Boolean = false
 
     @Composable

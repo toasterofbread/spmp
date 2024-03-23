@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
 import androidx.compose.animation.Crossfade
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.material3.Button
 import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.composekit.utils.composable.ColourPicker
@@ -33,6 +34,11 @@ import androidx.compose.material3.IconButtonDefaults
 import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.ui.theme.appHover
+import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ThemeColourSource
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.PlayerBackgroundColourSource
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.CustomColourSource
 import com.toasterofbread.composekit.utils.modifier.bounceOnClick
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.CompositionLocalProvider
@@ -43,8 +49,7 @@ import androidx.compose.animation.animateContentSize
 @Composable
 fun ColourSelectionDialog(
     onDismissed: () -> Unit,
-    onThemeColourSelected: (Theme.Colour) -> Unit,
-    onCustomColourSelected: (Color) -> Unit,
+    onColourSelected: (ColourSource) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val player: PlayerState = LocalPlayerState.current
@@ -58,10 +63,10 @@ fun ColourSelectionDialog(
         text = {
             Crossfade(selecting_custom_colour, Modifier.animateContentSize()) {
                 if (it) {
-                    CustomColourSelector(onCustomColourSelected)
+                    CustomColourSelector(onColourSelected)
                 }
                 else {
-                    ThemeColourSelectionList(onThemeColourSelected)
+                    ThemeColourSelectionList(onColourSelected)
                 }
             }
         },
@@ -97,36 +102,56 @@ fun ColourSelectionDialog(
 
 @Composable
 private fun ThemeColourSelectionList(
-    onSelected: (Theme.Colour) -> Unit,
+    onSelected: (ColourSource) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val player: PlayerState = LocalPlayerState.current
 
     LazyColumn(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         items(Theme.Colour.entries) { colour ->
-            val background_colour: Color = colour.get(player.theme)
-            Row(
-                Modifier
-                    .bounceOnClick()
-                    .appHover(true)
-                    .platformClickable(
-                        onClick = { onSelected(colour) }
-                    )
-                    .background(background_colour, RoundedCornerShape(20.dp))
-                    .padding(15.dp)
-                    .fillMaxWidth()
-            ) {
-                CompositionLocalProvider(LocalContentColor provides background_colour.getContrasted()) {
-                    Text(colour.getReadable(), style = MaterialTheme.typography.bodyMedium)
+            ColourCard(
+                colour = colour.get(player.theme),
+                name = colour.getReadable(),
+                onSelected = {
+                    onSelected(ThemeColourSource(colour))
                 }
-            }
+            )
+        }
+
+        item {
+            ColourCard(
+                colour = player.getNPBackground(),
+                name = getString("colour_selector_dialog_player_background"),
+                onSelected = {
+                    onSelected(PlayerBackgroundColourSource())
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun ColourCard(colour: Color, name: String, onSelected: () -> Unit) {
+    Row(
+        Modifier
+            .bounceOnClick()
+            .appHover(true)
+            .platformClickable(
+                onClick = { onSelected() }
+            )
+            .background(colour, RoundedCornerShape(20.dp))
+            .padding(15.dp)
+            .fillMaxWidth()
+    ) {
+        CompositionLocalProvider(LocalContentColor provides colour.getContrasted()) {
+            Text(name, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
 
 @Composable
 private fun CustomColourSelector(
-    onSelected: (Color) -> Unit,
+    onSelected: (ColourSource) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var current_colour: Color by remember { mutableStateOf(Color.Red) }
@@ -139,7 +164,7 @@ private fun CustomColourSelector(
             modifier,
             bottomRowExtraContent = {
                 ShapedIconButton(
-                    { onSelected(current_colour) },
+                    { onSelected(CustomColourSource(current_colour.toArgb())) },
                     colours = IconButtonDefaults.iconButtonColors(
                         containerColor = current_colour,
                         contentColor = current_colour.getContrasted()

@@ -528,25 +528,12 @@
 
     <string name="s_key_lyrics_font_size">Font size</string>
 
-    <string name="s_key_lyrics_top_bar_enable">Enable top bar lyrics</string>
-    <string name="s_key_lyrics_top_bar_max_lines">Max lines</string>
-    <string name="s_key_lyrics_top_bar_preapply_max_lines">Pre-allocate the space needed to display max lines</string>
     <string name="s_key_lyrics_sync_delay">Lyrics sync delay</string>
     <string name="s_sub_lyrics_sync_delay">A delay in seconds applied to lyrics sync</string>
     <string name="s_key_lyrics_sync_delay_topbar">Top bar lyrics sync delay</string>
     <string name="s_sub_lyrics_sync_delay_topbar">An additional delay applied only to lyrics in the top bar</string>
     <string name="s_key_lyrics_sync_delay_bluetooth">Bluetooth lyrics sync delay</string>
     <string name="s_sub_lyrics_sync_delay_bluetooth">An additional delay applied only while listening with Bluetooth audio</string>
-
-    <string name="s_key_top_bar_lyrics_show_furigana">Show furigana</string>
-    <string name="s_key_top_bar_lyrics_show_in_library">Show in library</string>
-    <string name="s_key_top_bar_lyrics_show_in_radiobuilder">Show in the radio builder</string>
-    <string name="s_key_top_bar_lyrics_show_in_settings">Show in settings</string>
-    <string name="s_key_top_bar_lyrics_show_in_login">Show in login pages</string>
-    <string name="s_key_top_bar_lyrics_show_in_playlist">Show in playlist pages</string>
-    <string name="s_key_top_bar_lyrics_show_in_artist">Show in artist pages</string>
-    <string name="s_key_top_bar_lyrics_show_in_viewmore">Show in home feed view more pages</string>
-    <string name="s_key_top_bar_lyrics_show_in_search">Show in search page</string>
 
     <string name="s_key_stream_audio_quality">Stream audio quality</string>
     <string name="s_sub_stream_audio_quality">Target audio quality when streaming music</string>
@@ -657,13 +644,6 @@
     <string name="s_sub_discord_status_show_button_project">Opens the project repository on GitHub</string>
     <string name="s_key_discord_status_button_project_text">Project page button text</string>
 
-    <string name="s_key_topbar_lyrics_linger">Lyrics linger</string>
-    <string name="s_sub_topbar_lyrics_linger">When a line ends, it will remain visible until the next line begins</string>
-    <string name="s_key_topbar_visualiser_width">Visualiser width</string>
-    <string name="s_key_topbar_show_lyrics_in_queue">Show lyrics in music queue</string>
-    <string name="s_key_topbar_show_visualiser_in_queue">Show visualiser in music queue</string>
-    <string name="s_key_topbar_display_over_artist_image">Display over main image on artist page</string>
-
     <string name="s_key_navigate_song_with_numbers">Seek through song with number keys</string>
 
     <string name="s_cat_general">General</string>
@@ -686,9 +666,6 @@
 
     <string name="s_cat_lyrics">Lyrics</string>
     <string name="s_cat_desc_lyrics">Lyrics appearance and behaviour</string>
-
-    <string name="s_cat_topbar">Music top bar</string>
-    <string name="s_cat_desc_topbar">Show, hide, and customise the top bar</string>
 
     <string name="s_cat_discord_status">Discord status</string>
     <string name="s_cat_desc_discord_status">Manage Discord account and customise status appearance</string>
@@ -820,6 +797,8 @@
     <string name="content_bar_desc_secondary">Secondary page-specific content</string>
     <string name="content_bar_navigation">Navigation</string>
     <string name="content_bar_desc_navigation">Controls for navigating between app pages</string>
+    <string name="content_bar_lyrics">Lyrics</string>
+    <string name="content_bar_desc_lyrics">Synchronised lyrics for the current song</string>
 
     <string name="content_bar_custom_no_$x">Custom bar #$x</string>
     <string name="content_bar_custom_invalid">Invalid custom bar</string>
@@ -835,6 +814,7 @@
     <string name="content_bar_editor_template_dialog_title">Pick template</string>
 
     <string name="content_bar_template_navigation">Navigation</string>
+    <string name="content_bar_template_lyrics">Lyrics</string>
 
     <string name="content_bar_element_type_button">Button</string>
     <string name="content_bar_element_type_spacer">Spacer</string>
@@ -861,8 +841,12 @@
 
     <string name="layout_slot_portrait_upper_top_bar">Upper top bar</string>
     <string name="layout_slot_portrait_lower_top_bar">Lower top bar</string>
-    <string name="layout_slot_portrait_above_player">Above player</string>
-    <string name="layout_slot_portrait_below_player">Below player</string>
+    <string name="layout_slot_portrait_above_player">Above mini player</string>
+    <string name="layout_slot_portrait_below_player">Below mini player</string>
+    <string name="layout_slot_portrait_player_top">Player top</string>
+
+    <string name="layout_slot_config_portrait_player_top_show_in_queue">Show in queue</string>
+    <string name="layout_slot_config_below_player_show_when_expanded">Show when player expanded</string>
 
     <string name="layout_slot_landscape_outer_side_left">Outer left sidebar</string>
     <string name="layout_slot_landscape_inner_side_left">Inner left sidebar</string>
@@ -876,6 +860,7 @@
     <string name="colour_selector_dialog_title">Select colour</string>
     <string name="colour_selector_dialog_select_theme">From theme</string>
     <string name="colour_selector_dialog_select_custom">Custom</string>
+    <string name="colour_selector_dialog_player_background">Player background</string>
 
     <string name="theme_colour_background">Background</string>
     <string name="theme_colour_accent">Accent</string>

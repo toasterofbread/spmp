@@ -146,6 +146,7 @@ class YoutubeMusicLoginPage(val api: YoutubeiApi): LoginPage() {
             }
 
             val new_headers: Headers = Headers.build {
+                appendAll(provided_headers)
                 set("Cookie", YTMLogin.replaceCookiesInString(headers["Cookie"]!!, new_cookies))
             }
 

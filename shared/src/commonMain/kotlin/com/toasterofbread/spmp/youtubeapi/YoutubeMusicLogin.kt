@@ -106,7 +106,7 @@ object YTMLogin {
     ): Result<SpMpYoutubeiAuthenticationState> = runCatching {
         with(api) {
             val account_response: HttpResponse =
-                JsonHttpClient.request {
+                api.client.request {
                     endpointPath("account/account_menu")
                     headers {
                         appendAll(headers)

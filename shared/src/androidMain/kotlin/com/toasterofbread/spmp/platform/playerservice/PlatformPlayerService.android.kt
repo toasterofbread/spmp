@@ -84,8 +84,13 @@ fun getMediaNotificationImageMaxOffset(image: Bitmap): IntOffset {
     )
 }
 
-fun getMediaNotificationImageSize(image: Bitmap): IntSize {
-    val aspect: Float = if (Build.VERSION.SDK_INT >= 33) A13_MEDIA_NOTIFICATION_ASPECT else 1f
+fun getMediaNotificationImageSize(image: Bitmap, square: Boolean = false): IntSize {
+    val aspect: Float =
+        if (!square && Build.VERSION.SDK_INT >= 33) A13_MEDIA_NOTIFICATION_ASPECT
+        else 1f
+
+    println("ASPECT $aspect")
+
     if (image.width > image.height) {
         return IntSize(
             image.height,
@@ -105,8 +110,9 @@ private fun formatMediaNotificationImage(
     song: Song,
     context: AppContext,
 ): Bitmap {
-    val dimensions: IntSize = getMediaNotificationImageSize(image)
     val offset: IntOffset = song.NotificationImageOffset.get(context.database) ?: IntOffset.Zero
+    val square: Boolean = offset.x == 0 && offset.y == 0
+    val dimensions: IntSize = getMediaNotificationImageSize(image, square = square)
 
     return Bitmap.createBitmap(
         image,

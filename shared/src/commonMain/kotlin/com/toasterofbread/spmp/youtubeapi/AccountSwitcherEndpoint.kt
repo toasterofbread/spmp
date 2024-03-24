@@ -33,7 +33,7 @@ data class AccountSwitcherEndpoint(val data: Data) {
     @Serializable
     data class AccountItemSectionRenderer(val contents: List<Account>)
     @Serializable
-    data class Account(val accountItem: AccountItem?)
+    data class Account(val accountItem: AccountItem? = null)
 
     @Serializable
     data class AccountItem(
@@ -52,7 +52,7 @@ data class AccountSwitcherEndpoint(val data: Data) {
     @Serializable
     data class SelectActiveIdentityEndpoint(val supportedTokens: List<Token>)
     @Serializable
-    data class Token(val accountSigninToken: AccountSigninToken?, val offlineCacheKeyToken: OfflineCacheKeyToken?)
+    data class Token(val accountSigninToken: AccountSigninToken? = null, val offlineCacheKeyToken: OfflineCacheKeyToken? = null)
     @Serializable
     data class AccountSigninToken(val signinUrl: String)
     @Serializable

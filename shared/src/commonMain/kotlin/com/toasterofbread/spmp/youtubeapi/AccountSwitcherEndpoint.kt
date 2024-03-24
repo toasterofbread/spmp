@@ -39,7 +39,7 @@ data class AccountSwitcherEndpoint(val data: Data) {
     data class AccountItem(
         val accountName: AccountItemText,
         val accountPhoto: MusicThumbnailRenderer.RendererThumbnail,
-        val channelHandle: AccountItemText?,
+        val channelHandle: AccountItemText? = null,
         val accountByline: AccountItemText,
         val isDisabled: Boolean,
         val isSelected: Boolean,

@@ -14,14 +14,14 @@
 
     <string name="project_url_name">репозиторий проекта</string>
 
-    <string name="info_using_release_$x">Релиз $x</string>
-    <string name="info_using_non_release_commit_$x">Не релизнутая версия $x</string>
+    <string name="info_using_release_$x">Релиз версия $x</string>
+    <string name="info_using_non_release_commit_$x">Нон-релиз версия $x</string>
 
-    <string name="version_message_release_$appver_$apiver_$split">SpMp release build $appver $splitand API version $apiver</string>
-    <string name="version_message_non_release_$commit_$apiver_$split">SpMp non-release build on $commit $splitand API version $apiver</string>
+    <string name="version_message_release_$appver_$apiver_$split">SpMp релиз билд $appver $splitand, версия API $apiver (переведено @nichind ♡)</string>
+    <string name="version_message_non_release_$commit_$apiver_$split">SpMp нон-релиз билд ($commit коммит) $splitand, версия API $apiver (переведено @nichind ♡)</string>
     <string name="help_message">TODO</string>
 
-    <string name="spms_client_type_spmp_player">SpMp (player)</string>
+    <string name="spms_client_type_spmp_player">SpMp (плеер)</string>
     <string name="spms_client_type_info_spmp_player">A graphical instance of SpMp that plays its own audio</string>
     <string name="spms_client_type_spmp_standalone">SpMp (standalone)</string>
     <string name="spms_client_type_info_spmp_standalone">A graphical instance of SpMp that relies on an external player for audio</string>
@@ -38,7 +38,7 @@
     <string name="spms_client_type_info_url_command_line">https://spmp.toastbits.dev/docs/server/cli</string>
     <string name="spms_client_type_info_url_server">https://spmp.toastbits.dev/docs/server/about/</string>
 
-    <string name="font_option_default_$x">Default ($x)</string>
+    <string name="font_option_default_$x">По умолчанию ($x)</string>
     <string name="font_option_system">Системный шрифт</string>
     <string name="font_option_hc_maru_gothic">HC Maru Gothic</string>
 
@@ -347,7 +347,7 @@
     <string name="settings_value_out_of_$range">Вне диапазона ($range)</string>
     <string name="settings_value_not_int">Не цифра</string>
     <string name="settings_value_not_float">Не дробь</string>
-    <string name="settings_value_not_ipv4">Невалидный IPv4 адресс</string>
+    <string name="settings_value_not_ipv4">Невалидный IPv4 адрес</string>
     <string name="settings_value_not_port">Невалидный порт</string>
 
     <string name="s_page_preferences">Настройки</string>
@@ -380,278 +380,278 @@
     <string name="s_sub_feed_show_filter_bar">Если скрыто, доступ к странице поиска по-прежнему можно получить, нажав и удерживая кнопку поиска в библиотеке</string>
     <string name="s_key_feed_show_song_download_indicators">Показывать статус загрузки трека</string>
     <string name="s_key_feed_initial_rows">Начальные ряды главной страницы</string>
-    <string name="s_key_feed_square_preview_text_lines">Square item max text rows</string>
-    <string name="s_key_feed_grid_row_count">Default grid row count</string>
-    <string name="s_key_feed_grid_row_count_expanded">Expanded grid row count</string>
-    <string name="s_key_feed_alt_grid_row_count">Default alt grid row count</string>
-    <string name="s_key_feed_alt_grid_row_count_expanded">Expanded alt grid row count</string>
-    <string name="s_sub_feed_initial_rows">Minimum amount of feed rows to load automatically</string>
-    <string name="s_key_feed_show_radios">Show radio items in feed</string>
-    <string name="s_key_hidden_feed_rows">Hidden rows</string>
-    <string name="s_sub_hidden_feed_rows">Rows can also be hidden by long-pressing their title</string>
-    <string name="s_hidden_feed_rows_dialog_title">Hide row by title</string>
+    <string name="s_key_feed_square_preview_text_lines">Максимальное количество текстовых строк квадратного элемента (я без понятия что он имел ввиду)</string>
+    <string name="s_key_feed_grid_row_count">Количество блоков сетки по умолчанию</string>
+    <string name="s_key_feed_grid_row_count_expanded">Расширенное количество блоков сетки</string>
+    <string name="s_key_feed_alt_grid_row_count">Количество блоков альтернативной сетки по умолчанию</string>
+    <string name="s_key_feed_alt_grid_row_count_expanded">Расширенное количество блоков альтернативной сетки</string>
+    <string name="s_sub_feed_initial_rows">Минимальное количество блоков главной страницы для автоматической загрузки</string>
+    <string name="s_key_feed_show_radios">Показывать радиостанции на главной странице</string>
+    <string name="s_key_hidden_feed_rows">Скрытые блоки</string>
+    <string name="s_sub_hidden_feed_rows">Блоки также можно скрыть, нажав и удерживая их заголовок</string>
+    <string name="s_hidden_feed_rows_dialog_title">Скрыть блок по заголовку</string>
 
-    <string name="s_key_open_np_on_song_played">Open player when song clicked</string>
-    <string name="s_sub_open_np_on_song_played">The now playing menu will open automatically when clicking and playing a song</string>
+    <string name="s_key_open_np_on_song_played">Открыть плеер при нажатии на трек</string>
+    <string name="s_sub_open_np_on_song_played">Меню «Сейчас воспроизводится» откроется автоматически при воспроизведении трека</string>
 
-    <string name="s_key_multiselect_cancel_on_action">Cancel multiple selection after action</string>
-    <string name="s_sub_multiselect_cancel_on_action">Disable media item multiselect states once an action is performed</string>
+    <string name="s_key_multiselect_cancel_on_action">Отменить множественный выбор после действия</string>
+    <string name="s_sub_multiselect_cancel_on_action">Отключить состояния множественного выбора медиа-элемента после выполнения действия</string>
 
-    <string name="s_key_multiselect_cancel_on_none_selected">Cancel multiselect once nothing is selected</string>
+    <string name="s_key_multiselect_cancel_on_none_selected">Отменять множественный выбор когда ничего не выбрано</string>
 
-    <string name="s_key_start_radio_on_song_press">Start radio on song press</string>
-    <string name="s_sub_start_radio_on_song_press">Instead of playing just the song, its YouTube radio will be added to the queue</string>
+    <string name="s_key_start_radio_on_song_press">Включить радиостанцию при долгом нажатии на трек</string>
+    <string name="s_sub_start_radio_on_song_press">Вместо воспроизведения только трека в очередь будет добавлена радиостанция на его основе</string>
 
-    <string name="s_key_persistent_queue">Persistent song queue</string>
-    <string name="s_sub_persistent_queue">Song queue will persist even when closing the app</string>
+    <string name="s_key_persistent_queue">Постоянная очередь треков</string>
+    <string name="s_sub_persistent_queue">Очередь треков сохранится даже при закрытии приложения</string>
 
-    <string name="s_key_add_songs_to_history">Add song to YT history</string>
-    <string name="s_sub_add_songs_to_history">Songs listened to will be sent to YouTube and added to account history</string>
+    <string name="s_key_add_songs_to_history">Добавить трек в историю просмотра YouTube</string>
+    <string name="s_sub_add_songs_to_history">Прослушанные треки будут отправлены на YouTube и добавлены в историю аккаунта</string>
 
-    <string name="s_key_treat_singles_as_song">Treat singles as a song</string>
-    <string name="s_sub_treat_singles_as_song">Playlists contained in the 'Singles' tab on an artist's page will be treated as the contained song, if there is only one</string>
+    <string name="s_key_treat_singles_as_song">Заменить сингл-плейлисты одним треком</string>
+    <string name="s_sub_treat_singles_as_song">Плейлисты, содержащиеся на вкладке 'Синглы' на странице исполнителя, будут рассматриваться как содержащиеся в них песни, если они есть только один</string>
 
-    <string name="s_key_treat_any_single_item_playlist_as_single">Treat all one-item playlists as singles</string>
+    <string name="s_key_treat_any_single_item_playlist_as_single">Заменить все сингл-плейлисты одним треком</string>
 
-    <string name="s_key_font">Font</string>
-    <string name="s_key_ui_scale">UI scale</string>
+    <string name="s_key_font">Шрифт</string>
+    <string name="s_key_ui_scale">Размер UI</string>
 
-    <string name="s_key_stop_player_on_app_close">Stop player on app close</string>
-    <string name="s_sub_stop_player_on_app_close">Music player will be stopped if the app is cleared from recents</string>
+    <string name="s_key_stop_player_on_app_close">Остановить плеер при закрытии приложения</string>
+    <string name="s_sub_stop_player_on_app_close">Плеер будет остановлен, если приложение будет очищено из недавних</string>
 
-    <string name="s_key_mini_player_show_prev_button">Show previous button in mini-player</string>
-    <string name="s_key_mini_player_overscroll_clear_enabled">Swipe mini-player down to clear queue</string>
-    <string name="s_key_mini_player_overscroll_clear_time">Swipe clear hold time</string>
-    <string name="s_key_mini_player_overscroll_clear_mode">When clearing</string>
-    <string name="s_option_mini_player_overscroll_clear_mode_always_hide">Always hide player</string>
-    <string name="s_option_mini_player_overscroll_clear_mode_hide_if_queue_empty">Hide player if queue empty</string>
-    <string name="s_option_mini_player_overscroll_clear_mode_none_if_queue_empty">Only clear queue</string>
+    <string name="s_key_mini_player_show_prev_button">Показать кнопку 'Предыдущая' в мини-преере</string>
+    <string name="s_key_mini_player_overscroll_clear_enabled">Проведите по мини-плееру вниз, чтобы очистить очередь треков</string>
+    <string name="s_key_mini_player_overscroll_clear_time">Время удержания для очистки</string>
+    <string name="s_key_mini_player_overscroll_clear_mode">Когда очищаю</string>
+    <string name="s_option_mini_player_overscroll_clear_mode_always_hide">Спрятать плеер</string>
+    <string name="s_option_mini_player_overscroll_clear_mode_hide_if_queue_empty">Спрятать плеер если очередь пуста</string>
+    <string name="s_option_mini_player_overscroll_clear_mode_none_if_queue_empty">Только очистка очереди</string>
 
-    <string name="s_key_player_show_repeat_shuffle_buttons">Show repeat and shuffle buttons in player</string>
-    <string name="s_sub_player_show_repeat_shuffle_buttons">They will be shown in the queue regardless of this option</string>
+    <string name="s_key_player_show_repeat_shuffle_buttons">Показать кнопки 'Повтор' и 'Перемешать' в плеере</string>
+    <string name="s_sub_player_show_repeat_shuffle_buttons">Они будут показаны в очереди независимо от выбора</string>
 
-    <string name="s_key_player_show_progress_bar_gradient">Show gradient in seek bar</string>
+    <string name="s_key_player_show_progress_bar_gradient">Показывать градиент в строке поиска</string>
 
-    <string name="s_key_player_overlay_menu_custom_action">Overlay menu custom action</string>
-    <string name="s_sub_player_overlay_menu_custom_action">By default, triggers on long press</string>
-    <string name="s_key_player_overlay_menu_swap_long_short_press_actions">Swap overlay menu long and short press actions</string>
+    <string name="s_key_player_overlay_menu_custom_action">Кастомное действие меню оверлея</string>
+    <string name="s_sub_player_overlay_menu_custom_action">По умолчанию срабатывает при долгом нажатии</string>
+    <string name="s_key_player_overlay_menu_swap_long_short_press_actions">Поменять местами действия долгого и короткого нажатие</string>
 
-    <string name="s_key_np_queue_item_swipe_sensitivity">Queue item swipe sensitivity</string>
-    <string name="s_sub_np_queue_item_swipe_sensitivity">Decrease if queue items are easily removed by accident</string>
+    <string name="s_key_np_queue_item_swipe_sensitivity">Чувствительность к перелистыванию элемента очереди</string>
+    <string name="s_sub_np_queue_item_swipe_sensitivity">Уменьшите, если элементы очереди легко удаляются случайно</string>
 
-    <string name="s_key_np_queue_extra_side_padding">Add padding to queue sides</string>
-    <string name="s_sub_np_queue_extra_side_padding">Use to increase area for dismiss swipe</string>
+    <string name="s_key_np_queue_extra_side_padding">Добавить паддинг по краям очереди</string>
+    <string name="s_sub_np_queue_extra_side_padding">Используйте, чтобы увеличить область для закрытия смахивания</string>
 
-    <string name="s_key_np_queue_wave_border_mode">Queue wave border mode</string>
-    <string name="s_sub_np_queue_wave_border_mode">Animation mode of the wave border between the queued songs and option buttons</string>
-    <string name="s_option_wave_border_mode_time">Animate over time</string>
-    <string name="s_option_wave_border_mode_time_sync">Animate over time while playing</string>
-    <string name="s_option_wave_border_mode_scroll">Animate on queue scroll</string>
-    <string name="s_option_wave_border_mode_none">No animation</string>
-    <string name="s_option_wave_border_mode_line">Line border</string>
+    <string name="s_key_np_queue_wave_border_mode">Режим границ волны очереди</string>
+    <string name="s_sub_np_queue_wave_border_mode">Режим анимации границ волны между песнями в очереди и кнопками выбора</string>
+    <string name="s_option_wave_border_mode_time">Анимация с течением времени</string>
+    <string name="s_option_wave_border_mode_time_sync">Анимаци при воспроизведении</string>
+    <string name="s_option_wave_border_mode_scroll">Анимация при прокрутке очереди</string>
+    <string name="s_option_wave_border_mode_none">Без анимации</string>
+    <string name="s_option_wave_border_mode_line">Граница</string>
 
-    <string name="s_key_np_queue_radio_info_position">Queue radio info position</string>
-    <string name="s_option_np_queue_radio_info_top_bar">Button bar</string>
-    <string name="s_option_np_queue_radio_info_above_items">Above queue items</string>
+    <string name="s_key_np_queue_radio_info_position">Позиция информации о радиостанции в очереди</string>
+    <string name="s_option_np_queue_radio_info_top_bar">В строке кнопки</string>
+    <string name="s_option_np_queue_radio_info_above_items">Сверху элементов очереди</string>
 
-    <string name="s_key_resume_on_bt_connect">Resume when Bluetooth device connected</string>
-    <string name="s_sub_resume_on_bt_connect">If playback was paused by device disconnection, playback will resume when a Bluetooth audio device is connected</string>
-    <string name="s_key_pause_on_bt_disconnect">Pause when Bluetooth device disconnected</string>
-    <string name="s_key_resume_on_wired_connect">Resume when wired device connected</string>
-    <string name="s_sub_resume_on_wired_connect">If playback was paused by device disconnection, playback will resume when a wired audio device is connected</string>
-    <string name="s_key_pause_on_wired_disconnect">Pause when wired device disconnected</string>
+    <string name="s_key_resume_on_bt_connect">Продолжить при подключении Bluetooth устройства</string>
+    <string name="s_sub_resume_on_bt_connect">Если воспроизведение было приостановлено из-за отключения устройства, воспроизведение возобновится при подключении аудиоустройства Bluetooth</string>
+    <string name="s_key_pause_on_bt_disconnect">Пауза при отключении устройства Bluetooth</string>
+    <string name="s_key_resume_on_wired_connect">Возобновить работу при подключении проводного устройства</string>
+    <string name="s_sub_resume_on_wired_connect">Если воспроизведение было приостановлено из-за отключения устройства, воспроизведение возобновится при подключении проводного аудиоустройства</string>
+    <string name="s_key_pause_on_wired_disconnect">Пауза при отключении проводного устройства</string>
 
-    <string name="s_key_library_path">Library storage path</string>
-    <string name="s_sub_library_path">Location to use for storing local playlists and songs</string>
-    <string name="s_key_show_likes_playlist">Show likes playlist</string>
+    <string name="s_key_library_path">Путь для сохранения библиотеки</string>
+    <string name="s_sub_library_path">Путь для локального сохранения треков и плейлистов</string>
+    <string name="s_key_show_likes_playlist">Показывать плейлист 'Понравившаяся музыка'</string>
 
-    <string name="s_key_current_theme">Current theme</string>
-    <string name="s_theme_editor_title">Edit theme</string>
-    <string name="s_theme_editor_field_name">Name</string>
-    <string name="s_theme_editor_field_background">Background</string>
-    <string name="s_theme_editor_field_on_background">On background</string>
-    <string name="s_theme_editor_field_card">Card</string>
-    <string name="s_theme_editor_field_accent">Accent</string>
-    <string name="s_theme_editor_button_preview">Preview</string>
+    <string name="s_key_current_theme">Текущая тема</string>
+    <string name="s_theme_editor_title">Изменить тему</string>
+    <string name="s_theme_editor_field_name">Название</string>
+    <string name="s_theme_editor_field_background">Задний фон</string>
+    <string name="s_theme_editor_field_on_background">На заднем фоне</string>
+    <string name="s_theme_editor_field_card">Карточка</string>
+    <string name="s_theme_editor_field_accent">Акцент</string>
+    <string name="s_theme_editor_button_preview">Превью</string>
 
-    <string name="s_key_accent_source">Accent colour</string>
-    <string name="s_option_accent_theme">From theme</string>
-    <string name="s_option_accent_thumbnail">From thumbnail</string>
+    <string name="s_key_accent_source">Цвет акцента</string>
+    <string name="s_option_accent_theme">Из темы</string>
+    <string name="s_option_accent_thumbnail">Из превью трека</string>
 
-    <string name="s_key_np_theme_mode">Now playing theme mode</string>
-    <string name="s_option_np_accent_background">Colour background with accent</string>
-    <string name="s_option_np_accent_elements">Colour elements with accent</string>
-    <string name="s_option_np_accent_none">Don\'t use accent colour</string>
+    <string name="s_key_np_theme_mode">Мод темы текущего воспроизведения</string>
+    <string name="s_option_np_accent_background">Красить фон в цвет акцента</string>
+    <string name="s_option_np_accent_elements">Красить элементы в цвет акцента</string>
+    <string name="s_option_np_accent_none">Не использовать цвет акцента</string>
 
-    <string name="s_key_np_default_gradient_depth">Default gradient depth</string>
-    <string name="s_key_np_default_background_image_opacity">Default landscape back ground image opacity</string>
-    <string name="s_key_np_default_shadow_radius">Default shadow size</string>
-    <string name="s_key_np_default_image_corner_rounding">Default image corner rounding</string>
-    <string name="s_key_np_default_wave_speed">Default wave speed</string>
-    <string name="s_key_np_default_wave_opacity">Default wave opacity</string>
+    <string name="s_key_np_default_gradient_depth">Глубина градиентов по умолчанию</string>
+    <string name="s_key_np_default_background_image_opacity">Непрозрачность изображения заднего фона по умолчанию</string>
+    <string name="s_key_np_default_shadow_radius">Размер теней по умолчанию</string>
+    <string name="s_key_np_default_image_corner_rounding">Радиус закруглений изображений по умолчанию</string>
+    <string name="s_key_np_default_wave_speed">Скорость волн по умолчанию</string>
+    <string name="s_key_np_default_wave_opacity">Прозрачность волн по умолчанию</string>
 
-    <string name="s_key_show_expanded_player_wave">Show wave in expanded player</string>
+    <string name="s_key_show_expanded_player_wave">Показывать волны в увеличенном плеере</string>
 
-    <string name="s_group_theming_desktop">Desktop-only options</string>
+    <string name="s_group_theming_desktop">Только ПК</string>
 
-    <string name="s_key_enable_window_transparency">Enable window transparency</string>
-    <string name="s_sub_enable_window_transparency">Requires restart for change to apply</string>
-    <string name="s_key_window_background_opacity">Window background opacity</string>
-    <string name="s_sub_window_background_opacity">Window transparency must be enabled for this to take effect</string>
+    <string name="s_key_enable_window_transparency">Включить прозрачность окна</string>
+    <string name="s_sub_enable_window_transparency">Понадобится перезапуск приложения</string>
+    <string name="s_key_window_background_opacity">Непрозрачность фона окна</string>
+    <string name="s_sub_window_background_opacity">Чтобы это вступило в силу, необходимо включить прозрачность окна</string>
 
-    <string name="s_key_lyrics_default_source">Default lyrics source</string>
+    <string name="s_key_lyrics_default_source">Источник текста треков по умолчанию</string>
 
-    <string name="s_key_lyrics_follow_enabled">Follow current line</string>
-    <string name="s_sub_lyrics_follow_enabled">When displaying timed lyrics, scroll to the current line automatically</string>
+    <string name="s_key_lyrics_follow_enabled">Следовать текущей строчке</string>
+    <string name="s_sub_lyrics_follow_enabled">При показе текста трека, автоматически скроллить до текущей строки</string>
 
-    <string name="s_key_lyrics_follow_offset">Followed line position</string>
+    <string name="s_key_lyrics_follow_offset">Позиция линии текста</string>
     <string name="s_sub_lyrics_follow_offset">When scrolling to the current line, position within the view to place the line</string>
-    <string name="s_option_lyrics_follow_offset_top">Top</string>
-    <string name="s_option_lyrics_follow_offset_bottom">Bottom</string>
+    <string name="s_option_lyrics_follow_offset_top">Сверху</string>
+    <string name="s_option_lyrics_follow_offset_bottom">Снизу</string>
 
-    <string name="s_key_lyrics_default_furigana">Show furigana by default</string>
+    <string name="s_key_lyrics_default_furigana">Показывать фуригану по умолчанию</string>
 
-    <string name="s_key_lyrics_text_alignment">Text alignment</string>
-    <string name="s_option_lyrics_text_alignment_left">Left</string>
-    <string name="s_option_lyrics_text_alignment_center">Center</string>
-    <string name="s_option_lyrics_text_alignment_right">Right</string>
+    <string name="s_key_lyrics_text_alignment">Выравнивание текста</string>
+    <string name="s_option_lyrics_text_alignment_left">Слева</string>
+    <string name="s_option_lyrics_text_alignment_center">По центру</string>
+    <string name="s_option_lyrics_text_alignment_right">Справа</string>
 
-    <string name="s_key_lyrics_extra_padding">Extra padding</string>
-    <string name="s_sub_lyrics_extra_padding">Add extra padding above and below lyrics for increased scrolling range</string>
+    <string name="s_key_lyrics_extra_padding">Дополнительный отступ</string>
+    <string name="s_sub_lyrics_extra_padding">Добавить дополнительные отступы над и под текстами песен для увеличения диапазона прокрутки</string>
 
-    <string name="s_key_lyrics_enable_word_sync">Enable word sync</string>
-    <string name="s_sub_lyrics_enable_word_sync">When available, lyrics sync will be displayed per-word instead of per-line</string>
+    <string name="s_key_lyrics_enable_word_sync">Включить пословную синхронизацию</string>
+    <string name="s_sub_lyrics_enable_word_sync">Если доступно, текста треков будет отображаться пословно, а не построчно</string>
 
-    <string name="s_key_lyrics_font_size">Font size</string>
+    <string name="s_key_lyrics_font_size">Размер шрифта</string>
 
-    <string name="s_key_lyrics_top_bar_enable">Enable top bar lyrics</string>
-    <string name="s_key_lyrics_top_bar_max_lines">Max lines</string>
-    <string name="s_key_lyrics_top_bar_preapply_max_lines">Pre-allocate the space needed to display max lines</string>
-    <string name="s_key_lyrics_sync_delay">Lyrics sync delay</string>
-    <string name="s_sub_lyrics_sync_delay">A delay in seconds applied to lyrics sync</string>
-    <string name="s_key_lyrics_sync_delay_topbar">Top bar lyrics sync delay</string>
-    <string name="s_sub_lyrics_sync_delay_topbar">An additional delay applied only to lyrics in the top bar</string>
-    <string name="s_key_lyrics_sync_delay_bluetooth">Bluetooth lyrics sync delay</string>
-    <string name="s_sub_lyrics_sync_delay_bluetooth">An additional delay applied only while listening with Bluetooth audio</string>
+    <string name="s_key_lyrics_top_bar_enable">Включить текст трека в верхнем блоке</string>
+    <string name="s_key_lyrics_top_bar_max_lines">Максимальное количество строк</string>
+    <string name="s_key_lyrics_top_bar_preapply_max_lines">Выделить максимальное место для текста заранее</string>
+    <string name="s_key_lyrics_sync_delay">Задержка синхронизации текста</string>
+    <string name="s_sub_lyrics_sync_delay">Задержка в секундах применяется к синхронизации текстов трек</string>
+    <string name="s_key_lyrics_sync_delay_topbar">Задержка синхронизации текстов песен в верхнем блоке</string>
+    <string name="s_sub_lyrics_sync_delay_topbar">Дополнительная задержка применяется только к текстам песен в верхней панели</string>
+    <string name="s_key_lyrics_sync_delay_bluetooth">Задержка текста при использовании Bluetooth устройств</string>
+    <string name="s_sub_lyrics_sync_delay_bluetooth">Дополнительная задержка применяется только при прослушивании аудио через Bluetooth</string>
 
-    <string name="s_key_top_bar_lyrics_show_furigana">Show furigana</string>
-    <string name="s_key_top_bar_lyrics_show_in_library">Show in library</string>
-    <string name="s_key_top_bar_lyrics_show_in_radiobuilder">Show in the radio builder</string>
-    <string name="s_key_top_bar_lyrics_show_in_settings">Show in settings</string>
-    <string name="s_key_top_bar_lyrics_show_in_login">Show in login pages</string>
-    <string name="s_key_top_bar_lyrics_show_in_playlist">Show in playlist pages</string>
-    <string name="s_key_top_bar_lyrics_show_in_artist">Show in artist pages</string>
-    <string name="s_key_top_bar_lyrics_show_in_viewmore">Show in home feed view more pages</string>
-    <string name="s_key_top_bar_lyrics_show_in_search">Show in search page</string>
+    <string name="s_key_top_bar_lyrics_show_furigana">Показывать фуригану</string>
+    <string name="s_key_top_bar_lyrics_show_in_library">Показывать в библиотеке</string>
+    <string name="s_key_top_bar_lyrics_show_in_radiobuilder">Показывать в радиостанции</string>
+    <string name="s_key_top_bar_lyrics_show_in_settings">Показывать в настройках</string>
+    <string name="s_key_top_bar_lyrics_show_in_login">Показывать в страницах логина</string>
+    <string name="s_key_top_bar_lyrics_show_in_playlist">Показывать в плейлистах</string>
+    <string name="s_key_top_bar_lyrics_show_in_artist">Показывать на страницах исполнителей</string>
+    <string name="s_key_top_bar_lyrics_show_in_viewmore">Показывать в 'посмотреть больше' на главной странице</string>
+    <string name="s_key_top_bar_lyrics_show_in_search">Показывать в поиске</string>
 
-    <string name="s_key_stream_audio_quality">Stream audio quality</string>
-    <string name="s_sub_stream_audio_quality">Target audio quality when streaming music</string>
-    <string name="s_key_download_audio_quality">Download audio quality</string>
-    <string name="s_sub_download_audio_quality">Default audio quality when downloading music</string>
+    <string name="s_key_stream_audio_quality">Качество аудио</string>
+    <string name="s_sub_stream_audio_quality">Целевое качество аудио при воспроизведении трека</string>
+    <string name="s_key_download_audio_quality">Качество аудио (загрузка)</string>
+    <string name="s_sub_download_audio_quality">Качество аудио по умолчанию при загрузке музыки</string>
 
-    <string name="s_option_audio_quality_high">High</string>
-    <string name="s_option_audio_quality_medium">Medium</string>
-    <string name="s_option_audio_quality_low">Low</string>
+    <string name="s_option_audio_quality_high">Высокое</string>
+    <string name="s_option_audio_quality_medium">Среднее</string>
+    <string name="s_option_audio_quality_low">Низкое</string>
 
-    <string name="s_key_video_formats_endpoint">Song stream/download method</string>
+    <string name="s_key_video_formats_endpoint">Метод воспроизведения/загрузки треков</string>
 
-    <string name="s_key_auto_download_enabled">Enable song auto-download</string>
-    <string name="s_key_auto_download_threshold">Auto-download threshold</string>
-    <string name="s_sub_auto_download_threshold">Songs you have listened to at least this many times will be automatically downloaded</string>
-    <string name="s_key_auto_download_quality">Auto-download quality</string>
-    <string name="s_sub_auto_download_quality">Audio quality of auto-downloaded songs</string>
-    <string name="s_key_auto_download_on_metered">Auto-download when on a metered connection</string>
+    <string name="s_key_auto_download_enabled">Включить автозагрузку треков</string>
+    <string name="s_key_auto_download_threshold">Задержка автозагрузки</string>
+    <string name="s_sub_auto_download_threshold">Треки, которые вы послушали хотя бы столько раз, будут загружены</string>
+    <string name="s_key_auto_download_quality">Качество автозагрузки</string>
+    <string name="s_sub_auto_download_quality">Качество аудио автоматически загруженных треков</string>
+    <string name="s_key_auto_download_on_metered">Автоматическая загрузка при мобильном интернете</string>
 
-    <string name="s_cat_stats">Listen stats</string>
+    <string name="s_cat_stats">Статистика прослушиваний</string>
 
-    <string name="s_key_enable_stats">Enable listen stats</string>
-    <string name="s_sub_enable_stats">If disabled, listen stats will not be recorded</string>
-    <string name="s_key_listen_count_threshold">Minimum listen time to count</string>
-    <string name="s_sub_listen_count_threshold">Song listen count will only be incremented when listened to for at least this long</string>
-    <string name="s_key_listen_count_type">Minimum listen time type</string>
-    <string name="s_option_listen_count_threshold_type_absolute">Absolute</string>
-    <string name="s_option_listen_count_threshold_type_percent">Percentage</string>
-    <string name="s_button_reset_stats">Reset listen stats</string>
-    <string name="s_confirm_reset_stats">All recorded stats will be deleted</string>
+    <string name="s_key_enable_stats">Включить статистику</string>
+    <string name="s_sub_enable_stats">Если отключено, статистика прослушивания не будет записываться</string>
+    <string name="s_key_listen_count_threshold">Минимальная длительность прослушивания, для засчета в статистику</string>
+    <string name="s_sub_listen_count_threshold">Счетчик прослушиваний песни будет увеличиваться только при прослушивании хотя бы на протяжении этой длительности</string>
+    <string name="s_key_listen_count_type">Тип минимальной длительности прослушивания</string>
+    <string name="s_option_listen_count_threshold_type_absolute">Точное</string>
+    <string name="s_option_listen_count_threshold_type_percent">Процент</string>
+    <string name="s_button_reset_stats">Сбросить статистику</string>
+    <string name="s_confirm_reset_stats">Вся сохраненная статистика будет удалена</string>
 
-    <string name="s_key_search_show_suggestions">Show search suggestions</string>
-    <string name="s_key_navbar_height_multiplier">Navigation bar height multiplier</string>
-    <string name="s_sub_navbar_height_multiplier">Use if your system doesn't report the navbar height correctly (requires app restart)</string>
+    <string name="s_key_search_show_suggestions">Показать предложения в поиске</string>
+    <string name="s_key_navbar_height_multiplier">Множитель высоты панели навигации</string>
+    <string name="s_sub_navbar_height_multiplier">Используйте, если ваша система неправильно сообщает высоту панели навигации (требуется перезапуск приложения)</string>
 
-    <string name="s_key_enable_audio_normalisation">Enable audio normalisation</string>
-    <string name="s_sub_enable_audio_normalisation">Availability may be limited to certain videos, as loudness data is provided by YouTube</string>
+    <string name="s_key_enable_audio_normalisation">Включить нормализацию аудио</string>
+    <string name="s_sub_enable_audio_normalisation">Доступность может быть ограничена некоторыми видео, поскольку данные о громкости предоставляются YouTube</string>
 
-    <string name="s_key_enable_silence_skipping">Enable silence skipping</string>
+    <string name="s_key_enable_silence_skipping">Включить пропуск тишины</string>
 
-    <string name="s_key_download_method">Download method</string>
-    <string name="s_sub_download_method">The method to use when manually downloading a song</string>
-    <string name="s_key_skip_download_method_confirmation">Skip download method confirmation</string>
-    <string name="s_sub_skip_download_method_confirmation">If true, the default download method will be used immediately when starting a download</string>
+    <string name="s_key_download_method">Метод загрузки</string>
+    <string name="s_sub_download_method">Метод, используемый при загрузке трека вручную</string>
+    <string name="s_key_skip_download_method_confirmation">Пропустить подтверждение способа загрузки</string>
+    <string name="s_sub_skip_download_method_confirmation">Если включено, метод загрузки по умолчанию будет использоваться сразу при запуске загрузки</string>
 
-    <string name="s_key_status_webhook_url">Status webhook URL</string>
-    <string name="s_sub_status_webhook_url">When the playing song changes, a JSON post request will be sent to this URL in the following format: `{"youtube_video_id": "&lt;Video ID&gt;"}`</string>
+    <string name="s_key_status_webhook_url">URL вебхука статуса</string>
+    <string name="s_sub_status_webhook_url">При изменении воспроизводимого трека на этот URL-адрес будет отправлен запрос POST с JSON в следующем формате: `{"youtube_video_id": "&lt;Video ID&gt;"}`</string>
 
     <string name="s_key_status_webhook_payload">Status webhook payload</string>
-    <string name="s_sub_status_webhook_payload">Additional JSON data to be sent to the status webhook</string>
+    <string name="s_sub_status_webhook_payload">Дополнительный JSON для отправки в вебхук статуса</string>
 
-    <string name="s_group_caching">Caching</string>
-    <string name="s_key_enable_thumbnail_cache">Enable thumbnail cache</string>
+    <string name="s_group_caching">Кеш</string>
+    <string name="s_key_enable_thumbnail_cache">Включить кеширование превью</string>
 
-    <string name="s_discord_status_enabled">Discord status is enabled</string>
-    <string name="s_discord_status_disabled">Discord status is disabled</string>
-    <string name="s_discord_status_enable">Enable</string>
-    <string name="s_discord_status_disable">Disable</string>
+    <string name="s_discord_status_enabled">Discord статус включён</string>
+    <string name="s_discord_status_disabled">Discord статус отключён</string>
+    <string name="s_discord_status_enable">Включить</string>
+    <string name="s_discord_status_disable">Отключить</string>
 
-    <string name="s_group_desktop_system">System</string>
+    <string name="s_group_desktop_system">Система</string>
 
-    <string name="s_key_startup_command">Startup command</string>
-    <string name="s_sub_startup_command">Command to be executed at program start</string>
+    <string name="s_key_startup_command">Команда запуска</string>
+    <string name="s_sub_startup_command">Команда, выполняемая при запуске программы</string>
 
-    <string name="s_group_server">Server</string>
-    <string name="s_info_server">The SpMp server component (SpMs) must be running at the specified port IP address and port. https://github.com/toasterofbread/spmp-server</string>
+    <string name="s_group_server">Сервер</string>
+    <string name="s_info_server">Серверный компонент SpMp (SpMs) должен быть запущен на указанном IP-адресе и порту. https://github.com/toasterofbread/spmp-server</string>
 
-    <string name="s_key_server_ip">Server IP address</string>
-    <string name="s_key_server_port">Server port</string>
-    <string name="s_key_local_server_command">Server command</string>
-    <string name="s_sub_local_server_command">Command to be run when manually starting the server from within SpMp&#xA;The first occurence of '$@' will be replaced with the server arguments, otherwise they will be appended to the command</string>
-    <string name="s_key_server_local_start_automatically">Start local server automatically</string>
-    <string name="s_sub_server_local_start_automatically">On startup, if a server is not found immediately, a server will be started automatically using the specified command</string>
-    <string name="s_key_server_kill_child_on_exit">Stop child server on exit</string>
+    <string name="s_key_server_ip">IP адрес сервера </string>
+    <string name="s_key_server_port">Порт сервера</string>
+    <string name="s_key_local_server_command">Команда сервера</string>
+    <string name="s_sub_local_server_command">Команда, выполняемая при ручном запуске сервера из SpMp&#xA; Первое появление '$@' будет заменено аргументами сервера, в противном случае они будут добавлены к команде</string>
+    <string name="s_key_server_local_start_automatically">Запускать локальный сервер автоматически</string>
+    <string name="s_sub_server_local_start_automatically">При запуске, если сервер не найден сразу, сервер будет запущен автоматически с помощью указанной команды</string>
+    <string name="s_key_server_kill_child_on_exit">Остановить дочерний сервер при выходе</string>
 
-    <string name="s_cat_development">Development</string>
+    <string name="s_cat_development">Разработка</string>
 
-    <string name="s_subpage_ui_debug_info">UI debug info</string>
+    <string name="s_subpage_ui_debug_info">UI дебаг инфнормация</string>
 
-    <string name="s_group_localisation">Localisation</string>
-    <string name="s_key_unlocalised_strings">Unlocalised strings</string>
-    <string name="s_sub_unlocalised_strings">Strings that have not been localised for the current language</string>
+    <string name="s_group_localisation">Локализация</string>
+    <string name="s_key_unlocalised_strings">Нелокализованные строки</string>
+    <string name="s_sub_unlocalised_strings">Строки, которые не были локализованы для текущего языка</string>
 
-    <string name="s_group_discord_status_disable_when">Disable status when</string>
-    <string name="s_key_discord_status_disable_when_invisible">Invisible</string>
-    <string name="s_key_discord_status_disable_when_dnd">Do-not-disturb</string>
-    <string name="s_key_discord_status_disable_when_idle">Idle</string>
-    <string name="s_key_discord_status_disable_when_offline">Offline</string>
-    <string name="s_key_discord_status_disable_when_online">Online</string>
+    <string name="s_group_discord_status_disable_when">Отключить статус когда статус</string>
+    <string name="s_key_discord_status_disable_when_invisible">Невидимый</string>
+    <string name="s_key_discord_status_disable_when_dnd">Не беспокоить</string>
+    <string name="s_key_discord_status_disable_when_idle">Неактивен</string>
+    <string name="s_key_discord_status_disable_when_offline">Оффлайн</string>
+    <string name="s_key_discord_status_disable_when_online">Онлайн</string>
 
-    <string name="s_group_discord_status_content">Status content</string>
+    <string name="s_group_discord_status_content">Контент активности</string>
     <string name="s_discord_status_text_info">To display information about the current song, use the strings below:&#xA;- $song&#xA;- $artist</string>
 
-    <string name="s_key_discord_status_name">Status title</string>
-    <string name="s_sub_discord_status_name">The text displayed after 'Listening to'</string>
-    <string name="s_key_discord_status_text_a">Primary status text</string>
+    <string name="s_key_discord_status_name">Заголовок активности</string>
+    <string name="s_sub_discord_status_name">Текст будет виден рядом с 'Слушает'</string>
+    <string name="s_key_discord_status_text_a">Основной текст статуса</string>
     <string name="s_sub_discord_status_text_a"></string>
-    <string name="s_key_discord_status_text_b">Secondary status text</string>
+    <string name="s_key_discord_status_text_b">Дополнительный текст статуса</string>
     <string name="s_sub_discord_status_text_b"></string>
-    <string name="s_key_discord_status_text_c">Tertiary status text</string>
-    <string name="s_sub_discord_status_text_c">Also used for the image hover text</string>
+    <string name="s_key_discord_status_text_c">Текст третичного статуса</string>
+    <string name="s_sub_discord_status_text_c">Также используется как текст при наведении на картинку</string>
 
-    <string name="s_key_discord_status_show_button_song">Show open song button</string>
-    <string name="s_sub_discord_status_show_button_song">Opens the current song on YouTube Music</string>
-    <string name="s_key_discord_status_button_song_text">Open song button text</string>
+    <string name="s_key_discord_status_show_button_song">Показать открыть трек на YouTube Music</string>
+    <string name="s_sub_discord_status_show_button_song">Открывает текущий трек на YouTube Music</string>
+    <string name="s_key_discord_status_button_song_text">Текст кнопки открыть текущий трек</string>
 
-    <string name="s_key_discord_status_show_button_project">Show project page button</string>
-    <string name="s_sub_discord_status_show_button_project">Opens the project repository on GitHub</string>
-    <string name="s_key_discord_status_button_project_text">Project page button text</string>
+    <string name="s_key_discord_status_show_button_project">Кнопка 'Показать страницу проекта'</string>
+    <string name="s_sub_discord_status_show_button_project">Открывает Github репозиторий проекта</string>
+    <string name="s_key_discord_status_button_project_text">Текст кнопки страницы проекта</string>
 
     <string name="s_key_topbar_lyrics_linger">Задержка текста</string>
     <string name="s_sub_topbar_lyrics_linger">Когда строка текста заканчивается, она остается видимой до тех пор, пока не начнется следующая строка</string>
@@ -696,8 +696,8 @@
     <string name="s_cat_misc">Другое</string>
     <string name="s_cat_desc_misc">Настройки кеша и прочее</string>
 
-    <string name="s_cat_youtube_auth">YouTube credentials</string>
-    <string name="s_cat_discord_auth">Discord credentials</string>
+    <string name="s_cat_youtube_auth">Данные YouTube</string>
+    <string name="s_cat_discord_auth">Данные Discord</string>
 
     <string name="song_related_page_no_content">У трека нет связанного контента</string>
     <string name="song_related_page_empty_row">Нет контента</string>
@@ -718,7 +718,7 @@
     <string name="control_panel_server_label">Сервер</string>
     <string name="control_panel_server_title">Статус сервера</string>
     <string name="control_panel_server_connected_to_server">Подключён к серверу</string>
-    <string name="control_panel_server_ip_address_$x">IP адресс: $x</string>
+    <string name="control_panel_server_ip_address_$x">IP адрес: $x</string>
     <string name="control_panel_server_port_$x">Порт: $x</string>
     <string name="control_panel_server_name_$x">Имя: $x</string>
     <string name="control_panel_server_device_name_$x">Хост машина: $x</string>

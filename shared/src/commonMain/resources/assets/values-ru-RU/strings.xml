@@ -1,0 +1,797 @@
+<resources>
+    <string name="language_name">Русский</string>
+
+    <string name="version_string" translatable="false">0.3.0</string>
+    <string name="version_code" translatable="false">11</string>
+
+    <string name="app_name" translatable="false">SpMp</string>
+    <string name="app_name_debug" translatable="false">SpMp (debug)</string>
+    <string name="project_url" translatable="false">https://github.com/toasterofbread/spmp</string>
+    <string name="report_issue_url" translatable="false">https://github.com/toasterofbread/spmp/issues/new?labels=Bug&amp;template=bug_report.md&amp;title=%5BBug%5D+</string>
+    <string name="server_info_url" translatable="false">https://spmp.toastbits.dev/docs/server/about/</string>
+    <string name="documentation_url" translatable="false">https://spmp.toastbits.dev/docs/about</string>
+    <string name="server_documentation_url" translatable="false">https://spmp.toastbits.dev/docs/server/about</string>
+
+    <string name="project_url_name">репозиторий проекта</string>
+
+    <string name="info_using_release_$x">Релиз $x</string>
+    <string name="info_using_non_release_commit_$x">Не релизнутая версия $x</string>
+
+    <string name="version_message_release_$appver_$apiver_$split">SpMp release build $appver $splitand API version $apiver</string>
+    <string name="version_message_non_release_$commit_$apiver_$split">SpMp non-release build on $commit $splitand API version $apiver</string>
+    <string name="help_message">TODO</string>
+
+    <string name="spms_client_type_spmp_player">SpMp (player)</string>
+    <string name="spms_client_type_info_spmp_player">A graphical instance of SpMp that plays its own audio</string>
+    <string name="spms_client_type_spmp_standalone">SpMp (standalone)</string>
+    <string name="spms_client_type_info_spmp_standalone">A graphical instance of SpMp that relies on an external player for audio</string>
+    <string name="spms_client_type_player">Плеер</string>
+    <string name="spms_client_type_info_player">A standalone audio player with no GUI</string>
+    <string name="spms_client_type_command_line">Командная строка</string>
+    <string name="spms_client_type_info_command_line">A tool or script communicating with the server</string>
+    <string name="spms_client_type_server">Сервер</string>
+    <string name="spms_client_type_info_server">Сервер к которому подключен клиент</string>
+
+    <string name="spms_client_type_info_url_spmp_player">https://spmp.toastbits.dev/docs/client/about</string>
+    <string name="spms_client_type_info_url_spmp_standalone">https://spmp.toastbits.dev/docs/client/about</string>
+    <string name="spms_client_type_info_url_player">https://spmp.toastbits.dev/docs/player/about</string>
+    <string name="spms_client_type_info_url_command_line">https://spmp.toastbits.dev/docs/server/cli</string>
+    <string name="spms_client_type_info_url_server">https://spmp.toastbits.dev/docs/server/about/</string>
+
+    <string name="font_option_default_$x">Default ($x)</string>
+    <string name="font_option_system">Системный шрифт</string>
+    <string name="font_option_hc_maru_gothic">HC Maru Gothic</string>
+
+    <string name="home_feed_listen_again">Послушать ещё раз</string>
+    <string name="home_feed_mixed_for_you">Ваш микс</string>
+    <string name="home_feed_new_releases">Новинки</string>
+    <string name="home_feed_moods_and_genres">Рекомендованные плейлисты</string>
+    <string name="home_feed_charts">Чарты</string>
+
+    <string name="home_feed_rec_general">Рекомендации</string>
+    <string name="home_feed_rec_songs">Рекомендованная музыка</string>
+    <string name="home_feed_rec_artists">Рекомендованные исполнители</string>
+    <string name="home_feed_rec_albums">Рекомендованные альбомы</string>
+    <string name="home_feed_rec_playlists">Рекомендованные плейлисты</string>
+    <string name="home_feed_rec_music_videos">Рекомендованные видеоклипы</string>
+    <string name="home_feed_rec_albums_playlists">Исполнитель и альбомы</string>
+    <string name="home_feed_similar_to">Похоже на</string>
+    <string name="home_feed_more_from">Больше от</string>
+
+    <string name="home_feed_filter_energise">Заряд энергии</string>
+    <string name="home_feed_filter_relax">Релакс</string>
+    <string name="home_feed_filter_workout">Тренировка</string>
+    <string name="home_feed_filter_commute">Commute</string>
+    <string name="home_feed_filter_focus">Концентрация</string>
+
+    <string name="library_local">Локально</string>
+    <string name="library_account">Аккаунт</string>
+ы
+    <string name="library_songs_downloaded">Загружено</string>
+    <string name="library_songs_downloaded_title">Загруженые музыка</string>
+    <string name="library_songs_liked">Понравившаяся</string>
+    <string name="library_songs_liked_title">Понравившаяся музыка</string>
+
+    <string name="library_no_local_songs">Нет локальных треков</string>
+    <string name="library_no_local_artists">Нет локальных исполнителей</string>
+    <string name="library_no_liked_artists">Нет понравившихся исполнителей</string>
+    <string name="library_no_liked_albums">Нет понравившихся альбомов</string>
+    <string name="library_no_liked_songs">Нет понравившихся треков</string>
+    <string name="library_no_playlists">Нет плейлистов</string>
+    <string name="library_no_items_match_filter">Не найдено, попробуйте изменить фильтры?</string>
+
+    <string name="library_$x_songs">$x треков</string>
+    <string name="library_$x_playlists">$x плейлистов</string>
+    <string name="artist_$x_songs">$x треков</string>
+
+    <string name="library_recent_songs_all">Все время</string>
+    <string name="library_recent_songs_year">Год</string>
+    <string name="library_recent_songs_month">Месяц</string>
+    <string name="library_recent_songs_week">Неделя</string>
+    <string name="library_recent_songs_day">День</string>
+
+    <string name="mediaitem_play_count_$x_short">$x прослушиваний</string>
+    <string name="song_name">Название трека</string>
+    <string name="videos">Видео</string>
+
+    <string name="songs">Треки</string>
+    <string name="song">Трек</string>
+
+    <string name="artists">Исполнители</string>
+    <string name="artist">Исполнитель</string>
+
+    <string name="playlists">Плейлисты</string>
+    <string name="playlist">Плейлист</string>
+    <string name="albums">Альбомы</string>
+    <string name="album">Альбом</string>
+    <string name="audiobook">Аудиокнига</string>
+    <string name="audiobooks">Аудиокниги</string>
+    <string name="podcast">Подкаст</string>
+    <string name="podcasts">Подкасты</string>
+    <string name="radio">Радиостанция</string>
+    <string name="radios">Радиостанции</string>
+
+    <string name="system_language">Язык системы</string>
+
+    <string name="edit_$x_title_dialog_title">Изменить $x название</string>
+
+    <string name="new_playlist_title">Новый плейлист</string>
+    <string name="playlist_empty">Плейлист пуст</string>
+    <string name="song_add_to_playlist">Добавить в плейлист</string>
+    <string name="song_remove_from_playlist">Убрать из плейлиста</string>
+    <string name="playlist_create">Создать плейлист</string>
+    <string name="playlist_delete">Удалить плейлист</string>
+    <string name="toast_playlist_added">Добавлено в плейлист</string>
+    <string name="playlist_select_image">Выбрать обложку плейлиста</string>
+    <string name="playlist_image_url_field_label">URL изображения</string>
+    <string name="playlist_info_local">Локальный плейлист</string>
+    <string name="playlist_info_account">Плейлист аккаунта</string>
+
+    <string name="feed_row_artists">Рекомендуемые исполнители</string>
+    <string name="feed_row_playlists">Плейлисты</string>
+
+    <string name="action_close">Закрыть</string>
+    <string name="action_cancel">Отмена</string>
+    <string name="action_share">Поделиться</string>
+    <string name="action_confirm_action">Да</string>
+    <string name="action_deny_action">Нет</string>
+    <string name="action_warning_accept">Принять</string>
+    <string name="action_load_retry">Повторить</string>
+    <string name="action_save">Сохранить</string>
+    <string name="action_open_documentation">Открыть документацию</string>
+    <string name="prompt_confirm_action">Пожалуйста подтвердите</string>
+    <string name="prompt_confirm_settings_page_reset">Сбросить все значения на этой странице?</string>
+    <string name="prompt_hide_feed_rows_with_$title">Скрыть блоки рекомендаций с названием '$title'?</string>
+
+    <string name="action_download_start">Загрузить</string>
+    <string name="action_download_pause">Пауза</string>
+    <string name="action_download_resume">Продолжить</string>
+
+    <string name="player_overlay_menu_action_open_main_menu">Открыть главное меню оверлея</string>
+    <string name="player_overlay_menu_action_open_theming">Открыть темы</string>
+    <string name="player_overlay_menu_action_pick_theme_colour">Выбрать акцент цвета с изображения</string>
+    <string name="player_overlay_menu_action_adjust_notification_image_offset">Отрегулировать смещение изображения в уведомлении</string>
+    <string name="player_overlay_menu_action_open_lyrics">Открыть текст</string>
+    <string name="player_overlay_menu_action_open_related">Открыть похожие</string>
+    <string name="player_overlay_menu_action_download">Загрузить</string>
+
+    <string name="song_theme_menu_corner_radius">Радиус закруглений</string>
+    <string name="song_theme_menu_gradient_depth">Глубина градиента</string>
+    <string name="song_theme_menu_background_image_opacity">Прозрачность заднего фона</string>
+    <string name="song_theme_menu_image_shadow_radius">Радиус тени</string>
+    <string name="song_theme_menu_wave_speed">Скорость волн</string>
+    <string name="song_theme_menu_wave_opacity">Прозрачность волн</string>
+
+    <string name="song_notif_image_menu_open">Изменить смещение изображения в уведомлении</string>
+    <string name="song_notif_image_menu_adjust_offset">Изменить смещение изображения</string>
+    <string name="song_notif_image_menu_adjust_offset_desc">Изменения появится после смены трека</string>
+
+    <string name="theme_title_default">Тема по умолчанию</string>
+    <string name="theme_title_new">Новая тема</string>
+    <string name="theme_title_system">Системная тема</string>
+
+    <string name="queue_shuffle">Перемешать</string>
+    <string name="queue_clear">Очистить</string>
+
+    <string name="playlist_upload_to_account">Загрузить на аккаунт</string>
+
+    <string name="sort_type_playlist">Порядок плейлистов</string>
+    <string name="sort_type_alphabet">Название</string>
+    <string name="sort_type_duration">Длительность</string>
+    <string name="sort_type_playcount">Количество прослушиваний</string>
+    <string name="sort_type_artist">Исполнитель</string>
+
+    <string name="playlist_chip_play">Воспроизвести</string>
+    <string name="playlist_chip_shuffle">Перемешать</string>
+    <string name="playlist_chip_radio">Радиостанция</string>
+    <string name="playlist_chip_details">Детали</string>
+    <string name="playlist_chip_open">Открыть</string>
+    <string name="playlist_x_songs">$x треков</string>
+
+    <string name="artist_chip_play">Воспроизвести</string>
+    <string name="artist_chip_shuffle">Перемешать</string>
+    <string name="artist_chip_radio">Радиостанция</string>
+    <string name="artist_chip_details">Детали</string>
+    <string name="artist_chip_open">Открыть</string>
+    <string name="artist_info_label">Информация о исполнителе</string>
+
+    <string name="artist_x_subscribers">$x подписчиков</string>
+
+    <string name="loading_feed">Загружаю главную</string>
+
+    <string name="media_pause">Пауза</string>
+    <string name="media_play">Воспроизвести</string>
+
+    <string name="player_service_name">Сервис Плеера</string>
+    <string name="download_service_name">Сервис Загрузок</string>
+    <string name="download_service_error_name">Ошибки Сервиса загрузок</string>
+
+    <string name="downloading_song_$title">Скачиваю $title</string>
+    <string name="downloading_$x_songs">Скачиваю $x song(s)</string>
+    <string name="download_just_started">Только что</string>
+    <string name="download_started_$x_minutes_ago">Начал $x минут(ы) назад</string>
+
+    <string name="download_method_select_title">Выберите метод загрузки</string>
+    <string name="download_method_title_library">Библиотека</string>
+    <string name="download_method_desc_library">Загрузить в папку библиотеки SpMp</string>
+    <string name="download_method_title_custom">Своя</string>
+    <string name="download_method_desc_custom">Загрузить в выбранную папку</string>
+
+    <string name="search_filter_all">Всё</string>
+    <string name="search_filter_videos">Видео</string>
+    <string name="search_entry_field_hint">Поиск</string>
+    <string name="search_results_loading">Загрузка</string>
+    <string name="search_suggested_correction_$x">Вы имели в виду $x?</string>
+
+    <string name="lyrics_none_found">Текст не найден</string>
+    <string name="lyrics_no_more_results">Больше результатов нет</string>
+    <string name="lyrics_search_on_$source">Искать текст на $source</string>
+    <string name="lyrics_loading">Загружаю текст</string>
+    <string name="lyrics_source_cannot_search">Источник не поддерживает поиск</string>
+    <string name="lyrics_sync_long_press_line">Удерживайте текст для синхронизации</string>
+    <string name="lyrics_sync_press_button_when_line_begins">Нажмите кнопку когда текст начнется</string>
+    <string name="lyrics_no_lyrics_set_confirmation_title">Отключить текст для этого трека?</string>
+    <string name="lyrics_no_lyrics_set_for_song">Текст был отключен для этого трека</string>
+
+    <string name="lyrics_info_key_source">Источник</string>
+    <string name="lyrics_info_key_id">ID</string>
+    <string name="lyrics_info_key_sync_type">Тип синхронизации</string>
+    <string name="lyrics_info_key_local_file">Файл</string>
+    <string name="lyrics_source_petit">PetitLyrics</string>
+    <string name="lyrics_source_kugou">KuGou</string>
+    <string name="lyrics_source_ytm">YouTube Music</string>
+
+    <string name="lyrics_sync_none">Без синхронизации</string>
+    <string name="lyrics_sync_line">Синхронизация по строкам</string>
+    <string name="lyrics_sync_word">Синхронизация по словам</string>
+
+    <string name="video_format_endpoint_piped">Piped API</string>
+    <string name="video_format_endpoint_youtubei">Youtubei</string>
+    <string name="video_format_endpoint_newpipe">NewPipe</string>
+
+    <string name="error_message_generic">Произошла ошибка</string>
+    <string name="error_yt_feed_parse_failed">Произошла ошибка загрузки главной страницы YouTube</string>
+    <string name="error_player_service_not_connected">Служба плеера не подключается. Возможно, произошла ошибка.</string>
+    <string name="error_on_server_command_execution">Произошла ошибка при вызове команды сервера</string>
+
+    <string name="desktop_splash_connecting_to_server_at_$x">Подключение к серверу ($x)</string>
+    <string name="desktop_splash_setting_initial_state">Установка исходного состояния</string>
+    <string name="desktop_splash_button_configure_connection">Настроить подключение</string>
+    <string name="desktop_splash_title_configure_server_connection">Настроить подключение к серверу</string>
+    <string name="desktop_splash_button_start_server">Запустить локальный сервер</string>
+    <string name="desktop_splash_button_stop_process">Остановить</string>
+    <string name="desktop_splash_process_running_with_command_$x">Процесс, запущенный с помощью команды:&#xA;$x</string>
+    <string name="desktop_splash_local_server_command_not_set">Команда для локального сервера не задана</string>
+
+    <string name="throw_error">Отправить</string>
+    <string name="report_error">Сообщить</string>
+    <string name="wrap_text_switch_label">Wrap text</string>
+    <string name="upload_to_paste_dot_ee">Upload to Paste.ee</string>
+
+    <string name="lpm_action_radio">Запустить радиостанцию</string>
+    <string name="lpm_action_play">Воспроизвести</string>
+    <string name="lpm_action_shuffle_playlist">Перемешать</string>
+    <string name="lpm_action_play_after_1_song">Воспроизвести после след. трека</string>
+    <string name="lpm_action_play_after_x_songs">Воспроизвести после $x треков</string>
+    <string name="lpm_action_download">Загрузить</string>
+    <string name="lpm_action_delete_local_song_file">Удалить локальные файлы</string>
+    <string name="lpm_action_go_to_artist">Перейти к исполнителю</string>
+    <string name="lpm_action_go_to_album">Открыть альбом</string>
+    <string name="lpm_action_song_related">Показать связанное</string>
+    <string name="lpm_action_print_info">Показать ифнормацию</string>
+    <string name="lpm_action_share">Поделиться</string>
+    <string name="lpm_action_open_artist">Открыть</string>
+    <string name="lpm_action_open_playlist">Открыть</string>
+    <string name="lpm_action_open_external">Открыть (внешне)</string>
+    <string name="lpm_action_hide">Скрыть</string>
+
+    <string name="lpm_long_press_actions">Долгое нажатие</string>
+    <string name="lpm_action_radio_at_song_pos">Запустить радиостанцию в позиции трека в очереди</string>
+    <string name="lpm_action_radio_after_x_songs">Запустить радиостанцию через X трек(ов)</string>
+    <string name="lpm_action_play_shuffled_after_x_songs">Запустить перемешание через X трек(ов)</string>
+    <string name="lpm_song_now_playing">Сейчас играет</string>
+    <string name="lpm_song_played_$x_ago">Воспроизведилось $x назад</string>
+    <string name="lpm_song_playing_in_$x">Воспроизведется через $x</string>
+
+    <string name="lpm_info_queue_index">Позиция в очереди: $index</string>
+    <string name="lpm_info_id">ID: $id</string>
+
+    <string name="song_related_group_other">Другое</string>
+
+    <string name="multiselect_x_items_selected">$x элементов выбрано</string>
+    <string name="multiselect_begin">Выбрать несколько</string>
+    <string name="multiselect_end">Закончить выбор нескольких элементов</string>
+
+    <string name="topbar_mode_unavailable">(Недоступно)</string>
+
+    <string name="notif_download_finished">Загрузка завершена</string>
+    <string name="notif_download_already_finished">Уже загружено</string>
+    <string name="notif_download_cancelled">Загрузка была отменена</string>
+    <string name="notif_download_already_downloading">Уже загружается</string>
+    <string name="notif_copied_to_clipboard">Скопировано в буфер</string>
+    <string name="notif_copied_x_to_clipboard">Скопировал $x в буфер</string>
+
+    <string name="radio_builder_title">Создать радиостанцию</string>
+    <string name="radio_builder_no_songs_match_criteria">Подходящих треков не найдено</string>
+    <string name="radio_builder_next_button">Следующий</string>
+    <string name="radio_builder_play_last_button">Воспроизвести последнюю радиостанцию</string>
+    <string name="radio_builder_recent_button">Недавние радиостанции</string>
+    <string name="radio_builder_artists_title">Выбрать исполнителя</string>
+    <string name="radio_builder_modifiers_title">Выбрать предпочтения</string>
+    <string name="radio_builder_modifier_selection_type">Тип выбора трека</string>
+    <string name="radio_builder_modifier_selection_type_familiar">Похожие</string>
+    <string name="radio_builder_modifier_selection_type_blend">Blend</string>
+    <string name="radio_builder_modifier_selection_type_discover">Рекомендованные</string>
+    <string name="radio_builder_modifier_variety">Разнообразие исполнителей</string>
+    <string name="radio_builder_modifier_variety_low">Низкое</string>
+    <string name="radio_builder_modifier_variety_medium">Среднее</string>
+    <string name="radio_builder_modifier_variety_high">Высокое</string>
+    <string name="radio_builder_modifier_filter_a">Фильтр</string>
+    <string name="radio_builder_modifier_filter_a_popular">Популярное</string>
+    <string name="radio_builder_modifier_filter_a_hidden">Скрытое</string>
+    <string name="radio_builder_modifier_filter_a_new">Новинки</string>
+    <string name="radio_builder_modifier_filter_b">Жанр</string>
+    <string name="radio_builder_modifier_filter_pump_up">Заряд энергии</string>
+    <string name="radio_builder_modifier_filter_chill">Релакс</string>
+    <string name="radio_builder_modifier_filter_upbeat">Веселая</string>
+    <string name="radio_builder_modifier_filter_downbeat">Грустная</string>
+    <string name="radio_builder_modifier_filter_focus">Концентрация</string>
+    <string name="radio_filter_all">Все</string>
+
+    <string name="radio_title_of_$artists">Радиостанция $artists</string>
+    <string name="radio_title_artists_splitter">, </string>
+    <string name="radio_title_overflow">…</string>
+
+    <string name="settings_string_set_item_empty">Ничего не добавлено</string>
+    <string name="settings_string_set_item_already_added">Уже было добавлено</string>
+    <string name="settings_value_out_of_$range">Вне диапазона ($range)</string>
+    <string name="settings_value_not_int">Не цифра</string>
+    <string name="settings_value_not_float">Не дробь</string>
+    <string name="settings_value_not_ipv4">Невалидный IPv4 адресс</string>
+    <string name="settings_value_not_port">Невалидный порт</string>
+
+    <string name="s_page_preferences">Настройки</string>
+
+    <string name="s_key_interface_lang">Язык интерфейса</string>
+    <string name="s_sub_interface_lang">Язык текста интерфейса</string>
+    <string name="s_key_data_lang">Язык данных</string>
+    <string name="s_sub_data_lang">Язык названий песен, исполнителей и т. д.</string>
+    <string name="language_change_restart_notice">Требуется перезапуск приложения, чтобы изменения языка и шрифта вступили в силу</string>
+    <string name="s_group_long_press_menu">Меню долгого нажатия</string>
+    <string name="s_key_lpm_close_on_action">Закрыть меню при активности</string>
+    <string name="s_key_lpm_increment_play_after">Увеличить «Играть после» при использовании.</string>
+    <string name="s_key_desktop_lpm_keep_on_background_scroll">Закрепить меню при прокрутке</string>
+    <string name="s_sub_desktop_lpm_keep_on_background_scroll">При прокрутке меню будет перемещено в угол, а не скрываться</string>
+
+    <string name="s_key_filter_enable">Включить фильтр</string>
+    <string name="s_key_filter_title_keywords">Фильтр заголовков</string>
+    <string name="s_sub_filter_title_keywords">Если заголовок элемента содержит любое из этих ключевых слов, он будет скрыт</string>
+    <string name="s_key_filter_apply_to_playlist_items">Применить фильтр к элементам плейлиста</string>
+    <string name="s_key_filter_apply_to_artists">Применить фильтр к исполнителям</string>
+    <string name="s_key_filter_apply_to_artist_items">Применить фильтр к трекам исполнителя</string>
+    <string name="s_filter_title_keywords_dialog_title">Добавить ключевое слово</string>
+
+    <string name="s_key_hp_show_visualiser">Показать визуализатор</string>
+    <string name="s_sub_hp_show_visualiser">Отображается на верхней панели во время воспроизведения</string>
+    <string name="s_key_hp_show_timed_lyrics">Показывать синхронизированый с треком текст</string>
+    <string name="s_sub_hp_show_timed_lyrics">Синхронизированный текст трека появятся на верхней панели, если доступнен</string>
+
+    <string name="s_key_feed_show_filter_bar">Показать панель фильтров</string>
+    <string name="s_sub_feed_show_filter_bar">Если скрыто, доступ к странице поиска по-прежнему можно получить, нажав и удерживая кнопку поиска в библиотеке</string>
+    <string name="s_key_feed_show_song_download_indicators">Показывать статус загрузки трека</string>
+    <string name="s_key_feed_initial_rows">Начальные ряды главной страницы</string>
+    <string name="s_key_feed_square_preview_text_lines">Square item max text rows</string>
+    <string name="s_key_feed_grid_row_count">Default grid row count</string>
+    <string name="s_key_feed_grid_row_count_expanded">Expanded grid row count</string>
+    <string name="s_key_feed_alt_grid_row_count">Default alt grid row count</string>
+    <string name="s_key_feed_alt_grid_row_count_expanded">Expanded alt grid row count</string>
+    <string name="s_sub_feed_initial_rows">Minimum amount of feed rows to load automatically</string>
+    <string name="s_key_feed_show_radios">Show radio items in feed</string>
+    <string name="s_key_hidden_feed_rows">Hidden rows</string>
+    <string name="s_sub_hidden_feed_rows">Rows can also be hidden by long-pressing their title</string>
+    <string name="s_hidden_feed_rows_dialog_title">Hide row by title</string>
+
+    <string name="s_key_open_np_on_song_played">Open player when song clicked</string>
+    <string name="s_sub_open_np_on_song_played">The now playing menu will open automatically when clicking and playing a song</string>
+
+    <string name="s_key_multiselect_cancel_on_action">Cancel multiple selection after action</string>
+    <string name="s_sub_multiselect_cancel_on_action">Disable media item multiselect states once an action is performed</string>
+
+    <string name="s_key_multiselect_cancel_on_none_selected">Cancel multiselect once nothing is selected</string>
+
+    <string name="s_key_start_radio_on_song_press">Start radio on song press</string>
+    <string name="s_sub_start_radio_on_song_press">Instead of playing just the song, its YouTube radio will be added to the queue</string>
+
+    <string name="s_key_persistent_queue">Persistent song queue</string>
+    <string name="s_sub_persistent_queue">Song queue will persist even when closing the app</string>
+
+    <string name="s_key_add_songs_to_history">Add song to YT history</string>
+    <string name="s_sub_add_songs_to_history">Songs listened to will be sent to YouTube and added to account history</string>
+
+    <string name="s_key_treat_singles_as_song">Treat singles as a song</string>
+    <string name="s_sub_treat_singles_as_song">Playlists contained in the 'Singles' tab on an artist's page will be treated as the contained song, if there is only one</string>
+
+    <string name="s_key_treat_any_single_item_playlist_as_single">Treat all one-item playlists as singles</string>
+
+    <string name="s_key_font">Font</string>
+    <string name="s_key_ui_scale">UI scale</string>
+
+    <string name="s_key_stop_player_on_app_close">Stop player on app close</string>
+    <string name="s_sub_stop_player_on_app_close">Music player will be stopped if the app is cleared from recents</string>
+
+    <string name="s_key_mini_player_show_prev_button">Show previous button in mini-player</string>
+    <string name="s_key_mini_player_overscroll_clear_enabled">Swipe mini-player down to clear queue</string>
+    <string name="s_key_mini_player_overscroll_clear_time">Swipe clear hold time</string>
+    <string name="s_key_mini_player_overscroll_clear_mode">When clearing</string>
+    <string name="s_option_mini_player_overscroll_clear_mode_always_hide">Always hide player</string>
+    <string name="s_option_mini_player_overscroll_clear_mode_hide_if_queue_empty">Hide player if queue empty</string>
+    <string name="s_option_mini_player_overscroll_clear_mode_none_if_queue_empty">Only clear queue</string>
+
+    <string name="s_key_player_show_repeat_shuffle_buttons">Show repeat and shuffle buttons in player</string>
+    <string name="s_sub_player_show_repeat_shuffle_buttons">They will be shown in the queue regardless of this option</string>
+
+    <string name="s_key_player_show_progress_bar_gradient">Show gradient in seek bar</string>
+
+    <string name="s_key_player_overlay_menu_custom_action">Overlay menu custom action</string>
+    <string name="s_sub_player_overlay_menu_custom_action">By default, triggers on long press</string>
+    <string name="s_key_player_overlay_menu_swap_long_short_press_actions">Swap overlay menu long and short press actions</string>
+
+    <string name="s_key_np_queue_item_swipe_sensitivity">Queue item swipe sensitivity</string>
+    <string name="s_sub_np_queue_item_swipe_sensitivity">Decrease if queue items are easily removed by accident</string>
+
+    <string name="s_key_np_queue_extra_side_padding">Add padding to queue sides</string>
+    <string name="s_sub_np_queue_extra_side_padding">Use to increase area for dismiss swipe</string>
+
+    <string name="s_key_np_queue_wave_border_mode">Queue wave border mode</string>
+    <string name="s_sub_np_queue_wave_border_mode">Animation mode of the wave border between the queued songs and option buttons</string>
+    <string name="s_option_wave_border_mode_time">Animate over time</string>
+    <string name="s_option_wave_border_mode_time_sync">Animate over time while playing</string>
+    <string name="s_option_wave_border_mode_scroll">Animate on queue scroll</string>
+    <string name="s_option_wave_border_mode_none">No animation</string>
+    <string name="s_option_wave_border_mode_line">Line border</string>
+
+    <string name="s_key_np_queue_radio_info_position">Queue radio info position</string>
+    <string name="s_option_np_queue_radio_info_top_bar">Button bar</string>
+    <string name="s_option_np_queue_radio_info_above_items">Above queue items</string>
+
+    <string name="s_key_resume_on_bt_connect">Resume when Bluetooth device connected</string>
+    <string name="s_sub_resume_on_bt_connect">If playback was paused by device disconnection, playback will resume when a Bluetooth audio device is connected</string>
+    <string name="s_key_pause_on_bt_disconnect">Pause when Bluetooth device disconnected</string>
+    <string name="s_key_resume_on_wired_connect">Resume when wired device connected</string>
+    <string name="s_sub_resume_on_wired_connect">If playback was paused by device disconnection, playback will resume when a wired audio device is connected</string>
+    <string name="s_key_pause_on_wired_disconnect">Pause when wired device disconnected</string>
+
+    <string name="s_key_library_path">Library storage path</string>
+    <string name="s_sub_library_path">Location to use for storing local playlists and songs</string>
+    <string name="s_key_show_likes_playlist">Show likes playlist</string>
+
+    <string name="s_key_current_theme">Current theme</string>
+    <string name="s_theme_editor_title">Edit theme</string>
+    <string name="s_theme_editor_field_name">Name</string>
+    <string name="s_theme_editor_field_background">Background</string>
+    <string name="s_theme_editor_field_on_background">On background</string>
+    <string name="s_theme_editor_field_card">Card</string>
+    <string name="s_theme_editor_field_accent">Accent</string>
+    <string name="s_theme_editor_button_preview">Preview</string>
+
+    <string name="s_key_accent_source">Accent colour</string>
+    <string name="s_option_accent_theme">From theme</string>
+    <string name="s_option_accent_thumbnail">From thumbnail</string>
+
+    <string name="s_key_np_theme_mode">Now playing theme mode</string>
+    <string name="s_option_np_accent_background">Colour background with accent</string>
+    <string name="s_option_np_accent_elements">Colour elements with accent</string>
+    <string name="s_option_np_accent_none">Don\'t use accent colour</string>
+
+    <string name="s_key_np_default_gradient_depth">Default gradient depth</string>
+    <string name="s_key_np_default_background_image_opacity">Default landscape back ground image opacity</string>
+    <string name="s_key_np_default_shadow_radius">Default shadow size</string>
+    <string name="s_key_np_default_image_corner_rounding">Default image corner rounding</string>
+    <string name="s_key_np_default_wave_speed">Default wave speed</string>
+    <string name="s_key_np_default_wave_opacity">Default wave opacity</string>
+
+    <string name="s_key_show_expanded_player_wave">Show wave in expanded player</string>
+
+    <string name="s_group_theming_desktop">Desktop-only options</string>
+
+    <string name="s_key_enable_window_transparency">Enable window transparency</string>
+    <string name="s_sub_enable_window_transparency">Requires restart for change to apply</string>
+    <string name="s_key_window_background_opacity">Window background opacity</string>
+    <string name="s_sub_window_background_opacity">Window transparency must be enabled for this to take effect</string>
+
+    <string name="s_key_lyrics_default_source">Default lyrics source</string>
+
+    <string name="s_key_lyrics_follow_enabled">Follow current line</string>
+    <string name="s_sub_lyrics_follow_enabled">When displaying timed lyrics, scroll to the current line automatically</string>
+
+    <string name="s_key_lyrics_follow_offset">Followed line position</string>
+    <string name="s_sub_lyrics_follow_offset">When scrolling to the current line, position within the view to place the line</string>
+    <string name="s_option_lyrics_follow_offset_top">Top</string>
+    <string name="s_option_lyrics_follow_offset_bottom">Bottom</string>
+
+    <string name="s_key_lyrics_default_furigana">Show furigana by default</string>
+
+    <string name="s_key_lyrics_text_alignment">Text alignment</string>
+    <string name="s_option_lyrics_text_alignment_left">Left</string>
+    <string name="s_option_lyrics_text_alignment_center">Center</string>
+    <string name="s_option_lyrics_text_alignment_right">Right</string>
+
+    <string name="s_key_lyrics_extra_padding">Extra padding</string>
+    <string name="s_sub_lyrics_extra_padding">Add extra padding above and below lyrics for increased scrolling range</string>
+
+    <string name="s_key_lyrics_enable_word_sync">Enable word sync</string>
+    <string name="s_sub_lyrics_enable_word_sync">When available, lyrics sync will be displayed per-word instead of per-line</string>
+
+    <string name="s_key_lyrics_font_size">Font size</string>
+
+    <string name="s_key_lyrics_top_bar_enable">Enable top bar lyrics</string>
+    <string name="s_key_lyrics_top_bar_max_lines">Max lines</string>
+    <string name="s_key_lyrics_top_bar_preapply_max_lines">Pre-allocate the space needed to display max lines</string>
+    <string name="s_key_lyrics_sync_delay">Lyrics sync delay</string>
+    <string name="s_sub_lyrics_sync_delay">A delay in seconds applied to lyrics sync</string>
+    <string name="s_key_lyrics_sync_delay_topbar">Top bar lyrics sync delay</string>
+    <string name="s_sub_lyrics_sync_delay_topbar">An additional delay applied only to lyrics in the top bar</string>
+    <string name="s_key_lyrics_sync_delay_bluetooth">Bluetooth lyrics sync delay</string>
+    <string name="s_sub_lyrics_sync_delay_bluetooth">An additional delay applied only while listening with Bluetooth audio</string>
+
+    <string name="s_key_top_bar_lyrics_show_furigana">Show furigana</string>
+    <string name="s_key_top_bar_lyrics_show_in_library">Show in library</string>
+    <string name="s_key_top_bar_lyrics_show_in_radiobuilder">Show in the radio builder</string>
+    <string name="s_key_top_bar_lyrics_show_in_settings">Show in settings</string>
+    <string name="s_key_top_bar_lyrics_show_in_login">Show in login pages</string>
+    <string name="s_key_top_bar_lyrics_show_in_playlist">Show in playlist pages</string>
+    <string name="s_key_top_bar_lyrics_show_in_artist">Show in artist pages</string>
+    <string name="s_key_top_bar_lyrics_show_in_viewmore">Show in home feed view more pages</string>
+    <string name="s_key_top_bar_lyrics_show_in_search">Show in search page</string>
+
+    <string name="s_key_stream_audio_quality">Stream audio quality</string>
+    <string name="s_sub_stream_audio_quality">Target audio quality when streaming music</string>
+    <string name="s_key_download_audio_quality">Download audio quality</string>
+    <string name="s_sub_download_audio_quality">Default audio quality when downloading music</string>
+
+    <string name="s_option_audio_quality_high">High</string>
+    <string name="s_option_audio_quality_medium">Medium</string>
+    <string name="s_option_audio_quality_low">Low</string>
+
+    <string name="s_key_video_formats_endpoint">Song stream/download method</string>
+
+    <string name="s_key_auto_download_enabled">Enable song auto-download</string>
+    <string name="s_key_auto_download_threshold">Auto-download threshold</string>
+    <string name="s_sub_auto_download_threshold">Songs you have listened to at least this many times will be automatically downloaded</string>
+    <string name="s_key_auto_download_quality">Auto-download quality</string>
+    <string name="s_sub_auto_download_quality">Audio quality of auto-downloaded songs</string>
+    <string name="s_key_auto_download_on_metered">Auto-download when on a metered connection</string>
+
+    <string name="s_cat_stats">Listen stats</string>
+
+    <string name="s_key_enable_stats">Enable listen stats</string>
+    <string name="s_sub_enable_stats">If disabled, listen stats will not be recorded</string>
+    <string name="s_key_listen_count_threshold">Minimum listen time to count</string>
+    <string name="s_sub_listen_count_threshold">Song listen count will only be incremented when listened to for at least this long</string>
+    <string name="s_key_listen_count_type">Minimum listen time type</string>
+    <string name="s_option_listen_count_threshold_type_absolute">Absolute</string>
+    <string name="s_option_listen_count_threshold_type_percent">Percentage</string>
+    <string name="s_button_reset_stats">Reset listen stats</string>
+    <string name="s_confirm_reset_stats">All recorded stats will be deleted</string>
+
+    <string name="s_key_search_show_suggestions">Show search suggestions</string>
+    <string name="s_key_navbar_height_multiplier">Navigation bar height multiplier</string>
+    <string name="s_sub_navbar_height_multiplier">Use if your system doesn't report the navbar height correctly (requires app restart)</string>
+
+    <string name="s_key_enable_audio_normalisation">Enable audio normalisation</string>
+    <string name="s_sub_enable_audio_normalisation">Availability may be limited to certain videos, as loudness data is provided by YouTube</string>
+
+    <string name="s_key_enable_silence_skipping">Enable silence skipping</string>
+
+    <string name="s_key_download_method">Download method</string>
+    <string name="s_sub_download_method">The method to use when manually downloading a song</string>
+    <string name="s_key_skip_download_method_confirmation">Skip download method confirmation</string>
+    <string name="s_sub_skip_download_method_confirmation">If true, the default download method will be used immediately when starting a download</string>
+
+    <string name="s_key_status_webhook_url">Status webhook URL</string>
+    <string name="s_sub_status_webhook_url">When the playing song changes, a JSON post request will be sent to this URL in the following format: `{"youtube_video_id": "&lt;Video ID&gt;"}`</string>
+
+    <string name="s_key_status_webhook_payload">Status webhook payload</string>
+    <string name="s_sub_status_webhook_payload">Additional JSON data to be sent to the status webhook</string>
+
+    <string name="s_group_caching">Caching</string>
+    <string name="s_key_enable_thumbnail_cache">Enable thumbnail cache</string>
+
+    <string name="s_discord_status_enabled">Discord status is enabled</string>
+    <string name="s_discord_status_disabled">Discord status is disabled</string>
+    <string name="s_discord_status_enable">Enable</string>
+    <string name="s_discord_status_disable">Disable</string>
+
+    <string name="s_group_desktop_system">System</string>
+
+    <string name="s_key_startup_command">Startup command</string>
+    <string name="s_sub_startup_command">Command to be executed at program start</string>
+
+    <string name="s_group_server">Server</string>
+    <string name="s_info_server">The SpMp server component (SpMs) must be running at the specified port IP address and port. https://github.com/toasterofbread/spmp-server</string>
+
+    <string name="s_key_server_ip">Server IP address</string>
+    <string name="s_key_server_port">Server port</string>
+    <string name="s_key_local_server_command">Server command</string>
+    <string name="s_sub_local_server_command">Command to be run when manually starting the server from within SpMp&#xA;The first occurence of '$@' will be replaced with the server arguments, otherwise they will be appended to the command</string>
+    <string name="s_key_server_local_start_automatically">Start local server automatically</string>
+    <string name="s_sub_server_local_start_automatically">On startup, if a server is not found immediately, a server will be started automatically using the specified command</string>
+    <string name="s_key_server_kill_child_on_exit">Stop child server on exit</string>
+
+    <string name="s_cat_development">Development</string>
+
+    <string name="s_subpage_ui_debug_info">UI debug info</string>
+
+    <string name="s_group_localisation">Localisation</string>
+    <string name="s_key_unlocalised_strings">Unlocalised strings</string>
+    <string name="s_sub_unlocalised_strings">Strings that have not been localised for the current language</string>
+
+    <string name="s_group_discord_status_disable_when">Disable status when</string>
+    <string name="s_key_discord_status_disable_when_invisible">Invisible</string>
+    <string name="s_key_discord_status_disable_when_dnd">Do-not-disturb</string>
+    <string name="s_key_discord_status_disable_when_idle">Idle</string>
+    <string name="s_key_discord_status_disable_when_offline">Offline</string>
+    <string name="s_key_discord_status_disable_when_online">Online</string>
+
+    <string name="s_group_discord_status_content">Status content</string>
+    <string name="s_discord_status_text_info">To display information about the current song, use the strings below:&#xA;- $song&#xA;- $artist</string>
+
+    <string name="s_key_discord_status_name">Status title</string>
+    <string name="s_sub_discord_status_name">The text displayed after 'Listening to'</string>
+    <string name="s_key_discord_status_text_a">Primary status text</string>
+    <string name="s_sub_discord_status_text_a"></string>
+    <string name="s_key_discord_status_text_b">Secondary status text</string>
+    <string name="s_sub_discord_status_text_b"></string>
+    <string name="s_key_discord_status_text_c">Tertiary status text</string>
+    <string name="s_sub_discord_status_text_c">Also used for the image hover text</string>
+
+    <string name="s_key_discord_status_show_button_song">Show open song button</string>
+    <string name="s_sub_discord_status_show_button_song">Opens the current song on YouTube Music</string>
+    <string name="s_key_discord_status_button_song_text">Open song button text</string>
+
+    <string name="s_key_discord_status_show_button_project">Show project page button</string>
+    <string name="s_sub_discord_status_show_button_project">Opens the project repository on GitHub</string>
+    <string name="s_key_discord_status_button_project_text">Project page button text</string>
+
+    <string name="s_key_topbar_lyrics_linger">Задержка текста</string>
+    <string name="s_sub_topbar_lyrics_linger">Когда строка текста заканчивается, она остается видимой до тех пор, пока не начнется следующая строка</string>
+    <string name="s_key_topbar_visualiser_width">Ширина визуализатора</string>
+    <string name="s_key_topbar_show_lyrics_in_queue">Показывать текст в очереди треков</string>
+    <string name="s_key_topbar_show_visualiser_in_queue">Показывать визуализатор в очереди треков</string>
+    <string name="s_key_topbar_display_over_artist_image">Показывать поверх обложет исполнителя</string>
+
+    <string name="s_cat_general">Основное</string>
+    <string name="s_cat_desc_general">Язык, и другое</string>
+
+    <string name="s_cat_behaviour">Предпочтения</string>
+    <string name="s_cat_desc_behaviour">Различные настройки вида и другого</string>
+
+    <string name="s_cat_player">Плеер</string>
+    <string name="s_cat_desc_player">Изменить вид плеера</string>
+
+    <string name="s_cat_feed">Рекомендация треков</string>
+    <string name="s_cat_desc_feed">Рекомендации по выбору песен</string>
+
+    <string name="s_cat_theme">Темы</string>
+    <string name="s_cat_desc_theme">Настройте цвета приложения и источник акцента</string>
+
+    <string name="s_cat_lyrics">Текст</string>
+    <string name="s_cat_desc_lyrics">Текст треков и его стиль</string>
+
+    <string name="s_cat_topbar">Верхняя панель</string>
+    <string name="s_cat_desc_topbar">Показать, скрыть, настроить верхнюю панель</string>
+
+    <string name="s_cat_discord_status">Discord статус</string>
+    <string name="s_cat_desc_discord_status">Настройте Discord аккаунт и выберите стиль активности</string>
+
+    <string name="s_cat_filter">Фильтр</string>
+    <string name="s_cat_desc_filter">Скройте треки и плейлисты по ключевым словам</string>
+
+    <string name="s_cat_streaming">Воспроизведение</string>
+    <string name="s_cat_desc_streaming">Настройки воспроизведения и качества аудио</string>
+
+    <string name="s_cat_desktop">Компьютер</string>
+    <string name="s_cat_desc_desktop">Конфигурация для конкретной платформы</string>
+
+    <string name="s_cat_misc">Другое</string>
+    <string name="s_cat_desc_misc">Настройки кеша и прочее</string>
+
+    <string name="s_cat_youtube_auth">YouTube credentials</string>
+    <string name="s_cat_discord_auth">Discord credentials</string>
+
+    <string name="song_related_page_no_content">У трека нет связанного контента</string>
+    <string name="song_related_page_empty_row">Нет контента</string>
+
+    <string name="discord_status_default_name">$artist</string>
+    <string name="discord_status_default_text_a">$song</string>
+    <string name="discord_status_default_text_b">$artist</string>
+    <string name="discord_status_default_text_c">Слушает SpMp</string>
+    <string name="discord_status_default_button_song">Открыть трек на YouTube Music</string>
+    <string name="discord_status_default_button_project">Репозиторий проекта</string>
+    <string name="discord_status_unknown_artist_replacement">Неизвестно</string>
+
+    <string name="control_panel_downloads_label">Загрузки</string>
+    <string name="control_panel_downloads_title">Текущие загрузки</string>
+    <string name="control_panel_downloads_in_progress">В процессе</string>
+    <string name="control_panel_downloads_completed">Выполнено</string>
+
+    <string name="control_panel_server_label">Сервер</string>
+    <string name="control_panel_server_title">Статус сервера</string>
+    <string name="control_panel_server_connected_to_server">Подключён к серверу</string>
+    <string name="control_panel_server_ip_address_$x">IP адресс: $x</string>
+    <string name="control_panel_server_port_$x">Порт: $x</string>
+    <string name="control_panel_server_name_$x">Имя: $x</string>
+    <string name="control_panel_server_device_name_$x">Хост машина: $x</string>
+    <string name="control_panel_server_spms_api_version_$x">Версия SpMs API: $x</string>
+    <string name="control_panel_server_connected_clients">Другие подключенные клиенты</string>
+    <string name="control_panel_server_connected_clients_loading">Загрузка</string>
+    <string name="control_panel_server_this_client">Этот клиент</string>
+    <string name="control_panel_server_client_more_info">Больше ифнормации</string>
+    <string name="control_panel_server_client_player_port_$x">Порт плеера: $x</string>
+    <string name="control_panel_server_same_machine">Похожее устройство</string>
+
+    <string name="action_login_manually">Войти вручную</string>
+    <string name="auth_not_signed_in">Гость</string>
+    <string name="auth_sign_in">Войти</string>
+    <string name="auth_sign_out">Выйти</string>
+
+    <string name="warning_ytm_login">Once logged in, your session cookie will be extracted, stored, and used only for API requests to YouTube Music such as getting your recommended feed and subscribing to artists.&#xA;&#xA;Continue?</string>
+    <string name="info_ytm_login">Once logged in, your session cookie will be extracted, stored, and used only for API requests to YouTube Music such as getting your recommended feed and subscribing to artists.</string>
+    <string name="warning_discord_login">You will be directed to an in-app webview in order to log into Discord.&#xA;&#xA;Once logged in, your account token will be extracted, stored, and used only for gateway connections to Discord for setting your current status.&#xA;&#xA;See https://github.com/dead8309/Kizzy for more information.&#xA;&#xA;Continue?</string>
+    <string name="info_discord_login">You will be directed to an in-app webview in order to log into Discord.&#xA;&#xA;Once logged in, your account token will be extracted, stored, and used only for gateway connections to Discord for setting your current status.&#xA;&#xA;See https://github.com/dead8309/Kizzy for more information.</string>
+    <string name="warning_discord_kizzy">SpMp uses the KizzyRPC library to set your Discord account's status. This involves using the Discord Gateway connection, which may be considered a violation of Discord's TOS. However, there are no known cases of user accounts being suspended for this reason. Use at your own risk.&#xA;&#xA;See https://github.com/dead8309/Kizzy for more information.</string>
+
+    <string name="warning_spms_api_version_mismatch">Версии SpMs API не совпадают</string>
+    <string name="warning_spms_api_version_mismatch_$theirs_$ours">The connected server's API version ($theirs) doesn't match the API version that this build of SpMp was designed for ($ours). This may cause unexpected behaviour or crashes.</string>
+
+    <string name="youtube_manual_login_title">Ручной вход в YouTube</string>
+    <string-array name="youtube_manual_login_steps">
+        <item>Откройте новую вкладку в браузере</item>
+        <item>Откройте консоль (ctrl+shift+I в большинстве браузеров)</item>
+        <item>Перейдите во вкладку Network</item>
+        <item>Откройте https://music.youtube.com/</item>
+        <item>Найдите любой POST запрос к https://music.youtube.com/youtubei/v1/... такие как /browse или /account_menu</item>
+        <item>Кликните правой кнопкой на запрос и нажмите 'Скопировать' (или 'Скопировать значение'), далее 'Скопировать как cURL' чтобы скопировать заголовки, затем вставьте полученное ниже</item>
+    </string-array>
+    <string name="youtube_manual_login_suffix"></string>
+    <string name="youtube_manual_login_field">Заголовки</string>
+
+    <string name="youtube_login_load_message">Загружаю страницу логина</string>
+    <string name="youtube_account_selection_title">Выбрать аккаунт</string>
+    <string name="youtube_channel_creation_load_message">Загрузка формы создания канала</string>
+
+    <string name="youtube_channel_creation_title">Создать профиль YouTube Music</string>
+    <string name="youtube_channel_creation_subtitle">Вы можете выполнить этот шаг на https://music.youtube.com/ (Войти в аккаунт и перейти во вкладку 'Мой профиль')</string>
+    <string name="youtube_channel_creation_confirm">Создать</string>
+    <string name="youtube_channel_creation_field_given_name">Имя</string>
+    <string name="youtube_channel_creation_field_family_name">Название семьи</string>
+
+    <string name="manual_login_error_missing_following_headers">Следующие заголовки не найдены:</string>
+    <string name="manual_login_desktop_browser_may_be_needed">Возможно, вам придется воспользоваться ПК для получения данных</string>
+
+    <string name="discord_manual_login_title">Ручной вход в Discord</string>
+    <string-array name="discord_manual_login_steps">
+        <item>Откройте новую вкладку в браузере</item>
+        <item>Откройте консоль (ctrl+shift+I в большинстве браузеров)</item>ем
+        <item>Перейдите во вкладку Network</item>
+        <item>Откройте https://discord.com/app</item>
+        <item>Найдите POST запрос к https://discord.com/api/v9/... с окончанием /survey или /player</item>
+        <item>Скопируйте заголовок 'Authorization' из секции Headers и введите его ниже</item>
+    </string-array>
+    <string name="discord_manual_login_suffix"></string>
+    <string name="discord_manual_login_field">Авторизация</string>
+
+    <string name="err_root_not_granted">Не удалось получить root-права</string>
+    <string name="err_secure_settings_grant_failed">Не удалось получить разрешения настроек</string>
+
+    <string name="settings_export_filename_$date">SpMp_settings_$date</string>
+
+    <string name="settings_import_prep_title">Настройки импорта</string>
+    <string name="settings_import_category_selection_subtitle">Выберите категории для импорта</string>
+    <string name="settings_import_button_import">Импорт</string>
+    <string name="settings_import_error_title">Ошибка импорта</string>
+    <string name="settings_import_result_title">Успешный импорт</string>
+    <string name="settings_import_result_$x_from_file">$x настроек было импортировано из файла</string>
+    <string name="settings_import_result_$x_from_default">$x настроек было сброшено до стандартных</string>
+
+</resources>

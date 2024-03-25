@@ -51,34 +51,39 @@ fun initResources(language: String, context: AppContext) {
                 val parser: MiniXmlPullParser = MiniXmlPullParser(string.iterator())
 
                 while (parser.eventType != EventType.END_DOCUMENT) {
-                    if (parser.eventType != EventType.START_TAG) {
-                        parser.next()
-                        continue
-                    }
-
-                    val key: String? = parser.getAttributeValue("", "name")
-                    if (key != null) {
-                        when (parser.name) {
-                            "string" -> {
-                                strs[key] = formatText(parser.nextText())
-                            }
-                            "string-array" -> {
-                                val array = mutableListOf<String>()
-
-                                parser.nextTag()
-                                while (parser.name == "item") {
-                                    array.add(formatText(parser.nextText()))
-                                    parser.nextTag()
-                                }
-
-                                str_arrays[key] = array
-                            }
-                            "resources" -> {}
-                            else -> throw NotImplementedError(parser.name)
+                    try {
+                        if (parser.eventType != EventType.START_TAG) {
+                            parser.next()
+                            continue
                         }
-                    }
 
-                    parser.next()
+                        val key: String? = parser.getAttributeValue("", "name")
+                        if (key != null) {
+                            when (parser.name) {
+                                "string" -> {
+                                    strs[key] = formatText(parser.nextText())
+                                }
+                                "string-array" -> {
+                                    val array = mutableListOf<String>()
+
+                                    parser.nextTag()
+                                    while (parser.name == "item") {
+                                        array.add(formatText(parser.nextText()))
+                                        parser.nextTag()
+                                    }
+
+                                    str_arrays[key] = array
+                                }
+                                "resources" -> {}
+                                else -> throw NotImplementedError(parser.name)
+                            }
+                        }
+
+                        parser.next()
+                    }
+                    catch (e: Throwable) {
+                        throw RuntimeException("Error occurred while processing line ${parser.lineNumber} of $path", e)
+                    }
                 }
 
                 stream.close()

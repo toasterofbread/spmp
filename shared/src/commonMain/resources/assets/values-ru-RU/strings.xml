@@ -761,7 +761,7 @@
     <string name="discord_manual_login_title">Ручной вход в Discord</string>
     <string-array name="discord_manual_login_steps">
         <item>Откройте новую вкладку в браузере</item>
-        <item>Откройте консоль (ctrl+shift+I в большинстве браузеров)</item>ем
+        <item>Откройте консоль (ctrl+shift+I в большинстве браузеров)</item>
         <item>Перейдите во вкладку Network</item>
         <item>Откройте https://discord.com/app</item>
         <item>Найдите POST запрос к https://discord.com/api/v9/... с окончанием /survey или /player</item>

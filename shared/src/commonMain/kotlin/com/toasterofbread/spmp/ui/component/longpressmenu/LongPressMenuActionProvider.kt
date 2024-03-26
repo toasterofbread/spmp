@@ -55,7 +55,7 @@ class LongPressMenuActionProvider(
     ) {
         val player: PlayerState = LocalPlayerState.current
         val service: PlatformPlayerService = LocalPlayerState.current.controller ?: return
-        
+
         var active_queue_item: Song? by remember { mutableStateOf(null) }
         AnimatedVisibility(service.service_player.active_queue_index < player.status.m_song_count) {
             if (service.service_player.active_queue_index < player.status.m_song_count) {
@@ -88,13 +88,11 @@ class LongPressMenuActionProvider(
                             .align(Alignment.CenterVertically)
 
                         Surface(
-                            button_modifier.combinedClickable(
-                                remember { MutableInteractionSource() },
-                                rememberRipple(),
+                            button_modifier.platformClickable(
                                 onClick = {
                                     service.service_player.updateActiveQueueIndex(-1)
                                 },
-                                onLongClick = {
+                                onAltClick = {
                                     player.context.vibrateShort()
                                     service.service_player.updateActiveQueueIndex(Int.MIN_VALUE)
                                 }
@@ -106,13 +104,11 @@ class LongPressMenuActionProvider(
                         }
 
                         Surface(
-                            button_modifier.combinedClickable(
-                                remember { MutableInteractionSource() },
-                                rememberRipple(),
+                            button_modifier.platformClickable(
                                 onClick = {
                                     service.service_player.updateActiveQueueIndex(1)
                                 },
-                                onLongClick = {
+                                onAltClick = {
                                     player.context.vibrateShort()
                                     service.service_player.updateActiveQueueIndex(Int.MAX_VALUE)
                                 }

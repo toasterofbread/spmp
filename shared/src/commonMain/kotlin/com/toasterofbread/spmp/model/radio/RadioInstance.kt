@@ -23,6 +23,8 @@ internal data class RadioLoadResult(
 )
 
 abstract class RadioInstance(val context: AppContext) {
+    data class LoadResult(val songs: List<Song>, val has_continuation: Boolean)
+
     var state: RadioState by mutableStateOf(RadioState())
         private set
 
@@ -37,11 +39,12 @@ abstract class RadioInstance(val context: AppContext) {
 
     fun setRadioState(
         state: RadioState,
-        onCompleted: (List<Song>) -> Unit = {}
+        onCompleted: (LoadResult) -> Unit = {},
+        onCompletedOverride: ((LoadResult) -> Unit)? = null
     ) {
         cancelCurrentJob()
         this.state = state
-        loadContinuation(onCompleted = onCompleted)
+        loadContinuation(onCompleted = onCompleted, onCompletedOverride = onCompletedOverride)
     }
 
     fun setFilter(filter_index: Int?) {
@@ -60,7 +63,7 @@ abstract class RadioInstance(val context: AppContext) {
         item: MediaItem,
         index_in_queue: Int?,
         shuffle: Boolean = false,
-        onCompleted: (List<Song>) -> Unit = {}
+        onCompleted: (LoadResult) -> Unit = {}
     ) {
         setRadioState(
             RadioState(
@@ -73,8 +76,8 @@ abstract class RadioInstance(val context: AppContext) {
     }
 
     fun loadContinuation(
-        onCompletedOverride: ((List<Song>) -> Unit)? = null,
-        onCompleted: (List<Song>) -> Unit = {}
+        onCompletedOverride: ((LoadResult) -> Unit)? = null,
+        onCompleted: (LoadResult) -> Unit = {}
     ) {
         if (is_loading || !isContinuationAvailable()) {
             return
@@ -82,6 +85,7 @@ abstract class RadioInstance(val context: AppContext) {
 
         val current_state: RadioState = state
         is_loading = true
+        load_error = null
 
         coroutine_scope.launchSingle(Dispatchers.IO) {
             val load_result: Result<RadioLoadResult> = current_state.loadContinuation(context)
@@ -101,17 +105,23 @@ abstract class RadioInstance(val context: AppContext) {
                             initial_songs_loaded = true
                         )
 
+                        val result: LoadResult =
+                            LoadResult(
+                                songs = processed_songs,
+                                has_continuation = it.continuation != null
+                            )
+
                         if (onCompletedOverride != null) {
-                            onCompletedOverride(processed_songs)
+                            onCompletedOverride(result)
                         }
                         else {
                             onLoadCompleted(
-                                songs = processed_songs,
+                                result = result,
                                 is_continuation = current_state.continuation != null
                             )
                         }
 
-                        onCompleted(processed_songs)
+                        onCompleted(result)
                     },
                     onFailure = {
                         load_error = it
@@ -159,7 +169,7 @@ abstract class RadioInstance(val context: AppContext) {
         }
     }
 
-    protected abstract suspend fun onLoadCompleted(songs: List<Song>, is_continuation: Boolean)
+    protected abstract suspend fun onLoadCompleted(result: LoadResult, is_continuation: Boolean)
 
     private val coroutine_scope: CoroutineScope = CoroutineScope(Job())
 

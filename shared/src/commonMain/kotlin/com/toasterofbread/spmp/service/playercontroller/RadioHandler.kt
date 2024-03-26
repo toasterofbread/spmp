@@ -14,14 +14,15 @@ private const val RADIO_MIN_LENGTH: Int = 10
 
 class RadioHandler(val player: PlayerServicePlayer, val context: AppContext) {
     val instance: RadioInstance = object : RadioInstance(context) {
-        override suspend fun onLoadCompleted(songs: List<Song>, is_continuation: Boolean) {
-            onRadioLoadCompleted(songs, is_continuation)
+        override suspend fun onLoadCompleted(result: RadioInstance.LoadResult, is_continuation: Boolean) {
+            onRadioLoadCompleted(result, is_continuation)
         }
     }
 
     fun setUndoableRadioState(
         new_radio_state: RadioState,
         furtherAction: (PlayerServicePlayer.() -> UndoRedoAction?) -> Unit,
+        insertion_index: Int = -1,
         onSuccessfulLoad: () -> Unit = {}
     ): UndoRedoAction {
         val old_radio_state: RadioState = instance.state
@@ -42,7 +43,17 @@ class RadioHandler(val player: PlayerServicePlayer, val context: AppContext) {
                                 }
                             }
                         }
-                        else {{}}
+                        else {{}},
+                    onCompletedOverride = { result ->
+                        furtherAction {
+                            player.addMultipleToQueue(
+                                result.songs,
+                                if (insertion_index >= 0) insertion_index else player.song_count,
+                                skip_existing = true
+                            )
+                            return@furtherAction null
+                        }
+                    }
                 )
             }
 
@@ -70,9 +81,9 @@ class RadioHandler(val player: PlayerServicePlayer, val context: AppContext) {
             }
 
             instance.loadContinuation(
-                onCompletedOverride = { songs ->
+                onCompletedOverride = { result ->
                     furtherAction {
-                        player.addMultipleToQueue(songs, insertion_index, skip_existing = true)
+                        player.addMultipleToQueue(result.songs, insertion_index, skip_existing = true)
                         return@furtherAction null
                     }
                 }
@@ -101,9 +112,9 @@ class RadioHandler(val player: PlayerServicePlayer, val context: AppContext) {
         }
     }
 
-    private fun onRadioLoadCompleted(songs: List<Song>, is_continuation: Boolean) {
+    private fun onRadioLoadCompleted(result: RadioInstance.LoadResult, is_continuation: Boolean) {
         player.addMultipleToQueue(
-            songs,
+            result.songs,
             player.song_count,
             skip_existing = true
         )

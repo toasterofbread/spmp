@@ -13,6 +13,9 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.db.incrementPlayCount
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.getUid
+import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.settings.category.DiscordAuthSettings
 import com.toasterofbread.spmp.model.settings.category.MiscSettings
 import com.toasterofbread.spmp.model.settings.category.SystemSettings
@@ -279,32 +282,38 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
     ) {
         require(item_index == null || item != null)
 
-        undo_handler.customUndoableAction(null) { furtherAction ->
-            synchronized(radio) {
-                clearQueue(from = index, keep_current = false, save = false, cancel_radio = false)
+        synchronized(radio) {
+            val final_item: MediaItem = item ?: getSong(index)!!
+            val final_index: Int? = if (item != null) item_index else index
 
-                val final_item: MediaItem = item ?: getSong(index)!!
-                val final_index: Int? = if (item != null) item_index else index
-
+            coroutine_scope.launch {
                 if (final_item !is Song) {
-                    coroutine_scope.launch {
-                        final_item.incrementPlayCount(context)
-                    }
+                    final_item.incrementPlayCount(context)
                 }
 
-                return@customUndoableAction radio.setUndoableRadioState(
-                    RadioState(
-                        item_uid = final_item.getUid(),
-                        item_queue_index = final_index,
-                        shuffle = shuffle
-                    ),
-                    furtherAction = { a: PlayerServicePlayer.() -> UndoRedoAction? ->
-                        furtherAction {
-                            a()
-                        }
-                    },
-                    onSuccessfulLoad = onSuccessfulLoad
-                )
+                val playlist_data: RemotePlaylistData? =
+                    (final_item as? RemotePlaylist)?.loadData(context)?.getOrNull()
+
+                undo_handler.customUndoableAction { furtherAction ->
+                    if (playlist_data == null || playlist_data?.continuation != null) {
+                        clearQueue(from = index, keep_current = false, save = false, cancel_radio = false)
+                    }
+
+                    return@customUndoableAction radio.setUndoableRadioState(
+                        RadioState(
+                            item_uid = final_item.getUid(),
+                            item_queue_index = final_index,
+                            shuffle = shuffle
+                        ),
+                        furtherAction = { a: PlayerServicePlayer.() -> UndoRedoAction? ->
+                            furtherAction {
+                                a()
+                            }
+                        },
+                        onSuccessfulLoad = onSuccessfulLoad,
+                        insertion_index = index
+                    )
+                }
             }
         }
     }

@@ -89,8 +89,6 @@ fun getMediaNotificationImageSize(image: Bitmap, square: Boolean = false): IntSi
         if (!square && Build.VERSION.SDK_INT >= 33) A13_MEDIA_NOTIFICATION_ASPECT
         else 1f
 
-    println("ASPECT $aspect")
-
     if (image.width > image.height) {
         return IntSize(
             image.height,

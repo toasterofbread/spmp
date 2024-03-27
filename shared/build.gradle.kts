@@ -51,7 +51,7 @@ kotlin {
                 implementation("org.apache.commons:commons-text:1.10.0")
                 implementation("com.atilika.kuromoji:kuromoji-ipadic:0.9.0")
                 implementation("org.jsoup:jsoup:1.16.1")
-                implementation("org.burnoutcrew.composereorderable:reorderable:0.9.2")
+                implementation("com.github.toasterofbread.ComposeReorderable:reorderable:e9ef693f63")
                 implementation("com.github.SvenWoltmann:color-thief-java:v1.1.2")
                 implementation("com.github.catppuccin:java:v1.0.0")
                 implementation("com.github.paramsen:noise:2.0.0")

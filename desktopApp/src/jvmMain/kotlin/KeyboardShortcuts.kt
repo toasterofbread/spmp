@@ -22,7 +22,7 @@ internal fun PlayerState.processKeyEventShortcuts(
     window: ComposeWindow,
     text_field_focus_state: Any
 ): Boolean {
-    if (event.type == KeyEventType.KeyDown) {
+    if (event.type == KeyEventType.KeyUp) {
         // System
         when (event.key) {
             Key.Escape -> return onWindowBackPressed()

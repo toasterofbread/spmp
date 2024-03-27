@@ -4,7 +4,6 @@ import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -41,7 +40,6 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.ytmkt.endpoint.RadioBuilderArtist
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider as YtmThumbnailProvider
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun RadioArtistSelector(
     radio_artists: List<RadioBuilderArtist>?,

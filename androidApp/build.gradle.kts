@@ -77,7 +77,7 @@ android {
 
         applicationId = "com.toasterofbread.spmp"
         minSdk = 23
-        targetSdkVersion((findProperty("android.targetSdk") as String).toInt())
+        targetSdk = (findProperty("android.targetSdk") as String).toInt()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true

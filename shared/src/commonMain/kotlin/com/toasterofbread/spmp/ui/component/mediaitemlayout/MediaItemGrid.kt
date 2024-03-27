@@ -3,7 +3,6 @@ package com.toasterofbread.spmp.ui.component.mediaitemlayout
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.layout.Arrangement
@@ -76,7 +75,6 @@ fun MediaItemGrid(
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MediaItemGrid(
     layout_params: MediaItemLayoutParams,

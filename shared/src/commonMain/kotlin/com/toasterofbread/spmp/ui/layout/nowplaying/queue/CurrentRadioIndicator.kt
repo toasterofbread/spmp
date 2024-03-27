@@ -128,7 +128,6 @@ internal fun CurrentRadioIndicator(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RadioFilterChip(selected: Boolean, getAccentColour: () -> Color, onClick: () -> Unit, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     FilterChip(
@@ -143,7 +142,9 @@ private fun RadioFilterChip(selected: Boolean, getAccentColour: () -> Color, onC
         ),
         border = FilterChipDefaults.filterChipBorder(
             borderColor = LocalContentColor.current.copy(alpha = 0.25f),
-            selectedBorderColor = Color.Transparent
+            selectedBorderColor = Color.Transparent,
+            enabled = true,
+            selected = selected
         )
     )
 }

@@ -18,6 +18,7 @@ import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.settings.category.FontMode
 import com.toasterofbread.spmp.model.settings.category.SystemSettings
 import com.toasterofbread.spmp.model.settings.getEnum
+import com.toasterofbread.spmp.model.settings.rememberMutableEnumState
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.platform.playerservice.ClientServerPlayerService
@@ -36,6 +37,8 @@ import com.toasterofbread.spmp.ui.theme.ApplicationTheme
 import kotlinx.coroutines.CoroutineScope
 import spms.socketapi.shared.SPMS_API_VERSION
 import java.util.logging.Logger
+import org.jetbrains.compose.resources.FontResource
+import org.jetbrains.compose.resources.Font
 
 val LocalPlayerState: ProvidableCompositionLocal<PlayerState> = staticCompositionLocalOf { SpMp.player_state }
 
@@ -195,10 +198,14 @@ object SpMp {
         context.sendToast(exception.toString())
     }
 
+    @Composable
     private fun getFontFamily(context: AppContext): FontFamily? {
-        val font_mode: FontMode = SystemSettings.Key.FONT.getEnum(context.getPrefs())
-        val font_path: String = font_mode.getFontFilePath(context.getUiLanguage()) ?: return null
-        return FontFamily(context.loadFontFromFile("font/$font_path"))
+        val font_mode: FontMode by SystemSettings.Key.FONT.rememberMutableEnumState(context.getPrefs())
+        val font_resource: FontResource? = remember(font_mode) {
+            font_mode.getFontResource(context.getUiLanguage())
+        }
+
+        return font_resource?.let { FontFamily(Font(it)) }
     }
 
     val app_name: String get() = getStringOrNull("app_name") ?: "SpMp"

@@ -25,8 +25,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -268,18 +268,18 @@ class PillMenu(
                             val (open, close) = remember(top, left, vertical) {
                                 if (vertical) {
                                     if (top) {
-                                        Pair(Icons.Filled.KeyboardArrowDown, Icons.Filled.KeyboardArrowUp)
+                                        Pair(Icons.Default.KeyboardArrowDown, Icons.Default.KeyboardArrowUp)
                                     }
                                     else {
-                                        Pair(Icons.Filled.KeyboardArrowUp, Icons.Filled.KeyboardArrowDown)
+                                        Pair(Icons.Default.KeyboardArrowUp, Icons.Default.KeyboardArrowDown)
                                     }
                                 }
                                 else {
                                     if (left) {
-                                        Pair(Icons.Filled.KeyboardArrowRight, Icons.Filled.KeyboardArrowLeft)
+                                        Pair(Icons.AutoMirrored.Default.KeyboardArrowRight, Icons.AutoMirrored.Default.KeyboardArrowLeft)
                                     }
                                     else {
-                                        Pair(Icons.Filled.KeyboardArrowLeft, Icons.Filled.KeyboardArrowRight)
+                                        Pair(Icons.AutoMirrored.Default.KeyboardArrowLeft, Icons.AutoMirrored.Default.KeyboardArrowRight)
                                     }
                                 }
                             }

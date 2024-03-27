@@ -46,8 +46,9 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.*
 
 private const val LOGCAT_LINES_TO_DISPLAY: Int = 100
 
@@ -102,7 +103,6 @@ class ErrorReportActivity : ComponentActivity() {
         super.onDestroy()
     }
 
-    @OptIn(ExperimentalResourceApi::class)
     @Composable
     fun ErrorDisplay(message: String, stack_trace: String, logs: String, error_text: String) {
         val share_intent = remember {
@@ -159,7 +159,7 @@ class ErrorReportActivity : ComponentActivity() {
                                             sendErrorWebhook(context, message, error_text, discord_webhook_url)
                                         }
                                     }) {
-                                        Icon(painterResource("assets/drawable/ic_discord.xml"), null)
+                                        Icon(painterResource(Res.drawable.ic_discord), null)
                                     }
                                 }
                             }
@@ -235,7 +235,7 @@ class ErrorReportActivity : ComponentActivity() {
 
 private fun retrieveLogcat(lines: Int): String {
     println("Retrieving logcat output...")
-    
+
     val process = ProcessBuilder()
         .command(listOf("logcat", "-d"))
         .redirectErrorStream(true)

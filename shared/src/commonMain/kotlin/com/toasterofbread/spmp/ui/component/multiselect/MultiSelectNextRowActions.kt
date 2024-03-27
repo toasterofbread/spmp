@@ -4,7 +4,6 @@ import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -33,7 +32,6 @@ import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverride
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun ColumnScope.MultiSelectNextRowActions(multiselect_context: MediaItemMultiSelectContext) {
     val player: PlayerState = LocalPlayerState.current

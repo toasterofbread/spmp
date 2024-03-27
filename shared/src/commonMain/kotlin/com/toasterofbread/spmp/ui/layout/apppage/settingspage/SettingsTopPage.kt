@@ -84,11 +84,12 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import spms.socketapi.shared.SPMS_API_VERSION
 import java.text.SimpleDateFormat
 import java.util.Date
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.*
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -369,7 +370,6 @@ internal fun SettingsImportDialog(modifier: Modifier = Modifier, onFinished: () 
     }
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 private fun ProjectButton(modifier: Modifier = Modifier) {
     val player: PlayerState = LocalPlayerState.current
@@ -381,7 +381,7 @@ private fun ProjectButton(modifier: Modifier = Modifier) {
     }
 
     Icon(
-        painterResource("assets/drawable/ic_github.xml"),
+        painterResource(Res.drawable.ic_github),
         null,
         modifier.platformClickable(
             onClick = {

@@ -342,7 +342,6 @@ fun SongFeedAppPage.LFFSongFeedAppPage(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SongFeedAppPage.LFFArtistsLayout(layout: MediaItemLayout?, modifier: Modifier = Modifier, content_padding: PaddingValues = PaddingValues(), scroll_enabled: Boolean = true) {
     val player: PlayerState = LocalPlayerState.current

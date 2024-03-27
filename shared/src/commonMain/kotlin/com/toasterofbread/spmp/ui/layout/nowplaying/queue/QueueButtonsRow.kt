@@ -3,7 +3,6 @@ package com.toasterofbread.spmp.ui.layout.nowplaying.queue
 
 import LocalPlayerState
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
@@ -32,7 +31,6 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.theme.appHover
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun QueueButtonsRow(
     getButtonColour: () -> Color,

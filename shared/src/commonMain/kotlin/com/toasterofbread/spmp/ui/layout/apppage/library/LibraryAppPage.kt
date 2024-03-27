@@ -14,7 +14,6 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusRequester
@@ -104,7 +103,6 @@ abstract class LibrarySubPage(val context: AppContext) {
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 class LibraryAppPage(override val state: AppPageState): AppPage() {
     val tabs: List<LibrarySubPage> = listOf(
         LibraryPlaylistsPage(state.context),
@@ -244,7 +242,9 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
                                             )
                                         },
                                         border = FilterChipDefaults.filterChipBorder(
-                                            borderColor = player.theme.on_background
+                                            borderColor = player.theme.on_background,
+                                            enabled = true,
+                                            selected = selected
                                         )
                                     )
                                 }

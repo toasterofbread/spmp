@@ -2,7 +2,6 @@ package com.toasterofbread.spmp.ui.layout.apppage
 
 import LocalPlayerState
 import androidx.compose.animation.*
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -290,7 +289,6 @@ fun AppPageSidebar(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun PinnedItems(modifier: Modifier = Modifier, multiselect_context: MediaItemMultiSelectContext? = null) {
     val pinned_items: List<MediaItem> = rememberPinnedItems() ?: emptyList()

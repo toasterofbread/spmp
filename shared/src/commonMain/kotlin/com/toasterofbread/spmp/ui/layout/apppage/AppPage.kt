@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.ElevatedFilterChip
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -55,8 +54,7 @@ abstract class AppPage {
     @Composable
     open fun isReloading(): Boolean = false
 
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
+        @Composable
     fun FilterChipsRow(
         chip_count: Int,
         isChipSelected: (Int) -> Boolean,
@@ -93,7 +91,9 @@ abstract class AppPage {
                             )
                         },
                         border = FilterChipDefaults.filterChipBorder(
-                            borderColor = player.theme.on_background
+                            borderColor = player.theme.on_background,
+                            enabled = true,
+                            selected = selected
                         )
                     )
                 }

@@ -33,6 +33,7 @@ import java.lang.reflect.Field
 @OptIn(ExperimentalComposeUiApi::class)
 fun main(args: Array<String>) {
     Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
+        error.printStackTrace()
         val dialog = ExceptionDialog(Frame(), error)
         dialog.isVisible = true
     }

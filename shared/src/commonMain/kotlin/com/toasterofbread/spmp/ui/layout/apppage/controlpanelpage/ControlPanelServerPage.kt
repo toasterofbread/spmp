@@ -41,17 +41,17 @@ fun ControlPanelServerPage(
 
     var service_found: Boolean by remember { mutableStateOf(false) }
     var client_player_service: ClientServerPlayerService? by remember { mutableStateOf(null) }
-    
+
     var peers: List<SpMsClientInfo>? by remember { mutableStateOf(null) }
     suspend fun reloadPeers() {
         peers = null
         peers = client_player_service?.getPeers()?.getOrNull()
     }
-    
+
     LaunchedEffect(Unit) {
         player.interactService { service: Any ->
             service_found = true
-            
+
             if (service !is ClientServerPlayerService) {
                 client_player_service = null
                 return@interactService
@@ -60,7 +60,7 @@ fun ControlPanelServerPage(
             client_player_service = service
         }
     }
-    
+
     LaunchedEffect(client_player_service) {
         reloadPeers()
     }
@@ -210,7 +210,6 @@ fun ControlPanelServerPage(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ClientInfoDisplay(client: SpMsClientInfo, modifier: Modifier = Modifier) {
     val player: PlayerState = LocalPlayerState.current
@@ -254,38 +253,43 @@ private fun ClientInfoDisplay(client: SpMsClientInfo, modifier: Modifier = Modif
                 }
             }
             Spacer(Modifier.fillMaxWidth().weight(1f))
-            
+
             Column(
                 Modifier.alpha(0.75f),
                 verticalArrangement = Arrangement.spacedBy(5.dp),
                 horizontalAlignment = Alignment.End
             ) {
-                val tooltip_state: RichTooltipState = remember { RichTooltipState() }
+                val tooltip_state: TooltipState = remember { TooltipState() }
 
-                RichTooltipBox(
-                    title = { Text(client.type.getName(), style = MaterialTheme.typography.titleMedium) },
-                    action = {
-                        if (player.context.canOpenUrl()) {
-                            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.BottomEnd) {
-                                Button(
-                                    {
-                                        player.context.openUrl(client.type.getInfoUrl())
-                                        coroutine_scope.launch {
-                                            tooltip_state.dismiss()
+                TooltipBox(
+                    tooltip = {
+                        RichTooltip(
+                            title = { Text(client.type.getName(), style = MaterialTheme.typography.titleMedium) },
+                            action = {
+                                if (player.context.canOpenUrl()) {
+                                    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.BottomEnd) {
+                                        Button(
+                                            {
+                                                player.context.openUrl(client.type.getInfoUrl())
+                                                coroutine_scope.launch {
+                                                    tooltip_state.dismiss()
+                                                }
+                                            },
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = player.theme.vibrant_accent,
+                                                contentColor = player.theme.vibrant_accent.getContrasted()
+                                            )
+                                        ) {
+                                            Text(getString("control_panel_server_client_more_info"))
                                         }
-                                    },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = player.theme.vibrant_accent,
-                                        contentColor = player.theme.vibrant_accent.getContrasted()
-                                    )
-                                ) {
-                                    Text(getString("control_panel_server_client_more_info"))
+                                    }
                                 }
-                            }
-                        }
+                            },
+                            text = { Text(client.type.getInfoText()) }
+                        )
                     },
-                    text = { Text(client.type.getInfoText()) },
-                    tooltipState = tooltip_state
+                    state = tooltip_state,
+                    positionProvider = TooltipDefaults.rememberRichTooltipPositionProvider()
                 ) {
                     IconButton(
                         {
@@ -293,12 +297,12 @@ private fun ClientInfoDisplay(client: SpMsClientInfo, modifier: Modifier = Modif
                                 tooltip_state.show()
                             }
                         },
-                        Modifier.tooltipAnchor().size(20.dp)
+                        Modifier.size(20.dp)
                     ) {
                         Icon(Icons.Default.Info, null)
                     }
                 }
-                
+
                 Text(client.type.getName(), style = MaterialTheme.typography.labelMedium)
             }
         }

@@ -6,12 +6,15 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.SwipeableState
+import androidx.compose.foundation.gestures.DraggableAnchors
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
@@ -25,7 +28,6 @@ import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.platform.PlatformPreferencesListener
 import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.composekit.settings.ui.Theme
-import com.toasterofbread.composekit.utils.common.init
 import com.toasterofbread.composekit.utils.composable.getEnd
 import com.toasterofbread.composekit.utils.composable.getStart
 import com.toasterofbread.spmp.db.Database
@@ -73,7 +75,6 @@ typealias DownloadRequestCallback = (DownloadStatus?) -> Unit
 
 enum class FeedLoadState { PREINIT, NONE, LOADING, CONTINUING }
 
-@OptIn(ExperimentalMaterialApi::class)
 class PlayerState(val context: AppContext, internal val coroutine_scope: CoroutineScope) {
     val database: Database get() = context.database
     val theme: Theme get() = context.theme
@@ -88,13 +89,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
 
     fun switchNowPlayingPage(page: Int) {
         coroutine_scope.launch {
-            np_swipe_state.value.animateTo(
-                page,
-                when (form_factor) {
-                    FormFactor.LANDSCAPE -> spring(Spring.DampingRatioNoBouncy, Spring.StiffnessMediumLow)
-                    else -> spring()
-                }
-            )
+            np_swipe_state.animateTo(page)
         }
     }
 
@@ -102,16 +97,33 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
     private var long_press_menu_showing: Boolean by mutableStateOf(false)
     private var long_press_menu_direct: Boolean by mutableStateOf(false)
 
-    private val np_swipe_state: MutableState<SwipeableState<Int>> = mutableStateOf(
-        SwipeableState(0)
-    )
-    private var np_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
+    private fun createSwipeState(
+        anchors: DraggableAnchors<Int> = DraggableAnchors {},
+        animation_spec: AnimationSpec<Float> = tween()
+    ): AnchoredDraggableState<Int> =
+        AnchoredDraggableState(
+            initialValue = 0,
+            anchors = anchors,
+            positionalThreshold = { total_distance ->
+                total_distance * 0.2f
+            },
+            velocityThreshold = {
+                1f
+            },
+            animationSpec = animation_spec
+        )
+
+    private var np_swipe_state: AnchoredDraggableState<Int> by mutableStateOf(createSwipeState())
 
     private var download_request_songs: List<Song>? by mutableStateOf(null)
     private var download_request_always_show_options: Boolean by mutableStateOf(false)
     private var download_request_callback: DownloadRequestCallback? by mutableStateOf(null)
 
-    val expansion = NowPlayingExpansionState(this, np_swipe_state, coroutine_scope)
+    val expansion: NowPlayingExpansionState =
+        object : NowPlayingExpansionState(this, coroutine_scope) {
+            override val swipe_state: AnchoredDraggableState<Int>
+                get() = np_swipe_state
+        }
     val session_started: Boolean get() = _player?.service_player?.session_started == true
     var screen_size: DpSize by mutableStateOf(DpSize.Zero)
 
@@ -252,7 +264,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
             .offset {
                 val bottom_padding: Int = getNpBottomPadding(system_insets, navigation_insets, keyboard_insets)
                 val swipe_offset: Dp =
-                    if (session_started) -np_swipe_state.value.offset.value.dp - (screen_size.height * 0.5f)
+                    if (session_started) -np_swipe_state.offset.dp - (screen_size.height * 0.5f)
                     else 0.dp
 
                 IntOffset(
@@ -302,7 +314,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         }
         app_page_state.setPage(page, from_current = from_current, going_back = false)
 
-        if (np_swipe_state.value.targetValue != 0) {
+        if (np_swipe_state.targetValue != 0) {
             switchNowPlayingPage(0)
         }
         hideLongPressMenu()
@@ -353,13 +365,12 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
     }
 
     fun openNowPlayingPlayerOverlayMenu(menu: PlayerOverlayMenu? = null) {
-
         np_overlay_menu.value = menu
         expansion.scrollTo(1)
     }
 
     fun onPlayActionOccurred() {
-        if (np_swipe_state.value.targetValue == 0 && Settings.get(BehaviourSettings.Key.OPEN_NP_ON_SONG_PLAYED)) {
+        if (np_swipe_state.targetValue == 0 && Settings.get(BehaviourSettings.Key.OPEN_NP_ON_SONG_PLAYED)) {
             switchNowPlayingPage(1)
         }
     }
@@ -425,25 +436,42 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         LaunchedEffect(screen_size.height, bottom_padding, vertical_page_count) {
             val half_screen_height: Float = screen_size.height.value * 0.5f
 
-            with(density) {
-                np_swipe_anchors = (0..vertical_page_count)
-                    .associateBy { anchor ->
-                        if (anchor == 0) minimised_now_playing_height.value - half_screen_height
-                        else ((screen_size.height - bottom_padding.toDp()).value * anchor) - half_screen_height
-                    }
-            }
+            val anchors: DraggableAnchors<Int> =
+                DraggableAnchors {
+                    for (anchor in 0..vertical_page_count) {
+                        val value: Float
+                        if (anchor == 0) {
+                            value = minimised_now_playing_height.value - half_screen_height
+                        }
+                        else {
+                            with(density) {
+                                value = ((screen_size.height - bottom_padding.toDp()).value * anchor) - half_screen_height
+                            }
+                        }
 
-            val current_swipe_value = np_swipe_state.value.targetValue
-            np_swipe_state.value = SwipeableState(0).apply {
-                init(mapOf(-half_screen_height to 0))
-                snapTo(current_swipe_value)
-            }
+                        anchor at value
+                    }
+                }
+            np_swipe_state.updateAnchors(anchors)
         }
 
-        if (np_swipe_anchors != null) {
+        val current_form_factor: FormFactor = form_factor
+        LaunchedEffect(current_form_factor) {
+            val animation_spec: AnimationSpec<Float> =
+                when (current_form_factor) {
+                    FormFactor.LANDSCAPE -> spring(Spring.DampingRatioNoBouncy, Spring.StiffnessMediumLow)
+                    else -> spring()
+                }
+
+            np_swipe_state = createSwipeState(
+                anchors = np_swipe_state.anchors,
+                animation_spec = animation_spec
+            )
+        }
+
+        if (np_swipe_state.anchors.size > 0) {
             com.toasterofbread.spmp.ui.layout.nowplaying.NowPlaying(
-                np_swipe_state.value,
-                np_swipe_anchors!!,
+                np_swipe_state,
                 content_padding = PaddingValues(start = WindowInsets.getStart(), end = WindowInsets.getEnd())
             )
         }

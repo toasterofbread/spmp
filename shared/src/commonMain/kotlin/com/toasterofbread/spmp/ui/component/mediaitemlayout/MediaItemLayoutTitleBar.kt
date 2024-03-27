@@ -16,8 +16,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.Icon
@@ -157,7 +157,7 @@ private fun ScrollableState.ScrollButtons() {
         enabled = canScrollBackward
     ) {
         Icon(
-            if (orientation == Orientation.Horizontal) Icons.Default.KeyboardArrowLeft
+            if (orientation == Orientation.Horizontal) Icons.AutoMirrored.Default.KeyboardArrowLeft
             else Icons.Default.KeyboardArrowDown,
             null
         )
@@ -172,7 +172,7 @@ private fun ScrollableState.ScrollButtons() {
         enabled = canScrollForward
     ) {
         Icon(
-            if (orientation == Orientation.Horizontal) Icons.Default.KeyboardArrowRight
+            if (orientation == Orientation.Horizontal) Icons.AutoMirrored.Default.KeyboardArrowRight
             else Icons.Default.KeyboardArrowUp,
             null
         )

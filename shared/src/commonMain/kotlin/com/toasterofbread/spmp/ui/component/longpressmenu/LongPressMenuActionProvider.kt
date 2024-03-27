@@ -4,7 +4,6 @@ import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -46,8 +45,7 @@ class LongPressMenuActionProvider(
     fun ActionButton(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit, onAltClick: (() -> Unit)? = null, onAction: () -> Unit = this.onAction, fill_width: Boolean = true) =
         ActionButton(icon, label, getAccentColour, modifier = modifier, onClick = onClick, onAltClick = onAltClick, onAction = onAction, fill_width = fill_width)
 
-    @OptIn(ExperimentalFoundationApi::class)
-    @Composable
+        @Composable
     fun ActiveQueueIndexAction(
         getText: (distance: Int) -> String,
         onClick: (active_queue_index: Int) -> Unit,

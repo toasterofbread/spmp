@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterialApi::class)
-
 package com.toasterofbread.spmp.ui.layout.nowplaying
 
 import LocalNowPlayingExpansion
@@ -13,10 +11,9 @@ import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
-import androidx.compose.material.SwipeableState
-import androidx.compose.material.swipeable
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.anchoredDraggable
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.*
@@ -74,15 +71,11 @@ private const val GRADIENT_BOTTOM_PADDING_DP = 100
 private const val GRADIENT_TOP_START_RATIO = 0.7f
 private const val OVERSCROLL_CLEAR_DISTANCE_THRESHOLD_DP = 5f
 
-val SwipeableState<Int>.actualCurrentValue: Int get() = if (direction < 0) progress.to else progress.from
-val SwipeableState<Int>.actualTargetValue: Int get() = if (direction < 0) progress.from else progress.to
-
-@OptIn(ExperimentalMaterialApi::class)
 private fun PlayerState.getBackgroundColourOverride(): Color {
     val pages: List<NowPlayingPage> = NowPlayingPage.ALL.filter { it.shouldShow(this) }
 
-    var current: Color? = pages.getOrNull(expansion.swipe_state.actualCurrentValue - 1)?.getPlayerBackgroundColourOverride(this)
-    var target: Color? = pages.getOrNull(expansion.swipe_state.actualTargetValue - 1)?.getPlayerBackgroundColourOverride(this)
+    var current: Color? = pages.getOrNull(expansion.swipe_state.currentValue - 1)?.getPlayerBackgroundColourOverride(this)
+    var target: Color? = pages.getOrNull(expansion.swipe_state.targetValue - 1)?.getPlayerBackgroundColourOverride(this)
 
     val default: Color = when (np_theme_mode) {
         ThemeMode.BACKGROUND -> theme.accent
@@ -101,7 +94,7 @@ private fun PlayerState.getBackgroundColourOverride(): Color {
         target = default
     }
 
-    return target!!.blendWith(current, if (expansion.swipe_state.direction < 0 ) 1f - expansion.swipe_state.progress.fraction else expansion.swipe_state.progress.fraction)
+    return target!!.blendWith(current, if (expansion.swipe_state.lastVelocity < 0 ) 1f - expansion.swipe_state.progress else expansion.swipe_state.progress)
 }
 
 private var derived_np_background: State<Color>? = null
@@ -139,9 +132,8 @@ internal fun PlayerState.getNPAltBackground(theme_mode: ThemeMode = np_theme_mod
 internal fun PlayerState.getNPAltOnBackground(): Color =
     getNPBackground().amplifyPercent(-0.4f, opposite_percent = -0.1f)
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>, content_padding: PaddingValues) {
+fun NowPlaying(swipe_state: AnchoredDraggableState<Int>, content_padding: PaddingValues) {
     val player: PlayerState = LocalPlayerState.current
     val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
     val density: Density = LocalDensity.current
@@ -194,7 +186,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
             }
 
             val service: PlatformPlayerService = player.controller ?: return@LaunchedEffect
-            val anchor: Float = swipe_anchors.keys.first()
+            val anchor: Float = swipe_state.anchors.positionOf(0)
             val delta: Long = 50
             val time_threshold: Float = overscroll_clear_time * 1000
 
@@ -217,7 +209,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
                     player_alpha = 1f - (time_below_threshold / time_threshold).coerceIn(0f, 1f)
                 }
 
-                val offset: Dp = with(density) { (swipe_state.offset.value - anchor).toDp() }
+                val offset: Dp = with(density) { (swipe_state.offset - anchor).toDp() }
                 if (offset < -OVERSCROLL_CLEAR_DISTANCE_THRESHOLD_DP.dp) {
                     if (!triggered && time_below_threshold >= time_threshold) {
                         if (
@@ -249,17 +241,14 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
             player.status.m_song?.PlayerGradientDepth?.observe(player.database)?.value
         val large_form_factor: Boolean = player.form_factor.is_large
 
-        val swipe_modifier: Modifier = remember(swipe_anchors, large_form_factor) {
-            Modifier.swipeable(
+        val swipe_modifier: Modifier =
+            Modifier.anchoredDraggable(
                 state = swipe_state,
-                anchors = swipe_anchors,
-                thresholds = { _, _ -> FractionalThreshold(0.2f) },
                 orientation = Orientation.Vertical,
                 reverseDirection = true,
                 interactionSource = swipe_interaction_source,
                 enabled = !large_form_factor
             )
-        }
 
         BoxWithConstraints(
             modifier = Modifier
@@ -269,7 +258,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>,
                     IntOffset(
                         0,
                         with(density) {
-                            ((half_screen_height * getNowPlayingVerticalPageCount(player)) - swipe_state.offset.value.dp - bottom_padding).roundToPx()
+                            ((half_screen_height * getNowPlayingVerticalPageCount(player)) - swipe_state.offset.dp - bottom_padding).roundToPx()
                         }
                     )
                 }

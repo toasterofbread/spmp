@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.component.mediaitemlayout
 
 import LocalPlayerState
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -66,7 +65,6 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MediaItemCard(
     layout: MediaItemLayout,

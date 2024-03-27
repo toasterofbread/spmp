@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlaylistRemove
 import androidx.compose.material3.Button
@@ -452,7 +452,7 @@ class PlaylistAppPage(
                             item {
                                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                     IconButton(close) {
-                                        Icon(Icons.Default.KeyboardArrowLeft, null)
+                                        Icon(Icons.AutoMirrored.Default.KeyboardArrowLeft, null)
                                     }
 
                                     Spacer(Modifier.fillMaxWidth().weight(1f))

@@ -9,10 +9,8 @@ import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getDiscordCategoryItems
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.readBytesSync
-import org.jetbrains.compose.resources.resource
-import org.jetbrains.compose.resources.toImageVector
+import org.jetbrains.compose.resources.vectorResource
+import spmp.shared.generated.resources.*
 
 data object DiscordSettings: SettingsCategory("discord") {
     override val keys: List<SettingsKey> = Key.entries.toList()
@@ -25,10 +23,9 @@ data object DiscordSettings: SettingsCategory("discord") {
             { getDiscordCategoryItems(it) }
         ) { getIcon() }
 
-    @OptIn(ExperimentalResourceApi::class)
     @Composable
     fun getIcon(): ImageVector =
-        resource("assets/drawable/ic_discord.xml").readBytesSync().toImageVector(LocalDensity.current)
+        vectorResource(Res.drawable.ic_discord)
 
     enum class Key: SettingsKey {
         STATUS_DISABLE_WHEN_INVISIBLE,

@@ -24,7 +24,6 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
@@ -164,7 +163,6 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
         }
     }
 
-    @OptIn(ExperimentalComposeUiApi::class)
     @Composable
     override fun ColumnScope.Page(
         multiselect_context: MediaItemMultiSelectContext,

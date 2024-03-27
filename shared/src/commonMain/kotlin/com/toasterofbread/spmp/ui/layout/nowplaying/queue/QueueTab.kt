@@ -19,7 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -353,7 +353,7 @@ private fun QueueBorder(
     val player: PlayerState = LocalPlayerState.current
 
     if (wave_border_mode == NowPlayingQueueWaveBorderMode.LINE) {
-        Divider(Modifier.padding(horizontal = list_padding), border_thickness, getBorderColour(player))
+        HorizontalDivider(Modifier.padding(horizontal = list_padding), border_thickness, getBorderColour(player))
     }
     else {
         var wave_border_offset: Float by remember { mutableStateOf(0f) }

@@ -16,6 +16,18 @@ kotlin {
     jvm("desktop")
 
     sourceSets {
+        all {
+            languageSettings.apply {
+                optIn("org.jetbrains.compose.resources.ExperimentalResourceApi")
+                optIn("androidx.compose.foundation.ExperimentalFoundationApi")
+                optIn("androidx.compose.material3.ExperimentalMaterial3Api")
+                optIn("androidx.compose.material.ExperimentalMaterialApi")
+                optIn("androidx.compose.ui.ExperimentalComposeUiApi")
+
+                enableLanguageFeature("ExpectActualClasses")
+            }
+        }
+
         val ytmkt_version: String = extra["ytmkt.version"] as String
         val ktor_version: String = extra["ktor.version"] as String
 

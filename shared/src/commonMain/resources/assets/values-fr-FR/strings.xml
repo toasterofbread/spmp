@@ -1,17 +1,6 @@
 <resources>
     <string name="language_name">Français</string>
 
-    <string name="version_string" translatable="false">0.3.0</string>
-    <string name="version_code" translatable="false">11</string>
-
-    <string name="app_name" translatable="false">SpMp</string>
-    <string name="app_name_debug" translatable="false">SpMp (debug)</string>
-    <string name="project_url" translatable="false">https://github.com/toasterofbread/spmp</string>
-    <string name="report_issue_url" translatable="false">https://github.com/toasterofbread/spmp/issues/new?labels=Bug&amp;template=bug_report.md&amp;title=%5BBug%5D+</string>
-    <string name="server_info_url" translatable="false">https://spmp.toastbits.dev/docs/server/about/</string>
-    <string name="documentation_url" translatable="false">https://spmp.toastbits.dev/docs/about</string>
-    <string name="server_documentation_url" translatable="false">https://spmp.toastbits.dev/docs/server/about</string>
-
     <string name="project_url_name">URL du projet</string>
 
     <string name="info_using_release_$x">Version utilisée $x</string>
@@ -574,7 +563,7 @@
     <string name="s_key_navbar_height_multiplier">Multiplicateur de hauteur de la barre de navigation</string>
     <string name="s_sub_navbar_height_multiplier">Utiliser si votre système ne signale pas correctement la hauteur de la barre de navigation (nécessite le redémarrage de l'application)</string>
 
-    
+
     <string name="s_key_enable_audio_normalisation">Activer la normalisation audio</string>
     <string name="s_sub_enable_audio_normalisation">La disponibilité peut être limitée à certaines vidéos, car les données d'intensité sonore sont fournies par YouTube</string>
 
@@ -682,7 +671,7 @@
 
     <string name="s_cat_filter">Filtre</string>
     <string name="s_cat_desc_filter">Masquer des titres et des listes de lecture par mot-clé</string>
-    
+
     <string name="s_cat_streaming">Lecture</string>
     <string name="s_cat_desc_streaming">Qualité audio et paramètres de lecture</string>
 

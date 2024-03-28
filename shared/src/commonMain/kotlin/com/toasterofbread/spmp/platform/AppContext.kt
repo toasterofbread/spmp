@@ -72,7 +72,7 @@ internal class ThemeImpl(private val context: AppContext): Theme(getString("them
     }
 
     override fun saveThemes(themes: List<ThemeData>) {
-        Settings.set(ThemeSettings.Key.THEMES, Json.encodeToString(themes))
+        Settings.set(ThemeSettings.Key.THEMES, Json.encodeToString(themes.map { it.serialise() }))
     }
 
     override fun selectAccentColour(theme_data: ThemeData, thumbnail_colour: Color?): Color =

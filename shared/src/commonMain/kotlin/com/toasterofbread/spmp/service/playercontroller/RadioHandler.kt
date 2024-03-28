@@ -45,6 +45,10 @@ class RadioHandler(val player: PlayerServicePlayer, val context: AppContext) {
                         }
                         else {{}},
                     onCompletedOverride = { result ->
+                        if (result.songs == null) {
+                            return@setRadioState
+                        }
+
                         furtherAction {
                             player.addMultipleToQueue(
                                 result.songs,
@@ -82,6 +86,10 @@ class RadioHandler(val player: PlayerServicePlayer, val context: AppContext) {
 
             instance.loadContinuation(
                 onCompletedOverride = { result ->
+                    if (result.songs == null) {
+                        return@loadContinuation
+                    }
+
                     furtherAction {
                         player.addMultipleToQueue(result.songs, insertion_index, skip_existing = true)
                         return@furtherAction null
@@ -113,6 +121,10 @@ class RadioHandler(val player: PlayerServicePlayer, val context: AppContext) {
     }
 
     private fun onRadioLoadCompleted(result: RadioInstance.LoadResult, is_continuation: Boolean) {
+        if (result.songs == null) {
+            return
+        }
+
         player.addMultipleToQueue(
             result.songs,
             player.song_count,

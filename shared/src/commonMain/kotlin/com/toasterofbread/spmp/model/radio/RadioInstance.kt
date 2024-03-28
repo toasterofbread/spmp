@@ -23,7 +23,7 @@ internal data class RadioLoadResult(
 )
 
 abstract class RadioInstance(val context: AppContext) {
-    data class LoadResult(val songs: List<Song>, val has_continuation: Boolean)
+    data class LoadResult(val songs: List<Song>?, val has_continuation: Boolean)
 
     var state: RadioState by mutableStateOf(RadioState())
         private set
@@ -88,11 +88,11 @@ abstract class RadioInstance(val context: AppContext) {
         load_error = null
 
         coroutine_scope.launchSingle(Dispatchers.IO) {
-            val load_result: Result<RadioLoadResult> = current_state.loadContinuation(context)
+            val load_result: Result<RadioLoadResult?> = current_state.loadContinuation(context)
 
-            val processed_songs: List<Song> =
+            val processed_songs: List<Song>? =
                 load_result.fold(
-                    { processLoadedSongs(it.songs) },
+                    { result -> result?.songs?.let{ processLoadedSongs(it) } },
                     { emptyList() }
                 )
 
@@ -100,15 +100,15 @@ abstract class RadioInstance(val context: AppContext) {
                 load_result.fold(
                     onSuccess = {
                         state = current_state.copy(
-                            continuation = it.continuation,
-                            filters = it.filters,
+                            continuation = it?.continuation,
+                            filters = it?.filters,
                             initial_songs_loaded = true
                         )
 
                         val result: LoadResult =
                             LoadResult(
                                 songs = processed_songs,
-                                has_continuation = it.continuation != null
+                                has_continuation = it?.continuation != null
                             )
 
                         if (onCompletedOverride != null) {

@@ -31,9 +31,9 @@ data class RadioState(
     fun isContinuationAvailable(): Boolean =
         continuation != null || !initial_songs_loaded
 
-    internal suspend fun loadContinuation(context: AppContext): Result<RadioLoadResult> = runCatching {
+    internal suspend fun loadContinuation(context: AppContext): Result<RadioLoadResult?> = runCatching {
         if (item_uid == null) {
-            throw RuntimeException("Radio state is not active $this")
+            return@runCatching null
         }
 
         val item: MediaItem = getMediaItemFromUid(item_uid)

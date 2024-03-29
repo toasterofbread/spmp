@@ -81,15 +81,27 @@ fun LayoutSlotEditor(
         var has_primary: Boolean = false
         var has_secondary: Boolean = false
 
-        for (slot in configured_slots.values) {
-            if (slot?.type != ContentBarReference.Type.INTERNAL) {
+        for (slot in available_slots) {
+            if (!configured_slots.contains(slot.getKey())) {
+                val default: ContentBar? = slot.getDefaultContentBar()
+                if (default == InternalContentBar.PRIMARY) {
+                    has_primary = true
+                }
+                else if (default == InternalContentBar.SECONDARY) {
+                    has_secondary = true
+                }
                 continue
             }
 
-            if (slot.index == InternalContentBar.PRIMARY.index) {
+            val configured: ContentBarReference? = configured_slots[slot.getKey()]
+            if (configured?.type != ContentBarReference.Type.INTERNAL) {
+                continue
+            }
+
+            if (configured.index == InternalContentBar.PRIMARY.index) {
                 has_primary = true
             }
-            else if (slot.index == InternalContentBar.SECONDARY.index) {
+            else if (configured.index == InternalContentBar.SECONDARY.index) {
                 has_secondary = true
             }
         }

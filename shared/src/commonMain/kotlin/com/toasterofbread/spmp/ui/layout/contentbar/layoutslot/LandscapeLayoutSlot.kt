@@ -1,18 +1,16 @@
 package com.toasterofbread.spmp.ui.layout.contentbar.layoutslot
 
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.*
+import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.model.settings.category.LayoutSettings
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
-import com.toasterofbread.spmp.ui.layout.contentbar.InternalContentBar
-import com.toasterofbread.composekit.settings.ui.Theme
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.encodeToJsonElement
-import kotlinx.serialization.json.decodeFromJsonElement
+import com.toasterofbread.spmp.ui.layout.contentbar.*
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.CustomColourSource
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 enum class LandscapeLayoutSlot: LayoutSlot {
     OUTER_SIDE_LEFT,
@@ -70,15 +68,15 @@ enum class LandscapeLayoutSlot: LayoutSlot {
     override fun getDefaultContentBar(): ContentBar? =
         when (this) {
             OUTER_SIDE_LEFT -> InternalContentBar.NAVIGATION
-            INNER_SIDE_LEFT -> InternalContentBar.NAVIGATION
-            OUTER_SIDE_RIGHT -> InternalContentBar.NAVIGATION
-            INNER_SIDE_RIGHT -> InternalContentBar.NAVIGATION
+            INNER_SIDE_LEFT -> InternalContentBar.PRIMARY
+            OUTER_SIDE_RIGHT -> null
+            INNER_SIDE_RIGHT -> null
 
-            UPPER_TOP_BAR -> InternalContentBar.NAVIGATION
-            LOWER_TOP_BAR -> InternalContentBar.NAVIGATION
+            UPPER_TOP_BAR -> null
+            LOWER_TOP_BAR -> null
 
-            ABOVE_PLAYER -> InternalContentBar.NAVIGATION
-            BELOW_PLAYER -> InternalContentBar.NAVIGATION
+            ABOVE_PLAYER -> InternalContentBar.SECONDARY
+            BELOW_PLAYER -> null
 
             PLAYER_BOTTOM_START -> InternalContentBar.SONG_ACTIONS
             PLAYER_BOTTOM_END -> InternalContentBar.LYRICS
@@ -92,7 +90,7 @@ enum class LandscapeLayoutSlot: LayoutSlot {
             INNER_SIDE_RIGHT -> ThemeColourSource(Theme.Colour.CARD)
             UPPER_TOP_BAR -> ThemeColourSource(Theme.Colour.CARD)
             LOWER_TOP_BAR -> ThemeColourSource(Theme.Colour.CARD)
-            ABOVE_PLAYER -> ThemeColourSource(Theme.Colour.ACCENT)
+            ABOVE_PLAYER -> CustomColourSource(Color.Transparent.toArgb())
             BELOW_PLAYER -> ThemeColourSource(Theme.Colour.CARD)
             PLAYER_BOTTOM_START -> ThemeColourSource(Theme.Colour.CARD)
             PLAYER_BOTTOM_END -> ThemeColourSource(Theme.Colour.CARD)

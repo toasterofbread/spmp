@@ -12,11 +12,15 @@ import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.youtubeapi.YtmApiType
 import dev.toastbits.ytmkt.model.YtmApi
 import kotlinx.coroutines.CoroutineScope
+import spmp.shared.generated.resources.Res
 
 actual class AppContext(
     app_name: String,
     val coroutine_scope: CoroutineScope
-): PlatformContext(app_name, "drawable/ic_spmp.png", PlatformPlayerService::class.java) {
+): PlatformContext(app_name, PlatformPlayerService::class.java) {
+    override suspend fun getIconImageData(): ByteArray =
+        Res.readBytes("drawable/ic_spmp.png")
+
     actual val database: Database = createDatabase()
     actual val download_manager: PlayerDownloadManager = PlayerDownloadManager(this)
     actual val ytapi: YtmApi

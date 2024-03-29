@@ -67,9 +67,12 @@ import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.Serializable
 import SpMp.isDebugBuild
 
 const val ERROR_INFO_DISPLAY_DEFAULT_EXPANDED_HEIGHT_DP: Float = 500f
@@ -335,14 +338,13 @@ suspend fun uploadErrorToPasteEe(
             headers {
                 append("X-Auth-Token", token)
             }
-            setBody(mapOf("sections" to sections))
+            contentType(ContentType.Application.Json)
+            setBody(Json.encodeToString(mapOf("sections" to sections)))
         }
 
-    val data: Map<String, Any?> = response.body()
-
-    if (data["success"] != true || data["link"] == null) {
-        throw RuntimeException(Json.encodeToString(data))
-    }
-
-    return@runCatching data["link"] as String
+    val data: NewPasteResponse = response.body()
+    return@runCatching data.link
 }
+
+@Serializable
+data class NewPasteResponse(val link: String)

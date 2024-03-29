@@ -19,7 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -54,10 +54,10 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.ui.component.radio.StatusDisplay
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
-import com.toasterofbread.spmp.youtubeapi.radio.StatusDisplay
 import kotlinx.coroutines.delay
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
@@ -100,7 +100,7 @@ internal fun QueueTab(
             override fun onSongAdded(index: Int, song: Song) {
                 song_items.add(index, QueueTabItem(song, key_inc++))
             }
-            override fun onSongRemoved(index: Int) {
+            override fun onSongRemoved(index: Int, song: Song) {
                 try {
                     song_items.removeAt(index)
                 }
@@ -259,7 +259,8 @@ internal fun QueueTab(
                             list_position = with(density) { coords.positionInParent().y.toDp() }
                         }
                     ) {
-                        val side_padding: Dp = maxWidth * PlayerSettings.Key.QUEUE_EXTRA_SIDE_PADDING.get<Float>() * 0.25f
+                        val extra_side_padding: Float by PlayerSettings.Key.QUEUE_EXTRA_SIDE_PADDING.rememberMutableState()
+                        val side_padding: Dp = maxWidth * extra_side_padding * 0.25f
 
                         ScrollBarLazyColumn(
                             state = queue_list_state.listState,
@@ -293,9 +294,9 @@ internal fun QueueTab(
                             )
 
                             item {
-                                player.controller?.radio_state?.StatusDisplay(
+                                player.controller?.radio_instance?.StatusDisplay(
                                     Modifier
-                                        .heightIn(min = 50.dp)
+                                        .heightIn(min = 50.dp, max = 500.dp)
                                         .padding(top = list_padding, start = list_padding, end = list_padding)
                                         .fillMaxWidth(),
                                     expanded_modifier = Modifier.thenWith(page_height) {
@@ -311,11 +312,11 @@ internal fun QueueTab(
                                         + list_position
                                     )
 
-                                    if (player.controller?.radio_state?.loading == true && page_height != null) {
+                                    if (player.controller?.radio_instance?.is_loading == true && page_height != null) {
                                         bottom_padding = page_height - bottom_padding
                                     }
 
-                                    if (player.controller?.radio_state?.load_error != null) {
+                                    if (player.controller?.radio_instance?.load_error != null) {
                                         bottom_padding += 60.dp
                                     }
 
@@ -350,7 +351,7 @@ private fun QueueBorder(
     val player: PlayerState = LocalPlayerState.current
 
     if (wave_border_mode == NowPlayingQueueWaveBorderMode.LINE) {
-        Divider(Modifier.padding(horizontal = list_padding), border_thickness, getBorderColour(player))
+        HorizontalDivider(Modifier.padding(horizontal = list_padding), border_thickness, getBorderColour(player))
     }
     else {
         var wave_border_offset: Float by remember { mutableStateOf(0f) }

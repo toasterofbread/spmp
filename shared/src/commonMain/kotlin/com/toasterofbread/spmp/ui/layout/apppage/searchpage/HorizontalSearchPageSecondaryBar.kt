@@ -25,7 +25,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.theme.appHover
-import com.toasterofbread.spmp.youtubeapi.endpoint.SearchSuggestion
+import dev.toastbits.ytmkt.endpoint.SearchSuggestion
 
 @Composable
 internal fun SearchAppPage.HorizontalSearchSecondaryBar(

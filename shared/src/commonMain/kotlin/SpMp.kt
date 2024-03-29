@@ -18,16 +18,13 @@ import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.settings.category.FontMode
 import com.toasterofbread.spmp.model.settings.category.SystemSettings
 import com.toasterofbread.spmp.model.settings.getEnum
+import com.toasterofbread.spmp.model.settings.rememberMutableEnumState
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.platform.playerservice.ClientServerPlayerService
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringOrNull
 import com.toasterofbread.spmp.resources.initResources
-import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
-import com.toasterofbread.spmp.resources.uilocalisation.UnlocalisedStringCollector
-import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
-import com.toasterofbread.spmp.resources.uilocalisation.localised.UILanguages
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.service.playercontroller.openUri
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.LoadingSplashView
@@ -38,11 +35,10 @@ import com.toasterofbread.spmp.model.appaction.shortcut.LocalShortcutState
 import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
 import com.toasterofbread.spmp.ui.theme.ApplicationTheme
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
 import spms.socketapi.shared.SPMS_API_VERSION
 import java.util.logging.Logger
+import org.jetbrains.compose.resources.FontResource
+import org.jetbrains.compose.resources.Font
 
 val LocalPlayerState: ProvidableCompositionLocal<PlayerState> = staticCompositionLocalOf { SpMp.player_state }
 
@@ -63,27 +59,15 @@ object SpMp {
 
     val prefs: PlatformPreferences get() = context.getPrefs()
 
-    private var _yt_ui_localisation: YoutubeUILocalisation? = null
-    val yt_ui_localisation: YoutubeUILocalisation get() = _yt_ui_localisation!!
-
     private val low_memory_listeners: MutableList<() -> Unit> = mutableListOf()
-    private val coroutine_scope = CoroutineScope(Dispatchers.Main)
     private var window_fullscreen_toggler: (() -> Unit)? = null
 
     fun init(context: AppContext) {
         this.context = context
-
-        coroutine_scope.launch {
-            context.ytapi.init()
-        }
-
         initResources(context.getUiLanguage(), context)
-        _yt_ui_localisation = YoutubeUILocalisation(UILanguages)
     }
 
     fun release() {
-        _yt_ui_localisation = null
-        coroutine_scope.cancel()
         _player_state?.release()
     }
 
@@ -101,8 +85,8 @@ object SpMp {
     @Composable
     fun App(
         arguments: ProgramArguments,
-        modifier: Modifier = Modifier,
         shortcut_state: ShortcutState,
+        modifier: Modifier = Modifier,
         open_uri: String? = null,
         window_fullscreen_toggler: (() -> Unit)? = null,
         onPlayerCreated: (PlayerState) -> Unit = {}
@@ -230,25 +214,17 @@ object SpMp {
         context.sendToast(exception.toString())
     }
 
+    @Composable
     private fun getFontFamily(context: AppContext): FontFamily? {
-        val font_mode: FontMode = SystemSettings.Key.FONT.getEnum(context.getPrefs())
-        val font_path: String = font_mode.getFontFilePath(context.getUiLanguage()) ?: return null
-        return FontFamily(context.loadFontFromFile("font/$font_path"))
+        val font_mode: FontMode by SystemSettings.Key.FONT.rememberMutableEnumState(context.getPrefs())
+        val font_resource: FontResource? = remember(font_mode) {
+            font_mode.getFontResource(context.getUiLanguage())
+        }
+
+        return font_resource?.let { FontFamily(Font(it)) }
     }
 
     val app_name: String get() = getStringOrNull("app_name") ?: "SpMp"
-
-    val unlocalised_string_collector: UnlocalisedStringCollector? = UnlocalisedStringCollector()
-
-    fun onUnlocalisedStringFound(string: UnlocalisedStringCollector.UnlocalisedString) {
-        if (unlocalised_string_collector?.add(string) == true) {
-            Log.warning("String key '${string.key}' of type ${string.type} has not been localised (source lang=${string.source_language})")
-        }
-    }
-
-    fun onUnlocalisedStringFound(type: String, key: String?, source_language: String) =
-        onUnlocalisedStringFound(UnlocalisedStringCollector.UnlocalisedString(type, key, source_language))
-
-    fun onUnlocalisedStringFound(string: LocalisedString) =
-        onUnlocalisedStringFound(UnlocalisedStringCollector.UnlocalisedString.fromLocalised(string))
 }
+
+expect fun isWindowTransparencySupported(): Boolean

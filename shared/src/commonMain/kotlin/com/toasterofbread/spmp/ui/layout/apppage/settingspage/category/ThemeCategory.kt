@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
+import isWindowTransparencySupported
 import androidx.compose.ui.Modifier
 import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.settings.ui.Theme
@@ -82,19 +83,34 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
         ToggleSettingsItem(
             SettingsValueState(ThemeSettings.Key.SHOW_EXPANDED_PLAYER_WAVE.getName()),
             getString("s_key_show_expanded_player_wave"), null
-        )
+        ),
 
+        AppSliderItem(
+            SettingsValueState(ThemeSettings.Key.NOWPLAYING_DEFAULT_WAVE_SPEED.getName()),
+            getString("s_key_np_default_wave_speed"), null
+        ),
+
+        AppSliderItem(
+            SettingsValueState(ThemeSettings.Key.NOWPLAYING_DEFAULT_WAVE_OPACITY.getName()),
+            getString("s_key_np_default_wave_opacity"), null
+        )
     ) + when (Platform.current) {
         Platform.DESKTOP -> getDesktopGroupItems()
         else -> emptyList()
     }
 }
 
-private fun getDesktopGroupItems(): List<SettingsItem> = listOf(
-    GroupSettingsItem(
-        getString("s_group_theming_desktop")
-    ),
+private fun getDesktopGroupItems(): List<SettingsItem> =
+    listOf(
+        GroupSettingsItem(
+            getString("s_group_theming_desktop")
+        )
+    ) + (
+        if (isWindowTransparencySupported()) getWindowTransparencyItems()
+        else emptyList()
+    )
 
+private fun getWindowTransparencyItems(): List<SettingsItem> = listOf(
     ToggleSettingsItem(
         SettingsValueState(ThemeSettings.Key.ENABLE_WINDOW_TRANSPARENCY.getName()),
         getString("s_key_enable_window_transparency"),

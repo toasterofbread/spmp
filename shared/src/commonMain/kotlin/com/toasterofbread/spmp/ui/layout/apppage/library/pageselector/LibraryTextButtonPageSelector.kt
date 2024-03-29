@@ -14,7 +14,6 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.library.LibraryAppPage
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun LibraryAppPage.LibraryTextButtonPageSelector(
     slot: LayoutSlot,
@@ -74,7 +73,9 @@ fun LibraryAppPage.LibraryTextButtonPageSelector(
                                         )
                                     },
                                     border = FilterChipDefaults.filterChipBorder(
-                                        borderColor = player.theme.on_background
+                                        borderColor = player.theme.on_background,
+                                        enabled = true,
+                                        selected = selected
                                     )
                                 )
                             }

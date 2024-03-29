@@ -20,6 +20,7 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.multiselect_context.MultiSelectGeneralActions
 import com.toasterofbread.spmp.ui.component.multiselect_context.MultiSelectOverflowActions
 import com.toasterofbread.spmp.ui.component.WaveBorder
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
 import kotlinx.coroutines.delay
 
 @Composable
@@ -186,7 +187,7 @@ private fun MediaItemMultiSelectContext.getAllSelectableItems(): List<List<Multi
     ordered_selectable_items
 
 private fun MediaItemMultiSelectContext.getItemsBetweenSelectableItems(selectable_items: List<List<MultiSelectItem>>): List<MultiSelectItem> {
-    val selected: Set<MediaItem> = getUniqueSelectedItems()
+    val selected: Set<YtmMediaItem> = getUniqueSelectedItems()
 
     return selectable_items.flatMap { items ->
         var max: Int = -1

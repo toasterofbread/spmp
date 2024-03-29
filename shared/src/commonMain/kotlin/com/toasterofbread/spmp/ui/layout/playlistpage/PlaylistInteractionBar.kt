@@ -23,8 +23,8 @@ import com.toasterofbread.spmp.ui.component.WaveBorder
 import kotlinx.coroutines.launch
 
 @Composable
-internal fun PlaylistPage.PlaylistInteractionBar(
-    items: List<Pair<MediaItem, Int>>?,
+internal fun PlaylistAppPage.PlaylistInteractionBar(
+    items: List<MediaItem>?,
     list_state: LazyListState,
     loading: Boolean,
     modifier: Modifier = Modifier
@@ -37,7 +37,7 @@ internal fun PlaylistPage.PlaylistInteractionBar(
     Column(modifier) {
         multiselect_context.InfoDisplay(
             getAllItems = {
-                listOfNotNull(items)
+                listOfNotNull(items?.map { Pair(it, null) })
             },
             altContent = {
                 Row {
@@ -75,17 +75,13 @@ internal fun PlaylistPage.PlaylistInteractionBar(
                                     SubtleLoadingIndicator()
                                 }
 
-                                playlist_editor?.also { editor ->
+                                if (playlist_editor != null) {
                                     // Reorder
-                                    AnimatedVisibility(editor.canMoveItems()) {
-                                        IconButton({
-                                            if (editor.canMoveItems()) {
-                                                setReorderable(!reordering)
-                                            }
-                                        }) {
-                                            Crossfade(reordering) { reordering ->
-                                                Icon(if (reordering) Icons.Default.Done else Icons.Default.Reorder, null)
-                                            }
+                                    IconButton({
+                                        setReorderable(!reordering)
+                                    }) {
+                                        Crossfade(reordering) { reordering ->
+                                            Icon(if (reordering) Icons.Default.Done else Icons.Default.Reorder, null)
                                         }
                                     }
                                 }
@@ -100,7 +96,7 @@ internal fun PlaylistPage.PlaylistInteractionBar(
                         Row {
                             IconButton({
                                 for (item in items ?: emptyList()) {
-                                    multiselect_context.setItemSelected(item.first, true, item.second)
+                                    multiselect_context.setItemSelected(item, true)
                                 }
                             }) {
                                 Icon(Icons.Default.SelectAll, null)

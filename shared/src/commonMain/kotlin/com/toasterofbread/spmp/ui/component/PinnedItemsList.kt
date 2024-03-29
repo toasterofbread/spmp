@@ -14,6 +14,7 @@ import com.toasterofbread.spmp.model.mediaitem.db.rememberPinnedItems
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.mediaitempreview.*
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 
 @Composable
 private fun Item(
@@ -46,7 +47,7 @@ private fun Item(
             .clip(item.getType().getThumbShape())
     ) {
         item.Thumbnail(
-            MediaItemThumbnailProvider.Quality.LOW,
+            ThumbnailProvider.Quality.LOW,
             fill_modifier.mediaItemPreviewInteraction(
                 loaded_item,
                 long_press_menu_data,

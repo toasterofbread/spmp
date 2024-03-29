@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
+import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -22,18 +23,19 @@ import com.toasterofbread.composekit.settings.ui.item.LargeToggleSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.YoutubeAuthSettings
+import com.toasterofbread.spmp.model.settings.unpackSetData
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getYoutubeAccountCategory
-import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
-import com.toasterofbread.spmp.youtubeapi.composable.LoginPage
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
-import okhttp3.Headers
+import dev.toastbits.ytmkt.impl.youtubei.YoutubeiAuthenticationState
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
+import com.toasterofbread.spmp.ui.component.NotImplementedMessage
+import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.LoginPage
+import io.ktor.http.Headers
 
 fun getYtmAuthItem(context: AppContext, ytm_auth: SettingsValueState<Set<String>>, initialise: Boolean = false): SettingsItem {
     var own_channel: Artist? by mutableStateOf(null)
@@ -61,7 +63,7 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: SettingsValueState<Set<String>
             override fun reset() = ytm_auth.reset()
             override fun PlatformPreferences.Editor.save() = with (ytm_auth) { save() }
             override fun getDefault(defaultProvider: (String) -> Any): Boolean =
-                defaultProvider(YoutubeAuthSettings.Key.YTM_AUTH.getName()) is YoutubeMusicAuthInfo
+                defaultProvider(YoutubeAuthSettings.Key.YTM_AUTH.getName()) is YoutubeiAuthenticationState
 
             @Composable
             override fun onChanged(key: Any?, action: (Boolean) -> Unit) {}
@@ -76,9 +78,9 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: SettingsValueState<Set<String>
 //                own_channel = data.first
 //            }
 
-            val data: Pair<Artist?, Headers> = YoutubeApi.UserAuthState.unpackSetData(ytm_auth.get(), context)
+            val data: Pair<String?, Headers> = ApiAuthenticationState.unpackSetData(ytm_auth.get(), context)
             if (data.first != null) {
-                own_channel = data.first
+                own_channel = ArtistRef(data.first!!)
             }
 
             own_channel?.also { channel ->

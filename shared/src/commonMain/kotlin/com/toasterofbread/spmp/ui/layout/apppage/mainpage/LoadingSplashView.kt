@@ -49,7 +49,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.common.bitmapResource
 import com.toasterofbread.composekit.utils.common.blockGestures
 import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.composekit.utils.common.toFloat
@@ -59,6 +58,8 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import kotlinx.coroutines.delay
+import org.jetbrains.compose.resources.*
+import spmp.shared.generated.resources.*
 
 private const val MESSAGE_DELAY: Long = 2000L
 enum class SplashMode {
@@ -86,7 +87,7 @@ fun LoadingSplashView(
         when (mode) {
             null -> {}
             SplashMode.SPLASH -> {
-                val image: ImageBitmap = bitmapResource("assets/drawable/ic_splash.png")
+                val image: ImageBitmap = imageResource(Res.drawable.ic_splash)
 
                 Column(
                     Modifier.fillMaxSize().background(player.theme.background).padding(10.dp),

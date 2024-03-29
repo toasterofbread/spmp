@@ -1,8 +1,8 @@
 <resources>
     <string name="language_name">English</string>
 
-    <string name="version_string" translatable="false">0.3.0</string>
-    <string name="version_code" translatable="false">11</string>
+    <string name="version_string" translatable="false">0.3.1</string>
+    <string name="version_code" translatable="false">12</string>
 
     <string name="app_name" translatable="false">SpMp</string>
     <string name="app_name_debug" translatable="false">SpMp (debug)</string>
@@ -168,6 +168,8 @@
     <string name="song_theme_menu_gradient_depth">Gradient depth</string>
     <string name="song_theme_menu_background_image_opacity">Background image opacity</string>
     <string name="song_theme_menu_image_shadow_radius">Shadow radius</string>
+    <string name="song_theme_menu_wave_speed">Wave speed</string>
+    <string name="song_theme_menu_wave_opacity">Wave opacity</string>
 
     <string name="song_notif_image_menu_open">Adjust notification image</string>
     <string name="song_notif_image_menu_adjust_offset">Change image offset</string>
@@ -274,7 +276,6 @@
     <string name="report_error">Report</string>
     <string name="wrap_text_switch_label">Wrap text</string>
     <string name="upload_to_paste_dot_ee">Upload to Paste.ee</string>
-    <string name="error_info_display_show_json_data">Show JSON data</string>
 
     <string name="lpm_action_radio">Start radio</string>
     <string name="lpm_action_play">Play</string>
@@ -490,11 +491,13 @@
     <string name="s_option_np_accent_none">Don\'t use accent colour</string>
 
     <string name="s_key_np_default_gradient_depth">Default gradient depth</string>
-    <string name="s_key_np_default_background_image_opacity">Default landscape background image opacity</string>
+    <string name="s_key_np_default_background_image_opacity">Default landscape back ground image opacity</string>
     <string name="s_key_np_default_shadow_radius">Default shadow size</string>
     <string name="s_key_np_default_image_corner_rounding">Default image corner rounding</string>
+    <string name="s_key_np_default_wave_speed">Default wave speed</string>
+    <string name="s_key_np_default_wave_opacity">Default wave opacity</string>
 
-    <string name="s_key_show_expanded_player_wave">Show expanded player wave</string>
+    <string name="s_key_show_expanded_player_wave">Show wave in expanded player</string>
 
     <string name="s_group_theming_desktop">Desktop-only options</string>
 
@@ -740,7 +743,7 @@
         <item>Go to the network tab</item>
         <item>Go to https://music.youtube.com/</item>
         <item>Find any POST request to https://music.youtube.com/youtubei/v1/... such as /browse or /account_menu</item>
-        <item>Right-click the request and selecting 'Copy' (or 'Copy value') and then 'Copy as cURL' to copy the request headers, then paste them below</item>
+        <item>Right-click the request and select 'Copy' (or 'Copy value') and then 'Copy as cURL' to copy the request headers, then paste them below</item>
     </string-array>
     <string name="youtube_manual_login_suffix"></string>
     <string name="youtube_manual_login_field">Headers</string>
@@ -752,6 +755,8 @@
     <string name="youtube_channel_creation_title">Register YouTube Music profile</string>
     <string name="youtube_channel_creation_subtitle">This can also be done on https://music.youtube.com/ by logging in and going to 'Your channel'</string>
     <string name="youtube_channel_creation_confirm">Create</string>
+    <string name="youtube_channel_creation_field_given_name">Given name</string>
+    <string name="youtube_channel_creation_field_family_name">Family name</string>
 
     <string name="manual_login_error_missing_following_headers">Missing the following headers:</string>
     <string name="manual_login_desktop_browser_may_be_needed">You may need to use a desktop browser to complete these steps</string>

@@ -5,16 +5,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.IntOffset
 import app.cash.sqldelight.Query
-import com.toasterofbread.db.Database
-import com.toasterofbread.db.mediaitem.song.ArtistById
+import com.toasterofbread.spmp.db.Database
+import com.toasterofbread.spmp.db.mediaitem.song.ArtistById
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.db.*
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.settings.category.LyricsSettings
@@ -23,9 +22,10 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.crop
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.platform.toImageBitmap
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.toLyricsReference
+import dev.toastbits.ytmkt.model.external.SongLikedStatus
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmSong
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.InputStream
@@ -63,14 +63,7 @@ interface Song: MediaItem.WithArtist {
 
     override suspend fun downloadThumbnailData(url: String): Result<ImageBitmap> = withContext(Dispatchers.IO) {
         return@withContext kotlin.runCatching {
-            val connection: URLConnection = URL(url).openConnection()
-            connection.connectTimeout = com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DEFAULT_CONNECT_TIMEOUT
-
-            val stream: InputStream = connection.getInputStream()
-            val bytes: ByteArray = stream.readBytes()
-            stream.close()
-
-            val image: ImageBitmap = bytes.toImageBitmap()
+            val image: ImageBitmap = super.downloadThumbnailData(url).getOrThrow()
             if (image.width == image.height) {
                 return@runCatching image
             }
@@ -81,11 +74,11 @@ interface Song: MediaItem.WithArtist {
         }
     }
 
-    val TypeOfSong: Property<SongType?>
+    val TypeOfSong: Property<YtmSong.Type?>
         get() = property_rememberer.rememberSingleQueryProperty(
         "TypeOfSong",
         { songQueries.songTypeById(id) },
-        { song_type?.let { SongType.entries[it.toInt()] } },
+        { song_type?.let { YtmSong.Type.entries[it.toInt()] } },
         { songQueries.updateSongTypeById(it?.ordinal?.toLong(), id) }
     )
     val Duration: Property<Long?>
@@ -161,6 +154,14 @@ interface Song: MediaItem.WithArtist {
         get() = property_rememberer.rememberSingleQueryProperty(
             "ImageShadowRadius", { songQueries.imageShadowRadiusById(id) }, { image_shadow_radius?.toFloat() }, { songQueries.updateImageShadowRadiusById(it?.toDouble(), id) }
         )
+    val BackgroundWaveSpeed: Property<Float?>
+        get() = property_rememberer.rememberSingleQueryProperty(
+            "BackgroundWaveSpeed", { songQueries.backgroundWaveSpeedById(id) }, { background_wave_speed?.toFloat() }, { songQueries.updateBackgroundWaveSpeedById(it?.toDouble(), id) }
+        )
+    val BackgroundWaveOpacity: Property<Float?>
+        get() = property_rememberer.rememberSingleQueryProperty(
+            "BackgroundWaveOpacity", { songQueries.backgroundWaveOpacityById(id) }, { background_wave_opacity?.toFloat() }, { songQueries.updateBackgroundWaveOpacityById(it?.toDouble(), id) }
+        )
     val Liked: Property<SongLikedStatus?>
         get() = property_rememberer.rememberSingleQueryProperty(
         "Liked", { songQueries.likedById(id) }, { liked.toSongLikedStatus() }, { songQueries.updatelikedById(it.toLong(), id) }
@@ -194,15 +195,15 @@ interface Song: MediaItem.WithArtist {
         } }
     }
 
-    override val ThumbnailProvider: Property<MediaItemThumbnailProvider?>
-        get() = object : Property<MediaItemThumbnailProvider?> {
+    override val ThumbnailProvider: Property<ThumbnailProvider?>
+        get() = object : Property<ThumbnailProvider?> {
             private val provider = SongThumbnailProvider(id)
-            override fun get(db: Database): MediaItemThumbnailProvider = provider
+            override fun get(db: Database): ThumbnailProvider = provider
 
-            override fun set(value: MediaItemThumbnailProvider?, db: Database) {}
+            override fun set(value: ThumbnailProvider?, db: Database) {}
 
             @Composable
-            override fun observe(db: Database): MutableState<MediaItemThumbnailProvider?> =
+            override fun observe(db: Database): MutableState<ThumbnailProvider?> =
                 remember(this) { mutableStateOf(get(db)) }
         }
 
@@ -213,11 +214,11 @@ interface Song: MediaItem.WithArtist {
     }
 }
 
-private data class SongThumbnailProvider(val id: String): MediaItemThumbnailProvider {
-    override fun getThumbnailUrl(quality: MediaItemThumbnailProvider.Quality): String? =
+private data class SongThumbnailProvider(val id: String): ThumbnailProvider {
+    override fun getThumbnailUrl(quality: ThumbnailProvider.Quality): String? =
         when (quality) {
-            MediaItemThumbnailProvider.Quality.LOW -> "https://img.youtube.com/vi/$id/0.jpg"
-            MediaItemThumbnailProvider.Quality.HIGH -> "https://img.youtube.com/vi/$id/maxresdefault.jpg"
+            ThumbnailProvider.Quality.LOW -> "https://img.youtube.com/vi/$id/0.jpg"
+            ThumbnailProvider.Quality.HIGH -> "https://img.youtube.com/vi/$id/maxresdefault.jpg"
         }
 }
 

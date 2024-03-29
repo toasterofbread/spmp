@@ -4,7 +4,6 @@ package com.toasterofbread.spmp.ui.layout.nowplaying.queue
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -24,7 +23,6 @@ import androidx.compose.ui.graphics.Color
 import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.modifier.background
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun StopAfterSongButton(getBackgroundColour: () -> Color, modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current

@@ -26,8 +26,8 @@ import androidx.compose.ui.Alignment
 import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.utils.common.getValue
 import com.toasterofbread.composekit.utils.composable.*
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.appaction.AppAction
 import com.toasterofbread.spmp.model.appaction.NavigationAppAction
 import com.toasterofbread.spmp.model.appaction.action.navigation.AppPageNavigationAction
@@ -43,6 +43,7 @@ import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.Serializable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 
 @Serializable
 data class ContentBarElementButton(
@@ -99,9 +100,9 @@ data class ContentBarElementButton(
         ) {
             if (action is NavigationAppAction) {
                 if (action.action is AppPageNavigationAction && action.action.page == AppPage.Type.PROFILE) {
-                    val own_channel: Artist? = player.getOwnChannel()
-                    if (own_channel != null) {
-                        own_channel.Thumbnail(MediaItemThumbnailProvider.Quality.LOW, Modifier.size(40.dp).clip(CircleShape))
+                    val own_channel_id: String? = player.getOwnChannelId()
+                    if (own_channel_id != null) {
+                        ArtistRef(own_channel_id).Thumbnail(ThumbnailProvider.Quality.LOW, Modifier.size(40.dp).clip(CircleShape))
                     }
                     return@IconButton
                 }
@@ -177,11 +178,11 @@ private fun getCurrentAppPageType(): AppPage.Type? =
             RadioBuilder -> AppPage.Type.RADIO_BUILDER
             ControlPanel -> AppPage.Type.CONTROL_PANEL
             Settings -> AppPage.Type.SETTINGS
-            is MediaItemAppPage ->
-                if (page.item.item?.id == LocalPlayerState.current.getOwnChannel()?.id) AppPage.Type.PROFILE
+            is ArtistAppPage ->
+                if (page.item?.id == LocalPlayerState.current.getOwnChannelId()) AppPage.Type.PROFILE
                 else null
             else -> null
         }
     }
 
-private fun PlayerState.getOwnChannel(): Artist? = context.ytapi.user_auth_state?.own_channel
+private fun PlayerState.getOwnChannelId(): String? = context.ytapi.user_auth_state?.own_channel_id

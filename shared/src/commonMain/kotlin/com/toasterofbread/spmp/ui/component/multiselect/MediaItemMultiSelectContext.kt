@@ -22,8 +22,9 @@ import com.toasterofbread.composekit.utils.common.lazyAssert
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
 
-typealias MultiSelectItem = Pair<MediaItem, Int?>
+typealias MultiSelectItem = Pair<YtmMediaItem, Int?>
 
 open class MediaItemMultiSelectContext {
     val additionalSelectedItemActions: (@Composable ColumnScope.(MediaItemMultiSelectContext) -> Unit)?
@@ -39,7 +40,7 @@ open class MediaItemMultiSelectContext {
     internal val selected_items: MutableList<MultiSelectItem> = mutableStateListOf()
     var is_active: Boolean by mutableStateOf(false)
         private set
-    
+
     internal val ordered_selectable_items: MutableList<List<MultiSelectItem>> = mutableStateListOf()
 
     @Composable
@@ -53,7 +54,7 @@ open class MediaItemMultiSelectContext {
         is_active = value
     }
 
-    fun isItemSelected(item: MediaItem, key: Int? = null): Boolean {
+    fun isItemSelected(item: YtmMediaItem, key: Int? = null): Boolean {
         if (!is_active) {
             return false
         }
@@ -73,7 +74,7 @@ open class MediaItemMultiSelectContext {
     }
 
     fun getSelectedItems(): List<MultiSelectItem> = selected_items
-    fun getUniqueSelectedItems(): Set<MediaItem> = selected_items.map { it.first }.distinctBy { it.id }.toSet()
+    fun getUniqueSelectedItems(): Set<YtmMediaItem> = selected_items.map { it.first }.distinctBy { it.id }.toSet()
 
     fun updateKey(index: Int, key: Int?) {
         selected_items[index] = selected_items[index].copy(second = key)
@@ -105,10 +106,10 @@ open class MediaItemMultiSelectContext {
             if (!is_active) {
                 setActive(true)
             }
-            
+
             selected_items.add(item)
             onSelectedItemsChanged()
-            
+
             return true
         }
         else if (selected_items.removeIf { it.first == item.first && it.second == item.second }) {
@@ -120,7 +121,7 @@ open class MediaItemMultiSelectContext {
         }
     }
 
-    fun setItemSelected(item: MediaItem, selected: Boolean, key: Int? = null): Boolean =
+    fun setItemSelected(item: YtmMediaItem, selected: Boolean, key: Int? = null): Boolean =
         setItemSelected(MultiSelectItem(item, key), selected)
 
     @Composable
@@ -182,7 +183,7 @@ open class MediaItemMultiSelectContext {
             exit
         )
     }
-    
+
     @Composable
     fun CollectionToggleButton(
         items: List<MultiSelectItem>,
@@ -195,7 +196,7 @@ open class MediaItemMultiSelectContext {
             if (ordered) {
                 ordered_selectable_items.add(items)
             }
-            
+
             onDispose {
                 ordered_selectable_items.remove(items)
             }
@@ -220,7 +221,7 @@ open class MediaItemMultiSelectContext {
     }
 
     private fun areItemsValid(): Boolean {
-        val keys: MutableMap<MediaItem, MutableList<Int?>> = mutableMapOf()
+        val keys: MutableMap<YtmMediaItem, MutableList<Int?>> = mutableMapOf()
         for (item in selected_items) {
             val item_keys: MutableList<Int?>? = keys[item.first]
             if (item_keys == null) {

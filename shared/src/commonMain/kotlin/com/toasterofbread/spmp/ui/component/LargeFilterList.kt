@@ -14,7 +14,6 @@ import com.toasterofbread.composekit.utils.common.*
 import com.toasterofbread.composekit.utils.composable.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LargeFilterList(
     item_count: Int,

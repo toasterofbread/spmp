@@ -2,9 +2,9 @@ package com.toasterofbread.spmp.service.playercontroller
 
 import SpMp
 import com.toasterofbread.composekit.utils.common.launchSingle
-import com.toasterofbread.db.Database
+import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.ProjectBuildConfig
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.DiscordAuthSettings
@@ -13,7 +13,6 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrThrowHere
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -104,7 +103,7 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
                 try {
                     val artist: ArtistRef? = status_song.Artist.get(context.database)
 
-                    val images: List<String?> = getCustomImages(listOfNotNull(status_song, artist), MediaItemThumbnailProvider.Quality.LOW).getOrThrowHere()
+                    val images: List<String?> = getCustomImages(listOfNotNull(status_song, artist), ThumbnailProvider.Quality.LOW).getOrThrow()
 
                     large_image = images.getOrNull(0)
                     small_image = images.getOrNull(1)

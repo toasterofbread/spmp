@@ -48,10 +48,10 @@ import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.platform.PlatformPreferencesListener
 import com.toasterofbread.spmp.platform.visualiser.MusicVisualiser
 import com.toasterofbread.spmp.platform.visualiser.FFTAudioProcessor
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
+import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatusListener
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
 import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
@@ -62,9 +62,11 @@ import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.PlayerServiceCommand
 import com.toasterofbread.spmp.platform.processMediaDataSpec
 import com.toasterofbread.spmp.resources.getStringTODO
-import com.toasterofbread.spmp.youtubeapi.endpoint.SetSongLikedEndpoint
-import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpoint
-import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
+import dev.toastbits.ytmkt.endpoint.SetSongLikedEndpoint
+import dev.toastbits.ytmkt.formats.VideoFormatsEndpoint
+import dev.toastbits.ytmkt.model.external.SongLikedStatus
+import com.toasterofbread.spmp.model.radio.RadioInstance
+import com.toasterofbread.spmp.model.radio.RadioState
 import kotlinx.coroutines.*
 import spms.socketapi.shared.SpMsPlayerRepeatMode
 import spms.socketapi.shared.SpMsPlayerState
@@ -82,8 +84,11 @@ fun getMediaNotificationImageMaxOffset(image: Bitmap): IntOffset {
     )
 }
 
-fun getMediaNotificationImageSize(image: Bitmap): IntSize {
-    val aspect: Float = if (Build.VERSION.SDK_INT >= 33) A13_MEDIA_NOTIFICATION_ASPECT else 1f
+fun getMediaNotificationImageSize(image: Bitmap, square: Boolean = false): IntSize {
+    val aspect: Float =
+        if (!square && Build.VERSION.SDK_INT >= 33) A13_MEDIA_NOTIFICATION_ASPECT
+        else 1f
+
     if (image.width > image.height) {
         return IntSize(
             image.height,
@@ -103,8 +108,9 @@ private fun formatMediaNotificationImage(
     song: Song,
     context: AppContext,
 ): Bitmap {
-    val dimensions: IntSize = getMediaNotificationImageSize(image)
     val offset: IntOffset = song.NotificationImageOffset.get(context.database) ?: IntOffset.Zero
+    val square: Boolean = offset.x == 0 && offset.y == 0
+    val dimensions: IntSize = getMediaNotificationImageSize(image, square = square)
 
     return Bitmap.createBitmap(
         image,
@@ -135,7 +141,7 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
     private var paused_by_device_disconnect: Boolean = false
     private var device_connection_changed_playing_status: Boolean = false
 
-    private val song_liked_listener: SongLikedStatus.Listener = SongLikedStatus.Listener { song, liked_status ->
+    private val song_liked_listener: SongLikedStatusListener = SongLikedStatusListener { song, liked_status ->
         if (song == current_song) {
             updatePlayerCustomActions(liked_status)
         }
@@ -159,6 +165,20 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
     }
 
     private val player_listener: Player.Listener = object : Player.Listener {
+        private fun createLoudnessEnhancer(): LoudnessEnhancer {
+            loudness_enhancer?.also {
+                return it
+            }
+
+            try {
+                loudness_enhancer = LoudnessEnhancer(player.audioSessionId)
+                return loudness_enhancer!!
+            }
+            catch (e: Throwable) {
+                throw RuntimeException("Creating loudness enhancer failed ${player.audioSessionId}", e)
+            }
+        }
+
         override fun onMediaItemTransition(media_item: MediaItem?, reason: Int) {
             val song: Song? = media_item?.getSong()
             if (song?.id == current_song?.id) {
@@ -168,16 +188,12 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
             current_song = song
             updatePlayerCustomActions()
 
-            if (loudness_enhancer == null) {
-                loudness_enhancer = LoudnessEnhancer(player.audioSessionId)
-            }
-
-            loudness_enhancer?.update(song)
+            createLoudnessEnhancer().update(song)
         }
 
         override fun onAudioSessionIdChanged(audioSessionId: Int) {
             loudness_enhancer?.release()
-            loudness_enhancer = LoudnessEnhancer(audioSessionId).apply {
+            createLoudnessEnhancer().apply {
                 update(current_song)
                 enabled = true
             }
@@ -362,7 +378,7 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
     actual override fun onCreate() {
         super.onCreate()
 
-        _context = AppContext(this, coroutine_scope).init()
+        _context = AppContext(this, coroutine_scope)
         _context.getPrefs().addListener(prefs_listener)
 
         initialiseSessionAndPlayer()
@@ -384,7 +400,7 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
             }
         )
 
-        SongLikedStatus.addListener(song_liked_listener)
+        SongLikedStatusListener.addListener(song_liked_listener)
 
         setInstance(this)
     }
@@ -396,7 +412,7 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
         player.release()
         media_session.release()
         loudness_enhancer?.release()
-        SongLikedStatus.removeListener(song_liked_listener)
+        SongLikedStatusListener.removeListener(song_liked_listener)
 
         val audio_manager = getSystemService(AUDIO_SERVICE) as AudioManager?
         audio_manager?.unregisterAudioDeviceCallback(audio_device_callback)
@@ -553,7 +569,7 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
                             val song = SongRef(uri.toString())
                             var fail_error: Throwable? = null
 
-                            for (quality in MediaItemThumbnailProvider.Quality.byQuality()) {
+                            for (quality in ThumbnailProvider.Quality.byQuality()) {
                                 val load_result = MediaItemThumbnailLoader.loadItemThumbnail(song, quality, context)
                                 load_result.fold(
                                     { image ->
@@ -676,7 +692,7 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
     actual override val current_song_index: Int get() = player.currentMediaItemIndex
     actual override val current_position_ms: Long get() = player.currentPosition
     actual override val duration_ms: Long get() = player.duration
-    actual override val radio_state: RadioInstance.RadioState get() = service_player.radio_state
+    actual override val radio_instance: RadioInstance get() = service_player.radio_instance
     actual override var repeat_mode: SpMsPlayerRepeatMode
         get() = SpMsPlayerRepeatMode.entries[player.repeatMode]
         set(value) {
@@ -795,8 +811,9 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
     }
 
     actual override fun removeSong(index: Int) {
+        val item = player.getMediaItemAt(index).getSong()
         player.removeMediaItem(index)
-        listeners.forEach { it.onSongRemoved(index) }
+        listeners.forEach { it.onSongRemoved(index, item) }
     }
 
     @Composable

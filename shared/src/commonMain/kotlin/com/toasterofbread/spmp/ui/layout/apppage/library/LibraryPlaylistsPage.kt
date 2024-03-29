@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.ui.layout.apppage.library
 
 import LocalPlayerState
 import SpMp.isDebugBuild
+import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
@@ -21,7 +22,6 @@ import androidx.compose.ui.unit.sp
 import com.toasterofbread.composekit.platform.composable.ScrollBarLazyVerticalGrid
 import com.toasterofbread.composekit.utils.composable.LoadActionIconButton
 import com.toasterofbread.composekit.utils.composable.spanItem
-import com.toasterofbread.composekit.utils.modifier.vertical
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
 import com.toasterofbread.spmp.model.mediaitem.layout.getMediaItemPreviewSquareAdditionalHeight
@@ -37,10 +37,10 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
-import com.toasterofbread.spmp.youtubeapi.endpoint.AccountPlaylistsEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.CreateAccountPlaylistEndpoint
-import com.toasterofbread.spmp.youtubeapi.implementedOrNull
+import dev.toastbits.ytmkt.model.YtmApi
+import dev.toastbits.ytmkt.endpoint.AccountPlaylistsEndpoint
+import dev.toastbits.ytmkt.endpoint.CreateAccountPlaylistEndpoint
+import dev.toastbits.ytmkt.model.implementedOrNull
 
 internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =
@@ -59,13 +59,13 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
         modifier: Modifier
     ) {
         val player: PlayerState = LocalPlayerState.current
-        val api: YoutubeApi = player.context.ytapi
+        val api: YtmApi = player.context.ytapi
 
         val show_likes_playlist: Boolean by BehaviourSettings.Key.SHOW_LIKES_PLAYLIST.rememberMutableState()
 
         val local_playlists: List<LocalPlaylistData> = MediaItemLibrary.rememberLocalPlaylists(player.context) ?: emptyList()
-        val account_playlists: List<RemotePlaylistRef>? = api.user_auth_state?.own_channel?.let { own_channel ->
-            rememberOwnedPlaylists(own_channel, player.context)
+        val account_playlists: List<RemotePlaylistRef>? = api.user_auth_state?.own_channel_id?.let {
+            rememberOwnedPlaylists(it, player.context)
         }
 
         val sorted_local_playlists = library_page.sort_type.sortAndFilterItems(local_playlists, library_page.search_filter, player.database, library_page.reverse_sort)
@@ -82,7 +82,7 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
 
         LaunchedEffect(showing_alt_content) {
             if (showing_alt_content && account_playlists.isNullOrEmpty()) {
-                val auth_state: YoutubeApi.UserAuthState = player.context.ytapi.user_auth_state ?: return@LaunchedEffect
+                val auth_state: ApiAuthenticationState = player.context.ytapi.user_auth_state ?: return@LaunchedEffect
 
                 val load_endpoint: AccountPlaylistsEndpoint = auth_state.AccountPlaylists
                 if (load_endpoint.isImplemented()) {
@@ -129,7 +129,7 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
     @Composable
     override fun SideContent(showing_alt_content: Boolean) {
         val player: PlayerState = LocalPlayerState.current
-        val auth_state: YoutubeApi.UserAuthState? = player.context.ytapi.user_auth_state
+        val auth_state: ApiAuthenticationState? = player.context.ytapi.user_auth_state
 
         val load_endpoint: AccountPlaylistsEndpoint? = auth_state?.AccountPlaylists?.implementedOrNull()
         val create_endpoint: CreateAccountPlaylistEndpoint? = auth_state?.CreateAccountPlaylist?.implementedOrNull()
@@ -154,7 +154,7 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
                         }
                 }
                 else if (create_endpoint != null) {
-                    MediaItemLibrary.createOwnedPlaylist(auth_state, create_endpoint)
+                    MediaItemLibrary.createOwnedPlaylist(context, auth_state, create_endpoint)
                         .onFailure {
                             load_error = it
                         }

@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.composekit.platform.Platform
-import com.toasterofbread.db.Database
+import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
@@ -22,18 +22,26 @@ import com.toasterofbread.spmp.model.mediaitem.db.observeAsState
 import com.toasterofbread.spmp.model.mediaitem.db.toSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
+import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.toImageBitmap
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProviderImpl
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmArtist
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmSong
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.URL
 
+private const val DEFAULT_CONNECT_TIMEOUT: Int = 10000
 val MEDIA_ITEM_RELATED_CONTENT_ICON: ImageVector get() = Icons.Default.GridView
-val MEDIA_ITEM_RELATED_CONTENT_ICON_ROUNDED: ImageVector get() = Icons.Rounded.GridView
 
-interface MediaItem: MediaItemHolder {
-    val id: String
+interface MediaItem: MediaItemHolder, YtmMediaItem {
+    override val id: String
     override val item: MediaItem get() = this
 
     override fun toString(): String
@@ -41,17 +49,6 @@ interface MediaItem: MediaItemHolder {
     fun getType(): MediaItemType
     fun getURL(context: AppContext): String
     fun getReference(): MediaItemRef
-
-    private fun formatActiveTitle(active_title: String): String {
-        Platform.DESKTOP.only {
-            return active_title.replace('ㅤ', '\u200b')
-        }
-        return active_title
-    }
-
-    fun getActiveTitle(db: Database): String? {
-        return db.mediaItemQueries.activeTitleById(id).executeAsOneOrNull()?.IFNULL?.let { formatActiveTitle(it) }
-    }
 
     @Composable
     fun observeActiveTitle(): MutableState<String?> {
@@ -71,12 +68,16 @@ interface MediaItem: MediaItemHolder {
         CustomTitle.set(value, context.database)
     }
 
+    fun getActiveTitle(db: Database): String? {
+        return getItemActiveTitle(db)
+    }
+
     fun createDbEntry(db: Database)
     fun getEmptyData(): MediaItemData
     fun populateData(data: MediaItemData, db: Database) {
         data.loaded = Loaded.get(db)
-        data.title = Title.get(db)
-        data.custom_title = CustomTitle.get(db)
+        data.name = Title.get(db)
+        data.custom_name = CustomTitle.get(db)
         data.description = Description.get(db)
         data.thumbnail_provider = ThumbnailProvider.get(db)
     }
@@ -100,7 +101,7 @@ interface MediaItem: MediaItemHolder {
     suspend fun downloadThumbnailData(url: String): Result<ImageBitmap> = withContext(Dispatchers.IO) {
         return@withContext runCatching {
             val connection = URL(url).openConnection()
-            connection.connectTimeout = com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DEFAULT_CONNECT_TIMEOUT
+            connection.connectTimeout = DEFAULT_CONNECT_TIMEOUT
 
             val stream = connection.getInputStream()
             val bytes = stream.readBytes()
@@ -128,13 +129,13 @@ interface MediaItem: MediaItemHolder {
         get() = property_rememberer.rememberSingleQueryProperty(
         "Description", { mediaItemQueries.descriptionById(id) }, { description }, { mediaItemQueries.updateDescriptionById(it, id) }
     )
-    val ThumbnailProvider: Property<MediaItemThumbnailProvider?>
+    val ThumbnailProvider: Property<ThumbnailProvider?>
         get() = property_rememberer.rememberSingleQueryProperty(
         "ThumbnailProvider",
         { mediaItemQueries.thumbnailProviderById(id) },
         { this.toThumbnailProvider() },
         {
-            require(it is MediaItemThumbnailProviderImpl?)
+            require(it is ThumbnailProviderImpl?)
             mediaItemQueries.updateThumbnailProviderById(it?.url_a, it?.url_b, id)
         }
     )
@@ -172,7 +173,7 @@ interface MediaItem: MediaItemHolder {
             db.transaction { with(apply_to_item as WithArtist) {
                 super.saveToDatabase(db, apply_to_item, uncertain, subitems_uncertain)
 
-                val artist_data = artist
+                val artist_data: Artist? = artist
                 if (artist_data is ArtistData) {
                     artist_data.saveToDatabase(db, uncertain = subitems_uncertain)
                 }
@@ -187,6 +188,10 @@ interface MediaItem: MediaItemHolder {
 }
 
 abstract class MediaItemRef: MediaItem {
+    override val name: String? = null
+    override val description: String? = null
+    override val thumbnail_provider: ThumbnailProvider? = null
+
     override fun equals(other: Any?): Boolean {
         if (other is MediaItemRef && other.getType() == getType()) {
             return id == other.id
@@ -197,4 +202,24 @@ abstract class MediaItemRef: MediaItem {
     override fun hashCode(): Int {
         return id.hashCode()
     }
+}
+
+fun YtmMediaItem.toMediaItemRef(): MediaItem =
+    when (this) {
+        is YtmSong -> SongRef(id)
+        is YtmPlaylist -> RemotePlaylistRef(id)
+        is YtmArtist -> ArtistRef(id)
+        is MediaItem -> this
+        else -> throw NotImplementedError(this::class.toString())
+    }
+
+fun YtmMediaItem.getItemActiveTitle(db: Database): String? {
+    return db.mediaItemQueries.activeTitleById(id).executeAsOneOrNull()?.IFNULL?.let { formatActiveTitle(it) }
+}
+
+private fun formatActiveTitle(active_title: String): String {
+    Platform.DESKTOP.only {
+        return active_title.replace('ㅤ', '\u200b')
+    }
+    return active_title
 }

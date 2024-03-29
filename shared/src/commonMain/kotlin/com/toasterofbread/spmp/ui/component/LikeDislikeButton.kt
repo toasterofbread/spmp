@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.component
 
 import LocalPlayerState
+import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.size
@@ -25,19 +26,18 @@ import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLikedLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.theme.appHover
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
-import com.toasterofbread.spmp.youtubeapi.endpoint.SetSongLikedEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.SongLikedEndpoint
+import dev.toastbits.ytmkt.endpoint.SetSongLikedEndpoint
+import dev.toastbits.ytmkt.endpoint.SongLikedEndpoint
+import dev.toastbits.ytmkt.model.external.SongLikedStatus
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
 fun LikeDislikeButton(
     song: Song,
-    auth_state: YoutubeApi.UserAuthState?,
+    auth_state: ApiAuthenticationState?,
     modifier: Modifier = Modifier,
     getEnabled: (() -> Boolean)? = null,
     getColour: () -> Color
@@ -53,7 +53,9 @@ fun LikeDislikeButton(
     val rotation: Float by animateFloatAsState(if (liked_status == SongLikedStatus.DISLIKED) 180f else 0f)
 
     LaunchedEffect(song.id) {
-        SongLikedLoader.loadSongLiked(song.id, player.context, get_liked_endpoint)
+        SongLikedLoader.loadSongLiked(song.id, player.context, get_liked_endpoint).onFailure {
+            it.printStackTrace()
+        }
     }
 
     PlatformClickableIconButton(

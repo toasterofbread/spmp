@@ -1,25 +1,22 @@
 package com.toasterofbread.spmp.model.mediaitem.song
 
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
-import com.toasterofbread.spmp.youtubeapi.endpoint.SetSongLikedEndpoint
+import dev.toastbits.ytmkt.endpoint.SetSongLikedEndpoint
+import dev.toastbits.ytmkt.model.external.SongLikedStatus
 
-enum class SongLikedStatus {
-    NEUTRAL, LIKED, DISLIKED;
-
-    fun interface Listener {
-        fun onSongLikedStatusChanged(song: Song, liked_status: SongLikedStatus)
-    }
+fun interface SongLikedStatusListener {
+    fun onSongLikedStatusChanged(song: Song, liked_status: SongLikedStatus)
 
     companion object {
-        private val listeners: MutableList<Listener> = mutableListOf()
+        private val listeners: MutableList<SongLikedStatusListener> = mutableListOf()
 
-        fun addListener(listener: Listener) {
+        fun addListener(listener: SongLikedStatusListener) {
             synchronized(listeners) {
                 listeners.add(listener)
             }
         }
-        fun removeListener(listener: Listener) {
+
+        fun removeListener(listener: SongLikedStatusListener) {
             synchronized(listeners) {
                 listeners.remove(listener)
             }
@@ -51,12 +48,12 @@ fun SongLikedStatus?.toLong(): Long? =
 
 suspend fun Song.updateLiked(liked: SongLikedStatus, endpoint: SetSongLikedEndpoint?, context: AppContext): Result<Unit> {
     Liked.set(liked, context.database)
-    SongLikedStatus.onSongLikedStatusChanged(this, liked)
+    SongLikedStatusListener.onSongLikedStatusChanged(this, liked)
 
     if (endpoint?.isImplemented() == true) {
-        return endpoint.setSongLiked(this, liked).onSuccess {
+        return endpoint.setSongLiked(id, liked).onSuccess {
             Liked.set(liked, context.database)
-            SongLikedStatus.onSongLikedStatusChanged(this, liked)
+            SongLikedStatusListener.onSongLikedStatusChanged(this, liked)
         }
     }
 

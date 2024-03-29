@@ -56,8 +56,7 @@ class ControlPanelAppPage(override val state: AppPageState): AppPage() {
             }
     }
     
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
+        @Composable
     override fun ColumnScope.Page(
         multiselect_context: MediaItemMultiSelectContext,
         modifier: Modifier,

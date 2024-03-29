@@ -78,7 +78,6 @@ abstract class LibrarySubPage(val context: AppContext) {
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 class LibraryAppPage(override val state: AppPageState): AppPage() {
     val tabs: List<LibrarySubPage> = listOf(
         LibraryPlaylistsPage(state.context),

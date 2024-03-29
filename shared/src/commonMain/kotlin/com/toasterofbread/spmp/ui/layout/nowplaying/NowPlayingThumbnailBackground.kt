@@ -9,7 +9,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
@@ -31,7 +31,7 @@ fun NowPlayingThumbnailBackground(modifier: Modifier = Modifier) {
         }
 
         song.Thumbnail(
-            MediaItemThumbnailProvider.Quality.HIGH,
+            ThumbnailProvider.Quality.HIGH,
             modifier
                 .blur(5.dp)
                 .alpha(opacity)

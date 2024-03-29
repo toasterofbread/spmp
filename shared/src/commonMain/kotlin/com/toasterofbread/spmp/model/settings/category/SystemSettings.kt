@@ -5,6 +5,9 @@ import androidx.compose.material.icons.outlined.Tune
 import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getSystemCategoryItems
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.*
+import org.jetbrains.compose.resources.FontResource
 
 data object SystemSettings: SettingsCategory("system") {
     override val keys: List<SettingsKey> = Key.entries.toList()
@@ -44,19 +47,17 @@ data object SystemSettings: SettingsCategory("system") {
 enum class FontMode {
     DEFAULT, SYSTEM, HC_MARU_GOTHIC;
 
-    fun getFontFilePath(language: String): String? =
+    fun getFontResource(language: String): FontResource? =
         when (this) {
-            DEFAULT -> getDefaultFont(
-                language
-            ).getFontFilePath(language)
+            DEFAULT -> getDefaultFont(language).getFontResource(language)
             SYSTEM -> null
-            HC_MARU_GOTHIC -> "hc-maru-gothic/font.ttf"
+            HC_MARU_GOTHIC -> Res.font.hc_maru_gothic
         }
 
     fun getReadable(language: String): String =
         when (this) {
             DEFAULT -> {
-                val default_font = getDefaultFont(language).getReadable(language)
+                val default_font: String = getDefaultFont(language).getReadable(language)
                 getString("font_option_default_\$x").replace("\$x", default_font)
             }
             SYSTEM -> getString("font_option_system")

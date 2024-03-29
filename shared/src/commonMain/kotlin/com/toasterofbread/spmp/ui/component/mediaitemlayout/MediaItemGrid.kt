@@ -3,7 +3,6 @@ package com.toasterofbread.spmp.ui.component.mediaitemlayout
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.layout.Arrangement
@@ -38,97 +37,79 @@ import com.toasterofbread.composekit.utils.modifier.vertical
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.getUid
-import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
-import com.toasterofbread.spmp.model.mediaitem.layout.ViewMore
+import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
 import com.toasterofbread.spmp.model.mediaitem.layout.getMediaItemPreviewSquareAdditionalHeight
 import com.toasterofbread.spmp.model.mediaitem.layout.shouldShowTitleBar
 import com.toasterofbread.spmp.model.mediaitem.rememberFilteredItems
-import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
+import com.toasterofbread.spmp.model.mediaitem.toMediaItemData
+import com.toasterofbread.spmp.model.MediaItemLayoutParams
+import com.toasterofbread.spmp.model.MediaItemGridParams
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.ytmkt.model.external.YoutubePage
+import dev.toastbits.ytmkt.uistrings.UiString
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 @Composable
 fun MediaItemGrid(
     layout: MediaItemLayout,
-    modifier: Modifier = Modifier,
-    title_modifier: Modifier = Modifier,
-    rows: Pair<Int, Int>? = null,
-    alt_style: Boolean = false,
-    apply_filter: Boolean = false,
-    multiselect_context: MediaItemMultiSelectContext? = null,
-    square_item_max_text_rows: Int? = null,
-    show_download_indicators: Boolean = true,
-    content_padding: PaddingValues = PaddingValues(),
-    itemSizeProvider: @Composable () -> DpSize = { DpSize.Unspecified },
-    startContent: (LazyGridScope.() -> Unit)? = null
+    layout_params: MediaItemLayoutParams,
+    grid_params: MediaItemGridParams = MediaItemGridParams()
 ) {
     MediaItemGrid(
-        layout.items,
-        modifier,
-        title_modifier,
-        rows,
-        layout.title,
-        layout.subtitle,
-        layout.view_more,
-        alt_style = alt_style,
-        apply_filter = apply_filter,
-        square_item_max_text_rows = square_item_max_text_rows,
-        show_download_indicators = show_download_indicators,
-        itemSizeProvider = itemSizeProvider,
-        multiselect_context = multiselect_context,
-        content_padding = content_padding,
-        startContent = startContent
+        layout_params =
+            remember(layout, layout_params) {
+                layout_params.copy(
+                    items = layout.items.map { it.toMediaItemData() },
+                    title = layout.title,
+                    subtitle = layout.subtitle,
+                    view_more = layout.view_more
+                )
+            },
+        grid_params = grid_params
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MediaItemGrid(
-    items: List<MediaItemHolder>,
-    modifier: Modifier = Modifier,
-    title_modifier: Modifier = Modifier,
-    rows: Pair<Int, Int>? = null,
-    title: LocalisedString? = null,
-    subtitle: LocalisedString? = null,
-    view_more: ViewMore? = null,
-    alt_style: Boolean = false,
-    square_item_max_text_rows: Int? = null,
-    apply_filter: Boolean = false,
-    show_download_indicators: Boolean = true,
-    itemSizeProvider: @Composable () -> DpSize = { DpSize.Unspecified },
-    multiselect_context: MediaItemMultiSelectContext? = null,
-    content_padding: PaddingValues = PaddingValues(),
-    startContent: (LazyGridScope.() -> Unit)? = null
+    layout_params: MediaItemLayoutParams,
+    grid_params: MediaItemGridParams = MediaItemGridParams()
 ) {
-    val player: PlayerState = LocalPlayerState.current
-    val filtered_items: List<MediaItem> by items.rememberFilteredItems(apply_filter)
+    val filtered_items: List<MediaItem> by layout_params.rememberFilteredItems()
+    if (filtered_items.isEmpty()) {
+        return
+    }
 
-    val row_count: Int = rows?.first ?: ((if (filtered_items.size <= 3) 1 else 2) * (if (alt_style) 2 else 1))
-    val expanded_row_count: Int = rows?.second ?: row_count
+    val player: PlayerState = LocalPlayerState.current
+
+    val row_count: Int = grid_params.rows?.first ?: ((if (filtered_items.size <= 3) 1 else 2) * (if (grid_params.alt_style) 2 else 1))
+    val expanded_row_count: Int = grid_params.rows?.second ?: row_count
 
     val item_spacing: Arrangement.HorizontalOrVertical = Arrangement.spacedBy(
-        (if (alt_style) 7.dp else 15.dp) * (if (Platform.DESKTOP.isCurrent()) 3f else 1f)
+        (if (grid_params.alt_style) 7.dp else 15.dp) * (if (Platform.DESKTOP.isCurrent()) 3f else 1f)
     )
 
-    val provided_item_size: DpSize? = itemSizeProvider().takeIf { it.isSpecified }
+    val provided_item_size: DpSize? = grid_params.itemSizeProvider().takeIf { it.isSpecified }
     val item_size: DpSize =
-        if (alt_style) provided_item_size ?: getDefaultMediaItemPreviewSize(true)
-        else (provided_item_size ?: getDefaultMediaItemPreviewSize(false)) + DpSize(0.dp, getMediaItemPreviewSquareAdditionalHeight(square_item_max_text_rows, MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP.sp))
+        if (grid_params.alt_style) provided_item_size ?: getDefaultMediaItemPreviewSize(true)
+        else (provided_item_size ?: getDefaultMediaItemPreviewSize(false)) + DpSize(0.dp, getMediaItemPreviewSquareAdditionalHeight(grid_params.square_item_max_text_rows, MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP.sp))
 
-    val horizontal_padding: PaddingValues = content_padding.horizontal
+    val horizontal_padding: PaddingValues = layout_params.content_padding.horizontal
 
     val grid_state: LazyGridState = rememberLazyGridState()
     val scrollable_state: ScrollableState? =
         if (Platform.DESKTOP.isCurrent()) grid_state
         else null
 
-    Column(modifier.padding(content_padding.vertical), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(
+        layout_params.modifier.padding(layout_params.content_padding.vertical),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
         var expanded: Boolean by remember { mutableStateOf(false) }
         Row(
             Modifier.padding(horizontal_padding),
@@ -155,62 +136,74 @@ fun MediaItemGrid(
 
             TitleBar(
                 filtered_items,
-                title,
-                subtitle,
-                title_modifier,
-                view_more = view_more,
-                multiselect_context = multiselect_context,
+                layout_params,
+                modifier = layout_params.title_modifier,
                 scrollable_state = scrollable_state
             )
         }
 
-        Column {
-            BoxWithConstraints(Modifier.fillMaxWidth().animateContentSize(), contentAlignment = Alignment.CenterEnd) {
-                val current_rows: Int by remember { derivedStateOf {
-                    val current_rows: Int = if (expanded) expanded_row_count else row_count
-                    val min_columns: Int = (
-                       (this@BoxWithConstraints.maxWidth + item_spacing.spacing) / (item_size.width + item_spacing.spacing)
-                    ).roundToInt()
+        BoxWithConstraints(
+            Modifier.fillMaxWidth().animateContentSize(),
+            contentAlignment = Alignment.CenterEnd
+        ) {
+            val current_rows: Int by remember { derivedStateOf {
+                val current_rows: Int = if (expanded) expanded_row_count else row_count
+                val min_columns: Int = (
+                    (this@BoxWithConstraints.maxWidth + item_spacing.spacing) / (item_size.width + item_spacing.spacing)
+                ).roundToInt()
 
-                    val item_count: Int = filtered_items.size
-                    val max_rows: Int = ceil(item_count.toFloat() / min_columns).toInt()
-                    return@derivedStateOf current_rows.coerceAtMost(max_rows).coerceAtLeast(1)
-                } }
+                val item_count: Int = filtered_items.size
+                val max_rows: Int = ceil(item_count.toFloat() / min_columns).toInt()
+                return@derivedStateOf current_rows.coerceAtMost(max_rows).coerceAtLeast(1)
+            } }
 
-                LazyHorizontalGrid(
-                    state = grid_state,
-                    rows = GridCells.Fixed(current_rows),
-                    modifier = Modifier
-                        .height(item_size.height * current_rows + item_spacing.spacing * (current_rows - 1))
-                        .fillMaxWidth(),
-                    horizontalArrangement = item_spacing,
-                    verticalArrangement = item_spacing,
-                    contentPadding = content_padding
-                ) {
-                    startContent?.invoke(this)
+            LazyHorizontalGrid(
+                state = grid_state,
+                rows = GridCells.Fixed(current_rows),
+                modifier = Modifier
+                    .height(item_size.height * current_rows + item_spacing.spacing * (current_rows - 1))
+                    .fillMaxWidth(),
+                horizontalArrangement = item_spacing,
+                verticalArrangement = item_spacing,
+                contentPadding = horizontal_padding
+            ) {
+                grid_params.startContent?.invoke(this)
 
-                    items(filtered_items.size, { filtered_items[it].item.getUid() }) { i ->
-                        val item: MediaItem = filtered_items[i].item
-                        val preview_modifier: Modifier = Modifier.animateItemPlacement().size(item_size)
+                items(filtered_items.size, { filtered_items[it].item.getUid() }) { i ->
+                    val item: MediaItem = filtered_items[i].item
+                    val preview_modifier: Modifier = Modifier.animateItemPlacement().size(item_size)
 
-                        if (alt_style) {
-                            MediaItemPreviewLong(item, preview_modifier, multiselect_context = multiselect_context, show_download_indicator = show_download_indicators)
-                        }
-                        else {
-                            MediaItemPreviewSquare(item, preview_modifier, multiselect_context = multiselect_context, max_text_rows = square_item_max_text_rows, show_download_indicator = show_download_indicators)
-                        }
+                    if (grid_params.alt_style) {
+                        MediaItemPreviewLong(
+                            item,
+                            preview_modifier,
+                            multiselect_context = layout_params.multiselect_context,
+                            show_download_indicator = layout_params.show_download_indicators
+                        )
+                    }
+                    else {
+                        MediaItemPreviewSquare(
+                            item,
+                            preview_modifier,
+                            multiselect_context = layout_params.multiselect_context,
+                            max_text_rows = grid_params.square_item_max_text_rows,
+                            show_download_indicator = layout_params.show_download_indicators
+                        )
                     }
                 }
+            }
 
-                if (multiselect_context != null && !shouldShowTitleBar(title, subtitle, view_more, scrollable_state)) {
-                    Box(
-                        Modifier
-                            .background(CircleShape, { player.theme.background })
-                            .padding(horizontal_padding),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        multiselect_context.CollectionToggleButton(filtered_items)
-                    }
+            if (
+                layout_params.multiselect_context != null
+                && !shouldShowTitleBar(layout_params, scrollable_state)
+            ) {
+                Box(
+                    Modifier
+                        .background(CircleShape, { player.theme.background })
+                        .padding(horizontal_padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    layout_params.multiselect_context.CollectionToggleButton(filtered_items)
                 }
             }
         }

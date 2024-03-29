@@ -5,9 +5,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import app.cash.sqldelight.Query
-import com.google.gson.Gson
-import com.google.gson.JsonObject
-import com.google.gson.JsonPrimitive
 import com.toasterofbread.composekit.platform.Platform
 import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.platform.PlatformPreferencesListener
@@ -15,6 +12,10 @@ import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.db.incrementPlayCount
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.getUid
+import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.settings.category.DiscordAuthSettings
 import com.toasterofbread.spmp.model.settings.category.MiscSettings
 import com.toasterofbread.spmp.model.settings.category.SystemSettings
@@ -23,16 +24,21 @@ import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.service.playercontroller.DiscordStatusHandler
 import com.toasterofbread.spmp.service.playercontroller.PersistentQueueHandler
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
-import com.toasterofbread.spmp.youtubeapi.fromJson
-import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
+import com.toasterofbread.spmp.model.radio.RadioInstance
+import com.toasterofbread.spmp.model.radio.RadioState
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
 import spms.socketapi.shared.SpMsPlayerRepeatMode
 import spms.socketapi.shared.SpMsPlayerState
 import java.io.IOException
@@ -132,63 +138,49 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
             }
         }
 
-        private suspend fun sendStatusWebhook(song: Song?) {
+        private suspend fun sendStatusWebhook(song: Song?): Result<Unit> = runCatching {
             val webhook_url: String? = MiscSettings.Key.STATUS_WEBHOOK_URL.get(context)
             if (webhook_url.isNullOrBlank()) {
-                return
+                return@runCatching
             }
 
-            withContext(Dispatchers.IO) {
-                val gson = Gson()
-                val payload: JsonObject
+            val payload: MutableMap<String, JsonElement>
 
-                val user_payload: String? = MiscSettings.Key.STATUS_WEBHOOK_PAYLOAD.get(context)
-                if (!user_payload.isNullOrBlank()) {
-                    payload =
-                        try {
-                            gson.fromJson(user_payload)
-                        }
-                        catch (e: Throwable) {
-                            e.printStackTrace()
-                            JsonObject()
-                        }
-                }
-                else {
-                    payload = JsonObject()
-                }
-
-                payload.add("youtube_video_id", song?.id?.let { JsonPrimitive(it) })
-
-                val request: Request = Request.Builder()
-                    .url(webhook_url)
-                    .post(
-                        gson.toJson(payload).toRequestBody("application/json".toMediaType())
-                    )
-                    .build()
-
-                try {
-                    val result = OkHttpClient().newCall(request).execute()
-                    if (!result.isSuccessful) {
-                        val message = "${result.code}: ${result.body?.string()}"
-                        result.close()
-                        throw IOException(message)
+            val user_payload: String? = MiscSettings.Key.STATUS_WEBHOOK_PAYLOAD.get(context)
+            if (!user_payload.isNullOrBlank()) {
+                payload =
+                    try {
+                        Json.decodeFromString(user_payload)
                     }
-                    result.close()
+                    catch (e: Throwable) {
+                        e.printStackTrace()
+                        mutableMapOf()
+                    }
+            }
+            else {
+                payload = mutableMapOf()
+            }
+
+            payload["youtube_video_id"] = JsonPrimitive(song?.id)
+
+            val response: HttpResponse =
+                HttpClient(CIO).post(webhook_url) {
+                    setBody(payload)
                 }
-                catch (e: Throwable) {
-                    IOException("POST request to webhook '$webhook_url' with $song failed", e).printStackTrace()
-                }
+
+            if (response.status.value !in 200 .. 299) {
+                throw IOException("${response.status.value}: ${response.bodyAsText()}")
             }
         }
 
         override fun onSongMoved(from: Int, to: Int) {
+            radio.instance.onQueueSongMoved(from, to)
             radio.checkAutoRadioContinuation()
-            radio.instance.onSongMoved(from, to)
         }
 
-        override fun onSongRemoved(index: Int) {
+        override fun onSongRemoved(index: Int, song: Song) {
+            radio.instance.onQueueSongRemoved(index, song)
             radio.checkAutoRadioContinuation()
-            radio.instance.onSongRemoved(index)
         }
 
         override fun onStateChanged(state: SpMsPlayerState) {
@@ -286,56 +278,41 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
         item_index: Int? = null,
         skip_first: Boolean = false,
         shuffle: Boolean = false,
-        onLoad: (suspend (success: Boolean) -> Unit)? = null
+        onSuccessfulLoad: () -> Unit = {}
     ) {
         require(item_index == null || item != null)
 
-        undo_handler.customUndoableAction(null) { furtherAction ->
-            synchronized(radio) {
-                clearQueue(from = index, keep_current = false, save = false, cancel_radio = false)
-
-                val final_item: MediaItem = item ?: getSong(index)!!
-                val final_index: Int? = if (item != null) item_index else index
-
-                if (final_item !is Song) {
-                    coroutine_scope.launch {
-                        final_item.incrementPlayCount(context)
-                    }
-                }
-
-                return@customUndoableAction radio.getRadioChangeUndoRedo(
-                    radio.instance.playMediaItem(final_item, final_index, shuffle),
-                    index,
-                    furtherAction = { a: PlayerServicePlayer.() -> UndoRedoAction? ->
-                        furtherAction {
-                            a()
-                        }
-                    },
-                    onLoad = onLoad
-                )
-            }
-        }
-    }
-
-    fun continueRadio(is_retry: Boolean = false) {
         synchronized(radio) {
-            if (radio.instance.loading) {
-                return
-            }
+            val final_item: MediaItem = item ?: getSong(index)!!
+            val final_index: Int? = if (item != null) item_index else index
 
-            radio.instance.loadContinuation(
-                context,
-                can_retry = true,
-                is_retry = is_retry
-            ) { result, _ ->
-                if (is_retry) {
-                    return@loadContinuation
+            coroutine_scope.launch {
+                if (final_item !is Song) {
+                    final_item.incrementPlayCount(context)
                 }
 
-                result.onSuccess { songs ->
-                    withContext(Dispatchers.Main) {
-                        addMultipleToQueue(songs, song_count, false, skip_existing = true)
+                val playlist_data: RemotePlaylistData? =
+                    (final_item as? RemotePlaylist)?.loadData(context)?.getOrNull()
+
+                undo_handler.customUndoableAction { furtherAction ->
+                    if (playlist_data == null || playlist_data?.continuation != null) {
+                        clearQueue(from = index, keep_current = false, save = false, cancel_radio = false)
                     }
+
+                    return@customUndoableAction radio.setUndoableRadioState(
+                        RadioState(
+                            item_uid = final_item.getUid(),
+                            item_queue_index = final_index,
+                            shuffle = shuffle
+                        ),
+                        furtherAction = { a: PlayerServicePlayer.() -> UndoRedoAction? ->
+                            furtherAction {
+                                a()
+                            }
+                        },
+                        onSuccessfulLoad = onSuccessfulLoad,
+                        insertion_index = index
+                    )
                 }
             }
         }
@@ -435,10 +412,11 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
                 clearQueue(add_to_index + 1, save = false, cancel_radio = false)
 
                 synchronized(radio) {
-                    return@customUndoableAction radio.getRadioChangeUndoRedo(
-                        radio.instance.playMediaItem(song, add_to_index),
-                        add_to_index + 1,
-                        save = save,
+                    return@customUndoableAction radio.setUndoableRadioState(
+                        RadioState(
+                            item_uid = song.getUid(),
+                            item_queue_index = add_to_index
+                        ),
                         furtherAction = { a ->
                             furtherAction {
                                 a()
@@ -561,7 +539,7 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
 
                                 val mark_endpoint = context.ytapi.user_auth_state?.MarkSongAsWatched
                                 if (mark_endpoint?.isImplemented() == true && SystemSettings.Key.ADD_SONGS_TO_HISTORY.get(context)) {
-                                    val result = mark_endpoint.markSongAsWatched(song)
+                                    val result = mark_endpoint.markSongAsWatched(song.id)
                                     result.onFailure {
                                         context.sendNotification(it)
                                     }
@@ -607,7 +585,7 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
     val duration_ms: Long get() = service.duration_ms
     val has_focus: Boolean get() = service.has_focus
 
-    val radio_state: RadioInstance.RadioState get() = radio.instance.state
+    val radio_instance: RadioInstance get() = radio.instance
 
     var repeat_mode: SpMsPlayerRepeatMode
         get() = service.repeat_mode

@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
 import com.toasterofbread.composekit.utils.composable.AlignableCrossfade
-import com.toasterofbread.spmp.youtubeapi.endpoint.SearchSuggestion
+import dev.toastbits.ytmkt.endpoint.SearchSuggestion
 
 @Composable
 internal fun SearchAppPage.SearchSuggestionsColumn(

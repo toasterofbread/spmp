@@ -95,8 +95,8 @@ suspend fun MediaItemLibrary.createLocalPlaylist(context: AppContext, base_data:
         base_data.populateData(playlist, context.database)
     }
 
-    if (playlist.title == null) {
-        playlist.title = getString("new_playlist_title")
+    if (playlist.name == null) {
+        playlist.name = getString("new_playlist_title")
     }
     playlist.loaded = true
 

@@ -64,6 +64,7 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
+import com.toasterofbread.spmp.platform.getOrNotify
 
 private enum class Submenu {
     SEARCH, SYNC
@@ -223,11 +224,9 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
                         submenu = null
                         if (changed) {
                             coroutine_scope.launchSingle {
-                                val result: Result<SongLyrics>? = SongLyricsLoader.loadBySong(getSong(), player.context)
-                                result?.onFailure { error ->
-                                    // TODO
-                                    player.context.sendToast(error.toString())
-                                }
+                                val result: SongLyrics? =
+                                    SongLyricsLoader.loadBySong(getSong(), player.context)
+                                        ?.getOrNotify(player.context, "LyricsOverlayMenu lyrics search")
                             }
                         }
                         else if (loading == false && lyrics == null) {

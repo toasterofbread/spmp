@@ -21,7 +21,7 @@ import com.toasterofbread.spmp.ui.component.LargeFilterList
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
-import com.toasterofbread.spmp.youtubeapi.endpoint.*
+import dev.toastbits.ytmkt.endpoint.*
 
 @Composable
 internal fun SearchAppPage.VerticalSearchSecondaryBar(

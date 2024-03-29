@@ -23,8 +23,9 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.LargeFilterList
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
+import com.toasterofbread.spmp.model.getString
+import com.toasterofbread.spmp.model.getIcon
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SongFeedAppPage.LFFSongFeedPagePrimaryBar(
     slot: LayoutSlot,
@@ -38,7 +39,7 @@ internal fun SongFeedAppPage.LFFSongFeedPagePrimaryBar(
 
     val player: PlayerState = LocalPlayerState.current
 
-    val artists: List<MediaItem>? by artists_layout?.items?.rememberFilteredItems()
+    val artists: List<MediaItem>? by artists_layout?.items?.rememberFilteredYtmItems()
     var show_filters: Boolean by remember { mutableStateOf(false) }
 
     val can_show_artists: Boolean = !artists.isNullOrEmpty()

@@ -45,14 +45,15 @@ actual val LocalSongMetadataProcessor: MetadataProcessor =
                             return@apply
                         }
 
-                        title = metadata_retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
+                        name = metadata_retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
                         artist = getItemWithOrForTitle(custom_metadata.artist_id, metadata_retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)) { ArtistData(it) }
                         album = getItemWithOrForTitle(custom_metadata.album_id, metadata_retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)) { RemotePlaylistData(it) }
                     }
                 }
                 catch (e: Throwable) {
-                    e.printStackTrace()
-                    throw e
+                    val error: Throwable = RuntimeException("Reading metadata failed for $file ${file.uri}", e)
+                    error.printStackTrace()
+                    throw error
                 }
             }
     }

@@ -8,21 +8,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import app.cash.sqldelight.Query
-import com.toasterofbread.db.Database
-import com.toasterofbread.db.mediaitem.ArtistQueries
-import com.toasterofbread.db.mediaitem.PlaylistQueries
-import com.toasterofbread.db.mediaitem.SongQueries
+import com.toasterofbread.spmp.db.Database
+import com.toasterofbread.spmp.db.mediaitem.ArtistQueries
+import com.toasterofbread.spmp.db.mediaitem.PlaylistQueries
+import com.toasterofbread.spmp.db.mediaitem.SongQueries
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
-import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.settings.category.FilterSettings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
 
 fun isMediaItemHidden(item: MediaItem, db: Database, hidden_items: List<MediaItem>? = null): Boolean {
     if (hidden_items?.any { it.id == item.id } ?: item.Hidden.get(db)) {

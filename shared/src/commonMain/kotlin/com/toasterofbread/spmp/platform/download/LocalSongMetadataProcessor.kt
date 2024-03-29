@@ -24,7 +24,6 @@ import org.jaudiotagger.tag.FieldKey
 import org.jaudiotagger.tag.Tag
 import org.jaudiotagger.tag.mp4.Mp4Tag
 import java.io.File
-import java.net.URI
 import java.util.logging.Level
 
 expect val LocalSongMetadataProcessor: MetadataProcessor
@@ -42,7 +41,7 @@ internal fun <T: MediaItemData> MediaItem.getItemWithOrForTitle(item_id: String?
         return null
     }
 
-    item.title = item_title
+    item.name = item_title
     return item
 }
 
@@ -138,7 +137,7 @@ object JAudioTaggerMetadataProcessor: MetadataProcessor {
                 if (!load_data) {
                     return@apply
                 }
-                title = tag.getFirst(FieldKey.TITLE)
+                name = tag.getFirst(FieldKey.TITLE)
                 artist = getItemWithOrForTitle(custom_metadata.artist_id, tag.getFirst(FieldKey.ARTIST)) { ArtistData(it) }
                 album = getItemWithOrForTitle(custom_metadata.album_id, tag.getFirst(FieldKey.ALBUM)) { RemotePlaylistData(it) }
             }

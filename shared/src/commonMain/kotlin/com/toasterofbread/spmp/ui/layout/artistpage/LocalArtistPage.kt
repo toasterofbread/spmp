@@ -60,7 +60,7 @@ fun LocalArtistPage(
     }
 
     multiselect_context?.CollectionToggleButton(
-        songs.mapIndexed { index, item -> Pair(item, index) },
+        songs.map { Pair(it, null) },
         show = false
     )
 
@@ -89,8 +89,7 @@ fun LocalArtistPage(
                         .fillMaxWidth()
                         .padding(content_padding.horizontal)
                         .thenIf(index != 0) { padding(top = MEDIAITEM_LIST_DEFAULT_SPACING_DP.dp) },
-                    multiselect_context = multiselect_context,
-                    multiselect_key = index
+                    multiselect_context = multiselect_context
                 )
             }
         }

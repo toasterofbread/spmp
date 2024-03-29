@@ -16,6 +16,7 @@ import org.gradle.api.Project
 import java.io.File
 import java.io.FileOutputStream
 import java.util.zip.ZipFile
+import plugin.shared.CommandClass
 
 plugins {
     kotlin("multiplatform")
@@ -220,6 +221,14 @@ abstract class PackageTask: DefaultTask() {
 
         check(executable_file.isFile) {
             "Server executable $executable_file does not exist ($configuration)"
+        }
+
+        try {
+            println("Attempting to strip server executable ${executable_file.absolutePath}...")
+            CommandClass(project).cmd("strip", executable_file.absolutePath)
+        }
+        catch (e: Throwable) {
+            RuntimeException("Strip failed", e).printStackTrace()
         }
 
         val output_file: File = dst_dir.resolve(getPlatformServerFilename(configuration.target_os))

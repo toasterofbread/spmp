@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -56,7 +55,6 @@ sealed class SettingsCategory(id: String) {
         open fun getItems(context: AppContext): List<SettingsItem>? = null
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
     protected open inner class SimplePage(
         val title: String,
         val description: String,

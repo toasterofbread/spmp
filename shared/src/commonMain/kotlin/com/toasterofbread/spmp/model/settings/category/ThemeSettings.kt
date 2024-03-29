@@ -28,6 +28,8 @@ data object ThemeSettings: SettingsCategory("theme") {
         NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY,
         NOWPLAYING_DEFAULT_SHADOW_RADIUS,
         NOWPLAYING_DEFAULT_IMAGE_CORNER_ROUNDING,
+        NOWPLAYING_DEFAULT_WAVE_SPEED,
+        NOWPLAYING_DEFAULT_WAVE_OPACITY,
         SHOW_EXPANDED_PLAYER_WAVE,
         ENABLE_WINDOW_TRANSPARENCY,
         WINDOW_BACKGROUND_OPACITY;
@@ -49,6 +51,8 @@ data object ThemeSettings: SettingsCategory("theme") {
                         Platform.ANDROID -> 0.05f
                         Platform.DESKTOP -> 0f
                     }
+                NOWPLAYING_DEFAULT_WAVE_SPEED -> 0.5f
+                NOWPLAYING_DEFAULT_WAVE_OPACITY -> 0.5f
                 SHOW_EXPANDED_PLAYER_WAVE -> true
                 ENABLE_WINDOW_TRANSPARENCY -> false
                 WINDOW_BACKGROUND_OPACITY -> 1f

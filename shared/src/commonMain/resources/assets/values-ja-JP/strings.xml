@@ -142,6 +142,8 @@
     <string name="song_theme_menu_gradient_depth">グラデーションの深さ</string>
     <string name="song_theme_menu_background_image_opacity">バックグラウンド画像の不透明度</string>
     <string name="song_theme_menu_image_shadow_radius">画像シャドウのサイズ</string>
+    <string name="song_theme_menu_wave_speed">波の速度</string>
+    <string name="song_theme_menu_wave_opacity">波の不透明度</string>
 
     <string name="song_notif_image_menu_open">通知イメージの調整</string>
     <string name="song_notif_image_menu_adjust_offset">イメージの位置を変える</string>
@@ -244,7 +246,6 @@
     <string name="report_error">報告する</string>
     <string name="wrap_text_switch_label">折り返す</string>
     <string name="upload_to_paste_dot_ee">Paste.eeにアップロード</string>
-    <string name="error_info_display_show_json_data">JSONデータを表示</string>
 
     <string name="lpm_action_radio">ラジオを始める</string>
     <string name="lpm_action_play">再生</string>
@@ -463,8 +464,10 @@
     <string name="s_key_np_default_background_image_opacity">ランドスケープバックグラウンド画像のデフォルトの不透明度</string>
     <string name="s_key_np_default_shadow_radius">シャドウのデフォルトのサイズ</string>
     <string name="s_key_np_default_image_corner_rounding">イメージ角のデフォルトのラウンヂング</string>
+    <string name="s_key_np_default_wave_speed">波のデフォルトの速度</string>
+    <string name="s_key_np_default_wave_opacity">波のデフォルトの不透明度</string>
 
-    <string name="s_key_show_expanded_player_wave">拡大プレイヤーの波を表示</string>
+    <string name="s_key_show_expanded_player_wave">拡大プレイヤーに波を表示</string>
 
     <string name="s_group_theming_desktop">デスクトップ専用のオプション</string>
 
@@ -714,6 +717,8 @@
     <string name="youtube_channel_creation_title">YouTube Musicプロフィールを作成</string>
     <string name="youtube_channel_creation_subtitle">https://music.youtube.com/の「チャンネル」に行って作成することもできます</string>
     <string name="youtube_channel_creation_confirm">作成</string>
+    <string name="youtube_channel_creation_field_given_name">名</string>
+    <string name="youtube_channel_creation_field_family_name">氏</string>
 
     <string name="manual_login_error_missing_following_headers">以下のヘッダーが含まれていません：</string>
     <string name="manual_login_desktop_browser_may_be_needed">この手順を行うには、デスクトップ上のブラウザーが必要かもしれません</string>

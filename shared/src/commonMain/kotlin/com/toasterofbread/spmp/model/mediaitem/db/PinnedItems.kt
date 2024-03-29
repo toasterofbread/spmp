@@ -10,15 +10,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import app.cash.sqldelight.Query
-import com.toasterofbread.db.Database
-import com.toasterofbread.db.mediaitem.PinnedItemQueries
+import com.toasterofbread.spmp.db.Database
+import com.toasterofbread.spmp.db.mediaitem.PinnedItemQueries
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
+import com.toasterofbread.spmp.model.mediaitem.getType
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.joinAll
@@ -79,7 +81,7 @@ fun rememberPinnedItems(): List<MediaItem>? {
 }
 
 @Composable
-fun MediaItem.observePinnedToHome(): MutableState<Boolean> {
+fun YtmMediaItem.observePinnedToHome(): MutableState<Boolean> {
     val queries: PinnedItemQueries = LocalPlayerState.current.database.pinnedItemQueries
     val query: Query<Long> = remember(this) {
         queries.countByItem(id, getType().ordinal.toLong())
@@ -105,7 +107,7 @@ fun MediaItem.observePinnedToHome(): MutableState<Boolean> {
     }
 }
 
-fun MediaItem.setPinned(pinned: Boolean, context: AppContext) {
+fun YtmMediaItem.setPinned(pinned: Boolean, context: AppContext) {
     val queries: PinnedItemQueries = context.database.pinnedItemQueries
     if (pinned) {
         queries.insert(id, getType().ordinal.toLong())

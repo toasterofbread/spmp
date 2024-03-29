@@ -10,9 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.composable.ScrollBarLazyRow
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.youtubeapi.endpoint.*
+import dev.toastbits.ytmkt.endpoint.*
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SearchAppPage.SearchFiltersRow(
     modifier: Modifier,
@@ -53,7 +52,9 @@ internal fun SearchAppPage.SearchFiltersRow(
                         )
                     },
                     border = FilterChipDefaults.filterChipBorder(
-                        borderColor = player.theme.on_background
+                        borderColor = player.theme.on_background,
+                        enabled = true,
+                        selected = selected
                     )
                 )
             }

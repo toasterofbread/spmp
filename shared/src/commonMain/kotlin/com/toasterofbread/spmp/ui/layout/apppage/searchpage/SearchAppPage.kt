@@ -13,7 +13,6 @@ import androidx.compose.foundation.text.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.*
@@ -31,6 +30,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.enums.*
 import com.toasterofbread.spmp.model.mediaitem.layout.*
 import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
+import com.toasterofbread.spmp.model.MediaItemLayoutParams
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
@@ -43,8 +43,10 @@ import com.toasterofbread.spmp.ui.layout.contentbar.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.theme.appHover
-import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
-import com.toasterofbread.spmp.youtubeapi.endpoint.*
+import com.toasterofbread.spmp.ui.component.NotImplementedMessage
+import dev.toastbits.ytmkt.endpoint.*
+import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
+import dev.toastbits.ytmkt.model.external.ItemLayoutType
 import kotlinx.coroutines.*
 
 internal val SEARCH_FIELD_FONT_SIZE: TextUnit = 18.sp
@@ -268,9 +270,13 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
                     { results ->
                         for (result in results.categories) {
                             if (result.second != null) {
-                                result.first.view_more = LambdaViewMore { _, _ ->
-                                    performSearch(result.second)
-                                }
+                                result.copy(
+                                    first = result.first.copy(
+                                        view_more = LambdaYoutubePage { _, _ ->
+                                            performSearch(result.second)
+                                        }
+                                    )
+                                )
                             }
                         }
 
@@ -297,13 +303,13 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
             contentPadding = padding,
             verticalArrangement = Arrangement.spacedBy(25.dp)
         ) {
-            if (results.suggested_correction != null) {
+            results.suggested_correction?.also { suggested_correction ->
                 item {
                     SuggestedSearchCorrection(
-                        results.suggested_correction,
+                        suggested_correction,
                         Modifier.fillMaxWidth(),
                         onSelected = {
-                            current_query = results.suggested_correction
+                            current_query = suggested_correction
                             performSearch()
                         },
                         onDismissed = {
@@ -316,7 +322,12 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
             for (category in results.categories.withIndex()) {
                 val layout = category.value.first
                 item {
-                    (layout.type ?: MediaItemLayout.Type.LIST).Layout(layout, multiselect_context = multiselect_context)
+                    (layout.type ?: ItemLayoutType.LIST).Layout(
+                        layout, 
+                        MediaItemLayoutParams(
+                            multiselect_context = multiselect_context
+                        )
+                    )
                 }
             }
         }

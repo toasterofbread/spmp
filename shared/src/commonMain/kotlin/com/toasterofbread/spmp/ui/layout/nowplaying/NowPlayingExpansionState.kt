@@ -1,8 +1,8 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 package com.toasterofbread.spmp.ui.layout.nowplaying
 
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.SwipeableState
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.runtime.*
 import com.toasterofbread.spmp.model.settings.category.MusicTopBarMode
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
@@ -57,13 +57,11 @@ interface ExpansionState {
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
-class NowPlayingExpansionState(
+abstract class NowPlayingExpansionState(
     val player: PlayerState,
-    swipe_state: State<SwipeableState<Int>>,
     private val coroutine_scope: CoroutineScope
 ): ExpansionState {
-    val swipe_state: SwipeableState<Int> by swipe_state
+    abstract val swipe_state: AnchoredDraggableState<Int>
 
     override val top_bar_mode: MutableState<MusicTopBarMode> = mutableStateOf(MusicTopBarMode.default)
 
@@ -88,32 +86,36 @@ class NowPlayingExpansionState(
     }
 
     override fun get(): Float {
-        val anchors: Map<Float, Int> = swipe_state.anchors
-        if (anchors.isEmpty()) {
+        val anchors: DraggableAnchors<Int> = swipe_state.anchors
+        if (anchors.size == 0) {
             return 0f
         }
-//        assert(anchors.size == getNowPlayingVerticalPageCount(player) + 1) {
-//            "${anchors.size} == ${getNowPlayingVerticalPageCount(player)} + 1"
-//        }
 
-        val offset: Float = swipe_state.offset.value
+        val offset: Float = swipe_state.offset
 
         var low_index: Int? = null
         var low: Float? = null
         var high: Float? = null
 
-        for (anchor in anchors) {
-            if (offset < anchor.key) {
-                low_index = (anchor.value - 1).coerceAtLeast(getPageRange().first)
-                low = anchors.entries.firstOrNull { it.value == low_index }?.key ?: return low_index.toFloat()
-                high = anchor.key
+        for (anchor in 0 until anchors.size) {
+            val anchor_position: Float = anchors.positionOf(anchor)
+            if (offset < anchor_position) {
+                low_index = (anchor - 1).coerceAtLeast(getPageRange().first)
+                if (!anchors.hasAnchorFor(low_index)) {
+                    return low_index.toFloat()
+                }
+                low = anchors.positionOf(low_index)
+                high = anchor_position
                 break
             }
         }
 
         if (low_index == null) {
             low_index = getPageRange().last
-            low = anchors.entries.firstOrNull { it.value == low_index }?.key ?: return low_index.toFloat()
+            if (!anchors.hasAnchorFor(low_index)) {
+                return low_index.toFloat()
+            }
+            low = anchors.positionOf(low_index)
             high = low
         }
         else {

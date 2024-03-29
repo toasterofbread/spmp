@@ -3,7 +3,7 @@ package com.toasterofbread.spmp.model.mediaitem.artist
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.resources.uilocalisation.amountToString
+import dev.toastbits.ytmkt.uistrings.amountToString
 
 fun Artist.getSubscriberCount(context: AppContext): Int? =
     context.database.artistQueries.subscriberCountById(id).executeAsOne().subscriber_count?.toInt()

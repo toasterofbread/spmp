@@ -28,17 +28,21 @@ import kotlinx.coroutines.*
 import org.jetbrains.skiko.OS
 import org.jetbrains.skiko.hostOs
 import java.awt.Toolkit
+import java.awt.Frame
 import java.lang.reflect.Field
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main(args: Array<String>) {
+    Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
+        error.printStackTrace()
+        val dialog = ExceptionDialog(Frame(), error)
+        dialog.isVisible = true
+    }
+
     val coroutine_scope: CoroutineScope = CoroutineScope(Job())
     val context: AppContext = AppContext(SpMp.app_name, coroutine_scope)
 
     SpMp.init(context)
-    coroutine_scope.launch {
-        context.init()
-    }
 
     val arguments: ProgramArguments = ProgramArguments.parse(args) ?: return
 
@@ -79,7 +83,7 @@ fun main(args: Array<String>) {
                     return@Window false
                 }
 
-                if (event.type != KeyEventType.KeyDown) {
+                if (event.type != KeyEventType.KeyUp) {
                     return@Window false
                 }
 
@@ -126,13 +130,13 @@ fun main(args: Array<String>) {
 
             SpMp.App(
                 arguments,
+                shortcut_state,
                 Modifier.onPointerEvent(PointerEventType.Press) { event ->
                     val index: Int = event.button?.index ?: return@onPointerEvent
                     player?.also {
                         shortcut_state.onButtonPress(index, it)
                     }
                 },
-                shortcut_state = shortcut_state,
                 window_fullscreen_toggler = {
                     if (window.placement == WindowPlacement.Fullscreen) {
                         window.placement = WindowPlacement.Floating

@@ -4,7 +4,6 @@ import kotlinx.serialization.Serializable
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.platform.download.DownloadStatus
@@ -28,9 +27,10 @@ import androidx.compose.material.icons.filled.*
 import com.toasterofbread.spmp.model.mediaitem.db.togglePinned
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLikedLoader
 import com.toasterofbread.spmp.model.appaction.AppAction
-import com.toasterofbread.spmp.youtubeapi.endpoint.SetSongLikedEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.SongLikedEndpoint
 import LocalPlayerState
+import dev.toastbits.ytmkt.model.external.SongLikedStatus
+import dev.toastbits.ytmkt.endpoint.SongLikedEndpoint
+import dev.toastbits.ytmkt.endpoint.SetSongLikedEndpoint
 
 @Serializable
 data class SongAppAction(

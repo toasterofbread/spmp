@@ -22,18 +22,26 @@ import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.composekit.utils.modifier.horizontal
 import com.toasterofbread.composekit.utils.modifier.vertical
+import com.toasterofbread.spmp.model.deserialise
+import com.toasterofbread.spmp.model.getString
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.Layout
+import com.toasterofbread.spmp.model.serialise
+import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.settings.category.FeedSettings
+import com.toasterofbread.spmp.model.MediaItemLayoutParams
+import com.toasterofbread.spmp.model.MediaItemGridParams
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.PinnedItemsRow
 import com.toasterofbread.spmp.service.playercontroller.FeedLoadState
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
+import com.toasterofbread.spmp.ui.component.NotImplementedMessage
+import dev.toastbits.ytmkt.model.external.ItemLayoutType
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
+import dev.toastbits.ytmkt.uistrings.UiString
 
 @Composable
 internal fun SongFeedAppPage.SFFSongFeedAppPage(
@@ -58,10 +66,16 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
             mutableStateListOf(),
             null,
             null,
-            type = MediaItemLayout.Type.ROW
+            type = ItemLayoutType.ROW
         )
     }
+
     val hidden_rows: Set<String> by FeedSettings.Key.HIDDEN_ROWS.rememberMutableState()
+    val hidden_row_titles: List<String> = remember(hidden_rows) {
+        hidden_rows.map { row_title ->
+            UiString.deserialise(row_title).getString(player.context)
+        }
+    }
 
     val square_item_max_text_rows: Int by FeedSettings.Key.SQUARE_PREVIEW_TEXT_LINES.rememberMutableState()
     val show_download_indicators: Boolean by FeedSettings.Key.SHOW_SONG_DOWNLOAD_INDICATORS.rememberMutableState()
@@ -87,12 +101,12 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
     }
 
     LaunchedEffect(layouts) {
-        val items = artists_layout.items as MutableList<MediaItem>
+        val items = artists_layout.items as MutableList<YtmMediaItem>
         items.clear()
         items.addAll(
             populateArtistsLayout(
                 layouts,
-                player.context.ytapi.user_auth_state?.own_channel,
+                player.context.ytapi.user_auth_state?.own_channel_id,
                 player.context
             )
         )
@@ -135,15 +149,14 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
         var hiding_layout: MediaItemLayout? by remember { mutableStateOf(null) }
 
         hiding_layout?.also { layout ->
-            check(layout.title != null)
+            val title: UiString = layout.title ?: return@also
 
             AlertDialog(
                 onDismissRequest = { hiding_layout = null },
                 confirmButton = {
                     Button({
-                        val hidden_rows: Set<String> = FeedSettings.Key.HIDDEN_ROWS.get()
                         FeedSettings.Key.HIDDEN_ROWS.set(
-                            hidden_rows.plus(layout.title.serialise())
+                            hidden_rows.plus(title.serialise())
                         )
 
                         hiding_layout = null
@@ -162,7 +175,10 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
                     Text(getString("prompt_confirm_action"))
                 },
                 text = {
-                    Text(getString("prompt_hide_feed_rows_with_\$title").replace("\$title", layout.title.getString(player.context)))
+                    Text(
+                        getString("prompt_hide_feed_rows_with_\$title")
+                            .replace("\$title", title.getString(player.context))
+                    )
                 }
             )
         }
@@ -190,7 +206,13 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
 
                     item {
                         if (artists_layout.items.isNotEmpty()) {
-                            artists_layout.Layout(multiselect_context = multiselect_context, apply_filter = true, content_padding = horizontal_padding)
+                            artists_layout.Layout(
+                                MediaItemLayoutParams(
+                                    multiselect_context = multiselect_context,
+                                    apply_filter = true,
+                                    content_padding = horizontal_padding
+                                )
+                            )
                         }
                     }
 
@@ -199,38 +221,43 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
                             return@items
                         }
 
-                        if (layout.title != null) {
-                            val title: String = layout.title.getString(player.context)
-                            if (
-                                hidden_rows.any { row_title ->
-                                    LocalisedString.deserialise(row_title).getString(player.context) == title
-                                }
-                            ) {
-                                return@items
-                            }
+                        val is_hidden: Boolean = remember(layout.title, hidden_row_titles) {
+                            layout.title?.let { layout_title ->
+                                val title: String = layout_title.getString(player.context)
+                                hidden_row_titles.any { it == title }
+                            } ?: false
                         }
 
-                        val type: MediaItemLayout.Type = layout.type ?: MediaItemLayout.Type.GRID
+                        if (is_hidden) {
+                            return@items
+                        }
 
-                        val rows: Int = if (type == MediaItemLayout.Type.GRID_ALT) grid_rows * 2 else grid_rows
-                        val expanded_rows: Int = if (type == MediaItemLayout.Type.GRID_ALT) grid_rows_expanded * 2 else grid_rows_expanded
+                        val type: ItemLayoutType = layout.type ?: ItemLayoutType.GRID
+
+                        val rows: Int = if (type == ItemLayoutType.GRID_ALT) grid_rows * 2 else grid_rows
+                        val expanded_rows: Int = if (type == ItemLayoutType.GRID_ALT) grid_rows_expanded * 2 else grid_rows_expanded
 
                         type.Layout(
                             layout,
-                            Modifier.padding(top = 20.dp),
-                            title_modifier = Modifier.platformClickable(
-                                onAltClick = {
-                                    if (layout.title != null) {
-                                        hiding_layout = layout
+                            MediaItemLayoutParams(
+                                is_song_feed = true,
+                                modifier = Modifier.padding(top = 20.dp),
+                                title_modifier = Modifier.platformClickable(
+                                    onAltClick = {
+                                        if (layout.title != null) {
+                                            hiding_layout = layout
+                                        }
                                     }
-                                }
+                                ),
+                                multiselect_context = multiselect_context,
+                                apply_filter = true,
+                                show_download_indicators = show_download_indicators,
+                                content_padding = horizontal_padding
                             ),
-                            multiselect_context = multiselect_context,
-                            apply_filter = true,
-                            square_item_max_text_rows = square_item_max_text_rows,
-                            show_download_indicators = show_download_indicators,
-                            grid_rows = Pair(rows, expanded_rows),
-                            content_padding = horizontal_padding
+                            grid_params = MediaItemGridParams(
+                                square_item_max_text_rows = square_item_max_text_rows,
+                                rows = Pair(rows, expanded_rows)
+                            )
                         )
                     }
 

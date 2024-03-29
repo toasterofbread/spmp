@@ -6,12 +6,15 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.SwipeableState
+import androidx.compose.foundation.gestures.DraggableAnchors
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
@@ -28,14 +31,11 @@ import com.toasterofbread.composekit.platform.PlatformPreferencesListener
 import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.composekit.platform.composable.composeScope
 import com.toasterofbread.composekit.settings.ui.Theme
-import com.toasterofbread.composekit.utils.common.init
-import com.toasterofbread.composekit.utils.common.blendWith
 import com.toasterofbread.composekit.utils.composable.getEnd
 import com.toasterofbread.composekit.utils.composable.getStart
-import com.toasterofbread.db.Database
+import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
-import com.toasterofbread.spmp.model.mediaitem.layout.BrowseParamsData
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.Settings
@@ -57,7 +57,7 @@ import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageWithItem
-import com.toasterofbread.spmp.ui.layout.apppage.MediaItemAppPage
+import com.toasterofbread.spmp.ui.layout.apppage.SongAppPage
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MainPageDisplay
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
@@ -67,6 +67,8 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNowPlayingVerticalPageCount
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
+import com.toasterofbread.spmp.ui.layout.playlistpage.PlaylistAppPage
+import dev.toastbits.ytmkt.model.external.YoutubePage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -78,6 +80,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import com.toasterofbread.composekit.utils.composable.getTop
 import com.toasterofbread.composekit.utils.composable.OnChangedEffect
+import com.toasterofbread.composekit.utils.common.blendWith
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.requiredWidth
@@ -88,7 +91,6 @@ typealias DownloadRequestCallback = (DownloadStatus?) -> Unit
 
 enum class FeedLoadState { PREINIT, NONE, LOADING, CONTINUING }
 
-@OptIn(ExperimentalMaterialApi::class)
 class PlayerState(val context: AppContext, internal val coroutine_scope: CoroutineScope) {
     val database: Database get() = context.database
     val theme: Theme get() = context.theme
@@ -103,13 +105,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
 
     fun switchNowPlayingPage(page: Int) {
         coroutine_scope.launch {
-            np_swipe_state.value.animateTo(
-                page,
-                when (form_factor) {
-                    FormFactor.LANDSCAPE -> spring(Spring.DampingRatioNoBouncy, Spring.StiffnessMediumLow)
-                    else -> spring()
-                }
-            )
+            np_swipe_state.animateTo(page)
         }
     }
 
@@ -117,10 +113,24 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
     private var long_press_menu_showing: Boolean by mutableStateOf(false)
     private var long_press_menu_direct: Boolean by mutableStateOf(false)
 
-    private val np_swipe_state: MutableState<SwipeableState<Int>> = mutableStateOf(
-        SwipeableState(0)
-    )
-    private var np_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
+    private fun createSwipeState(
+        anchors: DraggableAnchors<Int> = DraggableAnchors {},
+        animation_spec: AnimationSpec<Float> = tween()
+    ): AnchoredDraggableState<Int> =
+        AnchoredDraggableState(
+            initialValue = 0,
+            anchors = anchors,
+            positionalThreshold = { total_distance ->
+                total_distance * 0.2f
+            },
+            velocityThreshold = {
+                1f
+            },
+            animationSpec = animation_spec
+        )
+
+    private var np_swipe_state: AnchoredDraggableState<Int> by mutableStateOf(createSwipeState())
+
     private var np_bottom_bar_config: LayoutSlot.BelowPlayerConfig? by mutableStateOf(null)
     private var np_bottom_bar_showing: Boolean by mutableStateOf(false)
     private var _np_bottom_bar_height: Dp by mutableStateOf(0.dp)
@@ -134,7 +144,11 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
     private var download_request_always_show_options: Boolean by mutableStateOf(false)
     private var download_request_callback: DownloadRequestCallback? by mutableStateOf(null)
 
-    val expansion: NowPlayingExpansionState = NowPlayingExpansionState(this, np_swipe_state, coroutine_scope)
+    val expansion: NowPlayingExpansionState =
+        object : NowPlayingExpansionState(this, coroutine_scope) {
+            override val swipe_state: AnchoredDraggableState<Int>
+                get() = np_swipe_state
+        }
     var screen_size: DpSize by mutableStateOf(DpSize.Zero)
 
     val session_started: Boolean get() = _player?.service_player?.session_started == true
@@ -327,12 +341,12 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
             .offset {
                 val bottom_padding: Int = getNpBottomPadding(system_insets, navigation_insets, keyboard_insets)
                 val swipe_offset: Dp =
-                    if (player_showing) -np_swipe_state.value.offset.value.dp - ((screen_size.height + np_bottom_bar_height) * 0.5f)
+                    if (player_showing) -np_swipe_state.offset.dp - ((screen_size.height + np_bottom_bar_height) * 0.5f)
                     else -np_bottom_bar_height
 
                 IntOffset(
                     0,
-                    swipe_offset.roundToPx() - bottom_padding - additional_offset.roundToPx() + 1 // Avoid single-pixel gap
+                    swipe_offset.notUnspecified().roundToPx() - bottom_padding - additional_offset.notUnspecified().roundToPx() + 1 // Avoid single-pixel gap
                 )
             }
             .padding(start = system_insets.getStart(), end = system_insets.getEnd())
@@ -396,7 +410,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         }
         app_page_state.setPage(page, from_current = from_current, going_back = false)
 
-        if (np_swipe_state.value.targetValue != 0) {
+        if (np_swipe_state.targetValue != 0) {
             switchNowPlayingPage(0)
         }
         hideLongPressMenu()
@@ -413,22 +427,31 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         item: MediaItem,
         from_current: Boolean = false,
         replace_current: Boolean = false,
-        browse_params: BrowseParamsData? = null
+        browse_params: YoutubePage.BrowseParamsData? = null
     ) {
         if (item is Artist && item.isForItem()) {
             return
         }
 
         val page: AppPageWithItem =
-            if (item is Artist)
-                ArtistAppPage(
-                    app_page_state,
-                    item,
-                    browse_params = browse_params?.let { params ->
-                        Pair(params, context.ytapi.ArtistWithParams)
-                    }
-                )
-            else MediaItemAppPage(app_page_state, item.getHolder(), browse_params)
+            when (item) {
+                is Song ->
+                    SongAppPage(app_page_state, item, browse_params)
+                is Artist ->
+                    ArtistAppPage(
+                        app_page_state,
+                        item,
+                        browse_params = browse_params?.let { params ->
+                            Pair(params, context.ytapi.ArtistWithParams)
+                        }
+                    )
+                is Playlist ->
+                    PlaylistAppPage(
+                        app_page_state,
+                        item
+                    )
+                else -> throw NotImplementedError(item::class.toString())
+            }
 
         openAppPage(page, from_current, replace_current)
     }
@@ -443,7 +466,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
     }
 
     fun onPlayActionOccurred() {
-        if (np_swipe_state.value.targetValue == 0 && Settings.get(BehaviourSettings.Key.OPEN_NP_ON_SONG_PLAYED)) {
+        if (np_swipe_state.targetValue == 0 && Settings.get(BehaviourSettings.Key.OPEN_NP_ON_SONG_PLAYED)) {
             switchNowPlayingPage(1)
         }
     }
@@ -469,15 +492,11 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
             startRadioAtIndex(
                 0,
                 playlist,
-                onLoad =
-                    if (from_index <= 0) null
-                    else { success ->
-                        if (success) {
-                            withContext(Dispatchers.Main) {
-                                seekToSong(from_index)
-                            }
-                        }
+                onSuccessfulLoad = {
+                    if (from_index > 0) {
+                        seekToSong(from_index)
                     }
+                }
             )
         }
     }
@@ -528,27 +547,41 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         LaunchedEffect(player_height, bottom_padding, vertical_page_count, np_bottom_bar_height) {
             val half_screen_height: Float = player_height.value * 0.5f
 
-            with(density) {
-                np_swipe_anchors = (0..vertical_page_count)
-                    .associateBy { anchor ->
-                        if (anchor == 0) minimised_now_playing_height.value - half_screen_height + (np_bottom_bar_height.value / 2)
-                        else (
-                            ((player_height - bottom_padding.toDp()).value * anchor)
-                            - half_screen_height
-                            -np_bottom_bar_height.value / 2
-                        )
-                    }
-            }
+            val anchors: DraggableAnchors<Int> =
+                DraggableAnchors {
+                    for (anchor in 0..vertical_page_count) {
+                        val value: Float
+                        if (anchor == 0) {
+                            value = minimised_now_playing_height.value - half_screen_height + (np_bottom_bar_height.value / 2)
+                        }
+                        else {
+                            with(density) {
+                                value = ((screen_size.height - bottom_padding.toDp()).value * anchor) - half_screen_height - (np_bottom_bar_height.value / 2)
+                            }
+                        }
 
-            val current_swipe_value = np_swipe_state.value.targetValue
-            np_swipe_state.value = SwipeableState(0).apply {
-                init(mapOf(-half_screen_height to 0))
-                snapTo(current_swipe_value)
-            }
+                        anchor at value
+                    }
+                }
+            np_swipe_state.updateAnchors(anchors)
+        }
+
+        val current_form_factor: FormFactor = form_factor
+        LaunchedEffect(current_form_factor) {
+            val animation_spec: AnimationSpec<Float> =
+                when (current_form_factor) {
+                    FormFactor.LANDSCAPE -> spring(Spring.DampingRatioNoBouncy, Spring.StiffnessMediumLow)
+                    else -> spring()
+                }
+
+            np_swipe_state = createSwipeState(
+                anchors = np_swipe_state.anchors,
+                animation_spec = animation_spec
+            )
         }
 
         Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
-            if (np_swipe_anchors != null) {
+            if (np_swipe_state.anchors.size > 0) {
                 val expanded_bottom_bar_height: Dp =
                     if (show_bottom_slot_in_player) np_bottom_bar_height
                     else 0.dp
@@ -562,26 +595,25 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
 
                 com.toasterofbread.spmp.ui.layout.nowplaying.NowPlaying(
                     page_height,
-                    np_swipe_state.value,
-                    np_swipe_anchors!!,
+                    np_swipe_state,
                     PaddingValues(
                         start = WindowInsets.getStart(),
                         end = WindowInsets.getEnd(),
                         bottom = np_bottom_bar_height
                     ),
-                    Modifier.weight(1f).offset(y = (page_height) / 2)
+                    Modifier.weight(1f).offset(y = page_height / 2)
                 )
             }
 
             np_bottom_bar_showing = bottom_layout_slot.DisplayBar(
                 0.dp,
-                Modifier
-                    .fillMaxWidth()
-                    .onSizeChanged {
-                        np_bottom_bar_height = with (density) {
-                            it.height.toDp()
-                        }
+                container_modifier = Modifier.onSizeChanged {
+                    np_bottom_bar_height = with (density) {
+                        it.height.toDp()
                     }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
                     .offset {
                         val bounded: Float = player.expansion.getBounded()
                         val slot_expansion: Float =
@@ -774,3 +806,6 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         download_request_callback = callback
     }
 }
+
+fun Dp.notUnspecified(): Dp =
+    if (this.isUnspecified) 0.dp else this

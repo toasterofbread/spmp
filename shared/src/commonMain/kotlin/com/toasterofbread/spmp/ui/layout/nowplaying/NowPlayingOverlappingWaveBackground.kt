@@ -5,8 +5,8 @@ import LocalPlayerState
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.requiredHeight
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.unit.Dp
@@ -18,18 +18,31 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.composekit.utils.composable.wave.OverlappingWaves
 import com.toasterofbread.composekit.utils.composable.wave.WaveLayer
 import com.toasterofbread.composekit.utils.composable.wave.getDefaultOverlappingWavesLayers
+import com.toasterofbread.composekit.utils.common.getValue
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NOW_PLAYING_LARGE_BOTTOM_BAR_HEIGHT
+import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.settings.category.ThemeSettings
+
+const val MAX_WAVE_SPEED_PORTRAIT: Float = 0.3f
+const val MAX_WAVE_SPEED_LANDSCAPE: Float = 1f
 
 @Composable
 fun NowPlayingOverlappingWaveBackground(page_height: Dp, modifier: Modifier = Modifier) {
     val player: PlayerState = LocalPlayerState.current
     val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
-    
+
     val form_factor: FormFactor = NowPlayingPage.getFormFactor(player)
-    
+    val current_song: Song? by player.status.song_state
+
     val wave_layers: List<WaveLayer> = remember {
         getDefaultOverlappingWavesLayers(7, 0.35f)
     }
+
+    val default_background_wave_speed: Float by ThemeSettings.Key.NOWPLAYING_DEFAULT_WAVE_SPEED.rememberMutableState()
+    val default_background_wave_opacity: Float by ThemeSettings.Key.NOWPLAYING_DEFAULT_WAVE_OPACITY.rememberMutableState()
+
+    val background_wave_speed: Float = current_song?.BackgroundWaveSpeed?.observe(player.database)?.value ?: default_background_wave_speed
+    val background_wave_opacity: Float = current_song?.BackgroundWaveOpacity?.observe(player.database)?.value ?: default_background_wave_opacity
 
     val wave_height: Dp
     val wave_alpha: Float
@@ -40,13 +53,13 @@ fun NowPlayingOverlappingWaveBackground(page_height: Dp, modifier: Modifier = Mo
         FormFactor.PORTRAIT -> {
             wave_height = page_height * 0.5f
             wave_alpha = 0.5f
-            speed = 0.15f
+            speed = MAX_WAVE_SPEED_PORTRAIT * background_wave_speed
             bottom_spacing = 0.dp
         }
         FormFactor.LANDSCAPE -> {
             wave_height = page_height * 0.5f
             wave_alpha = 1f
-            speed = 0.5f
+            speed = MAX_WAVE_SPEED_LANDSCAPE * background_wave_speed
             bottom_spacing = NOW_PLAYING_LARGE_BOTTOM_BAR_HEIGHT
         }
     }

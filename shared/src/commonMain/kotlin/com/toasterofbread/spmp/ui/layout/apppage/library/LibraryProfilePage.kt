@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
@@ -25,7 +26,7 @@ class LibraryProfilePage(context: AppContext): LibrarySubPage(context) {
     override fun enableSearching(): Boolean = false
     override fun enableSorting(): Boolean = false
 
-    private val own_channel: Artist? get() = context.ytapi.user_auth_state?.own_channel
+    private val own_channel: Artist? get() = context.ytapi.user_auth_state?.own_channel_id?.let { ArtistRef(it) }
 
     @Composable
     override fun Page(

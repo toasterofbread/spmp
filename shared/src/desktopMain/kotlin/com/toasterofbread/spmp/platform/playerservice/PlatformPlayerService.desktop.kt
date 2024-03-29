@@ -4,14 +4,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.radio.RadioInstance
+import com.toasterofbread.spmp.model.radio.RadioState
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlatformBinder
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.startPlatformService
 import com.toasterofbread.spmp.platform.unbindPlatformService
-import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
 import spms.socketapi.shared.SpMsPlayerRepeatMode
 import spms.socketapi.shared.SpMsPlayerState
+import kotlinx.serialization.json.JsonPrimitive
 
 private class PlayerServiceBinder(val service: PlatformPlayerService): PlatformBinder()
 
@@ -48,15 +50,15 @@ actual class PlatformPlayerService: SpMsPlayerService(), PlayerService {
         get() = _duration_ms
     actual override val has_focus: Boolean
         get() = true // TODO
-    actual override val radio_state: RadioInstance.RadioState
-        get() = service_player.radio_state
+    actual override val radio_instance: RadioInstance
+        get() = service_player.radio_instance
     actual override var repeat_mode: SpMsPlayerRepeatMode
         get() = _repeat_mode
         set(value) {
             if (value == _repeat_mode) {
                 return
             }
-            sendRequest("setRepeatMode", value.ordinal)
+            sendRequest("setRepeatMode", JsonPrimitive(value.ordinal))
         }
     actual override var volume: Float
         get() = _volume
@@ -64,7 +66,7 @@ actual class PlatformPlayerService: SpMsPlayerService(), PlayerService {
             if (value == _volume) {
                 return
             }
-            sendRequest("setVolume", value)
+            sendRequest("setVolume", JsonPrimitive(value))
         }
 
     actual override fun isPlayingOverLatentDevice(): Boolean = false // TODO
@@ -86,13 +88,13 @@ actual class PlatformPlayerService: SpMsPlayerService(), PlayerService {
 
     actual override fun seekTo(position_ms: Long) {
         val current: Pair<Int, Long> = getSeekPosition()
-        sendRequest("seekToTime", position_ms)
+        sendRequest("seekToTime", JsonPrimitive(position_ms))
         song_seek_undo_stack.add(current)
     }
 
     actual override fun seekToSong(index: Int) {
         val current: Pair<Int, Long> = getSeekPosition()
-        sendRequest("seekToItem", index)
+        sendRequest("seekToItem", JsonPrimitive(index))
         song_seek_undo_stack.add(current)
     }
 
@@ -112,10 +114,10 @@ actual class PlatformPlayerService: SpMsPlayerService(), PlayerService {
         val (index: Int, position_ms: Long) = song_seek_undo_stack.removeLastOrNull() ?: return
 
         if (index != current_song_index) {
-            sendRequest("seekToItem", index, position_ms)
+            sendRequest("seekToItem", JsonPrimitive(index), JsonPrimitive(position_ms))
         }
         else {
-            sendRequest("seekToTime", position_ms)
+            sendRequest("seekToTime", JsonPrimitive(position_ms))
         }
     }
 
@@ -124,15 +126,15 @@ actual class PlatformPlayerService: SpMsPlayerService(), PlayerService {
     actual override fun getSong(index: Int): Song? = playlist.getOrNull(index)
 
     actual override fun addSong(song: Song, index: Int) {
-        sendRequest("addItem", song.id, index)
+        sendRequest("addItem", JsonPrimitive(song.id), JsonPrimitive(index))
     }
 
     actual override fun moveSong(from: Int, to: Int) {
-        sendRequest("moveItem", from, to)
+        sendRequest("moveItem", JsonPrimitive(from), JsonPrimitive(to))
     }
 
     actual override fun removeSong(index: Int) {
-        sendRequest("removeItem", index)
+        sendRequest("removeItem", JsonPrimitive(index))
     }
 
     actual override fun addListener(listener: PlayerListener) {

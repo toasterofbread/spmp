@@ -3,13 +3,12 @@ package com.toasterofbread.spmp.ui.layout
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import com.google.gson.Gson
 import com.toasterofbread.composekit.utils.common.launchSingle
 import com.toasterofbread.spmp.platform.getDiscordAccountInfo
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringArray
-import com.toasterofbread.spmp.youtubeapi.fromJson
 import androidx.compose.foundation.layout.PaddingValues
+import kotlinx.serialization.json.Json
 
 private data class DiscordErrorMessage(val message: String?)
 
@@ -37,7 +36,7 @@ fun DiscordManualLogin(content_padding: PaddingValues, modifier: Modifier = Modi
                         val content = error.message
                         if (content != null) {
                             try {
-                                val parsed: DiscordErrorMessage = Gson().fromJson(content)
+                                val parsed: DiscordErrorMessage = Json.decodeFromString(content)
                                 if (parsed.message != null) {
                                     return@fold Result.failure(RuntimeException(parsed.message))
                                 }

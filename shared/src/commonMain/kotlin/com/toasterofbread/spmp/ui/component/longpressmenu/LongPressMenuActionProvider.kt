@@ -4,7 +4,6 @@ import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -46,8 +45,7 @@ class LongPressMenuActionProvider(
     fun ActionButton(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit, onAltClick: (() -> Unit)? = null, onAction: () -> Unit = this.onAction, fill_width: Boolean = true) =
         ActionButton(icon, label, getAccentColour, modifier = modifier, onClick = onClick, onAltClick = onAltClick, onAction = onAction, fill_width = fill_width)
 
-    @OptIn(ExperimentalFoundationApi::class)
-    @Composable
+        @Composable
     fun ActiveQueueIndexAction(
         getText: (distance: Int) -> String,
         onClick: (active_queue_index: Int) -> Unit,
@@ -55,7 +53,7 @@ class LongPressMenuActionProvider(
     ) {
         val player: PlayerState = LocalPlayerState.current
         val service: PlatformPlayerService = LocalPlayerState.current.controller ?: return
-        
+
         var active_queue_item: Song? by remember { mutableStateOf(null) }
         AnimatedVisibility(service.service_player.active_queue_index < player.status.m_song_count) {
             if (service.service_player.active_queue_index < player.status.m_song_count) {
@@ -88,13 +86,11 @@ class LongPressMenuActionProvider(
                             .align(Alignment.CenterVertically)
 
                         Surface(
-                            button_modifier.combinedClickable(
-                                remember { MutableInteractionSource() },
-                                rememberRipple(),
+                            button_modifier.platformClickable(
                                 onClick = {
                                     service.service_player.updateActiveQueueIndex(-1)
                                 },
-                                onLongClick = {
+                                onAltClick = {
                                     player.context.vibrateShort()
                                     service.service_player.updateActiveQueueIndex(Int.MIN_VALUE)
                                 }
@@ -106,13 +102,11 @@ class LongPressMenuActionProvider(
                         }
 
                         Surface(
-                            button_modifier.combinedClickable(
-                                remember { MutableInteractionSource() },
-                                rememberRipple(),
+                            button_modifier.platformClickable(
                                 onClick = {
                                     service.service_player.updateActiveQueueIndex(1)
                                 },
-                                onLongClick = {
+                                onAltClick = {
                                     player.context.vibrateShort()
                                     service.service_player.updateActiveQueueIndex(Int.MAX_VALUE)
                                 }

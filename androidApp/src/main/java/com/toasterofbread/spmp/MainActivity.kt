@@ -22,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.core.view.WindowCompat
 import com.toasterofbread.composekit.platform.ApplicationContext
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -51,16 +52,17 @@ class MainActivity: ComponentActivity() {
         }
 
         if (isDebugBuild()) {
-            StrictMode.setVmPolicy(VmPolicy.Builder()
-                .detectLeakedClosableObjects()
-                .penaltyLog()
-                .build()
+            StrictMode.setVmPolicy(
+                VmPolicy.Builder()
+                    .detectLeakedClosableObjects()
+                    .penaltyLog()
+                    .build()
             )
         }
 
-        val context = AppContext(this, coroutine_scope, ApplicationContext(this))
+        val shortcut_state: ShortcutState = ShortcutState()
+        val context: AppContext = AppContext(this, coroutine_scope, ApplicationContext(this))
         SpMp.init(context)
-        context.init()
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
@@ -93,7 +95,7 @@ class MainActivity: ComponentActivity() {
             }
 
             if (launched) {
-                SpMp.App(ProgramArguments(), open_uri = open_uri?.toString())
+                SpMp.App(ProgramArguments(), shortcut_state, open_uri = open_uri?.toString())
             }
         }
     }

@@ -5,12 +5,15 @@ import androidx.compose.runtime.remember
 import com.toasterofbread.composekit.settings.ui.item.SettingsItem
 import com.toasterofbread.composekit.settings.ui.item.ToggleSettingsItem
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
+import com.toasterofbread.spmp.model.deserialise
+import com.toasterofbread.spmp.model.getString
+import com.toasterofbread.spmp.model.serialise
 import com.toasterofbread.spmp.model.settings.category.FeedSettings
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
-import com.toasterofbread.spmp.resources.uilocalisation.RawLocalisedString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppStringSetItem
+import dev.toastbits.ytmkt.uistrings.RawUiString
+import dev.toastbits.ytmkt.uistrings.UiString
 
 internal fun getFeedCategoryItems(): List<SettingsItem> {
     return listOf(
@@ -86,11 +89,11 @@ internal fun getFeedCategoryItems(): List<SettingsItem> {
             itemToText = {
                 val player = LocalPlayerState.current
                 remember(it) {
-                    LocalisedString.deserialise(it).getString(player.context)
+                    UiString.deserialise(it).getString(player.context)
                 }
             },
             textToItem = {
-                RawLocalisedString(it).serialise()
+                RawUiString(it).serialise()
             }
         )
     )

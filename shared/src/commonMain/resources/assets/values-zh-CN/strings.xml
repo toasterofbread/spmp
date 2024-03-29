@@ -241,7 +241,6 @@
     <string name="report_error">报告</string>
     <string name="wrap_text_switch_label">换行</string>
     <string name="upload_to_paste_dot_ee">上传到 Paste.ee</string>
-    <string name="error_info_display_show_json_data">显示 JSON 数据</string>
 
     <string name="lpm_action_radio">开始电台</string>
     <string name="lpm_action_play">播放</string>

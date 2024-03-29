@@ -1,19 +1,24 @@
 package com.toasterofbread.spmp.model.mediaitem.db
 
-import com.toasterofbread.db.Database
-import com.toasterofbread.spmp.model.FilterChip
+import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
-import com.toasterofbread.spmp.model.mediaitem.layout.ViewMoreType
-import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
+import com.toasterofbread.spmp.model.mediaitem.getType
+import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.ContinuableMediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.YoutubePageType
+import com.toasterofbread.spmp.model.deserialise
+import com.toasterofbread.spmp.model.serialise
+import dev.toastbits.ytmkt.endpoint.SongFeedFilterChip
+import dev.toastbits.ytmkt.model.external.ItemLayoutType
+import dev.toastbits.ytmkt.uistrings.UiString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.Duration
 import java.time.Instant
 
 data class SongFeedData(
-    val layouts: List<MediaItemLayout>,
-    val filter_chips: List<FilterChip>,
+    val layouts: List<ContinuableMediaItemLayout>,
+    val filter_chips: List<SongFeedFilterChip>,
     val continuation_token: String?
 )
 
@@ -22,7 +27,7 @@ object SongFeedCache {
 
     suspend fun saveFeedLayouts(
         layouts: List<MediaItemLayout>,
-        filter_chips: List<FilterChip>?,
+        filter_chips: List<SongFeedFilterChip>?,
         continuation_token: String?,
         database: Database,
     ) = withContext(Dispatchers.IO) {
@@ -31,9 +36,9 @@ object SongFeedCache {
             val now = Instant.now().toEpochMilli()
 
             for (row in layouts.withIndex()) {
-                val title = row.value.title
+                val title: UiString? = row.value.title
                 val view_more = row.value.view_more?.let {
-                    ViewMoreType.fromViewMore(it)
+                    YoutubePageType.fromPage(it)
                 }
 
                 database.songFeedRowQueries.insert(
@@ -95,18 +100,20 @@ object SongFeedCache {
                             MediaItemType.entries[item.item_type.toInt()].referenceFromId(item.item_id)
                         }
 
-                    MediaItemLayout(
-                        items,
-                        row.title_data?.let {
-                            LocalisedString.deserialise(it)
-                        },
-                        null,
-                        row.layout_type?.let { MediaItemLayout.Type.entries[it.toInt()] },
-                        view_more = row.view_more_type?.let { type ->
-                            row.view_more_data?.let { data ->
-                                ViewMoreType.entries[type.toInt()].getViewMore(data)
+                    ContinuableMediaItemLayout(
+                        MediaItemLayout(
+                            items,
+                            row.title_data?.let {
+                                UiString.deserialise(it)
+                            },
+                            null,
+                            row.layout_type?.let { ItemLayoutType.entries[it.toInt()] },
+                            view_more = row.view_more_type?.let { type ->
+                                row.view_more_data?.let { data ->
+                                    YoutubePageType.entries[type.toInt()].getPage(data)
+                                }
                             }
-                        }
+                        )
                     )
                 }
 
@@ -114,8 +121,8 @@ object SongFeedCache {
                 .getAll()
                 .executeAsList()
                 .map { filter ->
-                    FilterChip(
-                        LocalisedString.deserialise(filter.text_data),
+                    SongFeedFilterChip(
+                        UiString.deserialise(filter.text_data),
                         filter.params
                     )
                 }

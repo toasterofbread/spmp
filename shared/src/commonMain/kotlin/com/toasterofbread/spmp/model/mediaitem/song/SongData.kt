@@ -1,21 +1,23 @@
 package com.toasterofbread.spmp.model.mediaitem.song
 
 import com.toasterofbread.composekit.utils.common.lazyAssert
-import com.toasterofbread.db.Database
+import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.toArtistData
 import com.toasterofbread.spmp.model.mediaitem.db.Property
-import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
+import com.toasterofbread.spmp.model.mediaitem.playlist.toRemotePlaylistData
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmSong
 
 class SongData(
     override var id: String,
     override var artist: Artist? = null,
 
-    var song_type: SongType? = null,
+    var song_type: YtmSong.Type? = null,
     var duration: Long? = null,
     var album: RemotePlaylist? = null,
     var related_browse_id: String? = null,
@@ -36,7 +38,7 @@ class SongData(
         )
     override fun getReference(): SongRef = SongRef(id)
 
-    override val ThumbnailProvider: Property<MediaItemThumbnailProvider?>
+    override val ThumbnailProvider: Property<ThumbnailProvider?>
         get() = super<Song>.ThumbnailProvider
 
     override val property_rememberer: PropertyRememberer = PropertyRememberer()
@@ -68,3 +70,19 @@ class SongData(
         }}
     }
 }
+
+fun YtmSong.toSongData(): SongData =
+    SongData(
+        id = id,
+        artist = artists?.firstOrNull()?.toArtistData(),
+        song_type = type,
+        duration = duration,
+        album = album?.toRemotePlaylistData(),
+        related_browse_id = related_browse_id,
+        lyrics_browse_id = lyrics_browse_id,
+        explicit = is_explicit
+    ).also { data ->
+        data.name = name
+        data.description = description
+        data.thumbnail_provider = thumbnail_provider
+    }

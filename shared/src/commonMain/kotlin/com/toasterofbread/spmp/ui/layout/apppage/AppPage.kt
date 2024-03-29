@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.ElevatedFilterChip
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,6 +18,7 @@ import androidx.compose.material.icons.filled.*
 import com.toasterofbread.composekit.platform.composable.ScrollBarLazyRow
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
@@ -71,6 +71,53 @@ abstract class AppPage {
     @Composable
     open fun isReloading(): Boolean = false
 
+    @Composable
+    fun FilterChipsRow(
+        chip_count: Int,
+        isChipSelected: (Int) -> Boolean,
+        onChipSelected: (Int) -> Unit,
+        modifier: Modifier = Modifier,
+        show_scrollbar: Boolean = false,
+        horizontal_alignment: Alignment.Horizontal = Alignment.Start,
+        spacing: Dp = 10.dp,
+        chipContent: @Composable (Int) -> Unit
+    ) {
+        val player: PlayerState = LocalPlayerState.current
+
+        ScrollBarLazyRow(
+            modifier,
+            show_scrollbar = show_scrollbar,
+            horizontalArrangement = Arrangement.spacedBy(spacing, horizontal_alignment),
+            horizontalAlignment = horizontal_alignment,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            items(chip_count) { index ->
+                Crossfade(isChipSelected(index)) { selected ->
+                    ElevatedFilterChip(
+                        selected,
+                        {
+                            onChipSelected(index)
+                        },
+                        { chipContent(index) },
+                        colors = with(player.theme) {
+                            FilterChipDefaults.elevatedFilterChipColors(
+                                containerColor = background,
+                                labelColor = on_background,
+                                selectedContainerColor = accent,
+                                selectedLabelColor = on_accent
+                            )
+                        },
+                        border = FilterChipDefaults.filterChipBorder(
+                            borderColor = player.theme.on_background,
+                            enabled = true,
+                            selected = selected
+                        )
+                    )
+                }
+            }
+        }
+    }
+
     enum class Type {
         SONG_FEED,
         LIBRARY,
@@ -119,4 +166,4 @@ abstract class AppPage {
     }
 }
 
-private fun PlayerState.getOwnChannel(): Artist? = context.ytapi.user_auth_state?.own_channel
+private fun PlayerState.getOwnChannel(): Artist? = context.ytapi.user_auth_state?.own_channel_id?.let { ArtistRef(it) }

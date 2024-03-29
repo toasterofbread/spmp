@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import LocalPlayerState
 import SpMp.isDebugBuild
+import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,8 +21,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.composekit.settings.ui.SettingsPage
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
+import com.toasterofbread.spmp.model.settings.packSetData
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
-import com.toasterofbread.spmp.youtubeapi.composable.LoginPage
+import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.LoginPage
 
 internal fun getYoutubeMusicLoginPage(
     ytm_auth: SettingsValueState<Set<String>>,
@@ -66,7 +68,9 @@ internal fun getYoutubeMusicLoginPage(
                     login_page.LoginPage(Modifier.fillMaxSize(), confirm_param, content_padding) { result ->
                         result?.fold(
                             { auth_info ->
-                                ytm_auth.set(auth_info.getSetData())
+                                ytm_auth.set(
+                                    ApiAuthenticationState.packSetData(auth_info.own_channel_id, auth_info.headers)
+                                )
                                 goBack()
                             },
                             { error ->

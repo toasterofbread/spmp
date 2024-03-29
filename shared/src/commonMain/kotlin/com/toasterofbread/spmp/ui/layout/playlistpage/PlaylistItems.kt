@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Reorder
 import androidx.compose.material3.Icon
@@ -16,27 +16,29 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.getUiLanguage
-import com.toasterofbread.spmp.resources.uilocalisation.durationToString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getLongPressMenuData
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.composekit.utils.common.getValue
+import dev.toastbits.ytmkt.uistrings.durationToString
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.detectReorder
+import LocalPlayerState
 
-internal fun PlaylistPage.PlaylistItems(
+internal fun PlaylistAppPage.PlaylistItems(
     list_scope: LazyListScope,
     list_state: ReorderableLazyListState,
-    sorted_items: List<Pair<MediaItem, Int>>?
+    sorted_items: List<MediaItem>?
 ) {
-    list_scope.itemsIndexed(sorted_items ?: emptyList(), key = { _, item -> item.second }) { i, data ->
-        val (item, index) = data
-        check(item is Song)
+    list_scope.items(sorted_items ?: emptyList()) { item ->
+        val player: PlayerState = LocalPlayerState.current
 
-        val long_press_menu_data = remember(item, index) {
-            item.getLongPressMenuData(multiselect_context, multiselect_key = index)
+        val long_press_menu_data = remember(item) {
+            item.getLongPressMenuData(multiselect_context)
         }
 
-        ReorderableItem(list_state, key = index) { dragging ->
+        ReorderableItem(list_state, key = item) { dragging ->
             Row(Modifier.fillMaxWidth().padding(top = 10.dp)) {
                 MediaItemPreviewLong(
                     item,
@@ -46,7 +48,7 @@ internal fun PlaylistPage.PlaylistItems(
                     show_artist = true,
                     show_type = false,
                     getExtraInfo = {
-                        val item_duration: Long? by item.Duration.observe(player.database)
+                        val item_duration: Long? by (item as? Song)?.Duration?.observe(player.database)
                         remember(item_duration) {
                             listOfNotNull(
                                 item_duration?.let { duration ->
@@ -55,7 +57,6 @@ internal fun PlaylistPage.PlaylistItems(
                             )
                         }
                     },
-                    multiselect_key = i,
                     multiselect_context = multiselect_context
                 )
 

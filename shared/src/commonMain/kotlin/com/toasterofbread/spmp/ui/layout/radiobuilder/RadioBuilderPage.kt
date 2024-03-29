@@ -29,14 +29,13 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.toasterofbread.composekit.platform.composable.BackHandler
-import com.toasterofbread.spmp.model.settings.category.LyricsSettings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.youtubeapi.RadioBuilderArtist
-import com.toasterofbread.spmp.youtubeapi.RadioBuilderEndpoint
+import dev.toastbits.ytmkt.endpoint.RadioBuilderArtist
+import dev.toastbits.ytmkt.endpoint.RadioBuilderEndpoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -68,7 +67,7 @@ fun RadioBuilderPage(
             PillMenu(follow_player = true)
         }
         pill_menu.PillMenu()
-        
+
         Column(
             Modifier
                 .fillMaxSize()
@@ -90,7 +89,7 @@ fun RadioBuilderPage(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             RadioBuilderIcon()
-    
+
                             Text(
                                 getString(
                                     if (selected == null) "radio_builder_artists_title"
@@ -98,15 +97,15 @@ fun RadioBuilderPage(
                                 ),
                                 style = MaterialTheme.typography.headlineMedium
                             )
-    
+
                             Spacer(Modifier.width(RADIO_BUILDER_ICON_WIDTH_DP.dp))
                         }
-    
+
                         if (selected == null) {
                             WaveBorder(Modifier.fillMaxWidth(), getOffset = { it })
                         }
                     }
-    
+
                     if (selected == null) {
                         if (artists_result?.isFailure == true) {
                             artists_result?.exceptionOrNull()?.also {
@@ -128,7 +127,7 @@ fun RadioBuilderPage(
                         BackHandler {
                             selected_artists = null
                         }
-    
+
                         FilterSelectionPage(
                             selected,
                             artists_result!!.getOrThrow(),

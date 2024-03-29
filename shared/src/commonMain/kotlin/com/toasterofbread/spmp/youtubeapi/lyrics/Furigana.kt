@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.youtubeapi.lyrics
 
+
 import com.atilika.kuromoji.ipadic.Token
 import com.atilika.kuromoji.ipadic.Tokenizer
 import com.toasterofbread.composekit.utils.common.hasKanjiAndHiraganaOrKatakana

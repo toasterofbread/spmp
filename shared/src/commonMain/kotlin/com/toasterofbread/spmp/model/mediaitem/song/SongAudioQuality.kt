@@ -3,8 +3,7 @@ package com.toasterofbread.spmp.model.mediaitem.song
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.StreamingSettings
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.youtubeapi.YoutubeVideoFormat
-import okhttp3.internal.filterList
+import dev.toastbits.ytmkt.model.external.YoutubeVideoFormat
 
 enum class SongAudioQuality {
     LOW, MEDIUM, HIGH
@@ -47,9 +46,9 @@ private suspend fun getAudioFormats(song_id: String, context: AppContext): Resul
 private fun List<YoutubeVideoFormat>.getByQuality(quality: SongAudioQuality): YoutubeVideoFormat {
     check(isNotEmpty())
     return when (quality) {
-        SongAudioQuality.HIGH -> firstOrNull { it.audio_only } ?: first()
+        SongAudioQuality.HIGH -> firstOrNull { it.isAudioOnly() } ?: first()
         SongAudioQuality.MEDIUM -> {
-            val audio_formats = filterList { audio_only }
+            val audio_formats = filter { it.isAudioOnly() }
             if (audio_formats.isNotEmpty()) {
                 audio_formats[audio_formats.size / 2]
             }
@@ -57,6 +56,6 @@ private fun List<YoutubeVideoFormat>.getByQuality(quality: SongAudioQuality): Yo
                 get(size / 2)
             }
         }
-        SongAudioQuality.LOW -> lastOrNull { it.audio_only } ?: last()
+        SongAudioQuality.LOW -> lastOrNull { it.isAudioOnly() } ?: last()
     }
 }

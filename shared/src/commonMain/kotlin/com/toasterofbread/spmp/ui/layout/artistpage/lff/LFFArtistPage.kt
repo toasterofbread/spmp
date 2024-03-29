@@ -23,7 +23,6 @@ import com.toasterofbread.composekit.utils.composable.OnChangedEffect
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
-import com.toasterofbread.spmp.model.mediaitem.layout.BrowseParamsData
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.loadDataOnChange
@@ -31,8 +30,8 @@ import com.toasterofbread.spmp.model.settings.category.FilterSettings
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
-import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsRow
+import dev.toastbits.ytmkt.endpoint.ArtistWithParamsEndpoint
+import dev.toastbits.ytmkt.endpoint.ArtistWithParamsRow
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
@@ -73,7 +72,6 @@ internal fun ArtistAppPage.LFFArtistPage(
         load_error = null
 
         val (params, params_endpoint) = browse_params
-        require(params_endpoint.isImplemented())
 
         params_endpoint.loadArtistWithParams(params).fold(
             { browse_params_rows = it },

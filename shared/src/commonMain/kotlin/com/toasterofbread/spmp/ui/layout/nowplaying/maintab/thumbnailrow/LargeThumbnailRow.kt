@@ -27,7 +27,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import com.toasterofbread.composekit.platform.composable.BackHandler
 import com.toasterofbread.composekit.platform.composable.platformClickable
-import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.common.getInnerSquareSizeOfCircle
 import com.toasterofbread.composekit.utils.common.getValue
 import com.toasterofbread.composekit.utils.common.thenIf
@@ -35,7 +34,7 @@ import com.toasterofbread.composekit.utils.composable.MeasureUnconstrainedView
 import com.toasterofbread.composekit.utils.composable.OnChangedEffect
 import com.toasterofbread.composekit.utils.modifier.background
 import com.toasterofbread.composekit.utils.modifier.disableParentScroll
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
@@ -50,7 +49,6 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.OVERLAY_MENU_ANIMATION_DURATION
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.*
-import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 import kotlin.math.absoluteValue
 
 internal typealias ColourpickCallback = (Color?) -> Unit
@@ -163,7 +161,7 @@ fun LargeThumbnailRow(
                     }
 
                     song.Thumbnail(
-                        MediaItemThumbnailProvider.Quality.HIGH,
+                        ThumbnailProvider.Quality.HIGH,
                         getContentColour = { player.getNPOnBackground() },
                         onLoaded = {
                             current_thumb_image = it
@@ -380,13 +378,7 @@ private fun PlayerState.performPressAction(
             setOverlayMenu(PlayerOverlayMenu.getLyricsMenu())
         }
         PlayerOverlayMenuAction.OPEN_RELATED -> {
-            val related_endpoint = context.ytapi.SongRelatedContent
-            if (related_endpoint.isImplemented()) {
-                setOverlayMenu(RelatedContentPlayerOverlayMenu(related_endpoint))
-            }
-            else {
-                throw EndpointNotImplementedException(related_endpoint)
-            }
+            setOverlayMenu(RelatedContentPlayerOverlayMenu(context.ytapi.SongRelatedContent))
         }
         PlayerOverlayMenuAction.DOWNLOAD -> {
             status.m_song?.also { song ->

@@ -4,7 +4,6 @@ import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
 import com.toasterofbread.spmp.youtubeapi.lyrics.kugou.loadKugouLyrics
 import com.toasterofbread.spmp.youtubeapi.lyrics.kugou.searchKugouLyrics
 import com.toasterofbread.spmp.platform.getUiLanguage
@@ -14,16 +13,17 @@ internal class KugouLyricsSource(source_idx: Int): LyricsSource(source_idx) {
     override fun getColour(): Color = Color(0xFF50A6FB)
     override fun getUrlOfId(id: String): String? = null
 
-    override suspend fun getLyrics(lyrics_id: String, context: AppContext, tokeniser: LyricsFuriganaTokeniser): Result<SongLyrics> {
-        val load_result: Result<List<List<SongLyrics.Term>>> = loadKugouLyrics(lyrics_id, tokeniser, context.getUiLanguage())
-        val lines: List<List<SongLyrics.Term>> = load_result.getOrNull() ?: return load_result.cast()
+    override suspend fun getLyrics(
+        lyrics_id: String,
+        context: AppContext,
+        tokeniser: LyricsFuriganaTokeniser
+    ): Result<SongLyrics> = runCatching {
+        val lines: List<List<SongLyrics.Term>> = loadKugouLyrics(lyrics_id, tokeniser, context.getUiLanguage()).getOrThrow()
 
-        return Result.success(
-            SongLyrics(
-                LyricsReference(source_index, lyrics_id),
-                SongLyrics.SyncType.LINE_SYNC,
-                lines
-            )
+        return@runCatching SongLyrics(
+            LyricsReference(source_index, lyrics_id),
+            SongLyrics.SyncType.LINE_SYNC,
+            lines
         )
     }
 

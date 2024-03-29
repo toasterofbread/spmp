@@ -8,6 +8,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -25,6 +26,7 @@ import com.toasterofbread.composekit.platform.composable.*
 import com.toasterofbread.composekit.utils.common.*
 import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.modifier.background
+import com.toasterofbread.composekit.utils.composable.NoRipple
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.*
@@ -63,54 +65,56 @@ internal fun ContentBarSelector(
         )
     }
 
-    BoxWithConstraints(
-        modifier
-            .clipToBounds()
-            .fillMaxSize()
-            .background(player.theme.background)
-            .border(1.dp, player.theme.vibrant_accent)
-            .padding(content_padding)
-    ) {
-        CompositionLocalProvider(LocalContentColor provides player.theme.background.getContrasted()) {
-            Row(
-                Modifier
-                    .thenIf(slot.is_vertical) {
-                        rotate(-90f)
-                        .vertical()
-                        .requiredSize(maxHeight, maxWidth)
-                        .offset { with (density) {
-                            IntOffset(
-                                (maxWidth - maxHeight).roundToPx() / 2,
-                                0
-                            )
-                        } }
-                        .wrapContentHeight()
-                    },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                val rotate_modifier: Modifier = Modifier.thenIf(slot.is_vertical) { rotate(90f) }
-
-                Text(slot.getName())
-
-                val colour_button_background_colour: Color = slot_colour_source.get(player)
-
-                ConfigButton(
+    NoRipple {
+        BoxWithConstraints(
+            modifier
+                .clipToBounds()
+                .fillMaxSize()
+                .background(player.theme.background)
+                .border(1.dp, player.theme.vibrant_accent)
+                .padding(content_padding)
+        ) {
+            CompositionLocalProvider(LocalContentColor provides player.theme.background.getContrasted()) {
+                Row(
                     Modifier
-                        .platformClickable(
-                            onClick = { show_colour_selector = !show_colour_selector }
-                        ),
-                    background_colour = colour_button_background_colour,
-                    border_colour = colour_button_background_colour.getContrasted()
+                        .thenIf(slot.is_vertical) {
+                            rotate(-90f)
+                            .vertical()
+                            .requiredSize(maxHeight, maxWidth)
+                            .offset { with (density) {
+                                IntOffset(
+                                    (maxWidth - maxHeight).roundToPx() / 2,
+                                    0
+                                )
+                            } }
+                            .wrapContentHeight()
+                        },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Icon(Icons.Default.Palette, null, rotate_modifier)
+                    val rotate_modifier: Modifier = Modifier.thenIf(slot.is_vertical) { rotate(90f) }
 
-                    slot_colour_source.theme_colour?.also {
-                        Text(it.getReadable())
+                    Text(slot.getName())
+
+                    val colour_button_background_colour: Color = slot_colour_source.get(player)
+
+                    ConfigButton(
+                        Modifier
+                            .clickable {
+                                show_colour_selector = !show_colour_selector
+                            },
+                        background_colour = colour_button_background_colour,
+                        border_colour = colour_button_background_colour.getContrasted()
+                    ) {
+                        Icon(Icons.Default.Palette, null, rotate_modifier)
+
+                        slot_colour_source.theme_colour?.also {
+                            Text(it.getReadable())
+                        }
                     }
-                }
 
-                ContentBarSelectorMainRow(state, slot, slot_config, rotate_modifier)
+                    ContentBarSelectorMainRow(state, slot, slot_config, rotate_modifier)
+                }
             }
         }
     }
@@ -175,9 +179,7 @@ private fun ContentBarSelectorMainRow(
     ) {
         if (slot.hasConfig()) {
             ConfigButton(
-                Modifier.platformClickable(
-                    onClick = { show_slot_config = true }
-                )
+                Modifier.clickable { show_slot_config = true }
             ) {
                 Icon(Icons.Default.Settings, null)
             }
@@ -185,9 +187,7 @@ private fun ContentBarSelectorMainRow(
 
         ConfigButton(
             Modifier
-                .platformClickable(
-                    onClick = { show_bar_selector = true }
-                )
+                .clickable { show_bar_selector = true }
                 .fillMaxWidth()
                 .weight(1f)
         ) {
@@ -307,9 +307,9 @@ internal fun CustomBarsContentBarList(
                     Icons.Default.Add,
                     Modifier
                         .contentBarPreview(background_colour = background_colour)
-                        .platformClickable(onClick = {
+                        .clickable {
                             state.createCustomBar()
-                        })
+                        }
                 )
             }
         },

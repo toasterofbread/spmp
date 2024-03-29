@@ -371,9 +371,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
 
         if (include_np) {
             bottom_padding += animateDpAsState(
-                (
-                    np_bottom_bar_height
-                )
+                np_bottom_bar_height
                 + (
                     if (player_showing) MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
                     else 0.dp

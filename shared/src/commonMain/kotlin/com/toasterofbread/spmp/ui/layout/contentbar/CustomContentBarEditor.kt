@@ -232,17 +232,25 @@ internal abstract class CustomContentBarEditor() {
                 commit(bar)
             }
 
-            CustomContentBarCopyPasteButtons (bar.elements) {
-                bar = bar.copy(elements = it)
-                commit(bar)
-            }
-
-            Button(
-                { show_template_selector = !show_template_selector },
-                colors = button_colours
+            FlowRow(
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Icon(Icons.Default.ViewQuilt, null, Modifier.padding(end = 10.dp))
-                Text(getString("content_bar_editor_pick_template"), softWrap = false)
+                CustomContentBarCopyPasteButtons(
+                    bar.elements,
+                    Modifier.align(Alignment.CenterVertically)
+                ) {
+                    bar = bar.copy(elements = it)
+                    commit(bar)
+                }
+
+                Button(
+                    { show_template_selector = !show_template_selector },
+                    colors = button_colours,
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                ) {
+                    Icon(Icons.Default.ViewQuilt, null, Modifier.padding(end = 10.dp))
+                    Text(getString("content_bar_editor_pick_template"), softWrap = false)
+                }
             }
         }
     }
@@ -398,7 +406,10 @@ private fun ElementSelector(
         modifier,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
             Icon(Icons.Default.Add, null)
             Text(getString("content_bar_editor_add_element"))
         }

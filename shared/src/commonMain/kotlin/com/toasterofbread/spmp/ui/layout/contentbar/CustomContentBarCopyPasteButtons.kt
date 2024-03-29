@@ -6,6 +6,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.Modifier
 import androidx.compose.runtime.*
 import com.toasterofbread.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
@@ -16,6 +17,7 @@ import com.toasterofbread.spmp.ui.layout.contentbar.element.*
 @Composable
 internal fun CustomContentBarCopyPasteButtons(
     elements: List<ContentBarElement>,
+    item_modifier: Modifier = Modifier,
     onPaste: (List<ContentBarElement>) -> Unit
 ) {
     val player: PlayerState = LocalPlayerState.current
@@ -28,7 +30,8 @@ internal fun CustomContentBarCopyPasteButtons(
 
     ShapedIconButton(
         { clipboard.setText(AnnotatedString(Json.encodeToString(elements))) },
-        colours
+        colours,
+        item_modifier
     ) {
         Icon(Icons.Default.ContentCopy, null)
     }
@@ -44,7 +47,8 @@ internal fun CustomContentBarCopyPasteButtons(
                 }
             }
         },
-        colours
+        colours,
+        item_modifier
     ) {
         Icon(Icons.Default.ContentPaste, null)
     }

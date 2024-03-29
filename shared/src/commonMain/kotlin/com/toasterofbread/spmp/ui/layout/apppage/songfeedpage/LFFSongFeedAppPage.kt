@@ -215,7 +215,7 @@ internal fun SongFeedAppPage.LFFSongFeedAppPage(
                                         multiselect_context = player.main_multiselect_context,
                                         apply_filter = true,
                                         show_download_indicators = show_download_indicators,
-                                        content_padding = PaddingValues(end = content_padding.calculateEndPadding(LocalLayoutDirection.current))
+                                        content_padding = content_padding.horizontal
                                     ),
                                     MediaItemGridParams(
                                         square_item_max_text_rows = square_item_max_text_rows,

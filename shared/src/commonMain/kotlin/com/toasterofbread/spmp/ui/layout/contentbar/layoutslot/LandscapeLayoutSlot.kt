@@ -88,12 +88,15 @@ enum class LandscapeLayoutSlot: LayoutSlot {
             INNER_SIDE_LEFT -> ThemeColourSource(Theme.Colour.CARD)
             OUTER_SIDE_RIGHT -> ThemeColourSource(Theme.Colour.CARD)
             INNER_SIDE_RIGHT -> ThemeColourSource(Theme.Colour.CARD)
+
             UPPER_TOP_BAR -> ThemeColourSource(Theme.Colour.CARD)
             LOWER_TOP_BAR -> ThemeColourSource(Theme.Colour.CARD)
+
             ABOVE_PLAYER -> CustomColourSource(Color.Transparent.toArgb())
             BELOW_PLAYER -> ThemeColourSource(Theme.Colour.CARD)
-            PLAYER_BOTTOM_START -> ThemeColourSource(Theme.Colour.CARD)
-            PLAYER_BOTTOM_END -> ThemeColourSource(Theme.Colour.CARD)
+
+            PLAYER_BOTTOM_START -> CustomColourSource(Color.Transparent.toArgb())
+            PLAYER_BOTTOM_END -> CustomColourSource(Color.Transparent.toArgb())
         }
 
     override fun hasConfig(): Boolean =

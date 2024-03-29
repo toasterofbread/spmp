@@ -33,7 +33,7 @@ sealed class LyricsSource(val source_index: Int) {
         var artist_name: String?,
         var album_name: String?
     )
-    
+
     abstract fun getReadable(): String
     abstract fun getColour(): Color
     abstract fun getUrlOfId(id: String): String?
@@ -78,7 +78,7 @@ sealed class LyricsSource(val source_index: Int) {
             context: AppContext,
             tokeniser: LyricsFuriganaTokeniser,
             default: Int = LyricsSettings.Key.DEFAULT_SOURCE.get()
-        ): Result<SongLyrics> {
+        ): Result<SongLyrics> = runCatching {
             val db: Database = context.database
             val (song_title, artist_title) = db.transactionWithResult {
                 Pair(
@@ -87,7 +87,7 @@ sealed class LyricsSource(val source_index: Int) {
                 )
             }
 
-            var fail_result: Result<SongLyrics>? = null
+            var fail_exception: Throwable? = null
             iterateByPriority(default) { source ->
                 var lyrics_reference: LyricsReference? = null
 
@@ -95,8 +95,8 @@ sealed class LyricsSource(val source_index: Int) {
                     lyrics_reference = source.getReferenceBySong(song, context).fold(
                         { it },
                         {
-                            if (fail_result == null) {
-                                fail_result = Result.failure(it)
+                            if (fail_exception == null) {
+                                fail_exception = it
                             }
                             return@iterateByPriority
                         }
@@ -105,8 +105,8 @@ sealed class LyricsSource(val source_index: Int) {
 
                 if (lyrics_reference == null && source.supportsLyricsBySearching()) {
                     if (song_title == null) {
-                        if (fail_result == null) {
-                            fail_result = Result.failure(RuntimeException("Song has no title to search by"))
+                        if (fail_exception == null) {
+                            fail_exception = RuntimeException("Song has no title to search by")
                         }
                         return@iterateByPriority
                     }
@@ -114,7 +114,7 @@ sealed class LyricsSource(val source_index: Int) {
                     val result: SearchResult = source.searchForLyrics(song_title, artist_title).fold(
                         { results ->
                             if (results.isEmpty()) {
-                                fail_result = null
+                                fail_exception = null
                                 null
                             }
                             else {
@@ -122,8 +122,8 @@ sealed class LyricsSource(val source_index: Int) {
                             }
                         },
                         {
-                            if (fail_result == null) {
-                                fail_result = Result.failure(it)
+                            if (fail_exception == null) {
+                                fail_exception = it
                             }
                             null
                         }
@@ -137,16 +137,13 @@ sealed class LyricsSource(val source_index: Int) {
                 }
 
                 val lyrics_result = SongLyricsLoader.loadByLyrics(lyrics_reference, context, tokeniser)
-                if (lyrics_result.isSuccess) {
-                    return lyrics_result
-                }
-
-                if (fail_result == null) {
-                    fail_result = lyrics_result
-                }
+                lyrics_result.fold(
+                    { return@runCatching it },
+                    { fail_exception = it }
+                )
             }
 
-            return fail_result ?: Result.failure(RuntimeException(getStringTODO("No lyrics found")))
+            throw fail_exception ?: RuntimeException(getStringTODO("No lyrics found"))
         }
     }
 }

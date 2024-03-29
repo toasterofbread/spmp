@@ -15,7 +15,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalViewConfiguration
 import com.toasterofbread.composekit.platform.Platform
-import com.toasterofbread.composekit.platform.composable.platformClickable
+import com.toasterofbread.composekit.platform.composable.platformClickableWithOffset
 import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.composekit.utils.composable.OnChangedEffect
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
@@ -90,7 +90,7 @@ private fun Modifier.desktopMediaItemPreviewInteraction(
     val onItemClick = onClick ?: { item, key -> click_overrides.onMediaItemClicked(item, player, key) }
     val onItemLongClick = onLongClick ?: { item, data -> click_overrides.onMediaItemLongClicked(item, player, data) }
 
-    return platformClickable(
+    return platformClickableWithOffset(
         onClick = { MediaItemPreviewInteractionPressStage.INSTANT.execute(item, long_press_menu_data, it, onItemClick, onItemLongClick) },
         onAltClick = { MediaItemPreviewInteractionPressStage.LONG_1.execute(item, long_press_menu_data, it, onItemClick, onItemLongClick) },
         onAlt2Click = { MediaItemPreviewInteractionPressStage.LONG_2.execute(item, long_press_menu_data, it, onItemClick, onItemLongClick) },

@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
-import com.toasterofbread.composekit.platform.composable.platformClickable
+import com.toasterofbread.composekit.platform.composable.platformClickableWithOffset
 import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.composekit.utils.common.*
 import com.toasterofbread.composekit.utils.composable.*
@@ -130,7 +130,7 @@ internal abstract class CustomContentBarEditor() {
                         var column_height: Dp by remember { mutableStateOf(0.dp) }
                         BarPreview(
                             Modifier.padding(end = 40.dp),
-                            Modifier.requiredHeightIn(min = column_height)
+                            Modifier.requiredHeightIn(min = column_height).widthIn(min = 50.dp)
                         )
 
                         Column(
@@ -233,7 +233,7 @@ internal abstract class CustomContentBarEditor() {
             }
 
             FlowRow(
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 CustomContentBarCopyPasteButtons(
                     bar.elements,
@@ -299,7 +299,7 @@ internal abstract class CustomContentBarEditor() {
                     Box(
                         Modifier
                             .fillMaxSize()
-                            .platformClickable(onClick = { onElementClicked(index) }),
+                            .platformClickableWithOffset(onClick = { onElementClicked(index) }),
                         contentAlignment = Alignment.Center
                     ) {
                         element.Element(

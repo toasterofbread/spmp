@@ -21,6 +21,10 @@ sealed interface AppAction {
 
     suspend fun executeAction(player: PlayerState)
 
+    fun hasCustomContent(): Boolean = false
+    @Composable
+    fun CustomContent(enable_interaction: Boolean, modifier: Modifier) {}
+
     @Composable
     fun Preview(modifier: Modifier)
 

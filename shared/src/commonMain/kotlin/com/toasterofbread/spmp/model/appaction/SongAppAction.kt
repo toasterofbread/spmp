@@ -14,6 +14,9 @@ import com.toasterofbread.composekit.platform.vibrateShort
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.Button
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.*
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -25,9 +28,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.PushPin
 import com.toasterofbread.spmp.model.mediaitem.db.togglePinned
+import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLikedLoader
 import com.toasterofbread.spmp.model.appaction.AppAction
+import com.toasterofbread.spmp.ui.component.LikeDislikeButton
 import LocalPlayerState
 import dev.toastbits.ytmkt.model.external.SongLikedStatus
 import dev.toastbits.ytmkt.endpoint.SongLikedEndpoint
@@ -39,6 +45,15 @@ data class SongAppAction(
 ): AppAction {
     override fun getType(): AppAction.Type = AppAction.Type.SONG
     override fun getIcon(): ImageVector = action.getIcon()
+
+    override fun hasCustomContent() = action.hasCustomContent()
+
+    @Composable
+    override fun CustomContent(enable_interaction: Boolean, modifier: Modifier) {
+        val song: Song = LocalPlayerState.current.status.song ?: return
+        action.CustomContent(enable_interaction, song, modifier)
+    }
+
     override suspend fun executeAction(player: PlayerState) {
         val song: Song = player.status.song ?: return
         val index: Int = player.status.index
@@ -123,6 +138,34 @@ data class SongAppAction(
 
             fun getAvailable(context: AppContext): List<Action> =
                 entries.filter { it.isAvailable(context) }
+        }
+
+        fun hasCustomContent(): Boolean =
+            this == TOGGLE_LIKE || this == TOGGLE_PIN
+
+        @Composable
+        fun CustomContent(enable_interaction: Boolean, song: Song, modifier: Modifier = Modifier) {
+            when (this) {
+                TOGGLE_LIKE -> LikeDislikeButton(
+                    song,
+                    LocalPlayerState.current.context.ytapi.user_auth_state,
+                    modifier,
+                    getEnabled = { enable_interaction }
+                )
+                TOGGLE_PIN -> {
+                    var pinned: Boolean by song.observePinnedToHome()
+                    IconButton(
+                        { pinned = !pinned },
+                        enabled = enable_interaction,
+                        colors = IconButtonDefaults.iconButtonColors(
+                            disabledContentColor = LocalContentColor.current
+                        )
+                    ) {
+                        Icon(if (pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null)
+                    }
+                }
+                else -> throw IllegalStateException(this.toString())
+            }
         }
 
         fun getName(): String =

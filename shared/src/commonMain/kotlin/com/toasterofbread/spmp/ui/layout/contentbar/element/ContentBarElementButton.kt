@@ -80,6 +80,11 @@ data class ContentBarElementButton(
 
     @Composable
     override fun ElementContent(vertical: Boolean, enable_interaction: Boolean, modifier: Modifier) {
+        if (action.hasCustomContent()) {
+            action.CustomContent(enable_interaction, modifier)
+            return
+        }
+
         val player: PlayerState = LocalPlayerState.current
         val coroutine_scope: CoroutineScope = rememberCoroutineScope()
         val colours: IconButtonColors =
@@ -90,7 +95,6 @@ data class ContentBarElementButton(
         IconButton(
             {
                 coroutine_scope.launch {
-                    println(action)
                     action.executeAction(player)
                 }
             },

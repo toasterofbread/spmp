@@ -119,8 +119,8 @@ val buildConfigDesktop = tasks.register("buildConfigDesktop") {
 afterEvaluate {
     tasks.all {
         when (name) {
-            "preDebugBuild" -> dependsOn(buildConfigDebug)
-            "preReleaseBuild" -> dependsOn(buildConfigRelease)
+            "compileDebugKotlinAndroid" -> dependsOn(buildConfigDebug)
+            "compileReleaseKotlinAndroid" -> dependsOn(buildConfigRelease)
             "compileKotlinDesktop" -> dependsOn(buildConfigDesktop)
         }
     }

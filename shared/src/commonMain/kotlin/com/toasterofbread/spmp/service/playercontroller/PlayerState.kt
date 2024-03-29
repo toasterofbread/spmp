@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.animateTo
+import androidx.compose.foundation.gestures.snapTo
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
@@ -563,7 +564,15 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
                         anchor at value
                     }
                 }
+
+            val initial_position: Int = np_swipe_state.currentValue
             np_swipe_state.updateAnchors(anchors)
+
+            if (initial_position == 0) {
+                coroutine_scope.launch {
+                    np_swipe_state.snapTo(initial_position)
+                }
+            }
         }
 
         val current_form_factor: FormFactor = form_factor

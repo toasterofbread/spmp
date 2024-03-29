@@ -365,8 +365,6 @@
     <string name="s_key_hp_show_timed_lyrics">Показывать синхронизированый с треком текст</string>
     <string name="s_sub_hp_show_timed_lyrics">Синхронизированный текст трека появятся на верхней панели, если доступнен</string>
 
-    <string name="s_key_feed_show_filter_bar">Показать панель фильтров</string>
-    <string name="s_sub_feed_show_filter_bar">Если скрыто, доступ к странице поиска по-прежнему можно получить, нажав и удерживая кнопку поиска в библиотеке</string>
     <string name="s_key_feed_show_song_download_indicators">Показывать статус загрузки трека</string>
     <string name="s_key_feed_initial_rows">Начальные ряды главной страницы</string>
     <string name="s_key_feed_square_preview_text_lines">Максимальное количество текстовых строк квадратного элемента (я без понятия что он имел ввиду)</string>
@@ -513,25 +511,12 @@
 
     <string name="s_key_lyrics_font_size">Размер шрифта</string>
 
-    <string name="s_key_lyrics_top_bar_enable">Включить текст трека в верхнем блоке</string>
-    <string name="s_key_lyrics_top_bar_max_lines">Максимальное количество строк</string>
-    <string name="s_key_lyrics_top_bar_preapply_max_lines">Выделить максимальное место для текста заранее</string>
     <string name="s_key_lyrics_sync_delay">Задержка синхронизации текста</string>
     <string name="s_sub_lyrics_sync_delay">Задержка в секундах применяется к синхронизации текстов трек</string>
     <string name="s_key_lyrics_sync_delay_topbar">Задержка синхронизации текстов песен в верхнем блоке</string>
     <string name="s_sub_lyrics_sync_delay_topbar">Дополнительная задержка применяется только к текстам песен в верхней панели</string>
     <string name="s_key_lyrics_sync_delay_bluetooth">Задержка текста при использовании Bluetooth устройств</string>
     <string name="s_sub_lyrics_sync_delay_bluetooth">Дополнительная задержка применяется только при прослушивании аудио через Bluetooth</string>
-
-    <string name="s_key_top_bar_lyrics_show_furigana">Показывать фуригану</string>
-    <string name="s_key_top_bar_lyrics_show_in_library">Показывать в библиотеке</string>
-    <string name="s_key_top_bar_lyrics_show_in_radiobuilder">Показывать в радиостанции</string>
-    <string name="s_key_top_bar_lyrics_show_in_settings">Показывать в настройках</string>
-    <string name="s_key_top_bar_lyrics_show_in_login">Показывать в страницах логина</string>
-    <string name="s_key_top_bar_lyrics_show_in_playlist">Показывать в плейлистах</string>
-    <string name="s_key_top_bar_lyrics_show_in_artist">Показывать на страницах исполнителей</string>
-    <string name="s_key_top_bar_lyrics_show_in_viewmore">Показывать в 'посмотреть больше' на главной странице</string>
-    <string name="s_key_top_bar_lyrics_show_in_search">Показывать в поиске</string>
 
     <string name="s_key_stream_audio_quality">Качество аудио</string>
     <string name="s_sub_stream_audio_quality">Целевое качество аудио при воспроизведении трека</string>
@@ -642,13 +627,6 @@
     <string name="s_sub_discord_status_show_button_project">Открывает Github репозиторий проекта</string>
     <string name="s_key_discord_status_button_project_text">Текст кнопки страницы проекта</string>
 
-    <string name="s_key_topbar_lyrics_linger">Задержка текста</string>
-    <string name="s_sub_topbar_lyrics_linger">Когда строка текста заканчивается, она остается видимой до тех пор, пока не начнется следующая строка</string>
-    <string name="s_key_topbar_visualiser_width">Ширина визуализатора</string>
-    <string name="s_key_topbar_show_lyrics_in_queue">Показывать текст в очереди треков</string>
-    <string name="s_key_topbar_show_visualiser_in_queue">Показывать визуализатор в очереди треков</string>
-    <string name="s_key_topbar_display_over_artist_image">Показывать поверх обложет исполнителя</string>
-
     <string name="s_cat_general">Основное</string>
     <string name="s_cat_desc_general">Язык, и другое</string>
 
@@ -666,9 +644,6 @@
 
     <string name="s_cat_lyrics">Текст</string>
     <string name="s_cat_desc_lyrics">Текст треков и его стиль</string>
-
-    <string name="s_cat_topbar">Верхняя панель</string>
-    <string name="s_cat_desc_topbar">Показать, скрыть, настроить верхнюю панель</string>
 
     <string name="s_cat_discord_status">Discord статус</string>
     <string name="s_cat_desc_discord_status">Настройте Discord аккаунт и выберите стиль активности</string>

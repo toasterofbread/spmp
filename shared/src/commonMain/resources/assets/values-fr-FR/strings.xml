@@ -363,8 +363,6 @@
     <string name="s_key_hp_show_timed_lyrics">Afficher les paroles synchronisées</string>
     <string name="s_sub_hp_show_timed_lyrics">Les paroles synchronisées apparaîtront dans la barre supérieure si elles sont disponibles</string>
 
-    <string name="s_key_feed_show_filter_bar">Afficher la barre de filtre</string>
-    <string name="s_sub_feed_show_filter_bar">Si elle est masquée, la page de recherche peut toujours être consultée en appuyant longuement sur le bouton de recherche de la bibliothèque</string>
     <string name="s_key_feed_show_song_download_indicators">Afficher les indicateurs de téléchargement des titres</string>
     <string name="s_key_feed_initial_rows">Lignes initiales de la liste du flux</string>
     <string name="s_key_feed_square_preview_text_lines">Nombre maximal de lignes de texte dans un élément carré</string>
@@ -509,25 +507,12 @@
 
     <string name="s_key_lyrics_font_size">Taille de la police</string>
 
-    <string name="s_key_lyrics_top_bar_enable">Activer les paroles dans la barre supérieure</string>
-    <string name="s_key_lyrics_top_bar_max_lines">Nombre maximal de lignes</string>
-    <string name="s_key_lyrics_top_bar_preapply_max_lines">Pré-allouer l'espace nécessaire pour afficher le nombre maximal de lignes</string>
     <string name="s_key_lyrics_sync_delay">Délai de synchronisation des paroles</string>
     <string name="s_sub_lyrics_sync_delay">Un délai en secondes appliqué à la synchronisation des paroles</string>
     <string name="s_key_lyrics_sync_delay_topbar">Délai de synchronisation des paroles dans la barre supérieure</string>
     <string name="s_sub_lyrics_sync_delay_topbar">Un délai supplémentaire appliqué uniquement aux paroles dans la barre supérieure</string>
     <string name="s_key_lyrics_sync_delay_bluetooth">Délai de synchronisation des paroles via Bluetooth</string>
     <string name="s_sub_lyrics_sync_delay_bluetooth">Un délai supplémentaire appliqué uniquement lors de l'écoute avec un périphérique audio Bluetooth</string>
-
-    <string name="s_key_top_bar_lyrics_show_furigana">Afficher les furigana</string>
-    <string name="s_key_top_bar_lyrics_show_in_library">Afficher dans la bibliothèque</string>
-    <string name="s_key_top_bar_lyrics_show_in_radiobuilder">Afficher dans le générateur de radio</string>
-    <string name="s_key_top_bar_lyrics_show_in_settings">Afficher dans les paramètres</string>
-    <string name="s_key_top_bar_lyrics_show_in_login">Afficher dans les pages de connexion</string>
-    <string name="s_key_top_bar_lyrics_show_in_playlist">Afficher dans les pages de playlist</string>
-    <string name="s_key_top_bar_lyrics_show_in_artist">Afficher dans les pages d'artiste</string>
-    <string name="s_key_top_bar_lyrics_show_in_viewmore">Afficher dans les pages "Voir plus" du flux principal</string>
-    <string name="s_key_top_bar_lyrics_show_in_search">Afficher dans la page de recherche</string>
 
     <string name="s_key_stream_audio_quality">Qualité audio en streaming</string>
     <string name="s_sub_stream_audio_quality">Qualité audio cible lors de l'écoute en streaming</string>
@@ -638,13 +623,6 @@
     <string name="s_sub_discord_status_show_button_project">Ouvre le dépôt du projet sur GitHub</string>
     <string name="s_key_discord_status_button_project_text">Texte du bouton "Ouvrir la page du projet"</string>
 
-    <string name="s_key_topbar_lyrics_linger">Durée d'affichage des paroles</string>
-    <string name="s_sub_topbar_lyrics_linger">Lorsqu'une ligne se termine, elle restera visible jusqu'à ce que la ligne suivante commence</string>
-    <string name="s_key_topbar_visualiser_width">Largeur du visualiseur</string>
-    <string name="s_key_topbar_show_lyrics_in_queue">Afficher les paroles dans la file de lecture de musique</string>
-    <string name="s_key_topbar_show_visualiser_in_queue">Afficher le visualiseur dans la file de lecture de musique</string>
-    <string name="s_key_topbar_display_over_artist_image">Afficher par-dessus l'image principale sur la page de l'artiste</string>
-
     <string name="s_cat_general">Général</string>
     <string name="s_cat_desc_general">Langue et autres options</string>
 
@@ -662,9 +640,6 @@
 
     <string name="s_cat_lyrics">Paroles</string>
     <string name="s_cat_desc_lyrics">Apparence et comportement des paroles</string>
-
-    <string name="s_cat_topbar">Barre supérieure de musique</string>
-    <string name="s_cat_desc_topbar">Afficher, masquer et personnaliser la barre supérieure</string>
 
     <string name="s_cat_discord_status">Statut sur Discord</string>
     <string name="s_cat_desc_discord_status">Gérer le compte Discord et personnaliser l'apparence du statut</string>

@@ -680,7 +680,7 @@
     <string name="s_cat_desc_streaming">Audio quality and playback settings</string>
 
     <string name="s_cat_shortcut">Shortcuts</string>
-    <string name="s_cat_desc_shortcut">TODO</string>
+    <string name="s_cat_desc_shortcut">Bind keys or mouse buttons to in-app actions</string>
 
     <string name="s_cat_desktop">Desktop</string>
     <string name="s_cat_desc_desktop">Platform-specific configuration</string>

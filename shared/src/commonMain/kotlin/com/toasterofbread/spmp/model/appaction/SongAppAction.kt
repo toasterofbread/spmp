@@ -10,6 +10,7 @@ import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.composekit.utils.composable.LargeDropdownMenu
 import com.toasterofbread.composekit.platform.Platform
+import com.toasterofbread.composekit.platform.vibrateShort
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.Button
@@ -229,11 +230,14 @@ data class SongAppAction(
                 OPEN_EXTERNALLY -> {
                     if (player.context.canOpenUrl()) {
                         player.context.openUrl(song.getURL(player.context))
+                        player.context.vibrateShort()
                     }
                 }
                 COPY_URL -> {
                     if (player.context.canCopyText()) {
                         player.context.copyText(song.getURL(player.context))
+                        player.context.vibrateShort()
+                        player.context.sendToast(getString("notif_copied_to_clipboard"))
                     }
                 }
             }

@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.youtubeapi
 
-import dev.toastbits.ytmkt.impl.youtubei.YoutubeChannelNotCreatedException
 import dev.toastbits.ytmkt.impl.youtubei.YoutubeiApi
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmArtist
 import dev.toastbits.ytmkt.model.internal.YoutubeAccountMenuResponse
@@ -66,7 +65,7 @@ object YTMLogin {
                 }
 
             val new_cookies: List<String> = sign_in_response.headers.flattenEntries().mapNotNull { header ->
-                if (header.first == "Set-Cookie") header.second
+                if (header.first.lowercase() == "set-cookie") header.second
                 else null
             }
 
@@ -121,7 +120,7 @@ object YTMLogin {
                 appendAll(headers)
 
                 val new_cookies: List<String> = account_response.headers.flattenEntries().mapNotNull { header ->
-                    if (header.first == "Set-Cookie") header.second
+                    if (header.first.lowercase() == "set-cookie") header.second
                     else null
                 }
 
@@ -129,14 +128,11 @@ object YTMLogin {
             }
 
             val channel: YtmArtist? = parsed.getAritst()
-            if (channel == null) {
-                throw YoutubeChannelNotCreatedException(new_headers, parsed.getChannelCreationToken())
-            }
 
             return@runCatching SpMpYoutubeiAuthenticationState(
                 context.database,
                 api,
-                channel.id,
+                channel?.id,
                 new_headers
             )
         }

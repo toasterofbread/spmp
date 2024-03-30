@@ -10,8 +10,8 @@ import com.toasterofbread.spmp.resources.getString
 import dev.toastbits.ytmkt.endpoint.CreateAccountPlaylistEndpoint
 
 @Composable
-fun rememberOwnedPlaylists(owner_id: String, context: AppContext): List<RemotePlaylistRef> {
-    return context.database.playlistQueries.byOwner(owner_id)
+fun rememberOwnedPlaylists(owner_id: String?, context: AppContext): List<RemotePlaylistRef> {
+    return context.database.playlistQueries.byOwned(owner_id)
         .observeAsState(
             Unit,
             {
@@ -33,7 +33,15 @@ suspend fun MediaItemLibrary.createOwnedPlaylist(
 
     val playlist: RemotePlaylistData = RemotePlaylistData(playlist_id)
     playlist.name = getString("new_playlist_title")
-    playlist.owner = auth_state.own_channel_id?.let { ArtistRef(it) }
+
+    val own_channel_id: String? = auth_state.own_channel_id
+    if (own_channel_id != null) {
+        playlist.owner = ArtistRef(own_channel_id)
+    }
+    else {
+        playlist.owned_by_user = true
+    }
+
 
     playlist.saveToDatabase(context.database)
     onPlaylistCreated(playlist)

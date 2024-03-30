@@ -32,6 +32,8 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -39,6 +41,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.encodeToString
 import spms.socketapi.shared.SpMsPlayerRepeatMode
 import spms.socketapi.shared.SpMsPlayerState
 import java.io.IOException
@@ -130,7 +133,9 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
             discord_status.updateDiscordStatus(song)
 
             coroutine_scope.launch {
-                sendStatusWebhook(song)
+                sendStatusWebhook(song).onFailure {
+                    RuntimeException("Sending status webhook failed", it).printStackTrace()
+                }
             }
 
             if (manual) {
@@ -165,7 +170,8 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
 
             val response: HttpResponse =
                 HttpClient(CIO).post(webhook_url) {
-                    setBody(payload)
+                    contentType(ContentType.Application.Json)
+                    setBody(Json.encodeToString(payload))
                 }
 
             if (response.status.value !in 200 .. 299) {

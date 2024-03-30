@@ -579,12 +579,6 @@
     <string name="youtube_manual_login_field">Başlıklar</string>
     <string name="youtube_login_load_message">Giriş sayfası yükleniyor</string>
     <string name="youtube_account_selection_title">Hesap seç</string>
-    <string name="youtube_channel_creation_load_message">Kanal oluşturma formu yükleniyor</string>
-    <string name="youtube_channel_creation_title">YouTube Müzik profiline kaydolun</string>
-    <string name="youtube_channel_creation_subtitle">Bu, https://music.youtube.com/ adresinde oturum açıp 'Kanalınız' bölümüne giderek de yapılabilir.</string>
-    <string name="youtube_channel_creation_confirm">Oluştur</string>
-    <string name="youtube_channel_creation_field_given_name">Ad</string>
-    <string name="youtube_channel_creation_field_family_name">Soyad</string>
     <string name="manual_login_error_missing_following_headers">Aşağıdaki başlıklar eksik:</string>
     <string name="manual_login_desktop_browser_may_be_needed">Bu adımları tamamlamak için bir masaüstü tarayıcısı kullanmanız gerekebilir</string>
     <string name="discord_manual_login_title">Discord manuel oturum açma</string>

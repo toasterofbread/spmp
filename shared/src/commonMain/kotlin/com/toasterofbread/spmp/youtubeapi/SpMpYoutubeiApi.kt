@@ -70,8 +70,7 @@ internal class SpMpYoutubeiApi(
 
     private fun getCurrentUserAuthState() =
         ApiAuthenticationState.unpackSetData(YoutubeAuthSettings.Key.YTM_AUTH.get(context), context).let { data ->
-            if (data.first != null) SpMpYoutubeiAuthenticationState(context.database, this, data.first!!, data.second)
-            else null
+            SpMpYoutubeiAuthenticationState(context.database, this, data.first, data.second)
         }
 
     // // -- User auth ---

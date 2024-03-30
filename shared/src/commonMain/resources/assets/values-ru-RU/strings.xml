@@ -722,13 +722,6 @@
 
     <string name="youtube_login_load_message">Загружаю страницу логина</string>
     <string name="youtube_account_selection_title">Выбрать аккаунт</string>
-    <string name="youtube_channel_creation_load_message">Загрузка формы создания канала</string>
-
-    <string name="youtube_channel_creation_title">Создать профиль YouTube Music</string>
-    <string name="youtube_channel_creation_subtitle">Вы можете выполнить этот шаг на https://music.youtube.com/ (Войти в аккаунт и перейти во вкладку 'Мой профиль')</string>
-    <string name="youtube_channel_creation_confirm">Создать</string>
-    <string name="youtube_channel_creation_field_given_name">Имя</string>
-    <string name="youtube_channel_creation_field_family_name">Название семьи</string>
 
     <string name="manual_login_error_missing_following_headers">Следующие заголовки не найдены:</string>
     <string name="manual_login_desktop_browser_may_be_needed">Возможно, вам придется воспользоваться ПК для получения данных</string>

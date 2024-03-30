@@ -691,11 +691,6 @@
 
     <string name="youtube_login_load_message">正在加载登录页面</string>
     <string name="youtube_account_selection_title">选择账户</string>
-    <string name="youtube_channel_creation_load_message">正在加载频道创建表单</string>
-
-    <string name="youtube_channel_creation_title">注册 YouTube Music 个人资料</string>
-    <string name="youtube_channel_creation_subtitle">也可以在 https://music.youtube.com/ 上进行，登录并转到'你的频道'</string>
-    <string name="youtube_channel_creation_confirm">创建</string>
 
     <string name="manual_login_error_missing_following_headers">缺少以下头信息：</string>
     <string name="manual_login_desktop_browser_may_be_needed">您可能需要使用桌面浏览器来完成这些步骤</string>

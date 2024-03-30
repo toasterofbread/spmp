@@ -751,13 +751,6 @@
 
     <string name="youtube_login_load_message">Loading login page</string>
     <string name="youtube_account_selection_title">Select account</string>
-    <string name="youtube_channel_creation_load_message">Loading channel creation form</string>
-
-    <string name="youtube_channel_creation_title">Register YouTube Music profile</string>
-    <string name="youtube_channel_creation_subtitle">This can also be done on https://music.youtube.com/ by logging in and going to 'Your channel'</string>
-    <string name="youtube_channel_creation_confirm">Create</string>
-    <string name="youtube_channel_creation_field_given_name">Given name</string>
-    <string name="youtube_channel_creation_field_family_name">Family name</string>
 
     <string name="manual_login_error_missing_following_headers">Missing the following headers:</string>
     <string name="manual_login_desktop_browser_may_be_needed">You may need to use a desktop browser to complete these steps</string>

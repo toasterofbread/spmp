@@ -9,6 +9,8 @@ import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.db.AltSetterProperty
 import com.toasterofbread.spmp.model.mediaitem.db.ListProperty
 import com.toasterofbread.spmp.model.mediaitem.db.Property
+import com.toasterofbread.spmp.model.mediaitem.db.toSQLBoolean
+import com.toasterofbread.spmp.model.mediaitem.db.fromSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
@@ -66,6 +68,10 @@ sealed interface Playlist: MediaItem.WithArtist {
         get() = property_rememberer.rememberSingleQueryProperty(
             "Owner", { playlistQueries.ownerById(id) }, { owner?.let { ArtistRef(it) } }, { playlistQueries.updateOwnerById(it?.id, id) }
         )
+    val OwnedByUser: Property<Boolean>
+        get() = property_rememberer.rememberSingleQueryProperty(
+            "OwnedByUser", { playlistQueries.ownedByUserById(id) }, { owned_by_user.fromSQLBoolean() }, { playlistQueries.updateOwnedByUserById(it.toSQLBoolean(), id) }, { false }
+        )
 
     val CustomImageUrl: Property<String?>
         get() = property_rememberer.rememberSingleQueryProperty(
@@ -96,6 +102,7 @@ sealed interface Playlist: MediaItem.WithArtist {
         data.total_duration = TotalDuration.get(db)
         data.year = Year.get(db)
         data.owner = Owner.get(db)
+        data.owned_by_user = OwnedByUser.get(db)
 
         data.custom_image_url = CustomImageUrl.get(db)
         data.image_width = ImageWidth.get(db)

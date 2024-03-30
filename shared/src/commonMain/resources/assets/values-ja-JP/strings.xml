@@ -364,6 +364,7 @@
     <string name="s_sub_hp_show_timed_lyrics">流れてる曲に同期可能の歌詞があればトップバーに表示されます</string>
 
     <string name="s_key_feed_show_song_download_indicators">曲のダウンロード状態を表示する</string>
+    <string name="s_key_feed_show_artists_row">アーティストの行を表示する</string>
     <string name="s_key_feed_initial_rows">最初のフィード行数</string>
     <string name="s_key_feed_square_preview_text_lines">四角形アイテムの最高テキスト行数</string>
     <string name="s_key_feed_grid_row_count">グリッドの行数</string>

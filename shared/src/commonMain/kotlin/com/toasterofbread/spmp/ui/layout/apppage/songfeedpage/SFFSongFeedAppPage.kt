@@ -193,6 +193,7 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
                     else null
                 val loading_continuation: Boolean = load_state != FeedLoadState.NONE
                 val horizontal_padding: PaddingValues = content_padding.horizontal
+                val show_artists_row: Boolean by FeedSettings.Key.SHOW_ARTISTS_ROW.rememberMutableState()
 
                 LazyColumn(
                     Modifier.graphicsLayer { alpha = state_alpha.value },
@@ -204,15 +205,17 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
                         TopContent(Modifier.padding(horizontal_padding))
                     }
 
-                    item {
-                        if (artists_layout.items.isNotEmpty()) {
-                            artists_layout.Layout(
-                                MediaItemLayoutParams(
-                                    multiselect_context = multiselect_context,
-                                    apply_filter = true,
-                                    content_padding = horizontal_padding
+                    if (show_artists_row) {
+                        item {
+                            if (artists_layout.items.isNotEmpty()) {
+                                artists_layout.Layout(
+                                    MediaItemLayoutParams(
+                                        multiselect_context = multiselect_context,
+                                        apply_filter = true,
+                                        content_padding = horizontal_padding
+                                    )
                                 )
-                            )
+                            }
                         }
                     }
 

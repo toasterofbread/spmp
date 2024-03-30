@@ -19,6 +19,7 @@ data object FeedSettings: SettingsCategory("feed") {
         )
 
     enum class Key: SettingsKey {
+        SHOW_ARTISTS_ROW,
         SHOW_SONG_DOWNLOAD_INDICATORS,
         INITIAL_ROWS,
         SQUARE_PREVIEW_TEXT_LINES,
@@ -34,6 +35,7 @@ data object FeedSettings: SettingsCategory("feed") {
         @Suppress("UNCHECKED_CAST", "IMPLICIT_CAST_TO_ANY")
         override fun <T> getDefaultValue(): T =
             when (this) {
+                SHOW_ARTISTS_ROW -> true
                 SHOW_SONG_DOWNLOAD_INDICATORS -> false
                 INITIAL_ROWS -> 4
                 SQUARE_PREVIEW_TEXT_LINES -> if (Platform.DESKTOP.isCurrent()) 2 else 2

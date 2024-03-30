@@ -38,7 +38,9 @@ import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.rememberColourSource
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.vertical
 import com.toasterofbread.spmp.ui.theme.appHover
+import com.toasterofbread.spmp.model.settings.category.LayoutSettings
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.Json
 
 @Composable
 internal fun ContentBarSelector(
@@ -352,7 +354,11 @@ internal fun ContentBarList(
     buttonEndContent: @Composable (Modifier, Int) -> Unit = { _, _ -> },
     onSelected: ((Int) -> Unit)?
 ) {
-    val bars: List<ContentBar> = bar_references.mapNotNull { it.getBar() }
+    val custom_bar_data: String by LayoutSettings.Key.CUSTOM_BARS.rememberMutableState()
+    val bars: List<ContentBar> = remember(bar_references, custom_bar_data) {
+        val custom_bars: List<CustomContentBar> = Json.decodeFromString(custom_bar_data)
+        bar_references.mapNotNull { it.getBar(custom_bars) }
+    }
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(title)

@@ -72,7 +72,7 @@ fun LayoutSlot.observeContentBar(): State<ContentBar?> {
         if (!slots.contains(getKey())) {
             return@derivedStateOf getDefaultContentBar()
         }
-        return@derivedStateOf slots[getKey()]?.getBar(custom_bars)
+        return@derivedStateOf slots[getKey()]?.getBar(Json.decodeFromString(custom_bars))
     } }
 }
 

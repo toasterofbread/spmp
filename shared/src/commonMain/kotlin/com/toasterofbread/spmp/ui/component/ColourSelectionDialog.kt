@@ -22,7 +22,6 @@ import androidx.compose.foundation.border
 import androidx.compose.material3.AlertDialog
 import androidx.compose.animation.Crossfade
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.material3.Button
 import com.toasterofbread.composekit.platform.composable.platformClickable
@@ -135,7 +134,7 @@ private fun ThemeColourSelectionList(
                 colour = Color.Transparent,
                 name = getString("colour_selector_dialog_transparent"),
                 onSelected = {
-                    onSelected(CustomColourSource(Color.Transparent.toArgb()))
+                    onSelected(CustomColourSource(Color.Transparent))
                 }
             )
         }
@@ -179,7 +178,7 @@ private fun CustomColourSelector(
             modifier,
             bottomRowExtraContent = {
                 ShapedIconButton(
-                    { onSelected(CustomColourSource(current_colour.toArgb())) },
+                    { onSelected(CustomColourSource(current_colour)) },
                     colours = IconButtonDefaults.iconButtonColors(
                         containerColor = current_colour,
                         contentColor = current_colour.getContrasted()

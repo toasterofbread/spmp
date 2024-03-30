@@ -7,7 +7,6 @@ import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.InternalContentBar
 import com.toasterofbread.composekit.settings.ui.Theme
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.runtime.*
@@ -66,7 +65,7 @@ enum class PortraitLayoutSlot: LayoutSlot {
             LOWER_TOP_BAR -> ThemeColourSource(Theme.Colour.CARD)
             ABOVE_PLAYER -> ThemeColourSource(Theme.Colour.ACCENT)
             BELOW_PLAYER -> ThemeColourSource(Theme.Colour.CARD)
-            PLAYER_TOP -> CustomColourSource(Color.Transparent.toArgb())
+            PLAYER_TOP -> CustomColourSource(Color.Transparent)
         }
 
     override fun hasConfig(): Boolean =

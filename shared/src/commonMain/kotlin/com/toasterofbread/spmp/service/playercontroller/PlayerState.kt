@@ -76,6 +76,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.*
 import com.toasterofbread.spmp.ui.layout.contentbar.*
+import com.toasterofbread.spmp.ui.layout.StatusBarColourState
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -144,6 +145,13 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
     private var download_request_songs: List<Song>? by mutableStateOf(null)
     private var download_request_always_show_options: Boolean by mutableStateOf(false)
     private var download_request_callback: DownloadRequestCallback? by mutableStateOf(null)
+
+    val status_bar_colour_state: StatusBarColourState =
+        object : StatusBarColourState() {
+            override fun onCurrentStatusBarColourChanged(colour: Color?) {
+                context.setStatusBarColour(colour ?: theme.background)
+            }
+        }
 
     val expansion: NowPlayingExpansionState =
         object : NowPlayingExpansionState(this, coroutine_scope) {
@@ -661,6 +669,8 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
 
     @Composable
     fun PersistentContent() {
+        status_bar_colour_state.Update()
+
         long_press_menu_data?.also { data ->
             LongPressMenu(
                 long_press_menu_showing,

@@ -2,53 +2,33 @@ package com.toasterofbread.spmp.ui.layout.nowplaying
 
 import LocalNowPlayingExpansion
 import LocalPlayerState
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.*
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.interaction.DragInteraction
-import androidx.compose.foundation.interaction.Interaction
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.gestures.*
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.interaction.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.FractionalThreshold
-import androidx.compose.foundation.gestures.AnchoredDraggableState
-import androidx.compose.foundation.gestures.anchoredDraggable
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.*
+import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
-import androidx.compose.ui.zIndex
-import com.toasterofbread.composekit.platform.Platform
-import com.toasterofbread.composekit.platform.composable.BackHandler
-import com.toasterofbread.composekit.platform.composable.composeScope
-import com.toasterofbread.composekit.platform.vibrateShort
-import com.toasterofbread.composekit.utils.common.amplifyPercent
-import com.toasterofbread.composekit.utils.common.blendWith
-import com.toasterofbread.composekit.utils.common.getContrasted
-import com.toasterofbread.composekit.utils.composable.RecomposeOnInterval
-import com.toasterofbread.composekit.utils.composable.getTop
+import com.toasterofbread.composekit.platform.*
+import com.toasterofbread.composekit.platform.composable.*
+import com.toasterofbread.composekit.utils.common.*
+import com.toasterofbread.composekit.utils.composable.*
 import com.toasterofbread.composekit.utils.modifier.brushBackground
-import com.toasterofbread.spmp.model.settings.category.OverscrollClearMode
-import com.toasterofbread.spmp.model.settings.category.PlayerSettings
-import com.toasterofbread.spmp.model.settings.category.ThemeSettings
+import com.toasterofbread.spmp.model.settings.category.*
 import com.toasterofbread.spmp.model.settings.rememberMutableEnumState
-import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.platform.form_factor
+import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
-import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
-import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.*
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import com.toasterofbread.spmp.ui.layout.StatusBarColourState
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.CustomColourSource
+import kotlinx.coroutines.*
 
 enum class ThemeMode {
     BACKGROUND, ELEMENTS, NONE;
@@ -324,10 +304,9 @@ fun NowPlaying(
 }
 
 @Composable
-private fun StatusBarColourHandler(page_height: Dp) {
-    val player = LocalPlayerState.current
-    val expansion = LocalNowPlayingExpansion.current
-
+private fun updateBarColours(page_height: Dp) {
+    val player: PlayerState = LocalPlayerState.current
+    val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
     val background_colour = player.getNPBackground()
     val status_bar_height = WindowInsets.statusBars.getTop()
 
@@ -337,11 +316,13 @@ private fun StatusBarColourHandler(page_height: Dp) {
     val under_status_bar by remember { derivedStateOf { 1f - expansion.get() < status_bar_height_percent } }
 
     DisposableEffect(under_status_bar, background_colour) {
-        val colour: Color = if (under_status_bar) background_colour else player.theme.background
-        player.context.setStatusBarColour(colour)
+        player.status_bar_colour_state.setLevelColour(
+            if (under_status_bar) CustomColourSource(background_colour) else null,
+            StatusBarColourState.Level.PLAYER
+        )
 
         onDispose {
-            player.context.setStatusBarColour(player.theme.background)
+            player.status_bar_colour_state.setLevelColour(null, StatusBarColourState.Level.PLAYER)
         }
     }
 
@@ -360,7 +341,7 @@ private fun NowPlayingCardContent(page_height: Dp, content_padding: PaddingValue
     val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
     val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
 
-    StatusBarColourHandler(page_height)
+    updateBarColours(page_height)
     MinimisedProgressBar()
 
     val pages: List<NowPlayingPage> = NowPlayingPage.ALL.filter { it.shouldShow(player) }

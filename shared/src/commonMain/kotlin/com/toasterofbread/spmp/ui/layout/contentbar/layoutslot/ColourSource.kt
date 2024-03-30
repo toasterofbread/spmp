@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.contentbar.layoutslot
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.composekit.utils.common.fromHexString
 import androidx.compose.runtime.State
@@ -30,7 +31,9 @@ internal class PlayerBackgroundColourSource: ColourSource {
 }
 
 @Serializable
-internal data class CustomColourSource(val colour: Int): ColourSource {
+data class CustomColourSource(val colour: Int): ColourSource {
+    constructor(colour: Color): this(colour.toArgb())
+
     override fun get(player: PlayerState): Color = Color(colour)
 }
 

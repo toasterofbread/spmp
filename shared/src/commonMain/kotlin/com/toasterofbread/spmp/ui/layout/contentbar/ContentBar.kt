@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -36,7 +37,8 @@ sealed class ContentBar {
         slot: LayoutSlot,
         content_padding: PaddingValues,
         distance_to_page: Dp,
-        modifier: Modifier,
+        modifier: Modifier = Modifier,
+        top_padding: Dp = 0.dp,
         getParentBackgroundColour: () -> Color? = { null },
         getBackgroundColour: (Color) -> Color = { it }
     ): Boolean {
@@ -58,7 +60,7 @@ sealed class ContentBar {
                 slot_colour_source.theme_colour,
                 content_padding,
                 distance_to_page,
-                modifier.background(background_colour)
+                modifier.background(background_colour).padding(top = top_padding)
             )
         }
 
@@ -101,6 +103,7 @@ fun LayoutSlot.DisplayBar(
     distance_to_page: Dp,
     modifier: Modifier = Modifier,
     container_modifier: Modifier = Modifier,
+    top_padding: Dp = 0.dp,
     getParentBackgroundColour: () -> Color? = { null },
     getBackgroundColour: (Color) -> Color = { it },
     onConfigDataChanged: (JsonElement?) -> Unit = {}
@@ -137,7 +140,8 @@ fun LayoutSlot.DisplayBar(
                 distance_to_page = distance_to_page,
                 modifier = modifier,
                 getParentBackgroundColour = getParentBackgroundColour,
-                getBackgroundColour = getBackgroundColour
+                getBackgroundColour = getBackgroundColour,
+                top_padding = top_padding
             ) ?: false
             return@Crossfade
         }
@@ -145,14 +149,15 @@ fun LayoutSlot.DisplayBar(
         val selctor_size: Dp = 50.dp
         val selector_modifier: Modifier =
             if (this.is_vertical) modifier.width(selctor_size)
-            else modifier.height(selctor_size)
+            else modifier.height(selctor_size + top_padding)
 
         ContentBarSelector(
             selection_state,
             this,
-            config_data,
-            content_padding,
-            selector_modifier
+            selector_modifier,
+            slot_config = config_data,
+            content_padding = content_padding,
+            top_padding = top_padding
         )
     }
 

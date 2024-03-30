@@ -38,7 +38,6 @@ internal fun LargeBottomBar(
     inset_depth: Dp = 0.dp
 ) {
     val player: PlayerState = LocalPlayerState.current
-    val current_song: Song? by player.status.song_state
 
     Row(
         modifier.alpha(0.5f),

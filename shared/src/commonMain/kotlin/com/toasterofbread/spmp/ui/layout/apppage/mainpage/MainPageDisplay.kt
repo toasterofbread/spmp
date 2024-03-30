@@ -5,20 +5,22 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.*
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.zIndex
-import com.toasterofbread.composekit.utils.composable.*
 import com.toasterofbread.composekit.utils.common.thenIf
+import com.toasterofbread.composekit.utils.common.getValue
+import com.toasterofbread.composekit.utils.composable.*
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
+import com.toasterofbread.spmp.ui.layout.StatusBarColourState
 import com.toasterofbread.spmp.ui.layout.contentbar.*
-import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.PortraitLayoutSlot
-import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
-import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LandscapeLayoutSlot
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.*
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 
 @Composable
@@ -57,11 +59,24 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
                 var upper_bar_displaying: Boolean by remember { mutableStateOf(false) }
                 var lower_bar_displaying: Boolean by remember { mutableStateOf(false) }
 
-                Column(
-                    Modifier
-                        .padding(top = top_padding)
-                        .zIndex(1f)
-                ) {
+                val highest_slot: LayoutSlot? =
+                    if (upper_bar_displaying) upper_bar_slot
+                    else if (lower_bar_displaying) lower_bar_slot
+                    else null
+
+                val highest_colour: ColourSource? by highest_slot?.rememberColourSource()
+
+                LaunchedEffect(highest_colour) {
+                    player.status_bar_colour_state.setLevelColour(highest_colour, StatusBarColourState.Level.BAR)
+                }
+
+                DisposableEffect(Unit) {
+                    onDispose {
+                        player.status_bar_colour_state.setLevelColour(null, StatusBarColourState.Level.BAR)
+                    }
+                }
+
+                Column(Modifier.zIndex(1f)) {
                     upper_bar_displaying = upper_bar_slot.DisplayBar(
                         if (lower_bar_displaying) lower_bar_height else 0.dp,
                         Modifier
@@ -69,7 +84,8 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
                             .onSizeChanged {
                                 upper_bar_height = with (density) { it.height.toDp() }
                             },
-                        container_modifier = Modifier.zIndex(1f)
+                        container_modifier = Modifier.zIndex(1f),
+                        top_padding = top_padding
                     )
                     lower_bar_displaying = lower_bar_slot.DisplayBar(
                         0.dp,
@@ -77,7 +93,8 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
                             .fillMaxWidth()
                             .onSizeChanged {
                                 lower_bar_height = with (density) { it.height.toDp() }
-                            }
+                            },
+                        top_padding = if (!upper_bar_displaying) top_padding else 0.dp
                     )
                 }
 

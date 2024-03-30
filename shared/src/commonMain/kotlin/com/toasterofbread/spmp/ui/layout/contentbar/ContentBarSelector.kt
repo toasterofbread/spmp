@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.Dp
 import com.toasterofbread.composekit.platform.composable.*
 import com.toasterofbread.composekit.utils.common.*
 import com.toasterofbread.composekit.utils.common.getContrasted
@@ -46,9 +47,10 @@ import kotlinx.serialization.json.Json
 internal fun ContentBarSelector(
     state: ContentBar.BarSelectionState,
     slot: LayoutSlot,
+    modifier: Modifier = Modifier,
     slot_config: JsonElement? = null,
-    content_padding: PaddingValues,
-    modifier: Modifier = Modifier
+    content_padding: PaddingValues = PaddingValues(),
+    top_padding: Dp = 0.dp
 ) {
     val player: PlayerState = LocalPlayerState.current
     val density: Density = LocalDensity.current
@@ -74,6 +76,7 @@ internal fun ContentBarSelector(
                 .clipToBounds()
                 .fillMaxSize()
                 .background(player.theme.background)
+                .padding(top = top_padding)
                 .border(1.dp, player.theme.vibrant_accent)
                 .padding(content_padding)
         ) {

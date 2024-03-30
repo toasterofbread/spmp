@@ -456,11 +456,6 @@
     <string name="youtube_manual_login_field">Nagłówki</string>
 
     <string name="youtube_login_load_message">Wczytywanie strony logowania</string>
-    <string name="youtube_channel_creation_load_message">Wczytywanie formularza tworzenia kanału</string>
-
-    <string name="youtube_channel_creation_title">Rejestracja profilu YouTube Music</string>
-    <string name="youtube_channel_creation_subtitle">Można to również zrobić na stronie https://music.youtube.com/, logując się i przechodząc do 'Twojego kanału'</string>
-    <string name="youtube_channel_creation_confirm">Utwórz</string>
 
     <string name="manual_login_error_missing_following_headers">Brakuje następujących nagłówków:</string>
     <string name="manual_login_desktop_browser_may_be_needed">Do wykonania tych kroków może być konieczne użycie przeglądarki na komputerze.</string>

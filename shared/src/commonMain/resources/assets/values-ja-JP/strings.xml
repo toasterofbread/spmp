@@ -736,13 +736,6 @@
 
     <string name="youtube_login_load_message">ログインページをロード中</string>
     <string name="youtube_account_selection_title">アカウントの選択</string>
-    <string name="youtube_channel_creation_load_message">チャンネル作成ページをロード中</string>
-
-    <string name="youtube_channel_creation_title">YouTube Musicプロフィールを作成</string>
-    <string name="youtube_channel_creation_subtitle">https://music.youtube.com/の「チャンネル」に行って作成することもできます</string>
-    <string name="youtube_channel_creation_confirm">作成</string>
-    <string name="youtube_channel_creation_field_given_name">名</string>
-    <string name="youtube_channel_creation_field_family_name">氏</string>
 
     <string name="manual_login_error_missing_following_headers">以下のヘッダーが含まれていません：</string>
     <string name="manual_login_desktop_browser_may_be_needed">この手順を行うには、デスクトップ上のブラウザーが必要かもしれません</string>

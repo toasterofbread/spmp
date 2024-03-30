@@ -8,12 +8,14 @@ import dev.toastbits.ytmkt.model.external.mediaitem.YtmArtist
 import io.ktor.http.Headers
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.playlist.toRemotePlaylistData
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.artist.toArtistData
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 
 class SpMpYoutubeiAuthenticationState(
     val database: Database,
     api: YoutubeiApi,
-    own_channel_id: String,
+    own_channel_id: String?,
     headers: Headers
 ): YoutubeiAuthenticationState(api, headers, own_channel_id) {
 
@@ -30,7 +32,15 @@ class SpMpYoutubeiAuthenticationState(
             performTransaction {
                 database.playlistQueries.clearOwners()
                 for (playlist in playlists.asReversed()) {
-                    playlist.toRemotePlaylistData().saveToDatabase(database)
+                    val playlist_data: RemotePlaylistData = playlist.toRemotePlaylistData()
+                    if (own_channel_id != null) {
+                        playlist_data.owner = ArtistRef(own_channel_id)
+                    }
+                    else {
+                        playlist_data.owned_by_user = true
+                    }
+
+                    playlist_data.saveToDatabase(database)
                 }
             }
 

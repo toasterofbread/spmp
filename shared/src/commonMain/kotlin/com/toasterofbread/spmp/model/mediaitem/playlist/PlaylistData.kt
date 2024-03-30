@@ -19,6 +19,7 @@ abstract class PlaylistData(
     var total_duration: Long? = null,
     var year: Int? = null,
     var owner: Artist? = null,
+    var owned_by_user: Boolean = false,
 
     var custom_image_url: String? = null,
     var image_width: Float? = null,
@@ -35,6 +36,7 @@ abstract class PlaylistData(
             "total_duration" to total_duration,
             "year" to year,
             "owner" to owner,
+            "owned_by_user" to owned_by_user,
             "custom_image_provider" to custom_image_url,
             "image_width" to image_width,
             "sort_type" to sort_type

@@ -7,6 +7,7 @@ CREATE TABLE Playlist (
     year INTEGER,
     artist TEXT,
     owner TEXT,
+    owned_by_user INTEGER,
     continuation_token TEXT,
     continuation_type INTEGER,
     playlist_url TEXT,
@@ -22,7 +23,7 @@ CREATE TABLE Playlist (
 );
 
 byType: SELECT id FROM Playlist WHERE playlist_type = :playlist_type;
-byOwner: SELECT id FROM Playlist WHERE owner = :owner_id;
+byOwned: SELECT id FROM Playlist WHERE ((:owner_id IS NOT NULL AND owner = :owner_id) OR owned_by_user IS NOT NULL);
 byHidden: SELECT Playlist.id, playlist_type FROM Playlist, MediaItem WHERE MediaItem.id == Playlist.id AND MediaItem.hidden == :hidden;
 
 insertById {
@@ -60,6 +61,9 @@ updateArtistById: UPDATE Playlist SET artist = :artist WHERE id == :id;
 
 ownerById: SELECT owner FROM Playlist WHERE id == :id;
 updateOwnerById: UPDATE Playlist SET owner = :owner WHERE id == :id;
+
+ownedByUserById: SELECT owned_by_user FROM Playlist WHERE id == :id;
+updateOwnedByUserById: UPDATE Playlist SET owned_by_user = :owned_by_user WHERE id == :id;
 
 continuationById: SELECT continuation_token, continuation_type FROM Playlist WHERE id == :id;
 updateContinuationById: UPDATE Playlist SET continuation_token = :continuation_token, continuation_type = :continuation_type WHERE id == :id;

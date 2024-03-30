@@ -388,10 +388,6 @@
 	<string name="warning_ytm_login">\n\nUna vez que haya iniciado sesión, su cookie de sesión se extraerá, almacenará y utilizará solo para solicitudes de API a YouTube Music, como obtener su feed recomendado y suscribirse a artistas.\n\n¿Continuar?</string>
 	<string name="wrap_text_switch_label">Ajustar texto</string>
 	<string name="youtube_account_selection_title">Seleccionar cuenta</string>
-	<string name="youtube_channel_creation_confirm">Crear</string>
-	<string name="youtube_channel_creation_load_message">Cargando formulario de creación de canal</string>
-	<string name="youtube_channel_creation_subtitle">Esto también se puede hacer en https://music.youtube.com/ iniciando sesión y yendo a \'Tu canal\'.</string>
-	<string name="youtube_channel_creation_title">Registrar perfil de YouTube Music</string>
 	<string name="youtube_login_load_message">Cargando página de inicio de sesión</string>
 	<string name="youtube_manual_login_field">Encabezados</string>
 	<string name="youtube_manual_login_suffix">En Firefox, esto se puede hacer haciendo clic derecho en la solicitud y seleccionando \"Copiar valor\" y luego \"Copiar encabezados de solicitud\".\n\nEn otros navegadores, haga clic en la solicitud y vaya a la pestaña \"Encabezados\", desplácese hasta \"Encabezados de solicitud\" y copie todos los encabezados en esa sección a partir de \"Aceptar: /\".</string>

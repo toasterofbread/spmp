@@ -40,7 +40,6 @@ import com.toasterofbread.spmp.youtubeapi.AccountSwitcherEndpoint
 import com.toasterofbread.spmp.youtubeapi.YTMLogin
 import com.toasterofbread.spmp.youtubeapi.SpMpYoutubeiAuthenticationState
 import dev.toastbits.ytmkt.model.YtmApi
-import dev.toastbits.ytmkt.impl.youtubei.YoutubeChannelNotCreatedException
 import dev.toastbits.ytmkt.impl.youtubei.YoutubeiApi
 import dev.toastbits.ytmkt.impl.youtubei.YoutubeiAuthenticationState
 import dev.toastbits.ytmkt.model.external.YoutubeAccountCreationForm
@@ -75,120 +74,67 @@ class YoutubeMusicLoginPage(val api: YoutubeiApi): LoginPage() {
         val coroutine_scope: CoroutineScope = rememberCoroutineScope()
         val manual: Boolean = confirm_param == true
 
-        var channel_not_created_error: YoutubeChannelNotCreatedException? by remember { mutableStateOf(null) }
-        var channel_creation_form: Result<YoutubeAccountCreationForm.ChannelCreationForm>? by remember { mutableStateOf(null) }
         var account_selection_data: AccountSelectionData? by remember { mutableStateOf(null) }
 
-        LaunchedEffect(channel_not_created_error) {
-            val error:YoutubeChannelNotCreatedException = channel_not_created_error ?: return@LaunchedEffect
-            val channel_creation_token: String? = error.channel_creation_token
-
-            if (channel_creation_token != null) {
-                channel_creation_form = null
-                channel_creation_form = api.YoutubeChannelCreationForm.getForm(error.headers, channel_creation_token)
-            }
-            else {
-                channel_creation_form = Result.failure(RuntimeException(getStringTODO("No channel creation token"), error))
-            }
-        }
-
-        channel_creation_form?.also {
-            it.onSuccess { form ->
-                val channel_error = channel_not_created_error!!
-
-                YoutubeChannelCreateDialog(
-                    channel_error.headers,
-                    form,
-                    api
-                ) { result ->
-                    if (result == null) {
-                        onFinished(null)
-                        return@YoutubeChannelCreateDialog
-                    }
-
-                    result.fold(
-                        { channel_id ->
-                            onFinished(
-                                Result.success(
-                                    SpMpYoutubeiAuthenticationState(
-                                        player.context.database,
-                                        api,
-                                        channel_id,
-                                        channel_error.headers
-                                    )
-                                )
-                            )
-                        },
-                        { error ->
-                            onFinished(Result.failure(error))
-                        }
-                    )
-                }
-            }
-        }
-
-        suspend fun YtmApi.onHeadersProvided(provided_headers: Headers) {
+        suspend fun YtmApi.onHeadersProvided(provided_headers: Headers, account_selected: Boolean = false) {
+            val final_headers: Headers
             val headers: StringValues = provided_headers.filter { key, value ->
                 YoutubeiAuthenticationState.INCLUDED_HEADERS.contains(key.lowercase())
             }
 
-            val switcher_response: HttpResponse =
-                HttpClient(CIO).get("https://music.youtube.com/getAccountSwitcherEndpoint") {
-                    expectSuccess = true
-                    headers {
-                        appendAll(headers)
+            if (!account_selected) {
+                val switcher_response: HttpResponse =
+                    HttpClient(CIO).get("https://music.youtube.com/getAccountSwitcherEndpoint") {
+                        expectSuccess = true
+                        headers {
+                            appendAll(headers)
+                        }
                     }
+
+                val new_cookies: List<String> = switcher_response.headers.flattenEntries().mapNotNull { header ->
+                    if (header.first.lowercase() == "set-cookie") header.second
+                    else null
                 }
 
-            val new_cookies: List<String> = switcher_response.headers.flattenEntries().mapNotNull { header ->
-                if (header.first.lowercase() == "set-cookie") header.second
-                else null
-            }
+                final_headers = Headers.build {
+                    appendAll(headers)
+                    set("Cookie", YTMLogin.replaceCookiesInString(headers["Cookie"]!!, new_cookies))
+                }
 
-            val new_headers: Headers = Headers.build {
-                appendAll(provided_headers)
-                set("Cookie", YTMLogin.replaceCookiesInString(headers["Cookie"]!!, new_cookies))
-            }
+                val response_body: String = switcher_response.bodyAsText().let { body ->
+                    body.substring(
+                        body.indexOf('\n') + 1
+                    )
+                }
 
-            val response_body: String = switcher_response.bodyAsText().let { body ->
-                body.substring(
-                    body.indexOf('\n') + 1
-                )
-            }
+                val parsed: AccountSwitcherEndpoint
+                try {
+                    parsed = Json { ignoreUnknownKeys = true }.decodeFromString(response_body)
+                }
+                catch (e: Throwable) {
+                    onFinished(Result.failure(
+                        RuntimeException("Account switcher response parsing failed $response_body ", e)
+                    ))
+                    return
+                }
 
-            val parsed: AccountSwitcherEndpoint
-            try {
-                parsed = Json { ignoreUnknownKeys = true }.decodeFromString(response_body)
+                val accounts = parsed.getAccounts().filter { it.serviceEndpoint.selectActiveIdentityEndpoint.supportedTokens.any { it.accountSigninToken != null } }
+                if (accounts.size > 1) {
+                    account_selection_data = AccountSelectionData(accounts, final_headers)
+                    return
+                }
             }
-            catch (e: Throwable) {
-                onFinished(Result.failure(
-                    RuntimeException("Account switcher response parsing failed $response_body ", e)
-                ))
-                return
-            }
-
-            val accounts = parsed.getAccounts().filter { it.serviceEndpoint.selectActiveIdentityEndpoint.supportedTokens.any { it.accountSigninToken != null } }
-            if (accounts.size > 1) {
-                account_selection_data = AccountSelectionData(accounts, new_headers)
-                return
+            else {
+                final_headers = Headers.build { appendAll(headers) }
             }
 
             coroutine_scope.launch {
-                val result = YTMLogin.completeLogin(player.context, new_headers, api)
-                result?.onFailure { error ->
-                    if (error is YoutubeChannelNotCreatedException) {
-                        channel_not_created_error = error
-                        return@launch
-                    }
-                }
-
-                onFinished(result)
+                onFinished(YTMLogin.completeLogin(player.context, final_headers, api))
             }
         }
 
-        Crossfade(account_selection_data ?: channel_creation_form ?: if (channel_not_created_error != null) null else true, modifier) { state ->
+        Crossfade(account_selection_data, modifier) { state ->
             if (state is AccountSelectionData) {
-                val coroutine_scope: CoroutineScope = rememberCoroutineScope()
                 AccountSelectionPage(
                     state,
                     Modifier.fillMaxWidth().padding(content_padding)
@@ -197,23 +143,6 @@ class YoutubeMusicLoginPage(val api: YoutubeiApi): LoginPage() {
                         account_selection_data = null
                         onFinished(YTMLogin.completeLoginWithAccount(player.context, state.headers, account, api))
                     }
-                }
-            }
-            else if (state is Result<*>) {
-                val error = state.exceptionOrNull()
-                if (error != null) {
-                    ErrorInfoDisplay(
-                        error,
-                        isDebugBuild(),
-                        Modifier.fillMaxWidth().padding(content_padding),
-                        expanded_content_modifier = Modifier.fillMaxHeight(),
-                        onDismiss = null
-                    )
-                }
-            }
-            else if (state == null) {
-                Box(Modifier.fillMaxSize().padding(content_padding), contentAlignment = Alignment.Center) {
-                    SubtleLoadingIndicator(message = getString("youtube_channel_creation_load_message"))
                 }
             }
             else if (!manual && isWebViewLoginSupported()) {
@@ -243,7 +172,7 @@ class YoutubeMusicLoginPage(val api: YoutubeiApi): LoginPage() {
                     result.fold(
                         {
                             coroutine_scope.launch { with (api) {
-                                onHeadersProvided(it)
+                                onHeadersProvided(it, account_selected = true)
                             }}
                         },
                         { onFinished(Result.failure(it)) }

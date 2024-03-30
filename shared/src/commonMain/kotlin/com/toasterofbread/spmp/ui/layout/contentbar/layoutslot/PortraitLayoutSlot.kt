@@ -51,19 +51,18 @@ enum class PortraitLayoutSlot: LayoutSlot {
 
     override fun getDefaultContentBar(): ContentBar? =
         when (this) {
-            LOWER_TOP_BAR -> InternalContentBar.PRIMARY
-            ABOVE_PLAYER -> InternalContentBar.SECONDARY
+            UPPER_TOP_BAR -> InternalContentBar.PRIMARY
+            LOWER_TOP_BAR -> InternalContentBar.SECONDARY
+            ABOVE_PLAYER -> InternalContentBar.LYRICS
             BELOW_PLAYER -> InternalContentBar.NAVIGATION
             PLAYER_TOP -> InternalContentBar.LYRICS
-
-            else -> null
         }
 
     override fun getDefaultBackgroundColour(theme: Theme): ColourSource =
         when (this) {
             UPPER_TOP_BAR -> ThemeColourSource(Theme.Colour.CARD)
             LOWER_TOP_BAR -> ThemeColourSource(Theme.Colour.CARD)
-            ABOVE_PLAYER -> ThemeColourSource(Theme.Colour.ACCENT)
+            ABOVE_PLAYER -> CustomColourSource(Color.Transparent)
             BELOW_PLAYER -> ThemeColourSource(Theme.Colour.CARD)
             PLAYER_TOP -> CustomColourSource(Color.Transparent)
         }

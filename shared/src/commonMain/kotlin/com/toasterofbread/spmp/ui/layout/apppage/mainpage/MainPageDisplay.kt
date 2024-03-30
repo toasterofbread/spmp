@@ -120,9 +120,9 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
 
                 val vertical_padding: Dp = player.getDefaultVerticalPadding()
                 val top_bar_padding: Dp = (
-                    if (!upper_bar_displaying && !lower_bar_displaying) 0.dp//top_padding
+                    if (!upper_bar_displaying && !lower_bar_displaying) top_padding
                     else (
-                        (if (upper_bar_displaying) (upper_bar_height - top_padding).coerceAtLeast(0.dp) else 0.dp)
+                        (if (upper_bar_displaying) upper_bar_height else 0.dp)
                         + (if (lower_bar_displaying) lower_bar_height else 0.dp)
                     )
                 )

@@ -1,27 +1,18 @@
 package com.toasterofbread.spmp.ui.layout.contentbar
 
 import LocalPlayerState
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.requiredWidth
-import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.DpSize
-import androidx.compose.ui.Alignment
-import com.toasterofbread.composekit.utils.common.getContrasted
-import com.toasterofbread.composekit.utils.common.thenIf
-import com.toasterofbread.composekit.utils.composable.SidebarButtonSelector
-import com.toasterofbread.composekit.utils.composable.RowOrColumnScope
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.*
 import com.toasterofbread.composekit.settings.ui.Theme
+import com.toasterofbread.composekit.utils.common.*
+import com.toasterofbread.composekit.utils.composable.*
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
@@ -70,7 +61,7 @@ data class CustomContentBar(
         getSpacerElementModifier: (@Composable RowOrColumnScope.(Int, ContentBarElementSpacer) -> Modifier)? = null,
         shouldShowButton: @Composable (ContentBarElement) -> Boolean = { it.shouldShow() },
         buttonContent: @Composable (Int, ContentBarElement, DpSize) -> Unit =
-            { _, element, size -> element.Element(vertical, size, Modifier) }
+            { _, element, size -> element.Element(vertical, size, Modifier.fillMaxSize()) }
     ): Boolean {
         return CustomBarContent(
             elements,
@@ -109,7 +100,7 @@ internal fun CustomBarContent(
     getSpacerElementModifier: (@Composable RowOrColumnScope.(Int, ContentBarElementSpacer) -> Modifier)? = null,
     shouldShowButton: @Composable (ContentBarElement) -> Boolean = { it.shouldShow() },
     buttonContent: @Composable (Int, ContentBarElement, DpSize) -> Unit =
-        { _, element, size -> element.Element(vertical, size, Modifier) }
+        { _, element, size -> element.Element(vertical, size, Modifier.fillMaxSize()) }
 ): Boolean {
     val player: PlayerState = LocalPlayerState.current
     val selected_element: Int? =

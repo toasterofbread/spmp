@@ -405,9 +405,9 @@
     <string name="s_option_lyrics_follow_offset_bottom">Alt</string>
     <string name="s_key_lyrics_default_furigana">Furigana'yı varsayılan olarak göster</string>
     <string name="s_key_lyrics_text_alignment">Metin hizalama</string>
-    <string name="s_option_lyrics_text_alignment_left">Sol</string>
+    <string name="s_option_lyrics_text_alignment_start">Sol</string>
     <string name="s_option_lyrics_text_alignment_center">Merkez</string>
-    <string name="s_option_lyrics_text_alignment_right">Sağ</string>
+    <string name="s_option_lyrics_text_alignment_end">Sağ</string>
     <string name="s_key_lyrics_extra_padding">Ekstra dolgu</string>
     <string name="s_sub_lyrics_extra_padding">Kaydırma aralığını artırmak için şarkı sözlerinin üstüne ve altına ekstra dolgu ekleyin</string>
     <string name="s_key_lyrics_enable_word_sync">Kelime senkronizasyonunu etkinleştir</string>

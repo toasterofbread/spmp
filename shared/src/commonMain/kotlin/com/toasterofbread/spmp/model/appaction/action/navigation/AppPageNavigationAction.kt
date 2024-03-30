@@ -51,7 +51,6 @@ data class AppPageNavigationAction(
         }
     }
 
-    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     override fun ConfigurationItems(item_modifier: Modifier, onModification: (NavigationAction) -> Unit) {
         var show_settings_category_selector: Boolean by remember { mutableStateOf(false) }

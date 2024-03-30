@@ -3,7 +3,6 @@ package com.toasterofbread.spmp.model.appaction.action.playback
 import kotlinx.serialization.Serializable
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.resources.getString
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -38,7 +37,6 @@ data class SeekByTimePlaybackAppAction(
         }
     }
 
-    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     override fun ConfigurationItems(item_modifier: Modifier, onModification: (PlaybackAction) -> Unit) {
         FlowRow(

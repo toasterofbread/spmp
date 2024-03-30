@@ -495,9 +495,9 @@
     <string name="s_key_lyrics_default_furigana">Afficher les furigana par défaut</string>
 
     <string name="s_key_lyrics_text_alignment">Alignement du texte</string>
-    <string name="s_option_lyrics_text_alignment_left">Gauche</string>
+    <string name="s_option_lyrics_text_alignment_start">Gauche</string>
     <string name="s_option_lyrics_text_alignment_center">Centre</string>
-    <string name="s_option_lyrics_text_alignment_right">Droite</string>
+    <string name="s_option_lyrics_text_alignment_end">Droite</string>
 
     <string name="s_key_lyrics_extra_padding">Rembourrage supplémentaire</string>
     <string name="s_sub_lyrics_extra_padding">Ajouter un rembourrage supplémentaire au-dessus et en dessous des paroles pour augmenter la plage de défilement</string>

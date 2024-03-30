@@ -8,7 +8,6 @@ import com.toasterofbread.spmp.model.appaction.AppAction
 import com.toasterofbread.spmp.model.appaction.action.navigation.*
 import com.toasterofbread.composekit.utils.composable.LargeDropdownMenu
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Text
@@ -36,7 +35,6 @@ data class NavigationAppAction(
         action.Preview(modifier)
     }
 
-    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     override fun ConfigurationItems(item_modifier: Modifier, onModification: (AppAction) -> Unit) {
         var show_action_selector: Boolean by remember { mutableStateOf(false) }

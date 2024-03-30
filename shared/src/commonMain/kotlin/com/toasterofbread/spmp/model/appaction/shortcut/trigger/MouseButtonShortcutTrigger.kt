@@ -3,7 +3,6 @@ package com.toasterofbread.spmp.ui.component.shortcut.trigger
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.Text
@@ -35,7 +34,6 @@ data class MouseButtonShortcutTrigger(
         )
     }
 
-    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     override fun ConfigurationItems(item_modifier: Modifier, onModification: (ShortcutTrigger) -> Unit) {
         var detecting_button: Boolean by remember { mutableStateOf(false) }

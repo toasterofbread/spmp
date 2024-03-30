@@ -20,6 +20,7 @@ import com.toasterofbread.composekit.platform.composable.platformClickableWithOf
 import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.composekit.utils.common.*
 import com.toasterofbread.composekit.utils.composable.*
+import com.toasterofbread.composekit.utils.composable.StickyHeightColumn
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
@@ -69,12 +70,7 @@ internal abstract class CustomContentBarEditor() {
     }
 
     private fun onElementClicked(index: Int) {
-        if (selected_element == index) {
-            selected_element = null
-        }
-        else {
-            selected_element = index
-        }
+        selected_element = index
     }
 
     @Composable
@@ -121,11 +117,11 @@ internal abstract class CustomContentBarEditor() {
             RowOrColumn(
                 vertical_bar,
                 Modifier
-                    .background(player.theme.vibrant_accent.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                    .background(player.theme.vibrant_accent.copy(alpha = 0.25f), RoundedCornerShape(16.dp))
                     .padding(15.dp),
                 alignment = -1
             ) {
-                CompositionLocalProvider(LocalContentColor provides player.theme.vibrant_accent.getContrasted()) {
+                CompositionLocalProvider(LocalContentColor provides player.theme.on_background) {
                     if (vertical_bar) {
                         var column_height: Dp by remember { mutableStateOf(0.dp) }
                         BarPreview(
@@ -209,7 +205,6 @@ internal abstract class CustomContentBarEditor() {
         }
     }
 
-    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     private fun BarContentButtons(modifier: Modifier = Modifier) {
         val player: PlayerState = LocalPlayerState.current
@@ -275,7 +270,7 @@ internal abstract class CustomContentBarEditor() {
                 background_colour = Theme.Colour.BACKGROUND,
                 content_padding = PaddingValues(),
                 apply_size = false,
-                selected_element_override = selected_element?.takeIf { bar.elements[it] !is ContentBarElementSpacer } ?: -1,
+                selected_element_override = selected_element?.takeIf { bar.elements.getOrNull(it) !is ContentBarElementSpacer } ?: -1,
                 modifier = size_modifier
                     .run {
                         if (vertical_bar) width(PREVIEW_BAR_SIZE_DP.dp)
@@ -337,7 +332,6 @@ internal abstract class CustomContentBarEditor() {
         }
     }
 
-    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     private fun ElementEditor(
         element: ContentBarElement,
@@ -346,7 +340,7 @@ internal abstract class CustomContentBarEditor() {
         modifier: Modifier = Modifier,
         onModification: (ContentBarElement) -> Unit
     ) {
-        Column(
+        StickyHeightColumn(
             modifier,
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
@@ -395,7 +389,6 @@ internal abstract class CustomContentBarEditor() {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ElementSelector(
     button_colours: ButtonColors,

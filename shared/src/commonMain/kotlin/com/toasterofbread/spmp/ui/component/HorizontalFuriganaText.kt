@@ -1,28 +1,21 @@
 package com.toasterofbread.spmp.ui.component
 
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
+import androidx.compose.ui.layout.LastBaseline
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.layout.LastBaseline
-import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.Text
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun BasicFuriganaText(
+fun HorizontalFuriganaText(
     terms: List<SongLyrics.Term>,
     modifier: Modifier = Modifier,
     show_readings: Boolean = true,
-    max_lines: Int = 1,
-    preallocate_needed_space: Boolean = false,
+    // max_lines: Int = 1,
+    // preallocate_needed_space: Boolean = false,
     style: TextStyle = LocalTextStyle.current,
     reading_style: TextStyle = remember(style) {
         style.copy(
@@ -38,7 +31,7 @@ fun BasicFuriganaText(
             TextAlign.Center -> Arrangement.Center
             TextAlign.End -> Arrangement.End
             else -> Arrangement.Start
-        }
+        },
         // maxLines = max_lines
     ) {
         for (term in terms.flatMap { it.subterms }) {

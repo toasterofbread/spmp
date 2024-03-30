@@ -55,7 +55,7 @@ sealed class ContentBarElement {
             when (size_mode) {
                 SizeMode.FILL -> null
                 SizeMode.STATIC -> size.dp
-                SizeMode.PERCENTAGE -> bar_size.width * size * 0.01f
+                SizeMode.PERCENTAGE -> (if (vertical) bar_size.height else bar_size.width) * size * 0.01f
             }
 
         ElementContent(
@@ -80,7 +80,6 @@ sealed class ContentBarElement {
     @Composable
     open fun SubConfigurationItems(item_modifier: Modifier, onModification: (ContentBarElement) -> Unit) {}
 
-    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     fun ConfigurationItems(onModification: (ContentBarElement) -> Unit) {
         var show_mode_selector: Boolean by remember { mutableStateOf(false) }

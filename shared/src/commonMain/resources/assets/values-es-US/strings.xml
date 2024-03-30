@@ -291,8 +291,8 @@
 	<string name="s_option_lyrics_follow_offset_bottom">Abajo</string>
 	<string name="s_option_lyrics_follow_offset_top">Arriba</string>
 	<string name="s_option_lyrics_text_alignment_center">Centro</string>
-	<string name="s_option_lyrics_text_alignment_left">Izquierda</string>
-	<string name="s_option_lyrics_text_alignment_right">Derecha</string>
+	<string name="s_option_lyrics_text_alignment_start">Izquierda</string>
+	<string name="s_option_lyrics_text_alignment_end">Derecha</string>
 	<string name="s_option_np_accent_background">Fondo de color con acento</string>
 	<string name="s_option_np_accent_elements">Elementos de color con acento</string>
 	<string name="s_option_np_accent_none">No usar color de acento</string>

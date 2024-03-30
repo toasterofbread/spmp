@@ -6,6 +6,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.clickable
@@ -223,7 +224,6 @@ private fun ConfigButton(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun BarSelectorPopup(
     state: ContentBar.BarSelectionState,
@@ -313,8 +313,8 @@ internal fun CustomBarsContentBarList(
                 )
             }
         },
-        buttonEndContent = { index ->
-            Row {
+        buttonEndContent = { modifier, index ->
+            Row(modifier) {
                 IconButton(
                     {
                         state.onCustomBarEditRequested(state.custom_bars[index])
@@ -349,10 +349,10 @@ internal fun ContentBarList(
     lazy: Boolean = false,
     bar_background_colour: Color? = null,
     topContent: @Composable () -> Unit = {},
-    buttonEndContent: @Composable (Int) -> Unit = {},
+    buttonEndContent: @Composable (Modifier, Int) -> Unit = { _, _ -> },
     onSelected: ((Int) -> Unit)?
 ) {
-    val bars: List<ContentBar> = remember(bar_references) { bar_references.mapNotNull { it.getBar() } }
+    val bars: List<ContentBar> = bar_references.mapNotNull { it.getBar() }
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(title)
@@ -372,7 +372,7 @@ internal fun ContentBarList(
                         ) { it(index) }
                     },
                 endContent = {
-                    buttonEndContent(index)
+                    buttonEndContent(it, index)
                 }
             )
         }
@@ -407,16 +407,22 @@ private fun ContentBarPreview(
     description: String?,
     icon: ImageVector,
     modifier: Modifier = Modifier,
-    endContent: @Composable () -> Unit = {}
+    endContent: @Composable (Modifier) -> Unit = {}
 ) {
-    Row(
+    FlowRow(
         modifier,
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(10.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Icon(icon, null)
+        Icon(icon, null, Modifier.align(Alignment.CenterVertically))
 
-        Column(Modifier.fillMaxWidth().weight(1f), horizontalAlignment = Alignment.End) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .align(Alignment.CenterVertically),
+            horizontalAlignment = Alignment.End
+        ) {
             Text(name, Modifier.align(Alignment.Start), style = MaterialTheme.typography.titleLarge)
 
             if (description != null) {
@@ -424,7 +430,7 @@ private fun ContentBarPreview(
             }
         }
 
-        endContent()
+        endContent(Modifier.align(Alignment.CenterVertically))
     }
 }
 

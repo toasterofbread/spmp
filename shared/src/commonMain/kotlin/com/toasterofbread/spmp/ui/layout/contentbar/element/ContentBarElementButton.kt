@@ -4,7 +4,6 @@ import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -127,7 +126,6 @@ data class ContentBarElementButton(
         }
     }
 
-    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     override fun SubConfigurationItems(item_modifier: Modifier, onModification: (ContentBarElement) -> Unit) {
         var show_type_selector: Boolean by remember { mutableStateOf(false) }

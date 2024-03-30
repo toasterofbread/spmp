@@ -499,9 +499,9 @@
     <string name="s_key_lyrics_default_furigana">Показывать фуригану по умолчанию</string>
 
     <string name="s_key_lyrics_text_alignment">Выравнивание текста</string>
-    <string name="s_option_lyrics_text_alignment_left">Слева</string>
+    <string name="s_option_lyrics_text_alignment_start">Слева</string>
     <string name="s_option_lyrics_text_alignment_center">По центру</string>
-    <string name="s_option_lyrics_text_alignment_right">Справа</string>
+    <string name="s_option_lyrics_text_alignment_end">Справа</string>
 
     <string name="s_key_lyrics_extra_padding">Дополнительный отступ</string>
     <string name="s_sub_lyrics_extra_padding">Добавить дополнительные отступы над и под текстами песен для увеличения диапазона прокрутки</string>

@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.ui.layout.contentbar.element
 import LocalPlayerState
 import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -33,5 +34,7 @@ data class ContentBarElementSpacer(
     override fun blocksIndicatorAnimation(): Boolean = true
 
     @Composable
-    override fun ElementContent(vertical: Boolean, enable_interaction: Boolean, modifier: Modifier) {}
+    override fun ElementContent(vertical: Boolean, enable_interaction: Boolean, modifier: Modifier) {
+        Box(modifier)
+    }
 }

@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -35,7 +34,6 @@ fun ShortcutsEditor(modifier: Modifier = Modifier) {
     var shortcuts_data: String by ShortcutSettings.Key.CONFIGURED_SHORTCUTS.rememberMutableState()
     val shortcuts: List<Shortcut> = remember(shortcuts_data) { Json.decodeFromString(shortcuts_data) }
 
-    @OptIn(ExperimentalLayoutApi::class)
     StickyHeightColumn(
         modifier,
         verticalArrangement = Arrangement.spacedBy(10.dp)

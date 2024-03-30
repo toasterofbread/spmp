@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.model.appaction
 
 import SpMp
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
@@ -48,7 +47,6 @@ data class OtherAppAction(
         }
     }
 
-    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     override fun ConfigurationItems(item_modifier: Modifier, onModification: (AppAction) -> Unit) {
         var show_action_selector: Boolean by remember { mutableStateOf(false) }

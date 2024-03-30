@@ -519,9 +519,9 @@
     <string name="s_key_lyrics_default_furigana">Show furigana by default</string>
 
     <string name="s_key_lyrics_text_alignment">Text alignment</string>
-    <string name="s_option_lyrics_text_alignment_left">Left</string>
+    <string name="s_option_lyrics_text_alignment_start">Start</string>
     <string name="s_option_lyrics_text_alignment_center">Center</string>
-    <string name="s_option_lyrics_text_alignment_right">Right</string>
+    <string name="s_option_lyrics_text_alignment_end">End</string>
 
     <string name="s_key_lyrics_extra_padding">Extra padding</string>
     <string name="s_sub_lyrics_extra_padding">Add extra padding above and below lyrics for increased scrolling range</string>
@@ -837,6 +837,12 @@
     <string name="content_bar_element_builtin_config_size">Size</string>
 
     <string name="content_bar_element_button_config_type">Action type</string>
+
+    <string name="content_bar_element_lyrics_config_alignment">Alignment</string>
+    <string name="content_bar_element_lyrics_config_linger">Linger</string>
+    <string name="content_bar_element_lyrics_config_show_furigana">Show furigana</string>
+    <string name="content_bar_element_lyrics_config_max_lines">Max lines</string>
+    <string name="content_bar_element_lyrics_config_preallocate_max_space">Preallocate space for max lines</string>
 
     <string name="content_bar_element_builtin_lyrics">Lyrics</string>
     <string name="content_bar_element_builtin_visualiser">Music visualiser</string>

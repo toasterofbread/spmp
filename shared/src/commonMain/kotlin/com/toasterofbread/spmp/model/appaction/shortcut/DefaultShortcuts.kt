@@ -63,6 +63,12 @@ fun getDefaultShortcuts(): List<Shortcut> =
             NavigationAppAction(AppPageNavigationAction(AppPage.Type.SONG_FEED))
         ),
 
+        // Open settings
+        Shortcut(
+            KeyboardShortcutTrigger(Key.Comma.keyCode, listOf(KeyboardShortcutTrigger.KeyboardModifier.CTRL)),
+            NavigationAppAction(AppPageNavigationAction(AppPage.Type.SETTINGS))
+        ),
+
         // Navigate back
         Shortcut(
             KeyboardShortcutTrigger(Key.Escape.keyCode),

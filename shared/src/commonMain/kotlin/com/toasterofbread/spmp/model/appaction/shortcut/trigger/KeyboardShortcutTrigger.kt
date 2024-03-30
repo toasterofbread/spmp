@@ -14,7 +14,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.Button
 import androidx.compose.material3.Switch
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Arrangement
 
 @Serializable
@@ -46,7 +45,6 @@ data class KeyboardShortcutTrigger(
         Text(key.getName(), softWrap = false)
     }
 
-    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     override fun ConfigurationItems(item_modifier: Modifier, onModification: (ShortcutTrigger) -> Unit) {
         var detecting_key: Boolean by remember { mutableStateOf(false) }

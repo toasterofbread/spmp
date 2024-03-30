@@ -472,9 +472,9 @@
     <string name="s_key_lyrics_default_furigana">默认显示振假名</string>
 
     <string name="s_key_lyrics_text_alignment">文本对齐</string>
-    <string name="s_option_lyrics_text_alignment_left">左对齐</string>
+    <string name="s_option_lyrics_text_alignment_start">左对齐</string>
     <string name="s_option_lyrics_text_alignment_center">居中对齐</string>
-    <string name="s_option_lyrics_text_alignment_right">右对齐</string>
+    <string name="s_option_lyrics_text_alignment_end">右对齐</string>
 
     <string name="s_key_lyrics_extra_padding">额外的填充</string>
     <string name="s_sub_lyrics_extra_padding">在歌词上下添加额外的填充以增加滚动范围</string>

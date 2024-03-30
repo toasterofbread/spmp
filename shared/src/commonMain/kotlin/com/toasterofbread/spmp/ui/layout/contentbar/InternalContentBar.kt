@@ -104,7 +104,7 @@ private class LyricsInternalContentBar(index: Int): InternalContentBar(index) {
         modifier: Modifier
     ): Boolean {
         val elements: List<ContentBarElement> = remember { CustomContentBarTemplate.LYRICS.getElements() }
-        return CustomBarContent(elements, 30.dp, slot.is_vertical, content_padding, background_colour, modifier)
+        return CustomBarContent(elements, 50.dp, slot.is_vertical, content_padding, background_colour, modifier)
     }
 }
 

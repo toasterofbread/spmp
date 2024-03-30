@@ -19,7 +19,6 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.shortcut.trigger.*
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ShortcutPreview(
     shortcut: Shortcut,

@@ -36,7 +36,6 @@ import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 
-@OptIn(ExperimentalLayoutApi::class)
 fun getLayoutSlotEditorSettingsItems(): List<SettingsItem> {
     return listOf(
         ComposableSettingsItem(

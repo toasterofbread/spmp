@@ -88,7 +88,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
     }
 
     @Composable
-    override fun showTopBarContent(): Boolean = true
+    override fun shouldShowPrimaryBarContent(): Boolean = true
 
     @Composable
     override fun PrimaryBarContent(
@@ -105,6 +105,9 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
         }
         return true
     }
+
+    @Composable
+    override fun shouldShowSecondaryBarContent(): Boolean = true
 
     @Composable
     override fun SecondaryBarContent(

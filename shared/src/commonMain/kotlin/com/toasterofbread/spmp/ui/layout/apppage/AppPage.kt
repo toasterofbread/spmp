@@ -42,7 +42,7 @@ abstract class AppPage {
     )
 
     @Composable
-    open fun showTopBarContent() = false
+    open fun shouldShowPrimaryBarContent(): Boolean = false
 
     @Composable
     open fun PrimaryBarContent(
@@ -51,6 +51,9 @@ abstract class AppPage {
         distance_to_page: Dp,
         modifier: Modifier
     ): Boolean = false
+
+    @Composable
+    open fun shouldShowSecondaryBarContent(): Boolean = false
 
     @Composable
     open fun SecondaryBarContent(

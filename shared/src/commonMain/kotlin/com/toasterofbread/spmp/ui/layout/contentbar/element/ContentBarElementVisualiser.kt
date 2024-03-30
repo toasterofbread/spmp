@@ -20,6 +20,10 @@ data class ContentBarElementVisualiser(
         copy(size_mode = size_mode, size = size)
 
     @Composable
+    override fun isDisplaying(): Boolean =
+        LocalPlayerState.current.status.m_song != null
+
+    @Composable
     override fun ElementContent(vertical: Boolean, enable_interaction: Boolean, modifier: Modifier) {
         val player: PlayerState = LocalPlayerState.current
         player.controller?.Visualiser(LocalContentColor.current, modifier, 0.5f)

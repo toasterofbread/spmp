@@ -65,9 +65,6 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
         selected_filter_chip = null
     }
 
-    @Composable
-    override fun showTopBarContent(): Boolean = true
-
     override fun canReload(): Boolean = true
     override fun onReload() {
         loadFeed(false)
@@ -118,6 +115,9 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
             FormFactor.LANDSCAPE -> LFFSongFeedAppPage(multiselect_context, modifier, content_padding, close)
         }
     }
+
+    @Composable
+    override fun shouldShowPrimaryBarContent(): Boolean = true
 
     @Composable
     override fun PrimaryBarContent(

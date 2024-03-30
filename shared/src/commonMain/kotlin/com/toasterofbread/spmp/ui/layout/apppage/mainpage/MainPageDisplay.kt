@@ -4,23 +4,23 @@ import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
-import com.toasterofbread.composekit.utils.common.thenIf
-import com.toasterofbread.composekit.utils.common.getValue
+import com.toasterofbread.composekit.utils.common.*
+import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.composable.*
+import com.toasterofbread.composekit.utils.modifier.background
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.StatusBarColourState
 import com.toasterofbread.spmp.ui.layout.contentbar.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.*
-import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 
 @Composable
@@ -56,7 +56,8 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
                 var upper_bar_height: Dp by remember { mutableStateOf(0.dp) }
                 var lower_bar_height: Dp by remember { mutableStateOf(0.dp) }
 
-                var upper_bar_displaying: Boolean by remember { mutableStateOf(false) }
+                var _upper_bar_displaying: Boolean by remember { mutableStateOf(false) }
+                val upper_bar_displaying = _upper_bar_displaying || player.main_multiselect_context.is_active
                 var lower_bar_displaying: Boolean by remember { mutableStateOf(false) }
 
                 val highest_slot: LayoutSlot? =
@@ -77,16 +78,35 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
                 }
 
                 Column(Modifier.zIndex(1f)) {
-                    upper_bar_displaying = upper_bar_slot.DisplayBar(
-                        if (lower_bar_displaying) lower_bar_height else 0.dp,
-                        Modifier
-                            .fillMaxWidth()
-                            .onSizeChanged {
-                                upper_bar_height = with (density) { it.height.toDp() }
-                            },
-                        container_modifier = Modifier.zIndex(1f),
-                        top_padding = top_padding
-                    )
+                    CompositionLocalProvider(LocalContentColor provides (highest_colour?.get(player)?.getContrasted() ?: player.theme.on_background)) {
+                        player.main_multiselect_context.InfoDisplay(
+                            Modifier
+                                .fillMaxWidth()
+                                .onSizeChanged {
+                                    upper_bar_height = with (density) { it.height.toDp() }
+                                }
+                                .zIndex(1f),
+                            content_modifier =
+                                Modifier
+                                    .background { highest_colour?.get(player) ?: player.theme.background }
+                                    .padding(top = top_padding),
+                            show_alt_content = true,
+                            altContent = {
+                                _upper_bar_displaying = upper_bar_slot.DisplayBar(
+                                    if (lower_bar_displaying) lower_bar_height else 0.dp,
+                                    Modifier.fillMaxWidth(),
+                                    top_padding = top_padding
+                                )
+
+                                DisposableEffect(Unit) {
+                                    onDispose {
+                                        _upper_bar_displaying = false
+                                    }
+                                }
+                            }
+                        )
+                    }
+
                     lower_bar_displaying = lower_bar_slot.DisplayBar(
                         0.dp,
                         Modifier
@@ -100,8 +120,11 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
 
                 val vertical_padding: Dp = player.getDefaultVerticalPadding()
                 val top_bar_padding: Dp = (
-                    (if (upper_bar_displaying) upper_bar_height else 0.dp)
-                    + (if (lower_bar_displaying) lower_bar_height else 0.dp)
+                    if (!upper_bar_displaying && !lower_bar_displaying) 0.dp//top_padding
+                    else (
+                        (if (upper_bar_displaying) (upper_bar_height - top_padding).coerceAtLeast(0.dp) else 0.dp)
+                        + (if (lower_bar_displaying) lower_bar_height else 0.dp)
+                    )
                 )
 
                 Box {
@@ -111,7 +134,7 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
                                 player.main_multiselect_context,
                                 Modifier,
                                 PaddingValues(
-                                    top = top_padding + vertical_padding + top_bar_padding,
+                                    top = vertical_padding + top_bar_padding,
                                     bottom = player.nowPlayingBottomPadding(true) + vertical_padding + bottom_padding,
                                     start = horizontal_padding + WindowInsets.getStart(),
                                     end = horizontal_padding + WindowInsets.getEnd()

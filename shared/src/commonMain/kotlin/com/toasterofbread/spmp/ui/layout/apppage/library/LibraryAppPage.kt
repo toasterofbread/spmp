@@ -119,9 +119,6 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
     }
 
     @Composable
-    override fun showTopBarContent(): Boolean = true
-
-    @Composable
     internal fun SearchButton(icon: ImageVector = Icons.Default.Search) {
         val player: PlayerState = LocalPlayerState.current
         val keyboard_controller: SoftwareKeyboardController? = LocalSoftwareKeyboardController.current
@@ -158,6 +155,9 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
             Icon(Icons.Default.Sort, null)
         }
     }
+
+    @Composable
+    override fun shouldShowPrimaryBarContent(): Boolean = true
 
     @Composable
     override fun PrimaryBarContent(

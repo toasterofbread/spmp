@@ -12,6 +12,6 @@ internal fun SongFeedAppPage.SFFSongFeedPagePrimaryBar(
     modifier: Modifier,
     content_padding: PaddingValues
 ): Boolean {
-    return true
+    return false
 }
 

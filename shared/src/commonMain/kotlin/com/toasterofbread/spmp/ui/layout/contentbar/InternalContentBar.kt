@@ -51,7 +51,15 @@ private class PrimaryInternalContentBar(index: Int): InternalContentBar(index) {
         distance_to_page: Dp,
         modifier: Modifier
     ): Boolean {
-        return LocalPlayerState.current.app_page.PrimaryBarContent(slot, content_padding, distance_to_page, modifier)
+        val page: AppPage = LocalPlayerState.current.app_page
+        if (page.shouldShowPrimaryBarContent()) {
+            if (!page.PrimaryBarContent(slot, content_padding, distance_to_page, modifier)) {
+                return false
+            }
+            return true
+        }
+
+        return false
     }
 }
 
@@ -68,7 +76,14 @@ private class SecondaryInternalContentBar(index: Int): InternalContentBar(index)
         distance_to_page: Dp,
         modifier: Modifier
     ): Boolean {
-        return LocalPlayerState.current.app_page.SecondaryBarContent(slot, content_padding, distance_to_page, modifier)
+        val page: AppPage = LocalPlayerState.current.app_page
+        if (page.shouldShowSecondaryBarContent()) {
+            if (!page.SecondaryBarContent(slot, content_padding, distance_to_page, modifier)) {
+                return false
+            }
+            return true
+        }
+        return false
     }
 }
 

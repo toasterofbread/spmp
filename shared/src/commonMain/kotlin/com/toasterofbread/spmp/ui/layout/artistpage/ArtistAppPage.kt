@@ -54,7 +54,6 @@ class ArtistAppPage(
         content_padding: PaddingValues,
         close: () -> Unit
     ) {
-        TODO()
         item_load_state = item.loadDataOnChange(state.context)
 
         DisposableEffect(Unit) {

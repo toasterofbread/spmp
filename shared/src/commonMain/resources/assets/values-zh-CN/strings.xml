@@ -350,8 +350,6 @@
     <string name="s_key_hp_show_timed_lyrics">显示定时歌词</string>
     <string name="s_sub_hp_show_timed_lyrics">如果有定时歌词，将在顶部栏显示</string>
 
-    <string name="s_key_feed_show_filter_bar">显示过滤器栏</string>
-    <string name="s_sub_feed_show_filter_bar">如果隐藏，仍可以通过长按库搜索按钮访问搜索页面</string>
     <string name="s_key_feed_show_song_download_indicators">显示歌曲下载指示器</string>
     <string name="s_key_feed_initial_rows">初始 feed 行</string>
     <string name="s_key_feed_square_preview_text_lines">方形项目最大文本行</string>
@@ -412,7 +410,7 @@
 
     <string name="s_key_np_queue_item_swipe_sensitivity">队列项滑动灵敏度</string>
     <string name="s_sub_np_queue_item_swipe_sensitivity">如果队列项容易被意外移除，请降低灵敏度</string>
-    
+
     <string name="s_key_np_queue_extra_side_padding">增加队列侧面的填充</string>
     <string name="s_sub_np_queue_extra_side_padding">用于增加轻扫关闭区域</string>
 
@@ -474,37 +472,24 @@
     <string name="s_key_lyrics_default_furigana">默认显示振假名</string>
 
     <string name="s_key_lyrics_text_alignment">文本对齐</string>
-    <string name="s_option_lyrics_text_alignment_left">左对齐</string>
+    <string name="s_option_lyrics_text_alignment_start">左对齐</string>
     <string name="s_option_lyrics_text_alignment_center">居中对齐</string>
-    <string name="s_option_lyrics_text_alignment_right">右对齐</string>
+    <string name="s_option_lyrics_text_alignment_end">右对齐</string>
 
     <string name="s_key_lyrics_extra_padding">额外的填充</string>
     <string name="s_sub_lyrics_extra_padding">在歌词上下添加额外的填充以增加滚动范围</string>
-    
+
     <string name="s_key_lyrics_enable_word_sync">启用单词同步</string>
     <string name="s_sub_lyrics_enable_word_sync">如果可用，歌词同步将按单词显示，而不是按行显示</string>
 
     <string name="s_key_lyrics_font_size">字体大小</string>
 
-    <string name="s_key_lyrics_top_bar_enable">启用顶部栏歌词</string>
-    <string name="s_key_lyrics_top_bar_max_lines">最大行数</string>
-    <string name="s_key_lyrics_top_bar_preapply_max_lines">预分配显示最大行所需的空间</string>
     <string name="s_key_lyrics_sync_delay">歌词同步延迟</string>
     <string name="s_sub_lyrics_sync_delay">应用于歌词同步的秒数延迟</string>
     <string name="s_key_lyrics_sync_delay_topbar">顶部栏歌词同步延迟</string>
     <string name="s_sub_lyrics_sync_delay_topbar">仅应用于顶部栏中的歌词的额外延迟</string>
     <string name="s_key_lyrics_sync_delay_bluetooth">蓝牙歌词同步延迟</string>
     <string name="s_sub_lyrics_sync_delay_bluetooth">仅在使用蓝牙音频听歌时应用的额外延迟</string>
-
-    <string name="s_key_top_bar_lyrics_show_furigana">显示振假名</string>
-    <string name="s_key_top_bar_lyrics_show_in_library">在库中显示</string>
-    <string name="s_key_top_bar_lyrics_show_in_radiobuilder">在电台构建器中显示</string>
-    <string name="s_key_top_bar_lyrics_show_in_settings">在设置中显示</string>
-    <string name="s_key_top_bar_lyrics_show_in_login">在登录页面显示</string>
-    <string name="s_key_top_bar_lyrics_show_in_playlist">在播放列表页面显示</string>
-    <string name="s_key_top_bar_lyrics_show_in_artist">在艺术家页面显示</string>
-    <string name="s_key_top_bar_lyrics_show_in_viewmore">在主页查看更多页面显示</string>
-    <string name="s_key_top_bar_lyrics_show_in_search">在搜索页面显示</string>
 
     <string name="s_key_stream_audio_quality">流媒体音频质量</string>
     <string name="s_sub_stream_audio_quality">流媒体音乐的目标音频质量</string>
@@ -615,13 +600,6 @@
     <string name="s_sub_discord_status_show_button_project">在 GitHub 上打开项目仓库</string>
     <string name="s_key_discord_status_button_project_text">项目页面按钮文本</string>
 
-    <string name="s_key_topbar_lyrics_linger">歌词停留</string>
-    <string name="s_sub_topbar_lyrics_linger">一行结束时，将保持可见，直到下一行开始</string>
-    <string name="s_key_topbar_visualiser_width">可视化宽度</string>
-    <string name="s_key_topbar_show_lyrics_in_queue">在音乐队列中显示歌词</string>
-    <string name="s_key_topbar_show_visualiser_in_queue">在音乐队列中显示可视化</string>
-    <string name="s_key_topbar_display_over_artist_image">在艺术家页面的主图像上显示</string>
-
     <string name="s_cat_general">通用</string>
     <string name="s_cat_desc_general">语言和其他选项</string>
 
@@ -639,9 +617,6 @@
 
     <string name="s_cat_lyrics">歌词</string>
     <string name="s_cat_desc_lyrics">歌词外观和行为</string>
-
-    <string name="s_cat_topbar">音乐顶栏</string>
-    <string name="s_cat_desc_topbar">显示、隐藏和自定义顶栏</string>
 
     <string name="s_cat_discord_status">Discord 状态</string>
     <string name="s_cat_desc_discord_status">管理 Discord 账户和自定义状态外观</string>

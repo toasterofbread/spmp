@@ -10,12 +10,13 @@ import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getLyrics
 data object LyricsSettings: SettingsCategory("lyrics") {
     override val keys: List<SettingsKey> = Key.entries.toList()
 
-    override fun getPage(): Page? =
-        Page(
+    override fun getPage(): CategoryPage? =
+        SimplePage(
             getString("s_cat_lyrics"),
             getString("s_cat_desc_lyrics"),
-            { getLyricsCategoryItems() }
-        ) { Icons.Outlined.MusicNote }
+            { getLyricsCategoryItems() },
+            { Icons.Outlined.MusicNote }
+        )
 
     enum class Key: SettingsKey {
         DEFAULT_SOURCE,

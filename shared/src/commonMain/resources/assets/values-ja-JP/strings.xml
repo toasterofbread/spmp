@@ -25,6 +25,14 @@
     <string name="font_option_system">システムフォント</string>
     <string name="font_option_hc_maru_gothic">HC Maru Gothic</string>
 
+    <string name="app_page_song_feed">曲フィード</string>
+    <string name="app_page_library">ライブラリ</string>
+    <string name="app_page_search">検索</string>
+    <string name="app_page_radio_builder">ラジオビルダー</string>
+    <string name="app_page_control_panel">コントロールパネル</string>
+    <string name="app_page_settings">設定</string>
+    <string name="app_page_profile">プロフィール</string>
+
     <string name="home_feed_listen_again">もう一度聴く</string>
     <string name="home_feed_mixed_for_you">おすすめのミックス</string>
     <string name="home_feed_new_releases">新作</string>
@@ -57,8 +65,8 @@
 
     <string name="library_no_local_songs">保存済みの曲はありません</string>
     <string name="library_no_local_artists">保存済みのアーティストはありません</string>
-    <string name="library_no_liked_artists">ライブラリーにアーティストはありません</string>
-    <string name="library_no_liked_albums">ライブラリーにアルバムはありません</string>
+    <string name="library_no_liked_artists">ライブラリにアーティストはありません</string>
+    <string name="library_no_liked_albums">ライブラリにアルバムはありません</string>
     <string name="library_no_liked_songs">お気に入りの曲はありません</string>
     <string name="library_no_playlists">プレイリストはありません</string>
     <string name="library_no_items_match_filter">フィルターに一致するアイテムはありません</string>
@@ -115,6 +123,7 @@
     <string name="action_close">閉じる</string>
     <string name="action_cancel">キャンセル</string>
     <string name="action_share">共有</string>
+    <string name="action_select">決定</string>
     <string name="action_confirm_action">はい</string>
     <string name="action_deny_action">いいえ</string>
     <string name="action_warning_accept">同意する</string>
@@ -210,22 +219,22 @@
     <string name="lyrics_search_on_$source">$sourceで歌詞を探す</string>
     <string name="lyrics_loading">歌詞をロード中</string>
     <string name="lyrics_source_cannot_search">この歌詞源で検索はできません</string>
-    <string name="lyrics_sync_long_press_line">シンクに使う行を長押ししてください</string>
+    <string name="lyrics_sync_long_press_line">シンクロに使う行を長押ししてください</string>
     <string name="lyrics_sync_press_button_when_line_begins">この行が始まったらボタンを押して下さい</string>
     <string name="lyrics_no_lyrics_set_confirmation_title">この曲の歌詞を無効にしますか？</string>
     <string name="lyrics_no_lyrics_set_for_song">この曲の歌詞は無効にされています</string>
 
     <string name="lyrics_info_key_source">源</string>
     <string name="lyrics_info_key_id">ID</string>
-    <string name="lyrics_info_key_sync_type">シンク方法</string>
+    <string name="lyrics_info_key_sync_type">シンクロ方法</string>
     <string name="lyrics_info_key_local_file">ファイル</string>
     <string name="lyrics_source_petit">プチリリ</string>
     <string name="lyrics_source_kugou">KuGou</string>
     <string name="lyrics_source_ytm">YouTube Music</string>
 
-    <string name="lyrics_sync_none">シンクなし</string>
-    <string name="lyrics_sync_line">行をシンク</string>
-    <string name="lyrics_sync_word">字をシンク</string>
+    <string name="lyrics_sync_none">シンクロなし</string>
+    <string name="lyrics_sync_line">行をシンクロ</string>
+    <string name="lyrics_sync_word">字をシンクロ</string>
 
     <string name="error_message_generic">エラーが発生しました</string>
     <string name="error_yt_feed_parse_failed">YouTubeフィード解析に失敗しました</string>
@@ -354,9 +363,8 @@
     <string name="s_key_hp_show_timed_lyrics">同期可能の歌詞を表示する</string>
     <string name="s_sub_hp_show_timed_lyrics">流れてる曲に同期可能の歌詞があればトップバーに表示されます</string>
 
-    <string name="s_key_feed_show_filter_bar">フィルターバーを表示する</string>
-    <string name="s_sub_feed_show_filter_bar">バーが無表示でも、検索ページはライブラリの検索ボタンを長押ししてアクセスできます</string>
     <string name="s_key_feed_show_song_download_indicators">曲のダウンロード状態を表示する</string>
+    <string name="s_key_feed_show_artists_row">アーティストの行を表示する</string>
     <string name="s_key_feed_initial_rows">最初のフィード行数</string>
     <string name="s_key_feed_square_preview_text_lines">四角形アイテムの最高テキスト行数</string>
     <string name="s_key_feed_grid_row_count">グリッドの行数</string>
@@ -490,37 +498,24 @@
     <string name="s_key_lyrics_default_furigana">ふりがなをデフォルトで表示する</string>
 
     <string name="s_key_lyrics_text_alignment">歌詞のアラインメント</string>
-    <string name="s_option_lyrics_text_alignment_left">左</string>
+    <string name="s_option_lyrics_text_alignment_start">初</string>
     <string name="s_option_lyrics_text_alignment_center">中</string>
-    <string name="s_option_lyrics_text_alignment_right">右</string>
+    <string name="s_option_lyrics_text_alignment_end">後</string>
 
     <string name="s_key_lyrics_extra_padding">パディングを増やす</string>
     <string name="s_sub_lyrics_extra_padding">歌詞の上と下にパディングを増やす</string>
 
-    <string name="s_key_lyrics_enable_word_sync">文字ごとにシンクする</string>
-    <string name="s_sub_lyrics_enable_word_sync">可能ならば、行ごとにではなく文字ごとにシンクを表示します</string>
+    <string name="s_key_lyrics_enable_word_sync">文字ごとにシンクロする</string>
+    <string name="s_sub_lyrics_enable_word_sync">可能ならば、行ごとにではなく文字ごとにシンクロを表示します</string>
 
     <string name="s_key_lyrics_font_size">フォントサイズ</string>
 
-    <string name="s_key_lyrics_top_bar_enable">トップバーの歌詞を表示</string>
-    <string name="s_key_lyrics_top_bar_max_lines">最高テキスト行数</string>
-    <string name="s_key_lyrics_top_bar_preapply_max_lines">最高行数の表示に必要な場所をあらかじめ取る</string>
-    <string name="s_key_lyrics_sync_delay">歌詞シンクの遅延</string>
-    <string name="s_sub_lyrics_sync_delay">歌詞のシンクを遅らせる秒数</string>
-    <string name="s_key_lyrics_sync_delay_topbar">トップバーの歌詞シンク遅延</string>
+    <string name="s_key_lyrics_sync_delay">歌詞シンクロの遅延</string>
+    <string name="s_sub_lyrics_sync_delay">歌詞のシンクロを遅らせる秒数</string>
+    <string name="s_key_lyrics_sync_delay_topbar">トップバーの歌詞シンクロ遅延</string>
     <string name="s_sub_lyrics_sync_delay_topbar">トップバーで表示する歌詞のみに足される遅延</string>
-    <string name="s_key_lyrics_sync_delay_bluetooth">Bluetooth 歌詞シンクの遅延</string>
+    <string name="s_key_lyrics_sync_delay_bluetooth">Bluetooth 歌詞シンクロの遅延</string>
     <string name="s_sub_lyrics_sync_delay_bluetooth">Bluetooth で聴いてる時のみ足される遅延</string>
-
-    <string name="s_key_top_bar_lyrics_show_furigana">ふりがなを表示</string>
-    <string name="s_key_top_bar_lyrics_show_in_library">ライブラリで表示</string>
-    <string name="s_key_top_bar_lyrics_show_in_radiobuilder">ラジオ作成画面で表示</string>
-    <string name="s_key_top_bar_lyrics_show_in_settings">設定で表示</string>
-    <string name="s_key_top_bar_lyrics_show_in_login">ログイン画面で表示</string>
-    <string name="s_key_top_bar_lyrics_show_in_playlist">プライリストで表示</string>
-    <string name="s_key_top_bar_lyrics_show_in_artist">アーティストで表示</string>
-    <string name="s_key_top_bar_lyrics_show_in_viewmore">ホームの「もっと見る」画面で表示</string>
-    <string name="s_key_top_bar_lyrics_show_in_search">検索画面で表示</string>
 
     <string name="s_key_stream_audio_quality">ストリームの音質</string>
     <string name="s_sub_stream_audio_quality">曲をストリーム再生する時の音質</string>
@@ -631,18 +626,14 @@
     <string name="s_sub_discord_status_show_button_project">押されるとこのプロジェクトのページが GitHub で開かれます</string>
     <string name="s_key_discord_status_button_project_text">プロジェクトページボタンに表示されるテキスト</string>
 
-    <string name="s_key_topbar_lyrics_linger">残り続ける歌詞</string>
-    <string name="s_sub_topbar_lyrics_linger">行が終わっても、次の行が始まるまで表示されます</string>
-    <string name="s_key_topbar_visualiser_width">ビジュアライザーの横幅</string>
-    <string name="s_key_topbar_show_lyrics_in_queue">歌詞を曲キューで表示</string>
-    <string name="s_key_topbar_show_visualiser_in_queue">ビジュアライザーを曲キューで表示</string>
-    <string name="s_key_topbar_display_over_artist_image">アーティストページのメイン画像の上に表示</string>
-
     <string name="s_cat_general">一般</string>
     <string name="s_cat_desc_general">言語などのオプション</string>
 
     <string name="s_cat_behaviour">作動</string>
     <string name="s_cat_desc_behaviour">いくつかの表示やアクションの設定</string>
+
+    <string name="s_cat_layout">レイアウト</string>
+    <string name="s_cat_desc_layout">アプリ内のUIレイアウトとコンテンツをカスタマイズ</string>
 
     <string name="s_cat_player">プレイヤー</string>
     <string name="s_cat_desc_player">音楽プレイヤー画面の変更</string>
@@ -656,14 +647,14 @@
     <string name="s_cat_lyrics">歌詞</string>
     <string name="s_cat_desc_lyrics">歌詞の表示や動作の設定</string>
 
-    <string name="s_cat_topbar">音楽トップバー</string>
-    <string name="s_cat_desc_topbar">全画面の上に表示されるバーの変更</string>
-
     <string name="s_cat_discord_status">Discordステータス</string>
     <string name="s_cat_desc_discord_status">Discordアカウントとステータスの表示の調節</string>
 
     <string name="s_cat_filter">フィルター</string>
     <string name="s_cat_desc_filter">キーワードを含む曲やプレイリストを隠す</string>
+
+    <string name="s_cat_shortcut">ショートカット</string>
+    <string name="s_cat_desc_shortcut">キーやボタンをアプリ内のアクションに接続</string>
 
     <string name="s_cat_streaming">再生</string>
     <string name="s_cat_desc_streaming">音質や再生の調節</string>
@@ -764,5 +755,176 @@
     <string name="settings_import_result_title">インポートが成功しました</string>
     <string name="settings_import_result_$x_from_file">$x個の設定をファイルからインポートしました</string>
     <string name="settings_import_result_$x_from_default">$x個の設定をデフォルトから復元しました</string>
+
+    <string name="content_bar_selection">コンテントバーの選択</string>
+    <string name="content_bar_selection_list_built_in">ビルトイン</string>
+    <string name="content_bar_selection_list_custom">カスタム</string>
+    <string name="content_bar_selection_create_new">作成</string>
+    <string name="content_bar_selection_warn_no_primary">プライマリー・バーが設定されていません</string>
+    <string name="content_bar_selection_warn_no_secondary">セカンダリー・バーが設定されていません</string>
+    <string name="content_bar_selection_exit_warning_title">重要なバーが設定されていません</string>
+    <string name="content_bar_selection_exit_warning_text">本当に戻りますか？</string>
+
+    <string name="content_bar_empty">空</string>
+    <string name="content_bar_primary">プライマリー</string>
+    <string name="content_bar_desc_primary">ページごとに異なるプライマリーコンテンツ</string>
+    <string name="content_bar_secondary">セカンダリー</string>
+    <string name="content_bar_desc_secondary">ページごとに異なるセカンダリーコンテンツ</string>
+    <string name="content_bar_navigation">ナビゲーション</string>
+    <string name="content_bar_desc_navigation">アプリ内のページに移動するボタン等</string>
+    <string name="content_bar_lyrics">歌詞</string>
+    <string name="content_bar_desc_lyrics">再生中の曲のシンクロ歌詞</string>
+    <string name="content_bar_song_actions">曲のアクション</string>
+    <string name="content_bar_desc_song_actions">再生中の曲に行われるアクション</string>
+
+    <string name="content_bar_custom_no_$x">カスタムバー　第$x</string>
+    <string name="content_bar_custom_invalid">カスタムバー（無効）</string>
+
+    <string name="content_bar_editor_bar_name">バーの名前</string>
+    <string name="content_bar_editor_bar_size">バーのサイズ</string>
+    <string name="content_bar_editor_add_element">エレメントを追加</string>
+    <string name="content_bar_editor_move_element">エレメントの移動</string>
+    <string name="content_bar_editor_configure_element_$x">エレメントの設定</string>
+    <string name="content_bar_editor_no_elements_added">エレメントが追加されていません</string>
+    <string name="content_bar_editor_pick_template">テンプレートを選ぶ</string>
+
+    <string name="content_bar_editor_template_dialog_title">テンプレートを選ぶ</string>
+
+    <string name="content_bar_template_navigation">ナビゲーション</string>
+    <string name="content_bar_template_lyrics">歌詞</string>
+    <string name="content_bar_template_song_actions">曲のアクション</string>
+
+    <string name="content_bar_element_type_button">ボタン</string>
+    <string name="content_bar_element_type_spacer">隙間</string>
+    <string name="content_bar_element_type_lyrics">歌詞</string>
+    <string name="content_bar_element_type_visualiser">ビジュアライザー</string>
+    <string name="content_bar_element_type_pinned_items">固定アイテム</string>
+
+    <string name="content_bar_element_builtin_config_size_mode">ザイズモード</string>
+    <string name="content_bar_element_builtin_config_size_mode_fill">フィル</string>
+    <string name="content_bar_element_builtin_config_size_mode_static">固定</string>
+    <string name="content_bar_element_builtin_config_size_mode_percentage">パーセント</string>
+    <string name="content_bar_element_builtin_config_size">サイズ</string>
+
+    <string name="content_bar_element_button_config_type">アクションタイプ</string>
+
+    <string name="content_bar_element_lyrics_config_alignment">アラインメント</string>
+    <string name="content_bar_element_lyrics_config_linger">残り続ける</string>
+    <string name="content_bar_element_lyrics_config_show_furigana">ふりがなを表示</string>
+    <string name="content_bar_element_lyrics_config_max_lines">最高テキスト行数</string>
+    <string name="content_bar_element_lyrics_config_preallocate_max_space">最高行数の表示に必要な場所をあらかじめ取る</string>
+
+    <string name="content_bar_element_builtin_lyrics">歌詞</string>
+    <string name="content_bar_element_builtin_visualiser">音楽ビジュアライザー</string>
+    <string name="content_bar_element_builtin_unsupported_on_platform_suffix">（現プラットフォームでは非対応）</string>
+
+    <string name="layout_editor_preview_options">プレビュー設定</string>
+    <string name="layout_editor_preview_option_show_bar_content">バーのコンテンツを表示</string>
+    <string name="layout_editor_preview_option_hide_player">プレイヤーを隠す</string>
+    <string name="layout_editor_preview_option_portrait_mode">ポートレートモード</string>
+
+    <string name="layout_slot_portrait_upper_top_bar">上部トップバー</string>
+    <string name="layout_slot_portrait_lower_top_bar">下部トップバー</string>
+    <string name="layout_slot_portrait_above_player">ミニプレイヤーの上</string>
+    <string name="layout_slot_portrait_below_player">ミニプレイヤーの下</string>
+    <string name="layout_slot_portrait_player_top">プレイヤーの上部</string>
+
+    <string name="layout_slot_config_portrait_player_top_show_in_queue">曲キューで表示</string>
+    <string name="layout_slot_config_below_player_show_in_player">拡大プレイヤーで表示</string>
+    <string name="layout_slot_config_below_player_show_in_queue">曲キューで表示</string>
+
+    <string name="layout_slot_landscape_outer_side_left">左バー（外側）</string>
+    <string name="layout_slot_landscape_inner_side_left">左バー（内側）</string>
+    <string name="layout_slot_landscape_outer_side_right">右バー（外側）</string>
+    <string name="layout_slot_landscape_inner_side_right">右バー（内側）</string>
+    <string name="layout_slot_landscape_upper_top_bar">上部トップバー</string>
+    <string name="layout_slot_landscape_lower_top_bar">下部トップバー</string>
+    <string name="layout_slot_landscape_above_player">ミニプレイヤーの上</string>
+    <string name="layout_slot_landscape_below_player">ミニプレイヤーの下</string>
+    <string name="layout_slot_landscape_player_bottom_start">下バーの左側</string>
+    <string name="layout_slot_landscape_player_bottom_end">下バーの右側</string>
+
+    <string name="colour_selector_dialog_title">色の選択</string>
+    <string name="colour_selector_dialog_select_theme">テーマから</string>
+    <string name="colour_selector_dialog_select_custom">カスタム</string>
+    <string name="colour_selector_dialog_player_background">プレイヤーのバックグラウンド</string>
+    <string name="colour_selector_dialog_transparent">透明</string>
+
+    <string name="theme_colour_background">バックグラウンド</string>
+    <string name="theme_colour_accent">アクセント</string>
+    <string name="theme_colour_vibrant_accent">明るいアクセント</string>
+    <string name="theme_colour_card">カード</string>
+
+    <string name="shortcut_trigger_none">なし</string>
+    <string name="shortcut_trigger_keyboard">キーボード</string>
+    <string name="shortcut_trigger_mouse_button">マウスボタン</string>
+
+    <string name="shortcut_key_config_selected_key">選択されたキー</string>
+    <string name="shortcut_key_config_none_selected">なし</string>
+    <string name="shortcut_key_config_detecting_key">キーの検出中…</string>
+    <string name="shortcut_key_modifier_ctrl">「Ctrl」モディファイア</string>
+    <string name="shortcut_key_modifier_alt">「Alt」モディファイア</string>
+    <string name="shortcut_key_modifier_shift">「Shift」モディファイア</string>
+
+    <string name="shortcut_button_config_selected_button">ボタン</string>
+    <string name="shortcut_button_config_detecting_button">ボタンの検出中…</string>
+    <string name="shortcut_button_config_none_selected">なし</string>
+
+    <string name="shortcut_editor_trigger_label">トリガー：</string>
+    <string name="shortcut_editor_trigger">トリガー</string>
+    <string name="shortcut_editor_empty_trigger">未設定</string>
+
+    <string name="appaction_navigation">ナビゲーション</string>
+    <string name="appaction_song">曲アクション</string>
+    <string name="appaction_playback">再生</string>
+    <string name="appaction_other">その他</string>
+    <string name="appaction_modify_setting">設定</string>
+
+    <string name="appaction_config_navigation_action">アクション</string>
+    <string name="appaction_config_navigation_settings_category">設定のカテゴリー</string>
+    <string name="appaction_config_navigation_settings_category_none">なし</string>
+    <string name="appaction_config_song_action">アクション</string>
+    <string name="appaction_config_other_action">アクション</string>
+    <string name="appaction_config_playback_action_type">アクションのタイプ</string>
+    <string name="appaction_config_playback_seek_to_time_seek_ms">シーク時間（ミリ秒）</string>
+
+    <string name="appaction_navigation_toggle_player">プレイヤー拡大をトグル</string>
+    <string name="appaction_navigation_jump_to_lyrics">歌詞画面に移動</string>
+    <string name="appaction_navigation_open_page_feed">フィードを開く</string>
+    <string name="appaction_navigation_open_page_library">ライブラリーを開く</string>
+    <string name="appaction_navigation_open_page_search">詮索を開く</string>
+    <string name="appaction_navigation_open_page_radiobuilder">ラジオブルダーを開く</string>
+    <string name="appaction_navigation_open_page_control">コントロールパネルを開く</string>
+    <string name="appaction_navigation_open_page_settings">設定を開く</string>
+    <string name="appaction_navigation_open_page_profile">プロフィールを開く</string>
+
+    <string name="appaction_song_action_toggle_like">「いいね」をトグル</string>
+    <string name="appaction_song_action_toggle_pin">固定をトグル</string>
+    <string name="appaction_song_action_hide">隠す</string>
+    <string name="appaction_song_action_start_radio">ラジオを始める</string>
+    <string name="appaction_song_action_download">ダウンロード</string>
+    <string name="appaction_song_action_open_album">アルバムを開く</string>
+    <string name="appaction_song_action_open_related">関係コンテンツを開く</string>
+    <string name="appaction_song_action_remove_from_queue">キューから削除</string>
+    <string name="appaction_song_action_share">共有</string>
+    <string name="appaction_song_action_open_externally">外部アプリで開く</string>
+    <string name="appaction_song_action_copy_url">URLをコピー</string>
+
+    <string name="appaction_playback_action_pause">一時停止</string>
+    <string name="appaction_playback_action_play">再生</string>
+    <string name="appaction_playback_action_toggle_play">再生をトグル</string>
+    <string name="appaction_playback_action_seek_by_time">進む・戻る</string>
+    <string name="appaction_playback_action_shuffle_queue">キューをシャッフル</string>
+    <string name="appaction_playback_action_clear_queue">キューをクリア</string>
+    <string name="appaction_playback_action_seek_next">次の曲に進む</string>
+    <string name="appaction_playback_action_seek_previous">前の曲に戻る</string>
+    <string name="appaction_playback_action_seek_random">ランダムの曲に移動</string>
+    <string name="appaction_playback_action_undo_seek">曲移動をアンドゥ</string>
+
+    <string name="appaction_other_action_navigate_back">戻る</string>
+    <string name="appaction_other_action_toggle_fullscreen">フルスクリーンをトグル</string>
+    <string name="appaction_other_action_reload_page">ページを再ロード</string>
+    <string name="appaction_other_action_increase_ui_scale">UIスケールを拡大</string>
+    <string name="appaction_other_action_decrease_ui_scale">UIスケールを短縮</string>
 
 </resources>

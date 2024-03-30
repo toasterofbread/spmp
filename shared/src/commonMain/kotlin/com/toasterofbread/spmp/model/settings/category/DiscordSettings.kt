@@ -15,13 +15,14 @@ import spmp.shared.generated.resources.*
 data object DiscordSettings: SettingsCategory("discord") {
     override val keys: List<SettingsKey> = Key.entries.toList()
 
-    override fun getPage(): Page? =
+    override fun getPage(): CategoryPage? =
         if (!DiscordStatus.isSupported()) null
-        else Page(
+        else SimplePage(
             getString("s_cat_discord_status"),
             getString("s_cat_desc_discord_status"),
-            { getDiscordCategoryItems(it) }
-        ) { getIcon() }
+            { getDiscordCategoryItems(it) },
+            { getIcon() }
+        )
 
     @Composable
     fun getIcon(): ImageVector =

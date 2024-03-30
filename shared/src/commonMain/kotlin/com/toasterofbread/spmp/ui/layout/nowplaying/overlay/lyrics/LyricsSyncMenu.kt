@@ -31,7 +31,7 @@ import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.component.BasicFuriganaText
+import com.toasterofbread.spmp.ui.component.HorizontalFuriganaText
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.composekit.utils.common.thenIf
 
@@ -83,7 +83,7 @@ fun LyricsSyncMenu(
                     Text(getString("lyrics_sync_press_button_when_line_begins"))
                 }
 
-                BasicFuriganaText(
+                HorizontalFuriganaText(
                     line,
                     Modifier.thenIf(line_offset != 0) {
                         alpha(0.65f)

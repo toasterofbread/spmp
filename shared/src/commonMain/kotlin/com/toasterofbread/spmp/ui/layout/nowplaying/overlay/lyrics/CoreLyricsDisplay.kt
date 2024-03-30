@@ -22,7 +22,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.LyricsSettings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.ui.component.BasicFuriganaText
+import com.toasterofbread.spmp.ui.component.HorizontalFuriganaText
 import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING_DP
 import kotlinx.coroutines.delay
 
@@ -130,7 +130,7 @@ fun CoreLyricsDisplay(
             itemsIndexed(lyrics.lines) { index, line ->
                 val current: Boolean = current_range?.contains(index) ?: false
 
-                BasicFuriganaText(
+                HorizontalFuriganaText(
                     line,
                     Modifier
                         .thenIf(!current) {

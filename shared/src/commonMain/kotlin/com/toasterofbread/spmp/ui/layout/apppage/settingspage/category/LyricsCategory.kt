@@ -41,9 +41,9 @@ internal fun getLyricsCategoryItems(): List<SettingsItem> {
             getString("s_key_lyrics_text_alignment"), null, 3
         ) { i ->
             when (i) {
-                0 -> getString("s_option_lyrics_text_alignment_left")
+                0 -> getString("s_option_lyrics_text_alignment_start")
                 1 -> getString("s_option_lyrics_text_alignment_center")
-                else -> getString("s_option_lyrics_text_alignment_right")
+                else -> getString("s_option_lyrics_text_alignment_end")
             }
         },
 

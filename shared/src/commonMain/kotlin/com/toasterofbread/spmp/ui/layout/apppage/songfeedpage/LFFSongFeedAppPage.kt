@@ -2,71 +2,43 @@ package com.toasterofbread.spmp.ui.layout.apppage.songfeedpage
 
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationVector1D
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FilterAlt
-import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.*
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.platform.ClipboardManager
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.Platform
-import com.toasterofbread.composekit.platform.composable.BackHandler
-import com.toasterofbread.composekit.platform.composable.ScrollBarLazyColumn
-import com.toasterofbread.composekit.platform.composable.SwipeRefresh
-import com.toasterofbread.composekit.platform.composable.platformClickable
+import com.toasterofbread.composekit.platform.composable.*
 import com.toasterofbread.composekit.utils.common.*
-import com.toasterofbread.composekit.utils.composable.ShapedIconButton
-import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.composekit.utils.composable.WidthShrinkText
-import com.toasterofbread.composekit.utils.modifier.horizontal
-import com.toasterofbread.composekit.utils.modifier.vertical
-import com.toasterofbread.spmp.model.deserialise
-import com.toasterofbread.spmp.model.getIcon
-import com.toasterofbread.spmp.model.getString
-import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.composekit.utils.composable.*
+import com.toasterofbread.composekit.utils.modifier.*
+import com.toasterofbread.spmp.model.*
+import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.model.mediaitem.db.getPinnedItems
-import com.toasterofbread.spmp.model.mediaitem.layout.Layout
-import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
-import com.toasterofbread.spmp.model.mediaitem.rememberFilteredYtmItems
-import com.toasterofbread.spmp.model.serialise
+import com.toasterofbread.spmp.model.mediaitem.layout.*
 import com.toasterofbread.spmp.model.settings.category.FeedSettings
-import com.toasterofbread.spmp.model.MediaItemLayoutParams
-import com.toasterofbread.spmp.model.MediaItemGridParams
-import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.platform.form_factor
+import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.service.playercontroller.*
+import com.toasterofbread.spmp.ui.component.NotImplementedMessage
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.service.playercontroller.FeedLoadState
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.ui.component.NotImplementedMessage
 import dev.toastbits.ytmkt.model.external.ItemLayoutType
+import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import dev.toastbits.ytmkt.uistrings.UiString
 
 @Composable
-fun SongFeedAppPage.LFFSongFeedAppPage(
+internal fun SongFeedAppPage.LFFSongFeedAppPage(
     multiselect_context: MediaItemMultiSelectContext,
     modifier: Modifier,
     content_padding: PaddingValues,
@@ -85,17 +57,6 @@ fun SongFeedAppPage.LFFSongFeedAppPage(
     }
 
     val player: PlayerState = LocalPlayerState.current
-    var artists_layout: MediaItemLayout by remember {
-        mutableStateOf(
-            MediaItemLayout(
-                emptyList(),
-                null,
-                null,
-                type = ItemLayoutType.GRID
-            )
-        )
-    }
-
     val hidden_rows: Set<String> by FeedSettings.Key.HIDDEN_ROWS.rememberMutableState()
     val hidden_row_titles: List<String> = remember(hidden_rows) {
         hidden_rows.map { row_title ->
@@ -116,25 +77,6 @@ fun SongFeedAppPage.LFFSongFeedAppPage(
             FormFactor.PORTRAIT -> FeedSettings.Key.GRID_ROW_COUNT_EXPANDED
             FormFactor.LANDSCAPE -> FeedSettings.Key.LANDSCAPE_GRID_ROW_COUNT_EXPANDED
         }.rememberMutableState()
-
-    LaunchedEffect(Unit) {
-        if (layouts.isNullOrEmpty()) {
-            coroutine_scope.launchSingle {
-                loadFeed(allow_cached = !retrying, continue_feed = false)
-                retrying = false
-            }
-        }
-    }
-
-    LaunchedEffect(layouts) {
-        artists_layout = artists_layout.copy(
-            items = populateArtistsLayout(
-                layouts,
-                player.context.ytapi.user_auth_state?.own_channel_id,
-                player.context
-            )
-        )
-    }
 
     Column(modifier) {
         multiselect_context.InfoDisplay(
@@ -157,18 +99,6 @@ fun SongFeedAppPage.LFFSongFeedAppPage(
             val state_alpha: Animatable<Float, AnimationVector1D> = remember { Animatable(1f) }
 
             Row(modifier, horizontalArrangement = Arrangement.spacedBy(content_padding.calculateStartPadding(LocalLayoutDirection.current))) {
-                LFFArtistsLayout(
-                    if (isReloading()) null else artists_layout,
-                    Modifier.width(
-                        when (Platform.current) {
-                            Platform.ANDROID -> 100.dp
-                            Platform.DESKTOP -> 125.dp
-                        }
-                    ),
-                    content_padding = content_padding.copy(end = 0.dp),
-                    scroll_enabled = !state_alpha.isRunning
-                )
-
                 LaunchedEffect(target_state) {
                     if (current_state == target_state) {
                         state_alpha.animateTo(1f, tween(300))
@@ -285,7 +215,7 @@ fun SongFeedAppPage.LFFSongFeedAppPage(
                                         multiselect_context = player.main_multiselect_context,
                                         apply_filter = true,
                                         show_download_indicators = show_download_indicators,
-                                        content_padding = PaddingValues(end = content_padding.calculateEndPadding(LocalLayoutDirection.current))
+                                        content_padding = content_padding.horizontal
                                     ),
                                     MediaItemGridParams(
                                         square_item_max_text_rows = square_item_max_text_rows,
@@ -295,7 +225,7 @@ fun SongFeedAppPage.LFFSongFeedAppPage(
                             }
 
                             item {
-                                Crossfade(Pair(onContinuationRequested, loading_continuation), Modifier.padding(end = content_padding.calculateEndPadding(LocalLayoutDirection.current))) { data ->
+                                Crossfade(Pair(onContinuationRequested, loading_continuation), Modifier.padding(content_padding.horizontal)) { data ->
                                     val (requestContinuation, loading) = data
 
                                     if (loading || requestContinuation != null) {
@@ -335,107 +265,6 @@ fun SongFeedAppPage.LFFSongFeedAppPage(
 
                             player.openAppPage(library)
                         }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SongFeedAppPage.LFFArtistsLayout(layout: MediaItemLayout?, modifier: Modifier = Modifier, content_padding: PaddingValues = PaddingValues(), scroll_enabled: Boolean = true) {
-    val player: PlayerState = LocalPlayerState.current
-
-    val artists: List<MediaItem>? by layout?.items?.rememberFilteredYtmItems()
-    var show_filters: Boolean by remember { mutableStateOf(false) }
-
-    val can_show_artists: Boolean = !artists.isNullOrEmpty()
-    val can_show_filters: Boolean = !filter_chips.isNullOrEmpty()
-
-    Crossfade(show_filters) { filters ->
-        Column(
-            modifier.padding(top = content_padding.calculateTopPadding()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Row(Modifier.padding(content_padding.horizontal), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                val selected_colours: IconButtonColors = IconButtonDefaults.iconButtonColors(
-                    containerColor = player.theme.vibrant_accent.copy(alpha = 0.85f),
-                    contentColor = player.theme.vibrant_accent.getContrasted()
-                )
-
-                ShapedIconButton(
-                    { show_filters = false },
-                    if (!filters) selected_colours
-                    else IconButtonDefaults.iconButtonColors(),
-                    enabled = can_show_artists || !filters
-                ) {
-                    Icon(Icons.Default.Person, null)
-                }
-
-                ShapedIconButton(
-                    { show_filters = true },
-                    if (filters) selected_colours
-                    else IconButtonDefaults.iconButtonColors(),
-                    enabled = can_show_filters || filters
-                ) {
-                    Icon(Icons.Default.FilterAlt, null)
-                }
-            }
-
-            LazyColumn(
-                Modifier.weight(1f),
-                contentPadding = content_padding.copy(top = 0.dp),
-                userScrollEnabled = scroll_enabled,
-                verticalArrangement = Arrangement.spacedBy(15.dp)
-            ) {
-                if (filters) {
-                    itemsIndexed(filter_chips ?: emptyList()) { index, filter ->
-                        val selected: Boolean = index == selected_filter_chip
-
-                        Card(
-                            { selectFilterChip(index) },
-                            Modifier.aspectRatio(1f),
-                            colors =
-                                if (selected) CardDefaults.cardColors(
-                                    containerColor = player.theme.vibrant_accent,
-                                    contentColor = player.theme.vibrant_accent.getContrasted()
-                                )
-                                else CardDefaults.cardColors(
-                                    containerColor = player.theme.accent.blendWith(player.theme.background, 0.05f),
-                                    contentColor = player.theme.on_background
-                                ),
-                            shape = RoundedCornerShape(25.dp)
-                        ) {
-                            Column(Modifier.fillMaxSize().padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                                val icon: ImageVector? = filter.getIcon()
-                                if (icon != null) {
-                                    Icon(
-                                        icon,
-                                        null,
-                                        Modifier.aspectRatio(1f).fillMaxHeight().weight(1f).padding(10.dp),
-                                        tint =
-                                            if (selected) LocalContentColor.current
-                                            else player.theme.vibrant_accent
-                                    )
-                                }
-
-                                WidthShrinkText(
-                                    filter.text.getString(player.context),
-                                    style = MaterialTheme.typography.labelLarge,
-                                    alignment = TextAlign.Center
-                                )
-                            }
-                        }
-                    }
-                }
-                else {
-                    items(artists ?: emptyList()) { item ->
-                        MediaItemPreviewSquare(
-                            item,
-                            multiselect_context = player.main_multiselect_context,
-                            apply_size = false
-                        )
                     }
                 }
             }

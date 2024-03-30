@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.animateTo
+import androidx.compose.foundation.gestures.snapTo
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
@@ -24,9 +25,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.IntOffset
 import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.platform.PlatformPreferencesListener
 import com.toasterofbread.composekit.platform.composable.BackHandler
+import com.toasterofbread.composekit.platform.composable.composeScope
 import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.composekit.utils.composable.getEnd
 import com.toasterofbread.composekit.utils.composable.getStart
@@ -45,7 +49,6 @@ import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
-import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenu
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.multiselect.AppPageMultiSelectContext
@@ -64,12 +67,27 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNowPlayingVerticalPageCount
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
+import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 import com.toasterofbread.spmp.ui.layout.playlistpage.PlaylistAppPage
 import dev.toastbits.ytmkt.model.external.YoutubePage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.*
+import com.toasterofbread.spmp.ui.layout.contentbar.*
+import com.toasterofbread.spmp.ui.layout.StatusBarColourState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import com.toasterofbread.composekit.utils.composable.getTop
+import com.toasterofbread.composekit.utils.composable.OnChangedEffect
+import com.toasterofbread.composekit.utils.common.blendWith
+import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.requiredWidth
+import kotlin.math.roundToInt
+import kotlin.math.absoluteValue
 
 typealias DownloadRequestCallback = (DownloadStatus?) -> Unit
 
@@ -115,22 +133,40 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
 
     private var np_swipe_state: AnchoredDraggableState<Int> by mutableStateOf(createSwipeState())
 
+    private var np_bottom_bar_config: LayoutSlot.BelowPlayerConfig? by mutableStateOf(null)
+    private var np_bottom_bar_showing: Boolean by mutableStateOf(false)
+    private var _np_bottom_bar_height: Dp by mutableStateOf(0.dp)
+    private var np_bottom_bar_height: Dp
+        get() =
+            if (!np_bottom_bar_showing) 0.dp
+            else _np_bottom_bar_height
+        set(value) { _np_bottom_bar_height = value }
+
     private var download_request_songs: List<Song>? by mutableStateOf(null)
     private var download_request_always_show_options: Boolean by mutableStateOf(false)
     private var download_request_callback: DownloadRequestCallback? by mutableStateOf(null)
+
+    val status_bar_colour_state: StatusBarColourState =
+        object : StatusBarColourState() {
+            override fun onCurrentStatusBarColourChanged(colour: Color?) {
+                context.setStatusBarColour(colour ?: theme.background)
+            }
+        }
 
     val expansion: NowPlayingExpansionState =
         object : NowPlayingExpansionState(this, coroutine_scope) {
             override val swipe_state: AnchoredDraggableState<Int>
                 get() = np_swipe_state
         }
-    val session_started: Boolean get() = _player?.service_player?.session_started == true
     var screen_size: DpSize by mutableStateOf(DpSize.Zero)
 
-    val app_page_state = AppPageState(this)
+    val session_started: Boolean get() = _player?.service_player?.session_started == true
+    var hide_player: Boolean by mutableStateOf(false)
+    val player_showing: Boolean get() = session_started && !hide_player
+
+    val app_page_state: AppPageState = AppPageState(this)
     val main_multiselect_context: MediaItemMultiSelectContext = AppPageMultiSelectContext(this)
     var np_theme_mode: ThemeMode by mutableStateOf(Settings.getEnum(ThemeSettings.Key.NOWPLAYING_THEME_MODE, context.getPrefs()))
-    val top_bar: MusicTopBar = MusicTopBar(this)
 
     val np_overlay_menu: MutableState<PlayerOverlayMenu?> = mutableStateOf(null)
     private val np_overlay_menu_queue: MutableList<PlayerOverlayMenu> = mutableListOf()
@@ -173,7 +209,6 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
     fun onStart() {
         SpMp.addLowMemoryListener(low_memory_listener)
         context.getPrefs().addListener(prefs_listener)
-        top_bar.reconnect()
 
         if (PlatformPlayerService.isServiceRunning(context)) {
             connectService(null)
@@ -198,7 +233,6 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         }
         service_connection = null
         _player = null
-        top_bar.release()
     }
 
     fun interactService(action: (player: PlatformPlayerService) -> Unit) {
@@ -230,66 +264,134 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         return system_insets.getBottom(this) + ime_padding
     }
 
-    private var now_playing_top_offset_id: Int = 0
-    private var now_playing_top_offset_item_sizes: MutableMap<Int, Dp> = mutableStateMapOf()
+    private var now_playing_top_offset_items: MutableMap<NowPlayingTopOffsetSection, MutableList<TopOffsetItem?>> = mutableStateMapOf()
+    private data class TopOffsetItem(
+        val height: Dp,
+        val apply_spacing: Boolean = true,
+        val displaying: Boolean = true
+    )
+
+    private fun getTopItemsHeight(spacing: Dp = 15.dp, filter: ((NowPlayingTopOffsetSection, Int) -> Boolean)? = null): Dp =
+        now_playing_top_offset_items.entries.sumOf { items ->
+            var acc: Float = 0f
+
+            for (item in items.value.withIndex()) {
+                if (item.value?.displaying != true) {
+                    continue
+                }
+
+                if (filter?.invoke(items.key, item.index) == false) {
+                    continue
+                }
+
+                val height: Float =
+                    (item.value!!.height + (if (item.value!!.apply_spacing) spacing else 0.dp)).value
+
+                if (items.key.isMerged()) {
+                    acc = maxOf(acc, height)
+                }
+                else {
+                    acc += height
+                }
+            }
+
+            // https://youtrack.jetbrains.com/issue/KT-43310/Add-sumOf-with-Float-return-type
+            return@sumOf acc.toDouble()
+        }.dp
 
     @Composable
-    fun nowPlayingTopOffset(base: Modifier, force_top: Boolean = false): Modifier {
+    fun nowPlayingTopOffset(
+        base: Modifier,
+        section: NowPlayingTopOffsetSection,
+        apply_spacing: Boolean = true,
+        displaying: Boolean = true
+    ): Modifier {
+        val density: Density = LocalDensity.current
         val system_insets: WindowInsets = WindowInsets.systemBars
         val navigation_insets: WindowInsets = WindowInsets.navigationBars
         val keyboard_insets: WindowInsets = WindowInsets.ime
 
-        val id: Int = remember {
-            if (force_top) -(now_playing_top_offset_id++)
-            else now_playing_top_offset_id++
+        val offset_items: MutableList<TopOffsetItem?> = remember (section) {
+            now_playing_top_offset_items.getOrPut(section) {
+                mutableStateListOf()
+            }
         }
-        val density: Density = LocalDensity.current
+        val index: Int = remember(offset_items) {
+            offset_items.add(null)
+            return@remember offset_items.size - 1
+        }
+
+        OnChangedEffect(displaying) {
+            val item: TopOffsetItem? = offset_items.getOrNull(index)
+            if (item != null) {
+                offset_items[index] = item.copy(
+                    displaying = displaying
+                )
+            }
+        }
 
         DisposableEffect(Unit) {
             onDispose {
-                now_playing_top_offset_item_sizes.remove(id)
+                offset_items[index] = null
             }
         }
 
         val additional_offset: Dp by animateDpAsState(
-            if (force_top)
-                now_playing_top_offset_item_sizes.entries.sumOf {
-                    if (it.key <= id) 0.0
-                    else it.value.value + 15.0
-                }.dp
-            else 0.dp
+            getTopItemsHeight(filter = { item_section, item_index ->
+                !section.shouldIgnoreSection(item_section)
+                && (
+                    item_section.ordinal > section.ordinal
+                    || (item_section.ordinal == section.ordinal && item_index < index)
+                )
+            })
         )
 
         return base
             .offset {
                 val bottom_padding: Int = getNpBottomPadding(system_insets, navigation_insets, keyboard_insets)
                 val swipe_offset: Dp =
-                    if (session_started) -np_swipe_state.offset.dp - (screen_size.height * 0.5f)
-                    else 0.dp
+                    if (player_showing) -np_swipe_state.offset.dp - ((screen_size.height + np_bottom_bar_height) * 0.5f)
+                    else -np_bottom_bar_height
 
                 IntOffset(
                     0,
-                    swipe_offset.roundToPx() - bottom_padding - additional_offset.roundToPx()
+                    swipe_offset.notUnspecified().roundToPx() - bottom_padding - additional_offset.notUnspecified().roundToPx() + 1 // Avoid single-pixel gap
                 )
             }
             .padding(start = system_insets.getStart(), end = system_insets.getEnd())
             .onSizeChanged {
                 with (density) {
-                    now_playing_top_offset_item_sizes[id] = it.height.toDp()
+                    offset_items[index] = TopOffsetItem(
+                        height = it.height.toDp(),
+                        apply_spacing = apply_spacing,
+                        displaying = displaying
+                    )
                 }
             }
     }
 
     @Composable
-    fun nowPlayingBottomPadding(include_np: Boolean = false): Dp {
-        val bottom_padding = with(LocalDensity.current) {
-            LocalDensity.current.getNpBottomPadding(WindowInsets.systemBars, WindowInsets.navigationBars, WindowInsets.ime).toDp()
-        }
+    fun nowPlayingBottomPadding(include_np: Boolean = false, include_top_items: Boolean = include_np): Dp {
+        var bottom_padding: Dp =
+            with(LocalDensity.current) {
+                LocalDensity.current.getNpBottomPadding(WindowInsets.systemBars, WindowInsets.navigationBars, WindowInsets.ime).toDp()
+            }
 
         if (include_np) {
-            val np by animateDpAsState(if (session_started) MINIMISED_NOW_PLAYING_HEIGHT_DP.dp else 0.dp)
-            return np + bottom_padding
+            bottom_padding += animateDpAsState(
+                np_bottom_bar_height
+                + (
+                    if (player_showing) MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
+                    else 0.dp
+                )
+            ).value
         }
+        if (include_top_items) {
+            bottom_padding += animateDpAsState(
+                getTopItemsHeight()
+            ).value
+        }
+
         return bottom_padding
     }
 
@@ -430,29 +532,52 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         val density: Density = LocalDensity.current
         val bottom_padding: Int = density.getNpBottomPadding(WindowInsets.systemBars, WindowInsets.navigationBars, WindowInsets.ime)
 
-        val vertical_page_count: Int = getNowPlayingVerticalPageCount(player)
+        val vertical_page_count: Int = getNowPlayingVerticalPageCount(this)
         val minimised_now_playing_height: Dp = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
 
-        LaunchedEffect(screen_size.height, bottom_padding, vertical_page_count) {
-            val half_screen_height: Float = screen_size.height.value * 0.5f
+        val bottom_layout_slot: LayoutSlot =
+            when (form_factor) {
+                FormFactor.LANDSCAPE -> LandscapeLayoutSlot.BELOW_PLAYER
+                FormFactor.PORTRAIT -> PortraitLayoutSlot.BELOW_PLAYER
+            }
+
+        np_bottom_bar_config = bottom_layout_slot.observeConfig { LayoutSlot.BelowPlayerConfig() }
+
+        val show_bottom_slot_in_player: Boolean =
+            np_bottom_bar_config?.show_in_player == true || bottom_layout_slot.mustShow()
+        val show_bottom_slot_in_queue: Boolean =
+            np_bottom_bar_config?.show_in_queue == true || bottom_layout_slot.mustShow()
+
+        val player_height: Dp = screen_size.height
+
+        LaunchedEffect(player_height, bottom_padding, vertical_page_count, np_bottom_bar_height) {
+            val half_screen_height: Float = player_height.value * 0.5f
 
             val anchors: DraggableAnchors<Int> =
                 DraggableAnchors {
                     for (anchor in 0..vertical_page_count) {
                         val value: Float
                         if (anchor == 0) {
-                            value = minimised_now_playing_height.value - half_screen_height
+                            value = minimised_now_playing_height.value - half_screen_height + (np_bottom_bar_height.value / 2)
                         }
                         else {
                             with(density) {
-                                value = ((screen_size.height - bottom_padding.toDp()).value * anchor) - half_screen_height
+                                value = ((screen_size.height - bottom_padding.toDp()).value * anchor) - half_screen_height - (np_bottom_bar_height.value / 2)
                             }
                         }
 
                         anchor at value
                     }
                 }
+
+            val initial_position: Int = np_swipe_state.currentValue
             np_swipe_state.updateAnchors(anchors)
+
+            if (initial_position == 0) {
+                coroutine_scope.launch {
+                    np_swipe_state.snapTo(initial_position)
+                }
+            }
         }
 
         val current_form_factor: FormFactor = form_factor
@@ -469,10 +594,72 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
             )
         }
 
-        if (np_swipe_state.anchors.size > 0) {
-            com.toasterofbread.spmp.ui.layout.nowplaying.NowPlaying(
-                np_swipe_state,
-                content_padding = PaddingValues(start = WindowInsets.getStart(), end = WindowInsets.getEnd())
+        Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
+            if (np_swipe_state.anchors.size > 0) {
+                val expanded_bottom_bar_height: Dp =
+                    if (show_bottom_slot_in_player) np_bottom_bar_height
+                    else 0.dp
+
+                val page_height: Dp = (
+                    player_height
+                    - expanded_bottom_bar_height
+                    - nowPlayingBottomPadding()
+                    - WindowInsets.getTop()
+                )
+
+                com.toasterofbread.spmp.ui.layout.nowplaying.NowPlaying(
+                    page_height,
+                    np_swipe_state,
+                    PaddingValues(
+                        start = WindowInsets.getStart(),
+                        end = WindowInsets.getEnd(),
+                        bottom = np_bottom_bar_height
+                    ),
+                    Modifier.weight(1f).offset(y = page_height / 2)
+                )
+            }
+
+            np_bottom_bar_showing = bottom_layout_slot.DisplayBar(
+                0.dp,
+                container_modifier = Modifier.onSizeChanged {
+                    np_bottom_bar_height = with (density) {
+                        it.height.toDp()
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .offset {
+                        val bounded: Float = player.expansion.getBounded()
+                        val slot_expansion: Float =
+                            if (!show_bottom_slot_in_player) {
+                                if (show_bottom_slot_in_queue) (bounded - 1f).absoluteValue.coerceIn(0f..1f)
+                                else (1f - bounded).coerceAtLeast(0f)
+                            }
+                            else if (!show_bottom_slot_in_queue) (2f - bounded).coerceIn(0f..1f)
+                            else 1f
+
+                        IntOffset(
+                            x = 0,
+                            y = with (density) {
+                                (np_bottom_bar_height.toPx() * (1f - slot_expansion)).roundToInt()
+                            }
+                        )
+                    },
+                getParentBackgroundColour = {
+                    getNPBackground()
+                },
+                getBackgroundColour = { background_colour ->
+                    if (background_colour.alpha >= 0.5f) {
+                        return@DisplayBar background_colour
+                    }
+
+                    val bounded: Float = expansion.getBounded()
+                    val min_background_alpha: Float =
+                        if (bounded > 1f) bounded - 1f
+                        else 0f
+
+                    return@DisplayBar getNPBackground().blendWith(background_colour, our_ratio = min_background_alpha)
+                }
             )
         }
     }
@@ -482,6 +669,8 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
 
     @Composable
     fun PersistentContent() {
+        status_bar_colour_state.Update()
+
         long_press_menu_data?.also { data ->
             LongPressMenu(
                 long_press_menu_showing,
@@ -517,7 +706,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
                             Modifier
                                 .width(IntrinsicSize.Max)
                                 .align(Alignment.BottomEnd)
-                                .then(nowPlayingTopOffset(Modifier, true))
+                                .then(nowPlayingTopOffset(Modifier, NowPlayingTopOffsetSection.MULTISELECT))
                                 .background(background_colour, MaterialTheme.shapes.small)
                                 .padding(10.dp)
                                 .onSizeChanged {
@@ -633,3 +822,6 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         download_request_callback = callback
     }
 }
+
+fun Dp.notUnspecified(): Dp =
+    if (this.isUnspecified) 0.dp else this

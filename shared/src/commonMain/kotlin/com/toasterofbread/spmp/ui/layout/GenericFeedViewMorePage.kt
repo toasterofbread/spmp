@@ -38,7 +38,6 @@ import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreview
 import com.toasterofbread.spmp.model.mediaitem.layout.getMediaItemPreviewSquareAdditionalHeight
 import com.toasterofbread.spmp.model.mediaitem.toMediaItemData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
-import com.toasterofbread.spmp.model.settings.category.TopBarSettings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
@@ -74,18 +73,6 @@ fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, co
     }
 
     Column(modifier) {
-        val top_padding: Dp = content_padding.calculateTopPadding()
-
-        val top_bar_showing: Boolean = player.top_bar.MusicTopBar(
-            TopBarSettings.Key.SHOW_IN_VIEWMORE,
-            Modifier.fillMaxWidth().zIndex(10f),
-            getBottomBorderColour = { player.theme.background },
-            padding = PaddingValues(top = top_padding)
-        ).showing
-
-        val list_top_padding by animateDpAsState(if (top_bar_showing) WAVE_BORDER_HEIGHT_DP.dp else top_padding)
-        val list_padding = content_padding.copy(top = list_top_padding)
-
         items_result?.fold(
             { items ->
                 val multiselect_context: MediaItemMultiSelectContext = remember { MediaItemMultiSelectContext() }
@@ -110,7 +97,7 @@ fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, co
                     LazyVerticalGrid(
                         GridCells.Adaptive(maxOf(item_size.width, item_size.height)),
                         Modifier.fillMaxWidth(),
-                        contentPadding = list_padding,
+                        contentPadding = content_padding,
                         verticalArrangement = item_arrangement
                     ) {
                         if (title != null) {
@@ -131,7 +118,7 @@ fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, co
 
             },
             { error ->
-                ErrorInfoDisplay(error, isDebugBuild(), Modifier.fillMaxWidth().padding(list_padding), onDismiss = null)
+                ErrorInfoDisplay(error, isDebugBuild(), Modifier.fillMaxWidth().padding(content_padding), onDismiss = null)
             }
         ) ?: Box(Modifier.fillMaxSize().weight(1f), contentAlignment = Alignment.Center) {
             SubtleLoadingIndicator()

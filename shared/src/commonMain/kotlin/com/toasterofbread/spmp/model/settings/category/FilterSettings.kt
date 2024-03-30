@@ -10,12 +10,13 @@ import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getFilter
 data object FilterSettings: SettingsCategory("filter") {
     override val keys: List<SettingsKey> = Key.entries.toList()
 
-    override fun getPage(): Page? =
-        Page(
+    override fun getPage(): CategoryPage? =
+        SimplePage(
             getString("s_cat_filter"),
             getString("s_cat_desc_filter"),
-            { getFilterCategoryItems() }
-        ) { Icons.Outlined.FilterAlt }
+            { getFilterCategoryItems() },
+            { Icons.Outlined.FilterAlt }
+        )
 
     enum class Key: SettingsKey {
         ENABLE,

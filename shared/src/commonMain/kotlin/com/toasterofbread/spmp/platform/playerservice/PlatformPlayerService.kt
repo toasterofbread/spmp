@@ -48,6 +48,7 @@ interface PlayerService {
     fun seekToSong(index: Int)
     fun seekToNext()
     fun seekToPrevious()
+    fun undoSeek()
 
     fun getSong(): Song?
     fun getSong(index: Int): Song?
@@ -112,6 +113,7 @@ expect class PlatformPlayerService: PlayerService {
     override fun seekToSong(index: Int)
     override fun seekToNext()
     override fun seekToPrevious()
+    override fun undoSeek()
 
     override fun getSong(): Song?
     override fun getSong(index: Int): Song?

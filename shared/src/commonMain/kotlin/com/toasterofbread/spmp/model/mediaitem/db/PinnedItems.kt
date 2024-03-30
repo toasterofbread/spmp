@@ -116,3 +116,14 @@ fun YtmMediaItem.setPinned(pinned: Boolean, context: AppContext) {
         queries.remove(id, getType().ordinal.toLong())
     }
 }
+
+fun MediaItem.togglePinned(context: AppContext) {
+    val pinned: Boolean = context.database.getPinnedItems().any { it.id == id }
+    val queries: PinnedItemQueries = context.database.pinnedItemQueries
+    if (pinned) {
+        queries.remove(id, getType().ordinal.toLong())
+    }
+    else {
+        queries.insert(id, getType().ordinal.toLong())
+    }
+}

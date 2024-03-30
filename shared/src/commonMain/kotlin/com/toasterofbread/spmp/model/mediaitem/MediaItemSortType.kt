@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.runtime.Composable
+import androidx.compose.material3.Text
 import com.toasterofbread.composekit.utils.composable.LargeDropdownMenu
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.db.getPlayCount
@@ -9,7 +10,7 @@ import com.toasterofbread.spmp.resources.getString
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
 
 enum class MediaItemSortType {
-     NATIVE, ALPHABET, DURATION, ARTIST, PLAY_COUNT;
+    NATIVE, ALPHABET, DURATION, ARTIST, PLAY_COUNT;
 
     fun getReadable(native_string_key: String? = null): String =
         getString(when(this) {
@@ -79,7 +80,9 @@ enum class MediaItemSortType {
                 onDismissed,
                 entries.size - index_offset,
                 selected_option.ordinal - index_offset,
-                { entries[it + index_offset].getReadable(native_string_key) }
+                { 
+                    Text(entries[it + index_offset].getReadable(native_string_key))
+                }
             ) {
                 onSelected(entries[it + index_offset])
                 onDismissed()

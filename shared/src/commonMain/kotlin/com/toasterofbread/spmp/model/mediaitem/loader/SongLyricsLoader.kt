@@ -1,18 +1,15 @@
 package com.toasterofbread.spmp.model.mediaitem.loader
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
+import app.cash.sqldelight.Query
 import com.toasterofbread.composekit.platform.PlatformFile
-import com.toasterofbread.spmp.model.lyrics.LyricsFileConverter
-import com.toasterofbread.spmp.model.lyrics.SongLyrics
+import com.toasterofbread.spmp.model.lyrics.*
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.lyrics.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.lang.ref.WeakReference
+import kotlinx.coroutines.*
 
 internal object SongLyricsLoader: Loader<SongLyrics>() {
     private val loaded_by_reference: MutableMap<LyricsReference, WeakReference<SongLyrics>> = mutableStateMapOf()
@@ -94,31 +91,44 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
         val is_none: Boolean
     }
 
-    fun getItemState(song: Song, context: AppContext): ItemState =
-        object : ItemState {
-            private val song_lyrics_reference: MutableState<LyricsReference?> = mutableStateOf(song.Lyrics.get(context.database))
-            init {
-                context.database.songQueries.lyricsById(song.id).addListener {
-                    try {
-                        song_lyrics_reference.value = song.Lyrics.get(context.database)
-                    }
-                    catch (_: IllegalStateException) {}
-                }
+    @Composable
+    fun rememberItemState(song: Song, context: AppContext): ItemState {
+        var song_lyrics_reference: LyricsReference? by remember { mutableStateOf(song.Lyrics.get(context.database)) }
+        val state: ItemState = remember(song.id) {
+            object : ItemState {
+                override val song_id: String = song.id
+                override val lyrics: SongLyrics?
+                    get() =
+                        try {
+                            loaded_by_song[song_id]?.get() ?: loaded_by_reference[song_lyrics_reference]?.get()
+                        }
+                        catch (_: IllegalStateException) { null }
+                override val loading: Boolean
+                    get() = loading_by_id.containsKey(song_id) || loading_by_reference.containsKey(song_lyrics_reference)
+                override val is_none: Boolean
+                    get() = song_lyrics_reference?.isNone() == true
+
+                override fun toString(): String =
+                    "LyricsItemState(id=$song_id, loading=$loading, lyrics=${lyrics?.reference})"
             }
-
-            override val song_id: String = song.id
-            override val lyrics: SongLyrics?
-                get() =
-                    try {
-                        loaded_by_song[song.id]?.get() ?: loaded_by_reference[song_lyrics_reference.value]?.get()
-                    }
-                    catch (_: IllegalStateException) { null }
-            override val loading: Boolean
-                get() = loading_by_id.containsKey(song_id) || loading_by_reference.containsKey(song_lyrics_reference.value)
-            override val is_none: Boolean
-                get() = song_lyrics_reference.value?.isNone() == true
-
-            override fun toString(): String =
-                "LyricsItemState(id=$song_id, loading=$loading, lyrics=${lyrics?.reference})"
         }
+
+        DisposableEffect(song.id) {
+            song_lyrics_reference = song.Lyrics.get(context.database)
+
+            val listener: Query.Listener = Query.Listener {
+                try {
+                    song_lyrics_reference = song.Lyrics.get(context.database)
+                }
+                catch (_: IllegalStateException) {}
+            }
+            context.database.songQueries.lyricsById(song.id).addListener(listener)
+
+            onDispose {
+                context.database.songQueries.lyricsById(song.id).addListener(listener)
+            }
+        }
+        
+        return state
+    }
 }

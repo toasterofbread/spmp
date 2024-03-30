@@ -10,6 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.platform.PlatformPreferencesListener
+import com.toasterofbread.composekit.utils.composable.OnChangedEffect
 
 @Composable
 fun <T> mutableSettingsState(settings_key: SettingsKey, prefs: PlatformPreferences = Settings.prefs): MutableState<T> {
@@ -21,6 +22,10 @@ fun <T> mutableSettingsState(settings_key: SettingsKey, prefs: PlatformPreferenc
             set_to = state.value
             settings_key.set(set_to, prefs)
         }
+    }
+
+    OnChangedEffect(settings_key) {
+        state.value = settings_key.get(prefs)
     }
 
     DisposableEffect(settings_key) {

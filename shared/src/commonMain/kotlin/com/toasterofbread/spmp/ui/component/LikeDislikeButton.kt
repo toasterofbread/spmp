@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -21,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.platform.vibrateShort
 import com.toasterofbread.composekit.utils.common.launchSingle
+import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.composekit.utils.composable.PlatformClickableIconButton
 import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.composekit.utils.modifier.bounceOnClick
@@ -40,7 +42,7 @@ fun LikeDislikeButton(
     auth_state: ApiAuthenticationState?,
     modifier: Modifier = Modifier,
     getEnabled: (() -> Boolean)? = null,
-    getColour: () -> Color
+    getColour: (() -> Color)? = null
 ) {
     val get_liked_endpoint: SongLikedEndpoint? = auth_state?.SongLiked
     val set_liked_endpoint: SetSongLikedEndpoint? = auth_state?.SetSongLiked
@@ -57,6 +59,8 @@ fun LikeDislikeButton(
             it.printStackTrace()
         }
     }
+
+    val enabled: Boolean = getEnabled?.invoke() != false
 
     PlatformClickableIconButton(
         onClick = {
@@ -88,9 +92,12 @@ fun LikeDislikeButton(
                 )
             }
         },
-        modifier = modifier.bounceOnClick().appHover(true),
-        enabled = getEnabled?.invoke() != false,
-        apply_minimum_size = false
+        modifier = modifier.thenIf(enabled) {
+            bounceOnClick().appHover(true)
+        },
+        enabled = enabled,
+        apply_minimum_size = false,
+        indication = null
     ) {
         Crossfade(
             if (auth_state == null) liked_status ?: SongLikedStatus.NEUTRAL else liked_status
@@ -114,7 +121,7 @@ fun LikeDislikeButton(
 private fun LikedStatusIcon(
     status: SongLikedStatus,
     modifier: Modifier = Modifier,
-    getColour: () -> Color,
+    getColour: (() -> Color)?,
     alt_shape: Boolean = false
 ) {
     Icon(
@@ -124,6 +131,6 @@ private fun LikedStatusIcon(
             if (status != SongLikedStatus.NEUTRAL) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
         null,
         modifier,
-        tint = getColour()
+        tint = getColour?.invoke() ?: LocalContentColor.current
     )
 }

@@ -16,12 +16,13 @@ import dev.toastbits.ytmkt.formats.YoutubeiVideoFormatsEndpoint
 data object StreamingSettings: SettingsCategory("streaming") {
     override val keys: List<SettingsKey> = Key.entries.toList()
 
-    override fun getPage(): Page? =
-        Page(
+    override fun getPage(): CategoryPage? =
+        SimplePage(
             getString("s_cat_streaming"),
             getString("s_cat_desc_streaming"),
-            { getStreamingCategoryItems() }
-        ) { Icons.Outlined.Speaker }
+            { getStreamingCategoryItems() },
+            { Icons.Outlined.Speaker }
+        )
 
     enum class Key: SettingsKey {
         VIDEO_FORMATS_METHOD,

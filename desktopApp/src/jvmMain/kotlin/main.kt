@@ -1,5 +1,4 @@
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -15,14 +14,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import androidx.compose.ui.window.WindowPlacement
 import com.toasterofbread.composekit.platform.composable.onWindowBackPressed
-import com.toasterofbread.composekit.utils.common.addUnique
 import com.toasterofbread.spmp.model.settings.category.DesktopSettings
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.ui.component.shortcut.trigger.KeyboardShortcutTrigger
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.getTextFieldFocusState
-import com.toasterofbread.spmp.ui.shortcut.PressedShortcutModifiers
-import com.toasterofbread.spmp.ui.shortcut.ShortcutModifier
+import com.toasterofbread.spmp.ui.layout.apppage.mainpage.isTextFieldFocused
+import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.*
 import org.jetbrains.skiko.OS
 import org.jetbrains.skiko.hostOs
@@ -61,25 +62,36 @@ fun main(args: Array<String>) {
     lateinit var window: ComposeWindow
     val enable_window_transparency: Boolean = ThemeSettings.Key.ENABLE_WINDOW_TRANSPARENCY.get(context.getPrefs())
 
+    val shortcut_state: ShortcutState = ShortcutState()
+    var player: PlayerState? = null
+
     application {
         val text_field_focus_state: Any = getTextFieldFocusState()
-        val pressed_shortcut_modifiers: MutableList<ShortcutModifier> = remember { mutableStateListOf() }
 
         Window(
             title = SpMp.app_name,
             onCloseRequest = ::exitApplication,
             onKeyEvent = { event ->
-                if (event.key == Key.CtrlLeft || event.key == Key.CtrlRight) {
+                val shortcut_modifier = KeyboardShortcutTrigger.KeyboardModifier.ofKey(event.key)
+                if (shortcut_modifier != null) {
                     if (event.type == KeyEventType.KeyDown) {
-                        pressed_shortcut_modifiers.addUnique(ShortcutModifier.CTRL)
+                        shortcut_state.onModifierDown(shortcut_modifier)
                     }
                     else {
-                        pressed_shortcut_modifiers.remove(ShortcutModifier.CTRL)
+                        shortcut_state.onModifierUp(shortcut_modifier)
                     }
                     return@Window false
                 }
 
-                return@Window SpMp.player_state.processKeyEventShortcuts(event, window, text_field_focus_state)
+                if (event.type != KeyEventType.KeyUp) {
+                    return@Window false
+                }
+
+                player?.also {
+                    return@Window shortcut_state.onKeyPress(event, isTextFieldFocused(text_field_focus_state), it)
+                }
+
+                return@Window false
             },
             state = rememberWindowState(
                 size = DpSize(1280.dp, 720.dp)
@@ -118,13 +130,24 @@ fun main(args: Array<String>) {
 
             SpMp.App(
                 arguments,
+                shortcut_state,
                 Modifier.onPointerEvent(PointerEventType.Press) { event ->
-                    // Mouse back click
-                    if (event.button?.index == 5) {
-                        onWindowBackPressed()
+                    val index: Int = event.button?.index ?: return@onPointerEvent
+                    player?.also {
+                        shortcut_state.onButtonPress(index, it)
                     }
                 },
-                pressed_shortcut_modifiers = remember { PressedShortcutModifiers(pressed_shortcut_modifiers) }
+                window_fullscreen_toggler = {
+                    if (window.placement == WindowPlacement.Fullscreen) {
+                        window.placement = WindowPlacement.Floating
+                    }
+                    else {
+                        window.placement = WindowPlacement.Fullscreen
+                    }
+                },
+                onPlayerCreated = {
+                    player = it
+                }
             )
         }
     }

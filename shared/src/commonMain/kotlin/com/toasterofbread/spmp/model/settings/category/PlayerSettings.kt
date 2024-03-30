@@ -10,12 +10,13 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAct
 data object PlayerSettings: SettingsCategory("player") {
     override val keys: List<SettingsKey> = Key.entries.toList()
 
-    override fun getPage(): Page? =
-        Page(
+    override fun getPage(): CategoryPage? =
+        SimplePage(
             getString("s_cat_player"),
             getString("s_cat_desc_player"),
-            { getPlayerCategoryItems() }
-        ) { Icons.Outlined.PlayArrow }
+            { getPlayerCategoryItems() },
+            { Icons.Outlined.PlayArrow }
+        )
 
     enum class Key: SettingsKey {
         MINI_SHOW_PREV_BUTTON,

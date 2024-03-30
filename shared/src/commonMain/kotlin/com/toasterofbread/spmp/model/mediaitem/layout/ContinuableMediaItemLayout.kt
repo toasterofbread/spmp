@@ -89,7 +89,6 @@ fun ItemLayoutType.Layout(
     list_params: MediaItemListParams = MediaItemListParams()
 ) {
     when (this) {
-        // Why
         ItemLayoutType.GRID -> MediaItemGrid(layout, layout_params, remember(grid_params) { grid_params.copy(alt_style = false) })
         ItemLayoutType.GRID_ALT -> MediaItemGrid(layout, layout_params, remember(grid_params) { grid_params.copy(alt_style = true) })
         ItemLayoutType.ROW -> MediaItemGrid(layout, layout_params, remember(grid_params) { grid_params.copy(rows = Pair(1, 1)) })

@@ -36,7 +36,7 @@ fun QueueButtonsRow(
     getButtonColour: () -> Color,
     multiselect_context: MediaItemMultiSelectContext,
     arrangement: Arrangement.Horizontal = Arrangement.SpaceEvenly,
-    scrollToitem: (Int) -> Unit
+    scrollToItem: (Int) -> Unit
 ) {
     val padding: Dp = 10.dp
     val player: PlayerState = LocalPlayerState.current
@@ -97,7 +97,7 @@ fun QueueButtonsRow(
                         player.controller?.service_player?.undoableAction {
                             if (current_song_index > 0) {
                                 moveSong(current_song_index, 0)
-                                scrollToitem(0)
+                                scrollToItem(0)
                             }
                             shuffleQueue(start = 1)
                         }

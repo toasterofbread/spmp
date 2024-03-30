@@ -31,8 +31,8 @@ import com.toasterofbread.spmp.ui.layout.apppage.mainpage.LoadingSplashView
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.RootView
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.SplashMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
-import com.toasterofbread.spmp.ui.shortcut.LocalPressedShortcutModifiers
-import com.toasterofbread.spmp.ui.shortcut.PressedShortcutModifiers
+import com.toasterofbread.spmp.model.appaction.shortcut.LocalShortcutState
+import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
 import com.toasterofbread.spmp.ui.theme.ApplicationTheme
 import kotlinx.coroutines.CoroutineScope
 import spms.socketapi.shared.SPMS_API_VERSION
@@ -60,6 +60,7 @@ object SpMp {
     val prefs: PlatformPreferences get() = context.getPrefs()
 
     private val low_memory_listeners: MutableList<() -> Unit> = mutableListOf()
+    private var window_fullscreen_toggler: (() -> Unit)? = null
 
     fun init(context: AppContext) {
         this.context = context
@@ -77,14 +78,28 @@ object SpMp {
         _player_state?.onStop()
     }
 
+    fun toggleFullscreenWindow() {
+        window_fullscreen_toggler?.invoke()
+    }
+
     @Composable
     fun App(
         arguments: ProgramArguments,
+        shortcut_state: ShortcutState,
         modifier: Modifier = Modifier,
-        pressed_shortcut_modifiers: PressedShortcutModifiers = PressedShortcutModifiers(emptyList()),
-        open_uri: String? = null
+        open_uri: String? = null,
+        window_fullscreen_toggler: (() -> Unit)? = null,
+        onPlayerCreated: (PlayerState) -> Unit = {}
     ) {
         context.theme.Update()
+        shortcut_state.ObserveState()
+
+        DisposableEffect(window_fullscreen_toggler) {
+            SpMp.window_fullscreen_toggler = window_fullscreen_toggler
+            onDispose {
+                SpMp.window_fullscreen_toggler = null
+            }
+        }
 
         context.theme.ApplicationTheme(context, getFontFamily(context) ?: FontFamily.Default) {
             val player_coroutine_scope: CoroutineScope = rememberCoroutineScope()
@@ -95,6 +110,7 @@ object SpMp {
                 _player_state = PlayerState(context, player_coroutine_scope)
                 _player_state?.onStart()
                 player_created = true
+                onPlayerCreated(player_state)
             }
 
             LaunchedEffect(open_uri) {
@@ -114,7 +130,7 @@ object SpMp {
 
                 CompositionLocalProvider(
                     LocalPlayerState provides player_state,
-                    LocalPressedShortcutModifiers provides pressed_shortcut_modifiers,
+                    LocalShortcutState provides shortcut_state,
                     LocalDensity provides Density(LocalDensity.current.density * ui_scale, 1f)
                 ) {
                     var mismatched_server_api_version: Int? by remember { mutableStateOf(null) }

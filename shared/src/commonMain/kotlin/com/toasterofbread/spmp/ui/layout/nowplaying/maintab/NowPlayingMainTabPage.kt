@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.ui.layout.nowplaying.maintab
 import LocalPlayerState
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -128,8 +129,8 @@ class NowPlayingMainTabPage: NowPlayingPage() {
             }
             else {
                 when (getFormFactor(player)) {
-                    FormFactor.PORTRAIT -> NowPlayingMainTabPortrait(page_height, top_bar, content_padding)
-                    FormFactor.LANDSCAPE -> NowPlayingMainTabLarge(page_height, top_bar, content_padding)
+                    FormFactor.PORTRAIT -> NowPlayingMainTabPortrait(page_height, top_bar, content_padding, Modifier.fillMaxWidth())
+                    FormFactor.LANDSCAPE -> NowPlayingMainTabLarge(page_height, top_bar, content_padding, Modifier.fillMaxWidth())
                 }
             }
         }

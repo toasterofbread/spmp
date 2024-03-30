@@ -10,15 +10,16 @@ import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getFeedCa
 data object FeedSettings: SettingsCategory("feed") {
     override val keys: List<SettingsKey> = Key.entries.toList()
 
-    override fun getPage(): Page? =
-        Page(
+    override fun getPage(): CategoryPage? =
+        SimplePage(
             getString("s_cat_feed"),
             getString("s_cat_desc_feed"),
-            { getFeedCategoryItems() }
-        ) { Icons.Outlined.FormatListBulleted }
+            { getFeedCategoryItems() },
+            { Icons.Outlined.FormatListBulleted }
+        )
 
     enum class Key: SettingsKey {
-        SHOW_FILTER_BAR,
+        SHOW_ARTISTS_ROW,
         SHOW_SONG_DOWNLOAD_INDICATORS,
         INITIAL_ROWS,
         SQUARE_PREVIEW_TEXT_LINES,
@@ -34,7 +35,7 @@ data object FeedSettings: SettingsCategory("feed") {
         @Suppress("UNCHECKED_CAST", "IMPLICIT_CAST_TO_ANY")
         override fun <T> getDefaultValue(): T =
             when (this) {
-                SHOW_FILTER_BAR -> true
+                SHOW_ARTISTS_ROW -> true
                 SHOW_SONG_DOWNLOAD_INDICATORS -> false
                 INITIAL_ROWS -> 4
                 SQUARE_PREVIEW_TEXT_LINES -> if (Platform.DESKTOP.isCurrent()) 2 else 2

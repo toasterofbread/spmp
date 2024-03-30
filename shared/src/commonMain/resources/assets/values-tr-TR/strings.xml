@@ -303,8 +303,6 @@
     <string name="s_sub_hp_show_visualiser">Oynatma sırasında üst çubukta görüntülenir</string>
     <string name="s_key_hp_show_timed_lyrics">Zamanlanmış şarkı sözlerini göster</string>
     <string name="s_sub_hp_show_timed_lyrics">Süreli şarkı sözleri varsa üst çubukta görünecektir</string>
-    <string name="s_key_feed_show_filter_bar">Filtre çubuğunu göster</string>
-    <string name="s_sub_feed_show_filter_bar">Gizli ise, kütüphane arama düğmesine uzun süre basılarak arama sayfasına erişilebilir.</string>
     <string name="s_key_feed_show_song_download_indicators">Şarkı indirme göstergelerini göster</string>
     <string name="s_key_feed_initial_rows">İlk içerik satırları</string>
     <string name="s_key_feed_square_preview_text_lines">Kare öğe maksimum metin satırları</string>
@@ -407,32 +405,20 @@
     <string name="s_option_lyrics_follow_offset_bottom">Alt</string>
     <string name="s_key_lyrics_default_furigana">Furigana'yı varsayılan olarak göster</string>
     <string name="s_key_lyrics_text_alignment">Metin hizalama</string>
-    <string name="s_option_lyrics_text_alignment_left">Sol</string>
+    <string name="s_option_lyrics_text_alignment_start">Sol</string>
     <string name="s_option_lyrics_text_alignment_center">Merkez</string>
-    <string name="s_option_lyrics_text_alignment_right">Sağ</string>
+    <string name="s_option_lyrics_text_alignment_end">Sağ</string>
     <string name="s_key_lyrics_extra_padding">Ekstra dolgu</string>
     <string name="s_sub_lyrics_extra_padding">Kaydırma aralığını artırmak için şarkı sözlerinin üstüne ve altına ekstra dolgu ekleyin</string>
     <string name="s_key_lyrics_enable_word_sync">Kelime senkronizasyonunu etkinleştir</string>
     <string name="s_sub_lyrics_enable_word_sync">Kullanılabilir olduğunda, şarkı sözleri senkronizasyonu satır başına yerine kelime başına görüntülenecektir</string>
     <string name="s_key_lyrics_font_size">Yazı tipi boyutu</string>
-    <string name="s_key_lyrics_top_bar_enable">Üst çubuk şarkı sözlerini etkinleştir</string>
-    <string name="s_key_lyrics_top_bar_max_lines">Maks. satır</string>
-    <string name="s_key_lyrics_top_bar_preapply_max_lines">Maksimum satırları görüntülemek için gereken alanı önceden tahsis edin</string>
     <string name="s_key_lyrics_sync_delay">Şarkı sözleri senkronizasyon gecikmesi</string>
     <string name="s_sub_lyrics_sync_delay">Şarkı sözleri senkronizasyonuna uygulanan saniye cinsinden bir gecikme</string>
     <string name="s_key_lyrics_sync_delay_topbar">Üst çubuk şarkı sözleri senkronizasyon gecikmesi</string>
     <string name="s_sub_lyrics_sync_delay_topbar">Yalnızca üst çubuktaki şarkı sözlerine uygulanan ek bir gecikme</string>
     <string name="s_key_lyrics_sync_delay_bluetooth">Bluetooth şarkı sözleri senkronizasyon gecikmesi</string>
     <string name="s_sub_lyrics_sync_delay_bluetooth">Yalnızca Bluetooth ses ile dinlerken uygulanan ek bir gecikme</string>
-    <string name="s_key_top_bar_lyrics_show_furigana">Furigana'yı göster</string>
-    <string name="s_key_top_bar_lyrics_show_in_library">Kütüphanede göster</string>
-    <string name="s_key_top_bar_lyrics_show_in_radiobuilder">Radyo oluşturucuda göster</string>
-    <string name="s_key_top_bar_lyrics_show_in_settings">Ayarlarda göster</string>
-    <string name="s_key_top_bar_lyrics_show_in_login">Giriş sayfalarında göster</string>
-    <string name="s_key_top_bar_lyrics_show_in_playlist">Oynatma listesi sayfalarında göster</string>
-    <string name="s_key_top_bar_lyrics_show_in_artist">Sanatçı sayfalarında göster</string>
-    <string name="s_key_top_bar_lyrics_show_in_viewmore">Ana akışta göster daha fazla sayfa görüntüle</string>
-    <string name="s_key_top_bar_lyrics_show_in_search">Arama sayfasında göster</string>
     <string name="s_key_stream_audio_quality">Akış ses kalitesi</string>
     <string name="s_sub_stream_audio_quality">Müzik akışı yaparken ses kalitesini hedefleyin</string>
     <string name="s_key_download_audio_quality">Ses kalitesini indir</string>
@@ -501,7 +487,7 @@
     <string name="s_key_discord_status_disable_when_offline">Çevrimdışı</string>
     <string name="s_key_discord_status_disable_when_online">Çevrimiçi</string>
     <string name="s_group_discord_status_content">Durum içeriği</string>
-    <string name="s_discord_status_text_info">Mevcut şarkı hakkında bilgi görüntülemek için aşağıdaki dizeleri kullanın: 
+    <string name="s_discord_status_text_info">Mevcut şarkı hakkında bilgi görüntülemek için aşağıdaki dizeleri kullanın:
   - $şarkı
   -$sanatçı</string>
     <string name="s_key_discord_status_name">Durum başlığı</string>
@@ -518,12 +504,6 @@
     <string name="s_key_discord_status_show_button_project">Proje sayfası düğmesini göster</string>
     <string name="s_sub_discord_status_show_button_project">Proje deposunu GitHub'da açar</string>
     <string name="s_key_discord_status_button_project_text">Proje sayfası düğme metni</string>
-    <string name="s_key_topbar_lyrics_linger">Şarkı sözleri linger</string>
-    <string name="s_sub_topbar_lyrics_linger">Bir satır sona erdiğinde, bir sonraki satır başlayana kadar görünür kalır</string>
-    <string name="s_key_topbar_visualiser_width">Görüntüleyici genişliği</string>
-    <string name="s_key_topbar_show_lyrics_in_queue">Şarkı sözlerini müzik kuyruğunda göster</string>
-    <string name="s_key_topbar_show_visualiser_in_queue">Görselleştiriciyi müzik kuyruğunda göster</string>
-    <string name="s_key_topbar_display_over_artist_image">Sanatçı sayfasındaki ana resmin üzerinde göster</string>
     <string name="s_cat_general">Genel</string>
     <string name="s_cat_desc_general">Dil ve diğer seçenekler</string>
     <string name="s_cat_behaviour">Davranış</string>
@@ -536,8 +516,6 @@
     <string name="s_cat_desc_theme">Uygulama renklerini özelleştirin ve vurgu kaynağını değiştirin</string>
     <string name="s_cat_lyrics">Şarkı Sözleri</string>
     <string name="s_cat_desc_lyrics">Şarkı sözleri görünüm ve davranış</string>
-    <string name="s_cat_topbar">Müzik üst çubuğu</string>
-    <string name="s_cat_desc_topbar">Üst çubuğu göster, gizle ve özelleştir</string>
     <string name="s_cat_discord_status">Discord durumu</string>
     <string name="s_cat_desc_discord_status">Discord hesabını yönetin ve durum görünümünü özelleştirin</string>
     <string name="s_cat_filter">Filtre</string>

@@ -18,8 +18,8 @@ import dev.toastbits.ytmkt.uistrings.UiString
 internal fun getFeedCategoryItems(): List<SettingsItem> {
     return listOf(
         ToggleSettingsItem(
-            SettingsValueState(FeedSettings.Key.SHOW_FILTER_BAR.getName()),
-            getString("s_key_feed_show_filter_bar"), getString("s_sub_feed_show_filter_bar")
+            SettingsValueState(FeedSettings.Key.SHOW_ARTISTS_ROW.getName()),
+            getString("s_key_feed_show_artists_row"), null
         ),
 
         ToggleSettingsItem(

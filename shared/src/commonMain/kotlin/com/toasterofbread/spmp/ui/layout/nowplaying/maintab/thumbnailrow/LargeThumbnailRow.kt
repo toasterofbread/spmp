@@ -41,7 +41,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.observeThumbnailRounding
 import com.toasterofbread.spmp.model.settings.category.PlayerSettings
 import com.toasterofbread.spmp.model.settings.getEnum
-import com.toasterofbread.spmp.ui.component.LyricsLineDisplay
+import com.toasterofbread.spmp.ui.component.HorizontalLyricsLineDisplay
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.EXPANDED_THRESHOLD
@@ -259,7 +259,7 @@ fun LargeThumbnailRow(
                                 }),
                             contentAlignment = Alignment.Center
                         ) {
-                            BackHandler(overlay_menu != null) {
+                            BackHandler(overlay_menu != null, priority = 2) {
                                 player.navigateNpOverlayMenuBack()
                                 colourpick_callback = null
                             }
@@ -308,7 +308,7 @@ fun LargeThumbnailRow(
                 }
             }
 
-            val lyrics_state: SongLyricsLoader.ItemState? = remember(current_song?.id) { current_song?.let { SongLyricsLoader.getItemState(it, player.context) } }
+            val lyrics_state: SongLyricsLoader.ItemState? = current_song?.let { SongLyricsLoader.rememberItemState(it, player.context) }
             val lyrics_sync_offset: Long? by current_song?.getLyricsSyncOffset(player.database, true)
 
             AnimatedVisibility(
@@ -319,7 +319,7 @@ fun LargeThumbnailRow(
             ) {
                 if (!expanded) {
                     lyrics_state?.lyrics?.also { lyrics ->
-                        LyricsLineDisplay(
+                        HorizontalLyricsLineDisplay(
                             lyrics = lyrics,
                             getTime = {
                                 (player.controller?.current_position_ms ?: 0) + (lyrics_sync_offset ?: 0)

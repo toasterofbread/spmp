@@ -12,12 +12,13 @@ import org.jetbrains.compose.resources.FontResource
 data object SystemSettings: SettingsCategory("system") {
     override val keys: List<SettingsKey> = Key.entries.toList()
 
-    override fun getPage(): Page? =
-        Page(
+    override fun getPage(): CategoryPage? =
+        SimplePage(
             getString("s_cat_general"),
             getString("s_cat_desc_general"),
-            { getSystemCategoryItems(it) }
-        ) { Icons.Outlined.Tune }
+            { getSystemCategoryItems(it) },
+            { Icons.Outlined.Tune }
+        )
 
     enum class Key: SettingsKey {
         LANG_UI,

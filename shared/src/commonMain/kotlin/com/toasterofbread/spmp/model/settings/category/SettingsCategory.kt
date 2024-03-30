@@ -22,12 +22,14 @@ import com.toasterofbread.composekit.utils.common.blendWith
 import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.composekit.utils.common.amplifyPercent
+import com.toasterofbread.composekit.settings.ui.SettingsPage
+import com.toasterofbread.composekit.settings.ui.SettingsInterface
 
 sealed class SettingsCategory(id: String) {
     val id: String = id.uppercase()
     abstract val keys: List<SettingsKey>
 
-    abstract fun getPage(): Page?
+    abstract fun getPage(): CategoryPage?
     open fun showPage(exporting: Boolean): Boolean = true
 
     fun getNameOfKey(key: SettingsKey): String =
@@ -44,75 +46,83 @@ sealed class SettingsCategory(id: String) {
         }
     }
 
-    abstract class Page(
+    abstract class CategoryPage(
         val category: SettingsCategory,
         val name: String
     ) {
         abstract fun getTitleItem(context: AppContext): SettingsItem?
+        abstract fun openPageOnInterface(context: AppContext, settings_interface: SettingsInterface)
         open fun getItems(context: AppContext): List<SettingsItem>? = null
     }
 
-        protected fun Page(
-        title: String,
-        description: String,
-        getPageItems: (AppContext) -> List<SettingsItem>,
-        getPageIcon: @Composable () -> ImageVector
-    ): Page =
-        object : Page(
-            this,
-            title
-        ) {
-            private var items: List<SettingsItem>? = null
+    protected open inner class SimplePage(
+        val title: String,
+        val description: String,
+        private val getPageItems: (AppContext) -> List<SettingsItem>,
+        private val getPageIcon: @Composable () -> ImageVector,
+        private val titleBarEndContent: @Composable () -> Unit = {}
+    ): CategoryPage(this, title) {
+        private var items: List<SettingsItem>? = null
 
-            override fun getItems(context: AppContext): List<SettingsItem>? {
-                if (items == null) {
-                    items = getPageItems(context).filter {
-                        it.getKeys().none { key_name ->
-                            for (cat in listOf(category) + SettingsCategory.all) {
-                                val key: SettingsKey? = cat.getKeyOfName(key_name)
-                                if (key != null) {
-                                    return@none key.isHidden()
-                                }
-                            }
-                            throw RuntimeException("Key not found: $key_name (category: $category)")
-                        }
+        override fun openPageOnInterface(context: AppContext, settings_interface: SettingsInterface) {
+            settings_interface.openPage(
+                object : SettingsPageWithItems(
+                    getTitle = { title },
+                    getItems = { getItems(context) },
+                    getIcon = { getPageIcon() }
+                ) {
+                    @Composable
+                    override fun TitleBarEndContent() {
+                        titleBarEndContent()
+                        super.TitleBarEndContent()
                     }
                 }
-                return items!!
-            }
-
-            override fun getTitleItem(context: AppContext): SettingsItem? =
-                ComposableSettingsItem { modifier ->
-                    ElevatedCard(
-                        onClick = {
-                            openPage(
-                                SettingsPageWithItems(
-                                    getTitle = { title },
-                                    getItems = { getItems(context)!! },
-                                    getIcon = { getPageIcon() }
-                                )
-                            )
-                        },
-                        modifier = modifier.fillMaxWidth(),
-                        colors = CardDefaults.elevatedCardColors(
-                            containerColor = theme.background.amplifyPercent(0.03f),
-                            contentColor = theme.on_background
-                        )
-                    ) {
-                        Row(
-                            Modifier.padding(15.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(15.dp)
-                        ) {
-                            Icon(getPageIcon(), null)
-                            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                                Text(title, style = MaterialTheme.typography.titleMedium)
-                                Text(description, style = MaterialTheme.typography.labelMedium)
-                            }
-                        }
-                    }
-                }
+            )
         }
+
+        override fun getItems(context: AppContext): List<SettingsItem> {
+            if (items == null) {
+                items = getPageItems(context).filter {
+                    it.getKeys().none { key_name ->
+                        for (cat in listOf(category) + SettingsCategory.all) {
+                            val key: SettingsKey? = cat.getKeyOfName(key_name)
+                            if (key != null) {
+                                return@none key.isHidden()
+                            }
+                        }
+                        throw RuntimeException("Key not found: $key_name (category: $category)")
+                    }
+                }
+            }
+            return items!!
+        }
+
+        override fun getTitleItem(context: AppContext): SettingsItem? =
+            ComposableSettingsItem { modifier ->
+                ElevatedCard(
+                    onClick = {
+                        openPageOnInterface(context, this)
+                    },
+                    modifier = modifier.fillMaxWidth(),
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = theme.background.amplifyPercent(0.03f),
+                        contentColor = theme.on_background
+                    )
+                ) {
+                    Row(
+                        Modifier.padding(15.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(15.dp)
+                    ) {
+                        Icon(getPageIcon(), null)
+                        Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                            Text(title, style = MaterialTheme.typography.titleMedium)
+                            Text(description, style = MaterialTheme.typography.labelMedium)
+                        }
+                    }
+                }
+            }
+    }
 
     companion object {
         val all: List<SettingsCategory> get() =
@@ -121,26 +131,29 @@ sealed class SettingsCategory(id: String) {
 
                 SystemSettings,
                 BehaviourSettings,
+                LayoutSettings,
                 PlayerSettings,
                 FeedSettings,
                 ThemeSettings,
                 LyricsSettings,
-                TopBarSettings,
                 DiscordSettings,
                 DiscordAuthSettings,
                 FilterSettings,
                 StreamingSettings,
+                ShortcutSettings,
                 DesktopSettings,
                 MiscSettings,
 
                 YTApiSettings,
                 InternalSettings
-            )
+            ).apply {
+                check(distinctBy { it.id }.size == size)
+            }
 
         val with_page: List<SettingsCategory> get() =
             all.filter { it.getPage() != null }
 
-        val pages: List<Page> get() =
+        val pages: List<CategoryPage> get() =
             all.mapNotNull { it.getPage() }
 
         fun fromId(id: String): SettingsCategory =

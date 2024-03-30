@@ -10,6 +10,8 @@ import com.toasterofbread.spmp.ui.layout.apppage.library.LibraryAppPage
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.SettingsAppPage
 import com.toasterofbread.spmp.ui.layout.apppage.songfeedpage.SongFeedAppPage
+import com.toasterofbread.spmp.ui.layout.apppage.searchpage.SearchAppPage
+import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 
 class AppPageState(val player: PlayerState) {
     val SongFeed = SongFeedAppPage(this)
@@ -17,12 +19,14 @@ class AppPageState(val player: PlayerState) {
     val Search = SearchAppPage(this, context)
     val RadioBuilder = RadioBuilderAppPage(this)
     val ControlPanel = ControlPanelAppPage(this)
-    val Settings = SettingsAppPage(this) { LocalPlayerState.current.nowPlayingTopOffset(Modifier) }
+    val Settings = SettingsAppPage(this) {
+        LocalPlayerState.current.nowPlayingTopOffset(Modifier, NowPlayingTopOffsetSection.PAGE_BAR)
+    }
 
-    val Default: AppPage = SongFeed
+    val Default: AppPage = AppPage.Type.DEFAULT.getPage(player, this)!!
     val context: AppContext get() = player.context
 
-    var current_page by mutableStateOf(Default)
+    var current_page: AppPage by mutableStateOf(Default)
 
     fun setPage(page: AppPage? = null, from_current: Boolean, going_back: Boolean): Boolean {
         val new_page = page ?: Default

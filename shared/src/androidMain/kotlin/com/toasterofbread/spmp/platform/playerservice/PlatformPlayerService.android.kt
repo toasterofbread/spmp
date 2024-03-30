@@ -46,8 +46,8 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.composekit.platform.PlatformPreferencesListener
-import com.toasterofbread.spmp.exovisualiser.ExoVisualizer
-import com.toasterofbread.spmp.exovisualiser.FFTAudioProcessor
+import com.toasterofbread.spmp.platform.visualiser.MusicVisualiser
+import com.toasterofbread.spmp.platform.visualiser.FFTAudioProcessor
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
@@ -735,21 +735,55 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
         }
     }
 
+    private val song_seek_undo_stack: MutableList<Pair<Int, Long>> = mutableListOf()
+    private fun getSeekPosition(): Pair<Int, Long> = Pair(current_song_index, current_position_ms)
+
     actual override fun seekTo(position_ms: Long) {
+        val current: Pair<Int, Long> = getSeekPosition()
         player.seekTo(position_ms)
         listeners.forEach { it.onSeeked(position_ms) }
+
+        if (current != getSeekPosition()) {
+            song_seek_undo_stack.add(current)
+        }
     }
 
     actual override fun seekToSong(index: Int) {
+        val current: Pair<Int, Long> = getSeekPosition()
         player.seekTo(index, 0)
+
+        if (current != getSeekPosition()) {
+            song_seek_undo_stack.add(current)
+        }
     }
 
     actual override fun seekToNext() {
+        val current: Pair<Int, Long> = getSeekPosition()
         player.seekToNext()
+
+        if (current != getSeekPosition()) {
+            song_seek_undo_stack.add(current)
+        }
     }
 
     actual override fun seekToPrevious() {
+        val current: Pair<Int, Long> = getSeekPosition()
         player.seekToPrevious()
+
+        if (current != getSeekPosition()) {
+            song_seek_undo_stack.add(current)
+        }
+    }
+
+    actual override fun undoSeek() {
+        val (index: Int, position_ms: Long) = song_seek_undo_stack.removeLastOrNull() ?: return
+
+        if (index != current_song_index) {
+            player.seekTo(index, position_ms)
+        }
+        else {
+            player.seekTo(position_ms)
+        }
     }
 
     actual override fun getSong(): Song? {
@@ -784,7 +818,7 @@ actual class PlatformPlayerService: MediaSessionService(), PlayerService {
 
     @Composable
     actual override fun Visualiser(colour: Color, modifier: Modifier, opacity: Float) {
-        val visualiser = remember { ExoVisualizer(fft_audio_processor) }
+        val visualiser: MusicVisualiser = remember { MusicVisualiser(fft_audio_processor) }
         visualiser.Visualiser(colour, modifier, opacity)
     }
 }

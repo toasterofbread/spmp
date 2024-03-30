@@ -11,12 +11,13 @@ import com.toasterofbread.composekit.platform.Platform
 data object ThemeSettings: SettingsCategory("theme") {
     override val keys: List<SettingsKey> = Key.entries.toList()
 
-    override fun getPage(): Page? =
-        Page(
+    override fun getPage(): CategoryPage? =
+        SimplePage(
             getString("s_cat_theme"),
             getString("s_cat_desc_theme"),
-            { getThemeCategoryItems(it) }
-        ) { Icons.Outlined.Palette }
+            { getThemeCategoryItems(it) },
+            { Icons.Outlined.Palette }
+        )
 
     enum class Key: SettingsKey {
         CURRENT_THEME,

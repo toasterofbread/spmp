@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -91,7 +90,6 @@ import java.util.Date
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.*
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, content_padding: PaddingValues = PaddingValues(), top_padding: Dp = 0.dp) {
     val player: PlayerState = LocalPlayerState.current
@@ -109,7 +107,7 @@ internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, cont
     }
 
     val horizontal_padding: PaddingValues = content_padding.horizontal
-    val category_pages: List<SettingsCategory.Page> = remember { SettingsCategory.pages }
+    val category_pages: List<SettingsCategory.CategoryPage> = remember { SettingsCategory.pages }
     val item_spacing: Dp = 10.dp
 
     LazyColumn(
@@ -446,7 +444,7 @@ private fun peformExport(context: AppContext, categories: List<SettingsCategory>
 private fun ImportExportButtons(
     exporting: Boolean,
     export_categories: MutableList<SettingsCategory>,
-    category_pages: List<SettingsCategory.Page>,
+    category_pages: List<SettingsCategory.CategoryPage>,
     beginExport: () -> Unit,
     completeExport: () -> Unit,
     setExporting: (Boolean) -> Unit,

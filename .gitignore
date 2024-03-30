@@ -16,6 +16,7 @@ app/debug/
 app/release/
 
 buildSrc/project_debug.properties
+debug_keys.properties
 androidApp/keystore.properties
 androidApp/main.keystore
 shared/src/commonMain/kotlin/test.kt

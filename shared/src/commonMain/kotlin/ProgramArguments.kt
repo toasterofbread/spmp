@@ -11,15 +11,15 @@ data class ProgramArguments(
             fun onIllegalArgument(msg: String) {
                 throw IllegalArgumentException("$msg Received arguments: ${args.toList()}")
             }
-            
+
             var arguments: ProgramArguments = ProgramArguments()
-            
+
             val iterator: Iterator<String> = args.iterator()
             while (iterator.hasNext()) {
                 val split: List<String> = iterator.next().split('=', limit = 2)
                 val name: String = split.first()
                 val value: String? = split.getOrNull(1)
-                
+
                 when (name) {
                     "--bin-dir" -> {
                         if (value == null && !iterator.hasNext()) {
@@ -41,10 +41,10 @@ data class ProgramArguments(
                     else -> onIllegalArgument("Unknown argument '$name'.")
                 }
             }
-            
+
             return arguments
         }
-        
+
         fun getHelpMessage(): String {
             return getString("help_message") + "\n" + getVersionMessage()
         }
@@ -53,7 +53,7 @@ data class ProgramArguments(
             val version_string: String = "v${getString("version_string")}"
             val api_version_string: String = "v$SPMS_API_VERSION"
             val split_string: String = if (split_lines) "\n" else ""
-            
+
             val on_release_commit: Boolean = ProjectBuildConfig.GIT_TAG == version_string
             if (on_release_commit) {
                 return getString("version_message_release_\$appver_\$apiver_\$split")

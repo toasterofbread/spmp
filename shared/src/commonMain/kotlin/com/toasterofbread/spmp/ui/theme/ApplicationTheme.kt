@@ -31,6 +31,8 @@ import com.toasterofbread.composekit.utils.common.contrastAgainst
 import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.platform.AppContext
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.AnimationSpec
 
 @Composable
 fun Theme.ApplicationTheme(
@@ -124,12 +126,20 @@ fun Theme.ApplicationTheme(
     }
 }
 
-fun Modifier.appHover(button: Boolean = false): Modifier = composed {
+fun Modifier.appHover(
+    button: Boolean = false,
+    expand: Boolean = false,
+    hover_scale: Float = if (button) 0.95f else 0.97f,
+    animation_spec: AnimationSpec<Float> = tween(100)
+): Modifier = composed {
     val interaction_source: MutableInteractionSource = remember { MutableInteractionSource() }
     val hovered: Boolean by interaction_source.collectIsHoveredAsState()
 
-    val hover_scale = if (button) 0.95f else 0.97f
-    val scale by animateFloatAsState(if (hovered) hover_scale else 1f)
+    val actual_hover_scale: Float = if (expand) 2f - hover_scale else hover_scale
+    val scale: Float by animateFloatAsState(
+        if (hovered) actual_hover_scale else 1f,
+        animationSpec = animation_spec
+    )
 
     return@composed this
         .hoverable(interaction_source)

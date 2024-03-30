@@ -83,20 +83,42 @@ actual class PlatformPlayerService: SpMsPlayerService(), PlayerService {
         sendRequest("playPause")
     }
 
+    private val song_seek_undo_stack: MutableList<Pair<Int, Long>> = mutableListOf()
+    private fun getSeekPosition(): Pair<Int, Long> = Pair(current_song_index, current_position_ms)
+
     actual override fun seekTo(position_ms: Long) {
+        val current: Pair<Int, Long> = getSeekPosition()
         sendRequest("seekToTime", JsonPrimitive(position_ms))
+        song_seek_undo_stack.add(current)
     }
 
     actual override fun seekToSong(index: Int) {
+        val current: Pair<Int, Long> = getSeekPosition()
         sendRequest("seekToItem", JsonPrimitive(index))
+        song_seek_undo_stack.add(current)
     }
 
     actual override fun seekToNext() {
+        val current: Pair<Int, Long> = getSeekPosition()
         sendRequest("seekToNext")
+        song_seek_undo_stack.add(current)
     }
 
     actual override fun seekToPrevious() {
+        val current: Pair<Int, Long> = getSeekPosition()
         sendRequest("seekToPrevious")
+        song_seek_undo_stack.add(current)
+    }
+
+    actual override fun undoSeek() {
+        val (index: Int, position_ms: Long) = song_seek_undo_stack.removeLastOrNull() ?: return
+
+        if (index != current_song_index) {
+            sendRequest("seekToItem", JsonPrimitive(index), JsonPrimitive(position_ms))
+        }
+        else {
+            sendRequest("seekToTime", JsonPrimitive(position_ms))
+        }
     }
 
     actual override fun getSong(): Song? = playlist.getOrNull(_current_song_index)
@@ -124,8 +146,7 @@ actual class PlatformPlayerService: SpMsPlayerService(), PlayerService {
     }
 
     @Composable
-    actual override fun Visualiser(colour: Color, modifier: Modifier, opacity: Float) {
-    }
+    actual override fun Visualiser(colour: Color, modifier: Modifier, opacity: Float) {}
 
     override fun onBind(): PlatformBinder? {
         return PlayerServiceBinder(this)

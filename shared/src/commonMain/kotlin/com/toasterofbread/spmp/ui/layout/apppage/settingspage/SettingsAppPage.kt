@@ -33,7 +33,6 @@ import com.toasterofbread.composekit.settings.ui.SettingsInterface
 import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.YoutubeAuthSettings
-import com.toasterofbread.spmp.model.settings.category.TopBarSettings
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.WaveBorder
@@ -120,12 +119,6 @@ class SettingsAppPage(override val state: AppPageState, getFooterModifier: @Comp
 
             Column(Modifier.fillMaxSize()) {
                 val layout_direction: LayoutDirection = LocalLayoutDirection.current
-                val top_padding: Dp = player.top_bar.MusicTopBar(
-                    TopBarSettings.Key.SHOW_IN_SETTINGS,
-                    Modifier.fillMaxWidth().zIndex(10f),
-                    getBottomBorderColour = { player.theme.background },
-                    padding = PaddingValues(top = content_padding.calculateTopPadding())
-                ).top_padding
 
                 Crossfade(settings_interface.current_page.id != PrefsPageScreen.ROOT.ordinal) { open ->
                     if (!open) {
@@ -134,7 +127,7 @@ class SettingsAppPage(override val state: AppPageState, getFooterModifier: @Comp
                                 start = content_padding.calculateStartPadding(layout_direction) + PREFS_PAGE_EXTRA_PADDING_DP.dp,
                                 end = content_padding.calculateEndPadding(layout_direction) + PREFS_PAGE_EXTRA_PADDING_DP.dp
                             ),
-                            top_padding = top_padding
+                            top_padding = content_padding.calculateTopPadding()
                         )
                     }
                     else {
@@ -144,9 +137,7 @@ class SettingsAppPage(override val state: AppPageState, getFooterModifier: @Comp
                             CompositionLocalProvider(LocalContentColor provides player.theme.on_background) {
                                 settings_interface.Interface(
                                     Modifier.fillMaxSize(),
-                                    content_padding = PaddingValues(
-                                        top = top_padding,
-                                        bottom = content_padding.calculateBottomPadding(),
+                                    content_padding = content_padding.copy(
                                         start = content_padding.calculateStartPadding(layout_direction) + PREFS_PAGE_EXTRA_PADDING_DP.dp,
                                         end = content_padding.calculateEndPadding(layout_direction) + PREFS_PAGE_EXTRA_PADDING_DP.dp
                                     ),

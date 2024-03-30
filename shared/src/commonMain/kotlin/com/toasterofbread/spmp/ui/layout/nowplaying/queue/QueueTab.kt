@@ -58,7 +58,6 @@ import com.toasterofbread.spmp.ui.component.radio.StatusDisplay
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
-import com.toasterofbread.spmp.ui.layout.nowplaying.rememberTopBarShouldShowInQueue
 import kotlinx.coroutines.delay
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
@@ -177,9 +176,8 @@ internal fun QueueTab(
         }
     )
 
-    val show_top_bar: Boolean = rememberTopBarShouldShowInQueue(player.expansion.top_bar_mode.value)
     val top_bar_height: Dp by animateDpAsState(
-        if (show_top_bar && top_bar != null) top_bar.height else 0.dp
+        if (top_bar?.shouldShowInQueue() == true) top_bar.height else 0.dp
     )
 
     composeScope {

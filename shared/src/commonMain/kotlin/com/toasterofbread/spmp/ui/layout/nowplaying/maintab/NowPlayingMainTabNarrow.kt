@@ -31,7 +31,7 @@ import com.toasterofbread.composekit.utils.common.isJP
 import com.toasterofbread.composekit.utils.common.thenIf
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.ui.component.RowOrColumn
+import com.toasterofbread.composekit.utils.composable.RowOrColumn
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.bottom_padding
@@ -52,7 +52,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabNarrow(page_height: Dp, top_
             .padding(content_padding)
             .padding(horizontal = horizontal_padding)
             .padding(top = top_padding, bottom = bottom_padding)
-    ) { weight ->
+    ) {
         val spacing: Dp = 10.dp
 
         if (vertical) {
@@ -111,7 +111,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabNarrow(page_height: Dp, top_
             }
         }
 
-        Spacer(Modifier.fillMaxSize().then(weight(1f)))
+        Spacer(Modifier.fillMaxSize().weight(1f))
     }
 }
 

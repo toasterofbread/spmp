@@ -20,6 +20,7 @@ kotlin {
             languageSettings.apply {
                 optIn("org.jetbrains.compose.resources.ExperimentalResourceApi")
                 optIn("androidx.compose.foundation.ExperimentalFoundationApi")
+                optIn("androidx.compose.foundation.layout.ExperimentalLayoutApi")
                 optIn("androidx.compose.material3.ExperimentalMaterial3Api")
                 optIn("androidx.compose.material.ExperimentalMaterialApi")
                 optIn("androidx.compose.ui.ExperimentalComposeUiApi")

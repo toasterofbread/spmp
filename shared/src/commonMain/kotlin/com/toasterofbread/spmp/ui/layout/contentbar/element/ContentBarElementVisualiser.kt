@@ -5,6 +5,9 @@ import kotlinx.serialization.Serializable
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
+import androidx.compose.material3.LocalContentColor
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import LocalPlayerState
 
 @Serializable
 data class ContentBarElementVisualiser(
@@ -18,6 +21,7 @@ data class ContentBarElementVisualiser(
 
     @Composable
     override fun ElementContent(vertical: Boolean, enable_interaction: Boolean, modifier: Modifier) {
-        // TODO
+        val player: PlayerState = LocalPlayerState.current
+        player.controller?.Visualiser(LocalContentColor.current, modifier, 0.5f)
     }
 }

@@ -146,7 +146,6 @@
 
     <string name="song_theme_menu_corner_radius">Радиус закруглений</string>
     <string name="song_theme_menu_gradient_depth">Глубина градиента</string>
-    <string name="song_theme_menu_background_image_opacity">Прозрачность заднего фона</string>
     <string name="song_theme_menu_image_shadow_radius">Радиус тени</string>
     <string name="song_theme_menu_wave_speed">Скорость волн</string>
     <string name="song_theme_menu_wave_opacity">Прозрачность волн</string>
@@ -471,7 +470,7 @@
     <string name="s_option_np_accent_none">Не использовать цвет акцента</string>
 
     <string name="s_key_np_default_gradient_depth">Глубина градиентов по умолчанию</string>
-    <string name="s_key_np_default_background_image_opacity">Непрозрачность изображения заднего фона по умолчанию</string>
+    <string name="s_key_np_default_background_image_video_opacity">Непрозрачность изображения заднего фона по умолчанию</string>
     <string name="s_key_np_default_shadow_radius">Размер теней по умолчанию</string>
     <string name="s_key_np_default_image_corner_rounding">Радиус закруглений изображений по умолчанию</string>
     <string name="s_key_np_default_wave_speed">Скорость волн по умолчанию</string>

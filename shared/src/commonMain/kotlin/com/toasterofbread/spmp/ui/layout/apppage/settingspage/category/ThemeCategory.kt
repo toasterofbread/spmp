@@ -9,6 +9,7 @@ import com.toasterofbread.composekit.settings.ui.item.*
 import com.toasterofbread.spmp.model.settings.category.AccentColourSource
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.isVideoPlaybackSupported
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
@@ -16,7 +17,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
     val theme: Theme = context.theme
 
-    return listOf(
+    return listOfNotNull(
         ThemeSelectorSettingsItem(
             SettingsValueState(ThemeSettings.Key.CURRENT_THEME.getName()),
             getString("s_key_current_theme"), null,
@@ -67,7 +68,22 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
 
         AppSliderItem(
             SettingsValueState(ThemeSettings.Key.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.getName()),
-            getString("s_key_np_default_background_image_opacity"), null
+            getString("s_key_np_default_background_image_video_opacity"), null
+        ),
+
+        if (isVideoPlaybackSupported())
+            MultipleChoiceSettingsItem(
+                SettingsValueState(ThemeSettings.Key.NOWPLAYING_DEFAULT_VIDEO_POSITION.getName()),
+                getString("s_key_np_default_video_position"), null,
+                ThemeSettings.VideoPosition.entries.size
+            ) {
+                ThemeSettings.VideoPosition.entries[it].getReadable()
+            }
+        else null,
+
+        AppSliderItem(
+            SettingsValueState(ThemeSettings.Key.NOWPLAYING_DEFAULT_LANDSCAPE_QUEUE_OPACITY.getName()),
+            getString("s_key_np_default_landscape_queue_opacity"), null
         ),
 
         AppSliderItem(

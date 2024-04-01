@@ -7,7 +7,7 @@ import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
-import com.toasterofbread.spmp.model.mediaitem.song.getSongFormatByQuality
+import com.toasterofbread.spmp.model.mediaitem.song.getSongAudioFormatByQuality
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.StreamingSettings
 import com.toasterofbread.spmp.platform.AppContext
@@ -316,7 +316,7 @@ abstract class SongDownloader(
     }
 
     private suspend fun performDownload(download: Download): Result<PlatformFile?> = withContext(Dispatchers.IO) {
-        val format: YoutubeVideoFormat = getSongFormatByQuality(download.song.id, download.quality, context).fold(
+        val format: YoutubeVideoFormat = getSongAudioFormatByQuality(download.song.id, download.quality, context).fold(
             { it },
             { return@withContext Result.failure(it) }
         )

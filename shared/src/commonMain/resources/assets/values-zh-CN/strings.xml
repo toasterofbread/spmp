@@ -133,7 +133,6 @@
 
     <string name="song_theme_menu_corner_radius">角落半径</string>
     <string name="song_theme_menu_gradient_depth">渐变深度</string>
-    <string name="song_theme_menu_background_image_opacity">背景图片透明度</string>
     <string name="song_theme_menu_image_shadow_radius">阴影半径</string>
 
     <string name="song_notif_image_menu_open">调整通知图片</string>
@@ -456,7 +455,7 @@
     <string name="s_option_np_accent_none">不使用强调色</string>
 
     <string name="s_key_np_default_gradient_depth">默认渐变深度</string>
-    <string name="s_key_np_default_background_image_opacity">默认横向背景图像透明度</string>
+    <string name="s_key_np_default_background_image_video_opacity">默认横向背景图像透明度</string>
     <string name="s_key_np_default_shadow_radius">默认图像阴影大小</string>
 
     <string name="s_key_lyrics_default_source">默认歌词来源</string>

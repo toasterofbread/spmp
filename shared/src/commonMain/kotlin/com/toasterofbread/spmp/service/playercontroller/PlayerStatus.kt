@@ -36,7 +36,7 @@ class PlayerStatus internal constructor() {
         return p.current_position_ms.toFloat() / duration
     }
 
-    fun getPositionMillis(): Long = player?.current_position_ms ?: 0
+    fun getPositionMs(): Long = player?.current_position_ms ?: 0
 
     private val _song_state: MutableState<Song?> = mutableStateOf(player?.getSong())
     val song_state: State<Song?> get() = _song_state

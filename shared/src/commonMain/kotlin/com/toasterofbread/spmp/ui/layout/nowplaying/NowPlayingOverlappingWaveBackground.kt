@@ -38,11 +38,13 @@ fun NowPlayingOverlappingWaveBackground(page_height: Dp, modifier: Modifier = Mo
         getDefaultOverlappingWavesLayers(7, 0.35f)
     }
 
-    val default_background_wave_speed: Float by ThemeSettings.Key.NOWPLAYING_DEFAULT_WAVE_SPEED.rememberMutableState()
-    val default_background_wave_opacity: Float by ThemeSettings.Key.NOWPLAYING_DEFAULT_WAVE_OPACITY.rememberMutableState()
+    val default_wave_speed: Float by ThemeSettings.Key.NOWPLAYING_DEFAULT_WAVE_SPEED.rememberMutableState()
+    val song_wave_speed: Float? by current_song?.BackgroundWaveSpeed?.observe(player.database)
+    val background_wave_speed: Float = song_wave_speed ?: default_wave_speed
 
-    val background_wave_speed: Float = current_song?.BackgroundWaveSpeed?.observe(player.database)?.value ?: default_background_wave_speed
-    val background_wave_opacity: Float = current_song?.BackgroundWaveOpacity?.observe(player.database)?.value ?: default_background_wave_opacity
+    val default_wave_opacity: Float by ThemeSettings.Key.NOWPLAYING_DEFAULT_WAVE_OPACITY.rememberMutableState()
+    val song_wave_opacity: Float? by current_song?.BackgroundWaveOpacity?.observe(player.database)
+    val background_wave_opacity: Float = song_wave_opacity ?: default_wave_opacity
 
     val wave_height: Dp
     val wave_alpha: Float
@@ -52,13 +54,13 @@ fun NowPlayingOverlappingWaveBackground(page_height: Dp, modifier: Modifier = Mo
     when (form_factor) {
         FormFactor.PORTRAIT -> {
             wave_height = page_height * 0.5f
-            wave_alpha = 0.5f
+            wave_alpha = 0.5f * background_wave_opacity
             speed = MAX_WAVE_SPEED_PORTRAIT * background_wave_speed
             bottom_spacing = 0.dp
         }
         FormFactor.LANDSCAPE -> {
             wave_height = page_height * 0.5f
-            wave_alpha = 1f
+            wave_alpha = 1f * background_wave_opacity
             speed = MAX_WAVE_SPEED_LANDSCAPE * background_wave_speed
             bottom_spacing = NOW_PLAYING_LARGE_BOTTOM_BAR_HEIGHT
         }

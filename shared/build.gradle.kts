@@ -106,6 +106,7 @@ kotlin {
                 implementation("com.github.ltttttttttttt:load-the-image:1.0.5")
                 implementation("app.cash.sqldelight:sqlite-driver:2.0.0")
                 implementation("com.github.caoimhebyrne:KDiscordIPC:0.2.2")
+                implementation("org.bytedeco:ffmpeg-platform:6.1.1-1.5.10")
 
                 implementation("dev.toastbits.ytm-kt:library-jvm:$ytmkt_version")
             }

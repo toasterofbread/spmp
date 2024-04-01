@@ -7,7 +7,7 @@ import com.toasterofbread.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.model.mediaitem.db.getPlayCount
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
-import com.toasterofbread.spmp.model.mediaitem.song.getSongStreamFormat
+import com.toasterofbread.spmp.model.mediaitem.song.getSongTargetAudioFormat
 import com.toasterofbread.spmp.model.settings.category.StreamingSettings
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
@@ -90,7 +90,7 @@ internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppConte
     println("Loading stream format for song ${song.id}")
 
     val format: YoutubeVideoFormat =
-        getSongStreamFormat(song.id, context).fold(
+        getSongTargetAudioFormat(song.id, context).fold(
             { it },
             {
                 it.printStackTrace()

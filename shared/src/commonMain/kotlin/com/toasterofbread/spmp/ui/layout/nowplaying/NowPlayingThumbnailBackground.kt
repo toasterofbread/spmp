@@ -5,7 +5,6 @@ import LocalPlayerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
@@ -16,7 +15,10 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.Thumbnail
 
 @Composable
-fun NowPlayingThumbnailBackground(modifier: Modifier = Modifier) {
+fun NowPlayingThumbnailBackground(
+    modifier: Modifier = Modifier,
+    getAlpha: () -> Float = { 1f }
+) {
     val player: PlayerState = LocalPlayerState.current
     val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
     
@@ -34,9 +36,8 @@ fun NowPlayingThumbnailBackground(modifier: Modifier = Modifier) {
             ThumbnailProvider.Quality.HIGH,
             modifier
                 .blur(5.dp)
-                .alpha(opacity)
                 .graphicsLayer {
-                    alpha = expansion.get().coerceIn(0f, 1f)
+                    alpha = getAlpha() * expansion.get().coerceIn(0f, 1f)
                 }
         )
     }    

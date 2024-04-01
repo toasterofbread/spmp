@@ -21,6 +21,8 @@ CREATE TABLE Song (
     notif_image_offset_x INTEGER,
     notif_image_offset_y INTEGER,
     background_image_opacity REAL,
+    video_position INTEGER,
+    landscape_queue_opacity REAL,
     image_shadow_radius REAL,
     background_wave_speed REAL,
     background_wave_opacity REAL,
@@ -95,6 +97,12 @@ updateNotifImageOffsetById: UPDATE Song SET notif_image_offset_x = :notif_image_
 
 backgroundImageOpacityById: SELECT background_image_opacity FROM Song WHERE id == :id;
 updateBackgroundImageOpacityById: UPDATE Song SET background_image_opacity = :background_image_opacity WHERE id == :id;
+
+videoPositionById: SELECT video_position FROM Song WHERE id == :id;
+updateVideoPositionById: UPDATE Song SET video_position = :video_position WHERE id == :id;
+
+landscapeQueueOpacityById: SELECT landscape_queue_opacity FROM Song WHERE id == :id;
+updateLandscapeQueueOpacityById: UPDATE Song SET landscape_queue_opacity = :landscape_queue_opacity WHERE id == :id;
 
 imageShadowRadiusById: SELECT image_shadow_radius FROM Song WHERE id == :id;
 updateImageShadowRadiusById: UPDATE Song SET image_shadow_radius = :image_shadow_radius WHERE id == :id;

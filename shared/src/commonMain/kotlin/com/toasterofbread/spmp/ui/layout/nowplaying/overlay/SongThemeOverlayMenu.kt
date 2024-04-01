@@ -7,6 +7,9 @@ import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -25,11 +28,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.composekit.platform.composable.ScrollBarLazyColumn
 import com.toasterofbread.composekit.utils.composable.OnChangedEffect
+import com.toasterofbread.composekit.utils.composable.LargeDropdownMenu
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
+import com.toasterofbread.spmp.model.settings.rememberMutableEnumState
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.platform.generatePalette
+import com.toasterofbread.spmp.platform.isVideoPlaybackSupported
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
@@ -135,10 +141,50 @@ class SongThemePlayerOverlayMenu(
                         )
 
                         if (player.form_factor == FormFactor.LANDSCAPE) {
+                            if (isVideoPlaybackSupported()) {
+                                val default_video_position: ThemeSettings.VideoPosition by ThemeSettings.Key.NOWPLAYING_DEFAULT_VIDEO_POSITION.rememberMutableEnumState()
+                                var song_video_position: ThemeSettings.VideoPosition? by song.VideoPosition.observe(player.database)
+
+                                var show_position_selector: Boolean by remember { mutableStateOf(false) }
+                                LargeDropdownMenu(
+                                    show_position_selector,
+                                    { show_position_selector = false },
+                                    ThemeSettings.VideoPosition.entries.size,
+                                    (song_video_position ?: default_video_position).ordinal,
+                                    {
+                                        Text(ThemeSettings.VideoPosition.entries[it].getReadable())
+                                    }
+                                ) {
+                                    song_video_position = ThemeSettings.VideoPosition.entries[it]
+                                    show_position_selector = false
+                                }
+
+                                FlowRow(
+                                    Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        getString("song_theme_menu_video_position"),
+                                        fontSize = 15.sp,
+                                        modifier = Modifier.align(Alignment.CenterVertically)
+                                    )
+
+                                    Button({ show_position_selector = !show_position_selector }) {
+                                        Text((song_video_position ?: default_video_position).getReadable())
+                                    }
+                                }
+                            }
+
                             ValueSlider(
                                 song.BackgroundImageOpacity.observe(player.database),
                                 ThemeSettings.Key.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.get(),
                                 getString("song_theme_menu_background_image_opacity")
+                            )
+
+                            ValueSlider(
+                                song.LandscapeQueueOpacity.observe(player.database),
+                                ThemeSettings.Key.NOWPLAYING_DEFAULT_LANDSCAPE_QUEUE_OPACITY.get(),
+                                getString("song_theme_menu_queue_opacity")
                             )
                         }
 
@@ -190,7 +236,7 @@ private fun ValueSlider(value_state: MutableState<Float?>, default_value: Float,
     var slider_value: Float by remember { mutableStateOf(current_value) }
 
     var value_changed: Boolean by remember { mutableStateOf(false) }
-    val anim_state: Animatable<Float, AnimationVector1D> = remember { Animatable(current_value) }
+    val anim_state: Animatable<Float, AnimationVector1D> = remember(value_state) { Animatable(current_value) }
 
     OnChangedEffect(anim_state.value) {
         value_state.value = anim_state.value
@@ -205,7 +251,7 @@ private fun ValueSlider(value_state: MutableState<Float?>, default_value: Float,
             Text((current_value * 100).roundToInt().toString().padStart(3, ' '), fontSize = 15.sp)
         }
 
-        val background_colour: Color = player.theme.vibrant_accent
+        val slider_colour: Color = player.theme.on_background
 
         Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             Slider(
@@ -228,9 +274,9 @@ private fun ValueSlider(value_state: MutableState<Float?>, default_value: Float,
                     }
                 },
                 colors = SliderDefaults.colors(
-                    thumbColor = background_colour,
-                    activeTrackColor = background_colour,
-                    inactiveTrackColor = background_colour.copy(alpha = 0.2f)
+                    thumbColor = slider_colour,
+                    activeTrackColor = slider_colour,
+                    inactiveTrackColor = slider_colour.copy(alpha = 0.2f)
                 ),
                 modifier = Modifier.weight(1f)
             )

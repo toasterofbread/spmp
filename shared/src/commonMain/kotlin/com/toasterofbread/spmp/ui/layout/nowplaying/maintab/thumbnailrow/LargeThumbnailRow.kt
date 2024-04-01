@@ -40,7 +40,9 @@ import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.observeThumbnailRounding
 import com.toasterofbread.spmp.model.settings.category.PlayerSettings
+import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.model.settings.getEnum
+import com.toasterofbread.spmp.model.settings.rememberMutableEnumState
 import com.toasterofbread.spmp.ui.component.HorizontalLyricsLineDisplay
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
@@ -49,6 +51,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.OVERLAY_MENU_ANIMATION_DURATION
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.*
+import com.toasterofbread.spmp.platform.SongVideoPlayback
 import kotlin.math.absoluteValue
 
 internal typealias ColourpickCallback = (Color?) -> Unit
@@ -160,14 +163,8 @@ fun LargeThumbnailRow(
                         return@Crossfade
                     }
 
-                    song.Thumbnail(
-                        ThumbnailProvider.Quality.HIGH,
-                        getContentColour = { player.getNPOnBackground() },
-                        onLoaded = {
-                            current_thumb_image = it
-                            onThumbnailLoaded(song, it)
-                        },
-                        modifier = Modifier
+                    Box(
+                        Modifier
                             .aspectRatio(1f)
                             .onSizeChanged {
                                 image_size = it
@@ -204,7 +201,33 @@ fun LargeThumbnailRow(
                                     }
                                 )
                             }
-                    )
+                    ) {
+                        val default_video_position: ThemeSettings.VideoPosition by ThemeSettings.Key.NOWPLAYING_DEFAULT_VIDEO_POSITION.rememberMutableEnumState()
+                        val song_video_position: ThemeSettings.VideoPosition? by song.VideoPosition.observe(player.database)
+
+                        var video_showing: Boolean = false
+
+                        if ((song_video_position ?: default_video_position) == ThemeSettings.VideoPosition.THUMBNAIL) {
+                            video_showing = SongVideoPlayback(
+                                song.id,
+                                { player.status.getPositionMs() },
+                                Modifier.fillMaxSize(),
+                                fill = true
+                            )
+                        }
+
+                        if (!video_showing) {
+                            song.Thumbnail(
+                                ThumbnailProvider.Quality.HIGH,
+                                Modifier.fillMaxSize(),
+                                getContentColour = { player.getNPOnBackground() },
+                                onLoaded = {
+                                    current_thumb_image = it
+                                    onThumbnailLoaded(song, it)
+                                }
+                            )
+                        }
+                    }
                 }
 
                 // Thumbnail overlay menu

@@ -29,11 +29,13 @@ import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
 import com.toasterofbread.composekit.platform.composable.composeScope
 import com.toasterofbread.composekit.utils.common.*
+import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.composekit.utils.composable.getTop
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.observeThumbnailRounding
 import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueWaveBorderMode
+import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
@@ -355,6 +357,12 @@ private fun PlayerQueueTab(
     val queue_shape: Shape = RoundedCornerShape(10.dp)
     val width: Dp by width_state
 
+    val default_background_opacity: Float by ThemeSettings.Key.NOWPLAYING_DEFAULT_LANDSCAPE_QUEUE_OPACITY.rememberMutableState()
+    val song_background_opacity: Float? by player.status.m_song?.LandscapeQueueOpacity?.observe(player.database)
+
+    val background_opacity: Float by remember(player.status.m_song) { derivedStateOf { song_background_opacity ?: default_background_opacity } }
+    val show_shadow: Boolean by remember(player.status.m_song) { derivedStateOf { background_opacity >= 1f } }
+
     Box(
         modifier
             .requiredSize(width, getHeight())
@@ -364,12 +372,14 @@ private fun PlayerQueueTab(
                     (getCurrentControlsHeight() * (1f - player.expansion.getBounded())).roundToPx()
                 )
             }
-            .songThumbnailShadow(
-                player.status.m_song,
-                queue_shape,
-                apply_expansion_to_colour = false
-            ) {
-                alpha = 1f - (1f - player.expansion.getBounded()).absoluteValue
+            .thenIf(show_shadow) {
+                songThumbnailShadow(
+                    player.status.m_song,
+                    queue_shape,
+                    apply_expansion_to_colour = false
+                ) {
+                    alpha = 1f - (1f - player.expansion.getBounded()).absoluteValue
+                }
             }
     ) {
         QueueTab(
@@ -392,7 +402,7 @@ private fun PlayerQueueTab(
                 bottom = inner_bottom_padding.coerceAtLeast(0.dp) + 35.dp
             ),
             getBackgroundColour = {
-                getNPAltBackground()
+                getNPAltBackground().copy(alpha = background_opacity)
                 // if (player.np_theme_mode == ThemeMode.BACKGROUND) getNPAltOnBackground()
                 // else theme.background
             },
@@ -402,8 +412,7 @@ private fun PlayerQueueTab(
                     ThemeMode.ELEMENTS -> theme.accent
                     ThemeMode.NONE -> theme.on_background
                 }
-            },
-            // getWaveBorderColour = { stroke_colour }
+            }
         )
     }
 }

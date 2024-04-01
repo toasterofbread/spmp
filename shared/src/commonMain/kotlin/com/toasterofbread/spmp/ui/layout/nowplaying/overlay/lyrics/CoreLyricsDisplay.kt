@@ -67,7 +67,7 @@ fun CoreLyricsDisplay(
         while (true) {
             val (range, next) = getTermRangeOfTime(
                 lyrics,
-                player.status.getPositionMillis() + (lyrics_sync_offset ?: 0)
+                player.status.getPositionMs() + (lyrics_sync_offset ?: 0)
             )
 
             if (range != null) {

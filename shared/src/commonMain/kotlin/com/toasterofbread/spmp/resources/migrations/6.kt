@@ -7,6 +7,10 @@ internal fun SqlDriver.migrateToVersion6() = performMigration(
     mapOf(
         "Playlist" to listOf(
             Migration.AddColumn("owned_by_user", "INTEGER")
+        ),
+        "Song" to listOf(
+            Migration.AddColumn("video_position", "INTEGER"),
+            Migration.AddColumn("landscape_queue_opacity", "REAL")
         )
     )
 )

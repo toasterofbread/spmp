@@ -120,7 +120,6 @@
     <string name="player_overlay_menu_action_download">İndir</string>
     <string name="song_theme_menu_corner_radius">Köşe yarıçapı</string>
     <string name="song_theme_menu_gradient_depth">Gradyan derinliği</string>
-    <string name="song_theme_menu_background_image_opacity">Arka plan görüntüsü opaklığı</string>
     <string name="song_theme_menu_image_shadow_radius">Gölge yarıçapı</string>
     <string name="song_theme_menu_wave_speed">Dalga hızı</string>
     <string name="song_theme_menu_wave_opacity">Dalga opaklığı</string>
@@ -385,7 +384,7 @@
     <string name="s_option_np_accent_elements">Vurgulu renk öğeleri</string>
     <string name="s_option_np_accent_none">Vurgu rengi kullanmayın</string>
     <string name="s_key_np_default_gradient_depth">Varsayılan gradyan derinliği</string>
-    <string name="s_key_np_default_background_image_opacity">Varsayılan peyzaj arka zemin görüntü opaklığı</string>
+    <string name="s_key_np_default_background_image_video_opacity">Varsayılan peyzaj arka zemin görüntü opaklığı</string>
     <string name="s_key_np_default_shadow_radius">Varsayılan gölge boyutu</string>
     <string name="s_key_np_default_image_corner_rounding">Varsayılan görüntü köşesi yuvarlama</string>
     <string name="s_key_np_default_wave_speed">Varsayılan dalga hızı</string>

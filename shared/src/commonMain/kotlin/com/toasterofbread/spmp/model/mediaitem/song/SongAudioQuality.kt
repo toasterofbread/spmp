@@ -15,20 +15,28 @@ fun getSongTargetStreamQuality(): SongAudioQuality =
 fun getSongTargetDownloadQuality(): SongAudioQuality =
     Settings.getEnum(StreamingSettings.Key.DOWNLOAD_AUDIO_QUALITY)
 
-suspend fun getSongFormatByQuality(song_id: String, quality: SongAudioQuality, context: AppContext): Result<YoutubeVideoFormat> =
-    getAudioFormats(song_id, context).fold(
+suspend fun getSongAudioFormatByQuality(song_id: String, quality: SongAudioQuality, context: AppContext): Result<YoutubeVideoFormat> =
+    getSongFormats(
+        song_id,
+        context,
+        filter = { format ->
+            format.mimeType.startsWith("audio/mp4")
+        }
+    ).fold(
         { Result.success(it.getByQuality(quality)) },
         { Result.failure(it) }
     )
 
-suspend fun getSongStreamFormat(song_id: String, context: AppContext): Result<YoutubeVideoFormat> =
-    getSongFormatByQuality(song_id, getSongTargetStreamQuality(), context)
+suspend fun getSongTargetAudioFormat(song_id: String, context: AppContext): Result<YoutubeVideoFormat> =
+    getSongAudioFormatByQuality(song_id, getSongTargetStreamQuality(), context)
 
-private suspend fun getAudioFormats(song_id: String, context: AppContext): Result<List<YoutubeVideoFormat>> {
+suspend fun getSongFormats(
+    song_id: String,
+    context: AppContext,
+    filter: (YoutubeVideoFormat) -> Boolean = { true }
+): Result<List<YoutubeVideoFormat>> {
     val result: Result<List<YoutubeVideoFormat>> =
-        context.ytapi.VideoFormats.getVideoFormats(song_id) {
-            it.mimeType.startsWith("audio/mp4")
-        }
+        context.ytapi.VideoFormats.getVideoFormats(song_id, filter)
 
     val formats: List<YoutubeVideoFormat> = result.fold(
         { it },

@@ -26,6 +26,8 @@ data object ThemeSettings: SettingsCategory("theme") {
         NOWPLAYING_THEME_MODE,
         NOWPLAYING_DEFAULT_GRADIENT_DEPTH,
         NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY,
+        NOWPLAYING_DEFAULT_VIDEO_POSITION,
+        NOWPLAYING_DEFAULT_LANDSCAPE_QUEUE_OPACITY,
         NOWPLAYING_DEFAULT_SHADOW_RADIUS,
         NOWPLAYING_DEFAULT_IMAGE_CORNER_ROUNDING,
         NOWPLAYING_DEFAULT_WAVE_SPEED,
@@ -45,6 +47,8 @@ data object ThemeSettings: SettingsCategory("theme") {
                 NOWPLAYING_THEME_MODE -> ThemeMode.DEFAULT.ordinal
                 NOWPLAYING_DEFAULT_GRADIENT_DEPTH -> 1f
                 NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY -> 0.0f
+                NOWPLAYING_DEFAULT_VIDEO_POSITION -> VideoPosition.NONE.ordinal
+                NOWPLAYING_DEFAULT_LANDSCAPE_QUEUE_OPACITY -> 1f
                 NOWPLAYING_DEFAULT_SHADOW_RADIUS -> 0.5f
                 NOWPLAYING_DEFAULT_IMAGE_CORNER_ROUNDING ->
                     when (Platform.current) {
@@ -58,8 +62,20 @@ data object ThemeSettings: SettingsCategory("theme") {
                 WINDOW_BACKGROUND_OPACITY -> 1f
             } as T
     }
+
+    enum class VideoPosition {
+        NONE, BACKGROUND, THUMBNAIL;
+
+        fun getReadable(): String =
+            when (this) {
+                VideoPosition.NONE -> getString("s_key_np_default_video_position_none")
+                VideoPosition.BACKGROUND -> getString("s_key_np_default_video_position_background")
+                VideoPosition.THUMBNAIL -> getString("s_key_np_default_video_position_thumbnail")
+            }
+    }
 }
 
 enum class AccentColourSource {
     THEME, THUMBNAIL
 }
+

@@ -146,7 +146,6 @@
 
     <string name="song_theme_menu_corner_radius">Rayon des coins</string>
     <string name="song_theme_menu_gradient_depth">Profondeur du dégradé</string>
-    <string name="song_theme_menu_background_image_opacity">Opacité de l'image d'arrière-plan</string>
     <string name="song_theme_menu_image_shadow_radius">Rayon de l'ombre de l'image</string>
 
     <string name="song_notif_image_menu_open">Ajuster l'image de notification</string>
@@ -469,7 +468,7 @@
     <string name="s_option_np_accent_none">Ne pas utiliser de couleur d'accent</string>
 
     <string name="s_key_np_default_gradient_depth">Profondeur de dégradé par défaut</string>
-    <string name="s_key_np_default_background_image_opacity">Opacité par défaut de l'image d'arrière-plan en mode paysage</string>
+    <string name="s_key_np_default_background_image_video_opacity">Opacité par défaut de l'image d'arrière-plan en mode paysage</string>
     <string name="s_key_np_default_shadow_radius">Taille d'ombre par défaut</string>
     <string name="s_key_np_default_image_corner_rounding">Arrondi par défaut des coins des images</string>
 

@@ -229,16 +229,25 @@ internal fun QueueTab(
                     }
                 }
 
-                val wave_border_mode_state: NowPlayingQueueWaveBorderMode by PlayerSettings.Key.QUEUE_WAVE_BORDER_MODE.rememberMutableEnumState()
-                val wave_border_mode: NowPlayingQueueWaveBorderMode = wave_border_mode_override ?: wave_border_mode_state
-                QueueBorder(
-                    wave_border_mode,
-                    list_padding,
-                    queue_list_state,
-                    border_thickness,
-                    getBackgroundColour = getBackgroundColour,
-                    getBorderColour = getWaveBorderColour
-                )
+                val wave_border_mode: NowPlayingQueueWaveBorderMode?
+
+                val show_border: Boolean by remember { derivedStateOf { getBackgroundColour(player).alpha >= 1f } }
+                if (show_border) {
+                    val wave_border_mode_state: NowPlayingQueueWaveBorderMode by PlayerSettings.Key.QUEUE_WAVE_BORDER_MODE.rememberMutableEnumState()
+                    wave_border_mode = wave_border_mode_override ?: wave_border_mode_state
+
+                    QueueBorder(
+                        wave_border_mode,
+                        list_padding,
+                        queue_list_state,
+                        border_thickness,
+                        getBackgroundColour = getBackgroundColour,
+                        getBorderColour = getWaveBorderColour
+                    )
+                }
+                else {
+                    wave_border_mode = null
+                }
 
                 CompositionLocalProvider(LocalPlayerClickOverrides provides LocalPlayerClickOverrides.current.copy(
                     onClickOverride = { song, index: Int? ->
@@ -289,7 +298,7 @@ internal fun QueueTab(
                                 { playing_key },
                                 { playing_key = it },
                                 Modifier.padding(horizontal = list_padding),
-                                getItemColour = getBackgroundColour,
+                                getItemColour = { getBackgroundColour(player).copy(alpha = 0f) },
                                 getCurrentItemColour = getOnBackgroundColour
                             )
 
@@ -367,7 +376,7 @@ private fun QueueBorder(
                 }
                 NowPlayingQueueWaveBorderMode.TIME_SYNC -> {
                     while (true) {
-                        wave_border_offset = player.status.getPositionMillis() * WAVE_BORDER_TIME_SPEED
+                        wave_border_offset = player.status.getPositionMs() * WAVE_BORDER_TIME_SPEED
                         delay(update_interval)
                     }
                 }

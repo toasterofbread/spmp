@@ -79,7 +79,7 @@ fun SeekBar(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    SeekBarTimeText(player.status.getPositionMillis(), getColour(player))
+                    SeekBarTimeText(player.status.getPositionMs(), getColour(player))
                     SeekBarTimeText(player.status.m_duration_ms, getColour(player))
                 }
             }

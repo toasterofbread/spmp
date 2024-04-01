@@ -150,6 +150,14 @@ interface Song: MediaItem.WithArtist {
         get() = property_rememberer.rememberSingleQueryProperty(
             "BackgroundImageOpacity", { songQueries.backgroundImageOpacityById(id) }, { background_image_opacity?.toFloat() }, { songQueries.updateBackgroundImageOpacityById(it?.toDouble(), id) }
         )
+    val VideoPosition: Property<ThemeSettings.VideoPosition?>
+        get() = property_rememberer.rememberSingleQueryProperty(
+            "VideoPosition", { songQueries.videoPositionById(id) }, { video_position?.let { ThemeSettings.VideoPosition.entries[it.toInt()] } }, { songQueries.updateVideoPositionById(it?.ordinal?.toLong(), id) }
+        )
+    val LandscapeQueueOpacity: Property<Float?>
+        get() = property_rememberer.rememberSingleQueryProperty(
+            "LandscapeQueueOpacity", { songQueries.landscapeQueueOpacityById(id) }, { landscape_queue_opacity?.toFloat() }, { songQueries.updateLandscapeQueueOpacityById(it?.toDouble(), id) }
+        )
     val ShadowRadius: Property<Float?>
         get() = property_rememberer.rememberSingleQueryProperty(
             "ImageShadowRadius", { songQueries.imageShadowRadiusById(id) }, { image_shadow_radius?.toFloat() }, { songQueries.updateImageShadowRadiusById(it?.toDouble(), id) }

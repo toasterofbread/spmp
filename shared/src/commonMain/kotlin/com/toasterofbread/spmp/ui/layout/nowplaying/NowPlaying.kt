@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.FractionalThreshold
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalDensity
@@ -18,6 +19,7 @@ import androidx.compose.ui.unit.*
 import com.toasterofbread.composekit.platform.*
 import com.toasterofbread.composekit.platform.composable.*
 import com.toasterofbread.composekit.utils.common.*
+import com.toasterofbread.composekit.utils.common.getValue
 import com.toasterofbread.composekit.utils.composable.*
 import com.toasterofbread.composekit.utils.modifier.brushBackground
 import com.toasterofbread.spmp.model.settings.category.*
@@ -285,7 +287,31 @@ fun NowPlaying(
             }
 
             if (NowPlayingPage.getFormFactor(player) == FormFactor.LANDSCAPE) {
-                NowPlayingThumbnailBackground(Modifier.requiredSize(maxOf(page_height, player.screen_size.width)))
+                val default_background_opacity: Float by ThemeSettings.Key.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.rememberMutableState()
+                val song_background_opacity: Float? by player.status.m_song?.BackgroundImageOpacity?.observe(player.database)
+
+                val default_video_position: ThemeSettings.VideoPosition by ThemeSettings.Key.NOWPLAYING_DEFAULT_VIDEO_POSITION.rememberMutableEnumState()
+                val song_video_position: ThemeSettings.VideoPosition? by player.status.m_song?.VideoPosition?.observe(player.database)
+
+                var video_showing: Boolean = false
+
+                if ((song_video_position ?: default_video_position) == ThemeSettings.VideoPosition.BACKGROUND) {
+                    video_showing = NowPlayingVideoBackground(
+                        Modifier.requiredSize(player.screen_size.width, page_height),
+                        getAlpha = {
+                            song_background_opacity ?: default_background_opacity
+                        }
+                    )
+                }
+
+                if (!video_showing) {
+                    NowPlayingThumbnailBackground(
+                        Modifier.requiredSize(maxOf(page_height, player.screen_size.width)),
+                        getAlpha = {
+                            song_background_opacity ?: default_background_opacity
+                        }
+                    )
+                }
             }
 
             BackHandler({ !is_shut }, priority = 1) {

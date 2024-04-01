@@ -166,7 +166,9 @@
 
     <string name="song_theme_menu_corner_radius">Corner radius</string>
     <string name="song_theme_menu_gradient_depth">Gradient depth</string>
-    <string name="song_theme_menu_background_image_opacity">Background image opacity</string>
+    <string name="song_theme_menu_background_image_opacity">Background content opacity</string>
+    <string name="song_theme_menu_video_position">Video position</string>
+    <string name="song_theme_menu_queue_opacity">Queue opacity</string>
     <string name="song_theme_menu_image_shadow_radius">Shadow radius</string>
     <string name="song_theme_menu_wave_speed">Wave speed</string>
     <string name="song_theme_menu_wave_opacity">Wave opacity</string>
@@ -492,7 +494,12 @@
     <string name="s_option_np_accent_none">Don\'t use accent colour</string>
 
     <string name="s_key_np_default_gradient_depth">Default gradient depth</string>
-    <string name="s_key_np_default_background_image_opacity">Default landscape back ground image opacity</string>
+    <string name="s_key_np_default_background_image_video_opacity">Default landscape background image/video opacity</string>
+    <string name="s_key_np_default_video_position">Video position</string>
+    <string name="s_key_np_default_video_position_none">Hidden</string>
+    <string name="s_key_np_default_video_position_background">Player background</string>
+    <string name="s_key_np_default_video_position_thumbnail">Player thumbnail</string>
+    <string name="s_key_np_default_landscape_queue_opacity">Default landscape queue opacity</string>
     <string name="s_key_np_default_shadow_radius">Default shadow size</string>
     <string name="s_key_np_default_image_corner_rounding">Default image corner rounding</string>
     <string name="s_key_np_default_wave_speed">Default wave speed</string>

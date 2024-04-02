@@ -556,7 +556,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
                         for (anchor in 0..vertical_page_count) {
                             val value: Float
                             if (anchor == 0) {
-                                value = minimised_now_playing_height.value - half_screen_height + ((np_bottom_bar_height - bottom_padding.toDp() - top_padding).value / 2)
+                                value = minimised_now_playing_height.value - half_screen_height + ((np_bottom_bar_height).value / 2) - bottom_padding.toDp().value
                             }
                             else {
                                 value = ((screen_size.height - bottom_padding.toDp()).value * anchor) - half_screen_height - (np_bottom_bar_height.value / 2)

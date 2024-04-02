@@ -3,9 +3,13 @@ package com.toasterofbread.spmp.ui.layout.contentbar.element
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.*
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
@@ -48,10 +52,17 @@ data class ContentBarElementLyrics(
     }
 
     @Composable
-    override fun ElementContent(vertical: Boolean, enable_interaction: Boolean, modifier: Modifier) {
+    override fun ElementContent(vertical: Boolean, onPreviewClick: (() -> Unit)?, modifier: Modifier) {
         val player: PlayerState = LocalPlayerState.current
         val current_song: Song? by player.status.song_state
         val lyrics_sync_offset: Long? by current_song?.getLyricsSyncOffset(player.database, true)
+
+        if (onPreviewClick != null) {
+            IconButton(onPreviewClick, modifier) {
+                Icon(Icons.Default.MusicNote, null)
+            }
+            return
+        }
 
         AlignableCrossfade(
             lyrics_state?.lyrics,

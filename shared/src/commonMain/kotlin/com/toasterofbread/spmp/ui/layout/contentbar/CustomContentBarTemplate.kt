@@ -95,7 +95,7 @@ enum class CustomContentBarTemplate {
                 vertical = false,
                 content_padding = PaddingValues(5.dp),
                 buttonContent = { _, element, size ->
-                    element.Element(false, size, enable_interaction = false)
+                    element.Element(false, size, onPreviewClick = {})
                 }
             )
         }

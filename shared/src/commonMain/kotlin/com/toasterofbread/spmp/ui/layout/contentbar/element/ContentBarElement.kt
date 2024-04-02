@@ -49,7 +49,7 @@ sealed class ContentBarElement {
         vertical: Boolean,
         bar_size: DpSize,
         modifier: Modifier = Modifier,
-        enable_interaction: Boolean = true
+        onPreviewClick: (() -> Unit)? = null
     ) {
         val size_dp: Dp? =
             when (size_mode) {
@@ -60,7 +60,7 @@ sealed class ContentBarElement {
 
         ElementContent(
             vertical,
-            enable_interaction,
+            onPreviewClick,
             modifier
                 .thenWith(size_dp) {
                     if (vertical) height(it)
@@ -75,7 +75,7 @@ sealed class ContentBarElement {
     }
 
     @Composable
-    protected abstract fun ElementContent(vertical: Boolean, enable_interaction: Boolean, modifier: Modifier)
+    protected abstract fun ElementContent(vertical: Boolean, onPreviewClick: (() -> Unit)?, modifier: Modifier)
 
     @Composable
     open fun SubConfigurationItems(item_modifier: Modifier, onModification: (ContentBarElement) -> Unit) {}

@@ -23,7 +23,7 @@ sealed interface AppAction {
 
     fun hasCustomContent(): Boolean = false
     @Composable
-    fun CustomContent(enable_interaction: Boolean, modifier: Modifier) {}
+    fun CustomContent(onClick: (() -> Unit)?, modifier: Modifier) {}
 
     @Composable
     fun Preview(modifier: Modifier)

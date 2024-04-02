@@ -48,9 +48,9 @@ data class SongAppAction(
     override fun hasCustomContent() = action.hasCustomContent()
 
     @Composable
-    override fun CustomContent(enable_interaction: Boolean, modifier: Modifier) {
+    override fun CustomContent(onClick: (() -> Unit)?, modifier: Modifier) {
         val song: Song = LocalPlayerState.current.status.song ?: return
-        action.CustomContent(enable_interaction, song, modifier)
+        action.CustomContent(onClick, song, modifier)
     }
 
     override suspend fun executeAction(player: PlayerState) {
@@ -142,22 +142,25 @@ data class SongAppAction(
             this == TOGGLE_LIKE || this == TOGGLE_PIN
 
         @Composable
-        fun CustomContent(enable_interaction: Boolean, song: Song, modifier: Modifier = Modifier) {
+        fun CustomContent(onClick: (() -> Unit)?, song: Song, modifier: Modifier = Modifier) {
             when (this) {
                 TOGGLE_LIKE -> LikeDislikeButton(
                     song,
                     LocalPlayerState.current.context.ytapi.user_auth_state,
                     modifier,
-                    getEnabled = { enable_interaction }
+                    onClick = onClick
                 )
                 TOGGLE_PIN -> {
                     var pinned: Boolean by song.observePinnedToHome()
                     IconButton(
-                        { pinned = !pinned },
-                        enabled = enable_interaction,
-                        colors = IconButtonDefaults.iconButtonColors(
-                            disabledContentColor = LocalContentColor.current
-                        )
+                        { 
+                            if (onClick != null) {
+                                onClick()
+                            }
+                            else {
+                                pinned = !pinned 
+                            }
+                        }
                     ) {
                         Icon(if (pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null)
                     }

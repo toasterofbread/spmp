@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Expand
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 
 @Serializable
 class TogglePlayerNavigationAction: NavigationAction {
@@ -14,7 +14,7 @@ class TogglePlayerNavigationAction: NavigationAction {
         NavigationAction.Type.TOGGLE_PLAYER
 
     override fun getIcon(): ImageVector =
-        Icons.Default.Expand
+        Icons.Default.KeyboardArrowUp
 
     override suspend fun execute(player: PlayerState) {
         player.expansion.toggle()

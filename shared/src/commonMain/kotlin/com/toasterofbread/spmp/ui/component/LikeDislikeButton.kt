@@ -41,6 +41,7 @@ fun LikeDislikeButton(
     song: Song,
     auth_state: ApiAuthenticationState?,
     modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
     getEnabled: (() -> Boolean)? = null,
     getColour: (() -> Color)? = null
 ) {
@@ -64,6 +65,11 @@ fun LikeDislikeButton(
 
     PlatformClickableIconButton(
         onClick = {
+            if (onClick != null) {
+                onClick()
+                return@PlatformClickableIconButton
+            }
+
             coroutine_scope.launchSingle {
                 song.updateLiked(
                     when (liked_status) {
@@ -76,7 +82,7 @@ fun LikeDislikeButton(
             }
         },
         onAltClick = {
-            if (set_liked_endpoint == null) {
+            if (onClick != null || set_liked_endpoint == null) {
                 return@PlatformClickableIconButton
             }
 

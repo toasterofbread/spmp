@@ -78,28 +78,27 @@ data class ContentBarElementButton(
         }
 
     @Composable
-    override fun ElementContent(vertical: Boolean, enable_interaction: Boolean, modifier: Modifier) {
+    override fun ElementContent(vertical: Boolean, onPreviewClick: (() -> Unit)?, modifier: Modifier) {
         if (action.hasCustomContent()) {
-            action.CustomContent(enable_interaction, modifier)
+            action.CustomContent(onPreviewClick, modifier)
             return
         }
 
         val player: PlayerState = LocalPlayerState.current
         val coroutine_scope: CoroutineScope = rememberCoroutineScope()
-        val colours: IconButtonColors =
-            IconButtonDefaults.iconButtonColors(
-                disabledContentColor = LocalContentColor.current
-            )
 
         IconButton(
             {
-                coroutine_scope.launch {
-                    action.executeAction(player)
+                if (onPreviewClick != null) {
+                    onPreviewClick()
+                }
+                else {
+                    coroutine_scope.launch {
+                        action.executeAction(player)
+                    }
                 }
             },
-            modifier,
-            enabled = enable_interaction,
-            colors = colours
+            modifier
         ) {
             if (action is NavigationAppAction) {
                 if (action.action is AppPageNavigationAction && action.action.page == AppPage.Type.PROFILE) {

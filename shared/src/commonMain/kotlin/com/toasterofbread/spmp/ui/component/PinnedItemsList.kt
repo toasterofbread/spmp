@@ -9,6 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.utils.composable.*
+import com.toasterofbread.composekit.utils.common.thenIf
+import com.toasterofbread.composekit.utils.common.thenWith
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.model.mediaitem.db.rememberPinnedItems
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
@@ -21,7 +23,7 @@ private fun Item(
     item: MediaItem,
     vertical: Boolean,
     multiselect_context: MediaItemMultiSelectContext?,
-    enable_interaction: Boolean,
+    onClick: (() -> Unit)?,
     modifier: Modifier = Modifier
 ) {
     val long_press_menu_data: LongPressMenuData = remember(item) {
@@ -45,14 +47,19 @@ private fun Item(
         modifier
             .then(fill_modifier)
             .clip(item.getType().getThumbShape())
+            .thenWith(onClick) {
+                clickable(onClick = it)
+            }
     ) {
         item.Thumbnail(
             ThumbnailProvider.Quality.LOW,
-            fill_modifier.mediaItemPreviewInteraction(
-                loaded_item,
-                long_press_menu_data,
-                enabled = enable_interaction
-            )
+            fill_modifier
+                .thenIf(onClick == null) {
+                    mediaItemPreviewInteraction(
+                        loaded_item,
+                        long_press_menu_data
+                    )
+                }
         )
 
         multiselect_context?.also { ctx ->
@@ -71,7 +78,7 @@ fun PinnedItemsList(
     vertical: Boolean,
     modifier: Modifier = Modifier,
     multiselect_context: MediaItemMultiSelectContext? = null,
-    enable_interaction: Boolean = true,
+    onClick: (() -> Unit)? = null,
     scrolling: Boolean = true
 ) {
     val pinned_items: List<MediaItem> = rememberPinnedItems() ?: emptyList()
@@ -88,7 +95,7 @@ fun PinnedItemsList(
                 show_scrollbar = false
             ) {
                 items(pinned_items) { item ->
-                    Item(item, vertical, multiselect_context, enable_interaction, Modifier.animateItemPlacement())
+                    Item(item, vertical, multiselect_context, onClick, Modifier.animateItemPlacement())
                 }
             }
         }
@@ -102,7 +109,7 @@ fun PinnedItemsList(
                     else Modifier.horizontalScroll(rememberScrollState())
             ) {
                 for (item in pinned_items) {
-                    Item(item, vertical, multiselect_context, enable_interaction)
+                    Item(item, vertical, multiselect_context, onClick)
                 }
             }
         }

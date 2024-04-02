@@ -21,7 +21,7 @@ data class ContentBarElementPinnedItems(
     override fun blocksIndicatorAnimation(): Boolean = true
 
     @Composable
-    override fun ElementContent(vertical: Boolean, enable_interaction: Boolean, modifier: Modifier) {
+    override fun ElementContent(vertical: Boolean, onPreviewClick: (() -> Unit)?, modifier: Modifier) {
         PinnedItemsList(
             vertical,
             modifier
@@ -29,8 +29,8 @@ data class ContentBarElementPinnedItems(
                     if (vertical) padding(vertical = 10.dp)
                     else padding(horizontal = 10.dp)
                 },
-            enable_interaction = enable_interaction,
-            scrolling = size_mode != SizeMode.FILL
+            onClick = onPreviewClick,
+            scrolling = false
         )
     }
 }

@@ -20,7 +20,7 @@ import com.toasterofbread.composekit.platform.composable.platformClickableWithOf
 import com.toasterofbread.composekit.settings.ui.Theme
 import com.toasterofbread.composekit.utils.common.*
 import com.toasterofbread.composekit.utils.composable.*
-import com.toasterofbread.composekit.utils.composable.StickyHeightColumn
+import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
@@ -105,9 +105,7 @@ internal abstract class CustomContentBarEditor() {
             }
         }
 
-        StickyHeightColumn(
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
+        StickyHeightColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             BarConfig(bar) {
                 bar = it
                 commit(bar)
@@ -117,6 +115,7 @@ internal abstract class CustomContentBarEditor() {
             RowOrColumn(
                 vertical_bar,
                 Modifier
+                    .fillMaxWidth()
                     .background(player.theme.vibrant_accent.copy(alpha = 0.25f), RoundedCornerShape(16.dp))
                     .padding(15.dp),
                 alignment = -1
@@ -291,16 +290,13 @@ internal abstract class CustomContentBarEditor() {
                     else Modifier.weight(1f).fillMaxWidth()
                 },
                 buttonContent = { index, element, size ->
-                    Box(
-                        Modifier
-                            .fillMaxSize()
-                            .platformClickableWithOffset(onClick = { onElementClicked(index) }),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    Box(Modifier.fillMaxSize()) {
                         element.Element(
                             vertical_bar,
                             size,
-                            enable_interaction = false
+                            onPreviewClick = {
+                                onElementClicked(index)
+                            }
                         )
                     }
 
@@ -356,9 +352,8 @@ internal abstract class CustomContentBarEditor() {
 
                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(5.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
                     Text(
                         getString("content_bar_editor_move_element"),
@@ -366,20 +361,22 @@ internal abstract class CustomContentBarEditor() {
                         softWrap = false
                     )
 
-                    IconButton({ move(index - 1) }) {
-                        Icon(
-                            if (useVerticalBarLayout()) Icons.Default.KeyboardArrowUp
-                            else Icons.Default.KeyboardArrowLeft,
-                            null
-                        )
-                    }
+                    Row {
+                        IconButton({ move(index - 1) }) {
+                            Icon(
+                                if (useVerticalBarLayout()) Icons.Default.KeyboardArrowUp
+                                else Icons.Default.KeyboardArrowLeft,
+                                null
+                            )
+                        }
 
-                    IconButton({ move(index + 1) }) {
-                        Icon(
-                            if (useVerticalBarLayout()) Icons.Default.KeyboardArrowDown
-                            else Icons.Default.KeyboardArrowRight,
-                            null
-                        )
+                        IconButton({ move(index + 1) }) {
+                            Icon(
+                                if (useVerticalBarLayout()) Icons.Default.KeyboardArrowDown
+                                else Icons.Default.KeyboardArrowRight,
+                                null
+                            )
+                        }
                     }
                 }
             }
@@ -395,26 +392,62 @@ private fun ElementSelector(
     modifier: Modifier = Modifier,
     onSelected: (ContentBarElement.Type) -> Unit
 ) {
-    Column(
-        modifier,
-        verticalArrangement = Arrangement.spacedBy(5.dp)
+    val show_element_buttons: Boolean = LocalPlayerState.current.form_factor == FormFactor.LANDSCAPE
+    var show_element_selector: Boolean by remember(show_element_buttons) { mutableStateOf(false) }
+
+    val available_elements: List<ContentBarElement.Type> = ContentBarElement.Type.entries.filter { it.isAvailable() }
+
+    LargeDropdownMenu(
+        show_element_selector,
+        { show_element_selector = false },
+        available_elements.size,
+        null,
+        {
+            val element: ContentBarElement.Type = available_elements[it]
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Icon(element.getIcon(), null)
+                Text(element.getName(), softWrap = false)
+            }
+        }
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        onSelected(available_elements[it])
+        show_element_selector = false
+    }
+
+    if (!show_element_buttons) {
+        Button(
+            { show_element_selector = true },
+            colors = button_colours
         ) {
             Icon(Icons.Default.Add, null)
             Text(getString("content_bar_editor_add_element"))
         }
+    }
+    else {
+        Column(
+            modifier,
+            verticalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Icon(Icons.Default.Add, null)
+                Text(getString("content_bar_editor_add_element"))
+            }
 
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-            for (type in ContentBarElement.Type.entries.filter { it.isAvailable() }) {
-                Button(
-                    { onSelected(type) },
-                    colors = button_colours
-                ) {
-                    Icon(type.getIcon(), null)
-                    Text(type.getName(), softWrap = false)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                for (type in ContentBarElement.Type.entries.filter { it.isAvailable() }) {
+                    Button(
+                        { onSelected(type) },
+                        colors = button_colours
+                    ) {
+                        Icon(type.getIcon(), null)
+                        Text(type.getName(), softWrap = false)
+                    }
                 }
             }
         }

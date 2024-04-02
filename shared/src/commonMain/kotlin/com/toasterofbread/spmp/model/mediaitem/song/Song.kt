@@ -225,7 +225,7 @@ interface Song: MediaItem.WithArtist {
 private data class SongThumbnailProvider(val id: String): ThumbnailProvider {
     override fun getThumbnailUrl(quality: ThumbnailProvider.Quality): String? =
         when (quality) {
-            ThumbnailProvider.Quality.LOW -> "https://img.youtube.com/vi/$id/0.jpg"
+            ThumbnailProvider.Quality.LOW -> "https://img.youtube.com/vi/$id/mqdefault.jpg"
             ThumbnailProvider.Quality.HIGH -> "https://img.youtube.com/vi/$id/maxresdefault.jpg"
         }
 }

@@ -38,7 +38,7 @@ sealed class ContentBar {
         content_padding: PaddingValues,
         distance_to_page: Dp,
         modifier: Modifier = Modifier,
-        top_padding: Dp = 0.dp,
+        base_content_padding: PaddingValues = PaddingValues(),
         getParentBackgroundColour: () -> Color? = { null },
         getBackgroundColour: (Color) -> Color = { it }
     ): Boolean {
@@ -58,9 +58,9 @@ sealed class ContentBar {
             result = BarContent(
                 slot,
                 slot_colour_source.theme_colour,
-                content_padding,
+                base_content_padding,
                 distance_to_page,
-                modifier.background(background_colour).padding(top = top_padding)
+                modifier.background(background_colour).padding(content_padding)
             )
         }
 
@@ -103,7 +103,7 @@ fun LayoutSlot.DisplayBar(
     distance_to_page: Dp,
     modifier: Modifier = Modifier,
     container_modifier: Modifier = Modifier,
-    top_padding: Dp = 0.dp,
+    content_padding: PaddingValues = PaddingValues(),
     getParentBackgroundColour: () -> Color? = { null },
     getBackgroundColour: (Color) -> Color = { it },
     onConfigDataChanged: (JsonElement?) -> Unit = {}
@@ -117,7 +117,7 @@ fun LayoutSlot.DisplayBar(
     }
 
     val base_padding: Dp = 5.dp
-    val content_padding: PaddingValues = PaddingValues(
+    val base_content_padding: PaddingValues = PaddingValues(
         top = base_padding,
         start = base_padding,
         end = base_padding,
@@ -136,12 +136,12 @@ fun LayoutSlot.DisplayBar(
         if (selection_state == null) {
             content_bar_result = content_bar?.Bar(
                 this,
-                content_padding = content_padding,
+                base_content_padding = base_content_padding,
                 distance_to_page = distance_to_page,
                 modifier = modifier,
                 getParentBackgroundColour = getParentBackgroundColour,
                 getBackgroundColour = getBackgroundColour,
-                top_padding = top_padding
+                content_padding = content_padding
             ) ?: false
             return@Crossfade
         }
@@ -149,15 +149,15 @@ fun LayoutSlot.DisplayBar(
         val selctor_size: Dp = 50.dp
         val selector_modifier: Modifier =
             if (this.is_vertical) modifier.width(selctor_size)
-            else modifier.height(selctor_size + top_padding)
+            else modifier.height(selctor_size + content_padding.calculateTopPadding() + content_padding.calculateBottomPadding())
 
         ContentBarSelector(
             selection_state,
             this,
             selector_modifier,
             slot_config = config_data,
-            content_padding = content_padding,
-            top_padding = top_padding
+            base_content_padding = base_content_padding,
+            content_padding = content_padding
         )
     }
 

@@ -76,7 +76,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.*
 import com.toasterofbread.spmp.ui.layout.contentbar.*
-import com.toasterofbread.spmp.ui.layout.StatusBarColourState
+import com.toasterofbread.spmp.ui.layout.BarColourState
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -146,10 +146,16 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
     private var download_request_always_show_options: Boolean by mutableStateOf(false)
     private var download_request_callback: DownloadRequestCallback? by mutableStateOf(null)
 
-    val status_bar_colour_state: StatusBarColourState =
-        object : StatusBarColourState() {
+    val bar_colour_state: BarColourState =
+        object : BarColourState() {
+            fun getDefaultColour(): Color = theme.background
+
             override fun onCurrentStatusBarColourChanged(colour: Color?) {
-                context.setStatusBarColour(colour ?: theme.background)
+                context.setStatusBarColour(colour ?: getDefaultColour())
+            }
+
+            override fun onCurrentNavigationBarColourChanged(colour: Color?) {
+                context.setNavigationBarColour(colour ?: getDefaultColour())
             }
         }
 
@@ -395,16 +401,6 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         return bottom_padding
     }
 
-    fun onNavigationBarTargetColourChanged(colour: Color?, from_lpm: Boolean) {
-        if (!from_lpm && long_press_menu_showing) {
-            return
-        }
-
-        context.setNavigationBarColour(
-            colour ?: if (from_lpm) getNPBackground() else null
-        )
-    }
-
     fun openAppPage(page: AppPage?, from_current: Boolean = false, replace_current: Boolean = false) {
         if (page == app_page) {
             page.onReopened()
@@ -530,6 +526,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
     fun NowPlaying() {
         val player: PlayerState = LocalPlayerState.current
         val density: Density = LocalDensity.current
+        val top_padding: Dp = WindowInsets.getTop()
         val bottom_padding: Int = density.getNpBottomPadding(WindowInsets.systemBars, WindowInsets.navigationBars, WindowInsets.ime)
 
         val vertical_page_count: Int = getNowPlayingVerticalPageCount(this)
@@ -550,23 +547,23 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
 
         val player_height: Dp = screen_size.height
 
-        LaunchedEffect(player_height, bottom_padding, vertical_page_count, np_bottom_bar_height) {
+        LaunchedEffect(player_height, top_padding, bottom_padding, vertical_page_count, np_bottom_bar_height) {
             val half_screen_height: Float = player_height.value * 0.5f
 
             val anchors: DraggableAnchors<Int> =
                 DraggableAnchors {
-                    for (anchor in 0..vertical_page_count) {
-                        val value: Float
-                        if (anchor == 0) {
-                            value = minimised_now_playing_height.value - half_screen_height + (np_bottom_bar_height.value / 2)
-                        }
-                        else {
-                            with(density) {
+                    with(density) {
+                        for (anchor in 0..vertical_page_count) {
+                            val value: Float
+                            if (anchor == 0) {
+                                value = minimised_now_playing_height.value - half_screen_height + ((np_bottom_bar_height - bottom_padding.toDp() - top_padding).value / 2)
+                            }
+                            else {
                                 value = ((screen_size.height - bottom_padding.toDp()).value * anchor) - half_screen_height - (np_bottom_bar_height.value / 2)
                             }
-                        }
 
-                        anchor at value
+                            anchor at value
+                        }
                     }
                 }
 
@@ -604,7 +601,6 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
                     player_height
                     - expanded_bottom_bar_height
                     - nowPlayingBottomPadding()
-                    - WindowInsets.getTop()
                 )
 
                 com.toasterofbread.spmp.ui.layout.nowplaying.NowPlaying(
@@ -621,11 +617,14 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
 
             np_bottom_bar_showing = bottom_layout_slot.DisplayBar(
                 0.dp,
-                container_modifier = Modifier.onSizeChanged {
-                    np_bottom_bar_height = with (density) {
-                        it.height.toDp()
-                    }
-                },
+                container_modifier =
+                    Modifier
+                        .onSizeChanged {
+                            np_bottom_bar_height = with (density) {
+                                it.height.toDp()
+                            }
+                        },
+                content_padding = PaddingValues(bottom = with (density) { bottom_padding.toDp() }),
                 modifier = Modifier
                     .fillMaxWidth()
                     .offset {
@@ -661,6 +660,15 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
                     return@DisplayBar getNPBackground().blendWith(background_colour, our_ratio = min_background_alpha)
                 }
             )
+
+            val bottom_bar_colour: ColourSource by bottom_layout_slot.rememberColourSource()
+            LaunchedEffect(np_bottom_bar_showing) {
+                bar_colour_state.nav_bar.setLevelColour(
+                    if (np_bottom_bar_showing) bottom_bar_colour
+                    else null,
+                    BarColourState.NavBarLevel.BAR
+                )
+            }
         }
     }
 
@@ -669,7 +677,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
 
     @Composable
     fun PersistentContent() {
-        status_bar_colour_state.Update()
+        bar_colour_state.Update()
 
         long_press_menu_data?.also { data ->
             LongPressMenu(

@@ -63,6 +63,8 @@ import com.toasterofbread.composekit.utils.composable.getStart
 import com.toasterofbread.spmp.model.mediaitem.db.rememberThemeColour
 import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.CustomColourSource
+import com.toasterofbread.spmp.ui.layout.BarColourState
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -215,9 +217,9 @@ internal fun DesktopLongPressMenu(
                         accent_colour = theme_colour
                     }
 
-                    player.onNavigationBarTargetColourChanged(player.theme.background, true)
+                    player.bar_colour_state.nav_bar.setLevelColour(CustomColourSource(player.theme.background), BarColourState.NavBarLevel.LPM)
                     onDispose {
-                        player.onNavigationBarTargetColourChanged(null, true)
+                        player.bar_colour_state.nav_bar.setLevelColour(null, BarColourState.NavBarLevel.LPM)
                     }
                 }
 

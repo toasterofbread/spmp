@@ -86,17 +86,7 @@ class MainActivity: ComponentActivity() {
             else null
 
         setContent {
-            var launched: Boolean by remember { mutableStateOf(false) }
-
-            LaunchedEffect(Unit) {
-                context.setStatusBarColour(context.theme.background)
-                context.setNavigationBarColour(context.theme.background)
-                launched = true
-            }
-
-            if (launched) {
-                SpMp.App(ProgramArguments(), shortcut_state, open_uri = open_uri?.toString())
-            }
+            SpMp.App(ProgramArguments(), shortcut_state, open_uri = open_uri?.toString())
         }
     }
 

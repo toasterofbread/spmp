@@ -18,7 +18,7 @@ import com.toasterofbread.composekit.utils.modifier.background
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
-import com.toasterofbread.spmp.ui.layout.StatusBarColourState
+import com.toasterofbread.spmp.ui.layout.BarColourState
 import com.toasterofbread.spmp.ui.layout.contentbar.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.*
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
@@ -68,12 +68,12 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
                 val highest_colour: ColourSource? by highest_slot?.rememberColourSource()
 
                 LaunchedEffect(highest_colour) {
-                    player.status_bar_colour_state.setLevelColour(highest_colour, StatusBarColourState.Level.BAR)
+                    player.bar_colour_state.status_bar.setLevelColour(highest_colour, BarColourState.StatusBarLevel.BAR)
                 }
 
                 DisposableEffect(Unit) {
                     onDispose {
-                        player.status_bar_colour_state.setLevelColour(null, StatusBarColourState.Level.BAR)
+                        player.bar_colour_state.status_bar.setLevelColour(null, BarColourState.StatusBarLevel.BAR)
                     }
                 }
 
@@ -95,7 +95,7 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
                                 _upper_bar_displaying = upper_bar_slot.DisplayBar(
                                     if (lower_bar_displaying) lower_bar_height else 0.dp,
                                     Modifier.fillMaxWidth(),
-                                    top_padding = top_padding
+                                    content_padding = PaddingValues(top = top_padding)
                                 )
 
                                 DisposableEffect(Unit) {
@@ -114,7 +114,7 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
                             .onSizeChanged {
                                 lower_bar_height = with (density) { it.height.toDp() }
                             },
-                        top_padding = if (!upper_bar_displaying) top_padding else 0.dp
+                        content_padding = PaddingValues(top = if (!upper_bar_displaying) top_padding else 0.dp)
                     )
                 }
 

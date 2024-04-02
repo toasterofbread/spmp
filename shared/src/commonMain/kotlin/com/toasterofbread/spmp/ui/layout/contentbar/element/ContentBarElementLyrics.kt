@@ -26,7 +26,7 @@ data class ContentBarElementLyrics(
     override val size_mode: ContentBarElement.SizeMode = DEFAULT_SIZE_MODE,
     override val size: Int = DEFAULT_SIZE,
     val alignment: Int = 0,
-    val linger: Boolean = false,
+    val linger: Boolean = true,
     val show_furigana: Boolean = true
     // val max_lines: Int = 1,
     // val preallocate_max_space: Boolean = false,

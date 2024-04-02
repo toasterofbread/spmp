@@ -50,7 +50,7 @@ internal fun ContentBarSelector(
     modifier: Modifier = Modifier,
     slot_config: JsonElement? = null,
     content_padding: PaddingValues = PaddingValues(),
-    top_padding: Dp = 0.dp
+    base_content_padding: PaddingValues = PaddingValues()
 ) {
     val player: PlayerState = LocalPlayerState.current
     val density: Density = LocalDensity.current
@@ -76,9 +76,9 @@ internal fun ContentBarSelector(
                 .clipToBounds()
                 .fillMaxSize()
                 .background(player.theme.background)
-                .padding(top = top_padding)
-                .border(1.dp, player.theme.vibrant_accent)
                 .padding(content_padding)
+                .border(1.dp, player.theme.vibrant_accent)
+                .padding(base_content_padding)
         ) {
             CompositionLocalProvider(LocalContentColor provides player.theme.background.getContrasted()) {
                 Row(

@@ -28,7 +28,7 @@ import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.service.playercontroller.*
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
-import com.toasterofbread.spmp.ui.layout.StatusBarColourState
+import com.toasterofbread.spmp.ui.layout.BarColourState
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.CustomColourSource
 import kotlinx.coroutines.*
 
@@ -342,21 +342,21 @@ private fun updateBarColours(page_height: Dp) {
     val under_status_bar by remember { derivedStateOf { 1f - expansion.get() < status_bar_height_percent } }
 
     DisposableEffect(under_status_bar, background_colour) {
-        player.status_bar_colour_state.setLevelColour(
+        player.bar_colour_state.status_bar.setLevelColour(
             if (under_status_bar) CustomColourSource(background_colour) else null,
-            StatusBarColourState.Level.PLAYER
+            BarColourState.StatusBarLevel.PLAYER
         )
 
         onDispose {
-            player.status_bar_colour_state.setLevelColour(null, StatusBarColourState.Level.PLAYER)
+            player.bar_colour_state.status_bar.setLevelColour(null, BarColourState.StatusBarLevel.PLAYER)
         }
     }
 
     DisposableEffect(background_colour) {
-        player.onNavigationBarTargetColourChanged(background_colour, false)
+        player.bar_colour_state.nav_bar.setLevelColour(CustomColourSource(background_colour), BarColourState.NavBarLevel.PLAYER)
 
         onDispose {
-            player.onNavigationBarTargetColourChanged(null, false)
+            player.bar_colour_state.nav_bar.setLevelColour(null, BarColourState.NavBarLevel.PLAYER)
         }
     }
 }

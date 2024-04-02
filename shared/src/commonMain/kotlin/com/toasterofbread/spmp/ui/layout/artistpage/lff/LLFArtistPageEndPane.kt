@@ -20,6 +20,7 @@ import com.toasterofbread.composekit.utils.modifier.vertical
 import com.toasterofbread.spmp.model.mediaitem.MediaItemRef
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
 import com.toasterofbread.spmp.model.mediaitem.layout.Layout
+import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
 import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
@@ -140,7 +141,7 @@ internal fun ArtistAppPage.LFFArtistEndPane(
                         verticalArrangement = Arrangement.spacedBy(30.dp)
                     ) {
                         for (item_layout in item_layouts ?: emptyList()) {
-                            val layout: MediaItemLayout = item_layout.rememberMediaItemLayout(player.database).layout
+                            val layout: AppMediaItemLayout = item_layout.rememberMediaItemLayout(player.database).layout
 
                             val layout_id: YoutubeUILocalisation.StringID? = (layout.title as? YoutubeUiString)?.getYoutubeStringId()
                             if (layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_ARTISTS) {
@@ -149,7 +150,7 @@ internal fun ArtistAppPage.LFFArtistEndPane(
 
                             val is_singles: Boolean =
                                 BehaviourSettings.Key.TREAT_SINGLES_AS_SONG.get()
-                                        && layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_SINGLES
+                                    && layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_SINGLES
 
                             val is_artist_row: Boolean =
                                 layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_SINGLES || layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_OTHER

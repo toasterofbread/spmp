@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.model.mediaitem.artist
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.deserialise
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
@@ -13,6 +14,7 @@ import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.layout.ContinuableMediaItemLayout
 import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.layout.YoutubePageType
+import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.toMediaItemData
@@ -74,28 +76,37 @@ sealed interface ArtistLayout {
             view_more = ViewMore.get(db),
             playlist_id = Playlist.get(db)?.id
         )
-    
+
     @Composable
     fun rememberMediaItemLayout(db: Database): ContinuableMediaItemLayout {
         val items: List<MediaItem>? by Items.observe(db)
+        var item_data: List<MediaItemData>? = remember(items) { items?.map { it.getEmptyData() } }
+
         val title: UiString? by Title.observe(db)
         val subtitle: UiString? by Subtitle.observe(db)
         val type: ItemLayoutType? by Type.observe(db)
         val view_more: YoutubePage? by ViewMore.observe(db)
         val playlist: RemotePlaylist? by Playlist.observe(db)
 
-        return ContinuableMediaItemLayout(
-            MediaItemLayout(
-                items ?: emptyList(),
-                title,
-                subtitle,
-                type,
-                view_more,
-            ),
-            playlist?.id?.let {
-                ContinuableMediaItemLayout.Continuation(it)
+        val layout: AppMediaItemLayout =
+            remember(item_data, title, subtitle, type, view_more) {
+                AppMediaItemLayout(
+                    item_data ?: emptyList(),
+                    title,
+                    subtitle,
+                    type,
+                    view_more,
+                )
             }
-        )
+
+        return remember(layout, playlist) {
+            ContinuableMediaItemLayout(
+                layout,
+                playlist?.id?.let {
+                    ContinuableMediaItemLayout.Continuation(it)
+                }
+            )
+        }
     }
 
     val Items get() = ListPropertyImpl(

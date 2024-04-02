@@ -23,14 +23,14 @@ import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemList
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemCard
 import dev.toastbits.ytmkt.model.external.ItemLayoutType
 import dev.toastbits.ytmkt.model.external.YoutubePage
-import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
 import dev.toastbits.ytmkt.uistrings.UiString
 
 data class ContinuableMediaItemLayout(
-    val layout: MediaItemLayout,
+    val layout: AppMediaItemLayout,
     val continuation: Continuation? = null
 ) {
     data class Continuation(var token: String) {
@@ -83,7 +83,7 @@ fun getMediaItemPreviewSquareAdditionalHeight(text_rows: Int?, line_height: Text
 
 @Composable
 fun ItemLayoutType.Layout(
-    layout: MediaItemLayout,
+    layout: AppMediaItemLayout,
     layout_params: MediaItemLayoutParams,
     grid_params: MediaItemGridParams = MediaItemGridParams(),
     list_params: MediaItemListParams = MediaItemListParams()
@@ -94,7 +94,7 @@ fun ItemLayoutType.Layout(
         ItemLayoutType.ROW -> MediaItemGrid(layout, layout_params, remember(grid_params) { grid_params.copy(rows = Pair(1, 1)) })
         ItemLayoutType.LIST -> MediaItemList(layout, layout_params, remember(list_params) { list_params.copy(numbered = false) })
         ItemLayoutType.NUMBERED_LIST -> MediaItemList(layout, layout_params, remember(list_params) { list_params.copy(numbered = false) })
-        ItemLayoutType.CARD -> com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemCard(
+        ItemLayoutType.CARD -> MediaItemCard(
             layout,
             layout_params.modifier,
             multiselect_context = layout_params.multiselect_context,
@@ -104,7 +104,7 @@ fun ItemLayoutType.Layout(
 }
 
 @Composable
-fun MediaItemLayout.Layout(
+fun AppMediaItemLayout.Layout(
     layout_params: MediaItemLayoutParams,
     grid_params: MediaItemGridParams = MediaItemGridParams(),
     list_params: MediaItemListParams = MediaItemListParams()
@@ -113,7 +113,7 @@ fun MediaItemLayout.Layout(
 }
 
 @Composable
-fun MediaItemLayout.TitleBar(
+fun AppMediaItemLayout.TitleBar(
     modifier: Modifier = Modifier,
     font_size: TextUnit? = null,
     multiselect_context: MediaItemMultiSelectContext? = null

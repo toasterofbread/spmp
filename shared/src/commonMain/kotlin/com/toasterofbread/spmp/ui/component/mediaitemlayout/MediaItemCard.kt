@@ -49,10 +49,12 @@ import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
 import com.toasterofbread.spmp.model.mediaitem.layout.TitleBar
+import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
 import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.toMediaItemRef
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
@@ -67,7 +69,7 @@ import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
 
 @Composable
 fun MediaItemCard(
-    layout: MediaItemLayout,
+    layout: AppMediaItemLayout,
     modifier: Modifier = Modifier,
     multiselect_context: MediaItemMultiSelectContext? = null,
     apply_filter: Boolean = false
@@ -75,7 +77,7 @@ fun MediaItemCard(
     val player: PlayerState = LocalPlayerState.current
     val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
-    val item: MediaItem = remember(layout) { layout.items.first().toMediaItemRef() }
+    val item: MediaItemData = remember(layout) { layout.items.first() }
     if (apply_filter && isMediaItemHidden(item, player.database)) {
         return
     }

@@ -29,6 +29,7 @@ import com.toasterofbread.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.enums.*
 import com.toasterofbread.spmp.model.mediaitem.layout.*
+import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
 import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
 import com.toasterofbread.spmp.model.MediaItemLayoutParams
 import com.toasterofbread.spmp.platform.*
@@ -45,13 +46,26 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.theme.appHover
 import com.toasterofbread.spmp.ui.component.NotImplementedMessage
 import dev.toastbits.ytmkt.endpoint.*
-import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
+import dev.toastbits.ytmkt.endpoint.SearchFilter
+import dev.toastbits.ytmkt.endpoint.SearchResults
 import dev.toastbits.ytmkt.model.external.ItemLayoutType
 import kotlinx.coroutines.*
 
 internal val SEARCH_FIELD_FONT_SIZE: TextUnit = 18.sp
 internal const val SEARCH_SUGGESTIONS_LOAD_DELAY_MS: Long = 200
 internal const val SEARCH_MAX_SUGGESTIONS: Int = 5
+
+internal data class AppSearchResults(
+    val categories: List<Pair<AppMediaItemLayout, SearchFilter?>>,
+    val suggested_correction: String?
+) {
+    constructor(results: SearchResults): this(
+        results.categories.map { category ->
+            Pair(AppMediaItemLayout(category.first), category.second)
+        },
+        results.suggested_correction
+    )
+}
 
 class SearchAppPage(override val state: AppPageState, val context: AppContext): AppPage() {
     private val coroutine_scope = CoroutineScope(Job())
@@ -62,7 +76,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
     private var multiselect_context: MediaItemMultiSelectContext? = null
 
     internal var search_in_progress: Boolean by mutableStateOf(false)
-    internal var current_results: SearchResults? by mutableStateOf(null)
+    internal var current_results: AppSearchResults? by mutableStateOf(null)
     internal var current_query: String by mutableStateOf("")
     internal var current_filter: SearchType? by mutableStateOf(null)
     private var error: Throwable? by mutableStateOf(null)
@@ -208,7 +222,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
                 Crossfade(
                     error ?: current_results
                 ) { results ->
-                    if (results is SearchResults) {
+                    if (results is AppSearchResults) {
                         Results(
                             results,
                             padding,
@@ -284,7 +298,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
                         }
 
                         synchronized(search_lock) {
-                            current_results = results
+                            current_results = AppSearchResults(results)
                             search_in_progress = false
                         }
                     },
@@ -300,7 +314,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
     }
 
     @Composable
-    private fun Results(results: SearchResults, padding: PaddingValues, multiselect_context: MediaItemMultiSelectContext) {
+    private fun Results(results: AppSearchResults, padding: PaddingValues, multiselect_context: MediaItemMultiSelectContext) {
         LazyColumn(
             Modifier.fillMaxSize(),
             contentPadding = padding,
@@ -323,10 +337,10 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
             }
 
             for (category in results.categories.withIndex()) {
-                val layout = category.value.first
+                val layout: AppMediaItemLayout = category.value.first
                 item {
                     (layout.type ?: ItemLayoutType.LIST).Layout(
-                        layout, 
+                        layout,
                         MediaItemLayoutParams(
                             multiselect_context = multiselect_context
                         )

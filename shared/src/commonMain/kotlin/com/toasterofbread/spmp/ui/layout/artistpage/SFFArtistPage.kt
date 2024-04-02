@@ -22,6 +22,7 @@ import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
 import com.toasterofbread.spmp.model.mediaitem.layout.Layout
+import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
 import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
@@ -149,7 +150,7 @@ internal fun ArtistAppPage.SFFArtistPage(
                     verticalArrangement = Arrangement.spacedBy(30.dp)
                 ) {
                     for (artist_layout in item_layouts ?: emptyList()) {
-                        val layout: MediaItemLayout = artist_layout.rememberMediaItemLayout(player.database).layout
+                        val layout: AppMediaItemLayout = artist_layout.rememberMediaItemLayout(player.database).layout
                         val layout_id: YoutubeUILocalisation.StringID? = (layout.title as? YoutubeUiString)?.getYoutubeStringId()
 
                         val is_singles: Boolean =

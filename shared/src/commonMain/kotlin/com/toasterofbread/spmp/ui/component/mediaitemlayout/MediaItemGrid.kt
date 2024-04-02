@@ -37,12 +37,13 @@ import com.toasterofbread.composekit.utils.modifier.vertical
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.getUid
-import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
 import com.toasterofbread.spmp.model.mediaitem.layout.getMediaItemPreviewSquareAdditionalHeight
 import com.toasterofbread.spmp.model.mediaitem.layout.shouldShowTitleBar
+import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.rememberFilteredItems
 import com.toasterofbread.spmp.model.mediaitem.toMediaItemData
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.MediaItemLayoutParams
 import com.toasterofbread.spmp.model.MediaItemGridParams
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP
@@ -57,7 +58,7 @@ import kotlin.math.roundToInt
 
 @Composable
 fun MediaItemGrid(
-    layout: MediaItemLayout,
+    layout: AppMediaItemLayout,
     layout_params: MediaItemLayoutParams,
     grid_params: MediaItemGridParams = MediaItemGridParams()
 ) {
@@ -65,7 +66,7 @@ fun MediaItemGrid(
         layout_params =
             remember(layout, layout_params) {
                 layout_params.copy(
-                    items = layout.items.map { it.toMediaItemData() },
+                    items = layout.items,
                     title = layout.title,
                     subtitle = layout.subtitle,
                     view_more = layout.view_more

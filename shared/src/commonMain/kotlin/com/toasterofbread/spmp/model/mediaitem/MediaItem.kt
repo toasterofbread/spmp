@@ -115,20 +115,20 @@ interface MediaItem: MediaItemHolder, YtmMediaItem {
 
     val Loaded: Property<Boolean>
         get() = property_rememberer.rememberSingleQueryProperty(
-        "Loaded", { mediaItemQueries.loadedById(id) }, { loaded.fromSQLBoolean() }, { mediaItemQueries.updateLoadedById(it.toSQLBoolean(), id) }, { false }
-    )
+            "Loaded", { mediaItemQueries.loadedById(id) }, { loaded.fromSQLBoolean() }, { mediaItemQueries.updateLoadedById(it.toSQLBoolean(), id) }, { false }
+        )
     val Title: Property<String?>
         get() = property_rememberer.rememberSingleQueryProperty(
-        "Title", { mediaItemQueries.titleById(id) }, { title }, { mediaItemQueries.updateTitleById(it, id) }
-    )
+            "Title", { mediaItemQueries.titleById(id) }, { title }, { mediaItemQueries.updateTitleById(it, id) }
+        )
     val CustomTitle: Property<String?>
         get() = property_rememberer.rememberSingleQueryProperty(
-        "CustomTitle", { mediaItemQueries.customTitleById(id) }, { custom_title }, { mediaItemQueries.updateCustomTitleById(it, id) }
-    )
+            "CustomTitle", { mediaItemQueries.customTitleById(id) }, { custom_title }, { mediaItemQueries.updateCustomTitleById(it, id) }
+        )
     val Description: Property<String?>
         get() = property_rememberer.rememberSingleQueryProperty(
-        "Description", { mediaItemQueries.descriptionById(id) }, { description }, { mediaItemQueries.updateDescriptionById(it, id) }
-    )
+            "Description", { mediaItemQueries.descriptionById(id) }, { description }, { mediaItemQueries.updateDescriptionById(it, id) }
+        )
     val ThumbnailProvider: Property<ThumbnailProvider?>
         get() = property_rememberer.rememberSingleQueryProperty(
         "ThumbnailProvider",
@@ -142,12 +142,12 @@ interface MediaItem: MediaItemHolder, YtmMediaItem {
 
     val ThemeColour: Property<Color?>
         get() = property_rememberer.rememberSingleQueryProperty(
-        "ThemeColour", { mediaItemQueries.themeColourById(id) }, { theme_colour?.let { Color(it) } }, { mediaItemQueries.updateThemeColourById(it?.toArgb()?.toLong(), id) }
-    )
+            "ThemeColour", { mediaItemQueries.themeColourById(id) }, { theme_colour?.let { Color(it) } }, { mediaItemQueries.updateThemeColourById(it?.toArgb()?.toLong(), id) }
+        )
     val Hidden: Property<Boolean>
         get() = property_rememberer.rememberSingleQueryProperty(
-        "Hidden", { mediaItemQueries.isHiddenById(id) }, { hidden.fromSQLBoolean() }, { mediaItemQueries.updateIsHiddenById(it.toSQLBoolean(), id) }, { false }
-    )
+            "Hidden", { mediaItemQueries.isHiddenById(id) }, { hidden.fromSQLBoolean() }, { mediaItemQueries.updateIsHiddenById(it.toSQLBoolean(), id) }, { false }
+        )
 
     interface WithArtist: MediaItem {
         val Artist: AltSetterProperty<ArtistRef?, Artist?>

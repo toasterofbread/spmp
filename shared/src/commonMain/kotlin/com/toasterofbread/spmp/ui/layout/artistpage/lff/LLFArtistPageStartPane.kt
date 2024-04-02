@@ -42,6 +42,7 @@ import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
 import com.toasterofbread.spmp.model.mediaitem.artist.toReadableSubscriberCount
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.model.mediaitem.layout.Layout
+import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
 import com.toasterofbread.spmp.model.MediaItemLayoutParams
 import com.toasterofbread.spmp.model.MediaItemGridParams
 import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
@@ -215,7 +216,7 @@ fun LFFArtistStartPane(
                 Spacer(Modifier.height(20.dp).fillMaxWidth())
 
                 for (item_layout in item_layouts ?: emptyList()) {
-                    val layout: MediaItemLayout = item_layout.rememberMediaItemLayout(player.database).layout
+                    val layout: AppMediaItemLayout = item_layout.rememberMediaItemLayout(player.database).layout
                     if ((layout.title as? YoutubeUiString)?.getYoutubeStringId() != YoutubeUILocalisation.StringID.ARTIST_ROW_ARTISTS) {
                         continue
                     }

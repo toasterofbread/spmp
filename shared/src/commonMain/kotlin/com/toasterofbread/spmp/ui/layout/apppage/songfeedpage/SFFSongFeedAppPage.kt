@@ -26,6 +26,7 @@ import com.toasterofbread.spmp.model.deserialise
 import com.toasterofbread.spmp.model.getString
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.layout.Layout
+import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
 import com.toasterofbread.spmp.model.serialise
 import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.settings.category.FeedSettings
@@ -61,8 +62,8 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
     }
 
     val player: PlayerState = LocalPlayerState.current
-    val artists_layout: MediaItemLayout = remember {
-        MediaItemLayout(
+    val artists_layout: AppMediaItemLayout = remember {
+        AppMediaItemLayout(
             mutableStateListOf(),
             null,
             null,
@@ -146,7 +147,7 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
             PinnedItemsRow(modifier, multiselect_context = multiselect_context)
         }
 
-        var hiding_layout: MediaItemLayout? by remember { mutableStateOf(null) }
+        var hiding_layout: AppMediaItemLayout? by remember { mutableStateOf(null) }
 
         hiding_layout?.also { layout ->
             val title: UiString = layout.title ?: return@also
@@ -219,7 +220,7 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
                         }
                     }
 
-                    items((state as List<MediaItemLayout>)) { layout ->
+                    items((state as List<AppMediaItemLayout>)) { layout ->
                         if (layout.items.isEmpty()) {
                             return@items
                         }

@@ -6,6 +6,8 @@ import com.toasterofbread.spmp.model.mediaitem.getType
 import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.layout.ContinuableMediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.layout.YoutubePageType
+import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.deserialise
 import com.toasterofbread.spmp.model.serialise
 import dev.toastbits.ytmkt.endpoint.SongFeedFilterChip
@@ -26,7 +28,7 @@ object SongFeedCache {
     private val CACHE_LIFETIME = Duration.ofHours(3)
 
     suspend fun saveFeedLayouts(
-        layouts: List<MediaItemLayout>,
+        layouts: List<AppMediaItemLayout>,
         filter_chips: List<SongFeedFilterChip>?,
         continuation_token: String?,
         database: Database,
@@ -93,15 +95,15 @@ object SongFeedCache {
                         continuation_token = row.continuation_token
                     }
 
-                    val items = database.songFeedRowItemQueries
+                    val items: List<MediaItemData> = database.songFeedRowItemQueries
                         .byRowIndex(row.row_index)
                         .executeAsList()
                         .map { item ->
-                            MediaItemType.entries[item.item_type.toInt()].referenceFromId(item.item_id)
+                            MediaItemType.entries[item.item_type.toInt()].dataFromId(item.item_id)
                         }
 
                     ContinuableMediaItemLayout(
-                        MediaItemLayout(
+                        AppMediaItemLayout(
                             items,
                             row.title_data?.let {
                                 UiString.deserialise(it)

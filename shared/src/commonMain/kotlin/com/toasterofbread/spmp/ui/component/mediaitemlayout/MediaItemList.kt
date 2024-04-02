@@ -15,6 +15,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
+import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.rememberFilteredItems
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.toMediaItemData
@@ -32,7 +33,7 @@ const val MEDIAITEM_LIST_DEFAULT_SPACING_DP: Float = 10f
 
 @Composable
 fun MediaItemList(
-    layout: MediaItemLayout,
+    layout: AppMediaItemLayout,
     layout_params: MediaItemLayoutParams,
     list_params: MediaItemListParams = MediaItemListParams()
 ) {
@@ -40,7 +41,7 @@ fun MediaItemList(
         layout_params =
             remember(layout, layout_params) {
                 layout_params.copy(
-                    items = layout.items.map { it.toMediaItemData() },
+                    items = layout.items,
                     title = layout.title,
                     subtitle = layout.subtitle,
                     view_more = layout.view_more

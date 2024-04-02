@@ -26,6 +26,7 @@ import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.model.mediaitem.db.getPinnedItems
 import com.toasterofbread.spmp.model.mediaitem.layout.*
+import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
 import com.toasterofbread.spmp.model.settings.category.FeedSettings
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.resources.getString
@@ -116,7 +117,7 @@ internal fun SongFeedAppPage.LFFSongFeedAppPage(
                     }
                 }
 
-                var hiding_layout: MediaItemLayout? by remember { mutableStateOf(null) }
+                var hiding_layout: AppMediaItemLayout? by remember { mutableStateOf(null) }
 
                 hiding_layout?.also { layout ->
                     val title: UiString = layout.title ?: return@also
@@ -179,7 +180,7 @@ internal fun SongFeedAppPage.LFFSongFeedAppPage(
                             contentPadding = content_padding.vertical,
                             userScrollEnabled = !state_alpha.isRunning
                         ) {
-                            items((state as List<MediaItemLayout>)) { layout ->
+                            items((state as List<AppMediaItemLayout>)) { layout ->
                                 if (layout.items.isEmpty()) {
                                     return@items
                                 }

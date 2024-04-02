@@ -15,7 +15,10 @@ import com.toasterofbread.composekit.utils.composable.RowOrColumn
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.*
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.db.*
+import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.settings.*
 import com.toasterofbread.spmp.model.settings.category.FeedSettings
 import com.toasterofbread.spmp.platform.*
@@ -44,12 +47,12 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
     internal val coroutine_scope: CoroutineScope = CoroutineScope(Job())
 
     internal var continuation: String? by mutableStateOf(null)
-    internal var layouts: List<MediaItemLayout>? by mutableStateOf(null)
+    internal var layouts: List<AppMediaItemLayout>? by mutableStateOf(null)
     internal var filter_chips: List<SongFeedFilterChip>? by mutableStateOf(null)
     internal var selected_filter_chip: Int? by mutableStateOf(null)
 
-    internal var artists_layout: MediaItemLayout by mutableStateOf(
-        MediaItemLayout(
+    internal var artists_layout: AppMediaItemLayout by mutableStateOf(
+        AppMediaItemLayout(
             emptyList(),
             null,
             null,
@@ -176,15 +179,16 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
 
             result.fold(
                 { data ->
+                    val data_layouts: List<AppMediaItemLayout> = data.layouts.map { AppMediaItemLayout(it) }
                     if (continue_feed) {
-                        layouts = (layouts ?: emptyList()) + data.layouts
+                        layouts = (layouts ?: emptyList()) + data_layouts
                     }
                     else {
-                        layouts = data.layouts
+                        layouts = data_layouts
                         filter_chips = data.filter_chips
 
                         if (filter_chip == null) {
-                            SongFeedCache.saveFeedLayouts(data.layouts, data.filter_chips, data.ctoken, state.context.database)
+                            SongFeedCache.saveFeedLayouts(data_layouts, data.filter_chips, data.ctoken, state.context.database)
                         }
                     }
 
@@ -245,50 +249,39 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
 }
 
 internal fun populateArtistsLayout(
-    layouts: List<MediaItemLayout>?,
+    layouts: List<AppMediaItemLayout>?,
     own_channel_id: String?,
     context: AppContext
-): List<MediaItem> {
+): List<MediaItemData> {
     val artists_map: MutableMap<String, Int?> = mutableMapOf()
     for (layout in layouts.orEmpty()) {
         for (item in layout.items) {
-            if (item is Artist || item is YtmArtist) {
+            if (item is Artist) {
                 artists_map[item.id] = null
                 continue
             }
 
-            val artist_id: String
-
-            if (item is MediaItem.WithArtist) {
-                val artist: Artist = item.Artist.get(context.database) ?: continue
-                if (artist.isForItem()) {
-                    continue
-                }
-
-                artist_id = artist.id
-            }
-            else if (item is YtmSong) {
-                artist_id = item.artists?.firstOrNull()?.id ?: continue
-            }
-            else if (item is YtmPlaylist) {
-                artist_id = item.artists?.firstOrNull()?.id ?: continue
-            }
-            else {
+            if (item !is MediaItem.WithArtist) {
                 continue
             }
 
-            if (artist_id == own_channel_id) {
+            val artist: Artist = item.Artist.get(context.database) ?: continue
+            if (artist.isForItem()) {
                 continue
             }
 
-            if (artists_map.containsKey(artist_id)) {
-                val current = artists_map[artist_id]
+            if (artist.id == own_channel_id) {
+                continue
+            }
+
+            if (artists_map.containsKey(artist.id)) {
+                val current = artists_map[artist.id]
                 if (current != null) {
-                    artists_map[artist_id] = current + 1
+                    artists_map[artist.id] = current + 1
                 }
             }
             else {
-                artists_map[artist_id] = 1
+                artists_map[artist.id] = 1
             }
         }
     }
@@ -312,5 +305,5 @@ internal fun populateArtistsLayout(
         else Pair(artist.key, artist.value)
     }.sortedByDescending { it.second }
 
-    return artists.map { ArtistRef(it.first) }
+    return artists.map { ArtistData(it.first) }
 }

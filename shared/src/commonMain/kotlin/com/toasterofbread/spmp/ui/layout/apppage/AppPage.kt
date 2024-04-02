@@ -74,53 +74,6 @@ abstract class AppPage {
     @Composable
     open fun isReloading(): Boolean = false
 
-    @Composable
-    fun FilterChipsRow(
-        chip_count: Int,
-        isChipSelected: (Int) -> Boolean,
-        onChipSelected: (Int) -> Unit,
-        modifier: Modifier = Modifier,
-        show_scrollbar: Boolean = false,
-        horizontal_alignment: Alignment.Horizontal = Alignment.Start,
-        spacing: Dp = 10.dp,
-        chipContent: @Composable (Int) -> Unit
-    ) {
-        val player: PlayerState = LocalPlayerState.current
-
-        ScrollBarLazyRow(
-            modifier,
-            show_scrollbar = show_scrollbar,
-            horizontalArrangement = Arrangement.spacedBy(spacing, horizontal_alignment),
-            horizontalAlignment = horizontal_alignment,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            items(chip_count) { index ->
-                Crossfade(isChipSelected(index)) { selected ->
-                    ElevatedFilterChip(
-                        selected,
-                        {
-                            onChipSelected(index)
-                        },
-                        { chipContent(index) },
-                        colors = with(player.theme) {
-                            FilterChipDefaults.elevatedFilterChipColors(
-                                containerColor = background,
-                                labelColor = on_background,
-                                selectedContainerColor = accent,
-                                selectedLabelColor = on_accent
-                            )
-                        },
-                        border = FilterChipDefaults.filterChipBorder(
-                            borderColor = player.theme.on_background,
-                            enabled = true,
-                            selected = selected
-                        )
-                    )
-                }
-            }
-        }
-    }
-
     enum class Type {
         SONG_FEED,
         LIBRARY,

@@ -120,7 +120,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
     }
 
     @Composable
-    override fun shouldShowPrimaryBarContent(): Boolean = true
+    override fun shouldShowPrimaryBarContent(): Boolean = !filter_chips.isNullOrEmpty()
 
     @Composable
     override fun PrimaryBarContent(

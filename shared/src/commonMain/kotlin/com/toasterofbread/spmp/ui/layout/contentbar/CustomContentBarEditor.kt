@@ -269,6 +269,7 @@ internal abstract class CustomContentBarEditor() {
                 background_colour = Theme.Colour.BACKGROUND,
                 content_padding = PaddingValues(),
                 apply_size = false,
+                always_display = true,
                 selected_element_override = selected_element?.takeIf { bar.elements.getOrNull(it) !is ContentBarElementSpacer } ?: -1,
                 modifier = size_modifier
                     .run {
@@ -293,6 +294,7 @@ internal abstract class CustomContentBarEditor() {
                     Box(Modifier.fillMaxSize()) {
                         element.Element(
                             vertical_bar,
+                            null,
                             size,
                             onPreviewClick = {
                                 onElementClicked(index)

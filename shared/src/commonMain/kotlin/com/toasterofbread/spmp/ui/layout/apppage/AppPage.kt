@@ -49,6 +49,7 @@ abstract class AppPage {
         slot: LayoutSlot,
         content_padding: PaddingValues,
         distance_to_page: Dp,
+        lazy: Boolean,
         modifier: Modifier
     ): Boolean = false
 

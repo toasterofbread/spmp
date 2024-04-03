@@ -1,41 +1,54 @@
 package com.toasterofbread.spmp.ui.layout.contentbar
 
 import LocalPlayerState
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.*
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.*
 import com.toasterofbread.composekit.platform.composable.platformClickable
 import com.toasterofbread.composekit.settings.ui.Theme
+import com.toasterofbread.spmp.model.appaction.*
+import com.toasterofbread.spmp.model.appaction.action.navigation.AppPageNavigationAction
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.ui.layout.contentbar.element.*
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
+import com.toasterofbread.spmp.ui.layout.contentbar.element.*
 import com.toasterofbread.spmp.ui.theme.appHover
-import com.toasterofbread.spmp.model.appaction.OtherAppAction
-import com.toasterofbread.spmp.model.appaction.action.navigation.AppPageNavigationAction
-import com.toasterofbread.spmp.model.appaction.SongAppAction
+import kotlinx.serialization.Serializable
 
 enum class CustomContentBarTemplate {
     NAVIGATION,
     LYRICS,
-    SONG_ACTIONS;
+    SONG_ACTIONS,
+    DEFAULT_PORTRAIT_TOP_UPPER,
+    DEFAULT_PORTRAIT_TOP_LOWER;
+
+    fun getContentBar(): ContentBar =
+        TemplateCustomContentBar(this)
 
     fun getName(): String =
         when (this) {
             NAVIGATION -> getString("content_bar_template_navigation")
             LYRICS -> getString("content_bar_template_lyrics")
             SONG_ACTIONS -> getString("content_bar_template_song_actions")
+            DEFAULT_PORTRAIT_TOP_UPPER -> getString("content_bar_template_default_portrait_top_upper")
+            DEFAULT_PORTRAIT_TOP_LOWER -> getString("content_bar_template_default_portrait_top_lower")
+        }
+
+    fun getDescription(): String? =
+        when (this) {
+            NAVIGATION -> getString("content_bar_template_desc_navigation")
+            LYRICS -> getString("content_bar_template_desc_lyrics")
+            SONG_ACTIONS -> getString("content_bar_template_desc_song_actions")
+            DEFAULT_PORTRAIT_TOP_UPPER -> null
+            DEFAULT_PORTRAIT_TOP_LOWER -> null
         }
 
     fun getIcon(): ImageVector =
@@ -43,6 +56,17 @@ enum class CustomContentBarTemplate {
             NAVIGATION -> Icons.Default.Widgets
             LYRICS -> Icons.Default.Lyrics
             SONG_ACTIONS -> Icons.Default.MusicNote
+            DEFAULT_PORTRAIT_TOP_UPPER -> Icons.Default.VerticalAlignTop
+            DEFAULT_PORTRAIT_TOP_LOWER -> Icons.Default.VerticalAlignTop
+        }
+
+    fun getDefaultHeight(): Dp =
+        when (this) {
+            NAVIGATION -> 50.dp
+            LYRICS -> 30.dp
+            SONG_ACTIONS -> 50.dp
+            DEFAULT_PORTRAIT_TOP_UPPER -> 50.dp
+            DEFAULT_PORTRAIT_TOP_LOWER -> 50.dp
         }
 
     fun getElements(): List<ContentBarElement> =
@@ -67,6 +91,18 @@ enum class CustomContentBarTemplate {
                 ContentBarElementSpacer(size_mode = ContentBarElement.SizeMode.FILL),
                 ContentBarElementButton(SongAppAction(SongAppAction.Action.DOWNLOAD)),
                 ContentBarElementButton(SongAppAction(SongAppAction.Action.START_RADIO))
+            )
+            DEFAULT_PORTRAIT_TOP_UPPER -> listOf(
+                ContentBarElementButton.ofAppPage(AppPage.Type.SETTINGS),
+                ContentBarElementVisualiser(size_mode = ContentBarElement.SizeMode.FILL),
+                ContentBarElementButton.ofAppPage(AppPage.Type.LIBRARY)
+            )
+            DEFAULT_PORTRAIT_TOP_LOWER -> listOf(
+                ContentBarElementButton.ofAppPage(AppPage.Type.SEARCH),
+                ContentBarElementContentBar(
+                    size_mode = ContentBarElement.SizeMode.FILL,
+                    bar = ContentBarReference.ofInternalBar(InternalContentBar.PRIMARY)
+                )
             )
         }
 
@@ -93,9 +129,10 @@ enum class CustomContentBarTemplate {
                 modifier = Modifier.background(player.theme.vibrant_accent, RoundedCornerShape(16.dp)),
                 background_colour = Theme.Colour.VIBRANT_ACCENT,
                 vertical = false,
+                always_display = true,
                 content_padding = PaddingValues(5.dp),
                 buttonContent = { _, element, size ->
-                    element.Element(false, size, onPreviewClick = {})
+                    element.Element(false, null, size, onPreviewClick = {})
                 }
             )
         }
@@ -131,6 +168,7 @@ enum class CustomContentBarTemplate {
                         items(entries) { template ->
                             template.BarPreview(
                                 Modifier
+                                    .fillMaxWidth()
                                     .platformClickable(
                                         onClick = { onSelected(template) }
                                     )

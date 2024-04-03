@@ -36,6 +36,7 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.apppage.*
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import kotlinx.serialization.json.*
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
@@ -78,7 +79,7 @@ data class ContentBarElementButton(
         }
 
     @Composable
-    override fun ElementContent(vertical: Boolean, onPreviewClick: (() -> Unit)?, modifier: Modifier) {
+    override fun ElementContent(vertical: Boolean, slot: LayoutSlot?, onPreviewClick: (() -> Unit)?, modifier: Modifier) {
         if (action.hasCustomContent()) {
             action.CustomContent(onPreviewClick, modifier)
             return

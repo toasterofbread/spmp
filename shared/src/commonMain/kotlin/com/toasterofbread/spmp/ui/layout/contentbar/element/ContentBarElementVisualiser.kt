@@ -11,6 +11,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Waves
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import LocalPlayerState
 
 @Serializable
@@ -28,7 +29,7 @@ data class ContentBarElementVisualiser(
         LocalPlayerState.current.status.m_song != null
 
     @Composable
-    override fun ElementContent(vertical: Boolean, onPreviewClick: (() -> Unit)?, modifier: Modifier) {
+    override fun ElementContent(vertical: Boolean, slot: LayoutSlot?, onPreviewClick: (() -> Unit)?, modifier: Modifier) {
         val player: PlayerState = LocalPlayerState.current
 
         if (onPreviewClick != null) {

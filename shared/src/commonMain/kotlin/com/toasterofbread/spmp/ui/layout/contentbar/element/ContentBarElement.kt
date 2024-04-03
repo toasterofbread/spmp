@@ -47,6 +47,7 @@ sealed class ContentBarElement {
     @Composable
     fun Element(
         vertical: Boolean,
+        slot: LayoutSlot?,
         bar_size: DpSize,
         modifier: Modifier = Modifier,
         onPreviewClick: (() -> Unit)? = null
@@ -60,6 +61,7 @@ sealed class ContentBarElement {
 
         ElementContent(
             vertical,
+            slot,
             onPreviewClick,
             modifier
                 .thenWith(size_dp) {
@@ -75,7 +77,7 @@ sealed class ContentBarElement {
     }
 
     @Composable
-    protected abstract fun ElementContent(vertical: Boolean, onPreviewClick: (() -> Unit)?, modifier: Modifier)
+    protected abstract fun ElementContent(vertical: Boolean, slot: LayoutSlot?, onPreviewClick: (() -> Unit)?, modifier: Modifier)
 
     @Composable
     open fun SubConfigurationItems(item_modifier: Modifier, onModification: (ContentBarElement) -> Unit) {}
@@ -164,7 +166,8 @@ sealed class ContentBarElement {
         SPACER,
         LYRICS,
         VISUALISER,
-        PINNED_ITEMS;
+        PINNED_ITEMS,
+        CONTENT_BAR;
 
         fun isAvailable(): Boolean =
             when (this) {
@@ -179,6 +182,7 @@ sealed class ContentBarElement {
                 LYRICS -> getString("content_bar_element_type_lyrics")
                 VISUALISER -> getString("content_bar_element_type_visualiser")
                 PINNED_ITEMS -> getString("content_bar_element_type_pinned_items")
+                CONTENT_BAR -> getString("content_bar_element_type_content_bar")
             }
 
         fun getIcon(): ImageVector =
@@ -188,15 +192,17 @@ sealed class ContentBarElement {
                 LYRICS -> Icons.Default.MusicNote
                 VISUALISER -> Icons.Default.Waves
                 PINNED_ITEMS -> Icons.Default.PushPin
+                CONTENT_BAR -> Icons.Default.TableRows
             }
 
         fun createElement(): ContentBarElement =
             when (this) {
-                ContentBarElement.Type.BUTTON -> ContentBarElementButton()
-                ContentBarElement.Type.SPACER -> ContentBarElementSpacer()
-                ContentBarElement.Type.LYRICS -> ContentBarElementLyrics()
-                ContentBarElement.Type.VISUALISER -> ContentBarElementVisualiser()
-                ContentBarElement.Type.PINNED_ITEMS -> ContentBarElementPinnedItems()
+                BUTTON -> ContentBarElementButton()
+                SPACER -> ContentBarElementSpacer()
+                LYRICS -> ContentBarElementLyrics()
+                VISUALISER -> ContentBarElementVisualiser()
+                PINNED_ITEMS -> ContentBarElementPinnedItems()
+                CONTENT_BAR -> ContentBarElementContentBar()
             }
     }
 

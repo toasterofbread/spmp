@@ -60,6 +60,7 @@ sealed class ContentBar {
                 slot_colour_source.theme_colour,
                 base_content_padding,
                 distance_to_page,
+                true,
                 modifier.background(background_colour).padding(content_padding)
             )
         }
@@ -68,11 +69,12 @@ sealed class ContentBar {
     }
 
     @Composable
-    protected abstract fun BarContent(
+    abstract fun BarContent(
         slot: LayoutSlot,
         background_colour: Theme.Colour?,
         content_padding: PaddingValues,
         distance_to_page: Dp,
+        lazy: Boolean,
         modifier: Modifier
     ): Boolean
 

@@ -109,13 +109,14 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
         slot: LayoutSlot,
         content_padding: PaddingValues,
         distance_to_page: Dp,
+        lazy: Boolean,
         modifier: Modifier
     ): Boolean {
         if (slot.is_vertical) {
-            VerticalSearchPrimaryBar(slot, modifier, content_padding)
+            VerticalSearchPrimaryBar(slot, modifier, content_padding, lazy)
         }
         else {
-            HorizontalSearchPrimaryBar(slot, modifier, content_padding)
+            HorizontalSearchPrimaryBar(slot, modifier, content_padding, lazy)
         }
         return true
     }

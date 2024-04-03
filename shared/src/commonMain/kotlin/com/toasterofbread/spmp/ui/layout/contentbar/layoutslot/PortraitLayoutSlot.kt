@@ -5,6 +5,7 @@ import com.toasterofbread.spmp.model.settings.category.LayoutSettings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.InternalContentBar
+import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBarTemplate
 import com.toasterofbread.composekit.settings.ui.Theme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
@@ -51,19 +52,19 @@ enum class PortraitLayoutSlot: LayoutSlot {
 
     override fun getDefaultContentBar(): ContentBar? =
         when (this) {
-            UPPER_TOP_BAR -> InternalContentBar.PRIMARY
-            LOWER_TOP_BAR -> InternalContentBar.SECONDARY
-            ABOVE_PLAYER -> InternalContentBar.LYRICS
-            BELOW_PLAYER -> InternalContentBar.NAVIGATION
-            PLAYER_TOP -> InternalContentBar.LYRICS
+            UPPER_TOP_BAR -> CustomContentBarTemplate.DEFAULT_PORTRAIT_TOP_UPPER.getContentBar()
+            LOWER_TOP_BAR -> CustomContentBarTemplate.DEFAULT_PORTRAIT_TOP_LOWER.getContentBar()
+            ABOVE_PLAYER -> InternalContentBar.SECONDARY
+            BELOW_PLAYER -> null
+            PLAYER_TOP -> CustomContentBarTemplate.LYRICS.getContentBar()
         }
 
     override fun getDefaultBackgroundColour(theme: Theme): ColourSource =
         when (this) {
-            UPPER_TOP_BAR -> ThemeColourSource(Theme.Colour.CARD)
-            LOWER_TOP_BAR -> ThemeColourSource(Theme.Colour.CARD)
+            UPPER_TOP_BAR -> ThemeColourSource(Theme.Colour.BACKGROUND)
+            LOWER_TOP_BAR -> ThemeColourSource(Theme.Colour.BACKGROUND)
             ABOVE_PLAYER -> CustomColourSource(Color.Transparent)
-            BELOW_PLAYER -> ThemeColourSource(Theme.Colour.CARD)
+            BELOW_PLAYER -> ThemeColourSource(Theme.Colour.ACCENT)
             PLAYER_TOP -> CustomColourSource(Color.Transparent)
         }
 

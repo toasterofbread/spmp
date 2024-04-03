@@ -2,35 +2,33 @@ package com.toasterofbread.spmp.ui.layout.apppage.songfeedpage
 
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.FilterAlt
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.*
 import com.toasterofbread.composekit.platform.Platform
+import com.toasterofbread.composekit.utils.common.*
 import com.toasterofbread.composekit.utils.composable.*
-import com.toasterofbread.composekit.utils.common.copy
-import com.toasterofbread.composekit.utils.common.getContrasted
-import com.toasterofbread.composekit.utils.common.getValue
 import com.toasterofbread.composekit.utils.modifier.horizontal
+import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.LargeFilterList
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
-import com.toasterofbread.spmp.model.getString
-import com.toasterofbread.spmp.model.getIcon
 
 @Composable
 internal fun SongFeedAppPage.LFFSongFeedPagePrimaryBar(
     slot: LayoutSlot,
     modifier: Modifier,
-    content_padding: PaddingValues
+    content_padding: PaddingValues,
+    lazy: Boolean = true
 ): Boolean {
     val size: Dp = when (Platform.current) {
         Platform.ANDROID -> 100.dp
@@ -112,21 +110,25 @@ internal fun SongFeedAppPage.LFFSongFeedPagePrimaryBar(
                 )
             }
             else {
-                ScrollBarLazyRowOrColumn(
-                    !slot.is_vertical,
-                    inner_modifier,
-                    contentPadding = inner_content_padding,
+                ScrollableRowOrColumn(
+                    row = !slot.is_vertical,
+                    lazy = lazy,
+                    item_count = artists?.size ?: 0,
+                    content_padding = inner_content_padding,
                     arrangement = Arrangement.spacedBy(15.dp),
-                    reverseScrollBarLayout = slot.is_vertical,
-                    scrollBarColour = LocalContentColor.current.copy(alpha = 0.6f)
-                ) {
-                    items(artists ?: emptyList()) { item ->
-                        MediaItemPreviewSquare(
-                            item,
-                            multiselect_context = player.main_multiselect_context,
-                            apply_size = false
-                        )
-                    }
+                    reverse_scroll_bar_layout = slot.is_vertical,
+                    scroll_bar_colour = LocalContentColor.current.copy(alpha = 0.6f)
+                ) { index ->
+                    val artist: MediaItem = artists?.getOrNull(index) ?: return@ScrollableRowOrColumn
+                    MediaItemPreviewSquare(
+                        artist,
+                        Modifier.run {
+                            if (slot.is_vertical) fillMaxWidth()
+                            else fillMaxHeight()
+                        }.aspectRatio(1f),
+                        multiselect_context = player.main_multiselect_context,
+                        apply_size = false
+                    )
                 }
             }
         }

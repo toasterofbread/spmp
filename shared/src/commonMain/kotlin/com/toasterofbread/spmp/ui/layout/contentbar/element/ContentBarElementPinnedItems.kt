@@ -6,6 +6,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.padding
 import com.toasterofbread.spmp.ui.component.PinnedItemsList
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -21,7 +22,7 @@ data class ContentBarElementPinnedItems(
     override fun blocksIndicatorAnimation(): Boolean = true
 
     @Composable
-    override fun ElementContent(vertical: Boolean, onPreviewClick: (() -> Unit)?, modifier: Modifier) {
+    override fun ElementContent(vertical: Boolean, slot: LayoutSlot?, onPreviewClick: (() -> Unit)?, modifier: Modifier) {
         PinnedItemsList(
             vertical,
             modifier

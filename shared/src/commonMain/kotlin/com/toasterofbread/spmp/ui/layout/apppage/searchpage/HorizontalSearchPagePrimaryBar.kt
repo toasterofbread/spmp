@@ -11,7 +11,8 @@ import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 internal fun SearchAppPage.HorizontalSearchPrimaryBar(
     slot: LayoutSlot,
     modifier: Modifier,
-    content_padding: PaddingValues
+    content_padding: PaddingValues,
+    lazy: Boolean
 ) {
-    SearchFiltersRow(modifier.height(60.dp), content_padding)
+    SearchFiltersRow(modifier.height(60.dp), content_padding, lazy)
 }

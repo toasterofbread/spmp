@@ -780,12 +780,6 @@
     <string name="content_bar_desc_primary">ページごとに異なるプライマリーコンテンツ</string>
     <string name="content_bar_secondary">セカンダリー</string>
     <string name="content_bar_desc_secondary">ページごとに異なるセカンダリーコンテンツ</string>
-    <string name="content_bar_navigation">ナビゲーション</string>
-    <string name="content_bar_desc_navigation">アプリ内のページに移動するボタン等</string>
-    <string name="content_bar_lyrics">歌詞</string>
-    <string name="content_bar_desc_lyrics">再生中の曲のシンクロ歌詞</string>
-    <string name="content_bar_song_actions">曲のアクション</string>
-    <string name="content_bar_desc_song_actions">再生中の曲に行われるアクション</string>
 
     <string name="content_bar_custom_no_$x">カスタムバー　第$x</string>
     <string name="content_bar_custom_invalid">カスタムバー（無効）</string>
@@ -801,14 +795,20 @@
     <string name="content_bar_editor_template_dialog_title">テンプレートを選ぶ</string>
 
     <string name="content_bar_template_navigation">ナビゲーション</string>
+    <string name="content_bar_template_desc_navigation">アプリ内のページに移動するボタン等</string>
     <string name="content_bar_template_lyrics">歌詞</string>
+    <string name="content_bar_template_desc_lyrics">再生中の曲のシンクロ歌詞</string>
     <string name="content_bar_template_song_actions">曲のアクション</string>
+    <string name="content_bar_template_desc_song_actions">再生中の曲に行われるアクション</string>
+    <string name="content_bar_template_default_portrait_top_upper">ポートレートの上部トップバー</string>
+    <string name="content_bar_template_default_portrait_top_lower">ポートレートの下部トップバ</string>
 
     <string name="content_bar_element_type_button">ボタン</string>
     <string name="content_bar_element_type_spacer">隙間</string>
     <string name="content_bar_element_type_lyrics">歌詞</string>
     <string name="content_bar_element_type_visualiser">ビジュアライザー</string>
     <string name="content_bar_element_type_pinned_items">固定アイテム</string>
+    <string name="content_bar_element_type_content_bar">コンテントバー</string>
 
     <string name="content_bar_element_builtin_config_size_mode">ザイズモード</string>
     <string name="content_bar_element_builtin_config_size_mode_fill">フィル</string>
@@ -823,6 +823,8 @@
     <string name="content_bar_element_lyrics_config_show_furigana">ふりがなを表示</string>
     <string name="content_bar_element_lyrics_config_max_lines">最高テキスト行数</string>
     <string name="content_bar_element_lyrics_config_preallocate_max_space">最高行数の表示に必要な場所をあらかじめ取る</string>
+
+    <string name="content_bar_element_content_bar_config_bar">バー</string>
 
     <string name="content_bar_element_builtin_lyrics">歌詞</string>
     <string name="content_bar_element_builtin_visualiser">音楽ビジュアライザー</string>

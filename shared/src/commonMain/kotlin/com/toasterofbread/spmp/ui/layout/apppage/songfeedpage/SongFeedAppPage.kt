@@ -127,12 +127,13 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
         slot: LayoutSlot,
         content_padding: PaddingValues,
         distance_to_page: Dp,
+        lazy: Boolean,
         modifier: Modifier
     ): Boolean {
         val player: PlayerState = LocalPlayerState.current
         return when (player.form_factor) {
-            FormFactor.PORTRAIT -> SFFSongFeedPagePrimaryBar(slot, modifier, content_padding)
-            FormFactor.LANDSCAPE -> LFFSongFeedPagePrimaryBar(slot, modifier, content_padding)
+            FormFactor.PORTRAIT -> SFFSongFeedPagePrimaryBar(slot, modifier, content_padding, lazy)
+            FormFactor.LANDSCAPE -> LFFSongFeedPagePrimaryBar(slot, modifier, content_padding, lazy)
         }
     }
 

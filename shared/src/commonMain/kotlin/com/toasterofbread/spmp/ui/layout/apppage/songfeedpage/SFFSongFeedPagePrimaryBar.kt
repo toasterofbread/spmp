@@ -18,47 +18,52 @@ import dev.toastbits.ytmkt.endpoint.SongFeedFilterChip
 import LocalPlayerState
 import com.toasterofbread.spmp.model.getString
 import com.toasterofbread.composekit.platform.composable.ScrollBarLazyRow
+import com.toasterofbread.composekit.utils.composable.ScrollableRowOrColumn
 
 @Composable
 internal fun SongFeedAppPage.SFFSongFeedPagePrimaryBar(
     slot: LayoutSlot,
     modifier: Modifier,
-    content_padding: PaddingValues
+    content_padding: PaddingValues,
+    lazy: Boolean
 ): Boolean {
     val chips: List<SongFeedFilterChip> = filter_chips ?: return false
     val player: PlayerState = LocalPlayerState.current
 
-    ScrollBarLazyRow(
-        modifier,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        contentPadding = content_padding
-    ) {
-        itemsIndexed(chips) { index, chip ->
-            Crossfade(index == selected_filter_chip) { is_selected ->
-                ElevatedFilterChip(
-                    is_selected,
-                    {
-                        selectFilterChip(index)
-                    },
-                    {
-                        Text(chip.text.getString(player.context))
-                    },
-                    colors = with(player.theme) {
-                        FilterChipDefaults.elevatedFilterChipColors(
-                            containerColor = background,
-                            labelColor = on_background,
-                            selectedContainerColor = accent,
-                            selectedLabelColor = on_accent
-                        )
-                    },
-                    border = FilterChipDefaults.filterChipBorder(
-                        borderColor = player.theme.on_background,
-                        enabled = true,
-                        selected = is_selected
+    ScrollableRowOrColumn(
+        row = true,
+        lazy = lazy,
+        item_count = chips.size,
+        modifier = modifier,
+        arrangement = Arrangement.spacedBy(10.dp),
+        alignment = 0,
+        content_padding = content_padding
+    ) { index ->
+        val chip: SongFeedFilterChip = chips[index]
+
+        Crossfade(index == selected_filter_chip) { is_selected ->
+            ElevatedFilterChip(
+                is_selected,
+                {
+                    selectFilterChip(index)
+                },
+                {
+                    Text(chip.text.getString(player.context))
+                },
+                colors = with(player.theme) {
+                    FilterChipDefaults.elevatedFilterChipColors(
+                        containerColor = background,
+                        labelColor = on_background,
+                        selectedContainerColor = accent,
+                        selectedLabelColor = on_accent
                     )
+                },
+                border = FilterChipDefaults.filterChipBorder(
+                    borderColor = player.theme.on_background,
+                    enabled = true,
+                    selected = is_selected
                 )
-            }
+            )
         }
     }
 

@@ -18,8 +18,10 @@ import androidx.compose.ui.graphics.drawscope.*
 import androidx.compose.ui.unit.*
 import com.toasterofbread.composekit.utils.common.amplify
 import com.toasterofbread.composekit.utils.common.toInt
+import com.toasterofbread.composekit.utils.common.thenWith
 import com.toasterofbread.composekit.utils.composable.*
 import com.toasterofbread.composekit.utils.composable.RowOrColumn
+import com.toasterofbread.composekit.utils.composable.BoxWithOptionalConstraints
 import com.toasterofbread.composekit.utils.modifier.scrollWithoutClip
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
@@ -29,18 +31,19 @@ import com.toasterofbread.spmp.ui.layout.apppage.library.LibraryAppPage
 fun LibraryAppPage.LibraryIconButtonPageSelector(
     slot: LayoutSlot,
     content_padding: PaddingValues,
+    lazy: Boolean,
     modifier: Modifier = Modifier
 ) {
     val player: PlayerState = LocalPlayerState.current
 
-    BoxWithConstraints {
+    BoxWithOptionalConstraints(lazy) { constraints ->
         RowOrColumn(
             !slot.is_vertical,
             modifier = modifier
-                .then(
-                    if (slot.is_vertical) Modifier.heightIn(min = this@BoxWithConstraints.maxHeight).fillMaxHeight()
-                    else Modifier.widthIn(min = this@BoxWithConstraints.maxWidth).fillMaxWidth()
-                )
+                .thenWith(constraints) {
+                    if (slot.is_vertical) heightIn(min = it.maxHeight).fillMaxHeight()
+                    else widthIn(min = it.maxWidth).fillMaxWidth()
+                }
                 .zIndex(1f)
                 .drawWithContent {
                     drawContent()
@@ -100,6 +103,7 @@ fun LibraryAppPage.LibraryIconButtonPageSelector(
                 buttons = listOf(false, true),
                 indicator_colour = player.theme.vibrant_accent,
                 scrolling = false,
+                alignment = 0,
                 showButton = {
                     current_tab.canShowAltContent()
                 },

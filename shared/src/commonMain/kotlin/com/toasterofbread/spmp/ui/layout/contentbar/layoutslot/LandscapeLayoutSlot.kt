@@ -67,7 +67,7 @@ enum class LandscapeLayoutSlot: LayoutSlot {
 
     override fun getDefaultContentBar(): ContentBar? =
         when (this) {
-            OUTER_SIDE_LEFT -> InternalContentBar.NAVIGATION
+            OUTER_SIDE_LEFT -> CustomContentBarTemplate.NAVIGATION.getContentBar()
             INNER_SIDE_LEFT -> InternalContentBar.PRIMARY
             OUTER_SIDE_RIGHT -> null
             INNER_SIDE_RIGHT -> null
@@ -78,8 +78,8 @@ enum class LandscapeLayoutSlot: LayoutSlot {
             ABOVE_PLAYER -> InternalContentBar.SECONDARY
             BELOW_PLAYER -> null
 
-            PLAYER_BOTTOM_START -> InternalContentBar.SONG_ACTIONS
-            PLAYER_BOTTOM_END -> InternalContentBar.LYRICS
+            PLAYER_BOTTOM_START -> CustomContentBarTemplate.SONG_ACTIONS.getContentBar()
+            PLAYER_BOTTOM_END -> CustomContentBarTemplate.LYRICS.getContentBar()
         }
 
     override fun getDefaultBackgroundColour(theme: Theme): ColourSource =

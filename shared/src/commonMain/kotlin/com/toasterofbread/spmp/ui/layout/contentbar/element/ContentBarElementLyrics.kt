@@ -22,6 +22,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.*
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import kotlin.math.sign
 import kotlinx.serialization.Serializable
 
@@ -52,7 +53,7 @@ data class ContentBarElementLyrics(
     }
 
     @Composable
-    override fun ElementContent(vertical: Boolean, onPreviewClick: (() -> Unit)?, modifier: Modifier) {
+    override fun ElementContent(vertical: Boolean, slot: LayoutSlot?, onPreviewClick: (() -> Unit)?, modifier: Modifier) {
         val player: PlayerState = LocalPlayerState.current
         val current_song: Song? by player.status.song_state
         val lyrics_sync_offset: Long? by current_song?.getLyricsSyncOffset(player.database, true)

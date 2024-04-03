@@ -801,12 +801,6 @@
     <string name="content_bar_desc_primary">Primary page-specific content</string>
     <string name="content_bar_secondary">Secondary</string>
     <string name="content_bar_desc_secondary">Secondary page-specific content</string>
-    <string name="content_bar_navigation">Navigation</string>
-    <string name="content_bar_desc_navigation">Controls for navigating between app pages</string>
-    <string name="content_bar_lyrics">Lyrics</string>
-    <string name="content_bar_desc_lyrics">Synchronised lyrics for the current song</string>
-    <string name="content_bar_song_actions">Song actions</string>
-    <string name="content_bar_desc_song_actions">Actions for interacting with the playing song</string>
 
     <string name="content_bar_custom_no_$x">Custom bar #$x</string>
     <string name="content_bar_custom_invalid">Invalid custom bar</string>
@@ -822,14 +816,20 @@
     <string name="content_bar_editor_template_dialog_title">Pick template</string>
 
     <string name="content_bar_template_navigation">Navigation</string>
+    <string name="content_bar_template_desc_navigation">Controls for navigating between app pages</string>
     <string name="content_bar_template_lyrics">Lyrics</string>
+    <string name="content_bar_template_desc_lyrics">Synchronised lyrics for the current song</string>
     <string name="content_bar_template_song_actions">Song actions</string>
+    <string name="content_bar_template_desc_song_actions">Actions for interacting with the playing song</string>
+    <string name="content_bar_template_default_portrait_top_upper">Portrait upper top bar</string>
+    <string name="content_bar_template_default_portrait_top_lower">Portrait lower top bar</string>
 
     <string name="content_bar_element_type_button">Button</string>
     <string name="content_bar_element_type_spacer">Spacer</string>
     <string name="content_bar_element_type_lyrics">Lyrics</string>
     <string name="content_bar_element_type_visualiser">Visualiser</string>
     <string name="content_bar_element_type_pinned_items">Pinned items</string>
+    <string name="content_bar_element_type_content_bar">Content bar</string>
 
     <string name="content_bar_element_builtin_config_size_mode">Size mode</string>
     <string name="content_bar_element_builtin_config_size_mode_fill">Fill</string>
@@ -844,6 +844,8 @@
     <string name="content_bar_element_lyrics_config_show_furigana">Show furigana</string>
     <string name="content_bar_element_lyrics_config_max_lines">Max lines</string>
     <string name="content_bar_element_lyrics_config_preallocate_max_space">Preallocate space for max lines</string>
+
+    <string name="content_bar_element_content_bar_config_bar">Bar</string>
 
     <string name="content_bar_element_builtin_lyrics">Lyrics</string>
     <string name="content_bar_element_builtin_visualiser">Music visualiser</string>

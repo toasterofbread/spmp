@@ -9,7 +9,8 @@ import com.toasterofbread.spmp.model.settings.category.LayoutSettings
 data class ContentBarReference(val type: Type, val index: Int) {
     enum class Type {
         INTERNAL,
-        CUSTOM
+        CUSTOM,
+        TEMPLATE
     }
 
     fun getBar(custom_bars: List<CustomContentBar>? = null): ContentBar? =
@@ -19,6 +20,7 @@ data class ContentBarReference(val type: Type, val index: Int) {
                 val bars: List<CustomContentBar> = custom_bars ?: Json.decodeFromString(LayoutSettings.Key.CUSTOM_BARS.get())
                 bars.getOrNull(index)
             }
+            Type.TEMPLATE -> CustomContentBarTemplate.entries[index].getContentBar()
         }
 
     companion object {
@@ -27,5 +29,8 @@ data class ContentBarReference(val type: Type, val index: Int) {
 
         fun ofCustomBar(bar_index: Int): ContentBarReference =
             ContentBarReference(Type.CUSTOM, bar_index)
+
+        fun ofTemplate(template: CustomContentBarTemplate): ContentBarReference =
+            ContentBarReference(Type.TEMPLATE, template.ordinal)
     }
 }

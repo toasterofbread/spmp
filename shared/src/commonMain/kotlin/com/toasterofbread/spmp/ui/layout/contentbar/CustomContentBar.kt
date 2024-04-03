@@ -39,9 +39,10 @@ data class CustomContentBar(
         background_colour: Theme.Colour?,
         content_padding: PaddingValues,
         distance_to_page: Dp,
+        lazy: Boolean,
         modifier: Modifier
     ): Boolean {
-        return CustomBarContent(elements, size_dp.dp, slot.is_vertical, content_padding, background_colour, modifier)
+        return CustomBarContent(elements, size_dp.dp, slot.is_vertical, content_padding, slot, background_colour, modifier)
     }
 
     @Composable
@@ -53,6 +54,7 @@ data class CustomContentBar(
         selected_element_override: Int? = null,
         apply_size: Boolean = true,
         scrolling: Boolean = true,
+        always_display: Boolean = false,
         getFillLengthModifier: RowOrColumnScope.() -> Modifier = {
             Modifier
                 .weight(1f)
@@ -61,22 +63,23 @@ data class CustomContentBar(
         getSpacerElementModifier: (@Composable RowOrColumnScope.(Int, ContentBarElementSpacer) -> Modifier)? = null,
         shouldShowButton: @Composable (ContentBarElement) -> Boolean = { it.shouldShow() },
         buttonContent: @Composable (Int, ContentBarElement, DpSize) -> Unit =
-            { _, element, size -> element.Element(vertical, size, Modifier.fillMaxSize()) }
+            { _, element, size -> element.Element(vertical, null, size, Modifier.fillMaxSize()) }
     ): Boolean {
         return CustomBarContent(
             elements,
             size_dp.dp,
-            vertical,
-            content_padding,
-            background_colour,
-            modifier,
-            selected_element_override,
-            apply_size,
-            scrolling,
-            getFillLengthModifier,
-            getSpacerElementModifier,
-            shouldShowButton,
-            buttonContent
+            vertical = vertical,
+            content_padding = content_padding,
+            background_colour = background_colour,
+            modifier = modifier,
+            selected_element_override = selected_element_override,
+            apply_size = apply_size,
+            scrolling = scrolling,
+            always_display = always_display,
+            getFillLengthModifier = getFillLengthModifier,
+            getSpacerElementModifier = getSpacerElementModifier,
+            shouldShowButton = shouldShowButton,
+            buttonContent = buttonContent
         )
     }
 }
@@ -87,11 +90,13 @@ internal fun CustomBarContent(
     size: Dp,
     vertical: Boolean,
     content_padding: PaddingValues,
+    slot: LayoutSlot? = null,
     background_colour: Theme.Colour? = null,
     modifier: Modifier = Modifier,
     selected_element_override: Int? = null,
     apply_size: Boolean = true,
     scrolling: Boolean = true,
+    always_display: Boolean = false,
     getFillLengthModifier: RowOrColumnScope.() -> Modifier = {
         Modifier
             .weight(1f)
@@ -100,7 +105,7 @@ internal fun CustomBarContent(
     getSpacerElementModifier: (@Composable RowOrColumnScope.(Int, ContentBarElementSpacer) -> Modifier)? = null,
     shouldShowButton: @Composable (ContentBarElement) -> Boolean = { it.shouldShow() },
     buttonContent: @Composable (Int, ContentBarElement, DpSize) -> Unit =
-        { _, element, size -> element.Element(vertical, size, Modifier.fillMaxSize()) }
+        { _, element, size -> element.Element(vertical, slot, size, Modifier.fillMaxSize()) }
 ): Boolean {
     val player: PlayerState = LocalPlayerState.current
     val selected_element: Int? =
@@ -116,7 +121,7 @@ internal fun CustomBarContent(
             else -> content_colour
         }
 
-    val displaying: Boolean = elements.any { it.isDisplaying() }
+    val displaying: Boolean = always_display || elements.any { it.isDisplaying() }
 
     if (displaying) {
         BoxWithConstraints(

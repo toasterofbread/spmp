@@ -15,6 +15,7 @@ import com.toasterofbread.composekit.utils.common.*
 import com.toasterofbread.composekit.utils.composable.RowOrColumnScope
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import kotlin.math.roundToInt
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
@@ -35,7 +36,7 @@ data class ContentBarElementSpacer(
     override fun blocksIndicatorAnimation(): Boolean = true
 
     @Composable
-    override fun ElementContent(vertical: Boolean, onPreviewClick: (() -> Unit)?, modifier: Modifier) {
+    override fun ElementContent(vertical: Boolean, slot: LayoutSlot?, onPreviewClick: (() -> Unit)?, modifier: Modifier) {
         Box(
             modifier
                 .run {

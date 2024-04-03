@@ -31,7 +31,11 @@ import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBarEditor
 import com.toasterofbread.spmp.ui.layout.contentbar.CustomBarsContentBarList
+import com.toasterofbread.spmp.ui.layout.contentbar.TemplateCustomContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
+import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBarTemplate
+import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElementContentBar
+import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElement
 import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -81,27 +85,49 @@ fun LayoutSlotEditor(
         var has_secondary: Boolean = false
 
         for (slot in available_slots) {
+            val bar: ContentBar
+
             if (!configured_slots.contains(slot.getKey())) {
-                val default: ContentBar? = slot.getDefaultContentBar()
-                if (default == InternalContentBar.PRIMARY) {
+                bar = slot.getDefaultContentBar() ?: continue
+            }
+            else {
+                bar = configured_slots[slot.getKey()]?.getBar() ?: continue
+            }
+
+            if (bar == InternalContentBar.PRIMARY) {
+                has_primary = true
+                continue
+            }
+
+            if (bar == InternalContentBar.SECONDARY) {
+                has_secondary = true
+                continue
+            }
+
+            val elements: List<ContentBarElement>
+
+            if (bar is CustomContentBar) {
+                elements = bar.elements
+            }
+            else if (bar is TemplateCustomContentBar) {
+                elements = bar.template.getElements()
+            }
+            else {
+                continue
+            }
+
+            for (element in elements) {
+                val element_bar: ContentBarReference = (element as? ContentBarElementContentBar)?.bar ?: continue
+                if (element_bar.type != ContentBarReference.Type.INTERNAL) {
+                    continue
+                }
+
+                if (element_bar.index == InternalContentBar.PRIMARY.index) {
                     has_primary = true
                 }
-                else if (default == InternalContentBar.SECONDARY) {
+                else if (element_bar.index == InternalContentBar.SECONDARY.index) {
                     has_secondary = true
                 }
-                continue
-            }
-
-            val configured: ContentBarReference? = configured_slots[slot.getKey()]
-            if (configured?.type != ContentBarReference.Type.INTERNAL) {
-                continue
-            }
-
-            if (configured.index == InternalContentBar.PRIMARY.index) {
-                has_primary = true
-            }
-            else if (configured.index == InternalContentBar.SECONDARY.index) {
-                has_secondary = true
             }
         }
 
@@ -167,10 +193,14 @@ fun LayoutSlotEditor(
             private fun parseSlots(): Map<String, ContentBarReference?> =
                 Json.decodeFromString(slots_key.get<String>())
 
-            override val built_in_bars: List<ContentBarReference> get() =
+            override val built_in_bars: List<ContentBarReference> get() = (
                 InternalContentBar.ALL.map { bar ->
                     ContentBarReference.ofInternalBar(bar)
                 }
+                + CustomContentBarTemplate.entries.map { template ->
+                    ContentBarReference.ofTemplate(template)
+                }
+            )
 
             override val custom_bars: List<ContentBarReference> get() =
                 Json.decodeFromString<List<CustomContentBar>>(custom_bars_data).indices.map { index ->

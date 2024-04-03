@@ -164,9 +164,10 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
         slot: LayoutSlot,
         content_padding: PaddingValues,
         distance_to_page: Dp,
+        lazy: Boolean,
         modifier: Modifier
     ): Boolean {
-        LibraryIconButtonPageSelector(slot, content_padding, modifier)
+        LibraryIconButtonPageSelector(slot, content_padding, lazy, modifier)
         return true
     }
 

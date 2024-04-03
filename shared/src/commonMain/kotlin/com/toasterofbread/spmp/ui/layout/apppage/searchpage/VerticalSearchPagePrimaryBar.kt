@@ -19,7 +19,8 @@ import com.toasterofbread.composekit.utils.common.copy
 internal fun SearchAppPage.VerticalSearchPrimaryBar(
     slot: LayoutSlot,
     modifier: Modifier,
-    content_padding: PaddingValues
+    content_padding: PaddingValues,
+    lazy: Boolean
 ) {
     val player: PlayerState = LocalPlayerState.current
 
@@ -46,6 +47,7 @@ internal fun SearchAppPage.VerticalSearchPrimaryBar(
             else {
                 setFilter(SearchType.entries[index - 1])
             }
-        }
+        },
+        lazy = lazy
     )
 }

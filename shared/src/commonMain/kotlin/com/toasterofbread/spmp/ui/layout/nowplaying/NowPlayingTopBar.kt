@@ -22,7 +22,9 @@ class NowPlayingTopBar {
 
     private var scale: Float by mutableStateOf(1f)
     private var _height: Dp by mutableStateOf(0.dp)
-    private var displaying: Boolean by mutableStateOf(true)
+
+    var displaying: Boolean by mutableStateOf(true)
+        private set
 
     val height: Dp
         get() =

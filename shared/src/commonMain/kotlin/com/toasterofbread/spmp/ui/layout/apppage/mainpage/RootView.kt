@@ -23,6 +23,7 @@ import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.getMinimisedPlayerHeight
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.getMinimisedPlayerVPadding
+import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlaying
 
 val MINIMISED_NOW_PLAYING_HEIGHT_DP: Float
     @Composable get() = LocalPlayerState.current.form_factor.getMinimisedPlayerHeight().value
@@ -59,7 +60,7 @@ fun RootView(player: PlayerState) {
 
     Box(Modifier.fillMaxSize()) {
         player.HomePage()
-        player.NowPlaying()
+        NowPlaying(Modifier.fillMaxSize())
     }
 
     player.PersistentContent()

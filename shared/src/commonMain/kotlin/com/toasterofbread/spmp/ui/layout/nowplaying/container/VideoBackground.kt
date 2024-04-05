@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.ui.layout.nowplaying
+package com.toasterofbread.spmp.ui.layout.nowplaying.container
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -11,7 +11,7 @@ import LocalPlayerState
 import LocalNowPlayingExpansion
 
 @Composable
-fun NowPlayingVideoBackground(
+internal fun VideoBackground(
     modifier: Modifier = Modifier,
     getAlpha: () -> Float = { 1f }
 ): Boolean {

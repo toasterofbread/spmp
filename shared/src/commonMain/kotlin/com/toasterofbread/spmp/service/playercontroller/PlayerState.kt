@@ -65,7 +65,6 @@ import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
-import com.toasterofbread.spmp.ui.layout.nowplaying.getNowPlayingVerticalPageCount
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 import com.toasterofbread.spmp.ui.layout.playlistpage.PlaylistAppPage
@@ -133,10 +132,10 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
 
     private var np_swipe_state: AnchoredDraggableState<Int> by mutableStateOf(createSwipeState())
 
-    private var np_bottom_bar_config: LayoutSlot.BelowPlayerConfig? by mutableStateOf(null)
-    private var np_bottom_bar_showing: Boolean by mutableStateOf(false)
+    var np_bottom_bar_config: LayoutSlot.BelowPlayerConfig? by mutableStateOf(null)
+    var np_bottom_bar_showing: Boolean by mutableStateOf(false)
     private var _np_bottom_bar_height: Dp by mutableStateOf(0.dp)
-    private var np_bottom_bar_height: Dp
+    var np_bottom_bar_height: Dp
         get() =
             if (!np_bottom_bar_showing) 0.dp
             else _np_bottom_bar_height
@@ -520,156 +519,6 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         long_press_menu_showing = false
         long_press_menu_direct = false
         long_press_menu_data = null
-    }
-
-    @Composable
-    fun NowPlaying() {
-        val player: PlayerState = LocalPlayerState.current
-        val density: Density = LocalDensity.current
-        val top_padding: Dp = WindowInsets.getTop()
-        val bottom_padding: Int = density.getNpBottomPadding(WindowInsets.systemBars, WindowInsets.navigationBars, WindowInsets.ime)
-
-        val vertical_page_count: Int = getNowPlayingVerticalPageCount(this)
-        val minimised_now_playing_height: Dp = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
-
-        val bottom_layout_slot: LayoutSlot =
-            when (form_factor) {
-                FormFactor.LANDSCAPE -> LandscapeLayoutSlot.BELOW_PLAYER
-                FormFactor.PORTRAIT -> PortraitLayoutSlot.BELOW_PLAYER
-            }
-
-        np_bottom_bar_config = bottom_layout_slot.observeConfig { LayoutSlot.BelowPlayerConfig() }
-
-        val show_bottom_slot_in_player: Boolean =
-            np_bottom_bar_config?.show_in_player == true || bottom_layout_slot.mustShow()
-        val show_bottom_slot_in_queue: Boolean =
-            np_bottom_bar_config?.show_in_queue == true || bottom_layout_slot.mustShow()
-
-        val player_height: Dp = screen_size.height
-
-        LaunchedEffect(player_height, top_padding, bottom_padding, vertical_page_count, np_bottom_bar_height) {
-            val half_screen_height: Float = player_height.value * 0.5f
-
-            val anchors: DraggableAnchors<Int> =
-                DraggableAnchors {
-                    with(density) {
-                        for (anchor in 0..vertical_page_count) {
-                            val value: Float
-                            if (anchor == 0) {
-                                value = minimised_now_playing_height.value - half_screen_height + ((np_bottom_bar_height).value / 2) - bottom_padding.toDp().value
-                            }
-                            else {
-                                value = ((screen_size.height - bottom_padding.toDp()).value * anchor) - half_screen_height - (np_bottom_bar_height.value / 2)
-                            }
-
-                            anchor at value
-                        }
-                    }
-                }
-
-            val initial_position: Int = np_swipe_state.currentValue
-            np_swipe_state.updateAnchors(anchors)
-
-            if (initial_position == 0) {
-                coroutine_scope.launch {
-                    np_swipe_state.snapTo(initial_position)
-                }
-            }
-        }
-
-        val current_form_factor: FormFactor = form_factor
-        LaunchedEffect(current_form_factor) {
-            val animation_spec: AnimationSpec<Float> =
-                when (current_form_factor) {
-                    FormFactor.LANDSCAPE -> spring(Spring.DampingRatioNoBouncy, Spring.StiffnessMediumLow)
-                    else -> spring()
-                }
-
-            np_swipe_state = createSwipeState(
-                anchors = np_swipe_state.anchors,
-                animation_spec = animation_spec
-            )
-        }
-
-        Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
-            if (np_swipe_state.anchors.size > 0) {
-                val expanded_bottom_bar_height: Dp =
-                    if (show_bottom_slot_in_player) np_bottom_bar_height
-                    else 0.dp
-
-                val page_height: Dp = (
-                    player_height
-                    - expanded_bottom_bar_height
-                    - nowPlayingBottomPadding()
-                )
-
-                com.toasterofbread.spmp.ui.layout.nowplaying.NowPlaying(
-                    page_height,
-                    np_swipe_state,
-                    PaddingValues(
-                        start = WindowInsets.getStart(),
-                        end = WindowInsets.getEnd(),
-                        bottom = np_bottom_bar_height
-                    ),
-                    Modifier.weight(1f).offset(y = page_height / 2)
-                )
-            }
-
-            np_bottom_bar_showing = bottom_layout_slot.DisplayBar(
-                0.dp,
-                container_modifier =
-                    Modifier
-                        .onSizeChanged {
-                            np_bottom_bar_height = with (density) {
-                                it.height.toDp()
-                            }
-                        },
-                content_padding = PaddingValues(bottom = with (density) { bottom_padding.toDp() }),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .offset {
-                        val bounded: Float = player.expansion.getBounded()
-                        val slot_expansion: Float =
-                            if (!show_bottom_slot_in_player) {
-                                if (show_bottom_slot_in_queue) (bounded - 1f).absoluteValue.coerceIn(0f..1f)
-                                else (1f - bounded).coerceAtLeast(0f)
-                            }
-                            else if (!show_bottom_slot_in_queue) (2f - bounded).coerceIn(0f..1f)
-                            else 1f
-
-                        IntOffset(
-                            x = 0,
-                            y = with (density) {
-                                (np_bottom_bar_height.toPx() * (1f - slot_expansion)).roundToInt()
-                            }
-                        )
-                    },
-                getParentBackgroundColour = {
-                    getNPBackground()
-                },
-                getBackgroundColour = { background_colour ->
-                    if (background_colour.alpha >= 0.5f) {
-                        return@DisplayBar background_colour
-                    }
-
-                    val bounded: Float = expansion.getBounded()
-                    val min_background_alpha: Float =
-                        if (bounded > 1f) bounded - 1f
-                        else 0f
-
-                    return@DisplayBar getNPBackground().blendWith(background_colour, our_ratio = min_background_alpha)
-                }
-            )
-
-            val bottom_bar_colour: ColourSource by bottom_layout_slot.rememberColourSource()
-            LaunchedEffect(np_bottom_bar_showing) {
-                bar_colour_state.nav_bar.setLevelColour(
-                    if (np_bottom_bar_showing) bottom_bar_colour
-                    else null,
-                    BarColourState.NavBarLevel.BAR
-                )
-            }
-        }
     }
 
     private var multiselect_info_display_height: Dp by mutableStateOf(0.dp)

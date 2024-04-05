@@ -43,7 +43,6 @@ fun FormFactor.getMinimisedPlayerVPadding(): Dp =
     }
 
 class NowPlayingMainTabPage: NowPlayingPage() {
-
     private var theme_colour by mutableStateOf<Color?>(null)
     private var colour_song: Song? by mutableStateOf(null)
     var seek_state by mutableStateOf(-1f)

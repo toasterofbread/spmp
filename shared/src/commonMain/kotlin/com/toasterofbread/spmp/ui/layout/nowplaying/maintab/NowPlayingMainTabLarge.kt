@@ -112,7 +112,8 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
     } }
     val expanded: Boolean by remember { derivedStateOf { absolute_expansion >= 1f } }
 
-    val min_height: Dp = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp - (MINIMISED_NOW_PLAYING_V_PADDING_DP.dp * 2)
+    val v_padding: Dp = MINIMISED_NOW_PLAYING_V_PADDING_DP.dp
+    val min_height: Dp = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp// - (MINIMISED_NOW_PLAYING_V_PADDING_DP.dp * 2)
     val height: Dp = ((absolute_expansion * (page_height - min_height)) + min_height).coerceAtLeast(min_height)
 
     val inner_padding: Dp = lerp(0.dp, INNER_PADDING_DP.dp, absolute_expansion)
@@ -125,8 +126,8 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
     val start_padding: Dp = maxOf(inner_padding, content_padding.calculateStartPadding(layout_direction) + current_horizontal_padding)
     val end_padding: Dp = maxOf(inner_padding, content_padding.calculateEndPadding(layout_direction) + current_horizontal_padding)
 
-    val top_padding: Dp = top_padding
-    val bottom_padding: Dp = bottom_padding
+    val top_padding: Dp = top_padding + content_padding.calculateTopPadding()
+    val bottom_padding: Dp = bottom_padding + content_padding.calculateBottomPadding()
 
     val bottom_bar_height: Dp = NOW_PLAYING_LARGE_BOTTOM_BAR_HEIGHT
     val inner_bottom_padding: Dp = horizontal_padding
@@ -135,7 +136,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
     val stroke_colour: Color = bar_background_colour.amplify(255f)
 
     BoxWithConstraints(
-        modifier = modifier.height(height)
+        modifier = modifier.height(height).padding(vertical = v_padding * (1f - absolute_expansion).coerceIn(0f..1f))
     ) {
         Row(
             Modifier

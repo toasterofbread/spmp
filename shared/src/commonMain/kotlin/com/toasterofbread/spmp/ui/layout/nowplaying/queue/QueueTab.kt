@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
@@ -63,7 +64,7 @@ import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 
-const val QUEUE_CORNER_RADIUS_DP: Float = 25f
+private const val QUEUE_CORNER_RADIUS_DP: Float = 25f
 
 @Composable
 internal fun QueueTab(
@@ -72,7 +73,10 @@ internal fun QueueTab(
     top_bar: NowPlayingTopBar? = null,
     padding_modifier: Modifier = Modifier,
     inline: Boolean = false,
-    shape: Shape = RoundedCornerShape(QUEUE_CORNER_RADIUS_DP.dp),
+    shape: Shape = RoundedCornerShape(
+        topStart = QUEUE_CORNER_RADIUS_DP.dp,
+        topEnd = QUEUE_CORNER_RADIUS_DP.dp
+    ),
     content_padding: PaddingValues = PaddingValues(),
     border_thickness: Dp = 1.5.dp,
     wave_border_mode_override: NowPlayingQueueWaveBorderMode? = null,
@@ -196,13 +200,12 @@ internal fun QueueTab(
         Box(
             modifier
                 .thenIf(!inline) {
-                    // Add extra height for overscroll
                     thenWith(page_height) {
-                        requiredHeight(it + 200.dp)
+                        requiredHeightIn(min = it)
                     }
                     .padding(
                         top =
-                            WindowInsets.getTop()
+                            content_padding.calculateTopPadding()
                             + top_bar_height
                             + MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
                     )
@@ -274,7 +277,7 @@ internal fun QueueTab(
                         ScrollBarLazyColumn(
                             state = queue_list_state.listState,
                             contentPadding = PaddingValues(
-                                top = top_padding + content_padding.calculateTopPadding(),
+                                top = top_padding,
                                 bottom = content_padding.calculateBottomPadding(),
                                 start = side_padding + content_padding.calculateStartPadding(LocalLayoutDirection.current),
                                 end = side_padding + content_padding.calculateStartPadding(LocalLayoutDirection.current)
@@ -316,20 +319,22 @@ internal fun QueueTab(
 
                             if (!inline) {
                                 item {
-                                    var bottom_padding: Dp = (
-                                        MINIMISED_NOW_PLAYING_HEIGHT_DP.dp * 2
-                                        + list_position
-                                    )
+                                    // var bottom_padding: Dp = (
+                                    //     MINIMISED_NOW_PLAYING_HEIGHT_DP.dp * 2
+                                    //     + list_position
+                                    // )
 
-                                    if (player.controller?.radio_instance?.is_loading == true && page_height != null) {
-                                        bottom_padding = page_height - bottom_padding
-                                    }
+                                    // if (player.controller?.radio_instance?.is_loading == true && page_height != null) {
+                                    //     bottom_padding = page_height - bottom_padding
+                                    // }
 
-                                    if (player.controller?.radio_instance?.load_error != null) {
-                                        bottom_padding += 60.dp
-                                    }
+                                    // if (player.controller?.radio_instance?.load_error != null) {
+                                    //     bottom_padding += 60.dp
+                                    // }
 
-                                    Spacer(Modifier.height(bottom_padding))
+                                    // Spacer(Modifier.height(bottom_padding))
+
+                                    Spacer(Modifier.height(15.dp))
                                 }
                             }
                         }

@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.platform.LocalDensity
 import com.toasterofbread.composekit.platform.composable.composeScope
 import com.toasterofbread.composekit.utils.modifier.bounceOnClick
+import com.toasterofbread.composekit.utils.common.copy
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.PlayerSettings
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
@@ -93,22 +94,35 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(
 
     val current_song: Song? by player.status.song_state
 
-    BoxWithConstraints(modifier.requiredHeight(page_height).clipToBounds()) {
+    BoxWithConstraints(modifier.clipToBounds()) {
+        val top_padding: Dp = content_padding.calculateTopPadding() * expansion.get().coerceIn(0f..1f)
+
         top_bar.DisplayTopBar(
-            expansion,
-            0.dp,
-            container_modifier = Modifier.fillMaxWidth()
+            expansion = expansion,
+            distance_to_page = 0.dp,
+            container_modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = top_padding)
         )
 
         Column(
             Modifier
                 .fillMaxSize()
+                .requiredHeight(maxHeight - top_bar.height)
+                .padding(
+                    content_padding.copy(
+                        top = MINIMISED_NOW_PLAYING_V_PADDING_DP.dp
+                    )
+                )
                 .offset {
                     IntOffset(
                         0,
-                        with (density) {
-                            top_bar.height.roundToPx()
-                        }
+                        if (top_bar.displaying)
+                            with (density) {
+                                (top_bar.height / 2).roundToPx()
+                            }
+                        else 0
                     )
                 },
             horizontalAlignment = Alignment.CenterHorizontally

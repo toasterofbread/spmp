@@ -863,7 +863,7 @@
     <string name="layout_slot_portrait_player_top">Player top</string>
 
     <string name="layout_slot_config_portrait_player_top_show_in_queue">Show in queue</string>
-    <string name="layout_slot_config_below_player_show_in_player">Show when player expanded</string>
+    <string name="layout_slot_config_below_player_show_in_player">Show in player</string>
     <string name="layout_slot_config_below_player_show_in_queue">Show in queue</string>
 
     <string name="layout_slot_landscape_outer_side_left">Outer left sidebar</string>

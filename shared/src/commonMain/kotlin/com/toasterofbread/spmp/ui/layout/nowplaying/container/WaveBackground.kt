@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.ui.layout.nowplaying
+package com.toasterofbread.spmp.ui.layout.nowplaying.container
 
 import LocalNowPlayingExpansion
 import LocalPlayerState
@@ -20,14 +20,16 @@ import com.toasterofbread.composekit.utils.composable.wave.WaveLayer
 import com.toasterofbread.composekit.utils.composable.wave.getDefaultOverlappingWavesLayers
 import com.toasterofbread.composekit.utils.common.getValue
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NOW_PLAYING_LARGE_BOTTOM_BAR_HEIGHT
+import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
+import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 
-const val MAX_WAVE_SPEED_PORTRAIT: Float = 0.3f
-const val MAX_WAVE_SPEED_LANDSCAPE: Float = 1f
+private const val MAX_WAVE_SPEED_PORTRAIT: Float = 0.3f
+private const val MAX_WAVE_SPEED_LANDSCAPE: Float = 1f
 
 @Composable
-fun NowPlayingOverlappingWaveBackground(page_height: Dp, modifier: Modifier = Modifier) {
+internal fun WaveBackground(page_height: Dp, modifier: Modifier = Modifier) {
     val player: PlayerState = LocalPlayerState.current
     val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
 

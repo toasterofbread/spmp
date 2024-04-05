@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.ui.layout.nowplaying
+package com.toasterofbread.spmp.ui.layout.nowplaying.container
 
 import LocalNowPlayingExpansion
 import LocalPlayerState
@@ -13,15 +13,16 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.Thumbnail
+import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 
 @Composable
-fun NowPlayingThumbnailBackground(
+fun ThumbnailBackground(
     modifier: Modifier = Modifier,
     getAlpha: () -> Float = { 1f }
 ) {
     val player: PlayerState = LocalPlayerState.current
     val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
-    
+
     val default_background_image_opacity: Float by ThemeSettings.Key.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.rememberMutableState()
     val current_song: Song? by player.status.song_state
 
@@ -40,5 +41,5 @@ fun NowPlayingThumbnailBackground(
                     alpha = getAlpha() * expansion.get().coerceIn(0f, 1f)
                 }
         )
-    }    
+    }
 }

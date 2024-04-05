@@ -257,14 +257,14 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         val ime_padding: Int =
             if (keyboard_insets == null || np_overlay_menu.value != null) 0
             else keyboard_insets.getBottom(this).let { ime ->
-                    if (ime > 0) {
-                        val nav = navigation_insets.getBottom(this@getNpBottomPadding)
-                        return@let ime.coerceAtMost(
-                            (ime - nav).coerceAtLeast(0)
-                        )
-                    }
-                    return@let ime
+                if (ime > 0) {
+                    val nav = navigation_insets.getBottom(this@getNpBottomPadding)
+                    return@let ime.coerceAtMost(
+                        (ime - nav).coerceAtLeast(0)
+                    )
                 }
+                return@let ime
+            }
 
         return system_insets.getBottom(this) + ime_padding
     }
@@ -355,7 +355,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
             .offset {
                 val bottom_padding: Int = getNpBottomPadding(system_insets, navigation_insets, keyboard_insets)
                 val swipe_offset: Dp =
-                    if (player_showing) -np_swipe_state.offset.dp - ((screen_size.height + np_bottom_bar_height) * 0.5f)
+                    if (player_showing) -np_swipe_state.offset.dp - np_bottom_bar_height// - ((screen_size.height + np_bottom_bar_height) * 0.5f)
                     else -np_bottom_bar_height
 
                 IntOffset(

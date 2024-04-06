@@ -39,13 +39,12 @@ fun NowPlayingContainer(
 ) {
     val player: PlayerState = LocalPlayerState.current
     val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
-    val density: Density = LocalDensity.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
     val form_factor: FormFactor = NowPlayingPage.getFormFactor(player)
 
     val swipe_state: AnchoredDraggableState<Int> = expansion.swipe_state
     val top_bar: NowPlayingTopBar = remember { NowPlayingTopBar() }
-    val bottom_inset: Dp = WindowInsets.getBottom()
+    val bottom_inset: Dp = WindowInsets.getBottom(player.np_overlay_menu == null)
 
     val page_height: Dp by remember(bottom_inset) { derivedStateOf { player.screen_size.height } }
     if (page_height <= 0.dp) {
@@ -153,7 +152,6 @@ fun NowPlayingContainer(
                             .fillMaxWidth()
                             .requiredHeight(this_page_height)
                             .offset {
-                                var offset: Dp = 0.dp
                                 if (index == 0) {
                                     val bounded: Float = expansion.getBounded()
                                     IntOffset(

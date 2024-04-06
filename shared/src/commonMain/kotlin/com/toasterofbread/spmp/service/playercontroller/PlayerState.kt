@@ -173,24 +173,24 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
     val main_multiselect_context: MediaItemMultiSelectContext = AppPageMultiSelectContext(this)
     var np_theme_mode: ThemeMode by mutableStateOf(Settings.getEnum(ThemeSettings.Key.NOWPLAYING_THEME_MODE, context.getPrefs()))
 
-    val np_overlay_menu: MutableState<PlayerOverlayMenu?> = mutableStateOf(null)
+    var np_overlay_menu: PlayerOverlayMenu? by mutableStateOf(null)
     private val np_overlay_menu_queue: MutableList<PlayerOverlayMenu> = mutableListOf()
 
     fun navigateNpOverlayMenuBack() {
-        np_overlay_menu.value = np_overlay_menu_queue.removeLastOrNull()
+        np_overlay_menu = np_overlay_menu_queue.removeLastOrNull()
     }
 
     fun openNpOverlayMenu(menu: PlayerOverlayMenu?) {
         if (menu == null) {
-            np_overlay_menu.value = null
+            np_overlay_menu = null
             np_overlay_menu_queue.clear()
             return
         }
 
-        np_overlay_menu.value?.also {
+        np_overlay_menu?.also {
             np_overlay_menu_queue.add(it)
         }
-        np_overlay_menu.value = menu
+        np_overlay_menu = menu
     }
 
     init {
@@ -255,7 +255,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
 
     private fun Density.getNpBottomPadding(system_insets: WindowInsets, navigation_insets: WindowInsets, keyboard_insets: WindowInsets?): Int {
         val ime_padding: Int =
-            if (keyboard_insets == null || np_overlay_menu.value != null) 0
+            if (keyboard_insets == null || np_overlay_menu != null) 0
             else keyboard_insets.getBottom(this).let { ime ->
                 if (ime > 0) {
                     val nav = navigation_insets.getBottom(this@getNpBottomPadding)
@@ -462,7 +462,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
     }
 
     fun openNowPlayingPlayerOverlayMenu(menu: PlayerOverlayMenu? = null) {
-        np_overlay_menu.value = menu
+        np_overlay_menu = menu
         expansion.scrollTo(1)
     }
 

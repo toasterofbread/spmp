@@ -78,12 +78,11 @@ fun LargeThumbnailRow(
     val thumbnail_rounding: Int = current_song.observeThumbnailRounding()
     val thumbnail_shape: RoundedCornerShape = RoundedCornerShape(thumbnail_rounding)
 
-    val overlay_menu: PlayerOverlayMenu? by player.np_overlay_menu
     var current_thumb_image: ImageBitmap? by remember { mutableStateOf(null) }
     var image_size: IntSize by remember { mutableStateOf(IntSize(1, 1)) }
 
     var colourpick_callback: ColourpickCallback? by remember { mutableStateOf(null) }
-    LaunchedEffect(overlay_menu) {
+    LaunchedEffect(player.np_overlay_menu) {
         colourpick_callback = null
     }
 
@@ -175,7 +174,7 @@ fun LargeThumbnailRow(
                             .thenIf(expanded) {
                                 platformClickable(
                                     onClick = {
-                                        if (overlay_menu != null || expansion.get() !in 0.9f .. 1.1f) {
+                                        if (player.np_overlay_menu != null || expansion.get() !in 0.9f .. 1.1f) {
                                             return@platformClickable
                                         }
 
@@ -188,7 +187,7 @@ fun LargeThumbnailRow(
                                         )
                                     },
                                     onAltClick = {
-                                        if (overlay_menu != null || expansion.get() !in 0.9f .. 1.1f) {
+                                        if (player.np_overlay_menu != null || expansion.get() !in 0.9f .. 1.1f) {
                                             return@platformClickable
                                         }
                                         player.performPressAction(
@@ -232,7 +231,7 @@ fun LargeThumbnailRow(
 
                 // Thumbnail overlay menu
                 androidx.compose.animation.AnimatedVisibility(
-                    overlay_menu != null || colourpick_callback != null,
+                    player.np_overlay_menu != null || colourpick_callback != null,
                     Modifier.fillMaxSize(),
                     enter = fadeIn(tween(OVERLAY_MENU_ANIMATION_DURATION)),
                     exit = fadeOut(tween(OVERLAY_MENU_ANIMATION_DURATION))
@@ -255,7 +254,7 @@ fun LargeThumbnailRow(
                                             }
                                         }
 
-                                        if (expansion.get() in 0.9f .. 1.1f && overlay_menu?.closeOnTap() == true) {
+                                        if (expansion.get() in 0.9f .. 1.1f && player.np_overlay_menu?.closeOnTap() == true) {
                                             player.openNpOverlayMenu(null)
                                         }
                                     }
@@ -282,12 +281,12 @@ fun LargeThumbnailRow(
                                 }),
                             contentAlignment = Alignment.Center
                         ) {
-                            BackHandler(overlay_menu != null, priority = 2) {
+                            BackHandler(player.np_overlay_menu != null, priority = 2) {
                                 player.navigateNpOverlayMenuBack()
                                 colourpick_callback = null
                             }
 
-                            Crossfade(overlay_menu) { menu ->
+                            Crossfade(player.np_overlay_menu) { menu ->
                                 CompositionLocalProvider(LocalContentColor provides Color.White) {
                                     menu?.Menu(
                                         { player.status.m_song!! },

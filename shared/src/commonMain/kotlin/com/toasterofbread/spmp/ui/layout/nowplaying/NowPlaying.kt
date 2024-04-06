@@ -80,7 +80,7 @@ fun NowPlaying(modifier: Modifier = Modifier) {
                 )
             }
 
-            val bottom_inset: Dp = WindowInsets.getBottom()
+            val bottom_inset: Dp = WindowInsets.getBottom(player.np_overlay_menu == null)
 
             player.np_bottom_bar_showing = bottom_layout_slot.DisplayBar(
                 0.dp,

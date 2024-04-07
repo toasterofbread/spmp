@@ -72,14 +72,20 @@ actual class DiscordStatus actual constructor(
         coroutine_scope.launch {
             if (connected) {
                 setActivity()
+                return@launch
             }
-            else {
-                ipc.on<ReadyEvent> {
-                    setActivity()
-                }
 
+            ipc.on<ReadyEvent> {
+                setActivity()
+            }
+
+            try {
                 connected = true
                 ipc.connect()
+            }
+            catch (e: Throwable) {
+                e.printStackTrace()
+                connected = false
             }
         }
     }

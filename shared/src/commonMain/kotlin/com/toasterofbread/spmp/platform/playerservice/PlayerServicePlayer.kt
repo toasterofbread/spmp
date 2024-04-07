@@ -284,7 +284,7 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
         item_index: Int? = null,
         skip_first: Boolean = false,
         shuffle: Boolean = false,
-        onSuccessfulLoad: () -> Unit = {}
+        onSuccessfulLoad: (RadioInstance.LoadResult) -> Unit = {}
     ) {
         require(item_index == null || item != null)
 

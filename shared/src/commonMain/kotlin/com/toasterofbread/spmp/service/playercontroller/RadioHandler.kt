@@ -23,7 +23,7 @@ class RadioHandler(val player: PlayerServicePlayer, val context: AppContext) {
         new_radio_state: RadioState,
         furtherAction: (PlayerServicePlayer.() -> UndoRedoAction?) -> Unit,
         insertion_index: Int = -1,
-        onSuccessfulLoad: () -> Unit = {}
+        onSuccessfulLoad: (RadioInstance.LoadResult) -> Unit = {}
     ): UndoRedoAction {
         val old_radio_state: RadioState = instance.state
 
@@ -36,9 +36,9 @@ class RadioHandler(val player: PlayerServicePlayer, val context: AppContext) {
                     onCompleted =
                         if (first_redo) {
                             first_redo = false
-                            {
+                            { result ->
                                 furtherAction {
-                                    onSuccessfulLoad()
+                                    onSuccessfulLoad(result)
                                     return@furtherAction null
                                 }
                             }

@@ -21,7 +21,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,8 +59,6 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.FilterSettings
 import com.toasterofbread.spmp.platform.getOrNotify
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
-import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -298,7 +295,6 @@ class PlaylistAppPage(
     ) {
         val player: PlayerState = LocalPlayerState.current
         val db: Database = player.database
-        val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
         val playlist_items: List<MediaItem>? by playlist.Items.observe(db, key = items_reload_key)
         var sorted_items: List<MediaItem>? by remember { mutableStateOf(null) }
@@ -400,105 +396,83 @@ class PlaylistAppPage(
                 swipe_enabled = !loading,
                 modifier = Modifier.fillMaxSize()
             ) {
-                CompositionLocalProvider(LocalPlayerClickOverrides provides click_overrides.copy(
-                    onClickOverride = { item, multiselect_key ->
-                        if (multiselect_key != null) {
-                            if (sort_type == MediaItemSortType.NATIVE && current_filter == null) {
-                                player.playPlaylist(playlist, multiselect_key)
-                                player.onPlayActionOccurred()
-                            }
-                            else {
-                                sorted_items?.also { items ->
-                                    player.withPlayer {
-                                        addMultipleToQueue(items.filterIsInstance<Song>(), clear = true)
-                                        seekToSong(multiselect_key)
-                                        player.onPlayActionOccurred()
-                                    }
+                ScrollBarLazyColumn(
+                    state = list_state.listState,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.reorderable(list_state),
+                    contentPadding = content_padding
+                ) {
+                    previous_item?.item?.also { prev ->
+                        item {
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                IconButton(close) {
+                                    Icon(Icons.AutoMirrored.Default.KeyboardArrowLeft, null)
+                                }
+
+                                Spacer(Modifier.fillMaxWidth().weight(1f))
+
+                                val previous_item_title: String? by prev.observeActiveTitle()
+                                previous_item_title?.also { Text(it) }
+
+                                Spacer(Modifier.fillMaxWidth().weight(1f))
+
+                                IconButton({ player.showLongPressMenu(prev) }) {
+                                    Icon(Icons.Default.MoreVert, null)
                                 }
                             }
-                        }
-                        else {
-                            click_overrides.onMediaItemClicked(item, player)
                         }
                     }
-                )) {
-                    ScrollBarLazyColumn(
-                        state = list_state.listState,
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.reorderable(list_state),
-                        contentPadding = content_padding
+
+                    item {
+                        PlaylistTopInfo(sorted_items)
+                    }
+
+                    item {
+                        PlaylistButtonBar(Modifier.fillMaxWidth())
+                    }
+
+                    stickyHeaderWithTopPadding(
+                        list_state.listState,
+                        content_padding.calculateTopPadding(),
+                        Modifier.zIndex(1f).padding(bottom = 5.dp),
+                        { player.theme.background }
                     ) {
-                        previous_item?.item?.also { prev ->
-                            item {
-                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                    IconButton(close) {
-                                        Icon(Icons.AutoMirrored.Default.KeyboardArrowLeft, null)
-                                    }
-
-                                    Spacer(Modifier.fillMaxWidth().weight(1f))
-
-                                    val previous_item_title: String? by prev.observeActiveTitle()
-                                    previous_item_title?.also { Text(it) }
-
-                                    Spacer(Modifier.fillMaxWidth().weight(1f))
-
-                                    IconButton({ player.showLongPressMenu(prev) }) {
-                                        Icon(Icons.Default.MoreVert, null)
-                                    }
-                                }
-                            }
-                        }
-
-                        item {
-                            PlaylistTopInfo(sorted_items)
-                        }
-
-                        item {
-                            PlaylistButtonBar(Modifier.fillMaxWidth())
-                        }
-
-                        stickyHeaderWithTopPadding(
-                            list_state.listState,
-                            content_padding.calculateTopPadding(),
-                            Modifier.zIndex(1f).padding(bottom = 5.dp),
-                            { player.theme.background }
-                        ) {
-                            PlaylistInteractionBar(
-                                sorted_items,
-                                loading = loading && load_type != LoadType.CONTINUE && sorted_items != null,
-                                list_state = list_state.listState,
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .clickable(remember { MutableInteractionSource() }, indication = null) {}
-                            )
-                        }
-
-                        PlaylistItems(
-                            this,
-                            list_state,
-                            sorted_items
+                        PlaylistInteractionBar(
+                            sorted_items,
+                            loading = loading && load_type != LoadType.CONTINUE && sorted_items != null,
+                            list_state = list_state.listState,
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .clickable(remember { MutableInteractionSource() }, indication = null) {}
                         )
+                    }
 
-                        item {
-                            PlaylistFooter(
-                                sorted_items,
-                                getAccentColour(),
-                                loading && load_type != LoadType.REFRESH && sorted_items == null,
-                                load_error,
-                                Modifier.fillMaxWidth().padding(top = 15.dp),
-                                onRetry =
-                                    remote_playlist?.let { remote ->
-                                        {
-                                            load_type = LoadType.REFRESH
-                                            load_error = null
-                                            coroutine_scope.launch {
-                                                MediaItemLoader.loadRemotePlaylist(remote.getEmptyData(), player.context)
-                                            }
+                    PlaylistItems(
+                        playlist,
+                        this,
+                        list_state,
+                        sorted_items
+                    )
+
+                    item {
+                        PlaylistFooter(
+                            sorted_items,
+                            getAccentColour(),
+                            loading && load_type != LoadType.REFRESH && sorted_items == null,
+                            load_error,
+                            Modifier.fillMaxWidth().padding(top = 15.dp),
+                            onRetry =
+                                remote_playlist?.let { remote ->
+                                    {
+                                        load_type = LoadType.REFRESH
+                                        load_error = null
+                                        coroutine_scope.launch {
+                                            MediaItemLoader.loadRemotePlaylist(remote.getEmptyData(), player.context)
                                         }
                                     }
-                            )
-                        }
+                                }
+                        )
                     }
                 }
             }

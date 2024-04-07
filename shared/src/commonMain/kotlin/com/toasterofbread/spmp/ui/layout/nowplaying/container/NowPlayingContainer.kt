@@ -23,6 +23,7 @@ import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.*
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.bottom_padding
+import com.toasterofbread.spmp.ui.layout.nowplaying.container.npAnchorToDp
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.*
 import com.toasterofbread.spmp.ui.layout.contentbar.*
 import com.toasterofbread.spmp.ui.layout.BarColourState
@@ -91,7 +92,7 @@ fun NowPlayingContainer(
 
                 IntOffset(
                     0,
-                    (-swipe_state.offset.dp - bottom_padding).roundToPx()
+                    (-swipe_state.offset.npAnchorToDp(this) - bottom_padding).roundToPx()
                 )
             }
             .then(swipe_modifier)

@@ -16,6 +16,12 @@ import kotlin.math.roundToInt
 
 internal fun getPlayerCategoryItems(): List<SettingsItem> {
     return listOf(
+        AppSliderItem(
+            SettingsValueState(PlayerSettings.Key.EXPAND_SWIPE_SENSITIVITY.getName()),
+            getString("s_key_player_expand_swipe_sensitivity"), null,
+            range = 0.1f .. 10f
+        ),
+
         ToggleSettingsItem(
             SettingsValueState(PlayerSettings.Key.MINI_SHOW_PREV_BUTTON.getName()),
             getString("s_key_mini_player_show_prev_button"), null

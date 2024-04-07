@@ -34,7 +34,8 @@ data object PlayerSettings: SettingsCategory("player") {
         RESUME_ON_BT_CONNECT,
         PAUSE_ON_BT_DISCONNECT,
         RESUME_ON_WIRED_CONNECT,
-        PAUSE_ON_WIRED_DISCONNECT;
+        PAUSE_ON_WIRED_DISCONNECT,
+        EXPAND_SWIPE_SENSITIVITY;
 
         override val category: SettingsCategory get() = PlayerSettings
 
@@ -57,6 +58,7 @@ data object PlayerSettings: SettingsCategory("player") {
                 PAUSE_ON_BT_DISCONNECT -> true
                 RESUME_ON_WIRED_CONNECT -> true
                 PAUSE_ON_WIRED_DISCONNECT -> true
+                EXPAND_SWIPE_SENSITIVITY -> 3.5f
             } as T
     }
 }

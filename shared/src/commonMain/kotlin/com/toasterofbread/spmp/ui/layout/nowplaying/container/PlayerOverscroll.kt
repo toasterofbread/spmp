@@ -16,6 +16,7 @@ import com.toasterofbread.spmp.model.settings.category.*
 import com.toasterofbread.spmp.model.settings.rememberMutableEnumState
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.ui.layout.nowplaying.container.npAnchorToDp
 import kotlinx.coroutines.delay
 
 private const val OVERSCROLL_CLEAR_DISTANCE_THRESHOLD_DP: Float = 5f
@@ -77,7 +78,7 @@ internal fun Modifier.playerOverscroll(
                 player_alpha = 1f - (time_below_threshold / time_threshold).coerceIn(0f, 1f)
             }
 
-            val offset: Dp = with(density) { (swipe_state.offset - anchor).toDp() }
+            val offset: Dp = (swipe_state.offset - anchor).npAnchorToDp(density)
             if (offset < -OVERSCROLL_CLEAR_DISTANCE_THRESHOLD_DP.dp) {
                 if (!triggered && time_below_threshold >= time_threshold) {
                     if (

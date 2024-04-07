@@ -162,6 +162,8 @@ actual class PlatformPlayerService: SpMsPlayerService(), PlayerService {
         }
 
         super.onCreate()
+
+        createDesktopMediaSession(this)
     }
 
     actual override fun onDestroy() {

@@ -109,6 +109,7 @@ kotlin {
                 implementation("org.bytedeco:ffmpeg-platform:6.1.1-1.5.10")
 
                 implementation("dev.toastbits.ytm-kt:library-jvm:$ytmkt_version")
+                implementation("com.github.toasterofbread:JavaMediaTransportControls:5907268150")
             }
         }
     }

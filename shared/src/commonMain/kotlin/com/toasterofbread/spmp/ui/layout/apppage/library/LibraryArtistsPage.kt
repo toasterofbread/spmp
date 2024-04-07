@@ -88,7 +88,7 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
                         continue
                     }
 
-                    val artist: ArtistRef = download.song.Artist.get(player.database) ?: continue
+                    val artist: ArtistRef = download.song.Artists.get(player.database)?.firstOrNull() ?: continue
                     val artist_index: Int = artists.indexOfFirst { it.first == artist }
 
                     if (artist_index == -1) {

@@ -60,7 +60,7 @@ class MainPlayerOverlayMenu(
         val download_manager = player.context.download_manager
         val song: Song = getSong()
 
-        val song_artist: Artist? by song.Artist.observe(player.database)
+        val song_artists: List<Artist>? by song.Artists.observe(player.database)
 
         val download_progress = remember { Animatable(0f) }
         var download_progress_target: Float by remember { mutableStateOf(0f) }
@@ -120,7 +120,7 @@ class MainPlayerOverlayMenu(
                 .size(button_size)
                 .padding(8.dp)
 
-            song_artist?.also { artist ->
+            song_artists?.firstOrNull()?.also { artist ->
                 MediaItemPreviewLong(artist, contentColour = { Color.White })
             }
 

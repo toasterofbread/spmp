@@ -3,7 +3,7 @@ CREATE TABLE Song (
 
     song_type INTEGER,
     duration INTEGER,
-    artist TEXT,
+    artists TEXT,
     album TEXT,
     related_browse_id TEXT,
     lyrics_browse_id TEXT,
@@ -27,7 +27,6 @@ CREATE TABLE Song (
     background_wave_speed REAL,
     background_wave_opacity REAL,
 
-    FOREIGN KEY (artist) REFERENCES Artist(id),
     FOREIGN KEY (album) REFERENCES Playlist(id),
 
 --  TODO
@@ -57,8 +56,8 @@ updateSongTypeById: UPDATE Song SET song_type = :value WHERE id == :id;
 durationById: SELECT duration FROM Song WHERE id == :id;
 updateDurationById: UPDATE Song SET duration = :value WHERE id == :id;
 
-artistById: SELECT artist FROM Song WHERE id == :id;
-updateArtistById: UPDATE Song SET artist = :value WHERE id == :id;
+artistsById: SELECT artists FROM Song WHERE id == :id;
+updateArtistsById: UPDATE Song SET artists = :value WHERE id == :id;
 
 albumById: SELECT album FROM Song WHERE id == :id;
 updateAlbumById: UPDATE Song SET album = :value WHERE id == :id;

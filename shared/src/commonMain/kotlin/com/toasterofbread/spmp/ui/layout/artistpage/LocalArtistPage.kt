@@ -46,8 +46,8 @@ fun LocalArtistPage(
                 return@mapNotNull null
             }
 
-            val song_artist: ArtistRef? = download.song.Artist.get(player.database)
-            if (song_artist?.id != artist.id) {
+            val song_artists: List<ArtistRef>? = download.song.Artists.get(player.database)
+            if (song_artists?.any { it.id == artist.id } != true) {
                 return@mapNotNull null
             }
 

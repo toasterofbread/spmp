@@ -17,8 +17,10 @@ import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
 
-sealed interface Playlist: MediaItem.WithArtist {
+sealed interface Playlist: MediaItem.WithArtists {
     override fun getEmptyData(): PlaylistData
 
     val Items: ListProperty<Song>
@@ -60,9 +62,13 @@ sealed interface Playlist: MediaItem.WithArtist {
         get() = property_rememberer.rememberSingleQueryProperty(
             "Year", { playlistQueries.yearById(id) }, { year?.toInt() }, { playlistQueries.updateYearById(it?.toLong(), id) }
         )
-    override val Artist: AltSetterProperty<ArtistRef?, Artist?>
+    override val Artists: AltSetterProperty<List<ArtistRef>?, List<Artist>?>
         get() = property_rememberer.rememberAltSetterSingleQueryProperty(
-            "Artist", { playlistQueries.artistById(id) }, { artist?.let { ArtistRef(it) } }, { playlistQueries.updateArtistById(it?.id, id) }, { playlistQueries.updateArtistById(it?.id, id) }
+            "Artists",
+            { playlistQueries.artistsById(id) },
+            { artists?.let { Json.decodeFromString<List<String>>(it).map { ArtistRef(it) } } },
+            { playlistQueries.updateArtistsById(it?.map { it.id }?.let { Json.encodeToString(it) }, id) },
+            { playlistQueries.updateArtistsById(it?.map { it.id }?.let { Json.encodeToString(it) }, id) }
         )
     val Owner: Property<Artist?>
         get() = property_rememberer.rememberSingleQueryProperty(

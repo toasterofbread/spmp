@@ -40,8 +40,8 @@ data class ArtistLayoutData(
             items?.also { items ->
                 Items.clearItems(db, 0)
                 for (item in items) {
-                    if (item is MediaItem.DataWithArtist) {
-                        item.artist = item.artist?.getReference()
+                    if (item is MediaItem.DataWithArtists) {
+                        item.artists = item.artists?.map { it.getReference() }
                     }
                     item.saveToDatabase(db, uncertain = subitems_uncertain)
                     Items.addItem(item, null, db)

@@ -83,7 +83,7 @@ sealed class LyricsSource(val source_index: Int) {
             val (song_title, artist_title) = db.transactionWithResult {
                 Pair(
                     song.getActiveTitle(db),
-                    song.Artist.get(db)?.getActiveTitle(db)
+                    song.Artists.get(db)?.firstOrNull()?.getActiveTitle(db)
                 )
             }
 

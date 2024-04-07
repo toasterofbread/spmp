@@ -43,8 +43,9 @@ import com.toasterofbread.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.formatArtistTitles
 import com.toasterofbread.spmp.model.mediaitem.db.observePlayCount
-import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
+import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitles
 import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
 import com.toasterofbread.spmp.model.mediaitem.layout.getMediaItemPreviewSquareAdditionalHeight
 import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction
@@ -285,12 +286,19 @@ fun MediaItemPreviewLong(
                 overflow = TextOverflow.Clip
             )
 
-            val artist_title: String? = if (show_artist) (loaded_item as? MediaItem.WithArtist)?.Artist?.observePropertyActiveTitle()?.value else null
+            val artist_titles: List<String?>? = if (show_artist) (loaded_item as? MediaItem.WithArtists)?.Artists?.observePropertyActiveTitles() else null
             val extra_info: List<String> = getExtraInfo?.invoke() ?: emptyList()
             val download_status: DownloadStatus? by (loaded_item as? Song)?.rememberDownloadStatus()
             val is_explicit: Boolean? by (loaded_item as? Song)?.Explicit?.observe(player.database)
 
-            if ((show_download_indicator && download_status != null) || show_play_count || show_type || extra_info.isNotEmpty() || artist_title != null || is_explicit == true) {
+            if (
+                (show_download_indicator && download_status != null)
+                || show_play_count
+                || show_type
+                || extra_info.isNotEmpty()
+                || artist_titles?.any { it !=  null } == true
+                || is_explicit == true
+            ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -307,7 +315,11 @@ fun MediaItemPreviewLong(
                     var text_displayed = false
 
                     @Composable
-                    fun InfoText(text: String) {
+                    fun InfoText(text: String?) {
+                        if (text == null) {
+                            return
+                        }
+
                         if (text_displayed) {
                             InfoText(INFO_SPLITTER, contentColour)
                         }
@@ -341,8 +353,8 @@ fun MediaItemPreviewLong(
                         InfoText(info)
                     }
 
-                    if (artist_title != null) {
-                        InfoText(artist_title)
+                    if (artist_titles != null) {
+                        InfoText(formatArtistTitles(artist_titles, player.context))
                     }
                 }
             }

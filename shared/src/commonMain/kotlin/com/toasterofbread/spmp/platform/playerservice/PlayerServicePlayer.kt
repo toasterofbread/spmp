@@ -110,12 +110,12 @@ abstract class PlayerServicePlayer(private val service: PlatformPlayerService) {
             with(context.database) {
                 current_song?.also { current ->
                     mediaItemQueries.titleById(current.id).removeListener(song_metadata_listener)
-                    songQueries.artistById(current.id).removeListener(song_metadata_listener)
+                    songQueries.artistsById(current.id).removeListener(song_metadata_listener)
                 }
                 current_song = song
                 current_song?.also { current ->
                     mediaItemQueries.titleById(current.id).addListener(song_metadata_listener)
-                    songQueries.artistById(current.id).addListener(song_metadata_listener)
+                    songQueries.artistsById(current.id).addListener(song_metadata_listener)
                 }
             }
 

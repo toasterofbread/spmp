@@ -149,39 +149,40 @@ interface MediaItem: MediaItemHolder, YtmMediaItem {
             "Hidden", { mediaItemQueries.isHiddenById(id) }, { hidden.fromSQLBoolean() }, { mediaItemQueries.updateIsHiddenById(it.toSQLBoolean(), id) }, { false }
         )
 
-    interface WithArtist: MediaItem {
-        val Artist: AltSetterProperty<ArtistRef?, Artist?>
+    interface WithArtists: MediaItem {
+        val Artists: AltSetterProperty<List<ArtistRef>?, List<Artist>?>
 
         override fun populateData(data: MediaItemData, db: Database) {
-            require(data is DataWithArtist)
+            require(data is DataWithArtists)
 
             super.populateData(data, db)
 
-            data.artist = Artist.get(db)
+            data.artists = Artists.get(db)
         }
     }
 
-    abstract class DataWithArtist: MediaItemData(), WithArtist {
-        abstract var artist: Artist?
+    abstract class DataWithArtists: MediaItemData(), WithArtists {
+        abstract var artists: List<Artist>?
 
         override fun getDataValues(): Map<String, Any?> =
             super.getDataValues() + mapOf(
-                "artist" to artist
+                "artists" to artists
             )
 
         override fun saveToDatabase(db: Database, apply_to_item: MediaItem, uncertain: Boolean, subitems_uncertain: Boolean) {
-            db.transaction { with(apply_to_item as WithArtist) {
+            db.transaction { with(apply_to_item as WithArtists) {
                 super.saveToDatabase(db, apply_to_item, uncertain, subitems_uncertain)
 
-                val artist_data: Artist? = artist
-                if (artist_data is ArtistData) {
-                    artist_data.saveToDatabase(db, uncertain = subitems_uncertain)
-                }
-                else if (artist_data != null) {
-                    artist_data.createDbEntry(db)
+                for (artist in artists ?: emptyList()) {
+                    if (artist is ArtistData) {
+                        artist.saveToDatabase(db, uncertain = subitems_uncertain)
+                    }
+                    else {
+                        artist.createDbEntry(db)
+                    }
                 }
 
-                Artist.setNotNullAlt(artist, db, uncertain)
+                Artists.setNotNullAlt(artists, db, uncertain)
             }}
         }
     }

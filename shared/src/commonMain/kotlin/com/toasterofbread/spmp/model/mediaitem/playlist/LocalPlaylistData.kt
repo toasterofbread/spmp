@@ -130,9 +130,9 @@ class LocalPlaylistData(id: String): PlaylistData(id), LocalPlaylist {
         get() = property_rememberer.rememberLocalSingleProperty(
             "Year", { year }, { year = it }
         )
-    override val Artist: AltSetterProperty<ArtistRef?, Artist?>
+    override val Artists: AltSetterProperty<List<ArtistRef>?, List<Artist>?>
         get() = property_rememberer.rememberAltSetterLocalSingleProperty(
-            "Artist", { artist?.let { ArtistRef(it.id) } }, { artist = it }, { artist = it }
+            "Artists", { artists?.map { ArtistRef(it.id) } }, { artists = it }, { artists = it }
         )
     override val Owner: Property<Artist?>
         get() = property_rememberer.rememberLocalSingleProperty(

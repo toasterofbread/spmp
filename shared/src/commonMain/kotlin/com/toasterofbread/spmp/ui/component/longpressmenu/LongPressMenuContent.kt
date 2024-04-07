@@ -182,9 +182,9 @@ internal fun LongPressMenuContent(
                         }
 
                         // Artist
-                        if (data.item is MediaItem.WithArtist) {
-                            val item_artist: Artist? by data.item.Artist.observe(player.database)
-                            item_artist?.also { artist ->
+                        if (data.item is MediaItem.WithArtists) {
+                            val item_artists: List<Artist>? by data.item.Artists.observe(player.database)
+                            item_artists?.firstOrNull()?.also { artist ->
                                 Marquee {
                                     CompositionLocalProvider(LocalPlayerClickOverrides provides click_overrides.copy(
                                         onClickOverride = { item, _ ->

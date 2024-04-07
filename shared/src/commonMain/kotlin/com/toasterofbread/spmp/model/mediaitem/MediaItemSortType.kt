@@ -44,7 +44,7 @@ enum class MediaItemSortType {
             }
 
             ARTIST -> {
-                { (mapValue(it) as? MediaItem.WithArtist)?.Artist?.get(db)?.getActiveTitle(db) ?: "" }
+                { (mapValue(it) as? MediaItem.WithArtists)?.Artists?.get(db)?.firstOrNull()?.getActiveTitle(db) ?: "" }
             }
 
             PLAY_COUNT -> {

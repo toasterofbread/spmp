@@ -262,27 +262,28 @@ internal fun populateArtistsLayout(
                 continue
             }
 
-            if (item !is MediaItem.WithArtist) {
+            if (item !is MediaItem.WithArtists) {
                 continue
             }
 
-            val artist: Artist = item.Artist.get(context.database) ?: continue
-            if (artist.isForItem()) {
-                continue
-            }
-
-            if (artist.id == own_channel_id) {
-                continue
-            }
-
-            if (artists_map.containsKey(artist.id)) {
-                val current = artists_map[artist.id]
-                if (current != null) {
-                    artists_map[artist.id] = current + 1
+            for (artist in item.Artists.get(context.database) ?: emptyList()) {
+                if (artist.isForItem()) {
+                    continue
                 }
-            }
-            else {
-                artists_map[artist.id] = 1
+
+                if (artist.id == own_channel_id) {
+                    continue
+                }
+
+                if (artists_map.containsKey(artist.id)) {
+                    val current = artists_map[artist.id]
+                    if (current != null) {
+                        artists_map[artist.id] = current + 1
+                    }
+                }
+                else {
+                    artists_map[artist.id] = 1
+                }
             }
         }
     }

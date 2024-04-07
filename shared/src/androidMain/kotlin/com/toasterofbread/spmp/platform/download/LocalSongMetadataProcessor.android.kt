@@ -40,15 +40,17 @@ actual val LocalSongMetadataProcessor: MetadataProcessor =
                         return@withContext null
                     }
 
-                    return@withContext SongData(custom_metadata.song_id).apply {
-                        if (!load_data) {
-                            return@apply
-                        }
+                    val song: SongData = SongData(custom_metadata.song_id)
+                    if (load_data) {
+                        song.name = metadata_retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
 
-                        name = metadata_retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
-                        artist = getItemWithOrForTitle(custom_metadata.artist_id, metadata_retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)) { ArtistData(it) }
-                        album = getItemWithOrForTitle(custom_metadata.album_id, metadata_retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)) { RemotePlaylistData(it) }
+                        val artist_ids: List<String>? = custom_metadata.artist_ids ?: custom_metadata.artist_id?.let { listOf(it) }
+                        song.artists = artist_ids?.map { ArtistData(it) } ?: song.getItemWithOrForTitle(null, metadata_retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)) { ArtistData(it) }?.let { listOf(it) }
+
+                        song.album = song.getItemWithOrForTitle(custom_metadata.album_id, metadata_retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)) { RemotePlaylistData(it) }
                     }
+
+                    return@withContext song
                 }
                 catch (e: Throwable) {
                     val error: Throwable = RuntimeException("Reading metadata failed for $file ${file.uri}", e)

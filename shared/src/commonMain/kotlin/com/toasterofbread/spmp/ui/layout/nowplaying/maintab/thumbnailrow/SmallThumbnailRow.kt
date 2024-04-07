@@ -39,9 +39,10 @@ import com.toasterofbread.composekit.utils.composable.OnChangedEffect
 import com.toasterofbread.composekit.utils.modifier.background
 import com.toasterofbread.composekit.utils.modifier.disableParentScroll
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
+import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitles
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.observeThumbnailRounding
+import com.toasterofbread.spmp.model.mediaitem.artist.formatArtistTitles
 import com.toasterofbread.spmp.model.settings.category.PlayerSettings
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.model.settings.getEnum
@@ -85,7 +86,7 @@ fun SmallThumbnailRow(
     val current_song = player.status.m_song
 
     val song_title: String? by current_song?.observeActiveTitle()
-    val song_artist_title: String? by current_song?.Artist?.observePropertyActiveTitle()
+    val song_artist_titles: List<String?>? = current_song?.Artists?.observePropertyActiveTitles()
 
     val thumbnail_rounding: Int = current_song.observeThumbnailRounding()
     val thumbnail_shape: RoundedCornerShape = RoundedCornerShape(thumbnail_rounding)
@@ -301,7 +302,7 @@ fun SmallThumbnailRow(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    song_artist_title ?: "",
+                    song_artist_titles?.let { formatArtistTitles(it, player.context) } ?: "",
                     maxLines = 1,
                     color = player.getNPOnBackground(),
                     overflow = TextOverflow.Ellipsis,

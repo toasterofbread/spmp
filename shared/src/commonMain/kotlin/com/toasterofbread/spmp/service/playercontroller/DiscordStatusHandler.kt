@@ -16,6 +16,7 @@ import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.serialization.json.Json
 
 internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context: AppContext) {
     private var discord_rpc: DiscordStatus? = null
@@ -48,8 +49,8 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
     }
 
     private fun Database.formatText(text: String, song: Song, title: String): String {
-        val artist_id = songQueries.artistById(song.id).executeAsOne().artist
-        val artist_title = artist_id?.let {
+        val artist_ids: List<String>? = songQueries.artistsById(song.id).executeAsOne().artists?.let { Json.decodeFromString(it) }
+        val artist_title: String? = artist_ids?.firstOrNull()?.let {
             mediaItemQueries.titleById(it).executeAsOne().title
         }
 
@@ -101,9 +102,9 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
 //                SpMp.Log.info("Loading Discord status images for $status_song ($song_title)...")
 
                 try {
-                    val artist: ArtistRef? = status_song.Artist.get(context.database)
+                    val artists: List<ArtistRef>? = status_song.Artists.get(context.database)
 
-                    val images: List<String?> = getCustomImages(listOfNotNull(status_song, artist), ThumbnailProvider.Quality.LOW).getOrThrow()
+                    val images: List<String?> = getCustomImages(listOfNotNull(status_song, artists?.firstOrNull()), ThumbnailProvider.Quality.LOW).getOrThrow()
 
                     large_image = images.getOrNull(0)
                     small_image = images.getOrNull(1)
@@ -134,7 +135,7 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
                     large_text = text_c.ifEmpty { null },
                     small_image = small_image,
                     small_text =
-                        if (small_image != null) status_song.Artist.get(context.database)?.getActiveTitle(context.database)
+                        if (small_image != null) status_song.Artists.get(context.database)?.firstOrNull()?.getActiveTitle(context.database)
                         else null
                 )
 

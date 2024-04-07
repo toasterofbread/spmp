@@ -85,7 +85,7 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
             ) {
                 LPMActions(item, withSong, queue_index) { adding_to_playlist = true }
             }
-        } 
+        }
         else {
             BackHandler {
                 adding_to_playlist = false
@@ -113,7 +113,7 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
                 )
 
                 Row(
-                    verticalAlignment = Alignment.CenterVertically, 
+                    verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     ShapedIconButton({ adding_to_playlist = false }, colours = button_colours) {
@@ -274,9 +274,9 @@ private fun LongPressMenuActionProvider.LPMActions(
         )
     }
 
-    if (item is MediaItem.WithArtist) {
-        val item_artist: Artist? by item.Artist.observe(player.database)
-        item_artist?.also { artist ->
+    if (item is MediaItem.WithArtists) {
+        val item_artists: List<Artist>? by item.Artists.observe(player.database)
+        item_artists?.firstOrNull()?.also { artist ->
             ActionButton(Icons.Default.Person, getString("lpm_action_go_to_artist"), onClick = {
                 player.openMediaItem(artist)
             })

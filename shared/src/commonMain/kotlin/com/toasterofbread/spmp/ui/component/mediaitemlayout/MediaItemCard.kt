@@ -175,9 +175,9 @@ fun MediaItemCard(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                if (item is MediaItem.WithArtist) {
-                    val item_artist: Artist? by item.Artist.observe(player.database)
-                    item_artist?.also { artist ->
+                if (item is MediaItem.WithArtists) {
+                    val item_artists: List<Artist>? by item.Artists.observe(player.database)
+                    item_artists?.firstOrNull()?.also { artist ->
                         MediaItemPreviewLong(artist, contentColour = { (accent_colour ?: player.theme.accent).getContrasted() })
                     }
                 }

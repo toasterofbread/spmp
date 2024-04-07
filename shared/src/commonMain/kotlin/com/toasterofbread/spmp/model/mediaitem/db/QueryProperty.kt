@@ -19,6 +19,13 @@ fun <T: MediaItem?> Property<T>.observePropertyActiveTitle(): State<String?>? {
     return item?.observeActiveTitle()
 }
 
+@Composable
+fun <T: MediaItem> Property<List<T>?>.observePropertyActiveTitles(): List<String?>? {
+    val player: PlayerState = LocalPlayerState.current
+    val items: List<T>? by observe(player.database)
+    return items?.map { it.observeActiveTitle().value }
+}
+
 interface Property<T> {
     fun get(db: Database): T
     fun set(value: T, db: Database)

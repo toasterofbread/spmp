@@ -40,7 +40,8 @@ import com.toasterofbread.composekit.utils.common.getValue
 import com.toasterofbread.composekit.utils.composable.Marquee
 import com.toasterofbread.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
-import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
+import com.toasterofbread.spmp.model.mediaitem.artist.formatArtistTitles
+import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitles
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
@@ -140,7 +141,7 @@ internal fun Controls(
     val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
     val song_title: String? by song?.observeActiveTitle()
-    val song_artist_title: String? by song?.Artist?.observePropertyActiveTitle()
+    val song_artist_titles: List<String?>? = song?.Artists?.observePropertyActiveTitles()
 
     var show_title_edit_dialog: Boolean by remember { mutableStateOf(false) }
 
@@ -153,7 +154,6 @@ internal fun Controls(
     }
 
     Column(modifier, verticalArrangement = vertical_arrangement) {
-
         Row(verticalAlignment = Alignment.CenterVertically) {
             textRowStartContent()
 
@@ -183,7 +183,7 @@ internal fun Controls(
                     artistRowStartContent()
                     Spacer(Modifier)
                     Text(
-                        song_artist_title ?: "",
+                        song_artist_titles?.let { formatArtistTitles(it, player.context) } ?: "",
                         fontSize = artist_font_size,
                         color = getOnBackgroundColour(player).copy(alpha = 0.5f),
                         textAlign = text_align,
@@ -196,13 +196,13 @@ internal fun Controls(
                             .platformClickable(
                                 enabled = enabled,
                                 onClick = {
-                                    val artist: Artist? = song?.Artist?.get(player.database)
+                                    val artist: Artist? = song?.Artists?.get(player.database)?.firstOrNull()
                                     if (artist?.isForItem() == false) {
                                         click_overrides.onMediaItemClicked(artist, player)
                                     }
                                 },
                                 onAltClick = {
-                                    val artist: Artist? = song?.Artist?.get(player.database)
+                                    val artist: Artist? = song?.Artists?.get(player.database)?.firstOrNull()
                                     if (artist?.isForItem() == false) {
                                         click_overrides.onMediaItemLongClicked(artist, player)
                                         player.context.vibrateShort()

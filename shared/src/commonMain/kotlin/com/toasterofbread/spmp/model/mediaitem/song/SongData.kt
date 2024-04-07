@@ -15,7 +15,7 @@ import dev.toastbits.ytmkt.model.external.mediaitem.YtmSong
 
 class SongData(
     override var id: String,
-    override var artist: Artist? = null,
+    override var artists: List<Artist>? = null,
 
     var song_type: YtmSong.Type? = null,
     var duration: Long? = null,
@@ -24,7 +24,7 @@ class SongData(
     var lyrics_browse_id: String? = null,
     var loudness_db: Float? = null,
     var explicit: Boolean? = null
-): MediaItem.DataWithArtist(), Song {
+): MediaItem.DataWithArtists(), Song {
     override fun toString(): String = "SongData($id)"
     override fun getDataValues(): Map<String, Any?> =
         super.getDataValues() + mapOf(
@@ -74,7 +74,7 @@ class SongData(
 fun YtmSong.toSongData(): SongData =
     SongData(
         id = id,
-        artist = artists?.firstOrNull()?.toArtistData(),
+        artists = artists?.map { it.toArtistData() },
         song_type = type,
         duration = duration,
         album = album?.toRemotePlaylistData(),

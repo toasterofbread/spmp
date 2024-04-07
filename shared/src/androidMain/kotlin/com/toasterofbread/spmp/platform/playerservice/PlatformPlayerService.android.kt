@@ -836,11 +836,11 @@ private fun Song.buildExoMediaItem(context: AppContext): MediaItem =
 
                     setArtworkUri(id.toUri())
                     setTitle(getActiveTitle(db))
-                    setArtist(Artist.get(db)?.getActiveTitle(db))
+                    setArtist(Artists.get(db)?.firstOrNull()?.getActiveTitle(db))
 
                     val album = Album.get(db)
                     setAlbumTitle(album?.getActiveTitle(db))
-                    setAlbumArtist(album?.Artist?.get(db)?.getActiveTitle(db))
+                    setAlbumArtist(album?.Artists?.get(db)?.firstOrNull()?.getActiveTitle(db))
                 }
                 .build()
         )

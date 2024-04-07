@@ -6,7 +6,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.IntOffset
 import app.cash.sqldelight.Query
 import com.toasterofbread.spmp.db.Database
-import com.toasterofbread.spmp.db.mediaitem.song.ArtistById
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
@@ -28,6 +27,8 @@ import dev.toastbits.ytmkt.model.external.SongLikedStatus
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmSong
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
 import java.io.InputStream
 import java.net.URL
 import java.net.URLConnection
@@ -35,7 +36,7 @@ import kotlin.math.roundToInt
 
 private const val STATIC_LYRICS_SYNC_OFFSET: Long = 1000
 
-interface Song: MediaItem.WithArtist {
+interface Song: MediaItem.WithArtists {
     override fun getType(): MediaItemType = MediaItemType.SONG
     override fun getURL(context: AppContext): String = "https://music.youtube.com/watch?v=$id"
     override fun getReference(): SongRef
@@ -86,14 +87,14 @@ interface Song: MediaItem.WithArtist {
             "Duration", { songQueries.durationById(id) }, { duration }, { songQueries.updateDurationById(it, id) }
         )
 
-    override val Artist: AltSetterProperty<ArtistRef?, Artist?>
-        get() = object : PropertyImpl<ArtistRef?, Query<ArtistById>>(
-            { songQueries.artistById(id) }, { executeAsOneOrNull()?.artist?.let { ArtistRef(it) } }, { songQueries.updateArtistById(it?.id, id) }
-        ), AltSetterProperty<ArtistRef?, Artist?> {
-            override fun setAlt(value: Artist?, db: Database) {
-                db.songQueries.updateArtistById(value?.id, id)
-            }
-        }
+    override val Artists: AltSetterProperty<List<ArtistRef>?, List<Artist>?>
+        get() = property_rememberer.rememberAltSetterSingleQueryProperty(
+            "Artists",
+            { songQueries.artistsById(id) },
+            { artists?.let { Json.decodeFromString<List<String>>(it).map { ArtistRef(it) } } },
+            { songQueries.updateArtistsById(it?.map { it.id }?.let { Json.encodeToString(it) }, id) },
+            { songQueries.updateArtistsById(it?.map { it.id }?.let { Json.encodeToString(it) }, id) }
+        )
 
     val Album: Property<RemotePlaylist?>
         get() = property_rememberer.rememberSingleQueryProperty(

@@ -25,7 +25,7 @@ internal class SpMpItemCache(val database: Database): MediaItemCache() {
                 for (key in keys) {
                     when (key) {
                         SongKey.ARTIST_ID -> {
-                            artists = song.Artist.get(database)?.id?.let { listOf(YtmArtist(it)) }
+                            artists = song.Artists.get(database)?.map { YtmArtist(it.id) }
                             if (artists == null) {
                                 filled = false
                             }
@@ -81,13 +81,13 @@ internal class SpMpItemCache(val database: Database): MediaItemCache() {
     override fun getPlaylist(playlist_id: String, keys: Set<PlaylistKey>): YtmPlaylist? =
         database.transactionWithResult {
             val playlist: RemotePlaylist = RemotePlaylistRef(playlist_id)
-            var filled: Boolean = false
+            var filled: Boolean = true
 
             val builder = YtmPlaylistBuilder(playlist_id).apply {
                 for (key in keys) {
                     when (key) {
                         PlaylistKey.ARTIST_ID -> {
-                            artists = playlist.Artist.get(database)?.let { listOf(YtmArtist(it.id)) }
+                            artists = playlist.Artists.get(database)?.map { YtmArtist(it.id) }
                             if (artists == null) {
                                 filled = false
                             }

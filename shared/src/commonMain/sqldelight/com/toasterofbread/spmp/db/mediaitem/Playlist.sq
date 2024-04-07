@@ -5,7 +5,7 @@ CREATE TABLE Playlist (
     item_count INTEGER,
     total_duration INTEGER,
     year INTEGER,
-    artist TEXT,
+    artists TEXT,
     owner TEXT,
     owned_by_user INTEGER,
     continuation_token TEXT,
@@ -16,7 +16,6 @@ CREATE TABLE Playlist (
     image_width REAL,
     sort_type INTEGER,
 
-    FOREIGN KEY (artist) REFERENCES Artist(id),
     FOREIGN KEY (owner) REFERENCES Artist(id),
 
     FOREIGN KEY (id) REFERENCES MediaItem(id)
@@ -56,8 +55,8 @@ updateTotalDurationById: UPDATE Playlist SET total_duration = :total_duration WH
 yearById: SELECT year FROM Playlist WHERE id == :id;
 updateYearById: UPDATE Playlist SET year = :year WHERE id == :id;
 
-artistById: SELECT artist FROM Playlist WHERE id == :id;
-updateArtistById: UPDATE Playlist SET artist = :artist WHERE id == :id;
+artistsById: SELECT artists FROM Playlist WHERE id == :id;
+updateArtistsById: UPDATE Playlist SET artists = :artists WHERE id == :id;
 
 ownerById: SELECT owner FROM Playlist WHERE id == :id;
 updateOwnerById: UPDATE Playlist SET owner = :owner WHERE id == :id;

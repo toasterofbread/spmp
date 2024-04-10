@@ -1,65 +1,52 @@
 package com.toasterofbread.spmp.platform.playerservice
 
-import io.github.selemba1000.*
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
-import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.model.mediaitem.db.getPlayCount
 import com.toasterofbread.spmp.platform.PlayerListener
-import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.db.Database
-import spms.socketapi.shared.SpMsPlayerRepeatMode
+import dev.toastbits.mediasession.MediaSession
+import dev.toastbits.mediasession.MediaSessionMetadata
+import dev.toastbits.mediasession.MediaSessionPlaybackStatus
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 
 internal fun createDesktopMediaSession(service: PlatformPlayerService): Boolean {
-    println("START SESSION")
-
-    val session: JMTC =
+    val session: MediaSession =
         try {
-            JMTC.getInstance(JMTCSettings("spmp", "spmp"))
+            object : MediaSession() {
+                override fun getPositionMs(): Long {
+                    return service.current_position_ms
+                }
+            }
         }
         catch (e: Throwable) {
             e.printStackTrace()
             return false
         }
 
-    session.setEnabledButtons(
-        JMTCEnabledButtons(
-            true, // isPlayEnabled
-            true, // isPauseEnabled
-            false, // isStopEnabled
-            true, // isNextEnabled
-            true // isPreviousEnabled
-        )
-    )
-
-    session.enabled = true
-    session.setMediaType(JMTCMediaType.Music)
-    session.setPlayingState(JMTCPlayingState.PAUSED)
-    session.updateDisplay()
+    session.setIdentity("spmp")
 
     val listener: PlayerListener =
         object : PlayerListener() {
             override fun onSongTransition(song: Song?, manual: Boolean) {
-                session.onSongChanged(song, service.context)
-                session.updateDisplay()
+                session.onPositionChanged()
+                session.onSongChanged(song, service)
             }
             override fun onPlayingChanged(is_playing: Boolean) {
-                session.setPlayingState(
-                    if (is_playing) JMTCPlayingState.PLAYING
-                    else JMTCPlayingState.PAUSED
+                session.setPlaybackStatus(
+                    if (is_playing) MediaSessionPlaybackStatus.PLAYING
+                    else MediaSessionPlaybackStatus.PAUSED
                 )
-                session.updateDisplay()
             }
             override fun onDurationChanged(duration_ms: Long) {
-                session.setTimelineProperties(
-                    JMTCTimelineProperties(
-                        0, // start
-                        duration_ms, // end
-                        0, // seekStart
-                        duration_ms // seekEnd
+                session.setMetadata(
+                    session.metadata.copy(
+                        length_ms = duration_ms
                     )
                 )
-                session.updateDisplay()
+            }
+            override fun onSeeked(position_ms: Long) {
+                session.onPositionChanged()
             }
         }
     service.addListener(listener)
@@ -68,67 +55,55 @@ internal fun createDesktopMediaSession(service: PlatformPlayerService): Boolean 
     listener.onPlayingChanged(service.is_playing)
     listener.onDurationChanged(service.duration_ms)
 
-    val callbacks: JMTCCallbacks =
-        JMTCCallbacks().apply {
-            onPlay = JMTCButtonCallback {
-                service.play()
-            }
-            onPause = JMTCButtonCallback {
-                service.pause()
-            }
-            onNext = JMTCButtonCallback {
-                service.seekToNext()
-            }
-            onPrevious = JMTCButtonCallback {
-                service.seekToPrevious()
-            }
-            onSeek = JMTCSeekCallback { time ->
-                service.seekTo(time)
-            }
-            onLoop = JMTCValueChangedCallback<JMTCParameters.LoopStatus> { loop_status ->
-                service.repeat_mode =
-                    when (loop_status) {
-                        JMTCParameters.LoopStatus.None -> SpMsPlayerRepeatMode.NONE
-                        JMTCParameters.LoopStatus.Track -> SpMsPlayerRepeatMode.ONE
-                        JMTCParameters.LoopStatus.Playlist -> SpMsPlayerRepeatMode.ALL
-                    }
-            }
-        }
-    session.setCallbacks(callbacks)
+    session.onPlayPause = {
+        service.playPause()
+    }
+    session.onPlay = {
+        service.play()
+    }
+    session.onPause = {
+        service.pause()
+    }
+    session.onNext = {
+        service.seekToNext()
+    }
+    session.onPrevious = {
+        service.seekToPrevious()
+    }
+    session.onSeek = { by_ms ->
+        service.seekTo(service.current_position_ms + by_ms)
+    }
+    session.onSetPosition = { to_ms ->
+        service.seekTo(to_ms)
+    }
+
+    try {
+        session.setEnabled(true)
+    }
+    catch (e: Throwable) {
+        e.printStackTrace()
+        return false
+    }
 
     return true
 }
 
-private fun JMTC.onSongChanged(song: Song?, context: AppContext) {
-    val db: Database = context.database
+private fun MediaSession.onSongChanged(song: Song?, service: PlatformPlayerService) {
+    val db: Database = service.context.database
     val album: Playlist? = song?.Album?.get(db)
     val album_items: List<Song>? = album?.Items?.get(db)
 
-    setMediaProperties(
-        JMTCMusicProperties(
-            // title
-            song?.getActiveTitle(db) ?: "",
-
-            // artist
-            song?.Artists?.get(db)?.firstOrNull()?.getActiveTitle(db) ?: "",
-
-            // albumTitle
-            album?.getActiveTitle(db) ?: "",
-
-            // albumArtist
-            album?.Artists?.get(db)?.firstOrNull()?.getActiveTitle(db) ?: "",
-
-            // genres
-            emptyArray(),
-
-            // albumTracks
-            album?.ItemCount?.get(db) ?: album_items?.size ?: 0,
-
-            // track
-            album_items?.indexOfFirst { it.id == song?.id } ?: 0,
-
-            // art
-            null
+    setMetadata(
+        MediaSessionMetadata(
+            length_ms = service.duration_ms,
+            art_url = song?.ThumbnailProvider?.get(db)?.getThumbnailUrl(ThumbnailProvider.Quality.HIGH),
+            album = album?.getActiveTitle(db),
+            album_artists = album?.Artists?.get(db)?.firstOrNull()?.getActiveTitle(db)?.let { listOf(it) },
+            artist = song?.Artists?.get(db)?.firstOrNull()?.getActiveTitle(db),
+            title = song?.getActiveTitle(db),
+            url = song?.getURL(service.context),
+            use_count = song?.getPlayCount(db),
+            track_number = album_items?.indexOfFirst { it.id == song?.id }
         )
     )
 }

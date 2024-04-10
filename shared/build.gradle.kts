@@ -30,6 +30,7 @@ kotlin {
         }
 
         val ytmkt_version: String = extra["ytmkt.version"] as String
+        val mediasessionkt_version: String = extra["mediasessionkt.version"] as String
         val ktor_version: String = extra["ktor.version"] as String
 
         commonMain {
@@ -109,7 +110,7 @@ kotlin {
                 implementation("org.bytedeco:ffmpeg-platform:6.1.1-1.5.10")
 
                 implementation("dev.toastbits.ytm-kt:library-jvm:$ytmkt_version")
-                implementation("com.github.toasterofbread:JavaMediaTransportControls:5907268150")
+                implementation("dev.toastbits.mediasessionkt:library-jvm:$mediasessionkt_version")
             }
         }
     }

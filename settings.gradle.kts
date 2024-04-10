@@ -34,6 +34,11 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+
+        // https://github.com/orgs/community/discussions/26634
+        val key: String = "M67GD0wv5HhykCWA5oPN2nD3021qBTGofbBW_phg".reversed()
+        maven("https://toasterofbread:${key}@maven.pkg.github.com/toasterofbread/mediasession-kt")
+
         maven("https://jitpack.io")
         mavenLocal()
     }

@@ -209,6 +209,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                         val inset_depth: Dp = if (bottom_bar_height - thumb_pos > 4.dp) 4.dp else 0.dp
 
                         LargeBottomBar(
+                            bar_background_colour,
                             Modifier
                                 .align(Alignment.CenterEnd)
                                 .fillMaxWidth()

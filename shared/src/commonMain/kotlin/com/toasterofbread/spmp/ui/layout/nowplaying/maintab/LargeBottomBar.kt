@@ -32,10 +32,11 @@ import com.toasterofbread.spmp.ui.layout.contentbar.DisplayBar
 
 @Composable
 internal fun LargeBottomBar(
+    background_colour: Color,
     modifier: Modifier = Modifier,
     inset_start: Dp = Dp.Unspecified,
     inset_end: Dp = Dp.Unspecified,
-    inset_depth: Dp = 0.dp
+    inset_depth: Dp = 0.dp,
 ) {
     val player: PlayerState = LocalPlayerState.current
 
@@ -61,7 +62,8 @@ internal fun LargeBottomBar(
                     ) {
                         offset(x = inset_start, y = inset_depth)
                         .width(inset_end - inset_start)
-                    }
+                    },
+                getParentBackgroundColour = { background_colour }
             )
         }
 

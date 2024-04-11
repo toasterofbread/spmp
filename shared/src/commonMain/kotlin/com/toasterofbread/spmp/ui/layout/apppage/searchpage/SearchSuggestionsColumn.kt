@@ -65,10 +65,21 @@ private fun SearchAppPage.SearchSuggestion(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Text(suggestion.text, Modifier.weight(1f, false), softWrap = false, overflow = TextOverflow.Ellipsis)
+        Text(
+            suggestion.text,
+            Modifier.weight(1f, false),
+            softWrap = false,
+            overflow = TextOverflow.Ellipsis,
+            color = context.theme.on_background
+        )
 
         if (suggestion.is_from_history) {
-            Icon(Icons.Default.History, null, Modifier.alpha(0.75f))
+            Icon(
+                Icons.Default.History,
+                null,
+                Modifier.alpha(0.75f),
+                tint = context.theme.on_background
+            )
         }
     }
 }

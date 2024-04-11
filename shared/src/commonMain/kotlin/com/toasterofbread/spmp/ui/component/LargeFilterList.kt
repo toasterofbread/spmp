@@ -13,6 +13,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.composekit.utils.common.*
 import com.toasterofbread.composekit.utils.composable.*
+import com.toasterofbread.composekit.utils.modifier.horizontal
+import com.toasterofbread.composekit.utils.modifier.vertical
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
 @Composable
@@ -28,6 +30,7 @@ fun LargeFilterList(
     onSelected: (Int) -> Unit
 ) {
     val player: PlayerState = LocalPlayerState.current
+    val horizontal_padding: PaddingValues = content_padding.horizontal
 
     @Composable
     fun Item(index: Int) {
@@ -35,7 +38,7 @@ fun LargeFilterList(
 
         Card(
             { onSelected(index) },
-            Modifier.aspectRatio(1f),
+            Modifier.padding(horizontal_padding).aspectRatio(1f),
             colors =
                 if (is_selected) CardDefaults.cardColors(
                     containerColor = player.theme.vibrant_accent,
@@ -69,32 +72,16 @@ fun LargeFilterList(
         }
     }
 
-    if (lazy) {
-        ScrollBarLazyRowOrColumn(
-            !vertical,
-            modifier,
-            contentPadding = content_padding,
-            arrangement = Arrangement.spacedBy(15.dp),
-            reverseScrollBarLayout = vertical,
-            scrollBarColour = LocalContentColor.current.copy(alpha = 0.6f)
-        ) {
-            items(item_count) { index ->
-                Item(index)
-            }
-        }
-    }
-    else {
-        RowOrColumn(
-            !vertical,
-            modifier.padding(content_padding).run {
-                if (vertical) verticalScroll(rememberScrollState())
-                else horizontalScroll(rememberScrollState())
-            },
-            arrangement = Arrangement.spacedBy(15.dp)
-        ) {
-            for (i in 0 until item_count) {
-                Item(i)
-            }
-        }
+    ScrollableRowOrColumn(
+        !vertical,
+        lazy,
+        item_count,
+        modifier,
+        content_padding = content_padding.vertical,
+        arrangement = Arrangement.spacedBy(15.dp),
+        reverse_scroll_bar_layout = vertical,
+        scroll_bar_colour = LocalContentColor.current.copy(alpha = 0.6f)
+    ) { i ->
+        Item(i)
     }
 }

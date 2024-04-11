@@ -86,8 +86,8 @@ internal fun SongFeedAppPage.LFFSongFeedPagePrimaryBar(
                 }
             }
 
-            val inner_modifier: Modifier = Modifier.weight(1f)
-            val inner_content_padding: PaddingValues = content_padding.copy(top = 0.dp, start = 0.dp)
+            val list_modifier: Modifier = Modifier.weight(1f)
+            val side_padding: Dp = 10.dp
 
             if (filters) {
                 LargeFilterList(
@@ -104,9 +104,10 @@ internal fun SongFeedAppPage.LFFSongFeedPagePrimaryBar(
                     onSelected = { i ->
                         selectFilterChip(i)
                     },
-                    modifier = inner_modifier,
-                    content_padding = inner_content_padding,
-                    vertical = slot.is_vertical
+                    modifier = list_modifier,
+                    content_padding = PaddingValues(bottom = content_padding.calculateBottomPadding(), start = side_padding, end = side_padding),
+                    vertical = slot.is_vertical,
+                    lazy = lazy
                 )
             }
             else {
@@ -114,18 +115,22 @@ internal fun SongFeedAppPage.LFFSongFeedPagePrimaryBar(
                     row = !slot.is_vertical,
                     lazy = lazy,
                     item_count = artists?.size ?: 0,
-                    content_padding = inner_content_padding,
+                    content_padding = PaddingValues(bottom = content_padding.calculateBottomPadding()),
                     arrangement = Arrangement.spacedBy(15.dp),
                     reverse_scroll_bar_layout = slot.is_vertical,
-                    scroll_bar_colour = LocalContentColor.current.copy(alpha = 0.6f)
+                    scroll_bar_colour = LocalContentColor.current.copy(alpha = 0.6f),
+                    modifier = list_modifier
                 ) { index ->
                     val artist: MediaItem = artists?.getOrNull(index) ?: return@ScrollableRowOrColumn
                     MediaItemPreviewSquare(
                         artist,
-                        Modifier.run {
-                            if (slot.is_vertical) fillMaxWidth()
-                            else fillMaxHeight()
-                        }.aspectRatio(1f),
+                        Modifier
+                            .run {
+                                if (slot.is_vertical) fillMaxWidth()
+                                else fillMaxHeight()
+                            }
+                            .aspectRatio(1f)
+                            .padding(horizontal = side_padding),
                         multiselect_context = player.main_multiselect_context,
                         apply_size = false
                     )

@@ -63,7 +63,7 @@ enum class CustomContentBarTemplate {
     fun getDefaultHeight(): Dp =
         when (this) {
             NAVIGATION -> 50.dp
-            LYRICS -> 30.dp
+            LYRICS -> 40.dp
             SONG_ACTIONS -> 50.dp
             DEFAULT_PORTRAIT_TOP_UPPER -> 50.dp
             DEFAULT_PORTRAIT_TOP_LOWER -> 50.dp

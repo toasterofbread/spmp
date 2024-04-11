@@ -265,6 +265,12 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
         performSearch(current_filter?.let { SearchFilter(it, it.getDefaultParams()) })
     }
 
+    fun performSearch(query: String) {
+        current_query = query
+        current_filter = null
+        performSearch()
+    }
+
     fun performSearch(filter: SearchFilter?) {
         check(search_endpoint.isImplemented())
 

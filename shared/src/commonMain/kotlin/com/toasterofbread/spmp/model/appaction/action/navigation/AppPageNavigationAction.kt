@@ -28,10 +28,7 @@ data class AppPageNavigationAction(
 
     override suspend fun execute(player: PlayerState) {
         val page: AppPage = page.getPage(player, player.app_page_state) ?: return
-
-        if (page != player.app_page) {
-            player.openAppPage(page)
-        }
+        player.openAppPage(page)
 
         if (page is SettingsAppPage && settings_category != null) {
             val category_page: SettingsCategory.CategoryPage = SettingsCategory.fromId(settings_category).getPage() ?: return

@@ -402,6 +402,10 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
     }
 
     fun openAppPage(page: AppPage?, from_current: Boolean = false, replace_current: Boolean = false) {
+        if (np_swipe_state.targetValue != 0) {
+            switchNowPlayingPage(0)
+        }
+
         if (page == app_page) {
             page.onReopened()
             return
@@ -411,10 +415,6 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
             app_page_undo_stack.add(app_page)
         }
         app_page_state.setPage(page, from_current = from_current, going_back = false)
-
-        if (np_swipe_state.targetValue != 0) {
-            switchNowPlayingPage(0)
-        }
         hideLongPressMenu()
     }
 

@@ -23,6 +23,7 @@ data object DesktopSettings: SettingsCategory("desktop") {
 
     enum class Key: SettingsKey {
         STARTUP_COMMAND,
+        FORCE_SOFTWARE_RENDERER,
         SERVER_IP_ADDRESS,
         SERVER_PORT,
         SERVER_LOCAL_COMMAND,
@@ -35,6 +36,7 @@ data object DesktopSettings: SettingsCategory("desktop") {
         override fun <T> getDefaultValue(): T =
             when (this) {
                 STARTUP_COMMAND -> ""
+                FORCE_SOFTWARE_RENDERER -> false
                 SERVER_IP_ADDRESS -> "127.0.0.1"
                 SERVER_PORT -> ProjectBuildConfig.SERVER_PORT ?: 3973
                 SERVER_LOCAL_COMMAND -> ""

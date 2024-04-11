@@ -23,6 +23,11 @@ internal fun getDesktopCategoryItems(): List<SettingsItem> {
             getFieldModifier = { Modifier.appTextField() }
         ),
 
+        ToggleSettingsItem(
+            SettingsValueState(DesktopSettings.Key.FORCE_SOFTWARE_RENDERER.getName()),
+            getString("s_key_force_software_renderer"), getString("s_sub_force_software_renderer")
+        ),
+
         GroupSettingsItem(
             getString("s_group_server")
         )

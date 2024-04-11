@@ -44,6 +44,11 @@ fun main(args: Array<String>) {
 
     SpMp.init(context)
 
+    val force_software_renderer: Boolean = DesktopSettings.Key.FORCE_SOFTWARE_RENDERER.get()
+    if (force_software_renderer) {
+        System.setProperty("skiko.renderApi", "SOFTWARE")
+    }
+
     val arguments: ProgramArguments = ProgramArguments.parse(args) ?: return
 
     SpMp.onStart()

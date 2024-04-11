@@ -610,6 +610,9 @@
 
     <string name="s_key_startup_command">Startup command</string>
     <string name="s_sub_startup_command">Command to be executed at program start</string>
+    
+    <string name="s_key_force_software_renderer">Force software renderer</string>
+    <string name="s_sub_force_software_renderer">Requires restart for change to apply</string>
 
     <string name="s_group_server">Server</string>
     <string name="s_info_server">The SpMp server component (SpMs) must be running at the specified port IP address and port. https://github.com/toasterofbread/spmp-server</string>

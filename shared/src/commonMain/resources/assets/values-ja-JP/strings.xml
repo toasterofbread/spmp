@@ -591,6 +591,9 @@
 
     <string name="s_key_startup_command">開始コマンド</string>
     <string name="s_sub_startup_command">プログラム開始時に一回実行されるコマンド</string>
+    
+    <string name="s_key_force_software_renderer">ソフトウェアレンダラーの使用を強制する</string>
+    <string name="s_sub_force_software_renderer">変更を有効にするには、アプリの再起動が必要です</string>
 
     <string name="s_group_server">サーバー</string>
     <string name="s_info_server">SpMpのサーバー部分(SpMs)が設定されたIPアドレスとポートで実行されていなければなりません。https://github.com/toasterofbread/spmp-server</string>

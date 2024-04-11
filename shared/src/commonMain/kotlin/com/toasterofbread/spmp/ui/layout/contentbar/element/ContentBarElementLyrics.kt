@@ -49,6 +49,12 @@ data class ContentBarElementLyrics(
         val current_song: Song? by player.status.song_state
         lyrics_state = current_song?.let { SongLyricsLoader.rememberItemState(it, player.context) }
 
+        LaunchedEffect(current_song) {
+            current_song?.also { song ->
+                SongLyricsLoader.loadBySong(song, player.context)
+            }
+        }
+
         return lyrics_state?.lyrics?.synced == true
     }
 

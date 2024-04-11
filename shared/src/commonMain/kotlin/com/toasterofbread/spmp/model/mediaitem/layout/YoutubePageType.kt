@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.model.mediaitem.layout
 import com.toasterofbread.spmp.model.mediaitem.getMediaItemFromUid
 import com.toasterofbread.spmp.model.mediaitem.getUid
 import com.toasterofbread.spmp.model.mediaitem.toMediaItemRef
+import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.ytmkt.model.external.ListPageBrowseIdYoutubePage
@@ -28,7 +29,7 @@ enum class YoutubePageType {
                 ListPage -> {
                     val split: List<String> = data.split(VIEW_MORE_SPLIT_CHAR, limit = 3)
                     return ListPageBrowseIdYoutubePage(
-                        media_item = getMediaItemFromUid(split[0]),
+                        media_item = getMediaItemFromUid(split[0], MediaItemType.ARTIST),
                         list_page_browse_id = split[1],
                         browse_params = split[2]
                     )

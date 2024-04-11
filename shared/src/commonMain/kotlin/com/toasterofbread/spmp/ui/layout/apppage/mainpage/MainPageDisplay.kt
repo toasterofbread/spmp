@@ -4,6 +4,7 @@ import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -14,6 +15,7 @@ import androidx.compose.ui.unit.*
 import com.toasterofbread.composekit.utils.common.*
 import com.toasterofbread.composekit.utils.common.getContrasted
 import com.toasterofbread.composekit.utils.composable.*
+import com.toasterofbread.composekit.utils.composable.getTop
 import com.toasterofbread.composekit.utils.modifier.background
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
@@ -184,6 +186,11 @@ private fun RowScope.LandscapeSideBars(
     val modifier: Modifier = Modifier.fillMaxHeight()
     var inner_bar_width: Dp by remember { mutableStateOf(0.dp) }
 
+    val content_padding: PaddingValues =
+        PaddingValues(
+            top = WindowInsets.getTop()
+        )
+
     val first_displaying: Boolean = first.DisplayBar(
         if (start) inner_bar_width else 0.dp,
         modifier.onSizeChanged {
@@ -191,7 +198,8 @@ private fun RowScope.LandscapeSideBars(
                 inner_bar_width = with (density) { it.width.toDp() }
             }
         },
-        container_modifier = container_modifier.thenIf(start) { zIndex(1f) }
+        container_modifier = container_modifier.thenIf(start) { zIndex(1f) },
+        content_padding = content_padding
     )
 
     val second_displaying: Boolean = second.DisplayBar(
@@ -201,7 +209,8 @@ private fun RowScope.LandscapeSideBars(
                 inner_bar_width = with (density) { it.width.toDp() }
             }
         },
-        container_modifier = container_modifier.thenIf(!start) { zIndex(1f) }
+        container_modifier = container_modifier.thenIf(!start) { zIndex(1f) },
+        content_padding = content_padding
     )
 
     return Pair(first_displaying, second_displaying)

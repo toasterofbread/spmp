@@ -110,7 +110,7 @@ kotlin {
                 implementation("org.bytedeco:ffmpeg-platform:6.1.1-1.5.10")
 
                 implementation("dev.toastbits.ytm-kt:library-jvm:$ytmkt_version")
-                implementation("dev.toastbits.mediasessionkt:library-jvm:$mediasessionkt_version")
+                implementation("dev.toastbits.mediasession:library-jvm:$mediasessionkt_version")
             }
         }
     }

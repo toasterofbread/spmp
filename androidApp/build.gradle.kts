@@ -52,7 +52,9 @@ kotlin {
         val androidMain by getting {
             dependencies {
                 implementation(project(":shared"))
-                implementation(project(":ComposeKit:lib"))
+
+                val composekit_version: String = extra["composekit.version"] as String
+                implementation("dev.toastbits.composekit:library-android:$composekit_version")
             }
         }
     }

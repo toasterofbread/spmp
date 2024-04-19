@@ -28,10 +28,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.platform.PlatformContext
-import com.toasterofbread.composekit.settings.ui.item.SettingsItem
-import com.toasterofbread.composekit.utils.composable.ShapedIconButton
-import com.toasterofbread.composekit.platform.PlatformFile
+import dev.toastbits.composekit.platform.PlatformContext
+import dev.toastbits.composekit.settings.ui.item.SettingsItem
+import dev.toastbits.composekit.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.DesktopSettings
 import com.toasterofbread.spmp.platform.playerservice.getServerExecutableFilename

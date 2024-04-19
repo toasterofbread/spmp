@@ -4,8 +4,8 @@ import SpMp
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.toasterofbread.composekit.platform.PlatformFile
-import com.toasterofbread.composekit.utils.common.addUnique
+import dev.toastbits.composekit.platform.PlatformFile
+import dev.toastbits.composekit.utils.common.addUnique
 import com.toasterofbread.spmp.model.lyrics.LyricsFileConverter
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist

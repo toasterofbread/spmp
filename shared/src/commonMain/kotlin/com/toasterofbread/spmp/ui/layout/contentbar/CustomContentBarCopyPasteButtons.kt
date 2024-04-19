@@ -8,7 +8,7 @@ import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.Modifier
 import androidx.compose.runtime.*
-import com.toasterofbread.composekit.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json

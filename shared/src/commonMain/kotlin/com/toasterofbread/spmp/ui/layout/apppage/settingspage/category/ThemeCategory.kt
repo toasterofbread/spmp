@@ -2,10 +2,10 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
 import isWindowTransparencySupported
 import androidx.compose.ui.Modifier
-import com.toasterofbread.composekit.platform.Platform
-import com.toasterofbread.composekit.settings.ui.Theme
-import com.toasterofbread.composekit.settings.ui.ThemeData
-import com.toasterofbread.composekit.settings.ui.item.*
+import dev.toastbits.composekit.platform.Platform
+import dev.toastbits.composekit.settings.ui.Theme
+import dev.toastbits.composekit.settings.ui.ThemeData
+import dev.toastbits.composekit.settings.ui.item.*
 import com.toasterofbread.spmp.model.settings.category.AccentColourSource
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.AppContext

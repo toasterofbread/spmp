@@ -1,8 +1,8 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
-import com.toasterofbread.composekit.settings.ui.item.SettingsItem
-import com.toasterofbread.composekit.settings.ui.item.ToggleSettingsItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
+import dev.toastbits.composekit.settings.ui.item.SettingsItem
+import dev.toastbits.composekit.settings.ui.item.ToggleSettingsItem
+import dev.toastbits.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.settings.category.FilterSettings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppStringSetItem

@@ -10,7 +10,7 @@ import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
-import com.toasterofbread.composekit.platform.composable.platformClickable
+import dev.toastbits.composekit.platform.composable.platformClickable
 
 @Composable
 fun LayoutSlotEditorPreviewOptions(modifier: Modifier = Modifier) {

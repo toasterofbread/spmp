@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.service.playercontroller
 
 import SpMp
-import com.toasterofbread.composekit.utils.common.launchSingle
+import dev.toastbits.composekit.utils.common.launchSingle
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.ProjectBuildConfig
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider

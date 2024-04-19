@@ -14,10 +14,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalViewConfiguration
-import com.toasterofbread.composekit.platform.Platform
-import com.toasterofbread.composekit.platform.composable.platformClickableWithOffset
-import com.toasterofbread.composekit.platform.vibrateShort
-import com.toasterofbread.composekit.utils.composable.OnChangedEffect
+import dev.toastbits.composekit.platform.Platform
+import dev.toastbits.composekit.platform.composable.platformClickableWithOffset
+import dev.toastbits.composekit.platform.vibrateShort
+import dev.toastbits.composekit.utils.composable.OnChangedEffect
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData

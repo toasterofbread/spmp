@@ -15,9 +15,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
-import com.toasterofbread.composekit.platform.Platform
-import com.toasterofbread.composekit.utils.composable.AlignableCrossfade
-import com.toasterofbread.composekit.utils.composable.NullableValueAnimatedVisibility
+import dev.toastbits.composekit.platform.Platform
+import dev.toastbits.composekit.utils.composable.AlignableCrossfade
+import dev.toastbits.composekit.utils.composable.NullableValueAnimatedVisibility
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import kotlinx.coroutines.delay
 

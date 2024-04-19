@@ -2,9 +2,9 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
 import LocalPlayerState
 import androidx.compose.runtime.remember
-import com.toasterofbread.composekit.settings.ui.item.SettingsItem
-import com.toasterofbread.composekit.settings.ui.item.ToggleSettingsItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
+import dev.toastbits.composekit.settings.ui.item.SettingsItem
+import dev.toastbits.composekit.settings.ui.item.ToggleSettingsItem
+import dev.toastbits.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.deserialise
 import com.toasterofbread.spmp.model.getString
 import com.toasterofbread.spmp.model.serialise

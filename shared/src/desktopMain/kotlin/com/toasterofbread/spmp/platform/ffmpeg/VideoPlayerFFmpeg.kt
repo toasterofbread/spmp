@@ -15,7 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
-import com.toasterofbread.composekit.utils.common.launchSingle
+import dev.toastbits.composekit.utils.common.launchSingle
 
 @Composable
 fun VideoPlayerFFmpeg(

@@ -22,10 +22,10 @@ import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
-import com.toasterofbread.composekit.platform.composable.*
-import com.toasterofbread.composekit.utils.common.*
-import com.toasterofbread.composekit.utils.composable.*
-import com.toasterofbread.composekit.utils.modifier.bounceOnClick
+import dev.toastbits.composekit.platform.composable.*
+import dev.toastbits.composekit.utils.common.*
+import dev.toastbits.composekit.utils.composable.*
+import dev.toastbits.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.enums.*
 import com.toasterofbread.spmp.model.mediaitem.layout.*

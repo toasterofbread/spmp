@@ -13,10 +13,10 @@ import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.layout.onSizeChanged
-import com.toasterofbread.composekit.utils.common.thenIf
-import com.toasterofbread.composekit.utils.common.getValue
-import com.toasterofbread.composekit.utils.common.thenWith
-import com.toasterofbread.composekit.platform.composable.platformClickable
+import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.utils.common.getValue
+import dev.toastbits.composekit.utils.common.thenWith
+import dev.toastbits.composekit.platform.composable.platformClickable
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.Settings

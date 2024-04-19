@@ -20,7 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.core.view.WindowCompat
-import com.toasterofbread.composekit.platform.ApplicationContext
+import dev.toastbits.composekit.platform.ApplicationContext
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
 import kotlinx.coroutines.CoroutineScope

@@ -24,11 +24,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.unit.Dp
-import com.toasterofbread.composekit.platform.composable.*
-import com.toasterofbread.composekit.utils.common.*
-import com.toasterofbread.composekit.utils.common.getContrasted
-import com.toasterofbread.composekit.utils.modifier.background
-import com.toasterofbread.composekit.utils.composable.NoRipple
+import dev.toastbits.composekit.platform.composable.*
+import dev.toastbits.composekit.utils.common.*
+import dev.toastbits.composekit.utils.common.getContrasted
+import dev.toastbits.composekit.utils.modifier.background
+import dev.toastbits.composekit.utils.composable.NoRipple
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.*

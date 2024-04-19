@@ -1,6 +1,5 @@
 rootProject.name = "spmp"
 
-include(":ComposeKit:lib")
 include(":spmp-server")
 include(":shared")
 include(":androidApp")

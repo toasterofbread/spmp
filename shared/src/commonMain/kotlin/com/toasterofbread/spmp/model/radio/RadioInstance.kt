@@ -3,7 +3,7 @@ package com.toasterofbread.spmp.model.radio
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.toasterofbread.composekit.utils.common.launchSingle
+import dev.toastbits.composekit.utils.common.launchSingle
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData

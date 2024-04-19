@@ -9,8 +9,8 @@ import androidx.compose.ui.*
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.*
-import com.toasterofbread.composekit.utils.common.thenWith
-import com.toasterofbread.composekit.utils.composable.*
+import dev.toastbits.composekit.utils.common.thenWith
+import dev.toastbits.composekit.utils.composable.*
 import com.toasterofbread.spmp.platform.visualiser.MusicVisualiser
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot

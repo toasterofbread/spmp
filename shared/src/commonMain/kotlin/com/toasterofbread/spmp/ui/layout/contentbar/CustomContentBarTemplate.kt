@@ -12,8 +12,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.*
-import com.toasterofbread.composekit.platform.composable.platformClickable
-import com.toasterofbread.composekit.settings.ui.Theme
+import dev.toastbits.composekit.platform.composable.platformClickable
+import dev.toastbits.composekit.settings.ui.Theme
 import com.toasterofbread.spmp.model.appaction.*
 import com.toasterofbread.spmp.model.appaction.action.navigation.AppPageNavigationAction
 import com.toasterofbread.spmp.resources.getString

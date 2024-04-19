@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElement
-import com.toasterofbread.composekit.settings.ui.Theme
+import dev.toastbits.composekit.settings.ui.Theme
 
 data class TemplateCustomContentBar(
     val template: CustomContentBarTemplate

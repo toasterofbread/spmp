@@ -6,8 +6,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.toasterofbread.composekit.settings.ui.SettingsPage
-import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
+import dev.toastbits.composekit.settings.ui.SettingsPage
+import dev.toastbits.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.settings.category.DiscordSettings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.DiscordLogin

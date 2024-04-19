@@ -9,7 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.Button
 import androidx.compose.runtime.*
 import kotlinx.serialization.Serializable
-import com.toasterofbread.composekit.utils.composable.LargeDropdownMenu
+import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
 import com.toasterofbread.spmp.model.appaction.shortcut.LocalShortcutState

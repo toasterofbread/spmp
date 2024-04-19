@@ -13,8 +13,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import androidx.compose.material3.Text
 import androidx.compose.material3.Switch
-import com.toasterofbread.composekit.settings.ui.Theme
-import com.toasterofbread.composekit.utils.composable.RowOrColumn
+import dev.toastbits.composekit.settings.ui.Theme
+import dev.toastbits.composekit.utils.composable.RowOrColumn
 import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.model.settings.category.LayoutSettings
 import com.toasterofbread.spmp.resources.getString
@@ -27,7 +27,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.Serializable
-import com.toasterofbread.composekit.utils.composable.RowOrColumnScope
+import dev.toastbits.composekit.utils.composable.RowOrColumnScope
 
 @Serializable
 sealed interface LayoutSlot {

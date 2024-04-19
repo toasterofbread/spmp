@@ -20,8 +20,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.composable.StickyHeightColumn
-import com.toasterofbread.composekit.platform.composable.ScrollBarLazyRow
+import dev.toastbits.composekit.utils.composable.StickyHeightColumn
+import dev.toastbits.composekit.platform.composable.ScrollBarLazyRow
 import com.toasterofbread.spmp.model.appaction.AppAction
 import com.toasterofbread.spmp.model.settings.category.ShortcutSettings
 import com.toasterofbread.spmp.resources.getString

@@ -11,7 +11,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
-import com.toasterofbread.composekit.utils.composable.AlignableCrossfade
+import dev.toastbits.composekit.utils.composable.AlignableCrossfade
 import dev.toastbits.ytmkt.endpoint.SearchSuggestion
 
 @Composable

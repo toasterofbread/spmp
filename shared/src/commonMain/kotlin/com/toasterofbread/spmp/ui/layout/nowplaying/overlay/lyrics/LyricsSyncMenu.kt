@@ -33,7 +33,7 @@ import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.HorizontalFuriganaText
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.composekit.utils.common.thenIf
+import dev.toastbits.composekit.utils.common.thenIf
 
 private const val SONG_SEEK_MS: Long = 5000L
 private val SYNC_MENU_LYRICS_SHOW_RANGE: IntRange = -3 .. 0

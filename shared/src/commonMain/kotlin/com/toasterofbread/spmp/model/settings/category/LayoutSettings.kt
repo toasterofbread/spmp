@@ -16,17 +16,17 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.graphics.Shape
-import com.toasterofbread.composekit.settings.ui.SettingsPage
-import com.toasterofbread.composekit.settings.ui.item.SettingsItem
-import com.toasterofbread.composekit.utils.common.thenWith
+import dev.toastbits.composekit.settings.ui.SettingsPage
+import dev.toastbits.composekit.settings.ui.item.SettingsItem
+import dev.toastbits.composekit.utils.common.thenWith
 import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getLayoutCategoryItems
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlotEditorPreviewOptions
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
-import com.toasterofbread.composekit.utils.modifier.disableGestures
-import com.toasterofbread.composekit.platform.composable.platformClickable
+import dev.toastbits.composekit.utils.modifier.disableGestures
+import dev.toastbits.composekit.platform.composable.platformClickable
 
 data object LayoutSettings: SettingsCategory("layout") {
     override val keys: List<SettingsKey> = Key.entries.toList()

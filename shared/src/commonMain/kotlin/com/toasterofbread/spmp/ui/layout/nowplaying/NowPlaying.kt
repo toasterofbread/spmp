@@ -14,9 +14,9 @@ import androidx.compose.ui.unit.*
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalDensity
-import com.toasterofbread.composekit.platform.Platform
-import com.toasterofbread.composekit.utils.common.*
-import com.toasterofbread.composekit.utils.composable.getBottom
+import dev.toastbits.composekit.platform.Platform
+import dev.toastbits.composekit.utils.common.*
+import dev.toastbits.composekit.utils.composable.getBottom
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.BarColourState

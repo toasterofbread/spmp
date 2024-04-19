@@ -29,8 +29,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.toasterofbread.composekit.settings.ui.SettingsInterface
-import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
+import dev.toastbits.composekit.settings.ui.SettingsInterface
+import dev.toastbits.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.YoutubeAuthSettings
 import com.toasterofbread.spmp.ui.component.PillMenu
@@ -41,7 +41,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import androidx.compose.runtime.MutableState
-import com.toasterofbread.composekit.utils.common.copy
+import dev.toastbits.composekit.utils.common.copy
 
 internal const val PREFS_PAGE_EXTRA_PADDING_DP: Float = 10f
 

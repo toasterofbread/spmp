@@ -6,7 +6,7 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.InternalContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBarTemplate
-import com.toasterofbread.composekit.settings.ui.Theme
+import dev.toastbits.composekit.settings.ui.Theme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment

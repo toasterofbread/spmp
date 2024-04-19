@@ -14,7 +14,7 @@ import androidx.compose.material3.Button
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.model.appaction.action.playback.*
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.composekit.utils.composable.LargeDropdownMenu
+import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
 
 @Serializable
 data class PlaybackAppAction(

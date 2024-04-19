@@ -21,11 +21,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.settings.ui.SettingsPage
-import com.toasterofbread.composekit.settings.ui.SettingsPageWithItems
-import com.toasterofbread.composekit.settings.ui.item.ComposableSettingsItem
-import com.toasterofbread.composekit.utils.common.roundTo
-import com.toasterofbread.composekit.utils.composable.RecomposeOnInterval
+import dev.toastbits.composekit.settings.ui.SettingsPage
+import dev.toastbits.composekit.settings.ui.SettingsPageWithItems
+import dev.toastbits.composekit.settings.ui.item.ComposableSettingsItem
+import dev.toastbits.composekit.utils.common.roundTo
+import dev.toastbits.composekit.utils.composable.RecomposeOnInterval
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField

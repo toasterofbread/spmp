@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.model.mediaitem.artist
 
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.composekit.utils.common.isJP
+import dev.toastbits.composekit.utils.common.isJP
 
 fun formatArtistTitles(titles: List<String?>, context: AppContext): String? {
     val filtered_titles: List<String> = titles.filterNotNull()

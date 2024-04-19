@@ -10,9 +10,9 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.*
-import com.toasterofbread.composekit.settings.ui.Theme
-import com.toasterofbread.composekit.utils.common.*
-import com.toasterofbread.composekit.utils.composable.*
+import dev.toastbits.composekit.settings.ui.Theme
+import dev.toastbits.composekit.utils.common.*
+import dev.toastbits.composekit.utils.composable.*
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage

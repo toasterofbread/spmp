@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.requiredSize
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.model.settings.rememberMutableEnumState
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.composekit.utils.common.getValue
+import dev.toastbits.composekit.utils.common.getValue
 import LocalPlayerState
 
 @Composable

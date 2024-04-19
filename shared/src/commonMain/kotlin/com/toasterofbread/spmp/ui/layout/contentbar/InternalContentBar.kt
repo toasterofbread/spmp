@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.composekit.settings.ui.Theme
+import dev.toastbits.composekit.settings.ui.Theme
 import LocalPlayerState
 import kotlinx.serialization.Serializable
 

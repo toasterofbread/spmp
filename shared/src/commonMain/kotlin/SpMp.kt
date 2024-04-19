@@ -11,9 +11,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Density
-import com.toasterofbread.composekit.platform.Platform
-import com.toasterofbread.composekit.platform.PlatformPreferences
-import com.toasterofbread.composekit.utils.common.thenIf
+import dev.toastbits.composekit.platform.Platform
+import dev.toastbits.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.settings.category.FontMode
 import com.toasterofbread.spmp.model.settings.category.SystemSettings

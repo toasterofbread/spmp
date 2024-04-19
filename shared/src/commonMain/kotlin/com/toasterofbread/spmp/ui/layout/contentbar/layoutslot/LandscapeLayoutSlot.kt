@@ -3,7 +3,7 @@ package com.toasterofbread.spmp.ui.layout.contentbar.layoutslot
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
-import com.toasterofbread.composekit.settings.ui.Theme
+import dev.toastbits.composekit.settings.ui.Theme
 import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.model.settings.category.LayoutSettings
 import com.toasterofbread.spmp.resources.getString

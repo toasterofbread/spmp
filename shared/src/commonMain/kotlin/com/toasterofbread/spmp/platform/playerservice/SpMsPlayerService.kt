@@ -4,9 +4,9 @@ import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.toasterofbread.composekit.platform.PlatformPreferences
-import com.toasterofbread.composekit.platform.PlatformPreferencesListener
-import com.toasterofbread.composekit.utils.common.launchSingle
+import dev.toastbits.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.platform.PlatformPreferencesListener
+import dev.toastbits.composekit.utils.common.launchSingle
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.DesktopSettings
 import com.toasterofbread.spmp.model.settings.category.YoutubeAuthSettings

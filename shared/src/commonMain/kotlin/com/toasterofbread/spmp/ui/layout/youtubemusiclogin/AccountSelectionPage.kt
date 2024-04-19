@@ -18,7 +18,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.platform.composable.rememberImagePainter
+import io.kamel.image.asyncPainterResource
+import io.kamel.image.KamelImage
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.AccountSwitcherEndpoint
 import io.ktor.http.Headers
@@ -53,7 +54,7 @@ private fun AccountSwitcherEndpoint.AccountItem.Item(onClick: () -> Unit) {
         Row(Modifier.padding(5.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             val thumbnail_url = accountPhoto.thumbnails.firstOrNull()?.url
             if (thumbnail_url != null) {
-                Image(rememberImagePainter(thumbnail_url), null, Modifier.size(40.dp).clip(CircleShape))
+                KamelImage(asyncPainterResource(thumbnail_url), null, Modifier.size(40.dp).clip(CircleShape))
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {

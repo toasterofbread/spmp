@@ -3,7 +3,7 @@ package com.toasterofbread.spmp.ui.layout
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import com.toasterofbread.composekit.utils.common.launchSingle
+import dev.toastbits.composekit.utils.common.launchSingle
 import com.toasterofbread.spmp.platform.getDiscordAccountInfo
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringArray

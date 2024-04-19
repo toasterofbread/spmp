@@ -11,10 +11,10 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.common.*
-import com.toasterofbread.composekit.utils.composable.*
-import com.toasterofbread.composekit.utils.modifier.horizontal
-import com.toasterofbread.composekit.utils.modifier.vertical
+import dev.toastbits.composekit.utils.common.*
+import dev.toastbits.composekit.utils.composable.*
+import dev.toastbits.composekit.utils.modifier.horizontal
+import dev.toastbits.composekit.utils.modifier.vertical
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
 @Composable

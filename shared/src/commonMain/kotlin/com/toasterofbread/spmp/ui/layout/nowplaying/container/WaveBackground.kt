@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.composekit.utils.composable.wave.OverlappingWaves
-import com.toasterofbread.composekit.utils.composable.wave.WaveLayer
-import com.toasterofbread.composekit.utils.composable.wave.getDefaultOverlappingWavesLayers
-import com.toasterofbread.composekit.utils.common.getValue
+import dev.toastbits.composekit.utils.composable.wave.OverlappingWaves
+import dev.toastbits.composekit.utils.composable.wave.WaveLayer
+import dev.toastbits.composekit.utils.composable.wave.getDefaultOverlappingWavesLayers
+import dev.toastbits.composekit.utils.common.getValue
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NOW_PLAYING_LARGE_BOTTOM_BAR_HEIGHT
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage

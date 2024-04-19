@@ -15,11 +15,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.platform.composable.BackHandler
-import com.toasterofbread.composekit.settings.ui.Theme
-import com.toasterofbread.composekit.settings.ui.item.*
-import com.toasterofbread.composekit.utils.common.toHexString
-import com.toasterofbread.composekit.utils.composable.NullableValueAnimatedVisibility
+import dev.toastbits.composekit.platform.composable.BackHandler
+import dev.toastbits.composekit.settings.ui.Theme
+import dev.toastbits.composekit.settings.ui.item.*
+import dev.toastbits.composekit.utils.common.toHexString
+import dev.toastbits.composekit.utils.composable.NullableValueAnimatedVisibility
 import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.model.settings.category.LayoutSettings
 import com.toasterofbread.spmp.platform.*

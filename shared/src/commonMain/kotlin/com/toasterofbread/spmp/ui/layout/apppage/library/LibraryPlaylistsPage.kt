@@ -19,9 +19,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.composekit.platform.composable.ScrollBarLazyVerticalGrid
-import com.toasterofbread.composekit.utils.composable.LoadActionIconButton
-import com.toasterofbread.composekit.utils.composable.spanItem
+import dev.toastbits.composekit.platform.composable.ScrollBarLazyVerticalGrid
+import dev.toastbits.composekit.utils.composable.LoadActionIconButton
+import dev.toastbits.composekit.utils.composable.spanItem
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
 import com.toasterofbread.spmp.model.mediaitem.layout.getMediaItemPreviewSquareAdditionalHeight

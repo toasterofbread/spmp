@@ -8,9 +8,9 @@ import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.composekit.utils.composable.LargeDropdownMenu
-import com.toasterofbread.composekit.platform.Platform
-import com.toasterofbread.composekit.platform.vibrateShort
+import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
+import dev.toastbits.composekit.platform.Platform
+import dev.toastbits.composekit.platform.vibrateShort
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.Button

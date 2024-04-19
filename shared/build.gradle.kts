@@ -29,6 +29,7 @@ kotlin {
             }
         }
 
+        val composekit_version: String = extra["composekit.version"] as String
         val ytmkt_version: String = extra["ytmkt.version"] as String
         val mediasessionkt_version: String = extra["mediasessionkt.version"] as String
         val ktor_version: String = extra["ktor.version"] as String
@@ -48,8 +49,6 @@ kotlin {
                 implementation(compose.material3)
                 implementation(compose.components.resources)
 
-                implementation(project(":ComposeKit:lib"))
-
                 implementation("org.apache.commons:commons-text:1.10.0")
                 implementation("com.atilika.kuromoji:kuromoji-ipadic:0.9.0")
                 implementation("org.jsoup:jsoup:1.16.1")
@@ -62,6 +61,7 @@ kotlin {
                 implementation("com.github.teamnewpipe:NewPipeExtractor:v0.22.7")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
                 implementation("org.zeromq:jeromq:0.5.3")
+                implementation("media.kamel:kamel-image:0.9.4")
 
                 implementation("io.ktor:ktor-client-core:$ktor_version")
                 implementation("io.ktor:ktor-client-cio:$ktor_version")
@@ -97,6 +97,7 @@ kotlin {
                 implementation("io.github.jan-tennert.supabase:functions-kt:1.3.2")
                 implementation("io.ktor:ktor-client-cio:2.3.6")
 
+                implementation("dev.toastbits.composekit:library-android:$composekit_version")
                 implementation("dev.toastbits.ytm-kt:library-android:$ytmkt_version")
             }
         }
@@ -109,6 +110,7 @@ kotlin {
                 implementation("com.github.caoimhebyrne:KDiscordIPC:0.2.2")
                 implementation("org.bytedeco:ffmpeg-platform:6.1.1-1.5.10")
 
+                implementation("dev.toastbits.composekit:library-desktop:$composekit_version")
                 implementation("dev.toastbits.ytm-kt:library-jvm:$ytmkt_version")
                 implementation("dev.toastbits.mediasession:library-jvm:$mediasessionkt_version")
             }

@@ -35,9 +35,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.platform.composable.rememberImagePainter
-import com.toasterofbread.composekit.utils.composable.LinkifyText
-import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.utils.composable.LinkifyText
+import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.platform.DiscordMeResponse
 import com.toasterofbread.spmp.platform.WebViewLogin
 import com.toasterofbread.spmp.platform.getDiscordAccountInfo
@@ -49,6 +48,8 @@ import com.toasterofbread.spmp.platform.getOrNotify
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
+import io.kamel.image.KamelImage
+import io.kamel.image.asyncPainterResource
 
 private const val DISCORD_LOGIN_URL = "https://discord.com/login"
 private const val DISCORD_API_URL = "https://discord.com/api/"
@@ -159,7 +160,7 @@ fun DiscordAccountPreview(account_token: String, modifier: Modifier = Modifier) 
                     }
                 }
                 is DiscordMeResponse -> {
-                    Image(rememberImagePainter(state.getAvatarUrl()), null, Modifier.fillMaxHeight().aspectRatio(1f).clip(CircleShape))
+                    KamelImage(asyncPainterResource(state.getAvatarUrl()), null, Modifier.fillMaxHeight().aspectRatio(1f).clip(CircleShape))
 
                     Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.SpaceEvenly) {
                         Text(state.username ?: "?", overflow = TextOverflow.Ellipsis, maxLines = 1)

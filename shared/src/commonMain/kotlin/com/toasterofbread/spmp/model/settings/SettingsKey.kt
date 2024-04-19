@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.model.settings
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import com.toasterofbread.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.platform.PlatformPreferences
 import com.toasterofbread.spmp.model.settings.category.SettingsCategory
 import com.toasterofbread.spmp.platform.AppContext
 

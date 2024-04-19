@@ -9,10 +9,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.toasterofbread.composekit.platform.vibrateShort
-import com.toasterofbread.composekit.settings.ui.SettingsInterface
-import com.toasterofbread.composekit.settings.ui.SettingsPageWithItems
-import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
+import dev.toastbits.composekit.platform.vibrateShort
+import dev.toastbits.composekit.settings.ui.SettingsInterface
+import dev.toastbits.composekit.settings.ui.SettingsPageWithItems
+import dev.toastbits.composekit.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.DiscordAuthSettings
 import com.toasterofbread.spmp.platform.AppContext

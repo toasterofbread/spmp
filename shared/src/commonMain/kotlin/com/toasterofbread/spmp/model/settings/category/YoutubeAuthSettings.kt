@@ -1,9 +1,9 @@
 package com.toasterofbread.spmp.model.settings.category
 
 import dev.toastbits.ytmkt.model.ApiAuthenticationState
-import com.toasterofbread.composekit.settings.ui.item.SettingsItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
-import com.toasterofbread.composekit.settings.ui.SettingsInterface
+import dev.toastbits.composekit.settings.ui.item.SettingsItem
+import dev.toastbits.composekit.settings.ui.item.SettingsValueState
+import dev.toastbits.composekit.settings.ui.SettingsInterface
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.SettingsKey

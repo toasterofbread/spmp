@@ -17,8 +17,8 @@ import kotlin.Unit
 import dev.toastbits.ytmkt.endpoint.SongFeedFilterChip
 import LocalPlayerState
 import com.toasterofbread.spmp.model.getString
-import com.toasterofbread.composekit.platform.composable.ScrollBarLazyRow
-import com.toasterofbread.composekit.utils.composable.ScrollableRowOrColumn
+import dev.toastbits.composekit.platform.composable.ScrollBarLazyRow
+import dev.toastbits.composekit.utils.composable.ScrollableRowOrColumn
 
 @Composable
 internal fun SongFeedAppPage.SFFSongFeedPagePrimaryBar(

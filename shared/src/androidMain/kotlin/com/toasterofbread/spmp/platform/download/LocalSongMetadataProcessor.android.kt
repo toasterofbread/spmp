@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.platform.download
 
 import android.media.MediaMetadataRetriever
 import android.net.Uri
-import com.toasterofbread.composekit.platform.PlatformFile
+import dev.toastbits.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.Song

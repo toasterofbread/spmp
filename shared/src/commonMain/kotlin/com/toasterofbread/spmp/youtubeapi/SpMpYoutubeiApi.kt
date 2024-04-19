@@ -20,8 +20,8 @@ import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.AppUiString
 import com.toasterofbread.spmp.youtubeapi.SpMpYoutubeiAuthenticationState
 import com.toasterofbread.spmp.db.Database
-import com.toasterofbread.composekit.platform.PlatformPreferencesListener
-import com.toasterofbread.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.platform.PlatformPreferencesListener
+import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.ytmkt.impl.youtubei.YoutubeiApi
 import dev.toastbits.ytmkt.impl.youtubei.endpoint.*
 import dev.toastbits.ytmkt.impl.youtubei.YoutubeiAuthenticationState

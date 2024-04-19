@@ -7,7 +7,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.toasterofbread.composekit.utils.composable.LargeDropdownMenu
+import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
 import com.toasterofbread.spmp.model.appaction.AppAction
 import com.toasterofbread.spmp.model.settings.category.SettingsCategory
 import com.toasterofbread.spmp.resources.getString

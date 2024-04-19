@@ -8,8 +8,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.common.getContrasted
-import com.toasterofbread.composekit.utils.composable.ResizableOutlinedTextField
+import dev.toastbits.composekit.utils.common.getContrasted
+import dev.toastbits.composekit.utils.composable.ResizableOutlinedTextField
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.library.LibraryAppPage
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot

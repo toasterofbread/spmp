@@ -8,9 +8,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.toasterofbread.composekit.platform.PlatformPreferences
-import com.toasterofbread.composekit.platform.PlatformPreferencesListener
-import com.toasterofbread.composekit.utils.composable.OnChangedEffect
+import dev.toastbits.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.platform.PlatformPreferencesListener
+import dev.toastbits.composekit.utils.composable.OnChangedEffect
 
 @Composable
 fun <T> mutableSettingsState(settings_key: SettingsKey, prefs: PlatformPreferences = Settings.prefs): MutableState<T> {

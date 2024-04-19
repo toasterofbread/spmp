@@ -11,7 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.Button
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.shortcut.trigger.ShortcutTrigger
-import com.toasterofbread.composekit.utils.composable.LargeDropdownMenu
+import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
 import com.toasterofbread.spmp.ui.component.shortcut.trigger.getName
 
 @Composable

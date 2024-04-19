@@ -11,9 +11,9 @@ import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.apppage.searchpage.getReadable
 import com.toasterofbread.spmp.ui.layout.apppage.searchpage.getIcon
 import dev.toastbits.ytmkt.endpoint.*
-import com.toasterofbread.composekit.utils.modifier.horizontal
-import com.toasterofbread.composekit.utils.modifier.vertical
-import com.toasterofbread.composekit.utils.common.copy
+import dev.toastbits.composekit.utils.modifier.horizontal
+import dev.toastbits.composekit.utils.modifier.vertical
+import dev.toastbits.composekit.utils.common.copy
 
 @Composable
 internal fun SearchAppPage.VerticalSearchPrimaryBar(

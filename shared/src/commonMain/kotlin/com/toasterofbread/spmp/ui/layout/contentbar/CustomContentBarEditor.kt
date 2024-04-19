@@ -16,10 +16,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
-import com.toasterofbread.composekit.platform.composable.platformClickableWithOffset
-import com.toasterofbread.composekit.settings.ui.Theme
-import com.toasterofbread.composekit.utils.common.*
-import com.toasterofbread.composekit.utils.composable.*
+import dev.toastbits.composekit.platform.composable.platformClickableWithOffset
+import dev.toastbits.composekit.settings.ui.Theme
+import dev.toastbits.composekit.utils.common.*
+import dev.toastbits.composekit.utils.composable.*
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState

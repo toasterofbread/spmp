@@ -7,8 +7,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import androidx.compose.runtime.getValue
-import com.toasterofbread.composekit.utils.modifier.brushBackground
-import com.toasterofbread.composekit.utils.common.getValue
+import dev.toastbits.composekit.utils.modifier.brushBackground
+import dev.toastbits.composekit.utils.common.getValue
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.*

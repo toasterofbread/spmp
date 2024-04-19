@@ -4,8 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.settings.ui.item.BasicSettingsValueState
-import com.toasterofbread.composekit.settings.ui.item.StringSetSettingsItem
+import dev.toastbits.composekit.settings.ui.item.BasicSettingsValueState
+import dev.toastbits.composekit.settings.ui.item.StringSetSettingsItem
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 

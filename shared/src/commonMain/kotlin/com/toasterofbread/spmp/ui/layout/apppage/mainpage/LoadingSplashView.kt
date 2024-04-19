@@ -49,10 +49,10 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.common.blockGestures
-import com.toasterofbread.composekit.utils.common.thenIf
-import com.toasterofbread.composekit.utils.common.toFloat
-import com.toasterofbread.composekit.utils.composable.NullableValueAnimatedVisibility
+import dev.toastbits.composekit.utils.common.blockGestures
+import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.utils.common.toFloat
+import dev.toastbits.composekit.utils.composable.NullableValueAnimatedVisibility
 import com.toasterofbread.spmp.platform.splash.SplashExtraLoadingContent
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState

@@ -62,7 +62,10 @@ kotlin {
             dependencies {
                 implementation(compose.desktop.currentOs)
                 implementation(project(":shared"))
-                implementation(project(":ComposeKit:lib"))
+
+                val composekit_version: String = extra["composekit.version"] as String
+                implementation("dev.toastbits.composekit:library-desktop:$composekit_version")
+
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.6.4")
 
                 // LWJGL needed by gdx-nativefilechooser

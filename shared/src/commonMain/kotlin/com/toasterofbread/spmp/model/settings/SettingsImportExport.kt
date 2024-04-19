@@ -1,8 +1,8 @@
 package com.toasterofbread.spmp.model.settings
 
-import com.toasterofbread.composekit.platform.PlatformFile
-import com.toasterofbread.composekit.platform.PlatformPreferences
-import com.toasterofbread.composekit.platform.putAny
+import dev.toastbits.composekit.platform.PlatformFile
+import dev.toastbits.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.platform.putAny
 import com.toasterofbread.spmp.model.settings.category.SettingsCategory
 import com.toasterofbread.spmp.platform.AppContext
 import kotlinx.coroutines.Dispatchers

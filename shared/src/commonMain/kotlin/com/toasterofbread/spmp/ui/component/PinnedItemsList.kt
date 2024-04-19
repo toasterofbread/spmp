@@ -8,9 +8,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.composable.*
-import com.toasterofbread.composekit.utils.common.thenIf
-import com.toasterofbread.composekit.utils.common.thenWith
+import dev.toastbits.composekit.utils.composable.*
+import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.utils.common.thenWith
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.model.mediaitem.db.rememberPinnedItems
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData

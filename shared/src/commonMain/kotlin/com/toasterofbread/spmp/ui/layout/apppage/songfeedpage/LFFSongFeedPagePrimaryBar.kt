@@ -12,10 +12,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.*
-import com.toasterofbread.composekit.platform.Platform
-import com.toasterofbread.composekit.utils.common.*
-import com.toasterofbread.composekit.utils.composable.*
-import com.toasterofbread.composekit.utils.modifier.horizontal
+import dev.toastbits.composekit.platform.Platform
+import dev.toastbits.composekit.utils.common.*
+import dev.toastbits.composekit.utils.composable.*
+import dev.toastbits.composekit.utils.modifier.horizontal
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState

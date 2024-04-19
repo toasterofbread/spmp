@@ -3,12 +3,12 @@ package com.toasterofbread.spmp.youtubeapi.lyrics
 
 import com.atilika.kuromoji.ipadic.Token
 import com.atilika.kuromoji.ipadic.Tokenizer
-import com.toasterofbread.composekit.utils.common.hasKanjiAndHiraganaOrKatakana
-import com.toasterofbread.composekit.utils.common.isHiragana
-import com.toasterofbread.composekit.utils.common.isJP
-import com.toasterofbread.composekit.utils.common.isKanji
-import com.toasterofbread.composekit.utils.common.isKatakana
-import com.toasterofbread.composekit.utils.common.toHiragana
+import dev.toastbits.composekit.utils.common.hasKanjiAndHiraganaOrKatakana
+import dev.toastbits.composekit.utils.common.isHiragana
+import dev.toastbits.composekit.utils.common.isJP
+import dev.toastbits.composekit.utils.common.isKanji
+import dev.toastbits.composekit.utils.common.isKatakana
+import dev.toastbits.composekit.utils.common.toHiragana
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import java.nio.channels.ClosedByInterruptException
 

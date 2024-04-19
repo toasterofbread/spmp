@@ -3,7 +3,7 @@ package com.toasterofbread.spmp.model.appaction.shortcut
 import androidx.compose.runtime.*
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.input.key.*
-import com.toasterofbread.composekit.utils.common.addUnique
+import dev.toastbits.composekit.utils.common.addUnique
 import com.toasterofbread.spmp.ui.component.shortcut.trigger.*
 import com.toasterofbread.spmp.model.settings.category.ShortcutSettings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState

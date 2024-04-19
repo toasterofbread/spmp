@@ -6,7 +6,7 @@ import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getThemeCategoryItems
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
-import com.toasterofbread.composekit.platform.Platform
+import dev.toastbits.composekit.platform.Platform
 
 data object ThemeSettings: SettingsCategory("theme") {
     override val keys: List<SettingsKey> = Key.entries.toList()

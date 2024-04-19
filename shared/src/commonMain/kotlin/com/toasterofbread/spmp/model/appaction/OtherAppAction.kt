@@ -18,9 +18,9 @@ import com.toasterofbread.spmp.model.appaction.AppAction
 import com.toasterofbread.spmp.model.settings.category.SystemSettings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.composekit.utils.composable.LargeDropdownMenu
-import com.toasterofbread.composekit.platform.Platform
-import com.toasterofbread.composekit.platform.composable.onWindowBackPressed
+import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
+import dev.toastbits.composekit.platform.Platform
+import dev.toastbits.composekit.platform.composable.onWindowBackPressed
 import kotlinx.serialization.Serializable
 
 @Serializable

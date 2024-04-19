@@ -21,11 +21,11 @@ import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.unit.Dp
-import com.toasterofbread.composekit.platform.composable.BackHandler
-import com.toasterofbread.composekit.platform.vibrateShort
-import com.toasterofbread.composekit.utils.common.*
-import com.toasterofbread.composekit.utils.composable.*
-import com.toasterofbread.composekit.utils.modifier.scrollWithoutClip
+import dev.toastbits.composekit.platform.composable.BackHandler
+import dev.toastbits.composekit.platform.vibrateShort
+import dev.toastbits.composekit.utils.common.*
+import dev.toastbits.composekit.utils.composable.*
+import dev.toastbits.composekit.utils.modifier.scrollWithoutClip
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.resources.getString

@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.youtubeapi.lyrics
 
 import androidx.compose.ui.graphics.Color
-import com.toasterofbread.composekit.utils.common.substringBetween
+import dev.toastbits.composekit.utils.common.substringBetween
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString

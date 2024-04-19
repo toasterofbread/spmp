@@ -15,15 +15,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.settings.ui.SettingsPageWithItems
-import com.toasterofbread.composekit.settings.ui.item.ComposableSettingsItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsItem
-import com.toasterofbread.composekit.utils.common.blendWith
+import dev.toastbits.composekit.settings.ui.SettingsPageWithItems
+import dev.toastbits.composekit.settings.ui.item.ComposableSettingsItem
+import dev.toastbits.composekit.settings.ui.item.SettingsItem
+import dev.toastbits.composekit.utils.common.blendWith
 import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.composekit.utils.common.amplifyPercent
-import com.toasterofbread.composekit.settings.ui.SettingsPage
-import com.toasterofbread.composekit.settings.ui.SettingsInterface
+import dev.toastbits.composekit.utils.common.amplifyPercent
+import dev.toastbits.composekit.settings.ui.SettingsPage
+import dev.toastbits.composekit.settings.ui.SettingsInterface
 
 sealed class SettingsCategory(id: String) {
     val id: String = id.uppercase()

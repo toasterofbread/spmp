@@ -13,10 +13,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.text.*
 import androidx.compose.ui.unit.*
-import com.toasterofbread.composekit.utils.*
-import com.toasterofbread.composekit.utils.common.copy
-import com.toasterofbread.composekit.utils.composable.*
-import com.toasterofbread.composekit.utils.modifier.horizontal
+import dev.toastbits.composekit.utils.*
+import dev.toastbits.composekit.utils.common.copy
+import dev.toastbits.composekit.utils.composable.*
+import dev.toastbits.composekit.utils.modifier.horizontal
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist

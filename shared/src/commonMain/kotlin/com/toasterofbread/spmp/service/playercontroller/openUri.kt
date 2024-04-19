@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.service.playercontroller
 
-import com.toasterofbread.composekit.utils.common.indexOfOrNull
+import dev.toastbits.composekit.utils.common.indexOfOrNull
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist

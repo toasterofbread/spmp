@@ -12,11 +12,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
-import com.toasterofbread.composekit.utils.common.*
-import com.toasterofbread.composekit.utils.common.getContrasted
-import com.toasterofbread.composekit.utils.composable.*
-import com.toasterofbread.composekit.utils.composable.getTop
-import com.toasterofbread.composekit.utils.modifier.background
+import dev.toastbits.composekit.utils.common.*
+import dev.toastbits.composekit.utils.common.getContrasted
+import dev.toastbits.composekit.utils.composable.*
+import dev.toastbits.composekit.utils.composable.getTop
+import dev.toastbits.composekit.utils.modifier.background
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP

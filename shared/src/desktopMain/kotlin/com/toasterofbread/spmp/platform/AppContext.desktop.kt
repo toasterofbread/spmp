@@ -1,9 +1,9 @@
 package com.toasterofbread.spmp.platform
 
-import com.toasterofbread.composekit.platform.PlatformContext
-import com.toasterofbread.composekit.platform.PlatformPreferences
-import com.toasterofbread.composekit.platform.PlatformPreferencesImpl
-import com.toasterofbread.composekit.settings.ui.Theme
+import dev.toastbits.composekit.platform.PlatformContext
+import dev.toastbits.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.platform.PlatformPreferencesImpl
+import dev.toastbits.composekit.settings.ui.Theme
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.settings.category.YTApiSettings
 import com.toasterofbread.spmp.model.settings.getEnum

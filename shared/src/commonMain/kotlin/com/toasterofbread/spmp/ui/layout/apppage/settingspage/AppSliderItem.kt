@@ -1,9 +1,9 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import androidx.compose.ui.Modifier
-import com.toasterofbread.composekit.settings.ui.item.BasicSettingsValueState
-import com.toasterofbread.composekit.settings.ui.item.SliderSettingsItem
-import com.toasterofbread.composekit.utils.common.roundTo
+import dev.toastbits.composekit.settings.ui.item.BasicSettingsValueState
+import dev.toastbits.composekit.settings.ui.item.SliderSettingsItem
+import dev.toastbits.composekit.utils.common.roundTo
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 

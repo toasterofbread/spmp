@@ -12,7 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.composable.NullableValueAnimatedVisibility
+import dev.toastbits.composekit.utils.composable.NullableValueAnimatedVisibility
 import com.toasterofbread.spmp.model.appaction.AppAction
 import com.toasterofbread.spmp.model.appaction.shortcut.*
 import com.toasterofbread.spmp.resources.getString

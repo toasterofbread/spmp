@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import com.toasterofbread.composekit.platform.composable.ScrollBarLazyRow
+import dev.toastbits.composekit.platform.composable.ScrollBarLazyRow
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
@@ -24,7 +24,7 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.composekit.utils.composable.ScrollBarLazyRowOrColumn
+import dev.toastbits.composekit.utils.composable.ScrollBarLazyRowOrColumn
 
 abstract class AppPageWithItem : AppPage() {
     abstract val item: MediaItemHolder

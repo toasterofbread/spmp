@@ -2,8 +2,8 @@ package com.toasterofbread.spmp.ui.layout.contentbar.layoutslot
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import com.toasterofbread.composekit.settings.ui.Theme
-import com.toasterofbread.composekit.utils.common.fromHexString
+import dev.toastbits.composekit.settings.ui.Theme
+import dev.toastbits.composekit.utils.common.fromHexString
 import androidx.compose.runtime.State
 import com.toasterofbread.spmp.model.settings.category.LayoutSettings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState

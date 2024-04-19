@@ -17,11 +17,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import com.toasterofbread.composekit.platform.PlatformPreferences
-import com.toasterofbread.composekit.settings.ui.item.BasicSettingsValueState
-import com.toasterofbread.composekit.settings.ui.item.LargeToggleSettingsItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
-import com.toasterofbread.composekit.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.settings.ui.item.BasicSettingsValueState
+import dev.toastbits.composekit.settings.ui.item.LargeToggleSettingsItem
+import dev.toastbits.composekit.settings.ui.item.SettingsValueState
+import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.DiscordAuthSettings
 import com.toasterofbread.spmp.platform.AppContext

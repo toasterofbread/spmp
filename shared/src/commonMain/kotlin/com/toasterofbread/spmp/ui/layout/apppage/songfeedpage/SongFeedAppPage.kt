@@ -10,8 +10,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.unit.*
-import com.toasterofbread.composekit.utils.common.*
-import com.toasterofbread.composekit.utils.composable.RowOrColumn
+import dev.toastbits.composekit.utils.common.*
+import dev.toastbits.composekit.utils.composable.RowOrColumn
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.*

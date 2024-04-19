@@ -16,8 +16,8 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.DpSize
-import com.toasterofbread.composekit.utils.common.addUnique
-import com.toasterofbread.composekit.utils.common.thenIf
+import dev.toastbits.composekit.utils.common.addUnique
+import dev.toastbits.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.service.playercontroller.PlayerState

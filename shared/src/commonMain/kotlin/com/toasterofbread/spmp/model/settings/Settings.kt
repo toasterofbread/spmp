@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.model.settings
 
 import SpMp
 import androidx.compose.runtime.*
-import com.toasterofbread.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.platform.PlatformPreferences
 import com.toasterofbread.spmp.model.settings.category.SettingsCategory
 import kotlinx.serialization.json.Json
 import java.util.*

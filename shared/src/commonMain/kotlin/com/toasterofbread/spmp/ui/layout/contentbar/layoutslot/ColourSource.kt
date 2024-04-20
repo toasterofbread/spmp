@@ -5,7 +5,6 @@ import androidx.compose.ui.graphics.toArgb
 import dev.toastbits.composekit.settings.ui.Theme
 import dev.toastbits.composekit.utils.common.fromHexString
 import androidx.compose.runtime.State
-import com.toasterofbread.spmp.model.settings.category.LayoutSettings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import androidx.compose.runtime.*
@@ -40,10 +39,9 @@ data class CustomColourSource(val colour: Int): ColourSource {
 @Composable
 internal fun LayoutSlot.rememberColourSource(): State<ColourSource> {
     val player: PlayerState = LocalPlayerState.current
-    val colours_data: String by LayoutSettings.Key.SLOT_COLOURS.rememberMutableState()
+    val colours: Map<String, ColourSource> by player.settings.layout.SLOT_COLOURS.observe()
 
     return remember { derivedStateOf {
-        val colours: Map<String, ColourSource> = Json.decodeFromString(colours_data)
-        return@derivedStateOf colours[getKey()] ?: getDefaultBackgroundColour(player.theme)
+        colours[getKey()] ?: getDefaultBackgroundColour(player.theme)
     } }
 }

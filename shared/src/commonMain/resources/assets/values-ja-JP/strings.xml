@@ -641,6 +641,9 @@
     <string name="s_sub_discord_status_show_button_project">押されるとこのプロジェクトのページが GitHub で開かれます</string>
     <string name="s_key_discord_status_button_project_text">プロジェクトページボタンに表示されるテキスト</string>
 
+    <string name="s_key_configured_shortcuts">設定済みのショートカット</string>
+    <string name="s_key_navigate_song_with_numbers">数字キーで曲内をシーク</string>
+
     <string name="s_cat_general">一般</string>
     <string name="s_cat_desc_general">言語などのオプション</string>
 

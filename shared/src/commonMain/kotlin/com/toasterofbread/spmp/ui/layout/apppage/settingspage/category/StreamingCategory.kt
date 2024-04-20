@@ -4,85 +4,73 @@ import dev.toastbits.composekit.settings.ui.item.DropdownSettingsItem
 import dev.toastbits.composekit.settings.ui.item.MultipleChoiceSettingsItem
 import dev.toastbits.composekit.settings.ui.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.item.ToggleSettingsItem
-import dev.toastbits.composekit.settings.ui.item.SettingsValueState
+import dev.toastbits.composekit.platform.PreferencesProperty
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
-import com.toasterofbread.spmp.model.settings.category.StreamingSettings
 import com.toasterofbread.spmp.model.settings.category.VideoFormatsEndpointType
 import com.toasterofbread.spmp.platform.download.DownloadMethod
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 
-internal fun getStreamingCategoryItems(): List<SettingsItem> {
+internal fun getStreamingCategoryItems(context: AppContext): List<SettingsItem> {
     return listOf(
         DropdownSettingsItem(
-            SettingsValueState(StreamingSettings.Key.VIDEO_FORMATS_METHOD.getName()),
-            getString("s_key_video_formats_endpoint"), null, VideoFormatsEndpointType.entries.size
-        ) { i ->
-            VideoFormatsEndpointType.entries[i].getReadable()
+            context.settings.streaming.VIDEO_FORMATS_METHOD
+        ) { type ->
+            type.getReadable()
         },
 
         ToggleSettingsItem(
-            SettingsValueState(StreamingSettings.Key.AUTO_DOWNLOAD_ENABLED.getName()),
-            getString("s_key_auto_download_enabled"), null
+            context.settings.streaming.AUTO_DOWNLOAD_ENABLED
         ),
 
         AppSliderItem(
-            SettingsValueState<Int>(StreamingSettings.Key.AUTO_DOWNLOAD_THRESHOLD.getName()),
-            getString("s_key_auto_download_threshold"), getString("s_sub_auto_download_threshold"),
+            context.settings.streaming.AUTO_DOWNLOAD_THRESHOLD,
             range = 1f..10f,
             min_label = "1",
             max_label = "10"
         ),
 
         ToggleSettingsItem(
-            SettingsValueState(StreamingSettings.Key.AUTO_DOWNLOAD_ON_METERED.getName()),
-            getString("s_key_auto_download_on_metered"), null
+            context.settings.streaming.AUTO_DOWNLOAD_ON_METERED
         ),
 
         DropdownSettingsItem(
-            SettingsValueState(StreamingSettings.Key.STREAM_AUDIO_QUALITY.getName()),
-            getString("s_key_stream_audio_quality"), getString("s_sub_stream_audio_quality"), 3
-        ) { i ->
-            when (i) {
-                SongAudioQuality.HIGH.ordinal -> getString("s_option_audio_quality_high")
-                SongAudioQuality.MEDIUM.ordinal -> getString("s_option_audio_quality_medium")
-                else -> getString("s_option_audio_quality_low")
+            context.settings.streaming.STREAM_AUDIO_QUALITY
+        ) { quality ->
+            when (quality) {
+                SongAudioQuality.HIGH -> getString("s_option_audio_quality_high")
+                SongAudioQuality.MEDIUM -> getString("s_option_audio_quality_medium")
+                SongAudioQuality.LOW -> getString("s_option_audio_quality_low")
             }
         },
 
         DropdownSettingsItem(
-            SettingsValueState(StreamingSettings.Key.DOWNLOAD_AUDIO_QUALITY.getName()),
-            getString("s_key_download_audio_quality"), getString("s_sub_download_audio_quality"), 3
-        ) { i ->
-            when (i) {
-                SongAudioQuality.HIGH.ordinal -> getString("s_option_audio_quality_high")
-                SongAudioQuality.MEDIUM.ordinal -> getString("s_option_audio_quality_medium")
-                else -> getString("s_option_audio_quality_low")
+            context.settings.streaming.DOWNLOAD_AUDIO_QUALITY
+        ) { quality ->
+            when (quality) {
+                SongAudioQuality.HIGH -> getString("s_option_audio_quality_high")
+                SongAudioQuality.MEDIUM -> getString("s_option_audio_quality_medium")
+                SongAudioQuality.LOW -> getString("s_option_audio_quality_low")
             }
         },
 
         ToggleSettingsItem(
-            SettingsValueState(StreamingSettings.Key.ENABLE_AUDIO_NORMALISATION.getName()),
-            getString("s_key_enable_audio_normalisation"), getString("s_sub_enable_audio_normalisation")
+            context.settings.streaming.ENABLE_AUDIO_NORMALISATION
         ),
 
         ToggleSettingsItem(
-            SettingsValueState(StreamingSettings.Key.ENABLE_SILENCE_SKIPPING.getName()),
-            getString("s_key_enable_silence_skipping"), null
+            context.settings.streaming.ENABLE_SILENCE_SKIPPING
         ),
 
         MultipleChoiceSettingsItem(
-            SettingsValueState(StreamingSettings.Key.DOWNLOAD_METHOD.getName()),
-            getString("s_key_download_method"), getString("s_sub_download_method"),
-            DownloadMethod.available.size
-        ) {
-            val method: DownloadMethod = DownloadMethod.available[it]
-            return@MultipleChoiceSettingsItem method.getTitle() + " - " + method.getDescription()
+            context.settings.streaming.DOWNLOAD_METHOD
+        ) { method ->
+            method.getTitle() + " - " + method.getDescription()
         },
 
         ToggleSettingsItem(
-            SettingsValueState(StreamingSettings.Key.SKIP_DOWNLOAD_METHOD_CONFIRMATION.getName()),
-            getString("s_key_skip_download_method_confirmation"), getString("s_sub_skip_download_method_confirmation")
+            context.settings.streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION
         )
     )
 }

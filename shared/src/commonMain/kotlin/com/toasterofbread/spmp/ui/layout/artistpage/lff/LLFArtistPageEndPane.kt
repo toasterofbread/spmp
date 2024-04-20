@@ -26,7 +26,6 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.toMediaItemRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
 import com.toasterofbread.spmp.model.MediaItemLayoutParams
 import com.toasterofbread.spmp.model.MediaItemGridParams
 import com.toasterofbread.spmp.model.MediaItemListParams
@@ -149,7 +148,7 @@ internal fun ArtistAppPage.LFFArtistEndPane(
                             }
 
                             val is_singles: Boolean =
-                                BehaviourSettings.Key.TREAT_SINGLES_AS_SONG.get()
+                                player.settings.behaviour.TREAT_SINGLES_AS_SONG.get()
                                     && layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_SINGLES
 
                             val is_artist_row: Boolean =

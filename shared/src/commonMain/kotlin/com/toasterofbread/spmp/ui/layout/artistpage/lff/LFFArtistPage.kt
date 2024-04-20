@@ -26,7 +26,6 @@ import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.loadDataOnChange
-import com.toasterofbread.spmp.model.settings.category.FilterSettings
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
@@ -43,8 +42,8 @@ internal fun ArtistAppPage.LFFArtistPage(
 ) {
     val player: PlayerState = LocalPlayerState.current
 
-    val own_multiselect_context: MediaItemMultiSelectContext? = remember(multiselect_context) { if (multiselect_context != null) null else MediaItemMultiSelectContext() {} }
-    val apply_filter: Boolean by FilterSettings.Key.APPLY_TO_ARTIST_ITEMS.rememberMutableState()
+    val own_multiselect_context: MediaItemMultiSelectContext? = remember(multiselect_context) { if (multiselect_context != null) null else MediaItemMultiSelectContext(player.context) {} }
+    val apply_filter: Boolean by player.settings.filter.APPLY_TO_ARTIST_ITEMS.observe()
 
     val item_layouts: List<ArtistLayout>? by artist.Layouts.observe(player.database)
     var browse_params_rows: List<ArtistWithParamsRow>? by remember { mutableStateOf(null) }

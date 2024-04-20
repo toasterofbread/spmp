@@ -30,10 +30,8 @@ import dev.toastbits.composekit.settings.ui.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.item.InfoTextSettingsItem
 import dev.toastbits.composekit.settings.ui.item.TextFieldSettingsItem
 import dev.toastbits.composekit.settings.ui.item.ToggleSettingsItem
-import dev.toastbits.composekit.settings.ui.item.SettingsValueState
+import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.utils.composable.LinkifyText
-import com.toasterofbread.spmp.model.settings.category.DiscordSettings
-import com.toasterofbread.spmp.model.settings.category.DiscordAuthSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.resources.getString
@@ -47,7 +45,7 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
 
     return listOf(
         ComposableSettingsItem { modifier ->
-            var accepted: Boolean by DiscordAuthSettings.Key.DISCORD_WARNING_ACCEPTED.rememberMutableState()
+            var accepted: Boolean by context.settings.discord_auth.DISCORD_WARNING_ACCEPTED.observe()
             val warning_text: String? = DiscordStatus.getWarningText()
 
             AnimatedVisibility(warning_text != null && !accepted, enter = expandVertically(), exit = shrinkVertically()) {
@@ -86,24 +84,19 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
         GroupSettingsItem(getString("s_group_discord_status_disable_when")),
 
         ToggleSettingsItem(
-            SettingsValueState(DiscordSettings.Key.STATUS_DISABLE_WHEN_INVISIBLE.getName()),
-            getString("s_key_discord_status_disable_when_invisible"), null
+            context.settings.discord.STATUS_DISABLE_WHEN_INVISIBLE
         ),
         ToggleSettingsItem(
-            SettingsValueState(DiscordSettings.Key.STATUS_DISABLE_WHEN_DND.getName()),
-            getString("s_key_discord_status_disable_when_dnd"), null
+            context.settings.discord.STATUS_DISABLE_WHEN_DND
         ),
         ToggleSettingsItem(
-            SettingsValueState(DiscordSettings.Key.STATUS_DISABLE_WHEN_IDLE.getName()),
-            getString("s_key_discord_status_disable_when_idle"), null
+            context.settings.discord.STATUS_DISABLE_WHEN_IDLE
         ),
         ToggleSettingsItem(
-            SettingsValueState(DiscordSettings.Key.STATUS_DISABLE_WHEN_OFFLINE.getName()),
-            getString("s_key_discord_status_disable_when_offline"), null
+            context.settings.discord.STATUS_DISABLE_WHEN_OFFLINE
         ),
         ToggleSettingsItem(
-            SettingsValueState(DiscordSettings.Key.STATUS_DISABLE_WHEN_ONLINE.getName()),
-            getString("s_key_discord_status_disable_when_online"), null
+            context.settings.discord.STATUS_DISABLE_WHEN_ONLINE
         ),
 
         GroupSettingsItem(getString("s_group_discord_status_content")),
@@ -111,41 +104,33 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
         InfoTextSettingsItem(getString("s_discord_status_text_info")),
 
         TextFieldSettingsItem(
-            SettingsValueState(DiscordSettings.Key.STATUS_NAME.getName()),
-            getString("s_key_discord_status_name"), getString("s_sub_discord_status_name"),
+            context.settings.discord.STATUS_NAME,
             getFieldModifier = { Modifier.appTextField() }
         ),
         TextFieldSettingsItem(
-            SettingsValueState(DiscordSettings.Key.STATUS_TEXT_A.getName()),
-            getString("s_key_discord_status_text_a"), getString("s_sub_discord_status_text_a"),
+            context.settings.discord.STATUS_TEXT_A,
             getFieldModifier = { Modifier.appTextField() }
         ),
         TextFieldSettingsItem(
-            SettingsValueState(DiscordSettings.Key.STATUS_TEXT_B.getName()),
-            getString("s_key_discord_status_text_b"), getString("s_sub_discord_status_text_b"),
+            context.settings.discord.STATUS_TEXT_B,
             getFieldModifier = { Modifier.appTextField() }
         ),
         TextFieldSettingsItem(
-            SettingsValueState(DiscordSettings.Key.STATUS_TEXT_C.getName()),
-            getString("s_key_discord_status_text_c"), getString("s_sub_discord_status_text_c"),
+            context.settings.discord.STATUS_TEXT_C,
             getFieldModifier = { Modifier.appTextField() }
         ),
 
         ToggleSettingsItem(
-            SettingsValueState(DiscordSettings.Key.SHOW_SONG_BUTTON.getName()),
-            getString("s_key_discord_status_show_button_song"), getString("s_sub_discord_status_show_button_song")
+            context.settings.discord.SHOW_SONG_BUTTON
         ),
         TextFieldSettingsItem(
-            SettingsValueState(DiscordSettings.Key.SONG_BUTTON_TEXT.getName()),
-            getString("s_key_discord_status_button_song_text"), null
+            context.settings.discord.SONG_BUTTON_TEXT
         ),
         ToggleSettingsItem(
-            SettingsValueState(DiscordSettings.Key.SHOW_PROJECT_BUTTON.getName()),
-            getString("s_key_discord_status_show_button_project"), getString("s_sub_discord_status_show_button_project")
+            context.settings.discord.SHOW_PROJECT_BUTTON
         ),
         TextFieldSettingsItem(
-            SettingsValueState(DiscordSettings.Key.PROJECT_BUTTON_TEXT.getName()),
-            getString("s_key_discord_status_button_project_text"), null,
+            context.settings.discord.PROJECT_BUTTON_TEXT,
             getFieldModifier = { Modifier.appTextField() }
         )
     )

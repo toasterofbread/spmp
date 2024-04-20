@@ -40,8 +40,6 @@ import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.Settings
-import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
-import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.download.DownloadMethodSelectionDialog
@@ -95,6 +93,7 @@ enum class FeedLoadState { PREINIT, NONE, LOADING, CONTINUING }
 
 class PlayerState(val context: AppContext, internal val coroutine_scope: CoroutineScope) {
     val database: Database get() = context.database
+    val settings: Settings get() = context.settings
     val theme: Theme get() = context.theme
     val app_page: AppPage get() = app_page_state.current_page
 
@@ -172,7 +171,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
 
     val app_page_state: AppPageState = AppPageState(this)
     val main_multiselect_context: MediaItemMultiSelectContext = AppPageMultiSelectContext(this)
-    var np_theme_mode: ThemeMode by mutableStateOf(Settings.getEnum(ThemeSettings.Key.NOWPLAYING_THEME_MODE, context.getPrefs()))
+    var np_theme_mode: ThemeMode by mutableStateOf(context.settings.theme.NOWPLAYING_THEME_MODE.get())
 
     var np_overlay_menu: PlayerOverlayMenu? by mutableStateOf(null)
     private val np_overlay_menu_queue: MutableList<PlayerOverlayMenu> = mutableListOf()
@@ -201,12 +200,10 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
             }
         }
 
-        prefs_listener = object : PlatformPreferencesListener {
-            override fun onChanged(prefs: PlatformPreferences, key: String) {
-                when (key) {
-                    ThemeSettings.Key.NOWPLAYING_THEME_MODE.getName() -> {
-                        np_theme_mode = Settings.getEnum(ThemeSettings.Key.NOWPLAYING_THEME_MODE, prefs)
-                    }
+        prefs_listener = PlatformPreferencesListener { _, key ->
+            when (key) {
+                context.settings.theme.NOWPLAYING_THEME_MODE.key -> {
+                    np_theme_mode = context.settings.theme.NOWPLAYING_THEME_MODE.get()
                 }
             }
         }
@@ -356,7 +353,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
             .offset {
                 val bottom_padding: Int = getNpBottomPadding(system_insets, navigation_insets, keyboard_insets)
                 val swipe_offset: Dp =
-                    if (player_showing) -np_swipe_state.offset.npAnchorToDp(density) - np_bottom_bar_height// - ((screen_size.height + np_bottom_bar_height) * 0.5f)
+                    if (player_showing) -np_swipe_state.offset.npAnchorToDp(density, context) - np_bottom_bar_height// - ((screen_size.height + np_bottom_bar_height) * 0.5f)
                     else -np_bottom_bar_height
 
                 IntOffset(
@@ -468,7 +465,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
     }
 
     fun onPlayActionOccurred() {
-        if (np_swipe_state.targetValue == 0 && Settings.get(BehaviourSettings.Key.OPEN_NP_ON_SONG_PLAYED)) {
+        if (np_swipe_state.targetValue == 0 && context.settings.behaviour.OPEN_NP_ON_SONG_PLAYED.get()) {
             switchNowPlayingPage(1)
         }
     }
@@ -478,7 +475,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
             if (item is Song) {
                 playSong(
                     item,
-                    start_radio = BehaviourSettings.Key.START_RADIO_ON_SONG_PRESS.get(context),
+                    start_radio = context.settings.behaviour.START_RADIO_ON_SONG_PRESS.get(),
                     shuffle = shuffle,
                     at_index = at_index
                 )

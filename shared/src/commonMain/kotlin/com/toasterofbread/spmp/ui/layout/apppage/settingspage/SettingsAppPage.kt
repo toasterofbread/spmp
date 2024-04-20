@@ -30,9 +30,8 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import dev.toastbits.composekit.settings.ui.SettingsInterface
-import dev.toastbits.composekit.settings.ui.item.SettingsValueState
+import dev.toastbits.composekit.platform.PreferencesProperty
 import com.toasterofbread.spmp.model.settings.Settings
-import com.toasterofbread.spmp.model.settings.category.YoutubeAuthSettings
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.WaveBorder
@@ -54,10 +53,7 @@ internal enum class PrefsPageScreen {
 
 class SettingsAppPage(override val state: AppPageState, getFooterModifier: @Composable () -> Modifier): AppPage() {
     private val pill_menu: PillMenu = PillMenu(follow_player = true)
-    val ytm_auth: SettingsValueState<Set<String>> =
-        SettingsValueState<Set<String>>(
-            YoutubeAuthSettings.Key.YTM_AUTH.getName()
-        ).init(Settings.prefs, Settings::provideDefault)
+    val ytm_auth: PreferencesProperty<Set<String>> = state.context.settings.youtube_auth.YTM_AUTH
     val settings_interface: SettingsInterface =
         getPrefsPageSettingsInterface(
             state,

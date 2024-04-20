@@ -11,7 +11,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import dev.toastbits.composekit.utils.common.addUnique
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
-import com.toasterofbread.spmp.model.settings.category.MiscSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.toByteArray
 import com.toasterofbread.spmp.platform.toImageBitmap
@@ -123,7 +122,7 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
 
         val result: Result<ImageBitmap> = item.downloadThumbnailData(thumbnail_url)
         result.onSuccess { image ->
-            if (!disable_cache_write && MiscSettings.Key.THUMB_CACHE_ENABLED.get()) {
+            if (!disable_cache_write && context.settings.misc.THUMB_CACHE_ENABLED.get()) {
                 try {
                     cache_file.parentFile.mkdirs()
                     cache_file.writeBytes(image.toByteArray())

@@ -29,7 +29,6 @@ import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.library.createLocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.library.rememberLocalPlaylists
 import com.toasterofbread.spmp.model.mediaitem.playlist.*
-import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
@@ -61,7 +60,7 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
         val player: PlayerState = LocalPlayerState.current
         val api: YtmApi = player.context.ytapi
 
-        val show_likes_playlist: Boolean by BehaviourSettings.Key.SHOW_LIKES_PLAYLIST.rememberMutableState()
+        val show_likes_playlist: Boolean by player.settings.behaviour.SHOW_LIKES_PLAYLIST.observe()
 
         val local_playlists: List<LocalPlaylistData> = MediaItemLibrary.rememberLocalPlaylists(player.context) ?: emptyList()
         val account_playlists: List<RemotePlaylistRef> = rememberOwnedPlaylists(api.user_auth_state?.own_channel_id, player.context)

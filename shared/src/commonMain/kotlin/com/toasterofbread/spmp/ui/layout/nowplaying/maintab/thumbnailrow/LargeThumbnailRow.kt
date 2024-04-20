@@ -40,10 +40,7 @@ import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.observeThumbnailRounding
 import com.toasterofbread.spmp.model.mediaitem.artist.formatArtistTitles
-import com.toasterofbread.spmp.model.settings.category.PlayerSettings
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
-import com.toasterofbread.spmp.model.settings.getEnum
-import com.toasterofbread.spmp.model.settings.rememberMutableEnumState
 import com.toasterofbread.spmp.ui.component.HorizontalLyricsLineDisplay
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
@@ -202,7 +199,7 @@ fun LargeThumbnailRow(
                                 )
                             }
                     ) {
-                        val default_video_position: ThemeSettings.VideoPosition by ThemeSettings.Key.NOWPLAYING_DEFAULT_VIDEO_POSITION.rememberMutableEnumState()
+                        val default_video_position: ThemeSettings.VideoPosition by player.settings.theme.NOWPLAYING_DEFAULT_VIDEO_POSITION.observe()
                         val song_video_position: ThemeSettings.VideoPosition? by song.VideoPosition.observe(player.database)
 
                         var video_showing: Boolean = false
@@ -369,11 +366,11 @@ private fun PlayerState.performPressAction(
     setOverlayMenu: (PlayerOverlayMenu?) -> Unit
 ) {
     val custom_action: Boolean =
-        if (PlayerSettings.Key.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.get()) !long_press
+        if (context.settings.player.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.get()) !long_press
         else long_press
 
     val action: PlayerOverlayMenuAction =
-        if (custom_action) PlayerSettings.Key.OVERLAY_CUSTOM_ACTION.getEnum()
+        if (custom_action) context.settings.player.OVERLAY_CUSTOM_ACTION.get()
         else PlayerOverlayMenuAction.DEFAULT
 
     when (action) {

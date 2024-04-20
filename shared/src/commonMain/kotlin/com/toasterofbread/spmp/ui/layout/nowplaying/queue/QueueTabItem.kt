@@ -32,7 +32,6 @@ import dev.toastbits.composekit.utils.common.getContrasted
 import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.composekit.utils.modifier.background
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.settings.category.PlayerSettings
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
@@ -134,9 +133,10 @@ class QueueTabItem(val song: Song, val key: Int) {
 
         val max_offset: Float = with(LocalDensity.current) { player.screen_size.width.toPx() }
         val swipe_state: AnchoredDraggableState<Int> = queueElementSwipeState(requestRemove, max_offset)
+        val swipe_sensitivity: Float by player.settings.player.QUEUE_ITEM_SWIPE_SENSITIVITY.observe()
 
         TouchSlopScope({
-            touchSlop * 2f * (2.1f - PlayerSettings.Key.QUEUE_ITEM_SWIPE_SENSITIVITY.get<Float>())
+            touchSlop * 2f * (2.1f - swipe_sensitivity)
         }) { parent_view_configuration ->
             Row(
                 Modifier

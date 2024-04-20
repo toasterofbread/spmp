@@ -190,7 +190,7 @@ fun FilterSelectionPage(
                     else {
                         val items = playlist?.items
                         if (items != null) {
-                            val multiselect_context = remember { MediaItemMultiSelectContext() {} }
+                            val multiselect_context = remember { MediaItemMultiSelectContext(player.context) {} }
 
                             DisposableEffect(multiselect_context.is_active) {
                                 action_buttons_visible = !multiselect_context.is_active

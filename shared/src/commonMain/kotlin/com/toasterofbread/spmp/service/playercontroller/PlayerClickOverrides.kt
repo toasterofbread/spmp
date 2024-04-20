@@ -5,7 +5,6 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getLongPressMenuData
 import kotlinx.coroutines.launch
@@ -31,8 +30,8 @@ data class PlayerClickOverrides(
         }
         else if (
             item is Playlist
-            && BehaviourSettings.Key.TREAT_SINGLES_AS_SONG.get()
-            && BehaviourSettings.Key.TREAT_ANY_SINGLE_ITEM_PLAYLIST_AS_SINGLE.get()
+            && player.settings.behaviour.TREAT_SINGLES_AS_SONG.get()
+            && player.settings.behaviour.TREAT_ANY_SINGLE_ITEM_PLAYLIST_AS_SINGLE.get()
             ) {
             player.coroutine_scope.launch {
                 item.loadData(player.context).onSuccess { data ->

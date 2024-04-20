@@ -1,11 +1,10 @@
 package com.toasterofbread.spmp.ui.layout.contentbar.layoutslot
 
-import com.toasterofbread.spmp.model.settings.SettingsKey
-import com.toasterofbread.spmp.model.settings.category.LayoutSettings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.InternalContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBarTemplate
+import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.composekit.settings.ui.Theme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
@@ -15,6 +14,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.Text
 import androidx.compose.material3.Switch
+import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
+import dev.toastbits.composekit.platform.PreferencesProperty
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -37,7 +38,9 @@ enum class PortraitLayoutSlot: LayoutSlot {
             BELOW_PLAYER -> false
             PLAYER_TOP -> true
         }
-    override val slots_key: SettingsKey = LayoutSettings.Key.PORTRAIT_SLOTS
+
+    override fun getSlotsProperty(context: AppContext): PreferencesProperty<Map<String, ContentBarReference?>> =
+        context.settings.layout.PORTRAIT_SLOTS
 
     override fun getKey(): String = name
 

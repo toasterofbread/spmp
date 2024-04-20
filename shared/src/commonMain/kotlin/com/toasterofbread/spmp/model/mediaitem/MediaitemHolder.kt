@@ -14,8 +14,8 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.settings.Settings
-import com.toasterofbread.spmp.model.settings.category.FeedSettings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
 
@@ -25,20 +25,20 @@ interface MediaItemHolder {
 }
 
 private fun List<MediaItemHolder>.filterItems(
+    context: AppContext,
     apply_filter: Boolean,
     hidden_items: List<MediaItem>,
-    database: Database,
     is_song_feed: Boolean = false
 ): List<MediaItem> {
-    val hide_radios: Boolean = is_song_feed && !Settings.get<Boolean>(FeedSettings.Key.SHOW_RADIOS)
+    val hide_radios: Boolean = is_song_feed && !context.settings.feed.SHOW_RADIOS.get()
 
     return mapNotNull {
         val item: MediaItem? = it.item
-        if (item == null || (apply_filter && isMediaItemHidden(item, database, hidden_items))) {
+        if (item == null || (apply_filter && isMediaItemHidden(item, context, hidden_items))) {
             return@mapNotNull null
         }
 
-        if (hide_radios && item is RemotePlaylist && item.TypeOfPlaylist.get(database) == PlaylistType.RADIO) {
+        if (hide_radios && item is RemotePlaylist && item.TypeOfPlaylist.get(context.database) == PlaylistType.RADIO) {
             return@mapNotNull null
         }
 
@@ -53,10 +53,10 @@ fun List<MediaItemHolder>.rememberFilteredItems(
 ): State<List<MediaItem>> {
     val player: PlayerState = LocalPlayerState.current
     val hidden_items: List<MediaItem> = rememberHiddenItems()
-    val items_state: MutableState<List<MediaItem>> = remember { mutableStateOf(filterItems(apply_filter, hidden_items, player.database, is_song_feed)) }
+    val items_state: MutableState<List<MediaItem>> = remember { mutableStateOf(filterItems(player.context, apply_filter, hidden_items, is_song_feed)) }
 
     LaunchedEffect(this, apply_filter, hidden_items) {
-        items_state.value = filterItems(apply_filter, hidden_items, player.database, is_song_feed)
+    items_state.value = filterItems(player.context, apply_filter, hidden_items, is_song_feed)
     }
 
     return items_state

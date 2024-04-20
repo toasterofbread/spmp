@@ -19,33 +19,36 @@ import dev.toastbits.composekit.settings.ui.ThemeData
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.AccentColourSource
-import com.toasterofbread.spmp.model.settings.category.SystemSettings
-import com.toasterofbread.spmp.model.settings.category.ThemeSettings
-import com.toasterofbread.spmp.model.settings.getEnum
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.ytmkt.model.YtmApi
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import java.util.*
+
+expect class AppContext: PlatformContext {
+    val database: Database
+    val download_manager: PlayerDownloadManager
+    val ytapi: YtmApi
+    val theme: Theme
+    val settings: Settings
+
+    fun getPrefs(): PlatformPreferences
+}
 
 internal class ThemeImpl(private val context: AppContext): Theme(getString("theme_title_system")) {
     private var accent_colour_source: AccentColourSource? by mutableStateOf(null)
 
     private val prefs_listener: PlatformPreferencesListener =
-        object : PlatformPreferencesListener {
-            override fun onChanged(prefs: PlatformPreferences, key: String) {
-                when (key) {
-                    ThemeSettings.Key.ACCENT_COLOUR_SOURCE.getName() -> {
-                        accent_colour_source = ThemeSettings.Key.ACCENT_COLOUR_SOURCE.getEnum<AccentColourSource>(prefs)
-                    }
-                    ThemeSettings.Key.CURRENT_THEME.getName() -> {
-                        setCurrentThemeIdx(ThemeSettings.Key.CURRENT_THEME.get(prefs))
-                    }
-                    ThemeSettings.Key.THEMES.getName() -> {
-                        reloadThemes()
-                    }
+        PlatformPreferencesListener { _, key ->
+            when (key) {
+                context.settings.theme.ACCENT_COLOUR_SOURCE.key -> {
+                    accent_colour_source = context.settings.theme.ACCENT_COLOUR_SOURCE.get()
+                }
+                context.settings.theme.CURRENT_THEME.key -> {
+                    setCurrentThemeIdx(context.settings.theme.CURRENT_THEME.get())
+                }
+                context.settings.theme.THEMES.key -> {
+                    reloadThemes()
                 }
             }
         }
@@ -53,9 +56,8 @@ internal class ThemeImpl(private val context: AppContext): Theme(getString("them
     init {
         val prefs = context.getPrefs()
         prefs.addListener(prefs_listener)
-        accent_colour_source = Settings.getEnum<AccentColourSource>(
-            ThemeSettings.Key.ACCENT_COLOUR_SOURCE, prefs)
-        setCurrentThemeIdx(Settings.get(ThemeSettings.Key.CURRENT_THEME, prefs), false)
+        accent_colour_source = context.settings.theme.ACCENT_COLOUR_SOURCE.get()
+        setCurrentThemeIdx(context.settings.theme.CURRENT_THEME.get(), false)
     }
 
     override fun getDarkColorScheme(): ColorScheme =
@@ -65,14 +67,14 @@ internal class ThemeImpl(private val context: AppContext): Theme(getString("them
         context.getLightColorScheme()
 
     override fun loadThemes(): List<StaticThemeData> {
-        val themes: List<String> = Settings.getJsonArray(ThemeSettings.Key.THEMES, context.getPrefs())
+        val themes: List<String> = context.settings.theme.THEMES.get()
         return themes.map { serialised ->
             StaticThemeData.deserialise(serialised)
         }
     }
 
     override fun saveThemes(themes: List<ThemeData>) {
-        Settings.set(ThemeSettings.Key.THEMES, Json.encodeToString(themes.map { it.serialise() }))
+        context.settings.theme.THEMES.set(themes.map { it.serialise() })
     }
 
     override fun selectAccentColour(theme_data: ThemeData, thumbnail_colour: Color?): Color =
@@ -80,15 +82,6 @@ internal class ThemeImpl(private val context: AppContext): Theme(getString("them
             AccentColourSource.THEME -> theme_data.accent
             AccentColourSource.THUMBNAIL -> thumbnail_colour ?: theme_data.accent
         }
-}
-
-expect class AppContext: PlatformContext {
-    val database: Database
-    val download_manager: PlayerDownloadManager
-    val ytapi: YtmApi
-    val theme: Theme
-
-    fun getPrefs(): PlatformPreferences
 }
 
 @Composable
@@ -102,10 +95,10 @@ fun PlayerState.getDefaultVerticalPadding(): Dp =
 fun PlayerState.getDefaultPaddingValues(): PaddingValues = PaddingValues(horizontal = getDefaultHorizontalPadding(), vertical = getDefaultVerticalPadding())
 
 fun AppContext.getUiLanguage(): String =
-    SystemSettings.Key.LANG_UI.get<String>(getPrefs()).ifEmpty { getDefaultLanguage() }
+    settings.system.LANG_UI.get().ifEmpty { getDefaultLanguage() }
 
 fun AppContext.getDataLanguage(): String =
-    SystemSettings.Key.LANG_DATA.get<String>(getPrefs()).ifEmpty { getDefaultLanguage() }
+    settings.system.LANG_DATA.get().ifEmpty { getDefaultLanguage() }
 
 fun AppContext.getDefaultLanguage(): String =
     Locale.getDefault().toLanguageTag()

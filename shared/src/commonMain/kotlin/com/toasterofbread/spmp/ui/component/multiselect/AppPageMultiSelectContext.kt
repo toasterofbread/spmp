@@ -6,7 +6,7 @@ import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
-class AppPageMultiSelectContext(private val player: PlayerState): MediaItemMultiSelectContext() {
+class AppPageMultiSelectContext(private val player: PlayerState): MediaItemMultiSelectContext(player.context) {
     @Composable
     override fun InfoDisplayContent(
         modifier: Modifier,

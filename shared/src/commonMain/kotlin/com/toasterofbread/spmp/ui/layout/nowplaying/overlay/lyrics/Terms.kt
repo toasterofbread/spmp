@@ -2,10 +2,12 @@ package com.toasterofbread.spmp.ui.layout.nowplaying.overlay.lyrics
 
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.settings.Settings
-import com.toasterofbread.spmp.model.settings.category.LyricsSettings
+import com.toasterofbread.spmp.platform.AppContext
 
-internal fun getTermRangeOfTime(lyrics: SongLyrics, time: Long): Pair<IntRange?, Long> {
+internal fun getTermRangeOfTime(context: AppContext, lyrics: SongLyrics, time: Long): Pair<IntRange?, Long> {
     require(lyrics.synced)
+
+    val enable_word_sync: Boolean = context.settings.lyrics.ENABLE_WORD_SYNC.get()
 
     var start: Int? = null
     var end: Int? = null
@@ -15,7 +17,7 @@ internal fun getTermRangeOfTime(lyrics: SongLyrics, time: Long): Pair<IntRange?,
     for (line in lyrics.lines.withIndex()) {
         for (term in line.value.withIndex()) {
             val range: LongRange =
-                if (lyrics.sync_type == SongLyrics.SyncType.WORD_SYNC && !Settings.get<Boolean>(LyricsSettings.Key.ENABLE_WORD_SYNC)) {
+                if (lyrics.sync_type == SongLyrics.SyncType.WORD_SYNC && !enable_word_sync) {
                     term.value.line_range ?: term.value.range
                 }
                 else {

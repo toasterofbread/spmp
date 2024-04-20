@@ -25,49 +25,46 @@ import dev.toastbits.composekit.settings.ui.item.FileSettingsItem
 import dev.toastbits.composekit.settings.ui.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.item.SettingsItem.Companion.ItemTitleText
 import dev.toastbits.composekit.settings.ui.item.ToggleSettingsItem
-import dev.toastbits.composekit.settings.ui.item.SettingsValueState
+import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import dev.toastbits.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
-import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.model.settings.category.FontMode
-import com.toasterofbread.spmp.model.settings.category.SystemSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.Languages
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
+import com.toasterofbread.spmp.ui.component.shortcut.trigger.getName
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.net.URI
+import LocalPlayerState
 
 // TODO Allow setting to any language
 fun getLanguageDropdownItem(
-    key: SettingsKey,
-    available_languages: List<Languages.LanguageInfo>,
-    title: String,
-    subtitle: String?
+    property: PreferencesProperty<String>,
+    available_languages: List<Languages.LanguageInfo>
 ): SettingsItem {
     return DropdownSettingsItem(
-        SettingsValueState(
-            key.getName(),
-            getValueConverter = {
-                val language_code = it as String
+        property.getConvertedProperty(
+            fromProperty = { language_code: String ->
                 if (language_code.isBlank()) {
-                    return@SettingsValueState 0
+                    return@getConvertedProperty 0
                 }
 
                 val index = available_languages.indexOfFirst { it.code == language_code }
                 if (index == -1) {
-                    key.set(null)
-                    return@SettingsValueState 0
+                    property.reset()
+                    return@getConvertedProperty 0
                 }
                 else {
-                    return@SettingsValueState index + 1
+                    return@getConvertedProperty index + 1
                 }
             },
-            setValueConverter = { index ->
+            toProperty = { index: Int ->
                 if (index == 0) {
                     ""
                 }
@@ -76,7 +73,6 @@ fun getLanguageDropdownItem(
                 }
             }
         ),
-        title, subtitle,
         available_languages.size + 1,
         { i ->
             if (i == 0) {
@@ -99,7 +95,7 @@ fun getLanguageDropdownItem(
 
 internal fun getSystemCategoryItems(context: AppContext): List<SettingsItem> {
     val language: String = context.getUiLanguage()
-    val available_languages: List<Languages.LanguageInfo> = Languages.loadAvailableLanugages(context)
+    var available_languages: List<Languages.LanguageInfo> = Languages.loadAvailableLanugages(context)
 
     return listOf(
         ComposableSettingsItem {
@@ -107,38 +103,35 @@ internal fun getSystemCategoryItems(context: AppContext): List<SettingsItem> {
         },
 
         getLanguageDropdownItem(
-            SystemSettings.Key.LANG_UI,
-            available_languages,
-            getString("s_key_interface_lang"), getString("s_sub_interface_lang")
+            context.settings.system.LANG_UI,
+            available_languages
         ),
 
         getLanguageDropdownItem(
-            SystemSettings.Key.LANG_DATA,
-            available_languages,
-            getString("s_key_data_lang"), getString("s_sub_data_lang")
+            context.settings.system.LANG_DATA,
+            available_languages
         ),
 
         DropdownSettingsItem(
-            SettingsValueState(SystemSettings.Key.FONT.getName()),
-            getString("s_key_font"),
-            null,
-            FontMode.entries.size,
-        ) { index ->
-            FontMode.entries[index].getReadable(language)
+            context.settings.system.FONT
+        ) { mode ->
+            mode.getReadable(language)
         },
 
         ComposableSettingsItem(
-            listOf(SystemSettings.Key.UI_SCALE.getName()),
+            listOf(context.settings.system.UI_SCALE),
             resetSettingsValues = {
-                SystemSettings.Key.UI_SCALE.set(1f)
+                context.settings.system.UI_SCALE.set(1f)
             }
         ) {
+            val player: PlayerState = LocalPlayerState.current
+
             Row(verticalAlignment = Alignment.CenterVertically) {
-                ItemTitleText(getString("s_key_ui_scale"), theme, Modifier.weight(1f))
+                ItemTitleText(context.settings.system.UI_SCALE.name, theme, Modifier.weight(1f))
 
                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                var ui_scale: Float by SystemSettings.Key.UI_SCALE.rememberMutableState()
+                var ui_scale: Float by player.settings.system.UI_SCALE.observe()
 
                 ShapedIconButton({
                     ui_scale = (ui_scale - 0.1f).coerceAtLeast(0.1f)
@@ -157,21 +150,15 @@ internal fun getSystemCategoryItems(context: AppContext): List<SettingsItem> {
         },
 
         ToggleSettingsItem(
-            SettingsValueState(SystemSettings.Key.PERSISTENT_QUEUE.getName()),
-            getString("s_key_persistent_queue"),
-            getString("s_sub_persistent_queue")
+            context.settings.system.PERSISTENT_QUEUE
         ),
 
         ToggleSettingsItem(
-            SettingsValueState(SystemSettings.Key.ADD_SONGS_TO_HISTORY.getName()),
-            getString("s_key_add_songs_to_history"),
-            getString("s_sub_add_songs_to_history")
+            context.settings.system.ADD_SONGS_TO_HISTORY
         ),
 
         FileSettingsItem(
-            state = SettingsValueState(key = SystemSettings.Key.LIBRARY_PATH.getName()),
-            title = getString("s_key_library_path"),
-            subtitle = getString("s_sub_library_path"),
+            state = context.settings.system.LIBRARY_PATH,
             getPathLabel = { path ->
                 if (path.isBlank()) {
                     return@FileSettingsItem MediaItemLibrary.getDefaultLibraryDir(context).absolute_path
@@ -212,7 +199,7 @@ internal fun getSystemCategoryItems(context: AppContext): List<SettingsItem> {
             },
             onSelectRequested = { setValue, showDialog ->
                 context.promptUserForDirectory(true) { path ->
-                    val old_location: PlatformFile = MediaItemLibrary.getLibraryDir(context, SystemSettings.Key.LIBRARY_PATH.get())
+                    val old_location: PlatformFile = MediaItemLibrary.getLibraryDir(context, context.settings.system.LIBRARY_PATH.get())
                     val new_location: PlatformFile = MediaItemLibrary.getLibraryDir(context, path ?: "")
 
                     fun processDialogSelection(accepted: Boolean, is_retry: Boolean = false) {

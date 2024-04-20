@@ -19,23 +19,68 @@ import androidx.compose.ui.graphics.Shape
 import dev.toastbits.composekit.settings.ui.SettingsPage
 import dev.toastbits.composekit.settings.ui.item.SettingsItem
 import dev.toastbits.composekit.utils.common.thenWith
-import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getLayoutCategoryItems
+import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
+import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBar
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlotEditorPreviewOptions
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
+import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.utils.modifier.disableGestures
 import dev.toastbits.composekit.platform.composable.platformClickable
+import kotlinx.serialization.json.JsonElement
 
-data object LayoutSettings: SettingsCategory("layout") {
-    override val keys: List<SettingsKey> = Key.entries.toList()
+class LayoutSettings(val context: AppContext): SettingsGroup("LAYOUT", context.getPrefs()) {
+        // // Map of LayoutSlot to ContentBarReference?
+        // PORTRAIT_SLOTS,
+        // LANDSCAPE_SLOTS,
 
-    override fun getPage(): CategoryPage? =
+        // // Map of LayoutSlot to string where values are either:
+        // // - Hex colours starting with '#'
+        // // - Or an integer index of Theme.Colour
+        // SLOT_COLOURS,
+
+        // // Map of LayoutSlot to slot-specific configuration
+        // SLOT_CONFIGS,
+
+        // // List of serialised CustomBars
+        // CUSTOM_BARS;
+
+    val PORTRAIT_SLOTS: PreferencesProperty<Map<String, ContentBarReference?>> by serialisableProperty(
+        getName = { "" },
+        getDescription = { null },
+        getDefaultValue = { emptyMap() }
+    )
+    val LANDSCAPE_SLOTS: PreferencesProperty<Map<String, ContentBarReference?>> by serialisableProperty(
+        getName = { "" },
+        getDescription = { null },
+        getDefaultValue = { emptyMap() }
+    )
+    val SLOT_COLOURS: PreferencesProperty<Map<String, ColourSource>> by serialisableProperty(
+        getName = { "" },
+        getDescription = { null },
+        getDefaultValue = { emptyMap() }
+    )
+    val SLOT_CONFIGS: PreferencesProperty<Map<String, JsonElement>> by serialisableProperty(
+        getName = { "" },
+        getDescription = { null },
+        getDefaultValue = { emptyMap() }
+    )
+    val CUSTOM_BARS: PreferencesProperty<List<CustomContentBar>> by serialisableProperty(
+        getName = { "" },
+        getDescription = { null },
+        getDefaultValue = { emptyList() }
+    )
+
+    override val page: CategoryPage? =
         SimplePage(
-            getString("s_cat_layout"),
-            getString("s_cat_desc_layout"),
-            { getLayoutCategoryItems() },
+            { getString("s_cat_layout") },
+            { getString("s_cat_desc_layout") },
+            { getLayoutCategoryItems(context) },
             { Icons.Outlined.VerticalSplit },
             titleBarEndContent = {
                 val player: PlayerState = LocalPlayerState.current
@@ -96,33 +141,4 @@ data object LayoutSettings: SettingsCategory("layout") {
                 }
             }
         )
-
-    enum class Key: SettingsKey {
-        // Map of LayoutSlot to ContentBarReference?
-        PORTRAIT_SLOTS,
-        LANDSCAPE_SLOTS,
-
-        // Map of LayoutSlot to string where values are either:
-        // - Hex colours starting with '#'
-        // - Or an integer index of Theme.Colour
-        SLOT_COLOURS,
-
-        // Map of LayoutSlot to slot-specific configuration
-        SLOT_CONFIGS,
-
-        // List of serialised CustomBars
-        CUSTOM_BARS;
-
-        override val category: SettingsCategory get() = LayoutSettings
-
-        @Suppress("UNCHECKED_CAST")
-        override fun <T> getDefaultValue(): T =
-            when (this) {
-                PORTRAIT_SLOTS -> "{}"
-                LANDSCAPE_SLOTS -> "{}"
-                SLOT_COLOURS -> "{}"
-                SLOT_CONFIGS -> "{}"
-                CUSTOM_BARS -> "[]"
-            } as T
-    }
 }

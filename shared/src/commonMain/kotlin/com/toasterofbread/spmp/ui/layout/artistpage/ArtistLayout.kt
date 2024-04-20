@@ -95,7 +95,7 @@ fun ArtistLayout(
     val gradient_size = 0.35f
     var accent_colour: Color? by remember { mutableStateOf(null) }
 
-    val top_bar_over_image: Boolean = true//by TopBarSettings.Key.DISPLAY_OVER_ARTIST_IMAGE.rememberMutableState()
+    val top_bar_over_image: Boolean = true//by player.settings.topbar.DISPLAY_OVER_ARTIST_IMAGE.observe()
     var music_top_bar_showing: Boolean by remember { mutableStateOf(false) }
     val top_bar_alpha: Float by animateFloatAsState(if (!top_bar_over_image || music_top_bar_showing || multiselect_context?.is_active == true) 1f else 0f)
 

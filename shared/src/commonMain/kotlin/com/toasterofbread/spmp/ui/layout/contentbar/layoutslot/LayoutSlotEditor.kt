@@ -10,18 +10,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.platform.composable.BackHandler
-import dev.toastbits.composekit.settings.ui.Theme
 import dev.toastbits.composekit.settings.ui.item.*
-import dev.toastbits.composekit.utils.common.toHexString
 import dev.toastbits.composekit.utils.composable.NullableValueAnimatedVisibility
-import com.toasterofbread.spmp.model.settings.SettingsKey
-import com.toasterofbread.spmp.model.settings.category.LayoutSettings
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
@@ -32,21 +27,21 @@ import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBarEditor
 import com.toasterofbread.spmp.ui.layout.contentbar.CustomBarsContentBarList
 import com.toasterofbread.spmp.ui.layout.contentbar.TemplateCustomContentBar
-import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
 import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBarTemplate
 import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElementContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElement
+import dev.toastbits.composekit.platform.PreferencesProperty
 import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 
-fun getLayoutSlotEditorSettingsItems(): List<SettingsItem> {
+fun getLayoutSlotEditorSettingsItems(context: AppContext): List<SettingsItem> {
     return listOf(
         ComposableSettingsItem(
             listOf(
-                LayoutSettings.Key.PORTRAIT_SLOTS.getName(),
-                LayoutSettings.Key.LANDSCAPE_SLOTS.getName(),
-                LayoutSettings.Key.CUSTOM_BARS.getName()
+                context.settings.layout.PORTRAIT_SLOTS,
+                context.settings.layout.LANDSCAPE_SLOTS,
+                context.settings.layout.CUSTOM_BARS
             ),
             composable = {
                 LayoutSlotEditor(it) {
@@ -64,21 +59,22 @@ fun LayoutSlotEditor(
 ) {
     val player: PlayerState = LocalPlayerState.current
 
-    var custom_bars_data: String by LayoutSettings.Key.CUSTOM_BARS.rememberMutableState()
-    var slot_colours_data: String by LayoutSettings.Key.SLOT_COLOURS.rememberMutableState()
-    var slot_config_data: String by LayoutSettings.Key.SLOT_CONFIGS.rememberMutableState()
+    var custom_bars: List<CustomContentBar> by player.settings.layout.CUSTOM_BARS.observe()
+    var slot_colours: Map<String, ColourSource> by player.settings.layout.SLOT_COLOURS.observe()
+    var slot_config: Map<String, JsonElement> by player.settings.layout.SLOT_CONFIGS.observe()
 
-    val slots_key: SettingsKey = when (player.form_factor) {
-        FormFactor.PORTRAIT -> LayoutSettings.Key.PORTRAIT_SLOTS
-        FormFactor.LANDSCAPE -> LayoutSettings.Key.LANDSCAPE_SLOTS
-    }
-    val available_slots: List<LayoutSlot> = when (player.form_factor) {
-        FormFactor.PORTRAIT -> PortraitLayoutSlot.entries
-        FormFactor.LANDSCAPE -> LandscapeLayoutSlot.entries
-    }
+    val slots_property: PreferencesProperty<Map<String, ContentBarReference?>> =
+        when (player.form_factor) {
+            FormFactor.PORTRAIT -> player.settings.layout.PORTRAIT_SLOTS
+            FormFactor.LANDSCAPE -> player.settings.layout.LANDSCAPE_SLOTS
+        }
+    val available_slots: List<LayoutSlot> =
+        when (player.form_factor) {
+            FormFactor.PORTRAIT -> PortraitLayoutSlot.entries
+            FormFactor.LANDSCAPE -> LandscapeLayoutSlot.entries
+        }
 
-    val slots_data: String by slots_key.rememberMutableState()
-    val configured_slots: Map<String, ContentBarReference?> = remember(slots_data) { Json.decodeFromString(slots_data) }
+    val configured_slots: Map<String, ContentBarReference?> by slots_property.observe()
 
     val missing_bar_warnings: List<String> = remember(configured_slots) {
         var has_primary: Boolean = false
@@ -91,7 +87,7 @@ fun LayoutSlotEditor(
                 bar = slot.getDefaultContentBar() ?: continue
             }
             else {
-                bar = configured_slots[slot.getKey()]?.getBar() ?: continue
+                bar = configured_slots[slot.getKey()]?.getBar(player.context) ?: continue
             }
 
             if (bar == InternalContentBar.PRIMARY) {
@@ -188,10 +184,10 @@ fun LayoutSlotEditor(
         )
     }
 
-    val state: ContentBar.BarSelectionState = remember(slots_key, available_slots) {
+    val state: ContentBar.BarSelectionState = remember(slots_property, available_slots) {
         object : ContentBar.BarSelectionState {
             private fun parseSlots(): Map<String, ContentBarReference?> =
-                Json.decodeFromString(slots_key.get<String>())
+                slots_property.get()
 
             override val built_in_bars: List<ContentBarReference> get() = (
                 InternalContentBar.ALL.map { bar ->
@@ -203,27 +199,24 @@ fun LayoutSlotEditor(
             )
 
             override val custom_bars: List<ContentBarReference> get() =
-                Json.decodeFromString<List<CustomContentBar>>(custom_bars_data).indices.map { index ->
+                custom_bars.indices.map { index ->
                     ContentBarReference.ofCustomBar(index)
                 }
 
             override fun onBarSelected(slot: LayoutSlot, bar: ContentBarReference?) {
                 val slots: MutableMap<String, ContentBarReference?> = parseSlots().toMutableMap()
                 slots[slot.getKey()] = bar
-                slots_key.set(Json.encodeToString(slots))
+                slots_property.set(slots)
             }
 
             override fun onColourSelected(slot: LayoutSlot, colour: ColourSource) {
-                val colours: MutableMap<String, ColourSource> =
-                    Json.decodeFromString<Map<String, ColourSource>>(slot_colours_data).toMutableMap()
-
+                val colours: MutableMap<String, ColourSource> = slot_colours.toMutableMap()
                 colours[slot.getKey()] = colour
-                slot_colours_data = Json.encodeToString(colours)
+                slot_colours = colours
             }
 
             override fun onSlotConfigChanged(slot: LayoutSlot, config: JsonElement?) {
-                val configs: MutableMap<String, JsonElement> =
-                    Json.decodeFromString<Map<String, JsonElement>>(slot_config_data).toMutableMap()
+                val configs: MutableMap<String, JsonElement> = slot_config.toMutableMap()
 
                 if (config == null) {
                     configs.remove(slot.getKey())
@@ -232,18 +225,16 @@ fun LayoutSlotEditor(
                     configs[slot.getKey()] = config
                 }
 
-                slot_config_data = Json.encodeToString(configs)
+                slot_config = configs
             }
 
             override fun createCustomBar(): ContentBarReference {
-                val bars: List<CustomContentBar> = Json.decodeFromString(custom_bars_data)
-
                 val new_bar: CustomContentBar = CustomContentBar(
-                    bar_name = getString("content_bar_custom_no_\$x").replace("\$x", (bars.size + 1).toString())
+                    bar_name = getString("content_bar_custom_no_\$x").replace("\$x", (custom_bars.size + 1).toString())
                 )
-                custom_bars_data = Json.encodeToString(bars + new_bar)
+                custom_bars += new_bar
 
-                return ContentBarReference.ofCustomBar(bars.size)
+                return ContentBarReference.ofCustomBar(custom_bars.size - 1)
             }
 
             override fun onCustomBarEditRequested(bar: ContentBarReference) {
@@ -253,7 +244,7 @@ fun LayoutSlotEditor(
             override fun deleteCustomBar(bar: ContentBarReference) {
                 check(bar.type == ContentBarReference.Type.CUSTOM)
 
-                val bars = Json.decodeFromString<List<CustomContentBar>>(custom_bars_data).toMutableList()
+                val bars: MutableList<CustomContentBar> = custom_bars.toMutableList()
 
                 val removed_index: Int = bar.index
                 bars.removeAt(removed_index)
@@ -272,8 +263,8 @@ fun LayoutSlotEditor(
                     }
                 }
 
-                custom_bars_data = Json.encodeToString(bars)
-                slots_key.set(Json.encodeToString(slots))
+                custom_bars = bars
+                slots_property.set(slots)
             }
         }
     }
@@ -317,21 +308,21 @@ fun LayoutSlotEditor(
             }
         }
 
-        Crossfade(Triple(slots_key, available_slots, editing_custom_bar), modifier) {
+        Crossfade(Triple(slots_property, available_slots, editing_custom_bar), modifier) {
             val (key, available, editing_bar) = it
 
             if (editing_bar != null) {
                 val editor: CustomContentBarEditor = remember {
                     object : CustomContentBarEditor() {
                         override fun commit(edited_bar: CustomContentBar) {
-                            val bars = Json.decodeFromString<List<CustomContentBar>>(custom_bars_data).toMutableList()
+                            val bars: MutableList<CustomContentBar> = custom_bars.toMutableList()
                             bars[editing_bar.index] = edited_bar
-                            custom_bars_data = Json.encodeToString(bars)
+                            custom_bars = bars
                         }
                     }
                 }
 
-                val bar: ContentBar? = remember(editing_bar) { editing_bar.getBar() }
+                val bar: ContentBar? = remember(editing_bar) { editing_bar.getBar(player.context) }
                 editor.Editor(bar as CustomContentBar)
             }
             else {

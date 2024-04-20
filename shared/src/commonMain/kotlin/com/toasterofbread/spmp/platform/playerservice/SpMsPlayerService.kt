@@ -8,8 +8,6 @@ import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.composekit.platform.PlatformPreferencesListener
 import dev.toastbits.composekit.utils.common.launchSingle
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.settings.category.DesktopSettings
-import com.toasterofbread.spmp.model.settings.category.YoutubeAuthSettings
 import com.toasterofbread.spmp.model.settings.unpackSetData
 import com.toasterofbread.spmp.platform.PlatformServiceImpl
 import com.toasterofbread.spmp.platform.PlayerListener
@@ -47,8 +45,8 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
     var socket_connection_error: Throwable? by mutableStateOf(null)
         private set
 
-    private fun getServerPort(): Int = DesktopSettings.Key.SERVER_PORT.get(context)
-    private fun getServerIp(): String = DesktopSettings.Key.SERVER_IP_ADDRESS.get(context)
+    private fun getServerPort(): Int = context.settings.desktop.SERVER_PORT.get()
+    private fun getServerIp(): String = context.settings.desktop.SERVER_IP_ADDRESS.get()
 
     private fun getClientName(): String {
         val host: String = InetAddress.getLocalHost().hostName
@@ -57,20 +55,19 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
         return getString("app_name") + " [$os, $host]"
     }
 
-    private val prefs_listener: PlatformPreferencesListener = object : PlatformPreferencesListener {
-        override fun onChanged(prefs: PlatformPreferences, key: String) {
+    private val prefs_listener: PlatformPreferencesListener = 
+        PlatformPreferencesListener { _, key ->
             when (key) {
-                DesktopSettings.Key.SERVER_IP_ADDRESS.getName(),
-                DesktopSettings.Key.SERVER_PORT.getName() -> {
+                context.settings.desktop.SERVER_IP_ADDRESS.key,
+                context.settings.desktop.SERVER_PORT.key -> {
                     restart_connection = true
                     cancel_connection = true
                 }
-                YoutubeAuthSettings.Key.YTM_AUTH.getName() -> {
+                context.settings.youtube_auth.YTM_AUTH.key -> {
                     sendYtmAuthToPlayers()
                 }
             }
         }
-    }
 
     private val zmq: ZContext = ZContext()
     private lateinit var socket: ZMQ.Socket
@@ -466,7 +463,7 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
         player_status_coroutine_scope.launch {
             val ytm_auth: Pair<String?, Headers>? =
                 ApiAuthenticationState.unpackSetData(
-                    YoutubeAuthSettings.Key.YTM_AUTH.get(context),
+                    context.settings.youtube_auth.YTM_AUTH.get(),
                     context
                 ).takeIf { it.first != null }
             sendAuthInfoToPlayers(ytm_auth)

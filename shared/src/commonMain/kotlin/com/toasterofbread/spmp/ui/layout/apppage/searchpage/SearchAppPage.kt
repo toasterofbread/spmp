@@ -30,7 +30,6 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.enums.*
 import com.toasterofbread.spmp.model.mediaitem.layout.*
 import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
-import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
 import com.toasterofbread.spmp.model.MediaItemLayoutParams
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.resources.getString
@@ -131,7 +130,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
         distance_to_page: Dp,
         modifier: Modifier
     ): Boolean {
-        val show_suggestions: Boolean by BehaviourSettings.Key.SEARCH_SHOW_SUGGESTIONS.rememberMutableState()
+        val show_suggestions: Boolean by context.settings.behaviour.SEARCH_SHOW_SUGGESTIONS.observe()
         var suggestions: List<SearchSuggestion> by remember { mutableStateOf(emptyList()) }
 
         LaunchedEffect(current_query, show_suggestions) {

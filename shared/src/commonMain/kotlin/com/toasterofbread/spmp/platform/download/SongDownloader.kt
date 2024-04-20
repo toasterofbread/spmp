@@ -9,7 +9,6 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.model.mediaitem.song.getSongAudioFormatByQuality
 import com.toasterofbread.spmp.model.settings.Settings
-import com.toasterofbread.spmp.model.settings.category.StreamingSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsFuriganaTokeniser
 import dev.toastbits.ytmkt.model.external.YoutubeVideoFormat
@@ -122,7 +121,7 @@ abstract class SongDownloader(
                     return download
                 }
             }
-            return Download(song, Settings.getEnum(StreamingSettings.Key.DOWNLOAD_AUDIO_QUALITY), silent, download_inc++, custom_uri, download_lyrics, direct)
+            return Download(song, context.settings.streaming.DOWNLOAD_AUDIO_QUALITY.get(), silent, download_inc++, custom_uri, download_lyrics, direct)
         }
     }
 

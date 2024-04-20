@@ -1,13 +1,15 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.container
 
+import LocalPlayerState
 import androidx.compose.foundation.gestures.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.platform.LocalDensity
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
-import com.toasterofbread.spmp.model.settings.category.PlayerSettings
+import com.toasterofbread.spmp.platform.AppContext
 import kotlinx.coroutines.*
 
 @Composable
@@ -19,10 +21,11 @@ internal fun UpdateAnchors(
 ) {
     require(pages.isNotEmpty())
 
+    val player: PlayerState = LocalPlayerState.current
     val density: Density = LocalDensity.current
     val minimised_now_playing_height: Dp = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
 
-    val swipe_sensitivity: Float by PlayerSettings.Key.EXPAND_SWIPE_SENSITIVITY.rememberMutableState()
+    val swipe_sensitivity: Float by player.settings.player.EXPAND_SWIPE_SENSITIVITY.observe()
 
     LaunchedEffect(page_height, pages.size, minimised_now_playing_height, swipe_sensitivity) {
         val sensitivity: Float = processSwipeSensitivity(swipe_sensitivity)
@@ -51,10 +54,10 @@ internal fun UpdateAnchors(
     }
 }
 
-fun Float.npAnchorToPx(density: Density): Float =
-    this / processSwipeSensitivity(PlayerSettings.Key.EXPAND_SWIPE_SENSITIVITY.get())
-fun Float.npAnchorToDp(density: Density): Dp =
-    with (density) { (this@npAnchorToDp / processSwipeSensitivity(PlayerSettings.Key.EXPAND_SWIPE_SENSITIVITY.get())).toDp() }
+//fun Float.npAnchorToPx(density: Density): Float =
+//    this / processSwipeSensitivity(context.settings.player.EXPAND_SWIPE_SENSITIVITY.get())
+fun Float.npAnchorToDp(density: Density, context: AppContext): Dp =
+    with (density) { (this@npAnchorToDp / processSwipeSensitivity(context.settings.player.EXPAND_SWIPE_SENSITIVITY.get())).toDp() }
 
 private fun processSwipeSensitivity(sensitivity: Float): Float =
     1f / sensitivity

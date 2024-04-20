@@ -35,7 +35,6 @@ import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.observeThumbnailRounding
 import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueWaveBorderMode
-import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
@@ -359,7 +358,7 @@ private fun PlayerQueueTab(
     val queue_shape: Shape = RoundedCornerShape(10.dp)
     val width: Dp by width_state
 
-    val default_background_opacity: Float by ThemeSettings.Key.NOWPLAYING_DEFAULT_LANDSCAPE_QUEUE_OPACITY.rememberMutableState()
+    val default_background_opacity: Float by player.settings.theme.NOWPLAYING_DEFAULT_LANDSCAPE_QUEUE_OPACITY.observe()
     val song_background_opacity: Float? by player.status.m_song?.LandscapeQueueOpacity?.observe(player.database)
 
     val background_opacity: Float by remember(player.status.m_song) { derivedStateOf { song_background_opacity ?: default_background_opacity } }

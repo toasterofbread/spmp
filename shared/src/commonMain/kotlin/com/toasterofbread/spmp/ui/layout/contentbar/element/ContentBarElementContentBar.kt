@@ -55,7 +55,8 @@ data class ContentBarElementContentBar(
             return
         }
 
-        val content_bar: ContentBar? = remember(bar) { bar.getBar() }
+        val player: PlayerState = LocalPlayerState.current
+        val content_bar: ContentBar? = remember(bar) { bar.getBar(player.context) }
         content_bar?.BarContent(
             slot = slot,
             background_colour = null,
@@ -69,7 +70,7 @@ data class ContentBarElementContentBar(
     @Composable
     override fun SubConfigurationItems(item_modifier: Modifier, onModification: (ContentBarElement) -> Unit) {
         val player: PlayerState = LocalPlayerState.current
-        val content_bar: ContentBar = remember(bar) { bar.getBar()!! }
+        val content_bar: ContentBar = remember(bar) { bar.getBar(player.context)!! }
         var show_bar_selector: Boolean by remember { mutableStateOf(false) }
 
         val internal_bars: List<ContentBarReference> = remember {

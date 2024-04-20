@@ -185,7 +185,7 @@ abstract class RadioInstance(val context: AppContext) {
                     if (song is MediaItemData) {
                         song.saveToDatabase(context.database, subitems_uncertain = true)
                     }
-                    return@filter !isMediaItemHidden(song, context.database)
+                    return@filter !isMediaItemHidden(song, context)
                 }
             }
 

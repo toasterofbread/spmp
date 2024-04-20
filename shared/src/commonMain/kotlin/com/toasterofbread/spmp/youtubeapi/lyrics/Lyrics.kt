@@ -8,7 +8,6 @@ import com.toasterofbread.spmp.db.mediaitem.LyricsById
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.settings.category.LyricsSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getStringTODO
 
@@ -64,7 +63,7 @@ sealed class LyricsSource(val source_index: Int) {
         }
 
         inline fun iterateByPriority(
-            default: Int = LyricsSettings.Key.DEFAULT_SOURCE.get(),
+            default: Int,
             action: (LyricsSource) -> Unit
         ) {
             for (i in 0 until SOURCE_AMOUNT) {
@@ -77,7 +76,7 @@ sealed class LyricsSource(val source_index: Int) {
             song: Song,
             context: AppContext,
             tokeniser: LyricsFuriganaTokeniser,
-            default: Int = LyricsSettings.Key.DEFAULT_SOURCE.get()
+            default: Int = context.settings.lyrics.DEFAULT_SOURCE.get()
         ): Result<SongLyrics> = runCatching {
             val db: Database = context.database
             val (song_title, artist_title) = db.transactionWithResult {

@@ -18,7 +18,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.DpSize
 import dev.toastbits.composekit.utils.common.addUnique
 import dev.toastbits.composekit.utils.common.thenIf
-import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.getMinimisedPlayerHeight
@@ -48,8 +47,8 @@ fun RootView(player: PlayerState) {
             }
     )
 
-    val window_transparency_enabled: Boolean = remember { ThemeSettings.Key.ENABLE_WINDOW_TRANSPARENCY.get() }
-    val background_opacity: Float by ThemeSettings.Key.WINDOW_BACKGROUND_OPACITY.rememberMutableState()
+    val window_transparency_enabled: Boolean = remember { player.settings.theme.ENABLE_WINDOW_TRANSPARENCY.get() }
+    val background_opacity: Float by player.settings.theme.WINDOW_BACKGROUND_OPACITY.observe()
 
     Canvas(Modifier.fillMaxSize()) {
         drawRect(

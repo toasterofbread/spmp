@@ -33,8 +33,8 @@ import dev.toastbits.composekit.settings.ui.item.SettingsItem
 import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import dev.toastbits.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.model.settings.Settings
-import com.toasterofbread.spmp.model.settings.category.DesktopSettings
 import com.toasterofbread.spmp.platform.playerservice.getServerExecutableFilename
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
@@ -91,7 +91,8 @@ actual fun SplashExtraLoadingContent(modifier: Modifier, arguments: ProgramArgum
 
         try {
             local_server_process = startLocalServer(
-                DesktopSettings.Key.SERVER_PORT.get(),
+                player.context,
+                player.settings.desktop.SERVER_PORT.get(),
                 arguments.getServerExecutable(player.context)
             ) {
                 if (local_server_process != null) {
@@ -111,7 +112,7 @@ actual fun SplashExtraLoadingContent(modifier: Modifier, arguments: ProgramArgum
     }
 
     LaunchedEffect(Unit) {
-        if (DesktopSettings.Key.SERVER_LOCAL_START_AUTOMATICALLY.get()) {
+        if (player.settings.desktop.SERVER_LOCAL_START_AUTOMATICALLY.get()) {
             delay(LOCAL_SERVER_AUTOSTART_DELAY_MS)
             startServer(stop_if_running = false, automatic = true)
             delay(500)
@@ -186,31 +187,16 @@ actual fun SplashExtraLoadingContent(modifier: Modifier, arguments: ProgramArgum
     }
 
     if (show_config_dialog) {
-        val settings_items: List<SettingsItem> = remember { getServerGroupItems() }
-
-        LaunchedEffect(settings_items) {
-            for (item in settings_items) {
-                item.setEnableAutosave(false)
-            }
-        }
+        val settings_items: List<SettingsItem> = remember { getServerGroupItems(player.context) }
 
         AlertDialog(
             onDismissRequest = { show_config_dialog = false },
             confirmButton = {
                 Button(
-                    {
-                        player.context.getPrefs().edit {
-                            for (item in settings_items) {
-                                with (item) {
-                                    saveItem()
-                                }
-                            }
-                        }
-                        show_config_dialog = false
-                    },
+                    { show_config_dialog = false },
                     colors = button_colours
                 ) {
-                    Text(getString("action_save"))
+                    Text(getString("action_close"))
                 }
             },
             dismissButton = {
@@ -227,7 +213,6 @@ actual fun SplashExtraLoadingContent(modifier: Modifier, arguments: ProgramArgum
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
                     for (item in settings_items) {
-                        item.initialise(SpMp.prefs, Settings::provideDefault)
                         item.Item(player.app_page_state.Settings.settings_interface, { _, _ -> }, {}, Modifier)
                     }
                 }
@@ -239,11 +224,12 @@ actual fun SplashExtraLoadingContent(modifier: Modifier, arguments: ProgramArgum
 @OptIn(DelicateCoroutinesApi::class)
 @Suppress("NewApi")
 private fun startLocalServer(
+    context: AppContext,
     port: Int,
     server_executable: PlatformFile?,
     onExit: (Int) -> Unit,
 ): Pair<String, Process>? {
-    var command: String = DesktopSettings.Key.SERVER_LOCAL_COMMAND.get<String>().trim()
+    var command: String = context.settings.desktop.SERVER_LOCAL_COMMAND.get().trim()
     if (command.isEmpty()) {
         val executable_path: String
 
@@ -287,7 +273,7 @@ private fun startLocalServer(
     val process: Process = builder.start()
 
     Runtime.getRuntime().addShutdownHook(Thread {
-        if (DesktopSettings.Key.SERVER_KILL_CHILD_ON_EXIT.get()) {
+        if (context.settings.desktop.SERVER_KILL_CHILD_ON_EXIT.get()) {
             process.destroy()
         }
     })

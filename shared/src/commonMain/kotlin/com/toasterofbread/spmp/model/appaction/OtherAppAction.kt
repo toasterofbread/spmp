@@ -15,7 +15,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import com.toasterofbread.spmp.model.appaction.AppAction
-import com.toasterofbread.spmp.model.settings.category.SystemSettings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.resources.getString
 import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
@@ -141,8 +140,8 @@ data class OtherAppAction(
 
                 INCREASE_UI_SCALE, DECREASE_UI_SCALE -> {
                     val delta: Float = if (this == INCREASE_UI_SCALE) 0.1f else -0.1f
-                    val current: Float = SystemSettings.Key.UI_SCALE.get()
-                    SystemSettings.Key.UI_SCALE.set((current + delta).coerceAtLeast(0.1f))
+                    val current: Float = player.context.settings.system.UI_SCALE.get()
+                    player.context.settings.system.UI_SCALE.set((current + delta).coerceAtLeast(0.1f))
                 }
             }
         }

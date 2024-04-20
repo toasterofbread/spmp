@@ -61,7 +61,6 @@ import dev.toastbits.composekit.utils.composable.getBottom
 import dev.toastbits.composekit.utils.composable.getEnd
 import dev.toastbits.composekit.utils.composable.getStart
 import com.toasterofbread.spmp.model.mediaitem.db.rememberThemeColour
-import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.CustomColourSource
 import com.toasterofbread.spmp.ui.layout.BarColourState
@@ -192,7 +191,7 @@ internal fun DesktopLongPressMenu(
                     Modifier.fillMaxSize(),
                     enable_input = show_background,
                     onScroll = {
-                        if (BehaviourSettings.Key.DESKTOP_LPM_KEEP_ON_BACKGROUND_SCROLL.get()) {
+                        if (player.settings.behaviour.DESKTOP_LPM_KEEP_ON_BACKGROUND_SCROLL.get()) {
                             show_background = false
                             updatePosition()
                         }
@@ -286,7 +285,7 @@ internal fun DesktopLongPressMenu(
                             { accent_colour },
                             Modifier.border(2.dp, player.theme.on_background.copy(alpha = 0.1f), shape),
                             {
-                                if (show_background && BehaviourSettings.Key.LPM_CLOSE_ON_ACTION.get()) {
+                                if (show_background && player.settings.behaviour.LPM_CLOSE_ON_ACTION.get()) {
                                     close()
                                 }
                             }

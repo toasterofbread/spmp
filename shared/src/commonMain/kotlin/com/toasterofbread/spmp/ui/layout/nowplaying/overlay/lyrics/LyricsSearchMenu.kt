@@ -58,7 +58,6 @@ import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
 import dev.toastbits.composekit.utils.composable.OnChangedEffect
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
-import com.toasterofbread.spmp.model.settings.category.LyricsSettings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
@@ -114,7 +113,7 @@ fun LyricsSearchMenu(
 
     var selected_source: LyricsSource by remember {
         mutableStateOf(
-            LyricsSource.fromIdx(LyricsSettings.Key.DEFAULT_SOURCE.get())
+            LyricsSource.fromIdx(player.settings.lyrics.DEFAULT_SOURCE.get())
         )
     }
 

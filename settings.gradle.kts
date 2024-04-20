@@ -33,7 +33,7 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven("https://jitpack.io")
         mavenLocal()
+        maven("https://jitpack.io")
     }
 }

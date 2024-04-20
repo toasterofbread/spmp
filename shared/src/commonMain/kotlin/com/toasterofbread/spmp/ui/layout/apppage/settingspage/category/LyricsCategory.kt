@@ -3,42 +3,38 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 import dev.toastbits.composekit.settings.ui.item.DropdownSettingsItem
 import dev.toastbits.composekit.settings.ui.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.item.ToggleSettingsItem
-import dev.toastbits.composekit.settings.ui.item.SettingsValueState
-import com.toasterofbread.spmp.model.settings.category.LyricsSettings
+import dev.toastbits.composekit.platform.PreferencesProperty
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
+import com.toasterofbread.spmp.platform.AppContext
 
-internal fun getLyricsCategoryItems(): List<SettingsItem> {
+internal fun getLyricsCategoryItems(context: AppContext): List<SettingsItem> {
     return listOf(
         DropdownSettingsItem(
-            SettingsValueState(LyricsSettings.Key.DEFAULT_SOURCE.getName()),
-            getString("s_key_lyrics_default_source"), null,
+            context.settings.lyrics.DEFAULT_SOURCE,
             LyricsSource.SOURCE_AMOUNT
         ) { i ->
             LyricsSource.fromIdx(i).getReadable()
         },
 
         ToggleSettingsItem(
-            SettingsValueState(LyricsSettings.Key.FOLLOW_ENABLED.getName()),
-            getString("s_key_lyrics_follow_enabled"), getString("s_sub_lyrics_follow_enabled")
+            context.settings.lyrics.FOLLOW_ENABLED
         ),
 
         AppSliderItem(
-            SettingsValueState(LyricsSettings.Key.FOLLOW_OFFSET.getName()),
-            getString("s_key_lyrics_follow_offset"), getString("s_sub_lyrics_follow_offset"),
+            context.settings.lyrics.FOLLOW_OFFSET,
             getString("s_option_lyrics_follow_offset_top"), getString("s_option_lyrics_follow_offset_bottom"), steps = 5,
             getValueText = null
         ),
 
         ToggleSettingsItem(
-            SettingsValueState(LyricsSettings.Key.DEFAULT_FURIGANA.getName()),
-            getString("s_key_lyrics_default_furigana"), null
+            context.settings.lyrics.DEFAULT_FURIGANA
         ),
 
         DropdownSettingsItem(
-            SettingsValueState(LyricsSettings.Key.TEXT_ALIGNMENT.getName()),
-            getString("s_key_lyrics_text_alignment"), null, 3
+            context.settings.lyrics.TEXT_ALIGNMENT,
+            3
         ) { i ->
             when (i) {
                 0 -> getString("s_option_lyrics_text_alignment_start")
@@ -48,35 +44,29 @@ internal fun getLyricsCategoryItems(): List<SettingsItem> {
         },
 
         ToggleSettingsItem(
-            SettingsValueState(LyricsSettings.Key.EXTRA_PADDING.getName()),
-            getString("s_key_lyrics_extra_padding"), getString("s_sub_lyrics_extra_padding")
+            context.settings.lyrics.EXTRA_PADDING
         ),
 
         ToggleSettingsItem(
-            SettingsValueState(LyricsSettings.Key.ENABLE_WORD_SYNC.getName()),
-            getString("s_key_lyrics_enable_word_sync"), getString("s_sub_lyrics_enable_word_sync")
+            context.settings.lyrics.ENABLE_WORD_SYNC
         ),
 
         AppSliderItem(
-            SettingsValueState(LyricsSettings.Key.FONT_SIZE.getName()),
-            getString("s_key_lyrics_font_size"), null
+            context.settings.lyrics.FONT_SIZE
         ),
 
         AppSliderItem(
-            SettingsValueState(LyricsSettings.Key.SYNC_DELAY.getName()),
-            getString("s_key_lyrics_sync_delay"), getString("s_sub_lyrics_sync_delay"),
+            context.settings.lyrics.SYNC_DELAY,
             range = -5f .. 5f
         ),
 
         AppSliderItem(
-            SettingsValueState(LyricsSettings.Key.SYNC_DELAY_TOPBAR.getName()),
-            getString("s_key_lyrics_sync_delay_topbar"), getString("s_sub_lyrics_sync_delay_topbar"),
+            context.settings.lyrics.SYNC_DELAY_TOPBAR,
             range = -5f .. 5f
         ),
 
         AppSliderItem(
-            SettingsValueState(LyricsSettings.Key.SYNC_DELAY_BLUETOOTH.getName()),
-            getString("s_key_lyrics_sync_delay_bluetooth"), getString("s_sub_lyrics_sync_delay_bluetooth"),
+            context.settings.lyrics.SYNC_DELAY_BLUETOOTH,
             range = -5f .. 5f
         )
     )

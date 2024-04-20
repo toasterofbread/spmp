@@ -4,13 +4,11 @@ package com.toasterofbread.spmp.ui.layout.nowplaying
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.runtime.*
-import com.toasterofbread.spmp.model.settings.category.MusicTopBarMode
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.CoroutineScope
 import kotlin.math.roundToInt
 
 interface ExpansionState {
-    val top_bar_mode: MutableState<MusicTopBarMode>
     fun get(): Float
     fun getPageRange(): IntRange
 
@@ -41,20 +39,6 @@ interface ExpansionState {
             else (1f - ((absolute - 0.5f) * 2f))
         )
     }
-
-    companion object {
-        fun getStatic(expansion_value: Float) =
-            object : ExpansionState {
-                override val top_bar_mode: MutableState<MusicTopBarMode> =
-                    mutableStateOf(MusicTopBarMode.default)
-
-                override fun get(): Float =
-                    expansion_value
-
-                override fun getPageRange(): IntRange =
-                    0 .. 1
-            }
-    }
 }
 
 abstract class NowPlayingExpansionState(
@@ -62,8 +46,6 @@ abstract class NowPlayingExpansionState(
     private val coroutine_scope: CoroutineScope
 ): ExpansionState {
     abstract val swipe_state: AnchoredDraggableState<Int>
-
-    override val top_bar_mode: MutableState<MusicTopBarMode> = mutableStateOf(MusicTopBarMode.default)
 
     override fun getPageRange(): IntRange =
         0 .. NowPlayingPage.ALL.count { it.shouldShow(player) }

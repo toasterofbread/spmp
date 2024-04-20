@@ -39,7 +39,6 @@ import dev.toastbits.composekit.utils.composable.getBottom
 import dev.toastbits.composekit.utils.composable.getEnd
 import dev.toastbits.composekit.utils.composable.getStart
 import com.toasterofbread.spmp.model.mediaitem.db.rememberThemeColour
-import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.BarColourState
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.CustomColourSource
@@ -141,7 +140,7 @@ internal fun AndroidLongPressMenu(
                             null
                         ) {},
                     {
-                        if (BehaviourSettings.Key.LPM_CLOSE_ON_ACTION.get()) {
+                        if (player.settings.behaviour.LPM_CLOSE_ON_ACTION.get()) {
                             close()
                         }
                     }

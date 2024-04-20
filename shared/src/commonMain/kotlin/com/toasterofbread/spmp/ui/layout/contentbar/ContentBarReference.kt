@@ -3,7 +3,7 @@ package com.toasterofbread.spmp.ui.layout.contentbar
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import com.toasterofbread.spmp.ui.layout.contentbar.InternalContentBar
-import com.toasterofbread.spmp.model.settings.category.LayoutSettings
+import com.toasterofbread.spmp.platform.AppContext
 
 @Serializable
 data class ContentBarReference(val type: Type, val index: Int) {
@@ -13,11 +13,11 @@ data class ContentBarReference(val type: Type, val index: Int) {
         TEMPLATE
     }
 
-    fun getBar(custom_bars: List<CustomContentBar>? = null): ContentBar? =
+    fun getBar(context: AppContext, custom_bars: List<CustomContentBar>? = null): ContentBar? =
         when (type) {
             Type.INTERNAL -> InternalContentBar.ALL.getOrNull(index)
             Type.CUSTOM -> {
-                val bars: List<CustomContentBar> = custom_bars ?: Json.decodeFromString(LayoutSettings.Key.CUSTOM_BARS.get())
+                val bars: List<CustomContentBar> = custom_bars ?: context.settings.layout.CUSTOM_BARS.get()
                 bars.getOrNull(index)
             }
             Type.TEMPLATE -> CustomContentBarTemplate.entries[index].getContentBar()

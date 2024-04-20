@@ -18,7 +18,6 @@ import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.composekit.utils.common.blendWith
 import dev.toastbits.composekit.utils.composable.getTop
 import dev.toastbits.composekit.utils.composable.getBottom
-import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.*
@@ -92,7 +91,7 @@ fun NowPlayingContainer(
 
                 IntOffset(
                     0,
-                    (-swipe_state.offset.npAnchorToDp(this) - bottom_padding).roundToPx()
+                    (-swipe_state.offset.npAnchorToDp(this, player.context) - bottom_padding).roundToPx()
                 )
             }
             .then(swipe_modifier)
@@ -110,7 +109,7 @@ fun NowPlayingContainer(
             .playerBackground { page_height }
     ) {
         Box {
-            val show_wave: Boolean by ThemeSettings.Key.SHOW_EXPANDED_PLAYER_WAVE.rememberMutableState()
+            val show_wave: Boolean by player.settings.theme.SHOW_EXPANDED_PLAYER_WAVE.observe()
             if (show_wave) {
                 WaveBackground(
                     page_height,

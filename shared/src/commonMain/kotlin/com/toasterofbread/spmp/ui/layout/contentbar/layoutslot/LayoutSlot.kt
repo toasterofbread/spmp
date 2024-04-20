@@ -6,22 +6,20 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import androidx.compose.material3.Text
 import androidx.compose.material3.Switch
 import dev.toastbits.composekit.settings.ui.Theme
 import dev.toastbits.composekit.utils.composable.RowOrColumn
-import com.toasterofbread.spmp.model.settings.SettingsKey
-import com.toasterofbread.spmp.model.settings.category.LayoutSettings
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
-import kotlin.math.absoluteValue
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBar
+import dev.toastbits.composekit.platform.PreferencesProperty
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -47,7 +45,7 @@ sealed interface LayoutSlot {
 
     val is_vertical: Boolean
     val is_start: Boolean
-    val slots_key: SettingsKey
+    fun getSlotsProperty(context: AppContext): PreferencesProperty<Map<String, ContentBarReference?>>
 
     fun getContentBarSelectionState(): ContentBar.BarSelectionState? =
         ContentBar.bar_selection_state
@@ -64,32 +62,30 @@ sealed interface LayoutSlot {
 
 @Composable
 fun LayoutSlot.observeContentBar(): State<ContentBar?> {
-    val slots_data: String by slots_key.rememberMutableState()
-    val custom_bars: String by LayoutSettings.Key.CUSTOM_BARS.rememberMutableState()
+    val player: PlayerState = LocalPlayerState.current
+    val slots: Map<String, ContentBarReference?> by getSlotsProperty(player.context).observe()
+    val custom_bars: List<CustomContentBar> by player.settings.layout.CUSTOM_BARS.observe()
 
-    return remember { derivedStateOf {
-        val slots: Map<String, ContentBarReference?> = Json.decodeFromString(slots_data)
+    return remember(this) { derivedStateOf {
         if (!slots.contains(getKey())) {
             return@derivedStateOf getDefaultContentBar()
         }
-        return@derivedStateOf slots[getKey()]?.getBar(Json.decodeFromString(custom_bars))
+        return@derivedStateOf slots[getKey()]?.getBar(player.context, custom_bars)
     } }
 }
 
 @Composable
 fun LayoutSlot.observeConfigData(): JsonElement? {
-    val slot_configs_data: String by LayoutSettings.Key.SLOT_CONFIGS.rememberMutableState()
-    return remember(slot_configs_data) {
-        val slot_configs: Map<String, JsonElement> = Json.decodeFromString(slot_configs_data)
-        return@remember slot_configs[getKey()]
-    }
+    val player: PlayerState = LocalPlayerState.current
+    val slot_configs: Map<String, JsonElement> by player.settings.layout.SLOT_CONFIGS.observe()
+    return remember(slot_configs, this) { slot_configs[getKey()] }
 }
 
 @Composable
 inline fun <reified T> LayoutSlot.observeConfig(noinline getDefault: @DisallowComposableCalls () -> T): T {
-    val slot_configs_data: String by LayoutSettings.Key.SLOT_CONFIGS.rememberMutableState()
-    return remember(slot_configs_data) {
-        val slot_configs: Map<String, JsonElement> = Json.decodeFromString(slot_configs_data)
+    val player: PlayerState = LocalPlayerState.current
+    val slot_configs: Map<String, JsonElement> by player.settings.layout.SLOT_CONFIGS.observe()
+    return remember(slot_configs, this) {
         val config_data: JsonElement = slot_configs[getKey()] ?: return@remember getDefault()
         return@remember Json.decodeFromJsonElement(config_data)
     }

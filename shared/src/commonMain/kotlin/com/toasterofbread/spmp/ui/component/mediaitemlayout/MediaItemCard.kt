@@ -78,7 +78,7 @@ fun MediaItemCard(
     val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
     val item: MediaItemData = remember(layout) { layout.items.first() }
-    if (apply_filter && isMediaItemHidden(item, player.database)) {
+    if (apply_filter && isMediaItemHidden(item, player.context)) {
         return
     }
 

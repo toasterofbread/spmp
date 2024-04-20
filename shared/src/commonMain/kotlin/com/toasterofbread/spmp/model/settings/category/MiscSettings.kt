@@ -3,37 +3,39 @@ package com.toasterofbread.spmp.model.settings.category
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreHoriz
 import com.toasterofbread.spmp.ProjectBuildConfig
-import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getMiscCategoryItems
+import dev.toastbits.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.platform.PreferencesProperty
 
-data object MiscSettings: SettingsCategory("misc") {
-    override val keys: List<SettingsKey> = Key.entries.toList()
+class MiscSettings(val context: AppContext): SettingsGroup("MISC", context.getPrefs()) {
+    val NAVBAR_HEIGHT_MULTIPLIER: PreferencesProperty<Float> by property(
+        getName = { getString("s_key_navbar_height_multiplier") },
+        getDescription = { getString("s_sub_navbar_height_multiplier") },
+        getDefaultValue = { 1f }
+    )
+    val STATUS_WEBHOOK_URL: PreferencesProperty<String> by property(
+        getName = { getString("s_key_status_webhook_url") },
+        getDescription = { getString("s_sub_status_webhook_url") },
+        getDefaultValue = { ProjectBuildConfig.STATUS_WEBHOOK_URL ?: "" }
+    )
+    val STATUS_WEBHOOK_PAYLOAD: PreferencesProperty<String> by property(
+        getName = { getString("s_key_status_webhook_payload") },
+        getDescription = { getString("s_sub_status_webhook_payload") },
+        getDefaultValue = { ProjectBuildConfig.STATUS_WEBHOOK_PAYLOAD ?: "{}" }
+    )
+    val THUMB_CACHE_ENABLED: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_enable_thumbnail_cache") },
+        getDescription = { null },
+        getDefaultValue = { true }
+    )
 
-    override fun getPage(): CategoryPage? =
+    override val page: CategoryPage? =
         SimplePage(
-            getString("s_cat_misc"),
-            getString("s_cat_desc_misc"),
-            { getMiscCategoryItems() },
+            { getString("s_cat_misc") },
+            { getString("s_cat_desc_misc") },
+            { getMiscCategoryItems(context) },
             { Icons.Outlined.MoreHoriz }
         )
-
-    enum class Key: SettingsKey {
-        NAVBAR_HEIGHT_MULTIPLIER,
-        STATUS_WEBHOOK_URL,
-        STATUS_WEBHOOK_PAYLOAD,
-        THUMB_CACHE_ENABLED; // TODO Max size, management
-
-        override val category: SettingsCategory get() = MiscSettings
-
-        @Suppress("UNCHECKED_CAST")
-        override fun <T> getDefaultValue(): T =
-            when (this) {
-                NAVBAR_HEIGHT_MULTIPLIER -> 1f
-                STATUS_WEBHOOK_URL -> ProjectBuildConfig.STATUS_WEBHOOK_URL ?: ""
-                STATUS_WEBHOOK_PAYLOAD -> ProjectBuildConfig.STATUS_WEBHOOK_PAYLOAD ?: "{}"
-                THUMB_CACHE_ENABLED -> true
-            } as T
-    }
 }

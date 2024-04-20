@@ -29,7 +29,6 @@ import com.toasterofbread.spmp.model.mediaitem.layout.Layout
 import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
 import com.toasterofbread.spmp.model.serialise
 import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
-import com.toasterofbread.spmp.model.settings.category.FeedSettings
 import com.toasterofbread.spmp.model.MediaItemLayoutParams
 import com.toasterofbread.spmp.model.MediaItemGridParams
 import com.toasterofbread.spmp.platform.FormFactor
@@ -71,26 +70,26 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
         )
     }
 
-    val hidden_rows: Set<String> by FeedSettings.Key.HIDDEN_ROWS.rememberMutableState()
+    val hidden_rows: Set<String> by player.settings.feed.HIDDEN_ROWS.observe()
     val hidden_row_titles: List<String> = remember(hidden_rows) {
         hidden_rows.map { row_title ->
             UiString.deserialise(row_title).getString(player.context)
         }
     }
 
-    val square_item_max_text_rows: Int by FeedSettings.Key.SQUARE_PREVIEW_TEXT_LINES.rememberMutableState()
-    val show_download_indicators: Boolean by FeedSettings.Key.SHOW_SONG_DOWNLOAD_INDICATORS.rememberMutableState()
+    val square_item_max_text_rows: Int by player.settings.feed.SQUARE_PREVIEW_TEXT_LINES.observe()
+    val show_download_indicators: Boolean by player.settings.feed.SHOW_SONG_DOWNLOAD_INDICATORS.observe()
 
     val grid_rows: Int by
         when (player.form_factor) {
-            FormFactor.PORTRAIT -> FeedSettings.Key.GRID_ROW_COUNT
-            FormFactor.LANDSCAPE -> FeedSettings.Key.LANDSCAPE_GRID_ROW_COUNT
-        }.rememberMutableState()
+            FormFactor.PORTRAIT -> player.settings.feed.GRID_ROW_COUNT
+            FormFactor.LANDSCAPE -> player.settings.feed.LANDSCAPE_GRID_ROW_COUNT
+        }.observe()
     val grid_rows_expanded: Int by
         when (player.form_factor) {
-            FormFactor.PORTRAIT -> FeedSettings.Key.GRID_ROW_COUNT_EXPANDED
-            FormFactor.LANDSCAPE -> FeedSettings.Key.LANDSCAPE_GRID_ROW_COUNT_EXPANDED
-        }.rememberMutableState()
+            FormFactor.PORTRAIT -> player.settings.feed.GRID_ROW_COUNT_EXPANDED
+            FormFactor.LANDSCAPE -> player.settings.feed.LANDSCAPE_GRID_ROW_COUNT_EXPANDED
+        }.observe()
 
     LaunchedEffect(Unit) {
         if (layouts.isNullOrEmpty()) {
@@ -156,7 +155,7 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
                 onDismissRequest = { hiding_layout = null },
                 confirmButton = {
                     Button({
-                        FeedSettings.Key.HIDDEN_ROWS.set(
+                        player.settings.feed.HIDDEN_ROWS.set(
                             hidden_rows.plus(title.serialise())
                         )
 
@@ -194,7 +193,7 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
                     else null
                 val loading_continuation: Boolean = load_state != FeedLoadState.NONE
                 val horizontal_padding: PaddingValues = content_padding.horizontal
-                val show_artists_row: Boolean by FeedSettings.Key.SHOW_ARTISTS_ROW.rememberMutableState()
+                val show_artists_row: Boolean by player.settings.feed.SHOW_ARTISTS_ROW.observe()
 
                 LazyColumn(
                     Modifier.graphicsLayer { alpha = state_alpha.value },

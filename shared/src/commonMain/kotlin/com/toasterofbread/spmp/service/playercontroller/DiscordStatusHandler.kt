@@ -7,8 +7,6 @@ import com.toasterofbread.spmp.ProjectBuildConfig
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.settings.category.DiscordAuthSettings
-import com.toasterofbread.spmp.model.settings.category.DiscordSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
@@ -33,7 +31,7 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
     fun onDiscordAccountTokenChanged() {
         discord_rpc?.close()
 
-        val account_token: String = DiscordAuthSettings.Key.DISCORD_ACCOUNT_TOKEN.get(context.getPrefs())
+        val account_token: String = context.settings.discord_auth.DISCORD_ACCOUNT_TOKEN.get()
         if (!DiscordStatus.isSupported() || (account_token.isBlank() && DiscordStatus.isAccountTokenRequired())) {
             discord_rpc = null
             return
@@ -91,10 +89,10 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
                     return@apply
                 }
 
-                val name: String = formatText(DiscordSettings.Key.STATUS_NAME.get(context), status_song, song_title)
-                val text_a: String = formatText(DiscordSettings.Key.STATUS_TEXT_A.get(context), status_song, song_title)
-                val text_b: String = formatText(DiscordSettings.Key.STATUS_TEXT_B.get(context), status_song, song_title)
-                val text_c: String = formatText(DiscordSettings.Key.STATUS_TEXT_C.get(context), status_song, song_title)
+                val name: String = formatText(context.settings.discord.STATUS_NAME.get(), status_song, song_title)
+                val text_a: String = formatText(context.settings.discord.STATUS_TEXT_A.get(), status_song, song_title)
+                val text_b: String = formatText(context.settings.discord.STATUS_TEXT_B.get(), status_song, song_title)
+                val text_c: String = formatText(context.settings.discord.STATUS_TEXT_C.get(), status_song, song_title)
 
                 val large_image: String?
                 val small_image: String?
@@ -115,11 +113,11 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
                 }
 
                 val buttons: MutableList<Pair<String, String>> = mutableListOf<Pair<String, String>>().apply {
-                    if (DiscordSettings.Key.SHOW_SONG_BUTTON.get(context)) {
-                        add(DiscordSettings.Key.SONG_BUTTON_TEXT.get<String>(context) to status_song.getURL(context))
+                    if (context.settings.discord.SHOW_SONG_BUTTON.get()) {
+                        add(context.settings.discord.SONG_BUTTON_TEXT.get() to status_song.getURL(context))
                     }
-                    if (DiscordSettings.Key.SHOW_PROJECT_BUTTON.get(context)) {
-                        add(DiscordSettings.Key.PROJECT_BUTTON_TEXT.get<String>(context) to getString("project_url"))
+                    if (context.settings.discord.SHOW_PROJECT_BUTTON.get()) {
+                        add(context.settings.discord.PROJECT_BUTTON_TEXT.get() to getString("project_url"))
                     }
                 }
 

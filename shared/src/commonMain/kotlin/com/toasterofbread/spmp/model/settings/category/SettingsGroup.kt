@@ -18,37 +18,43 @@ import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.settings.ui.SettingsPageWithItems
 import dev.toastbits.composekit.settings.ui.item.ComposableSettingsItem
 import dev.toastbits.composekit.settings.ui.item.SettingsItem
-import dev.toastbits.composekit.utils.common.blendWith
-import com.toasterofbread.spmp.model.settings.SettingsKey
+import dev.toastbits.composekit.platform.PreferencesGroup
+import dev.toastbits.composekit.platform.PlatformPreferences
 import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.utils.common.amplifyPercent
-import dev.toastbits.composekit.settings.ui.SettingsPage
 import dev.toastbits.composekit.settings.ui.SettingsInterface
 
-sealed class SettingsCategory(id: String) {
-    val id: String = id.uppercase()
-    abstract val keys: List<SettingsKey>
+sealed class SettingsGroup(
+    key: String,
+    prefs: PlatformPreferences
+): PreferencesGroup(key, prefs) {
+    override val group_key: String = key
 
-    abstract fun getPage(): CategoryPage?
+    // val id: String = id.uppercase()
+    // abstract val keys: List<SettingsKey>
+
+    abstract val page: CategoryPage?
+
     open fun showPage(exporting: Boolean): Boolean = true
 
-    fun getNameOfKey(key: SettingsKey): String =
-        "${id}_${(key as Enum<*>).name}"
+    // fun getNameOfKey(key: SettingsKey): String =
+    //     "${id}_${(key as Enum<*>).name}"
 
-    fun getKeyOfName(name: String): SettingsKey? {
-        val split: List<String> = name.split('_', limit = 2)
-        if (split.size != 2 || split[0] != id) {
-            return null
-        }
+    // fun getKeyOfName(name: String): SettingsKey? {
+    //     val split: List<String> = name.split('_', limit = 2)
+    //     if (split.size != 2 || split[0] != id) {
+    //         return null
+    //     }
 
-        return keys.firstOrNull {
-            (it as Enum<*>).name == split[1]
-        }
-    }
+    //     return keys.firstOrNull {
+    //         (it as Enum<*>).name == split[1]
+    //     }
+    // }
 
     abstract class CategoryPage(
-        val category: SettingsCategory,
-        val name: String
+        val group: SettingsGroup,
+        val getTitle: () -> String
     ) {
         abstract fun getTitleItem(context: AppContext): SettingsItem?
         abstract fun openPageOnInterface(context: AppContext, settings_interface: SettingsInterface)
@@ -56,20 +62,20 @@ sealed class SettingsCategory(id: String) {
     }
 
     protected open inner class SimplePage(
-        val title: String,
-        val description: String,
-        private val getPageItems: (AppContext) -> List<SettingsItem>,
+        getTitle: () -> String,
+        val getDescription: () -> String,
+        private val getPageItems: () -> List<SettingsItem>,
         private val getPageIcon: @Composable () -> ImageVector,
         private val titleBarEndContent: @Composable () -> Unit = {}
-    ): CategoryPage(this, title) {
+    ): CategoryPage(this, getTitle) {
         private var items: List<SettingsItem>? = null
 
         override fun openPageOnInterface(context: AppContext, settings_interface: SettingsInterface) {
             settings_interface.openPage(
                 object : SettingsPageWithItems(
-                    getTitle = { title },
+                    getTitle = getTitle,
                     getItems = { getItems(context) },
-                    getIcon = { getPageIcon() }
+                    getIcon = getPageIcon
                 ) {
                     @Composable
                     override fun TitleBarEndContent() {
@@ -82,16 +88,8 @@ sealed class SettingsCategory(id: String) {
 
         override fun getItems(context: AppContext): List<SettingsItem> {
             if (items == null) {
-                items = getPageItems(context).filter {
-                    it.getKeys().none { key_name ->
-                        for (cat in listOf(category) + SettingsCategory.all) {
-                            val key: SettingsKey? = cat.getKeyOfName(key_name)
-                            if (key != null) {
-                                return@none key.isHidden()
-                            }
-                        }
-                        throw RuntimeException("Key not found: $key_name (category: $category)")
-                    }
+                items = getPageItems().filter { item ->
+                    item.getProperties().none { it.isHidden() }
                 }
             }
             return items!!
@@ -116,50 +114,11 @@ sealed class SettingsCategory(id: String) {
                     ) {
                         Icon(getPageIcon(), null)
                         Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                            Text(title, style = MaterialTheme.typography.titleMedium)
-                            Text(description, style = MaterialTheme.typography.labelMedium)
+                            Text(getTitle(), style = MaterialTheme.typography.titleMedium)
+                            Text(getDescription(), style = MaterialTheme.typography.labelMedium)
                         }
                     }
                 }
             }
-    }
-
-    companion object {
-        val all: List<SettingsCategory> get() =
-            listOf(
-                YoutubeAuthSettings,
-
-                SystemSettings,
-                BehaviourSettings,
-                LayoutSettings,
-                PlayerSettings,
-                FeedSettings,
-                ThemeSettings,
-                LyricsSettings,
-                DiscordSettings,
-                DiscordAuthSettings,
-                FilterSettings,
-                StreamingSettings,
-                ShortcutSettings,
-                DesktopSettings,
-                MiscSettings,
-
-                YTApiSettings,
-                InternalSettings
-            ).apply {
-                check(distinctBy { it.id }.size == size)
-            }
-
-        val with_page: List<SettingsCategory> get() =
-            all.filter { it.getPage() != null }
-
-        val pages: List<CategoryPage> get() =
-            all.mapNotNull { it.getPage() }
-
-        fun fromId(id: String): SettingsCategory =
-            all.firstOrNull { it.id == id } ?: throw RuntimeException(id)
-
-        fun fromIdOrNull(id: String): SettingsCategory? =
-            all.firstOrNull { it.id == id }
     }
 }

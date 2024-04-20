@@ -23,22 +23,25 @@ import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.utils.composable.StickyHeightColumn
 import dev.toastbits.composekit.platform.composable.ScrollBarLazyRow
 import com.toasterofbread.spmp.model.appaction.AppAction
-import com.toasterofbread.spmp.model.settings.category.ShortcutSettings
+import com.toasterofbread.spmp.model.appaction.shortcut.getDefaultShortcuts
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.shortcut.ShortcutPreview
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import LocalPlayerState
 
 @Composable
 fun ShortcutsEditor(modifier: Modifier = Modifier) {
-    var shortcuts_data: String by ShortcutSettings.Key.CONFIGURED_SHORTCUTS.rememberMutableState()
-    val shortcuts: List<Shortcut> = remember(shortcuts_data) { Json.decodeFromString(shortcuts_data) }
+    val player: PlayerState = LocalPlayerState.current
+    var shortcuts: List<Shortcut>? by player.settings.shortcut.CONFIGURED_SHORTCUTS.observe()
+    val default_shortcuts: List<Shortcut> = remember { getDefaultShortcuts() }
 
     StickyHeightColumn(
         modifier,
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        var navigate_song_with_numbers: Boolean by ShortcutSettings.Key.NAVIGATE_SONG_WITH_NUMBERS.rememberMutableState()
+        var navigate_song_with_numbers: Boolean by player.settings.shortcut.NAVIGATE_SONG_WITH_NUMBERS.observe()
         FlowRow(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -64,7 +67,7 @@ fun ShortcutsEditor(modifier: Modifier = Modifier) {
                 items(AppAction.Type.entries) { action_type ->
                     Button({
                         val new_shortcut: Shortcut = Shortcut(trigger = null, action = action_type.createAction())
-                        shortcuts_data = Json.encodeToString(listOf(new_shortcut) + shortcuts)
+                        shortcuts = listOf(new_shortcut) + (shortcuts ?: default_shortcuts)
                     }) {
                         action_type.Preview()
                     }
@@ -72,18 +75,18 @@ fun ShortcutsEditor(modifier: Modifier = Modifier) {
             }
         }
 
-        for ((index, shortcut) in shortcuts.withIndex()) {
+        for ((index, shortcut) in (shortcuts ?: default_shortcuts).withIndex()) {
             ShortcutPreview(
                 shortcut,
                 onModification = { new_shortcut ->
-                    val new_shortcuts: MutableList<Shortcut> = shortcuts.toMutableList()
-                    if (new_shortcut == null) {
-                        new_shortcuts.removeAt(index)
+                    shortcuts = (shortcuts ?: default_shortcuts).toMutableList().apply {
+                        if (new_shortcut == null) {
+                            removeAt(index)
+                        }
+                        else {
+                            set(index, new_shortcut)
+                        }
                     }
-                    else {
-                        new_shortcuts[index] = new_shortcut
-                    }
-                    shortcuts_data = Json.encodeToString(new_shortcuts)
                 }
             )
         }

@@ -26,7 +26,6 @@ import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.settings.category.LyricsSettings
 import com.toasterofbread.spmp.platform.getOrNotify
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
@@ -56,7 +55,7 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
         val pill_menu: PillMenu = remember { PillMenu(expand_state = mutableStateOf(false)) }
 
         val lyrics_state: SongLyricsLoader.ItemState = SongLyricsLoader.rememberItemState(getSong(), player.context)
-        var show_furigana: Boolean by remember { mutableStateOf(LyricsSettings.Key.DEFAULT_FURIGANA.get()) }
+        var show_furigana: Boolean by remember { mutableStateOf(player.settings.lyrics.DEFAULT_FURIGANA.get()) }
 
         var submenu: Submenu? by remember { mutableStateOf(null) }
         var lyrics_sync_line_index: Int? by remember { mutableStateOf(null) }
@@ -222,7 +221,7 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
                 }
                 else if (lyrics != null) {
                     Box(Modifier.fillMaxSize()) {
-                        val lyrics_follow_enabled: Boolean by LyricsSettings.Key.FOLLOW_ENABLED.rememberMutableState()
+                        val lyrics_follow_enabled: Boolean by player.settings.lyrics.FOLLOW_ENABLED.observe()
 
                         CoreLyricsDisplay(
                             lyrics,

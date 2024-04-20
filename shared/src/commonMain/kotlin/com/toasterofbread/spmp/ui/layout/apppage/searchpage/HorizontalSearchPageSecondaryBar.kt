@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.*
 import dev.toastbits.composekit.utils.common.getContrasted
 import dev.toastbits.composekit.utils.composable.*
 import dev.toastbits.composekit.utils.modifier.bounceOnClick
-import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
 import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState

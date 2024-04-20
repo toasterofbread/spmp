@@ -1,16 +1,14 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import androidx.compose.ui.Modifier
-import dev.toastbits.composekit.settings.ui.item.BasicSettingsValueState
 import dev.toastbits.composekit.settings.ui.item.SliderSettingsItem
 import dev.toastbits.composekit.utils.common.roundTo
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
+import dev.toastbits.composekit.platform.PreferencesProperty
 
 fun AppSliderItem(
-    state: BasicSettingsValueState<out Number>,
-    title: String?,
-    subtitle: String?,
+    state: PreferencesProperty<out Number>,
     min_label: String? = null,
     max_label: String? = null,
     steps: Int = 0,
@@ -22,8 +20,6 @@ fun AppSliderItem(
 ): SliderSettingsItem =
     SliderSettingsItem(
         state = state,
-        title = title,
-        subtitle = subtitle,
         getErrMsgValueOutOfRange = {
             getString("settings_value_out_of_\$range").replace("\$range", it.toString())
         },

@@ -21,19 +21,22 @@ import dev.toastbits.composekit.utils.common.getContrasted
 import dev.toastbits.composekit.utils.common.lazyAssert
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
-import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
+import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
 
 typealias MultiSelectItem = Pair<YtmMediaItem, Int?>
 
 open class MediaItemMultiSelectContext {
     val additionalSelectedItemActions: (@Composable ColumnScope.(MediaItemMultiSelectContext) -> Unit)?
+    val context: AppContext
 
-    constructor() {
+    constructor(context: AppContext) {
+        this.context = context
         additionalSelectedItemActions = null
     }
 
-    constructor(additionalSelectedItemActions: (@Composable ColumnScope.(MediaItemMultiSelectContext) -> Unit)?) {
+    constructor(context: AppContext, additionalSelectedItemActions: (@Composable ColumnScope.(MediaItemMultiSelectContext) -> Unit)?) {
+        this.context = context
         this.additionalSelectedItemActions = additionalSelectedItemActions
     }
 
@@ -62,13 +65,13 @@ open class MediaItemMultiSelectContext {
     }
 
     fun onActionPerformed() {
-        if (BehaviourSettings.Key.MULTISELECT_CANCEL_ON_ACTION.get()) {
+        if (context.settings.behaviour.MULTISELECT_CANCEL_ON_ACTION.get()) {
             setActive(false)
         }
     }
 
     private fun onSelectedItemsChanged() {
-        if (selected_items.isEmpty() && BehaviourSettings.Key.MULTISELECT_CANCEL_ON_NONE_SELECTED.get()) {
+        if (selected_items.isEmpty() && context.settings.behaviour.MULTISELECT_CANCEL_ON_NONE_SELECTED.get()) {
             setActive(false)
         }
     }

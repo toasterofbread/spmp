@@ -5,12 +5,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.input.key.*
 import dev.toastbits.composekit.utils.common.addUnique
 import com.toasterofbread.spmp.ui.component.shortcut.trigger.*
-import com.toasterofbread.spmp.model.settings.category.ShortcutSettings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.appaction.shortcut.getDefaultShortcuts
 import kotlinx.serialization.json.Json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.roundToLong
+import LocalPlayerState
 
 val LocalShortcutState: ProvidableCompositionLocal<ShortcutState> = compositionLocalOf { ShortcutState() }
 
@@ -33,15 +34,15 @@ class ShortcutState {
 
     @Composable
     fun ObserveState() {
-        navigate_song_with_numbers = ShortcutSettings.Key.NAVIGATE_SONG_WITH_NUMBERS.rememberMutableState<Boolean>().value
+        val player: PlayerState = LocalPlayerState.current
+        navigate_song_with_numbers = player.settings.shortcut.NAVIGATE_SONG_WITH_NUMBERS.observe().value
 
-        val shortcuts_data: String by ShortcutSettings.Key.CONFIGURED_SHORTCUTS.rememberMutableState()
-        LaunchedEffect(shortcuts_data) {
-            val shortcuts: List<Shortcut> = Json.decodeFromString(shortcuts_data)
+        val shortcuts: List<Shortcut>? by player.settings.shortcut.CONFIGURED_SHORTCUTS.observe()
+        LaunchedEffect(shortcuts) {
             val keyboard_shortcuts: MutableList<Shortcut> = mutableListOf()
             val mouse_button_shortcuts: MutableList<Shortcut> = mutableListOf()
 
-            for (shortcut in shortcuts) {
+            for (shortcut in (shortcuts ?: getDefaultShortcuts())) {
                 when (shortcut.trigger) {
                     null -> {}
                     is KeyboardShortcutTrigger -> keyboard_shortcuts.add(shortcut)

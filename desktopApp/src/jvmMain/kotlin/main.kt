@@ -1,5 +1,4 @@
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
@@ -16,8 +15,6 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import androidx.compose.ui.window.WindowPlacement
 import dev.toastbits.composekit.platform.composable.onWindowBackPressed
-import com.toasterofbread.spmp.model.settings.category.DesktopSettings
-import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.component.shortcut.trigger.KeyboardShortcutTrigger
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.getTextFieldFocusState
@@ -44,7 +41,7 @@ fun main(args: Array<String>) {
 
     SpMp.init(context)
 
-    val force_software_renderer: Boolean = DesktopSettings.Key.FORCE_SOFTWARE_RENDERER.get()
+    val force_software_renderer: Boolean = context.settings.desktop.FORCE_SOFTWARE_RENDERER.get()
     if (force_software_renderer) {
         System.setProperty("skiko.renderApi", "SOFTWARE")
     }
@@ -65,7 +62,7 @@ fun main(args: Array<String>) {
     }
 
     lateinit var window: ComposeWindow
-    val enable_window_transparency: Boolean = ThemeSettings.Key.ENABLE_WINDOW_TRANSPARENCY.get(context.getPrefs())
+    val enable_window_transparency: Boolean = context.settings.theme.ENABLE_WINDOW_TRANSPARENCY.get()
 
     val shortcut_state: ShortcutState = ShortcutState()
     var player: PlayerState? = null
@@ -104,14 +101,20 @@ fun main(args: Array<String>) {
             undecorated = enable_window_transparency,
             transparent = enable_window_transparency
         ) {
+            val player_coroutine_scope: CoroutineScope = rememberCoroutineScope()
+            var player_initialised: Boolean by remember { mutableStateOf(false) }
+
             LaunchedEffect(Unit) {
+                player = SpMp.initPlayer(player_coroutine_scope)
+                player_initialised = true
+
                 window = this@Window.window
 
                 if (enable_window_transparency) {
                     window.background = java.awt.Color(0, 0, 0, 0)
                 }
 
-                val startup_command: String = DesktopSettings.Key.STARTUP_COMMAND.get()
+                val startup_command: String = context.settings.desktop.STARTUP_COMMAND.get()
                 if (startup_command.isBlank()) {
                     return@LaunchedEffect
                 }
@@ -133,6 +136,10 @@ fun main(args: Array<String>) {
                 }
             }
 
+            if (!player_initialised) {
+                return@Window
+            }
+
             SpMp.App(
                 arguments,
                 shortcut_state,
@@ -149,9 +156,6 @@ fun main(args: Array<String>) {
                     else {
                         window.placement = WindowPlacement.Fullscreen
                     }
-                },
-                onPlayerCreated = {
-                    player = it
                 }
             )
         }

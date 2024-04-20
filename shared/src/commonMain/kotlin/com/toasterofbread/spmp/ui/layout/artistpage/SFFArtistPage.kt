@@ -27,8 +27,6 @@ import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
-import com.toasterofbread.spmp.model.settings.category.FilterSettings
 import com.toasterofbread.spmp.model.MediaItemLayoutParams
 import com.toasterofbread.spmp.model.MediaItemListParams
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
@@ -55,8 +53,8 @@ internal fun ArtistAppPage.SFFArtistPage(
     val player: PlayerState = LocalPlayerState.current
     val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
-    val own_multiselect_context = remember(multiselect_context) { if (multiselect_context != null) null else MediaItemMultiSelectContext() {} }
-    val apply_filter: Boolean by FilterSettings.Key.APPLY_TO_ARTIST_ITEMS.rememberMutableState()
+    val own_multiselect_context = remember(multiselect_context) { if (multiselect_context != null) null else MediaItemMultiSelectContext(player.context) {} }
+    val apply_filter: Boolean by player.settings.filter.APPLY_TO_ARTIST_ITEMS.observe()
 
     val item_layouts: List<ArtistLayout>? by artist.Layouts.observe(player.database)
     var browse_params_rows: List<ArtistWithParamsRow>? by remember { mutableStateOf(null) }
@@ -154,7 +152,7 @@ internal fun ArtistAppPage.SFFArtistPage(
                         val layout_id: YoutubeUILocalisation.StringID? = (layout.title as? YoutubeUiString)?.getYoutubeStringId()
 
                         val is_singles: Boolean =
-                            BehaviourSettings.Key.TREAT_SINGLES_AS_SONG.get()
+                            player.settings.behaviour.TREAT_SINGLES_AS_SONG.get()
                             && layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_SINGLES
 
                         val is_artist_row: Boolean =

@@ -23,7 +23,6 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NOW_PLAYING_LARGE_BO
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 
 private const val MAX_WAVE_SPEED_PORTRAIT: Float = 0.3f
 private const val MAX_WAVE_SPEED_LANDSCAPE: Float = 1f
@@ -40,11 +39,11 @@ internal fun WaveBackground(page_height: Dp, modifier: Modifier = Modifier) {
         getDefaultOverlappingWavesLayers(7, 0.35f)
     }
 
-    val default_wave_speed: Float by ThemeSettings.Key.NOWPLAYING_DEFAULT_WAVE_SPEED.rememberMutableState()
+    val default_wave_speed: Float by player.settings.theme.NOWPLAYING_DEFAULT_WAVE_SPEED.observe()
     val song_wave_speed: Float? by current_song?.BackgroundWaveSpeed?.observe(player.database)
     val background_wave_speed: Float = song_wave_speed ?: default_wave_speed
 
-    val default_wave_opacity: Float by ThemeSettings.Key.NOWPLAYING_DEFAULT_WAVE_OPACITY.rememberMutableState()
+    val default_wave_opacity: Float by player.settings.theme.NOWPLAYING_DEFAULT_WAVE_OPACITY.observe()
     val song_wave_opacity: Float? by current_song?.BackgroundWaveOpacity?.observe(player.database)
     val background_wave_opacity: Float = song_wave_opacity ?: default_wave_opacity
 

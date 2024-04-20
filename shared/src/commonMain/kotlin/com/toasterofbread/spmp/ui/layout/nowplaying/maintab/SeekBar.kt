@@ -36,7 +36,6 @@ import com.github.krottv.compose.sliders.SliderValueHorizontal
 import dev.toastbits.composekit.utils.common.formatElapsedTime
 import dev.toastbits.composekit.utils.composable.RecomposeOnInterval
 import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.spmp.model.settings.category.PlayerSettings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.POSITION_UPDATE_INTERVAL_MS
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
@@ -132,8 +131,9 @@ private fun SeekTrack(
     progress_colour: Color,
     height: Dp = 4.dp
 ) {
+    val player: PlayerState = LocalPlayerState.current
     val visual_progress by animateFloatAsState(progress, spring(stiffness = Spring.StiffnessLow))
-    val show_gradient: Boolean by PlayerSettings.Key.SHOW_SEEK_BAR_GRADIENT.rememberMutableState()
+    val show_gradient: Boolean by player.settings.player.SHOW_SEEK_BAR_GRADIENT.observe()
 
     Canvas(
         Modifier

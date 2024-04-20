@@ -54,7 +54,6 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.InteractivePlaylistEdito
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.rememberDownloadStatus
 import com.toasterofbread.spmp.resources.getString
@@ -208,7 +207,7 @@ private fun LongPressMenuActionProvider.LPMActions(
                     addToQueue(
                         it,
                         active_queue_index + 1,
-                        is_active_queue = BehaviourSettings.Key.LPM_INCREMENT_PLAY_AFTER.get(),
+                        is_active_queue = player.settings.behaviour.LPM_INCREMENT_PLAY_AFTER.get(),
                         start_radio = false
                     )
                 }
@@ -220,7 +219,7 @@ private fun LongPressMenuActionProvider.LPMActions(
                     addToQueue(
                         it,
                         active_queue_index + 1,
-                        is_active_queue = BehaviourSettings.Key.LPM_INCREMENT_PLAY_AFTER.get(),
+                        is_active_queue = player.settings.behaviour.LPM_INCREMENT_PLAY_AFTER.get(),
                         start_radio = true
                     )
                 }

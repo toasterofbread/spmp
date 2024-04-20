@@ -4,37 +4,35 @@ import androidx.compose.ui.Modifier
 import dev.toastbits.composekit.settings.ui.item.GroupSettingsItem
 import dev.toastbits.composekit.settings.ui.item.InfoTextSettingsItem
 import dev.toastbits.composekit.settings.ui.item.SettingsItem
-import dev.toastbits.composekit.settings.ui.item.SettingsValueState
+import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.settings.ui.item.TextFieldSettingsItem
 import dev.toastbits.composekit.settings.ui.item.ToggleSettingsItem
-import com.toasterofbread.spmp.model.settings.category.DesktopSettings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
+import com.toasterofbread.spmp.platform.AppContext
 
-internal fun getDesktopCategoryItems(): List<SettingsItem> {
+internal fun getDesktopCategoryItems(context: AppContext): List<SettingsItem> {
     return listOf(
         GroupSettingsItem(
             getString("s_group_desktop_system")
         ),
 
         TextFieldSettingsItem(
-            SettingsValueState(DesktopSettings.Key.STARTUP_COMMAND.getName()),
-            getString("s_key_startup_command"), getString("s_sub_startup_command"),
+            context.settings.desktop.STARTUP_COMMAND,
             getFieldModifier = { Modifier.appTextField() }
         ),
 
         ToggleSettingsItem(
-            SettingsValueState(DesktopSettings.Key.FORCE_SOFTWARE_RENDERER.getName()),
-            getString("s_key_force_software_renderer"), getString("s_sub_force_software_renderer")
+            context.settings.desktop.FORCE_SOFTWARE_RENDERER,
         ),
 
         GroupSettingsItem(
             getString("s_group_server")
         )
-    ) + getServerGroupItems()
+    ) + getServerGroupItems(context)
 }
 
-fun getServerGroupItems(): List<SettingsItem> {
+fun getServerGroupItems(context: AppContext): List<SettingsItem> {
     // (I will never learn regex)
     // https://stackoverflow.com/a/36760050
     val ip_regex: Regex = "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}\$".toRegex()
@@ -50,8 +48,7 @@ fun getServerGroupItems(): List<SettingsItem> {
         ),
 
         TextFieldSettingsItem(
-            SettingsValueState(DesktopSettings.Key.SERVER_IP_ADDRESS.getName()),
-            getString("s_key_server_ip"), null,
+            context.settings.desktop.SERVER_IP_ADDRESS,
             getStringError = { input ->
                 if (!ip_regex.matches(input)) {
                     return@TextFieldSettingsItem getString("settings_value_not_ipv4")
@@ -62,16 +59,10 @@ fun getServerGroupItems(): List<SettingsItem> {
         ),
 
         TextFieldSettingsItem(
-            SettingsValueState(
-                DesktopSettings.Key.SERVER_PORT.getName(),
-                getValueConverter = {
-                    it?.toString()
-                },
-                setValueConverter = {
-                    it.toInt()
-                }
+            context.settings.desktop.SERVER_PORT.getConvertedProperty(
+                fromProperty = { it.toString() },
+                toProperty = { it.toIntOrNull() ?: 0 }
             ),
-            getString("s_key_server_port"), null,
             getStringError = { input ->
                 if (!port_regex.matches(input)) {
                     return@TextFieldSettingsItem getString("settings_value_not_port")
@@ -82,19 +73,16 @@ fun getServerGroupItems(): List<SettingsItem> {
         ),
 
         TextFieldSettingsItem(
-            SettingsValueState(DesktopSettings.Key.SERVER_LOCAL_COMMAND.getName()),
-            getString("s_key_local_server_command"), getString("s_sub_local_server_command"),
+            context.settings.desktop.SERVER_LOCAL_COMMAND,
             getFieldModifier = { Modifier.appTextField() }
         ),
 
         ToggleSettingsItem(
-            SettingsValueState(DesktopSettings.Key.SERVER_LOCAL_START_AUTOMATICALLY.getName()),
-            getString("s_key_server_local_start_automatically"), getString("s_sub_server_local_start_automatically")
+            context.settings.desktop.SERVER_LOCAL_START_AUTOMATICALLY
         ),
 
         ToggleSettingsItem(
-            SettingsValueState(DesktopSettings.Key.SERVER_KILL_CHILD_ON_EXIT.getName()),
-            getString("s_key_server_kill_child_on_exit"), null
+            context.settings.desktop.SERVER_KILL_CHILD_ON_EXIT
         )
     )
 }

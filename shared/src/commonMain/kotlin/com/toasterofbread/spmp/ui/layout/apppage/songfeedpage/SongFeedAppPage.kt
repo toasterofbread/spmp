@@ -20,7 +20,6 @@ import com.toasterofbread.spmp.model.mediaitem.db.*
 import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.settings.*
-import com.toasterofbread.spmp.model.settings.category.FeedSettings
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.service.playercontroller.*
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -173,7 +172,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
             load_state = if (continue_feed) FeedLoadState.CONTINUING else FeedLoadState.LOADING
 
             val result: Result<SongFeedLoadResult> = loadFeedLayouts(
-                if (continue_feed && continuation != null) -1 else Settings.get(FeedSettings.Key.INITIAL_ROWS),
+                if (continue_feed && continuation != null) -1 else state.context.settings.feed.INITIAL_ROWS.get(),
                 filter_params,
                 if (continue_feed) continuation else null
             )

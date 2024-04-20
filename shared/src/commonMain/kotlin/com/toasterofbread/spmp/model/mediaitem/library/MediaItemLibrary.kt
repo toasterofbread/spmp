@@ -13,7 +13,6 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
-import com.toasterofbread.spmp.model.settings.category.SystemSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.LocalSongMetadataProcessor
@@ -27,7 +26,7 @@ import kotlinx.coroutines.sync.withLock
 object MediaItemLibrary {
     fun getLibraryDir(
         context: AppContext,
-        custom_location_uri: String = SystemSettings.Key.LIBRARY_PATH.get(context),
+        custom_location_uri: String = context.settings.system.LIBRARY_PATH.get(),
     ): PlatformFile {
         if (custom_location_uri.isNotBlank()) {
             val custom_dir: PlatformFile? = context.getUserDirectoryFile(custom_location_uri)

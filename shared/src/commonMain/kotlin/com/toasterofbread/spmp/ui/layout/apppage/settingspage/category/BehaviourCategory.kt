@@ -3,78 +3,60 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 import dev.toastbits.composekit.settings.ui.item.GroupSettingsItem
 import dev.toastbits.composekit.settings.ui.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.item.ToggleSettingsItem
-import dev.toastbits.composekit.settings.ui.item.SettingsValueState
-import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
+import dev.toastbits.composekit.platform.PreferencesProperty
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.platform.AppContext
 
-internal fun getBehaviourCategoryItems(): List<SettingsItem> {
+internal fun getBehaviourCategoryItems(context: AppContext): List<SettingsItem> {
     return listOf(
         ToggleSettingsItem(
-            SettingsValueState(BehaviourSettings.Key.OPEN_NP_ON_SONG_PLAYED.getName()),
-            getString("s_key_open_np_on_song_played"),
-            getString("s_sub_open_np_on_song_played")
+            context.settings.behaviour.OPEN_NP_ON_SONG_PLAYED
         ),
 
         ToggleSettingsItem(
-            SettingsValueState(BehaviourSettings.Key.START_RADIO_ON_SONG_PRESS.getName()),
-            getString("s_key_start_radio_on_song_press"),
-            getString("s_sub_start_radio_on_song_press")
+            context.settings.behaviour.START_RADIO_ON_SONG_PRESS
         ),
 
         ToggleSettingsItem(
-            SettingsValueState(BehaviourSettings.Key.MULTISELECT_CANCEL_ON_ACTION.getName()),
-            getString("s_key_multiselect_cancel_on_action"),
-            getString("s_sub_multiselect_cancel_on_action")
+            context.settings.behaviour.MULTISELECT_CANCEL_ON_ACTION
         ),
 
         ToggleSettingsItem(
-            SettingsValueState(BehaviourSettings.Key.MULTISELECT_CANCEL_ON_NONE_SELECTED.getName()),
-            getString("s_key_multiselect_cancel_on_none_selected"),
-            null
+            context.settings.behaviour.MULTISELECT_CANCEL_ON_NONE_SELECTED
         ),
 
         ToggleSettingsItem(
-            SettingsValueState(BehaviourSettings.Key.TREAT_SINGLES_AS_SONG.getName()),
-            getString("s_key_treat_singles_as_song"),
-            getString("s_sub_treat_singles_as_song")
+            context.settings.behaviour.TREAT_SINGLES_AS_SONG
         ),
 
         ToggleSettingsItem(
-            SettingsValueState(BehaviourSettings.Key.TREAT_ANY_SINGLE_ITEM_PLAYLIST_AS_SINGLE.getName()),
-            getString("s_key_treat_any_single_item_playlist_as_single"), null
+            context.settings.behaviour.TREAT_ANY_SINGLE_ITEM_PLAYLIST_AS_SINGLE
         ),
 
         ToggleSettingsItem(
-            SettingsValueState(BehaviourSettings.Key.SHOW_LIKES_PLAYLIST.getName()),
-            getString("s_key_show_likes_playlist"), null
+            context.settings.behaviour.SHOW_LIKES_PLAYLIST
         ),
 
         ToggleSettingsItem(
-            SettingsValueState(BehaviourSettings.Key.SEARCH_SHOW_SUGGESTIONS.getName()),
-            getString("s_key_search_show_suggestions"), null
+            context.settings.behaviour.SEARCH_SHOW_SUGGESTIONS
         ),
 
         ToggleSettingsItem(
-            SettingsValueState(BehaviourSettings.Key.STOP_PLAYER_ON_APP_CLOSE.getName()),
-            getString("s_key_stop_player_on_app_close"),
-            getString("s_sub_stop_player_on_app_close")
+            context.settings.behaviour.STOP_PLAYER_ON_APP_CLOSE
         ),
 
         GroupSettingsItem(getString("s_group_long_press_menu")),
 
         ToggleSettingsItem(
-            SettingsValueState(BehaviourSettings.Key.LPM_CLOSE_ON_ACTION.getName()),
-            getString("s_key_lpm_close_on_action"), null
+            context.settings.behaviour.LPM_CLOSE_ON_ACTION
         ),
 
         ToggleSettingsItem(
-            SettingsValueState(BehaviourSettings.Key.LPM_INCREMENT_PLAY_AFTER.getName()),
-            getString("s_key_lpm_increment_play_after"), null
+            context.settings.behaviour.LPM_INCREMENT_PLAY_AFTER
         ),
 
         ToggleSettingsItem(
-            SettingsValueState(BehaviourSettings.Key.DESKTOP_LPM_KEEP_ON_BACKGROUND_SCROLL.getName()),
-            getString("s_key_desktop_lpm_keep_on_background_scroll"), getString("s_sub_desktop_lpm_keep_on_background_scroll")
+            context.settings.behaviour.DESKTOP_LPM_KEEP_ON_BACKGROUND_SCROLL
         )
     )
 }

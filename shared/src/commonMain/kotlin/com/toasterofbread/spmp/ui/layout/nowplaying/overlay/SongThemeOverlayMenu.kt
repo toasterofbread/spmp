@@ -31,7 +31,6 @@ import dev.toastbits.composekit.utils.composable.OnChangedEffect
 import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
-import com.toasterofbread.spmp.model.settings.rememberMutableEnumState
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.platform.generatePalette
@@ -118,31 +117,31 @@ class SongThemePlayerOverlayMenu(
                     ) {
                         ValueSlider(
                             song.ThumbnailRounding.observe(player.database),
-                            ThemeSettings.Key.NOWPLAYING_DEFAULT_IMAGE_CORNER_ROUNDING.get(),
+                            player.settings.theme.NOWPLAYING_DEFAULT_IMAGE_CORNER_ROUNDING.get(),
                             getString("song_theme_menu_corner_radius")
                         )
 
                         ValueSlider(
                             song.PlayerGradientDepth.observe(player.database),
-                            ThemeSettings.Key.NOWPLAYING_DEFAULT_GRADIENT_DEPTH.get(),
+                            player.settings.theme.NOWPLAYING_DEFAULT_GRADIENT_DEPTH.get(),
                             getString("song_theme_menu_gradient_depth")
                         )
 
                         ValueSlider(
                             song.BackgroundWaveSpeed.observe(player.database),
-                            ThemeSettings.Key.NOWPLAYING_DEFAULT_WAVE_SPEED.get(),
+                            player.settings.theme.NOWPLAYING_DEFAULT_WAVE_SPEED.get(),
                             getString("song_theme_menu_wave_speed")
                         )
 
                         ValueSlider(
                             song.BackgroundWaveOpacity.observe(player.database),
-                            ThemeSettings.Key.NOWPLAYING_DEFAULT_WAVE_OPACITY.get(),
+                            player.settings.theme.NOWPLAYING_DEFAULT_WAVE_OPACITY.get(),
                             getString("song_theme_menu_wave_opacity")
                         )
 
                         if (player.form_factor == FormFactor.LANDSCAPE) {
                             if (isVideoPlaybackSupported()) {
-                                val default_video_position: ThemeSettings.VideoPosition by ThemeSettings.Key.NOWPLAYING_DEFAULT_VIDEO_POSITION.rememberMutableEnumState()
+                                val default_video_position: ThemeSettings.VideoPosition by player.settings.theme.NOWPLAYING_DEFAULT_VIDEO_POSITION.observe()
                                 var song_video_position: ThemeSettings.VideoPosition? by song.VideoPosition.observe(player.database)
 
                                 var show_position_selector: Boolean by remember { mutableStateOf(false) }
@@ -177,20 +176,20 @@ class SongThemePlayerOverlayMenu(
 
                             ValueSlider(
                                 song.BackgroundImageOpacity.observe(player.database),
-                                ThemeSettings.Key.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.get(),
+                                player.settings.theme.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.get(),
                                 getString("song_theme_menu_background_image_opacity")
                             )
 
                             ValueSlider(
                                 song.LandscapeQueueOpacity.observe(player.database),
-                                ThemeSettings.Key.NOWPLAYING_DEFAULT_LANDSCAPE_QUEUE_OPACITY.get(),
+                                player.settings.theme.NOWPLAYING_DEFAULT_LANDSCAPE_QUEUE_OPACITY.get(),
                                 getString("song_theme_menu_queue_opacity")
                             )
                         }
 
                         ValueSlider(
                             song.ShadowRadius.observe(player.database),
-                            ThemeSettings.Key.NOWPLAYING_DEFAULT_SHADOW_RADIUS.get(),
+                            player.settings.theme.NOWPLAYING_DEFAULT_SHADOW_RADIUS.get(),
                             getString("song_theme_menu_image_shadow_radius")
                         )
 

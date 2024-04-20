@@ -9,7 +9,6 @@ import androidx.compose.ui.unit.*
 import androidx.compose.runtime.getValue
 import dev.toastbits.composekit.utils.modifier.brushBackground
 import dev.toastbits.composekit.utils.common.getValue
-import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.*
 
@@ -21,7 +20,7 @@ internal fun Modifier.playerBackground(getPageHeight: () -> Dp): Modifier = comp
     val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
     val density: Density = LocalDensity.current
 
-    val default_gradient_depth: Float by ThemeSettings.Key.NOWPLAYING_DEFAULT_GRADIENT_DEPTH.rememberMutableState()
+    val default_gradient_depth: Float by player.settings.theme.NOWPLAYING_DEFAULT_GRADIENT_DEPTH.observe()
     val song_gradient_depth: Float? by player.status.m_song?.PlayerGradientDepth?.observe(player.database)
 
     brushBackground { with (density) {

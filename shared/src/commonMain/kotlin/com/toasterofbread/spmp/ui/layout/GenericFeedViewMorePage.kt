@@ -75,7 +75,7 @@ fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, co
     Column(modifier) {
         items_result?.fold(
             { items ->
-                val multiselect_context: MediaItemMultiSelectContext = remember { MediaItemMultiSelectContext() }
+                val multiselect_context: MediaItemMultiSelectContext = remember { MediaItemMultiSelectContext(player.context) }
 
                 val item_size: DpSize =
                     getDefaultMediaItemPreviewSize(false) +

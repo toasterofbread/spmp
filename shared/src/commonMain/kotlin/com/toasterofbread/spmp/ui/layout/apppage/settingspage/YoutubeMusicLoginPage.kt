@@ -20,13 +20,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import dev.toastbits.composekit.platform.composable.BackHandler
 import dev.toastbits.composekit.settings.ui.SettingsPage
-import dev.toastbits.composekit.settings.ui.item.SettingsValueState
+import dev.toastbits.composekit.platform.PreferencesProperty
 import com.toasterofbread.spmp.model.settings.packSetData
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.LoginPage
 
 internal fun getYoutubeMusicLoginPage(
-    ytm_auth: SettingsValueState<Set<String>>,
+    ytm_auth: PreferencesProperty<Set<String>>,
     confirm_param: Any?
 ): SettingsPage {
     return object : SettingsPage() {

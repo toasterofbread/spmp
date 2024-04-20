@@ -16,9 +16,6 @@ import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.settings.category.FontMode
-import com.toasterofbread.spmp.model.settings.category.SystemSettings
-import com.toasterofbread.spmp.model.settings.getEnum
-import com.toasterofbread.spmp.model.settings.rememberMutableEnumState
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.platform.playerservice.ClientServerPlayerService
@@ -35,6 +32,8 @@ import com.toasterofbread.spmp.model.appaction.shortcut.LocalShortcutState
 import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
 import com.toasterofbread.spmp.ui.theme.ApplicationTheme
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import spms.socketapi.shared.SPMS_API_VERSION
 import java.util.logging.Logger
 import org.jetbrains.compose.resources.FontResource
@@ -67,6 +66,13 @@ object SpMp {
         initResources(context.getUiLanguage(), context)
     }
 
+    fun initPlayer(composable_coroutine_scope: CoroutineScope): PlayerState {
+        val player: PlayerState = PlayerState(context, composable_coroutine_scope)
+        player.onStart()
+        _player_state = player
+        return player
+    }
+
     fun release() {
         _player_state?.release()
     }
@@ -88,8 +94,7 @@ object SpMp {
         shortcut_state: ShortcutState,
         modifier: Modifier = Modifier,
         open_uri: String? = null,
-        window_fullscreen_toggler: (() -> Unit)? = null,
-        onPlayerCreated: (PlayerState) -> Unit = {}
+        window_fullscreen_toggler: (() -> Unit)? = null
     ) {
         context.theme.Update()
         shortcut_state.ObserveState()
@@ -102,17 +107,6 @@ object SpMp {
         }
 
         context.theme.ApplicationTheme(context, getFontFamily(context) ?: FontFamily.Default) {
-            val player_coroutine_scope: CoroutineScope = rememberCoroutineScope()
-
-            var player_created: Boolean by remember { mutableStateOf(false) }
-
-            LaunchedEffect(Unit) {
-                _player_state = PlayerState(context, player_coroutine_scope)
-                _player_state?.onStart()
-                player_created = true
-                onPlayerCreated(player_state)
-            }
-
             LaunchedEffect(open_uri) {
                 if (open_uri != null) {
                     player_state.openUri(open_uri).onFailure {
@@ -122,11 +116,7 @@ object SpMp {
             }
 
             Surface(modifier = modifier.fillMaxSize()) {
-                if (!player_created) {
-                    return@Surface
-                }
-
-                val ui_scale: Float by SystemSettings.Key.UI_SCALE.rememberMutableState()
+                val ui_scale: Float by context.settings.system.UI_SCALE.observe()
 
                 CompositionLocalProvider(
                     LocalPlayerState provides player_state,
@@ -216,7 +206,7 @@ object SpMp {
 
     @Composable
     private fun getFontFamily(context: AppContext): FontFamily? {
-        val font_mode: FontMode by SystemSettings.Key.FONT.rememberMutableEnumState(context.getPrefs())
+        val font_mode: FontMode by context.settings.system.FONT.observe()
         val font_resource: FontResource? = remember(font_mode) {
             font_mode.getFontResource(context.getUiLanguage())
         }

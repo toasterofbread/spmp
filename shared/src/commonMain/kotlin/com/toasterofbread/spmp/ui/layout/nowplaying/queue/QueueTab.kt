@@ -45,8 +45,6 @@ import dev.toastbits.composekit.utils.modifier.background
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueRadioInfoPosition
 import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueWaveBorderMode
-import com.toasterofbread.spmp.model.settings.category.PlayerSettings
-import com.toasterofbread.spmp.model.settings.rememberMutableEnumState
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
@@ -90,8 +88,8 @@ internal fun QueueTab(
     val scroll_coroutine_scope = rememberCoroutineScope()
 
     var key_inc by remember { mutableStateOf(0) }
-    val radio_info_position: NowPlayingQueueRadioInfoPosition by PlayerSettings.Key.QUEUE_RADIO_INFO_POSITION.rememberMutableEnumState()
-    val multiselect_context: MediaItemMultiSelectContext = remember { MediaItemMultiSelectContext() }
+    val radio_info_position: NowPlayingQueueRadioInfoPosition by player.settings.player.QUEUE_RADIO_INFO_POSITION.observe()
+    val multiselect_context: MediaItemMultiSelectContext = remember { MediaItemMultiSelectContext(player.context) }
 
     val song_items: SnapshotStateList<QueueTabItem> = remember { mutableStateListOf<QueueTabItem>().also { list ->
         player.controller?.service_player?.iterateSongs { _, song: Song ->
@@ -236,7 +234,7 @@ internal fun QueueTab(
 
                 val show_border: Boolean by remember { derivedStateOf { getBackgroundColour(player).alpha >= 1f } }
                 if (show_border) {
-                    val wave_border_mode_state: NowPlayingQueueWaveBorderMode by PlayerSettings.Key.QUEUE_WAVE_BORDER_MODE.rememberMutableEnumState()
+                    val wave_border_mode_state: NowPlayingQueueWaveBorderMode by player.settings.player.QUEUE_WAVE_BORDER_MODE.observe()
                     wave_border_mode = wave_border_mode_override ?: wave_border_mode_state
 
                     QueueBorder(
@@ -271,7 +269,7 @@ internal fun QueueTab(
                             list_position = with(density) { coords.positionInParent().y.toDp() }
                         }
                     ) {
-                        val extra_side_padding: Float by PlayerSettings.Key.QUEUE_EXTRA_SIDE_PADDING.rememberMutableState()
+                        val extra_side_padding: Float by player.settings.player.QUEUE_EXTRA_SIDE_PADDING.observe()
                         val side_padding: Dp = maxWidth * extra_side_padding * 0.25f
 
                         ScrollBarLazyColumn(

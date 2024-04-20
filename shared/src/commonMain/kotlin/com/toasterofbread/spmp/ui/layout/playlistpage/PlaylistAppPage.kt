@@ -56,7 +56,6 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.InteractivePlaylistEdito
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.settings.category.FilterSettings
 import com.toasterofbread.spmp.platform.getOrNotify
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
@@ -127,7 +126,7 @@ class PlaylistAppPage(
     val coroutine_scope: CoroutineScope = CoroutineScope(Job())
 
     var playlist_editor: InteractivePlaylistEditor? by mutableStateOf(null)
-    val multiselect_context = MediaItemMultiSelectContext { context ->
+    val multiselect_context = MediaItemMultiSelectContext(state.context) { context ->
         val editor: InteractivePlaylistEditor = playlist_editor ?: return@MediaItemMultiSelectContext
 
         // Remove selected items from playlist
@@ -337,7 +336,7 @@ class PlaylistAppPage(
             playlist_editor = new_editor
         }
 
-        val apply_item_filter: Boolean by FilterSettings.Key.APPLY_TO_PLAYLIST_ITEMS.rememberMutableState()
+        val apply_item_filter: Boolean by player.settings.filter.APPLY_TO_PLAYLIST_ITEMS.observe()
 
         LaunchedEffect(playlist_items, sort_type, current_filter, apply_item_filter) {
             sorted_items = playlist_items?.let { items ->
@@ -347,7 +346,7 @@ class PlaylistAppPage(
                             return@filter false
                         }
 
-                        if (apply_item_filter && !isMediaItemHidden(item, db)) {
+                        if (apply_item_filter && !isMediaItemHidden(item, player.context)) {
                             return@filter false
                         }
 

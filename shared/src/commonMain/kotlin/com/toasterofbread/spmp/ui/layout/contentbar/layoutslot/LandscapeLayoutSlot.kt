@@ -4,12 +4,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
 import dev.toastbits.composekit.settings.ui.Theme
-import com.toasterofbread.spmp.model.settings.SettingsKey
-import com.toasterofbread.spmp.model.settings.category.LayoutSettings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.contentbar.*
-import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.CustomColourSource
-import kotlinx.serialization.Serializable
+import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.composekit.platform.PreferencesProperty
 import kotlinx.serialization.json.*
 
 enum class LandscapeLayoutSlot: LayoutSlot {
@@ -47,7 +45,8 @@ enum class LandscapeLayoutSlot: LayoutSlot {
             PLAYER_BOTTOM_END -> false
         }
 
-    override val slots_key: SettingsKey = LayoutSettings.Key.LANDSCAPE_SLOTS
+    override fun getSlotsProperty(context: AppContext): PreferencesProperty<Map<String, ContentBarReference?>> =
+        context.settings.layout.LANDSCAPE_SLOTS
 
     override fun getKey(): String = name
 

@@ -50,7 +50,6 @@ import dev.toastbits.composekit.platform.composable.composeScope
 import dev.toastbits.composekit.utils.modifier.bounceOnClick
 import dev.toastbits.composekit.utils.common.copy
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.settings.category.PlayerSettings
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
@@ -167,7 +166,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(
                 ) {
                     val button_modifier: Modifier = Modifier.alpha(0.5f)
                     val side_button_padding: Dp = 20.dp
-                    val show_shuffle_repeat_buttons: Boolean by PlayerSettings.Key.SHOW_REPEAT_SHUFFLE_BUTTONS.rememberMutableState()
+                    val show_shuffle_repeat_buttons: Boolean by player.settings.player.SHOW_REPEAT_SHUFFLE_BUTTONS.observe()
 
                     Controls(
                         current_song,

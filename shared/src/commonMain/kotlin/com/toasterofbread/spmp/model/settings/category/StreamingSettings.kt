@@ -3,57 +3,77 @@ package com.toasterofbread.spmp.model.settings.category
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Speaker
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
-import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.platform.download.DownloadMethod
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getStreamingCategoryItems
 import com.toasterofbread.spmp.youtubeapi.NewPipeVideoFormatsEndpoint
+import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.ytmkt.model.YtmApi
 import dev.toastbits.ytmkt.formats.PipedVideoFormatsEndpoint
 import dev.toastbits.ytmkt.formats.VideoFormatsEndpoint
 import dev.toastbits.ytmkt.formats.YoutubeiVideoFormatsEndpoint
+import dev.toastbits.composekit.platform.PreferencesProperty
 
-data object StreamingSettings: SettingsCategory("streaming") {
-    override val keys: List<SettingsKey> = Key.entries.toList()
+class StreamingSettings(val context: AppContext): SettingsGroup("STREAMING", context.getPrefs()) {
+    val VIDEO_FORMATS_METHOD: PreferencesProperty<VideoFormatsEndpointType> by enumProperty(
+        getName = { getString("s_key_video_formats_endpoint") },
+        getDescription = { null },
+        getDefaultValue = { VideoFormatsEndpointType.DEFAULT }
+    )
+    val AUTO_DOWNLOAD_ENABLED: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_auto_download_enabled") },
+        getDescription = { null },
+        getDefaultValue = { true }
+    )
+    val AUTO_DOWNLOAD_THRESHOLD: PreferencesProperty<Int> by property(
+        getName = { getString("s_key_auto_download_threshold") },
+        getDescription = { getString("s_sub_auto_download_threshold") },
+        getDefaultValue = { 1 } // Listens
+    )
+    val AUTO_DOWNLOAD_ON_METERED: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_auto_download_on_metered") },
+        getDescription = { null },
+        getDefaultValue = { false }
+    )
+    val STREAM_AUDIO_QUALITY: PreferencesProperty<SongAudioQuality> by enumProperty(
+        getName = { getString("s_key_stream_audio_quality") },
+        getDescription = { getString("s_sub_stream_audio_quality") },
+        getDefaultValue = { SongAudioQuality.HIGH }
+    )
+    val DOWNLOAD_AUDIO_QUALITY: PreferencesProperty<SongAudioQuality> by enumProperty(
+        getName = { getString("s_key_download_audio_quality") },
+        getDescription = { getString("s_sub_download_audio_quality") },
+        getDefaultValue = { SongAudioQuality.HIGH }
+    )
+    val ENABLE_AUDIO_NORMALISATION: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_enable_audio_normalisation") },
+        getDescription = { getString("s_sub_enable_audio_normalisation") },
+        getDefaultValue = { false }
+    )
+    val ENABLE_SILENCE_SKIPPING: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_enable_silence_skipping") },
+        getDescription = { null },
+        getDefaultValue = { false }
+    )
+    val DOWNLOAD_METHOD: PreferencesProperty<DownloadMethod> by enumProperty(
+        getName = { getString("s_key_download_method") },
+        getDescription = { getString("s_sub_download_method") },
+        getDefaultValue = { DownloadMethod.DEFAULT }
+    )
+    val SKIP_DOWNLOAD_METHOD_CONFIRMATION: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_skip_download_method_confirmation") },
+        getDescription = { getString("s_sub_skip_download_method_confirmation") },
+        getDefaultValue = { false }
+    )
 
-    override fun getPage(): CategoryPage? =
+    override val page: CategoryPage? =
         SimplePage(
-            getString("s_cat_streaming"),
-            getString("s_cat_desc_streaming"),
-            { getStreamingCategoryItems() },
+            { getString("s_cat_streaming") },
+            { getString("s_cat_desc_streaming") },
+            { getStreamingCategoryItems(context) },
             { Icons.Outlined.Speaker }
         )
-
-    enum class Key: SettingsKey {
-        VIDEO_FORMATS_METHOD,
-        AUTO_DOWNLOAD_ENABLED,
-        AUTO_DOWNLOAD_THRESHOLD,
-        AUTO_DOWNLOAD_ON_METERED,
-        STREAM_AUDIO_QUALITY,
-        DOWNLOAD_AUDIO_QUALITY,
-        ENABLE_AUDIO_NORMALISATION,
-        ENABLE_SILENCE_SKIPPING,
-
-        DOWNLOAD_METHOD,
-        SKIP_DOWNLOAD_METHOD_CONFIRMATION;
-
-        override val category: SettingsCategory get() = StreamingSettings
-
-        @Suppress("UNCHECKED_CAST")
-        override fun <T> getDefaultValue(): T =
-            when (this) {
-                VIDEO_FORMATS_METHOD -> VideoFormatsEndpointType.DEFAULT.ordinal
-                AUTO_DOWNLOAD_ENABLED -> true
-                AUTO_DOWNLOAD_THRESHOLD -> 1 // Listens
-                AUTO_DOWNLOAD_ON_METERED -> false
-                STREAM_AUDIO_QUALITY -> SongAudioQuality.HIGH.ordinal
-                DOWNLOAD_AUDIO_QUALITY -> SongAudioQuality.HIGH.ordinal
-                ENABLE_AUDIO_NORMALISATION -> false
-                ENABLE_SILENCE_SKIPPING -> false
-                DOWNLOAD_METHOD -> DownloadMethod.DEFAULT.ordinal
-                SKIP_DOWNLOAD_METHOD_CONFIRMATION -> false
-            } as T
-    }
 }
 
 enum class VideoFormatsEndpointType {

@@ -51,7 +51,7 @@ fun LocalArtistPage(
                 return@mapNotNull null
             }
 
-            if (isMediaItemHidden(download.song, player.database)) {
+            if (isMediaItemHidden(download.song, player.context)) {
                 return@mapNotNull null
             }
 

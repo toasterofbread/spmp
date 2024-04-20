@@ -43,9 +43,6 @@ import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitles
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.observeThumbnailRounding
 import com.toasterofbread.spmp.model.mediaitem.artist.formatArtistTitles
-import com.toasterofbread.spmp.model.settings.category.PlayerSettings
-import com.toasterofbread.spmp.model.settings.category.ThemeSettings
-import com.toasterofbread.spmp.model.settings.getEnum
 import com.toasterofbread.spmp.platform.getPixel
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
@@ -137,11 +134,11 @@ fun SmallThumbnailRow(
                 }
 
                 val custom_action: Boolean =
-                    if (PlayerSettings.Key.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.get()) !long_press
+                    if (player.settings.player.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.get()) !long_press
                     else long_press
 
                 val action: PlayerOverlayMenuAction =
-                    if (custom_action) PlayerSettings.Key.OVERLAY_CUSTOM_ACTION.getEnum()
+                    if (custom_action) player.settings.player.OVERLAY_CUSTOM_ACTION.get()
                     else PlayerOverlayMenuAction.DEFAULT
 
                 when (action) {
@@ -310,7 +307,7 @@ fun SmallThumbnailRow(
                 )
             }
 
-            val show_prev_button: Boolean by PlayerSettings.Key.MINI_SHOW_PREV_BUTTON.rememberMutableState()
+            val show_prev_button: Boolean by player.settings.player.MINI_SHOW_PREV_BUTTON.observe()
             ThumbnailRowControlButtons(Modifier.size(40.dp), show_prev_button = show_prev_button)
         }
     }
@@ -324,7 +321,7 @@ internal fun Modifier.songThumbnailShadow(
     inGraphicsLayer: GraphicsLayerScope.() -> Unit = {}
 ): Modifier {
     val player: PlayerState = LocalPlayerState.current
-    val default_shadow_radius: Float by ThemeSettings.Key.NOWPLAYING_DEFAULT_SHADOW_RADIUS.rememberMutableState()
+    val default_shadow_radius: Float by player.settings.theme.NOWPLAYING_DEFAULT_SHADOW_RADIUS.observe()
     val shadow_radius: Float? by song?.ShadowRadius?.observe(player.database)
 
     return graphicsLayer {

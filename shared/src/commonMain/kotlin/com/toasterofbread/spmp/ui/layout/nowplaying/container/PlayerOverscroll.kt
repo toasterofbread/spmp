@@ -13,7 +13,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalDensity
 import dev.toastbits.composekit.platform.vibrateShort
 import com.toasterofbread.spmp.model.settings.category.*
-import com.toasterofbread.spmp.model.settings.rememberMutableEnumState
 import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.container.npAnchorToDp
@@ -42,13 +41,14 @@ internal fun Modifier.playerOverscroll(
         }
     }
 
-    val controller: PlatformPlayerService? = LocalPlayerState.current.controller
+    val player: PlayerState = LocalPlayerState.current
+    val controller: PlatformPlayerService? = player.controller
     val density: Density = LocalDensity.current
     var player_alpha: Float by remember { mutableStateOf(1f) }
 
-    val overscroll_clear_enabled: Boolean by PlayerSettings.Key.MINI_OVERSCROLL_CLEAR_ENABLED.rememberMutableState()
-    val overscroll_clear_time: Float by PlayerSettings.Key.MINI_OVERSCROLL_CLEAR_TIME.rememberMutableState()
-    val overscroll_clear_mode: OverscrollClearMode by PlayerSettings.Key.MINI_OVERSCROLL_CLEAR_MODE.rememberMutableEnumState()
+    val overscroll_clear_enabled: Boolean by player.settings.player.MINI_OVERSCROLL_CLEAR_ENABLED.observe()
+    val overscroll_clear_time: Float by player.settings.player.MINI_OVERSCROLL_CLEAR_TIME.observe()
+    val overscroll_clear_mode: OverscrollClearMode by player.settings.player.MINI_OVERSCROLL_CLEAR_MODE.observe()
 
     LaunchedEffect(controller, swipe_interactions.isNotEmpty(), overscroll_clear_enabled) {
         if (!overscroll_clear_enabled || controller == null) {
@@ -78,7 +78,7 @@ internal fun Modifier.playerOverscroll(
                 player_alpha = 1f - (time_below_threshold / time_threshold).coerceIn(0f, 1f)
             }
 
-            val offset: Dp = (swipe_state.offset - anchor).npAnchorToDp(density)
+            val offset: Dp = (swipe_state.offset - anchor).npAnchorToDp(density, player.context)
             if (offset < -OVERSCROLL_CLEAR_DISTANCE_THRESHOLD_DP.dp) {
                 if (!triggered && time_below_threshold >= time_threshold) {
                     if (

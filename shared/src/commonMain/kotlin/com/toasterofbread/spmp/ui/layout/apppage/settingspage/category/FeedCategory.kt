@@ -4,33 +4,29 @@ import LocalPlayerState
 import androidx.compose.runtime.remember
 import dev.toastbits.composekit.settings.ui.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.item.ToggleSettingsItem
-import dev.toastbits.composekit.settings.ui.item.SettingsValueState
+import dev.toastbits.composekit.platform.PreferencesProperty
 import com.toasterofbread.spmp.model.deserialise
 import com.toasterofbread.spmp.model.getString
 import com.toasterofbread.spmp.model.serialise
-import com.toasterofbread.spmp.model.settings.category.FeedSettings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppStringSetItem
+import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.ytmkt.uistrings.RawUiString
 import dev.toastbits.ytmkt.uistrings.UiString
 
-internal fun getFeedCategoryItems(): List<SettingsItem> {
+internal fun getFeedCategoryItems(context: AppContext): List<SettingsItem> {
     return listOf(
         ToggleSettingsItem(
-            SettingsValueState(FeedSettings.Key.SHOW_ARTISTS_ROW.getName()),
-            getString("s_key_feed_show_artists_row"), null
+            context.settings.feed.SHOW_ARTISTS_ROW
         ),
 
         ToggleSettingsItem(
-            SettingsValueState(FeedSettings.Key.SHOW_SONG_DOWNLOAD_INDICATORS.getName()),
-            getString("s_key_feed_show_song_download_indicators"), null
+            context.settings.feed.SHOW_SONG_DOWNLOAD_INDICATORS
         ),
 
         AppSliderItem(
-            SettingsValueState<Int>(FeedSettings.Key.INITIAL_ROWS.getName()),
-            getString("s_key_feed_initial_rows"),
-            getString("s_sub_feed_initial_rows"),
+            context.settings.feed.INITIAL_ROWS,
             "1",
             "10",
             range = 1f..10f,
@@ -38,58 +34,46 @@ internal fun getFeedCategoryItems(): List<SettingsItem> {
         ),
 
         AppSliderItem(
-            SettingsValueState<Int>(FeedSettings.Key.SQUARE_PREVIEW_TEXT_LINES.getName()),
-            getString("s_key_feed_square_preview_text_lines"),
-            null,
+            context.settings.feed.SQUARE_PREVIEW_TEXT_LINES,
             "1",
             "5",
             range = 1f..5f
         ),
 
         AppSliderItem(
-            SettingsValueState<Int>(FeedSettings.Key.GRID_ROW_COUNT.getName()),
-            getString("s_key_feed_grid_row_count"),
-            null,
+            context.settings.feed.GRID_ROW_COUNT,
             "1",
             "10",
             range = 1f..10f
         ),
 
         AppSliderItem(
-            SettingsValueState<Int>(FeedSettings.Key.GRID_ROW_COUNT_EXPANDED.getName()),
-            getString("s_key_feed_grid_row_count_expanded"),
-            null,
+            context.settings.feed.GRID_ROW_COUNT_EXPANDED,
             "1",
             "10",
             range = 1f..10f
         ),
 
         AppSliderItem(
-            SettingsValueState<Int>(FeedSettings.Key.LANDSCAPE_GRID_ROW_COUNT.getName()),
-            getString("s_key_feed_alt_grid_row_count"),
-            null,
+            context.settings.feed.LANDSCAPE_GRID_ROW_COUNT,
             "1",
             "10",
             range = 1f..10f
         ),
 
         AppSliderItem(
-            SettingsValueState<Int>(FeedSettings.Key.LANDSCAPE_GRID_ROW_COUNT_EXPANDED.getName()),
-            getString("s_key_feed_alt_grid_row_count_expanded"),
-            null,
+            context.settings.feed.LANDSCAPE_GRID_ROW_COUNT_EXPANDED,
             "1",
             "10",
             range = 1f..10f
         ),
 
         ToggleSettingsItem(
-            SettingsValueState(FeedSettings.Key.SHOW_RADIOS.getName()),
-            getString("s_key_feed_show_radios"), null
+            context.settings.feed.SHOW_RADIOS
         ),
 
         AppStringSetItem(
-            SettingsValueState(FeedSettings.Key.HIDDEN_ROWS.getName()),
-            getString("s_key_hidden_feed_rows"), getString("s_sub_hidden_feed_rows"),
+            context.settings.feed.HIDDEN_ROWS,
             getString("s_hidden_feed_rows_dialog_title"),
             itemToText = {
                 val player = LocalPlayerState.current

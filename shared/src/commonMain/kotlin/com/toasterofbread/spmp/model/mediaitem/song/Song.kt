@@ -15,7 +15,6 @@ import com.toasterofbread.spmp.model.mediaitem.db.*
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
-import com.toasterofbread.spmp.model.settings.category.LyricsSettings
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.crop
@@ -23,6 +22,7 @@ import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.platform.toImageBitmap
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.toLyricsReference
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.ytmkt.model.external.SongLikedStatus
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmSong
 import kotlinx.coroutines.Dispatchers
@@ -178,14 +178,15 @@ interface Song: MediaItem.WithArtists {
 
     @Composable
     fun getLyricsSyncOffset(database: Database, is_topbar: Boolean): State<Long> {
-        val player: PlatformPlayerService = LocalPlayerState.current.controller ?: return mutableStateOf(0)
+        val player: PlayerState = LocalPlayerState.current
+        val controller: PlatformPlayerService = player.controller ?: return mutableStateOf(0)
 
         val internal_offset: Long? by LyricsSyncOffset.observe(database)
-        val settings_delay: Float by LyricsSettings.Key.SYNC_DELAY.rememberMutableState()
-        val settings_delay_topbar: Float by LyricsSettings.Key.SYNC_DELAY_TOPBAR.rememberMutableState()
-        val settings_delay_bt: Float by LyricsSettings.Key.SYNC_DELAY_BLUETOOTH.rememberMutableState()
+        val settings_delay: Float by player.settings.lyrics.SYNC_DELAY.observe()
+        val settings_delay_topbar: Float by player.settings.lyrics.SYNC_DELAY_TOPBAR.observe()
+        val settings_delay_bt: Float by player.settings.lyrics.SYNC_DELAY_BLUETOOTH.observe()
 
-        return remember(player, is_topbar) { derivedStateOf {
+        return remember(controller, is_topbar) { derivedStateOf {
             var delay: Float = settings_delay
 
             if (is_topbar) {
@@ -196,7 +197,7 @@ interface Song: MediaItem.WithArtists {
             @Suppress("UNUSED_EXPRESSION")
             settings_delay_bt
 
-            if (player.isPlayingOverLatentDevice()) {
+            if (controller.isPlayingOverLatentDevice()) {
                 delay += settings_delay_bt
             }
 
@@ -233,7 +234,8 @@ private data class SongThumbnailProvider(val id: String): ThumbnailProvider {
 
 @Composable
 fun Song?.observeThumbnailRounding(): Int {
-    val default: Float by ThemeSettings.Key.NOWPLAYING_DEFAULT_IMAGE_CORNER_ROUNDING.rememberMutableState()
-    val corner_rounding: Float? = this?.ThumbnailRounding?.observe(LocalPlayerState.current.database)?.value
+    val player: PlayerState = LocalPlayerState.current
+    val default: Float by player.settings.theme.NOWPLAYING_DEFAULT_IMAGE_CORNER_ROUNDING.observe()
+    val corner_rounding: Float? = this?.ThumbnailRounding?.observe(player.database)?.value
     return ((corner_rounding ?: default) * 50f).roundToInt()
 }

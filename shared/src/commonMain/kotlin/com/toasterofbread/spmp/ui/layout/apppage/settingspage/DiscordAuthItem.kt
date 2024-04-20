@@ -12,24 +12,27 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import dev.toastbits.composekit.platform.PlatformPreferences
-import dev.toastbits.composekit.settings.ui.item.BasicSettingsValueState
+import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.settings.ui.item.LargeToggleSettingsItem
-import dev.toastbits.composekit.settings.ui.item.SettingsValueState
 import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.settings.Settings
-import com.toasterofbread.spmp.model.settings.category.DiscordAuthSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.DiscordAccountPreview
 import com.toasterofbread.spmp.ui.layout.DiscordLoginConfirmation
 import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.JsonPrimitive
 
 fun getDiscordAuthItem(
     context: AppContext,
@@ -37,36 +40,42 @@ fun getDiscordAuthItem(
     ignore_prerequisite: Boolean = false,
     StartIcon: (@Composable () -> Unit)? = null
 ): LargeToggleSettingsItem {
-    val discord_auth: SettingsValueState<String> = SettingsValueState<String>(DiscordAuthSettings.Key.DISCORD_ACCOUNT_TOKEN.getName())
-        .init(context.getPrefs(), Settings::provideDefault)
+    val discord_auth: PreferencesProperty<String> = context.settings.discord_auth.DISCORD_ACCOUNT_TOKEN
 
     val login_required: Boolean = DiscordStatus.isAccountTokenRequired()
-    val prerequisite: SettingsValueState<Boolean>? =
+    val prerequisite: PreferencesProperty<Boolean>? =
         if (login_required)
-            SettingsValueState<Boolean>(DiscordAuthSettings.Key.DISCORD_WARNING_ACCEPTED.getName())
-                .init(context.getPrefs(), Settings::provideDefault)
+            context.settings.discord_auth.DISCORD_WARNING_ACCEPTED
         else null
 
     return LargeToggleSettingsItem(
-        object : BasicSettingsValueState<Boolean> {
-            override fun getKeys(): List<String> = discord_auth.getKeys()
+        object : PreferencesProperty<Boolean> {
+            override val key: String get() = throw IllegalAccessException()
+            override val name: String = ""
+            override val description: String = ""
+
             override fun get(): Boolean = discord_auth.get().isNotEmpty()
-            override fun set(value: Boolean) {
+
+            override fun set(value: Boolean, editor: PlatformPreferences.Editor?) {
                 if (!value) {
-                    discord_auth.set("")
+                    discord_auth.set("", editor)
                 }
             }
 
-            override fun init(prefs: PlatformPreferences, defaultProvider: (String) -> Any): BasicSettingsValueState<Boolean> = this
-            override fun release(prefs: PlatformPreferences) {}
-            override fun setEnableAutosave(value: Boolean) {}
+            override fun set(data: JsonElement, editor: PlatformPreferences.Editor?) {
+                set(data.jsonPrimitive.boolean, editor)
+            }
+
+            override fun serialise(value: Any?): JsonElement =
+                JsonPrimitive(value as Boolean?)
+
             override fun reset() = discord_auth.reset()
-            override fun PlatformPreferences.Editor.save() = with (discord_auth) { save() }
-            override fun getDefault(defaultProvider: (String) -> Any): Boolean =
-                (defaultProvider(DiscordAuthSettings.Key.DISCORD_ACCOUNT_TOKEN.getName()) as String).isNotEmpty()
+
+            override fun getDefaultValue(): Boolean =
+                discord_auth.getDefaultValue().isNotEmpty()
 
             @Composable
-            override fun onChanged(key: Any?, action: (Boolean) -> Unit) {}
+            override fun observe(): MutableState<Boolean> = mutableStateOf(get())
         },
         show_button = !info_only,
         enabledContent = { modifier ->

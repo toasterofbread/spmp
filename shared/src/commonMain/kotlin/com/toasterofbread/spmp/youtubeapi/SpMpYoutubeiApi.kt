@@ -5,8 +5,6 @@ import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.platform.getDataLanguage
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.VideoFormatsEndpointType
-import com.toasterofbread.spmp.model.settings.category.StreamingSettings
-import com.toasterofbread.spmp.model.settings.category.YoutubeAuthSettings
 import com.toasterofbread.spmp.model.settings.unpackSetData
 import com.toasterofbread.spmp.model.mediaitem.toMediaItemData
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
@@ -52,24 +50,23 @@ internal class SpMpYoutubeiApi(
         get() = context.getDataLanguage()
 
     override val VideoFormats: VideoFormatsEndpoint
-        get() = Settings.getEnum<VideoFormatsEndpointType>(StreamingSettings.Key.VIDEO_FORMATS_METHOD).instantiate(this)
+        get() = context.settings.streaming.VIDEO_FORMATS_METHOD.get().instantiate(this)
 
     override var user_auth_state: YoutubeiAuthenticationState? by mutableStateOf(getCurrentUserAuthState())
 
-    private val prefs_listener = object : PlatformPreferencesListener {
-        override fun onChanged(prefs: PlatformPreferences, key: String) {
+    private val prefs_listener = 
+        PlatformPreferencesListener { _, key ->
             when (key) {
-                YoutubeAuthSettings.Key.YTM_AUTH.getName() -> user_auth_state = getCurrentUserAuthState()
+                context.settings.youtube_auth.YTM_AUTH.key -> user_auth_state = getCurrentUserAuthState()
             }
         }
-    }
 
     init {
         context.getPrefs().addListener(prefs_listener)
     }
 
     private fun getCurrentUserAuthState() =
-        ApiAuthenticationState.unpackSetData(YoutubeAuthSettings.Key.YTM_AUTH.get(context), context).let { data ->
+        ApiAuthenticationState.unpackSetData(context.settings.youtube_auth.YTM_AUTH.get(), context).let { data ->
             SpMpYoutubeiAuthenticationState(context.database, this, data.first, data.second)
         }
 

@@ -19,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.core.view.WindowCompat
 import dev.toastbits.composekit.platform.ApplicationContext
 import com.toasterofbread.spmp.platform.AppContext
@@ -86,7 +87,17 @@ class MainActivity: ComponentActivity() {
             else null
 
         setContent {
-            SpMp.App(ProgramArguments(), shortcut_state, open_uri = open_uri?.toString())
+            val player_coroutine_scope: CoroutineScope = rememberCoroutineScope()
+            var player_initialised: Boolean by remember { mutableStateOf(false) }
+
+            LaunchedEffect(Unit) {
+                SpMp.initPlayer(player_coroutine_scope)
+                player_initialised = true
+            }
+
+            if (player_initialised) {
+                SpMp.App(ProgramArguments(), shortcut_state, open_uri = open_uri?.toString())
+            }
         }
     }
 

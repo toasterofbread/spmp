@@ -6,34 +6,30 @@ import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getShortc
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.model.appaction.shortcut.Shortcut
 import com.toasterofbread.spmp.model.appaction.shortcut.getDefaultShortcuts
-import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.composekit.platform.PlatformPreferences
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
+import dev.toastbits.composekit.platform.PreferencesProperty
 
-data object ShortcutSettings: SettingsCategory("shortcut") {
-    override val keys: List<SettingsKey> = Key.entries.toList()
+class ShortcutSettings(val context: AppContext): SettingsGroup("SHORTCUT", context.getPrefs()) {
+    val CONFIGURED_SHORTCUTS: PreferencesProperty<List<Shortcut>?> by nullableSerialisableProperty(
+        getName = { getString("s_key_configured_shortcuts") },
+        getDescription = { null },
+        getDefaultValue = { null }
+    )
+    val NAVIGATE_SONG_WITH_NUMBERS: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_navigate_song_with_numbers") },
+        getDescription = { null },
+        getDefaultValue = { true }
+    )
 
-    override fun getPage(): CategoryPage? =
+    override val page: CategoryPage? =
         SimplePage(
-            getString("s_cat_shortcut"),
-            getString("s_cat_desc_shortcut"),
-            { getShortcutCategoryItems() },
+            { getString("s_cat_shortcut") },
+            { getString("s_cat_desc_shortcut") },
+            { getShortcutCategoryItems(context) },
             { Icons.Outlined.Adjust }
         )
-
-    enum class Key: SettingsKey {
-        // List<Shortcut>
-        CONFIGURED_SHORTCUTS,
-        NAVIGATE_SONG_WITH_NUMBERS;
-
-        override val category: SettingsCategory get() = ShortcutSettings
-
-        @Suppress("UNCHECKED_CAST")
-        override fun <T> getDefaultValue(): T =
-            when (this) {
-                CONFIGURED_SHORTCUTS -> Json.encodeToString(getDefaultShortcuts())
-                NAVIGATE_SONG_WITH_NUMBERS -> true
-            } as T
-    }
 }

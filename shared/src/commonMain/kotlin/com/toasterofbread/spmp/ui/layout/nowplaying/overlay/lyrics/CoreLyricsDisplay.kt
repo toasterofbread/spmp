@@ -20,7 +20,6 @@ import dev.toastbits.composekit.platform.composable.platformClickable
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.Settings
-import com.toasterofbread.spmp.model.settings.category.LyricsSettings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.HorizontalFuriganaText
 import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING_DP
@@ -46,7 +45,7 @@ fun CoreLyricsDisplay(
     val line_height: Float = with (density) { 20.sp.toPx() }
     val line_spacing: Float = with (density) { 25.dp.toPx() }
 
-    val add_padding: Boolean = Settings.get(LyricsSettings.Key.EXTRA_PADDING)
+    val add_padding: Boolean by player.settings.lyrics.EXTRA_PADDING.observe()
     val static_scroll_offset: Int = with(density) { 2.dp.toPx().toInt() }
     val padding_height: Int =
         if (add_padding) (size_px + line_height + line_spacing).toInt() + static_scroll_offset
@@ -54,7 +53,7 @@ fun CoreLyricsDisplay(
 
     var current_range: IntRange? by remember { mutableStateOf(null) }
 
-    fun getScrollOffset(follow_offset: Float = LyricsSettings.Key.FOLLOW_OFFSET.get()): Int =
+    fun getScrollOffset(follow_offset: Float = player.settings.lyrics.FOLLOW_OFFSET.get()): Int =
         (padding_height - static_scroll_offset - size_px * follow_offset).toInt()
 
     LaunchedEffect(lyrics) {
@@ -66,6 +65,7 @@ fun CoreLyricsDisplay(
 
         while (true) {
             val (range, next) = getTermRangeOfTime(
+                player.context,
                 lyrics,
                 player.status.getPositionMs() + (lyrics_sync_offset ?: 0)
             )
@@ -78,7 +78,7 @@ fun CoreLyricsDisplay(
         }
     }
 
-    val font_size_percent: Float by LyricsSettings.Key.FONT_SIZE.rememberMutableState()
+    val font_size_percent: Float by player.settings.lyrics.FONT_SIZE.observe()
     val font_size: TextUnit = (10 + (font_size_percent * 20)).sp
     val text_style: TextStyle = getLyricsTextStyle(font_size)
 
@@ -106,6 +106,8 @@ fun CoreLyricsDisplay(
             }
         }
 
+        val text_alignment: Int by player.settings.lyrics.TEXT_ALIGNMENT.observe()
+
         LazyColumn(
             Modifier
                 .fillMaxSize()
@@ -114,11 +116,12 @@ fun CoreLyricsDisplay(
                     area_size = with(density) { it.height.toDp() }
                 },
             state = scroll_state,
-            horizontalAlignment = when (Settings.get<Int>(LyricsSettings.Key.TEXT_ALIGNMENT)) {
-                0 -> if (LocalLayoutDirection.current == LayoutDirection.Ltr) Alignment.Start else Alignment.End
-                1 -> Alignment.CenterHorizontally
-                else -> if (LocalLayoutDirection.current == LayoutDirection.Ltr) Alignment.End else Alignment.Start
-            },
+            horizontalAlignment = 
+                when (text_alignment) {
+                    0 -> if (LocalLayoutDirection.current == LayoutDirection.Ltr) Alignment.Start else Alignment.End
+                    1 -> Alignment.CenterHorizontally
+                    else -> if (LocalLayoutDirection.current == LayoutDirection.Ltr) Alignment.End else Alignment.Start
+                },
             verticalArrangement = Arrangement.spacedBy(20.dp),
             contentPadding = with(LocalDensity.current) { padding_height.toDp() }.let { padding ->
                 PaddingValues(

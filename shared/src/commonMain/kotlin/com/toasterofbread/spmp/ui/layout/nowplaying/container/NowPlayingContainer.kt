@@ -123,7 +123,8 @@ fun NowPlayingContainer(
                                     -getBottomBarHeight().roundToPx()
                                 )
                             }
-                        }
+                        },
+                    getAlpha = { expansion.getAbsolute() }
                 )
             }
 

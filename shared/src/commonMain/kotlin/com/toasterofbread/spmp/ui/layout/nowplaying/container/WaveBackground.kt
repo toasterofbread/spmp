@@ -28,7 +28,11 @@ private const val MAX_WAVE_SPEED_PORTRAIT: Float = 0.3f
 private const val MAX_WAVE_SPEED_LANDSCAPE: Float = 1f
 
 @Composable
-internal fun WaveBackground(page_height: Dp, modifier: Modifier = Modifier) {
+internal fun WaveBackground(
+    page_height: Dp,
+    modifier: Modifier = Modifier,
+    getAlpha: () -> Float = { 1f }
+) {
     val player: PlayerState = LocalPlayerState.current
     val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
 
@@ -68,7 +72,7 @@ internal fun WaveBackground(page_height: Dp, modifier: Modifier = Modifier) {
     }
 
     OverlappingWaves(
-        { player.theme.accent.copy(alpha = wave_alpha) },
+        { player.theme.accent.copy(alpha = wave_alpha * getAlpha()) },
         BlendMode.Screen,
         modifier
             .fillMaxWidth(1f)

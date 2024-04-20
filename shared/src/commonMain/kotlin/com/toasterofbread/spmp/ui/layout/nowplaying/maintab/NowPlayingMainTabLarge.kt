@@ -82,7 +82,7 @@ private fun MainTabControls(
         },
         modifier.padding(top = 30.dp),
         enabled = enabled,
-        vertical_arrangement = Arrangement.spacedBy(10.dp),
+        vertical_arrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
         title_text_max_lines = 2,
         title_font_size = 25.sp,
         artist_font_size = 18.sp,
@@ -257,9 +257,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                                 button_size = 50.dp,
                                 seek_bar_next_to_buttons = !compact_mode,
                                 modifier = Modifier
-                                    .thenIf(!compact_mode) {
-                                        requiredHeight(controls_target_height * ((absolute_expansion - 0.5f) * 2f))
-                                    }
+                                    .requiredHeight((if (compact_mode) controls_target_height + 200.dp else controls_target_height) * ((absolute_expansion - 0.5f) * 2f))
                                     .scale(1f, absolute_expansion)
                                     .padding(bottom = CONTROLS_IMAGE_SEPARATION_DP.dp),
                                 textRowStartContent = {
@@ -283,9 +281,11 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                                 }
                             )
 
-                            val thumbnail_row_height: Dp =
+                            val max_thumbnail_row_height: Dp =
                                 if (compact_mode) (1f - absolute_expansion) * thumb_size
                                 else thumb_size
+
+                            val thumbnail_row_height: Dp = (min_height + ((max_thumbnail_row_height - min_height) * absolute_expansion)).coerceAtLeast(min_height)
 
                             if (!compact_mode || absolute_expansion < 1f) {
                                 LargeThumbnailRow(
@@ -338,7 +338,12 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                 inner_bottom_padding = inner_bottom_padding,
                 stroke_colour = stroke_colour,
                 page_height = page_height,
-                modifier = Modifier.padding(start = INNER_PADDING_DP.dp)
+                modifier =
+                    Modifier
+                        .padding(start = INNER_PADDING_DP.dp)
+                        .graphicsLayer {
+                            alpha = absolute_expansion
+                        }
             )
         }
     }

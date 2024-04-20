@@ -114,6 +114,6 @@ enum class PortraitLayoutSlot: LayoutSlot {
 
     @Serializable
     data class PlayerTopConfig(
-        val show_in_queue: Boolean = false
+        val show_in_queue: Boolean = true
     )
 }

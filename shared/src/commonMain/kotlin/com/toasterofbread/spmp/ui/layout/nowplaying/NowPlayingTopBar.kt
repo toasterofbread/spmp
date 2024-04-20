@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.layout.offset
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.Json
@@ -18,7 +19,7 @@ import kotlinx.serialization.json.JsonElement
 
 class NowPlayingTopBar {
     private val slot: LayoutSlot = PortraitLayoutSlot.PLAYER_TOP
-    private var config: PortraitLayoutSlot.PlayerTopConfig? = null
+    private var config: PortraitLayoutSlot.PlayerTopConfig = PortraitLayoutSlot.PlayerTopConfig()
 
     private var scale: Float by mutableStateOf(1f)
     private var _height: Dp by mutableStateOf(0.dp)
@@ -57,9 +58,12 @@ class NowPlayingTopBar {
                             _height = it.height.toDp()
                         }
                     }
-                    .offset(y = -_height * (1f - scale)),
+                    .offset(y = -_height * (1f - scale))
+                    .graphicsLayer {
+                        alpha = scale
+                    },
             onConfigDataChanged = { config_data ->
-                config = config_data?.let { Json.decodeFromJsonElement(it) }
+                config = config_data?.let { Json.decodeFromJsonElement(it) } ?: PortraitLayoutSlot.PlayerTopConfig()
             }
         )
     }

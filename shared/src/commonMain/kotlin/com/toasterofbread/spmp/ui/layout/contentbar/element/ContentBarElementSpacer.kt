@@ -22,13 +22,12 @@ import kotlinx.serialization.json.*
 
 @Serializable
 data class ContentBarElementSpacer(
-    override val size_mode: ContentBarElement.SizeMode = DEFAULT_SIZE_MODE,
-    override val size: Int = DEFAULT_SIZE,
+    override val config: ContentBarElementConfig = ContentBarElementConfig()
 ): ContentBarElement() {
     override fun getType(): ContentBarElement.Type = ContentBarElement.Type.SPACER
 
-    override fun copyWithSize(size_mode: ContentBarElement.SizeMode, size: Int): ContentBarElement =
-        copy(size_mode = size_mode, size = size)
+    override fun copyWithConfig(config: ContentBarElementConfig): ContentBarElement =
+        copy(config = config)
 
     @Composable
     override fun isDisplaying(): Boolean = false

@@ -823,6 +823,7 @@
     <string name="content_bar_element_builtin_config_size_mode_static">固定</string>
     <string name="content_bar_element_builtin_config_size_mode_percentage">パーセント</string>
     <string name="content_bar_element_builtin_config_size">サイズ</string>
+    <string name="content_bar_element_builtin_config_hide_bar_when_empty">非表示時、バー全体を隠す</string>
 
     <string name="content_bar_element_button_config_type">アクションタイプ</string>
     <string name="content_bar_element_button_config_become_close_while_target_open">ページが開いていれば、クローズボタンを表示</string>

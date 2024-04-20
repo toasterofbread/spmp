@@ -121,7 +121,24 @@ internal fun CustomBarContent(
             else -> content_colour
         }
 
-    val displaying: Boolean = always_display || elements.any { it.isDisplaying() }
+    var displaying: Boolean = true
+
+    if (!always_display) {
+        var any_displaying: Boolean = false
+        for (element in elements) {
+            if (element.isDisplaying()) {
+                any_displaying = true
+            }
+            else if (element.config.hide_bar_when_empty) {
+                displaying = false
+                break
+            }
+        }
+
+        if (!any_displaying) {
+            displaying = false
+        }
+    }
 
     if (displaying) {
         BoxWithConstraints(

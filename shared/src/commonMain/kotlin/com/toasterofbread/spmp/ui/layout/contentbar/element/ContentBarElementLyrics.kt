@@ -28,8 +28,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ContentBarElementLyrics(
-    override val size_mode: ContentBarElement.SizeMode = DEFAULT_SIZE_MODE,
-    override val size: Int = DEFAULT_SIZE,
+    override val config: ContentBarElementConfig = ContentBarElementConfig(),
     val alignment: Int = 0,
     val linger: Boolean = true,
     val show_furigana: Boolean = true
@@ -38,8 +37,8 @@ data class ContentBarElementLyrics(
 ): ContentBarElement() {
     override fun getType(): ContentBarElement.Type = ContentBarElement.Type.LYRICS
 
-    override fun copyWithSize(size_mode: ContentBarElement.SizeMode, size: Int): ContentBarElement =
-        copy(size_mode = size_mode, size = size)
+    override fun copyWithConfig(config: ContentBarElementConfig): ContentBarElement =
+        copy(config = config)
 
     private var lyrics_state: SongLyricsLoader.ItemState? by mutableStateOf(null)
 

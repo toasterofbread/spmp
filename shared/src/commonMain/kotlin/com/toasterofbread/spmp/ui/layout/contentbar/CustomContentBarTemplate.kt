@@ -77,30 +77,30 @@ enum class CustomContentBarTemplate {
                 ContentBarElementButton.ofAppPage(AppPage.Type.SEARCH),
                 ContentBarElementButton.ofAppPage(AppPage.Type.RADIO_BUILDER),
                 ContentBarElementButton(OtherAppAction(OtherAppAction.Action.RELOAD_PAGE)),
-                ContentBarElementPinnedItems(size_mode = ContentBarElement.SizeMode.FILL),
+                ContentBarElementPinnedItems(config = ContentBarElementConfig(size_mode = ContentBarElement.SizeMode.FILL)),
                 ContentBarElementButton.ofAppPage(AppPage.Type.PROFILE),
                 ContentBarElementButton.ofAppPage(AppPage.Type.CONTROL_PANEL),
                 ContentBarElementButton.ofAppPage(AppPage.Type.SETTINGS)
             )
             LYRICS -> listOf(
-                ContentBarElementLyrics(size_mode = ContentBarElement.SizeMode.FILL)
+                ContentBarElementLyrics(config = ContentBarElementConfig(size_mode = ContentBarElement.SizeMode.FILL))
             )
             SONG_ACTIONS -> listOf(
                 ContentBarElementButton(SongAppAction(SongAppAction.Action.OPEN_EXTERNALLY)),
                 ContentBarElementButton(SongAppAction(SongAppAction.Action.TOGGLE_LIKE)),
-                ContentBarElementSpacer(size_mode = ContentBarElement.SizeMode.FILL),
+                ContentBarElementSpacer(config = ContentBarElementConfig(size_mode = ContentBarElement.SizeMode.FILL)),
                 ContentBarElementButton(SongAppAction(SongAppAction.Action.DOWNLOAD)),
                 ContentBarElementButton(SongAppAction(SongAppAction.Action.START_RADIO))
             )
             DEFAULT_PORTRAIT_TOP_UPPER -> listOf(
                 ContentBarElementButton.ofAppPage(AppPage.Type.SETTINGS),
-                ContentBarElementVisualiser(size_mode = ContentBarElement.SizeMode.FILL),
+                ContentBarElementVisualiser(config = ContentBarElementConfig(size_mode = ContentBarElement.SizeMode.FILL)),
                 ContentBarElementButton.ofAppPage(AppPage.Type.LIBRARY)
             )
             DEFAULT_PORTRAIT_TOP_LOWER -> listOf(
                 ContentBarElementButton.ofAppPage(AppPage.Type.SEARCH),
                 ContentBarElementContentBar(
-                    size_mode = ContentBarElement.SizeMode.FILL,
+                    config = ContentBarElementConfig(size_mode = ContentBarElement.SizeMode.FILL),
                     bar = ContentBarReference.ofInternalBar(InternalContentBar.PRIMARY)
                 )
             )

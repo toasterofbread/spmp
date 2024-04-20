@@ -29,14 +29,13 @@ import LocalPlayerState
 
 @Serializable
 data class ContentBarElementContentBar(
-    override val size_mode: ContentBarElement.SizeMode = DEFAULT_SIZE_MODE,
-    override val size: Int = DEFAULT_SIZE,
+    override val config: ContentBarElementConfig = ContentBarElementConfig(),
     val bar: ContentBarReference = ContentBarReference.ofInternalBar(InternalContentBar.PRIMARY)
 ): ContentBarElement() {
     override fun getType(): ContentBarElement.Type = ContentBarElement.Type.CONTENT_BAR
 
-    override fun copyWithSize(size_mode: ContentBarElement.SizeMode, size: Int): ContentBarElement =
-        copy(size_mode = size_mode, size = size)
+    override fun copyWithConfig(config: ContentBarElementConfig): ContentBarElement =
+        copy(config = config)
 
     override fun blocksIndicatorAnimation(): Boolean = true
 

@@ -842,6 +842,7 @@
     <string name="content_bar_element_builtin_config_size_mode_static">Static</string>
     <string name="content_bar_element_builtin_config_size_mode_percentage">Percentage</string>
     <string name="content_bar_element_builtin_config_size">Size</string>
+    <string name="content_bar_element_builtin_config_hide_bar_when_empty">Hide bar when empty</string>
 
     <string name="content_bar_element_button_config_type">Action type</string>
     <string name="content_bar_element_button_config_become_close_while_target_open">Show close button while page open</string>

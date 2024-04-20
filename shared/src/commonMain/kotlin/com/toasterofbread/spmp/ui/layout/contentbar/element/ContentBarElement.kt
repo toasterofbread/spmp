@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.Switch
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.clipToBounds
@@ -17,21 +18,24 @@ import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import kotlinx.serialization.*
 import kotlinx.serialization.json.JsonObject
 
-internal val DEFAULT_SIZE_MODE: ContentBarElement.SizeMode = ContentBarElement.SizeMode.STATIC
-internal const val DEFAULT_SIZE: Int = 50
-
 private const val SIZE_DP_STEP: Float = 10f
 private const val MIN_SIZE_DP: Float = 10f
 
 @Serializable
+data class ContentBarElementConfig(
+    val size_mode: ContentBarElement.SizeMode = ContentBarElement.SizeMode.STATIC,
+    val size: Int = 50,
+    val hide_bar_when_empty: Boolean = false
+)
+
+@Serializable
 sealed class ContentBarElement {
-    abstract val size_mode: SizeMode
-    abstract val size: Int
+    abstract val config: ContentBarElementConfig
     abstract fun getType(): Type
 
-    protected abstract fun copyWithSize(size_mode: SizeMode, size: Int): ContentBarElement
+    protected abstract fun copyWithConfig(config: ContentBarElementConfig): ContentBarElement
 
-    fun shouldFillLength(): Boolean = size_mode == SizeMode.FILL
+    fun shouldFillLength(): Boolean = config.size_mode == SizeMode.FILL
 
     @Composable
     open fun isSelected(): Boolean = false
@@ -53,10 +57,10 @@ sealed class ContentBarElement {
         onPreviewClick: (() -> Unit)? = null
     ) {
         val size_dp: Dp? =
-            when (size_mode) {
+            when (config.size_mode) {
                 SizeMode.FILL -> null
-                SizeMode.STATIC -> size.dp
-                SizeMode.PERCENTAGE -> (if (vertical) bar_size.height else bar_size.width) * size * 0.01f
+                SizeMode.STATIC -> config.size.dp
+                SizeMode.PERCENTAGE -> (if (vertical) bar_size.height else bar_size.width) * config.size * 0.01f
             }
 
         ElementContent(
@@ -92,12 +96,16 @@ sealed class ContentBarElement {
                 show_mode_selector = false
             },
             SizeMode.entries.size,
-            size_mode.ordinal,
+            config.size_mode.ordinal,
             {
                 Text(SizeMode.entries[it].getName())
             }
         ) {
-            onModification(copyWithSize(SizeMode.entries[it], 50))
+            onModification(
+                copyWithConfig(config.copy(
+                    size_mode = SizeMode.entries[it], size = 50
+                ))
+            )
             show_mode_selector = false
         }
 
@@ -112,11 +120,11 @@ sealed class ContentBarElement {
             )
 
             Button({ show_mode_selector = !show_mode_selector }) {
-                Text(size_mode.getName())
+                Text(config.size_mode.getName())
             }
         }
 
-        if (size_mode != SizeMode.FILL) {
+        if (config.size_mode != SizeMode.FILL) {
             FlowRow(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -133,29 +141,57 @@ sealed class ContentBarElement {
                 ) {
                     IconButton({
                         onModification(
-                            copyWithSize(size_mode, (size - size_mode.getStep()).coerceAtLeast(10))
+                            copyWithConfig(config.copy(
+                                size = (config.size - config.size_mode.getStep()).coerceAtLeast(10)
+                            ))
                         )
                     }) {
                         Icon(Icons.Default.Remove, null)
                     }
 
                     Text(
-                        if (size_mode == SizeMode.STATIC) "${size}dp"
-                        else "${size}%"
+                        if (config.size_mode == SizeMode.STATIC) "${config.size}dp"
+                        else "${config.size}%"
                     )
 
                     IconButton({
-                        var new_size: Int = size + size_mode.getStep()
-                        if (size_mode == SizeMode.PERCENTAGE) {
+                        var new_size: Int = config.size + config.size_mode.getStep()
+                        if (config.size_mode == SizeMode.PERCENTAGE) {
                             new_size = new_size.coerceAtMost(100)
                         }
 
-                        onModification(copyWithSize(size_mode, new_size))
+                        onModification(
+                            copyWithConfig(config.copy(
+                                size = new_size
+                            ))
+                        )
                     }) {
                         Icon(Icons.Default.Add, null)
                     }
                 }
             }
+        }
+
+        FlowRow(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                getString("content_bar_element_builtin_config_hide_bar_when_empty"),
+                Modifier.align(Alignment.CenterVertically),
+                softWrap = false
+            )
+
+            Switch(
+                config.hide_bar_when_empty,
+                {
+                    onModification(
+                        copyWithConfig(config.copy(
+                            hide_bar_when_empty = it
+                        ))
+                    )
+                }
+            )
         }
 
         SubConfigurationItems(Modifier.fillMaxWidth(), onModification)

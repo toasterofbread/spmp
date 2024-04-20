@@ -591,7 +591,7 @@
 
     <string name="s_key_startup_command">開始コマンド</string>
     <string name="s_sub_startup_command">プログラム開始時に一回実行されるコマンド</string>
-    
+
     <string name="s_key_force_software_renderer">ソフトウェアレンダラーの使用を強制する</string>
     <string name="s_sub_force_software_renderer">変更を有効にするには、アプリの再起動が必要です</string>
 
@@ -825,6 +825,7 @@
     <string name="content_bar_element_builtin_config_size">サイズ</string>
 
     <string name="content_bar_element_button_config_type">アクションタイプ</string>
+    <string name="content_bar_element_button_config_become_close_while_target_open">ページが開いていれば、クローズボタンを表示</string>
 
     <string name="content_bar_element_lyrics_config_alignment">アラインメント</string>
     <string name="content_bar_element_lyrics_config_linger">残り続ける</string>
@@ -901,8 +902,8 @@
     <string name="appaction_modify_setting">設定</string>
 
     <string name="appaction_config_navigation_action">アクション</string>
-    <string name="appaction_config_navigation_settings_category">設定のカテゴリー</string>
-    <string name="appaction_config_navigation_settings_category_none">なし</string>
+    <string name="appaction_config_navigation_settings_group">設定のカテゴリー</string>
+    <string name="appaction_config_navigation_settings_group_none">なし</string>
     <string name="appaction_config_song_action">アクション</string>
     <string name="appaction_config_other_action">アクション</string>
     <string name="appaction_config_playback_action_type">アクションのタイプ</string>

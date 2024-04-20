@@ -422,6 +422,10 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         app_page_state.setPage(app_page_undo_stack.removeLastOrNull(), from_current = false, going_back = true)
     }
 
+    fun clearBackHistory() {
+        app_page_undo_stack.clear()
+    }
+
     fun openMediaItem(
         item: MediaItem,
         from_current: Boolean = false,

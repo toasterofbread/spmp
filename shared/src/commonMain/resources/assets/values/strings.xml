@@ -844,6 +844,7 @@
     <string name="content_bar_element_builtin_config_size">Size</string>
 
     <string name="content_bar_element_button_config_type">Action type</string>
+    <string name="content_bar_element_button_config_become_close_while_target_open">Show close button while page open</string>
 
     <string name="content_bar_element_lyrics_config_alignment">Alignment</string>
     <string name="content_bar_element_lyrics_config_linger">Linger</string>
@@ -920,8 +921,8 @@
     <string name="appaction_modify_setting">Setting</string>
 
     <string name="appaction_config_navigation_action">Action</string>
-    <string name="appaction_config_navigation_settings_category">Settings category</string>
-    <string name="appaction_config_navigation_settings_category_none">None</string>
+    <string name="appaction_config_navigation_settings_group">Settings category</string>
+    <string name="appaction_config_navigation_settings_group_none">None</string>
     <string name="appaction_config_song_action">Action</string>
     <string name="appaction_config_other_action">Action</string>
     <string name="appaction_config_playback_action_type">Action type</string>

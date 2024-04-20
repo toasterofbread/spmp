@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.ui.layout.contentbar.element
 
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Arrangement
@@ -12,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.IconButtonColors
+import androidx.compose.material3.Switch
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -48,6 +50,7 @@ import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 @Serializable
 data class ContentBarElementButton(
     val action: AppAction = AppAction.Type.NAVIGATION.createAction(),
+    val become_close_while_target_open: Boolean = true,
     override val size_mode: ContentBarElement.SizeMode = DEFAULT_SIZE_MODE,
     override val size: Int = DEFAULT_SIZE,
 ): ContentBarElement() {
@@ -88,10 +91,16 @@ data class ContentBarElementButton(
         val player: PlayerState = LocalPlayerState.current
         val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
+        val is_close: Boolean = become_close_while_target_open && isSelected()
+
         IconButton(
             {
                 if (onPreviewClick != null) {
                     onPreviewClick()
+                }
+                else if (is_close) {
+                    player.openAppPage(player.app_page_state.Default)
+                    player.clearBackHistory()
                 }
                 else {
                     coroutine_scope.launch {
@@ -101,28 +110,34 @@ data class ContentBarElementButton(
             },
             modifier
         ) {
-            if (action is NavigationAppAction) {
-                if (action.action is AppPageNavigationAction && action.action.page == AppPage.Type.PROFILE) {
-                    val own_channel_id: String? = player.getOwnChannelId()
-                    if (own_channel_id != null) {
-                        ArtistRef(own_channel_id).Thumbnail(ThumbnailProvider.Quality.LOW, Modifier.size(40.dp).clip(CircleShape))
-                    }
-                    return@IconButton
+            Crossfade(is_close) {
+                if (it) {
+                    Icon(Icons.Default.Close, null)
+                    return@Crossfade
                 }
-            }
-            else if (action is OtherAppAction && action.action == OtherAppAction.Action.RELOAD_PAGE) {
-                Crossfade(player.app_page.isReloading()) { reloading ->
-                    if (reloading) {
-                        SubtleLoadingIndicator()
-                    }
-                    else {
-                        Icon(action.action.getIcon(), null)
+                else if (action is NavigationAppAction) {
+                    if (action.action is AppPageNavigationAction && action.action.page == AppPage.Type.PROFILE) {
+                        val own_channel_id: String? = player.getOwnChannelId()
+                        if (own_channel_id != null) {
+                            ArtistRef(own_channel_id).Thumbnail(ThumbnailProvider.Quality.LOW, Modifier.size(40.dp).clip(CircleShape))
+                        }
+                        return@Crossfade
                     }
                 }
-                return@IconButton
-            }
+                else if (action is OtherAppAction && action.action == OtherAppAction.Action.RELOAD_PAGE) {
+                    Crossfade(player.app_page.isReloading()) { reloading ->
+                        if (reloading) {
+                            SubtleLoadingIndicator()
+                        }
+                        else {
+                            Icon(action.action.getIcon(), null)
+                        }
+                    }
+                    return@Crossfade
+                }
 
-            Icon(action.getIcon(), null)
+                Icon(action.getIcon(), null)
+            }
         }
     }
 
@@ -156,6 +171,23 @@ data class ContentBarElementButton(
 
             Button({ show_type_selector = !show_type_selector }) {
                 action.getType().Preview()
+            }
+        }
+
+        AnimatedVisibility(action is NavigationAppAction, item_modifier) {
+            FlowRow(
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    getString("content_bar_element_button_config_become_close_while_target_open"),
+                    Modifier.align(Alignment.CenterVertically),
+                    softWrap = false
+                )
+
+                Switch(
+                    become_close_while_target_open,
+                    { onModification(copy(become_close_while_target_open = it)) }
+                )
             }
         }
 

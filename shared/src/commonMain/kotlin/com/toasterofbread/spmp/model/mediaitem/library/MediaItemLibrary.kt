@@ -153,9 +153,9 @@ private suspend fun getAllLocalSongFiles(context: AppContext, allow_partial: Boo
                     ?: LocalSongMetadataProcessor.readLocalSongMetadata(file, context, load_data = true)?.apply { saveToDatabase(context.database) }
 
             if (song == null) {
-//                song = SongRef('!' + file.absolute_path.hashCode().toString())
-//                song.Title.set(file.name.split('.', limit = 2).first(), context.database)
-                return@launch
+                song = SongRef('!' + file.absolute_path.hashCode().toString())
+                song.createDbEntry(context.database)
+                song.Title.set(file.name.split('.', limit = 2).firstOrNull() ?: "???", context.database)
             }
 
             val result: DownloadStatus =

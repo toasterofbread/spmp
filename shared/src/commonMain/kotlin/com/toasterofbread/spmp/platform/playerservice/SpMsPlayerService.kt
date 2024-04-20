@@ -55,7 +55,7 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
         return getString("app_name") + " [$os, $host]"
     }
 
-    private val prefs_listener: PlatformPreferencesListener = 
+    private val prefs_listener: PlatformPreferencesListener =
         PlatformPreferencesListener { _, key ->
             when (key) {
                 context.settings.desktop.SERVER_IP_ADDRESS.key,
@@ -202,7 +202,7 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
                         delay(POLL_STATE_INTERVAL)
 
                         if (server_state_applied && queued_events != null) {
-                            applyPlayerEvents(queued_events!!)
+                            applyPlayerEvents(queued_events)
                             queued_events = null
                         }
 
@@ -372,8 +372,8 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
             runCommandOnEachLocalPlayer(
                 "setLocalFiles",
                 buildJsonObject {
-                    for (song in songs) {
-                        put(song.id, song.file?.absolute_path)
+                    for (download in songs) {
+                        put(download.song.id, download.file?.absolute_path)
                     }
                 }
             )

@@ -90,7 +90,7 @@ data class ContentBarElementButton(
         val player: PlayerState = LocalPlayerState.current
         val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
-        val is_close: Boolean = become_close_while_target_open && isSelected()
+        val is_close: Boolean = onPreviewClick == null && become_close_while_target_open && isSelected()
 
         IconButton(
             {

@@ -40,6 +40,13 @@ data class ContentBarElementContentBar(
     override fun blocksIndicatorAnimation(): Boolean = true
 
     @Composable
+    override fun isDisplaying(): Boolean {
+        val player: PlayerState = LocalPlayerState.current
+        val content_bar: ContentBar? = remember(bar) { bar.getBar(player.context) }
+        return content_bar?.isDisplaying() == true
+    }
+
+    @Composable
     override fun ElementContent(vertical: Boolean, slot: LayoutSlot?, onPreviewClick: (() -> Unit)?, modifier: Modifier) {
         if (onPreviewClick != null) {
             Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

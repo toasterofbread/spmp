@@ -30,6 +30,10 @@ private class PrimaryInternalContentBar(index: Int): InternalContentBar(index) {
     override fun getIcon(): ImageVector = Icons.Default.LooksOne
 
     @Composable
+    override fun isDisplaying(): Boolean = 
+        LocalPlayerState.current.app_page.shouldShowPrimaryBarContent()
+
+    @Composable
     override fun BarContent(
         slot: LayoutSlot,
         background_colour: Theme.Colour?,
@@ -54,6 +58,10 @@ private class SecondaryInternalContentBar(index: Int): InternalContentBar(index)
     override fun getName(): String = getString("content_bar_secondary")
     override fun getDescription(): String = getString("content_bar_desc_secondary")
     override fun getIcon(): ImageVector = Icons.Default.LooksTwo
+
+    @Composable
+    override fun isDisplaying(): Boolean =
+        LocalPlayerState.current.app_page.shouldShowSecondaryBarContent()
 
     @Composable
     override fun BarContent(

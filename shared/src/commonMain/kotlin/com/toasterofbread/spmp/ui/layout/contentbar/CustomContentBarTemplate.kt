@@ -100,7 +100,10 @@ enum class CustomContentBarTemplate {
             DEFAULT_PORTRAIT_TOP_LOWER -> listOf(
                 ContentBarElementButton.ofAppPage(AppPage.Type.SEARCH),
                 ContentBarElementContentBar(
-                    config = ContentBarElementConfig(size_mode = ContentBarElement.SizeMode.FILL),
+                    config = ContentBarElementConfig(
+                        size_mode = ContentBarElement.SizeMode.FILL,
+                        hide_bar_when_empty = true
+                    ),
                     bar = ContentBarReference.ofInternalBar(InternalContentBar.PRIMARY)
                 )
             )

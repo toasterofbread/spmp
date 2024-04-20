@@ -68,6 +68,9 @@ sealed class ContentBar {
     }
 
     @Composable
+    abstract fun isDisplaying(): Boolean
+
+    @Composable
     abstract fun BarContent(
         slot: LayoutSlot,
         background_colour: Theme.Colour?,

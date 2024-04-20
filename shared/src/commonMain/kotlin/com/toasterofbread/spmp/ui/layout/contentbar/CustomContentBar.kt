@@ -23,6 +23,21 @@ import kotlinx.serialization.json.Json
 
 const val CUSTOM_CONTENT_BAR_DEFAULT_SIZE_DP: Float = 50f
 
+@Composable
+fun List<ContentBarElement>.shouldDisplayBarOf(): Boolean {
+    var any_displaying: Boolean = false
+    for (element in this) {
+        if (element.isDisplaying()) {
+            any_displaying = true
+        }
+        else if (element.config.hide_bar_when_empty) {
+            return false
+        }
+    }
+
+    return any_displaying
+}
+
 @Serializable
 data class CustomContentBar(
     val bar_name: String,
@@ -32,6 +47,10 @@ data class CustomContentBar(
     override fun getName(): String = bar_name
     override fun getDescription(): String? = null
     override fun getIcon(): ImageVector = Icons.Default.Build
+
+    @Composable
+    override fun isDisplaying(): Boolean =
+        elements.shouldDisplayBarOf()
 
     @Composable
     override fun BarContent(
@@ -121,24 +140,7 @@ internal fun CustomBarContent(
             else -> content_colour
         }
 
-    var displaying: Boolean = true
-
-    if (!always_display) {
-        var any_displaying: Boolean = false
-        for (element in elements) {
-            if (element.isDisplaying()) {
-                any_displaying = true
-            }
-            else if (element.config.hide_bar_when_empty) {
-                displaying = false
-                break
-            }
-        }
-
-        if (!any_displaying) {
-            displaying = false
-        }
-    }
+    val displaying: Boolean = always_display || elements.shouldDisplayBarOf()
 
     if (displaying) {
         BoxWithConstraints(

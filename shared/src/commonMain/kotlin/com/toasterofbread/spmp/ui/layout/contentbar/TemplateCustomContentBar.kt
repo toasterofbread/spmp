@@ -17,6 +17,12 @@ data class TemplateCustomContentBar(
     override fun getIcon(): ImageVector = template.getIcon()
 
     @Composable
+    override fun isDisplaying(): Boolean {
+        val elements: List<ContentBarElement> = remember { template.getElements() }
+        return elements.shouldDisplayBarOf()
+    }
+
+    @Composable
     override fun BarContent(
         slot: LayoutSlot,
         background_colour: Theme.Colour?,

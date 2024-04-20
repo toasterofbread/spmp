@@ -117,58 +117,59 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
             }
         }
 
-        CompositionLocalProvider(LocalPlayerClickOverrides provides LocalPlayerClickOverrides.current.copy(
-            onClickOverride = { item, index ->
-                onSongClicked(sorted_songs, player, item as Song, index!!)
-            }
-        )) {
-            Column(modifier) {
-                EmptyListCrossfade(sorted_songs) { current_songs ->
-                    ScrollBarLazyColumn(
-                        Modifier.fillMaxSize(),
-                        contentPadding = content_padding,
-                        verticalArrangement = Arrangement.spacedBy(15.dp)
-                    ) {
-                        item {
-                            LibraryPageTitle(
-                                if (showing_alt_content) getString("library_songs_liked_title")
-                                else getString("library_songs_downloaded_title")
-                            )
-                        }
 
-                        load_error?.also { error ->
-                            item {
-                                ErrorInfoDisplay(error, isDebugBuild(), Modifier.fillMaxWidth()) {
-                                    load_error = null
-                                }
+        Column(modifier) {
+            EmptyListCrossfade(sorted_songs) { current_songs ->
+                ScrollBarLazyColumn(
+                    Modifier.fillMaxSize(),
+                    contentPadding = content_padding,
+                    verticalArrangement = Arrangement.spacedBy(15.dp)
+                ) {
+                    item {
+                        LibraryPageTitle(
+                            if (showing_alt_content) getString("library_songs_liked_title")
+                            else getString("library_songs_downloaded_title")
+                        )
+                    }
+
+                    load_error?.also { error ->
+                        item {
+                            ErrorInfoDisplay(error, isDebugBuild(), Modifier.fillMaxWidth()) {
+                                load_error = null
                             }
                         }
+                    }
 
-                        if (current_songs == null) {
-                            item {
-                                Text(
-                                    if (library_page.search_filter != null) getString("library_no_items_match_filter")
-                                    else if (showing_alt_content) getString("library_no_liked_songs")
-                                    else getString("library_no_local_songs"),
-                                    Modifier.fillMaxWidth(),
-                                    textAlign = TextAlign.Center
+                    if (current_songs == null) {
+                        item {
+                            Text(
+                                if (library_page.search_filter != null) getString("library_no_items_match_filter")
+                                else if (showing_alt_content) getString("library_no_liked_songs")
+                                else getString("library_no_local_songs"),
+                                Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                    else {
+                        item {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                InfoRow(current_songs, Modifier.fillMaxWidth().weight(1f), !showing_alt_content)
+
+                                multiselect_context.CollectionToggleButton(
+                                    remember(current_songs) {
+                                        current_songs.map { Pair(it, null) }
+                                    }
                                 )
                             }
                         }
-                        else {
-                            item {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    InfoRow(current_songs, Modifier.fillMaxWidth().weight(1f), !showing_alt_content)
 
-                                    multiselect_context.CollectionToggleButton(
-                                        remember(current_songs) {
-                                            current_songs.map { Pair(it, null) }
-                                        }
-                                    )
+                        itemsIndexed(current_songs, { _, item -> item.id }) { index, song ->
+                            CompositionLocalProvider(LocalPlayerClickOverrides provides LocalPlayerClickOverrides.current.copy(
+                                onClickOverride = { _, _ ->
+                                    onSongClicked(sorted_songs, player, song, index)
                                 }
-                            }
-
-                            itemsIndexed(current_songs, { _, item -> item.id }) { index, song ->
+                            )) {
                                 MediaItemPreviewLong(
                                     song,
                                     Modifier.fillMaxWidth(),

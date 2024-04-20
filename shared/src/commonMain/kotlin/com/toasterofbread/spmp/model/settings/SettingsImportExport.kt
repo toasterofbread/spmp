@@ -14,11 +14,11 @@ import kotlinx.serialization.json.encodeToJsonElement
 object SettingsImportExport {
     @Serializable
     data class SettingsExportData(
-        val included_groups: List<String>?,
+        val included_categories: List<String>?,
         val values: JsonObject?
     ) {
         fun getGroups(context: AppContext): List<SettingsGroup>? =
-            included_groups?.mapNotNull { context.settings.groupFromKey(it) }
+            included_categories?.mapNotNull { context.settings.groupFromKey(it) }
     }
 
     fun exportSettingsData(
@@ -37,7 +37,7 @@ object SettingsImportExport {
         }
 
         return SettingsExportData(
-            included_groups = groups.map { it.group_key },
+            included_categories = groups.map { it.group_key },
             values = JsonObject(values)
         )
     }
@@ -65,11 +65,11 @@ object SettingsImportExport {
         if (data.values != null) {
             context.getPrefs().edit {
                 val all_groups: Collection<SettingsGroup> = context.settings.all_groups.values
-                val included_groups: List<SettingsGroup>? = data.included_groups?.map { key ->
-                    context.settings.groupFromKey(key) ?: throw RuntimeException(key)
+                val included_categories: List<SettingsGroup>? = data.included_categories?.mapNotNull { key ->
+                    context.settings.groupFromKey(key)
                 }
 
-                for (category in included_groups ?: all_groups) {
+                for (category in included_categories ?: all_groups) {
                     if (groups != null && !groups.contains(category)) {
                         continue
                     }

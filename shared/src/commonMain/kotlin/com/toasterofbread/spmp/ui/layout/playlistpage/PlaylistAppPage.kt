@@ -39,7 +39,7 @@ import dev.toastbits.composekit.platform.composable.SwipeRefresh
 import dev.toastbits.composekit.utils.common.copy
 import dev.toastbits.composekit.utils.common.getThemeColour
 import dev.toastbits.composekit.utils.common.thenIf
-import dev.toastbits.composekit.utils.composable.stickyHeaderWithTopPadding
+import dev.toastbits.composekit.utils.composable.ScrollBarLazyColumnWithHeader
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
@@ -395,12 +395,25 @@ class PlaylistAppPage(
                 swipe_enabled = !loading,
                 modifier = Modifier.fillMaxSize()
             ) {
-                ScrollBarLazyColumn(
+                ScrollBarLazyColumnWithHeader(
+                    header_index = if (previous_item == null) 2 else 3,
+                    getHeaderBackgroundColour = { player.theme.background },
                     state = list_state.listState,
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.reorderable(list_state),
-                    contentPadding = content_padding
-                ) {
+                    contentPadding = content_padding,
+                    headerContent = {
+                        PlaylistInteractionBar(
+                            sorted_items,
+                            loading = loading && load_type != LoadType.CONTINUE && sorted_items != null,
+                            list_state = list_state.listState,
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .clickable(remember { MutableInteractionSource() }, indication = null) {}
+                        )
+                    }
+                ) { headerContent ->
                     previous_item?.item?.also { prev ->
                         item {
                             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -430,21 +443,8 @@ class PlaylistAppPage(
                         PlaylistButtonBar(Modifier.fillMaxWidth())
                     }
 
-                    stickyHeaderWithTopPadding(
-                        list_state.listState,
-                        content_padding.calculateTopPadding(),
-                        Modifier.zIndex(1f).padding(bottom = 5.dp),
-                        { player.theme.background }
-                    ) {
-                        PlaylistInteractionBar(
-                            sorted_items,
-                            loading = loading && load_type != LoadType.CONTINUE && sorted_items != null,
-                            list_state = list_state.listState,
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .clickable(remember { MutableInteractionSource() }, indication = null) {}
-                        )
+                    item {
+                        headerContent()
                     }
 
                     PlaylistItems(

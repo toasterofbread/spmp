@@ -56,14 +56,14 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 
 @Composable
-fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
+fun ArtistPageTitleBar(item: MediaItem, modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
 
     val horizontal_padding = 20.dp
     var editing_title by remember { mutableStateOf(false) }
     Crossfade(editing_title) { editing ->
         Column(
-            modifier.padding(start = horizontal_padding).fillMaxHeight(), 
+            modifier.padding(start = horizontal_padding).fillMaxHeight(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Bottom)
         ) {
@@ -141,7 +141,7 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                         .padding(end = horizontal_padding),
                     style = LocalTextStyle.current.copy(
                         textAlign = TextAlign.Center,
-                        fontSize = 35.sp,
+                        fontSize = 35.sp
                     )
                 )
             }

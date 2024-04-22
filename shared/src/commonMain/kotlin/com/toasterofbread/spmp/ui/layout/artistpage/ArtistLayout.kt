@@ -162,7 +162,7 @@ fun ArtistLayout(
                                 },
                             contentAlignment = Alignment.BottomCenter
                         ) {
-                            TitleBar(
+                            ArtistPageTitleBar(
                                 artist,
                                 Modifier
                                     .offset {

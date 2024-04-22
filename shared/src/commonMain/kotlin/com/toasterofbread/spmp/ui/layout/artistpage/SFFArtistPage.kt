@@ -85,7 +85,6 @@ internal fun ArtistAppPage.SFFArtistPage(
         previous_item?.item,
         content_padding,
         multiselect_context ?: own_multiselect_context,
-        show_top_bar = show_top_bar,
         loading = refreshed && loading,
         onReload = {
             refreshed = true

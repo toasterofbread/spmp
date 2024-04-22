@@ -29,8 +29,7 @@ import kotlinx.coroutines.cancel
 class ArtistAppPage(
     override val state: AppPageState,
     override val item: Artist,
-    internal val browse_params: Pair<YoutubePage.BrowseParamsData, ArtistWithParamsEndpoint>? = null,
-    internal val show_top_bar: Boolean = true
+    internal val browse_params: Pair<YoutubePage.BrowseParamsData, ArtistWithParamsEndpoint>? = null
 ): AppPageWithItem() {
     internal var load_error: Throwable? by mutableStateOf(null)
     internal val coroutine_scope: CoroutineScope = CoroutineScope(Job())

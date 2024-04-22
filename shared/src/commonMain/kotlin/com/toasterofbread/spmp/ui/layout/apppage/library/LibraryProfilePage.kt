@@ -40,7 +40,7 @@ class LibraryProfilePage(context: AppContext): LibrarySubPage(context) {
         val player: PlayerState = LocalPlayerState.current
 
         val page: AppPage = remember {
-            ArtistAppPage(player.app_page_state, channel, show_top_bar = false)
+            ArtistAppPage(player.app_page_state, channel)
         }
 
         Column {

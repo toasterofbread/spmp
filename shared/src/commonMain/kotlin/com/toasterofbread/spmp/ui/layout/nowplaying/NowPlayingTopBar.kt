@@ -8,6 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.onSizeChanged
@@ -16,12 +17,12 @@ import androidx.compose.foundation.layout.offset
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
+import kotlin.math.roundToInt
 
 class NowPlayingTopBar {
     private val slot: LayoutSlot = PortraitLayoutSlot.PLAYER_TOP
     private var config: PortraitLayoutSlot.PlayerTopConfig = PortraitLayoutSlot.PlayerTopConfig()
 
-    private var scale: Float by mutableStateOf(1f)
     private var _height: Dp by mutableStateOf(0.dp)
 
     var displaying: Boolean by mutableStateOf(true)
@@ -29,7 +30,7 @@ class NowPlayingTopBar {
 
     val height: Dp
         get() =
-            if (slot.mustShow() || displaying) _height * scale
+            if (slot.mustShow() || displaying) _height
             else 0.dp
 
     fun shouldShowInQueue(): Boolean =
@@ -44,9 +45,10 @@ class NowPlayingTopBar {
     ) {
         val density: Density = LocalDensity.current
 
-        scale =
+        val scale: Float by remember { derivedStateOf {
             if (!shouldShowInQueue() || expansion.getBounded() < 1f) expansion.getAbsolute().coerceAtMost(1f)
             else 1f
+        } }
 
         displaying = slot.DisplayBar(
             distance_to_page = distance_to_page,
@@ -58,7 +60,12 @@ class NowPlayingTopBar {
                             _height = it.height.toDp()
                         }
                     }
-                    .offset(y = -_height * (1f - scale))
+                    .offset {
+                        IntOffset(
+                            0,
+                            (-_height.toPx() * (1f - scale)).roundToInt()
+                        )
+                    }
                     .graphicsLayer {
                         alpha = scale
                     },

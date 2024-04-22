@@ -94,7 +94,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(
     val current_song: Song? by player.status.song_state
 
     BoxWithConstraints(modifier.clipToBounds()) {
-        val top_padding: Dp = content_padding.calculateTopPadding() * expansion.get().coerceIn(0f..1f)
+        val top_padding: Dp = content_padding.calculateTopPadding()
 
         top_bar.DisplayTopBar(
             expansion = expansion,
@@ -102,7 +102,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(
             container_modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(top = top_padding)
+                    .padding(top = content_padding.calculateTopPadding())
         )
 
         Column(
@@ -122,6 +122,12 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(
                                 (top_bar.height / 2).roundToPx()
                             }
                         else 0
+                    )
+                }
+                .offset {
+                    IntOffset(
+                        0,
+                        -(top_bar.height * (1f - expansion.get().coerceIn(0f..1f))).roundToPx()
                     )
                 },
             horizontalAlignment = Alignment.CenterHorizontally

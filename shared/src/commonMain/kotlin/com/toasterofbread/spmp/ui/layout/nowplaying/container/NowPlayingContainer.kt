@@ -12,10 +12,13 @@ import androidx.compose.ui.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.runtime.CompositionLocalProvider
 import dev.toastbits.composekit.platform.composable.BackHandler
 import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.composekit.utils.common.blendWith
+import dev.toastbits.composekit.utils.common.getContrasted
 import dev.toastbits.composekit.utils.composable.getTop
 import dev.toastbits.composekit.utils.composable.getBottom
 import com.toasterofbread.spmp.platform.*
@@ -108,71 +111,73 @@ fun NowPlayingContainer(
             .playerOverscroll(swipe_state, swipe_interaction_source)
             .playerBackground { page_height }
     ) {
-        Box {
-            val show_wave: Boolean by player.settings.theme.SHOW_EXPANDED_PLAYER_WAVE.observe()
-            if (show_wave) {
-                WaveBackground(
-                    page_height,
-                    Modifier
-                        .align(Alignment.TopCenter)
-                        .zIndex(1f)
-                        .thenIf(shouldShowBottomBarInPage(pages.first())) {
-                            offset {
-                                IntOffset(
-                                    0,
-                                    -getBottomBarHeight().roundToPx()
-                                )
-                            }
-                        },
-                    getAlpha = { expansion.getAbsolute() }
-                )
-            }
-
-            if (form_factor == FormFactor.LANDSCAPE) {
-                LandscapePlayerBackground(page_height)
-            }
-
-            MinimisedProgressBar(2.dp)
-
-            Column(Modifier.zIndex(2f)) {
-                for ((index, page) in pages.withIndex()) {
-                    var this_page_height: Dp = (
-                        if (shouldShowBottomBarInPage(page)) page_height - getBottomBarHeight()
-                        else page_height
-                    ) - bottom_inset
-
-                    page.Page(
-                        this_page_height,
-                        top_bar,
-                        PaddingValues(
-                            top = WindowInsets.getTop(),
-                            // bottom = bottom_inset
-                        ),
-                        swipe_modifier,
+        CompositionLocalProvider(LocalContentColor provides player.getNPBackground().getContrasted()) {
+            Box {
+                val show_wave: Boolean by player.settings.theme.SHOW_EXPANDED_PLAYER_WAVE.observe()
+                if (show_wave) {
+                    WaveBackground(
+                        page_height,
                         Modifier
-                            .fillMaxWidth()
-                            .requiredHeight(this_page_height)
-                            .offset {
-                                if (index == 0) {
-                                    val bounded: Float = expansion.getBounded()
+                            .align(Alignment.TopCenter)
+                            .zIndex(1f)
+                            .thenIf(shouldShowBottomBarInPage(pages.first())) {
+                                offset {
                                     IntOffset(
                                         0,
-                                        if (bounded > 1f) (-(page_height) * ((pages.size / 2f) - bounded)).roundToPx()
-                                        else 0
+                                        -getBottomBarHeight().roundToPx()
                                     )
                                 }
-                                else {
-                                    var offset: Dp = bottom_inset
-                                    if (shouldShowBottomBarInPage(pages.first())) {
-                                        offset += getBottomBarHeight()
-                                    }
-                                    IntOffset(
-                                        0,
-                                        offset.roundToPx()
-                                    )
-                                }
-                            }
+                            },
+                        getAlpha = { expansion.getAbsolute() }
                     )
+                }
+
+                if (form_factor == FormFactor.LANDSCAPE) {
+                    LandscapePlayerBackground(page_height)
+                }
+
+                MinimisedProgressBar(2.dp)
+
+                Column(Modifier.zIndex(2f)) {
+                    for ((index, page) in pages.withIndex()) {
+                        var this_page_height: Dp = (
+                            if (shouldShowBottomBarInPage(page)) page_height - getBottomBarHeight()
+                            else page_height
+                        ) - bottom_inset
+
+                        page.Page(
+                            this_page_height,
+                            top_bar,
+                            PaddingValues(
+                                top = WindowInsets.getTop(),
+                                // bottom = bottom_inset
+                            ),
+                            swipe_modifier,
+                            Modifier
+                                .fillMaxWidth()
+                                .requiredHeight(this_page_height)
+                                .offset {
+                                    if (index == 0) {
+                                        val bounded: Float = expansion.getBounded()
+                                        IntOffset(
+                                            0,
+                                            if (bounded > 1f) (-(page_height) * ((pages.size / 2f) - bounded)).roundToPx()
+                                            else 0
+                                        )
+                                    }
+                                    else {
+                                        var offset: Dp = bottom_inset
+                                        if (shouldShowBottomBarInPage(pages.first())) {
+                                            offset += getBottomBarHeight()
+                                        }
+                                        IntOffset(
+                                            0,
+                                            offset.roundToPx()
+                                        )
+                                    }
+                                }
+                        )
+                    }
                 }
             }
         }

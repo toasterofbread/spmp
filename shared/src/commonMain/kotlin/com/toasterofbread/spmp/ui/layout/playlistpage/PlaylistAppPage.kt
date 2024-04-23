@@ -393,6 +393,7 @@ class PlaylistAppPage(
                     }
                 },
                 swipe_enabled = !loading,
+                indicator_padding = PaddingValues(top = content_padding.calculateTopPadding()),
                 modifier = Modifier.fillMaxSize()
             ) {
                 ScrollBarLazyColumnWithHeader(

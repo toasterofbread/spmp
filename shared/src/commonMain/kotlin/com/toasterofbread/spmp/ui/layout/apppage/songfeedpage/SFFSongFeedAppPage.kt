@@ -118,6 +118,7 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
         onRefresh = { loadFeed(false) },
         swipe_enabled = load_state == FeedLoadState.NONE,
         indicator = false,
+        indicator_padding = PaddingValues(top = content_padding.calculateTopPadding()),
         modifier = Modifier.fillMaxSize()
     ) {
         val target_state: Any? = if (load_state == FeedLoadState.LOADING || load_state == FeedLoadState.PREINIT) null else layouts ?: false

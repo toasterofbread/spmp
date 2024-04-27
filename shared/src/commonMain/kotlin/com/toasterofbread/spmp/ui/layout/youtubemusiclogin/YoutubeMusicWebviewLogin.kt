@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.runBlocking
 import java.net.URI
 import io.ktor.http.Headers
 
@@ -25,12 +26,14 @@ internal fun YoutubeMusicWebviewLogin(
     val lock: Object = remember { Object() }
 
     WebViewLogin(
-        api.api_url,
-        modifier,
+        initial_url = "https://music.youtube.com",
+        modifier = modifier,
         loading_message = getString("youtube_login_load_message"),
+        base_cookies = "SOCS=CAESNQgREitib3FfaWRlbnRpdHlmcm9udGVuZHVpc2VydmVyXzIwMjQwNDE2LjAxX3AyGgJlbiACGgYIgNGWsQY",
+        user_agent = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.6367.54 Mobile Safari/537.36",
         shouldShowPage = { !it.startsWith(api.api_url) },
         onClosed = { onFinished(null) }
-    ) { request, openUrl, getCookie ->
+    ) { request, openUrl, getCookies ->
         withContext(Dispatchers.IO) {
             synchronized(lock) {
                 if (finished) {
@@ -42,20 +45,28 @@ internal fun YoutubeMusicWebviewLogin(
                     return@withContext
                 }
 
-                if (!request.requestHeaders.containsKey("Authorization")) {
+                if (!request.headers.containsKey("Authorization")) {
                     openUrl(login_url)
                     return@withContext
                 }
 
                 finished = true
 
-                val cookie: String = getCookie(api.api_url)
-                val new_headers: Headers = Headers.build {
-                    append("Cookie", cookie)
-                    for (header in request.requestHeaders) {
-                        append(header.key, header.value)
+                val cookies: List<Pair<String, String>> =
+                    runBlocking {
+                        getCookies("https://music.youtube.com")
                     }
-                }
+
+                val new_headers: Headers =
+                    Headers.build {
+                        append("Cookie", cookies.map { "${it.first}=${it.second}" }.joinToString(";"))
+                        for (header in request.headers) {
+                            if (header.key.lowercase() == "cookie") {
+                                continue
+                            }
+                            append(header.key, header.value)
+                        }
+                    }
 
                 onFinished(Result.success(new_headers))
             }

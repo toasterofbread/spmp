@@ -51,8 +51,8 @@ import kotlinx.serialization.json.encodeToJsonElement
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 
-private const val DISCORD_LOGIN_URL = "https://discord.com/login"
-private const val DISCORD_API_URL = "https://discord.com/api/"
+private const val DISCORD_LOGIN_URL: String = "https://discord.com/login"
+private const val DISCORD_API_URL: String = "https://discord.com/api/"
 
 @Composable
 fun DiscordLoginConfirmation(info_only: Boolean = false, onFinished: (manual: Boolean?) -> Unit) {
@@ -88,13 +88,18 @@ fun DiscordLogin(content_padding: PaddingValues, modifier: Modifier = Modifier, 
 
     if (!manual && isWebViewLoginSupported()) {
         WebViewLogin(
-            DISCORD_LOGIN_URL,
-            modifier,
+            initial_url = DISCORD_LOGIN_URL,
+            modifier = modifier
+                .padding(
+                    top = content_padding.calculateTopPadding() - 20.dp,
+                    bottom = content_padding.calculateBottomPadding() - 20.dp
+                ),
             onClosed = { onFinished(null) },
-            shouldShowPage = { it.startsWith(DISCORD_LOGIN_URL) }
-        ) { request, openUrl, getCookie ->
+            shouldShowPage = { it.startsWith(DISCORD_LOGIN_URL) },
+            user_agent = "Mozilla/5.0 (X11; Linux x86_64; rv:126.0) Gecko/20100101 Firefox/126.0",
+        ) { request, openUrl, getCookies ->
             if (request.url.startsWith(DISCORD_API_URL)) {
-                val auth = request.requestHeaders["Authorization"]
+                val auth = request.headers["Authorization"]
                 if (auth != null) {
                     onFinished(Result.success(auth))
                 }

@@ -27,6 +27,12 @@ internal fun getDiscordLoginPage(discord_auth: PreferencesProperty<String>, manu
             get() = if (manual) DiscordSettings.getIcon() else null
 
         @Composable
+        override fun hasTitleBar(): Boolean = false
+
+        @Composable
+        override fun TitleBar(is_root: Boolean, modifier: Modifier, titleFooter: @Composable (() -> Unit)?) {}
+
+        @Composable
         override fun PageView(
             content_padding: PaddingValues,
             openPage: (Int, Any?) -> Unit,

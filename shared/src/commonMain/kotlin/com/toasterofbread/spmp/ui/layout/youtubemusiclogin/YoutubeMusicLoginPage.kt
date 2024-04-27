@@ -29,9 +29,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 import dev.toastbits.composekit.utils.composable.LinkifyText
 import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
+import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
@@ -146,7 +148,17 @@ class YoutubeMusicLoginPage(val api: YoutubeiApi): LoginPage() {
                 }
             }
             else if (!manual && isWebViewLoginSupported()) {
-                YoutubeMusicWebviewLogin(api, MUSIC_LOGIN_URL, Modifier.fillMaxSize()) { result ->
+                val v_padding: Dp = player.getDefaultVerticalPadding()
+                YoutubeMusicWebviewLogin(
+                    api,
+                    MUSIC_LOGIN_URL,
+                    Modifier
+                        .fillMaxSize()
+                        .padding(
+                            top = (content_padding.calculateTopPadding() - v_padding).coerceAtLeast(0.dp),
+                            bottom = (content_padding.calculateBottomPadding() - v_padding).coerceAtLeast(0.dp)
+                        )
+                    ) { result ->
                     if (result == null) {
                         onFinished(null)
                         return@YoutubeMusicWebviewLogin

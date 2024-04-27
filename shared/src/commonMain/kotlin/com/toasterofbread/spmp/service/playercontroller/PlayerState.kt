@@ -302,6 +302,10 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
             return@sumOf acc.toDouble()
         }.dp
 
+    fun getNowPlayingExpansionOffset(density: Density): Dp {
+        return -np_swipe_state.offset.npAnchorToDp(density, context)
+    }
+
     @Composable
     fun nowPlayingTopOffset(
         base: Modifier,

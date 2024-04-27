@@ -28,13 +28,13 @@ object YTMLogin {
             val new_value: String = split[1].split(';', limit = 2)[0]
 
             val cookie_start: Int = cookie_string.indexOf("$name=") + name.length + 1
-            if (cookie_start != -1) {
+            if (cookie_start != name.length) {
                 val cookie_end: Int = cookie_string.indexOf(';', cookie_start)
                 cookie_string = (
-                        cookie_string.substring(0, cookie_start)
-                                + new_value
-                                + if (cookie_end != -1) cookie_string.substring(cookie_end, cookie_string.length) else ""
-                        )
+                    cookie_string.substring(0, cookie_start)
+                        + new_value
+                        + if (cookie_end != -1) cookie_string.substring(cookie_end, cookie_string.length) else ""
+                )
             }
             else {
                 cookie_string += "; $name=$new_value"

@@ -48,6 +48,9 @@ internal fun getYoutubeMusicLoginPage(
             get() = login_page.getIcon(confirm_param)
 
         @Composable
+        override fun hasTitleBar(): Boolean = false
+
+        @Composable
         override fun TitleBar(is_root: Boolean, modifier: Modifier, titleFooter: @Composable (() -> Unit)?) {}
 
         @Composable

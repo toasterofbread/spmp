@@ -96,6 +96,7 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.6.0")
                 implementation("io.github.jan-tennert.supabase:functions-kt:1.3.2")
                 implementation("io.ktor:ktor-client-cio:2.3.6")
+                implementation("dev.toastbits.compose-webview-multiplatform:compose-webview-multiplatform-android:2d39439922")
 
                 implementation("dev.toastbits.composekit:library-android:$composekit_version")
                 implementation("dev.toastbits.ytm-kt:library-android:$ytmkt_version")
@@ -109,6 +110,7 @@ kotlin {
                 implementation("app.cash.sqldelight:sqlite-driver:2.0.0")
                 implementation("com.github.caoimhebyrne:KDiscordIPC:0.2.2")
                 implementation("org.bytedeco:ffmpeg-platform:6.1.1-1.5.10")
+                implementation("dev.toastbits.compose-webview-multiplatform:compose-webview-multiplatform-desktop:2d39439922")
 
                 implementation("dev.toastbits.composekit:library-desktop:$composekit_version")
                 implementation("dev.toastbits.ytm-kt:library-jvm:$ytmkt_version")

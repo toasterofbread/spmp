@@ -18,7 +18,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.DraggableAnchors
+import androidx.compose.foundation.gestures.anchoredDraggable
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -32,6 +37,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.onSizeChanged
 import dev.toastbits.composekit.platform.composable.BackHandler
 import dev.toastbits.composekit.utils.common.contrastAgainst
 import dev.toastbits.composekit.utils.common.launchSingle
@@ -44,6 +52,7 @@ import com.toasterofbread.spmp.ui.layout.BarColourState
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.CustomColourSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlin.math.roundToInt
 
 private const val MENU_OPEN_ANIM_MS: Int = 150
 private const val MENU_CONTENT_PADDING_DP: Float = 25f
@@ -55,6 +64,7 @@ internal fun AndroidLongPressMenu(
     data: LongPressMenuData
 ) {
     val player: PlayerState = LocalPlayerState.current
+    val density: Density = LocalDensity.current
 
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
     var show_dialog: Boolean by remember { mutableStateOf(showing) }
@@ -84,67 +94,115 @@ internal fun AndroidLongPressMenu(
     }
 
     if (show_dialog) {
-        AnimatedVisibility(
-            show_content,
-            Modifier
-                .fillMaxWidth()
-                .requiredHeight(
-                    player.screen_size.height
-                ),
-            enter = fadeIn(tween(MENU_OPEN_ANIM_MS)),
-            exit = fadeOut(tween(MENU_OPEN_ANIM_MS))
-        ) {
-            LongPressMenuBackground {
+        var content_height: Float by remember { mutableStateOf(0f) }
+        val drag_anchors: DraggableAnchors<Int> = with (density) {
+            DraggableAnchors {
+                0 at 0.dp.toPx()
+                1 at content_height
+            }
+        }
+
+        val drag_state: AnchoredDraggableState<Int> =
+            remember(drag_anchors) {
+                AnchoredDraggableState(
+                    anchors = drag_anchors,
+                    initialValue = 0,
+                    positionalThreshold = { it * 0.2f },
+                    velocityThreshold = { with (density) { 100.dp.toPx() } },
+                    animationSpec = tween()
+                )
+            }
+
+        LaunchedEffect(drag_state.currentValue) {
+            if (drag_state.currentValue == 1) {
                 close()
             }
         }
 
-        val slide_spring: FiniteAnimationSpec<IntOffset> = spring()
-        AnimatedVisibility(
-            show_content,
-            Modifier.fillMaxSize(),
-            enter = slideInVertically(slide_spring) { it / 2 },
-            exit = slideOutVertically(slide_spring) { it / 2 }
+        Box(
+            Modifier
+                .anchoredDraggable(
+                    state = drag_state,
+                    orientation = Orientation.Vertical,
+                    reverseDirection = false,
+                    interactionSource = remember { MutableInteractionSource() }
+                )
         ) {
-            var accent_colour: Color? = data.item.rememberThemeColour()?.contrastAgainst(player.theme.background)
-
-            DisposableEffect(Unit) {
-                val theme_colour = data.item.ThemeColour.get(player.database)
-                if (theme_colour != null) {
-                    accent_colour = theme_colour.contrastAgainst(player.theme.background)
-                }
-
-                player.bar_colour_state.nav_bar.setLevelColour(CustomColourSource(player.theme.background), BarColourState.NavBarLevel.LPM)
-
-                onDispose {
-                    player.bar_colour_state.nav_bar.setLevelColour(null, BarColourState.NavBarLevel.LPM)
+            AnimatedVisibility(
+                show_content,
+                Modifier
+                    .fillMaxWidth()
+                    .requiredHeight(
+                        player.screen_size.height
+                    ),
+                enter = fadeIn(tween(MENU_OPEN_ANIM_MS)),
+                exit = fadeOut(tween(MENU_OPEN_ANIM_MS))
+            ) {
+                LongPressMenuBackground(
+                    getAlpha = {
+                        1f - (drag_state.requireOffset() / content_height)
+                    }
+                ) {
+                    close()
                 }
             }
 
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
-                LongPressMenuContent(
-                    data,
-                    RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-                    player.theme.background,
-                    PaddingValues(
-                        start = MENU_CONTENT_PADDING_DP.dp + WindowInsets.systemBars.getStart(),
-                        end = MENU_CONTENT_PADDING_DP.dp + WindowInsets.systemBars.getEnd(),
-                        top = MENU_CONTENT_PADDING_DP.dp,
-                        bottom = MENU_CONTENT_PADDING_DP.dp + WindowInsets.systemBars.getBottom()
-                    ),
-                    { accent_colour },
-                    Modifier
-                        // Prevent click-through to backrgound
-                        .clickable(
-                            remember { MutableInteractionSource() },
-                            null
-                        ) {},
-                    {
-                        if (player.settings.behaviour.LPM_CLOSE_ON_ACTION.get()) {
-                            close()
-                        }
+            val slide_spring: FiniteAnimationSpec<IntOffset> = spring()
+            AnimatedVisibility(
+                show_content,
+                Modifier.fillMaxSize(),
+                enter = slideInVertically(slide_spring) { it / 2 },
+                exit = slideOutVertically(slide_spring) { it / 2 }
+            ) {
+                var accent_colour: Color? = data.item.rememberThemeColour()?.contrastAgainst(player.theme.background)
+
+                DisposableEffect(Unit) {
+                    val theme_colour = data.item.ThemeColour.get(player.database)
+                    if (theme_colour != null) {
+                        accent_colour = theme_colour.contrastAgainst(player.theme.background)
                     }
-                )
+
+                    player.bar_colour_state.nav_bar.setLevelColour(CustomColourSource(player.theme.background), BarColourState.NavBarLevel.LPM)
+
+                    onDispose {
+                        player.bar_colour_state.nav_bar.setLevelColour(null, BarColourState.NavBarLevel.LPM)
+                    }
+                }
+
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+                    LongPressMenuContent(
+                        data,
+                        RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                        player.theme.background,
+                        PaddingValues(
+                            start = MENU_CONTENT_PADDING_DP.dp + WindowInsets.systemBars.getStart(),
+                            end = MENU_CONTENT_PADDING_DP.dp + WindowInsets.systemBars.getEnd(),
+                            top = MENU_CONTENT_PADDING_DP.dp,
+                            bottom = MENU_CONTENT_PADDING_DP.dp + WindowInsets.systemBars.getBottom()
+                        ),
+                        { accent_colour },
+                        modifier = Modifier
+                            // Prevent click-through to backrgound
+                            .clickable(
+                                remember { MutableInteractionSource() },
+                                null
+                            ) {}
+                            .onSizeChanged {
+                                content_height = it.height.toFloat()
+                            }
+                            .offset {
+                                IntOffset(
+                                    0,
+                                    drag_state.requireOffset().roundToInt()
+                                )
+                            },
+                        onAction = {
+                            if (player.settings.behaviour.LPM_CLOSE_ON_ACTION.get()) {
+                                close()
+                            }
+                        }
+                    )
+                }
             }
         }
     }

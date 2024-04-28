@@ -283,8 +283,8 @@ internal fun DesktopLongPressMenu(
                                 bottom = MENU_CONTENT_PADDING_DP.dp + WindowInsets.systemBars.getBottom()
                             ),
                             { accent_colour },
-                            Modifier.border(2.dp, player.theme.on_background.copy(alpha = 0.1f), shape),
-                            {
+                            modifier = Modifier.border(2.dp, player.theme.on_background.copy(alpha = 0.1f), shape),
+                            onAction = {
                                 if (show_background && player.settings.behaviour.LPM_CLOSE_ON_ACTION.get()) {
                                     close()
                                 }

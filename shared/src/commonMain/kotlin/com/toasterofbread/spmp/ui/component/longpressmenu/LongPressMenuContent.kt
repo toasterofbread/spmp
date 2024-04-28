@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
@@ -85,7 +86,7 @@ internal fun LongPressMenuContent(
 ) {
     val player: PlayerState = LocalPlayerState.current
     val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
-    
+
     @Composable
     fun Thumb(modifier: Modifier) {
         data.item.Thumbnail(ThumbnailProvider.Quality.LOW, modifier.clip(data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING)))
@@ -306,11 +307,15 @@ internal fun LongPressMenuBackground(
     modifier: Modifier = Modifier,
     onScroll: () -> Unit = {},
     enable_input: Boolean = true,
+    getAlpha: () -> Float = { 1f },
     close: () -> Unit
 ) {
     Box(
         modifier
-            .background(Color.Black.copy(alpha = 0.5f))
+            .graphicsLayer {
+                alpha = getAlpha() * 0.5f
+            }
+            .background(Color.Black)
             .thenIf(enable_input) {
                 pointerInput(Unit) {
                     while (currentCoroutineContext().isActive) {

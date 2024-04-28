@@ -265,7 +265,10 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                                 modifier = Modifier
                                     .requiredHeight((if (compact_mode) controls_target_height + 200.dp else controls_target_height) * ((absolute_expansion - 0.5f) * 2f))
                                     .scale(1f, absolute_expansion)
-                                    .padding(bottom = CONTROLS_IMAGE_SEPARATION_DP.dp),
+                                    .padding(bottom = CONTROLS_IMAGE_SEPARATION_DP.dp)
+                                    .graphicsLayer {
+                                        alpha = if (compact_mode) (absolute_expansion - 0.5f).coerceAtLeast(0f) * 2f else 1f
+                                    },
                                 textRowStartContent = {
                                     if (compact_mode) {
                                         val song: Song? by player.status.song_state
@@ -298,7 +301,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                                     Modifier
                                         .height(thumbnail_row_height)
                                         .graphicsLayer {
-                                            alpha = if (compact_mode) 1f - absolute_expansion else 1f
+                                            alpha = if (compact_mode) ((0.5f - absolute_expansion) * 2f).coerceAtLeast(0f) else 1f
                                         }
                                         .offset {
                                             IntOffset(

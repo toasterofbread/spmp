@@ -13,6 +13,7 @@ import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
 import androidx.core.app.ActivityCompat
+import androidx.core.app.ServiceCompat
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -74,7 +75,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
 
                 notification_builder = getNotificationBuilder()
 
-                startForeground(NOTIFICATION_ID, notification_builder!!.build(), FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+                ServiceCompat.startForeground(this@PlayerDownloadService, NOTIFICATION_ID, notification_builder!!.build(), FOREGROUND_SERVICE_TYPE_DATA_SYNC)
             }
         }
 

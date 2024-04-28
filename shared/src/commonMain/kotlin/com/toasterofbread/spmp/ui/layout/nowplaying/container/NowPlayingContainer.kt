@@ -40,7 +40,6 @@ fun NowPlayingContainer(
     val player: PlayerState = LocalPlayerState.current
     val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
-    val form_factor: FormFactor = NowPlayingPage.getFormFactor(player)
 
     val swipe_state: AnchoredDraggableState<Int> = expansion.swipe_state
     val top_bar: NowPlayingTopBar = remember { NowPlayingTopBar() }
@@ -126,10 +125,6 @@ fun NowPlayingContainer(
                         },
                     getAlpha = { expansion.getAbsolute() }
                 )
-            }
-
-            if (form_factor == FormFactor.LANDSCAPE) {
-                LandscapePlayerBackground(page_height)
             }
 
             MinimisedProgressBar(2.dp)

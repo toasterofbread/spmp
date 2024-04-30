@@ -315,13 +315,13 @@ class PlaylistAppPage(
 
         val playlist_data: Playlist = loaded_playlist ?: playlist
 
-        LaunchedEffect(playlist_data) {
-            if (playlist_editor?.playlist == playlist_data) {
+        LaunchedEffect(loaded_playlist) {
+            if (loaded_playlist == null || playlist_editor?.playlist == loaded_playlist) {
                 return@LaunchedEffect
             }
 
             val new_editor: InteractivePlaylistEditor? =
-                playlist_data.getEditorOrNull(player.context).fold(
+                loaded_playlist?.getEditorOrNull(player.context)?.fold(
                     { it },
                     {
                         load_error = it
@@ -455,10 +455,11 @@ class PlaylistAppPage(
                     )
 
                     item {
+                        println("DATA $playlist_data")
                         PlaylistFooter(
                             sorted_items,
                             getAccentColour(),
-                            loading && load_type != LoadType.REFRESH && sorted_items == null,
+                            loading && (sorted_items == null || load_type != LoadType.REFRESH),
                             load_error,
                             Modifier.fillMaxWidth().padding(top = 15.dp),
                             onRetry =
@@ -468,6 +469,16 @@ class PlaylistAppPage(
                                         load_error = null
                                         coroutine_scope.launch {
                                             MediaItemLoader.loadRemotePlaylist(remote.getEmptyData(), player.context)
+                                        }
+                                    }
+                                },
+                            onContinue =
+                                (playlist_data as? RemotePlaylistData)?.let { remote_data ->
+                                    { continuation ->
+                                        load_type = LoadType.CONTINUE
+                                        load_error = null
+                                        coroutine_scope.launch {
+                                            MediaItemLoader.loadRemotePlaylist(remote_data, player.context, continuation = continuation)
                                         }
                                     }
                                 }

@@ -21,6 +21,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.SpMpYoutubeiApi
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
@@ -126,9 +127,26 @@ internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
                     return@runCatching artist_data as ItemType
                 }
                 is RemotePlaylistData -> {
-                    val playlist_data: RemotePlaylistData = api.LoadPlaylist.loadPlaylistData(item.id, continuation, save = save).getOrThrow()
-                    playlist_data.loaded = true
-                    return@runCatching playlist_data as ItemType
+                    val playlist_data: RemotePlaylistData = api.LoadPlaylist.loadPlaylistData(item.id, continuation, save = save && continuation == null).getOrThrow()
+                    if (continuation != null) {
+                        item.items = item.items.orEmpty() + playlist_data.items.orEmpty()
+                        item.item_set_ids = item.item_set_ids.orEmpty() + playlist_data.item_set_ids.orEmpty()
+                        item.continuation = playlist_data.continuation
+
+                        if (save) {
+                            item.saveToDatabase(
+                                context.database,
+                                uncertain = false,
+                                subitems_uncertain = true
+                            )
+                        }
+
+                        return@runCatching item
+                    }
+                    else {
+                        playlist_data.loaded = true
+                        return@runCatching playlist_data as ItemType
+                    }
                 }
                 is LocalPlaylistData -> {
                     val file = MediaItemLibrary.getLocalPlaylistFile(item, context)
@@ -182,7 +200,18 @@ fun MediaItem.loadDataOnChange(
     LaunchedEffect(this, load) {
         if (load) {
             onLoadFailed?.invoke(null)
-            loadData(context, force = force)
+
+            if (force || !Loaded.get(context.database)) {
+                loadData(context, force = true)
+            }
+            else if (onLoadSucceeded != null) {
+                loading_state.value = true
+                loadData(context, force = false).fold(
+                    { onLoadSucceeded?.invoke(it) },
+                    { onLoadFailed?.invoke(it) }
+                )
+                loading_state.value = false
+            }
         }
     }
 

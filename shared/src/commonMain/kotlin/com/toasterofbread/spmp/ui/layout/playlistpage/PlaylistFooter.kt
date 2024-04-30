@@ -36,7 +36,8 @@ fun PlaylistAppPage.PlaylistFooter(
     loading: Boolean,
     load_error: Throwable?,
     modifier: Modifier = Modifier,
-    onRetry: (() -> Unit)?
+    onRetry: (() -> Unit)?,
+    onContinue: ((RadioContinuation) -> Unit)?
 ) {
     val player: PlayerState = LocalPlayerState.current
     val remote_playlist: RemotePlaylist? = playlist as? RemotePlaylist
@@ -69,13 +70,11 @@ fun PlaylistAppPage.PlaylistFooter(
                 }
             }
             is RadioContinuation, true -> {
-                remote_playlist?.also { remote ->
+                onContinue?.also { onContinue ->
                     Box(Modifier.fillMaxSize().heightIn(min = 50.dp), contentAlignment = Alignment.Center) {
                         if (state is RadioContinuation) {
                             Button({
-                                coroutine_scope.launch {
-                                    MediaItemLoader.loadRemotePlaylist(remote.getEmptyData(), player.context, continuation = state)
-                                }
+                                onContinue(state)
                             }) {
                                 if (loading) {
                                     SubtleLoadingIndicator()

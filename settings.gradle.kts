@@ -20,6 +20,7 @@ pluginManagement {
 
         kotlin("jvm").version(kotlin_version)
         kotlin("multiplatform").version(kotlin_version)
+        kotlin("plugin.serialization").version(kotlin_version)
         kotlin("android").version(kotlin_version)
 
         id("com.android.application").version(agp_version)

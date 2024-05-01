@@ -16,7 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 
 actual class AppContext(
     context: Context,
-    val coroutine_scope: CoroutineScope,
+    coroutine_scope: CoroutineScope,
     application_context: ApplicationContext? = null
 ): PlatformContext(context, coroutine_scope, application_context) {
     companion object {

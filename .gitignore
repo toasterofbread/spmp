@@ -11,6 +11,7 @@
 local.properties
 .vscode
 *.log
+/.kotlin
 
 app/debug/
 app/release/

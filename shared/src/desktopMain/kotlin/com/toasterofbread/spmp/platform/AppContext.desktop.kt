@@ -15,9 +15,9 @@ import spmp.shared.generated.resources.Res
 
 actual class AppContext(
     app_name: String,
-    val coroutine_scope: CoroutineScope
-): PlatformContext(app_name, PlatformPlayerService::class.java) {
-    override suspend fun getIconImageData(): ByteArray =
+    coroutine_scope: CoroutineScope
+): PlatformContext(app_name, PlatformPlayerService::class.java, coroutine_scope) {
+    override suspend fun getIconImageData(): ByteArray? =
         Res.readBytes("drawable/ic_spmp.png")
 
     actual val database: Database = createDatabase()

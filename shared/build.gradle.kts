@@ -2,7 +2,7 @@ plugins {
     id("generate-build-config")
 
     kotlin("multiplatform")
-    kotlin("plugin.serialization") version "1.9.0"
+    kotlin("plugin.serialization")
     id("com.android.library")
     id("org.jetbrains.compose")
     id("app.cash.sqldelight") version "2.0.0"
@@ -37,9 +37,9 @@ kotlin {
         commonMain {
             kotlin {
                 srcDir(rootProject.file("spmp-server/src/commonMain/kotlin/spms/socketapi/shared/"))
+                srcDir(buildConfigDir)
             }
 
-            @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
             dependencies {
                 implementation(compose.runtime)
                 implementation(compose.foundation)
@@ -68,8 +68,6 @@ kotlin {
                 implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
             }
-
-            kotlin.srcDir(buildConfigDir)
         }
 
         val androidMain by getting {

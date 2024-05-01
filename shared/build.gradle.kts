@@ -97,7 +97,7 @@ kotlin {
                 implementation("dev.toastbits.compose-webview-multiplatform:compose-webview-multiplatform-android:2d39439922")
 
                 implementation("dev.toastbits.composekit:library-android:$composekit_version")
-                implementation("dev.toastbits.ytm-kt:library-android:$ytmkt_version")
+                implementation("dev.toastbits.ytm-kt:ytmkt-android:$ytmkt_version")
             }
         }
 
@@ -111,7 +111,7 @@ kotlin {
                 implementation("dev.toastbits.compose-webview-multiplatform:compose-webview-multiplatform-desktop:2d39439922")
 
                 implementation("dev.toastbits.composekit:library-desktop:$composekit_version")
-                implementation("dev.toastbits.ytm-kt:library-jvm:$ytmkt_version")
+                implementation("dev.toastbits.ytm-kt:ytmkt-jvm:$ytmkt_version")
                 implementation("dev.toastbits.mediasession:library-jvm:$mediasessionkt_version")
             }
         }

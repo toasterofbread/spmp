@@ -9,7 +9,7 @@ import dev.toastbits.ytmkt.model.external.PlaylistEditor
 import java.io.IOException
 
 class LocalPlaylistEditor(
-    val playlist: LocalPlaylist, 
+    val playlist: LocalPlaylist,
     val context: AppContext
 ): PlaylistEditor {
     override suspend fun performAndCommitActions(actions: List<PlaylistEditor.Action>): Result<Unit> {
@@ -43,6 +43,10 @@ class LocalPlaylistEditor(
                     is PlaylistEditor.Action.SetTitle -> {
                         data.name = action.title
                         param_data?.name = action.title
+                    }
+                    is PlaylistEditor.Action.SetDescription -> {
+                        data.description = action.description
+                        param_data?.description = action.description
                     }
                     is PlaylistEditor.Action.SetImage -> {
                         data.custom_image_url = action.image_url

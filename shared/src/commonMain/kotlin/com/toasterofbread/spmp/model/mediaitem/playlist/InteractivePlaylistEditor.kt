@@ -94,6 +94,9 @@ class InteractivePlaylistEditor(
                     is PlaylistEditor.Action.SetTitle -> {
                         playlist.Title.set(action.title, context.database)
                     }
+                    is PlaylistEditor.Action.SetDescription -> {
+                        playlist.Description.set(action.description, context.database)
+                    }
                     is PlaylistEditor.Action.SetImage -> {
                         playlist.CustomImageUrl.set(action.image_url, context.database)
                     }

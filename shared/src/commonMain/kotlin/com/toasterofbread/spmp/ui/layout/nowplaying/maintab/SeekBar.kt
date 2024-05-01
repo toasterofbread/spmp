@@ -107,7 +107,7 @@ fun SeekBar(
 @Composable
 private fun SeekBarTimeText(time: Long, colour: Color, modifier: Modifier = Modifier) {
     if (time < 0) {
-        SubtleLoadingIndicator(modifier)
+        SubtleLoadingIndicator(modifier, getColour = { colour })
     }
     else {
         val seconds = time / 1000f

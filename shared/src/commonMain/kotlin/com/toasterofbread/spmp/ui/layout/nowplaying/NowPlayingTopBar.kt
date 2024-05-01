@@ -4,6 +4,7 @@ import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.PortraitLayoutSlo
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.contentbar.DisplayBar
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import androidx.compose.runtime.*
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -18,6 +19,7 @@ import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlin.math.roundToInt
+import LocalPlayerState
 
 class NowPlayingTopBar {
     private val slot: LayoutSlot = PortraitLayoutSlot.PLAYER_TOP
@@ -43,6 +45,7 @@ class NowPlayingTopBar {
         modifier: Modifier = Modifier,
         container_modifier: Modifier = Modifier
     ) {
+        val player: PlayerState = LocalPlayerState.current
         val density: Density = LocalDensity.current
 
         val scale: Float by remember { derivedStateOf {
@@ -71,7 +74,8 @@ class NowPlayingTopBar {
                     },
             onConfigDataChanged = { config_data ->
                 config = config_data?.let { Json.decodeFromJsonElement(it) } ?: PortraitLayoutSlot.PlayerTopConfig()
-            }
+            },
+            getParentBackgroundColour = { player.getNPBackground() }
         )
     }
 }

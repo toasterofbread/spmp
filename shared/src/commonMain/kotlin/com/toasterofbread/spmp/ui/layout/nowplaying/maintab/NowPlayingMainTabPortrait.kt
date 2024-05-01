@@ -158,110 +158,112 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(
             }
 
             val controls_visible by remember { derivedStateOf { expansion.getAbsolute() > 0.0f } }
-            if (controls_visible) {
-                Column(
-                    Modifier
-                        .padding(
-                            top = 30.dp,
-                            bottom = bottom_padding,
-                            start = horizontal_padding,
-                            end = horizontal_padding
-                        )
-                        .height(controls_height),
-                    verticalArrangement = Arrangement.SpaceBetween
-                ) {
-                    val button_modifier: Modifier = Modifier.alpha(0.5f)
-                    val side_button_padding: Dp = 20.dp
-                    val show_shuffle_repeat_buttons: Boolean by player.settings.player.SHOW_REPEAT_SHUFFLE_BUTTONS.observe()
+            if (!controls_visible) {
+                return@Column
+            }
 
-                    Controls(
-                        current_song,
-                        {
-                            player.withPlayer {
-                                seekTo((duration_ms * it).toLong())
-                            }
-                            seek_state = it
-                        },
-                        Modifier
-                            .graphicsLayer {
-                                alpha = 1f - (1f - expansion.getBounded()).absoluteValue
-                            },
-                            buttonRowStartContent = {
-                                Box(
-                                    Modifier
-                                        .padding(10.dp)
-                                        .padding(end = side_button_padding)
-                                        .then(button_modifier)
-                                ) {
-                                    NowPlayingMainTabActionButtons.LikeDislikeButton(current_song, button_modifier, colour = player.getNPOnBackground())
-                                }
-                            },
-                            buttonRowEndContent = {
-                                Box(
-                                    contentAlignment = Alignment.CenterEnd
-                                ) {
-                                    NowPlayingMainTabActionButtons.RadioButton(current_song, button_modifier.padding(start = side_button_padding).bounceOnClick())
-                                }
-                            },
-                            artistRowStartContent = {
-                                if (show_shuffle_repeat_buttons) {
-                                    RepeatButton({ player.getNPBackground() }, button_modifier)
-                                }
-                                else {
-                                    Spacer(Modifier.height(40.dp))
-                                }
-                            },
-                            artistRowEndContent = {
-                                if (show_shuffle_repeat_buttons) {
-                                    NowPlayingMainTabActionButtons.ShuffleButton(button_modifier, colour = player.getNPOnBackground())
-                                }
-                                else {
-                                    Spacer(Modifier.height(40.dp))
-                                }
-                            }
+            Column(
+                Modifier
+                    .padding(
+                        top = 30.dp,
+                        bottom = bottom_padding,
+                        start = horizontal_padding,
+                        end = horizontal_padding
                     )
+                    .height(controls_height),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                val button_modifier: Modifier = Modifier.alpha(0.5f)
+                val side_button_padding: Dp = 20.dp
+                val show_shuffle_repeat_buttons: Boolean by player.settings.player.SHOW_REPEAT_SHUFFLE_BUTTONS.observe()
 
-                    BoxWithConstraints(Modifier.fillMaxWidth()) {
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
+                Controls(
+                    current_song,
+                    {
+                        player.withPlayer {
+                            seekTo((duration_ms * it).toLong())
+                        }
+                        seek_state = it
+                    },
+                    Modifier
+                        .graphicsLayer {
+                            alpha = 1f - (1f - expansion.getBounded()).absoluteValue
+                        },
+                    buttonRowStartContent = {
+                        Box(
+                            Modifier
+                                .padding(10.dp)
+                                .padding(end = side_button_padding)
+                                .then(button_modifier)
                         ) {
-                            val bottom_row_colour: Color = player.getNPOnBackground().copy(alpha = 0.5f)
-                            var show_volume_slider: Boolean by remember { mutableStateOf(false) }
+                            NowPlayingMainTabActionButtons.LikeDislikeButton(current_song, button_modifier)
+                        }
+                    },
+                    buttonRowEndContent = {
+                        Box(
+                            contentAlignment = Alignment.CenterEnd
+                        ) {
+                            NowPlayingMainTabActionButtons.RadioButton(current_song, button_modifier.padding(start = side_button_padding).bounceOnClick())
+                        }
+                    },
+                    artistRowStartContent = {
+                        if (show_shuffle_repeat_buttons) {
+                            RepeatButton({ player.getNPBackground() }, button_modifier)
+                        }
+                        else {
+                            Spacer(Modifier.height(40.dp))
+                        }
+                    },
+                    artistRowEndContent = {
+                        if (show_shuffle_repeat_buttons) {
+                            NowPlayingMainTabActionButtons.ShuffleButton(button_modifier)
+                        }
+                        else {
+                            Spacer(Modifier.height(40.dp))
+                        }
+                    }
+                )
 
-                            Row(
-                                Modifier,
-                                verticalAlignment = Alignment.CenterVertically
+                BoxWithConstraints(Modifier.fillMaxWidth()) {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        val bottom_row_colour: Color = player.getNPOnBackground().copy(alpha = 0.5f)
+                        var show_volume_slider: Boolean by remember { mutableStateOf(false) }
+
+                        Row(
+                            Modifier,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            IconButton({ show_volume_slider = !show_volume_slider }) {
+                                Icon(Icons.Default.VolumeUp, null, tint = bottom_row_colour)
+                            }
+
+                            AnimatedVisibility(
+                                show_volume_slider,
+                                enter = expandHorizontally(expandFrom = Alignment.Start),
+                                exit = shrinkHorizontally(shrinkTowards = Alignment.Start)
                             ) {
-                                IconButton({ show_volume_slider = !show_volume_slider }) {
-                                    Icon(Icons.Default.VolumeUp, null, tint = bottom_row_colour)
-                                }
-
-                                AnimatedVisibility(
-                                    show_volume_slider,
-                                    enter = expandHorizontally(expandFrom = Alignment.Start),
-                                    exit = shrinkHorizontally(shrinkTowards = Alignment.Start)
-                                ) {
-                                    VolumeSlider(bottom_row_colour, Modifier.fillMaxWidth().weight(1f))
-                                }
+                                VolumeSlider(bottom_row_colour, Modifier.fillMaxWidth().weight(1f))
                             }
+                        }
 
-                            IconButton({ player.expansion.scroll(1) }) {
-                                Icon(Icons.Default.KeyboardArrowUp, null, tint = bottom_row_colour)
-                            }
+                        IconButton({ player.expansion.scroll(1) }) {
+                            Icon(Icons.Default.KeyboardArrowUp, null, tint = bottom_row_colour)
+                        }
 
-                            IconButton(
-                                {
-                                    current_song?.let { song ->
-                                        if (1f - expansion.getDisappearing() > 0f) {
-                                            click_overrides.onMediaItemLongClicked(song, player.status.m_index, player)
-                                        }
+                        IconButton(
+                            {
+                                current_song?.let { song ->
+                                    if (1f - expansion.getDisappearing() > 0f) {
+                                        click_overrides.onMediaItemLongClicked(song, player.status.m_index, player)
                                     }
                                 }
-                            ) {
-                                Icon(Icons.Filled.MoreHoriz, null, tint = bottom_row_colour)
                             }
+                        ) {
+                            Icon(Icons.Filled.MoreHoriz, null, tint = bottom_row_colour)
                         }
                     }
                 }

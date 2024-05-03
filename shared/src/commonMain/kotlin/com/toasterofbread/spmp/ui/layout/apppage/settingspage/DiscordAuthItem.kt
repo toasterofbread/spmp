@@ -17,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.composekit.platform.PreferencesProperty
@@ -75,7 +76,16 @@ fun getDiscordAuthItem(
                 discord_auth.getDefaultValue().isNotEmpty()
 
             @Composable
-            override fun observe(): MutableState<Boolean> = mutableStateOf(get())
+            override fun observe(): MutableState<Boolean> {
+                val auth: String by discord_auth.observe()
+
+                val state: MutableState<Boolean> = remember { mutableStateOf(auth.isNotEmpty()) }
+                LaunchedEffect(auth.isNotEmpty()) {
+                    state.value = auth.isNotEmpty()
+                }
+
+                return state
+            }
         },
         show_button = !info_only,
         enabledContent = { modifier ->

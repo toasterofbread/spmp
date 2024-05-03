@@ -51,7 +51,7 @@ data class ProgramArguments(
 
         fun getVersionMessage(split_lines: Boolean = false): String {
             val version_string: String = "v${getString("version_string")}"
-            val api_version_string: String = "v$SPMS_API_VERSION"
+            val api_version_string: String = SPMS_API_VERSION.toString()
             val split_string: String = if (split_lines) "\n" else ""
 
             val on_release_commit: Boolean = ProjectBuildConfig.GIT_TAG == version_string

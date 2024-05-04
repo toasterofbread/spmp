@@ -727,6 +727,7 @@
     <string name="warning_discord_login">今からアプリ内で Discord のログインページに移動します。&#xA;&#xA;ログインを終えたら、ユーザトーケンを取って、保存し、ステータスを変えるための Discord への API リクエストのみに使います。&#xA;&#xA;詳しくは https://github.com/dead8309/Kizzy をご覧ください。&#xA;&#xA;よろしいですか？</string>
     <string name="info_discord_login">アプリ内で Discord のログインページに移動します。&#xA;&#xA;ログインを終えたら、ユーザトーケンを取って、保存し、ステータスを変えるための Discord への API リクエストのみに使います。&#xA;&#xA;詳しくは https://github.com/dead8309/Kizzy をご覧ください。</string>
     <string name="warning_discord_kizzy">SpMp は KizzyRPC ライブラリを使用して Discord アカウントのステータスを変更します。これには Discord の利用規約への違反とみなされる可能性がある Discord ゲートウェイ接続の使用が含まれています。しかし、この理由でユーザアカウントが停止されたというケースはありません。自己責任でご使用してください。&#xA;&#xA;詳しくは、https://github.com/dead8309/Kizzy をごらんください。</string>
+    <string name="info_flatpak_discord_$url">SpMp の Flatpak板で Discord ステータス機能を使用するには、システムの設定を行う必要があるかもしれません。詳しくは $url。</string>
 
     <string name="webview_runtime_downloading">ランタイムのダウンロード中…</string>
     <string name="webview_restart_required">アプリを再起動してください</string>

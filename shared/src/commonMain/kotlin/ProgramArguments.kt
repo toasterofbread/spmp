@@ -4,7 +4,8 @@ import spms.socketapi.shared.SPMS_API_VERSION
 
 data class ProgramArguments(
     val bin_dir: String? = null,
-    val no_auto_server: Boolean = false
+    val no_auto_server: Boolean = false,
+    val is_flatpak: Boolean = false
 ) {
     companion object {
         fun parse(args: Array<String>): ProgramArguments? {
@@ -21,6 +22,14 @@ data class ProgramArguments(
                 val value: String? = split.getOrNull(1)
 
                 when (name) {
+                    "--help", "-h" -> {
+                        println(getHelpMessage())
+                        return null
+                    }
+                    "--version", "-v" -> {
+                        println(getVersionMessage())
+                        return null
+                    }
                     "--bin-dir" -> {
                         if (value == null && !iterator.hasNext()) {
                             onIllegalArgument("No value passed for argument '$name'.")
@@ -30,13 +39,8 @@ data class ProgramArguments(
                     "--disable-auto-server", "-ds" -> {
                         arguments = arguments.copy(no_auto_server = true)
                     }
-                    "--help", "-h" -> {
-                        println(getHelpMessage())
-                        return null
-                    }
-                    "--version", "-v" -> {
-                        println(getVersionMessage())
-                        return null
+                    "--flatpak" -> {
+                        arguments = arguments.copy(is_flatpak = true)
                     }
                     else -> onIllegalArgument("Unknown argument '$name'.")
                 }

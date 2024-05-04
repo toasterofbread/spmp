@@ -81,7 +81,7 @@ internal fun createDesktopMediaSession(service: PlatformPlayerService): Boolean 
         session.setEnabled(true)
     }
     catch (e: Throwable) {
-        e.printStackTrace()
+        RuntimeException("Ignoring exception when enabling media session", e).printStackTrace()
         return false
     }
 

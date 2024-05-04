@@ -11,6 +11,7 @@
     <string name="server_info_url" translatable="false">https://spmp.toastbits.dev/docs/server/about/</string>
     <string name="documentation_url" translatable="false">https://spmp.toastbits.dev/docs/about</string>
     <string name="server_documentation_url" translatable="false">https://spmp.toastbits.dev/docs/server/about</string>
+    <string name="flatpak_documentation_url" translatable="false">https://spmp.toastbits.dev/docs/client/installation-flatpak</string>
 
     <string name="project_url_name">project URL</string>
 
@@ -746,6 +747,7 @@
     <string name="warning_discord_login">You will be directed to an in-app webview in order to log into Discord.&#xA;&#xA;Once logged in, your account token will be extracted, stored, and used only for gateway connections to Discord for setting your current status.&#xA;&#xA;See https://github.com/dead8309/Kizzy for more information.&#xA;&#xA;Continue?</string>
     <string name="info_discord_login">You will be directed to an in-app webview in order to log into Discord.&#xA;&#xA;Once logged in, your account token will be extracted, stored, and used only for gateway connections to Discord for setting your current status.&#xA;&#xA;See https://github.com/dead8309/Kizzy for more information.</string>
     <string name="warning_discord_kizzy">SpMp uses the KizzyRPC library to set your Discord account's status. This involves using the Discord Gateway connection, which may be considered a violation of Discord's TOS. However, there are no known cases of user accounts being suspended for this reason. Use at your own risk.&#xA;&#xA;See https://github.com/dead8309/Kizzy for more information.</string>
+    <string name="info_flatpak_discord_$url">The Flatpak version of SpMp may require additional setup to use Discord status. See $url if you have issues.</string>
 
     <string name="webview_runtime_downloading">Downloading runtime...</string>
     <string name="webview_restart_required">Please restart the application to continue</string>

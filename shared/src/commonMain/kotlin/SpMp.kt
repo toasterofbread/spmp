@@ -40,6 +40,7 @@ import org.jetbrains.compose.resources.FontResource
 import org.jetbrains.compose.resources.Font
 
 val LocalPlayerState: ProvidableCompositionLocal<PlayerState> = staticCompositionLocalOf { SpMp.player_state }
+val LocalProgramArguments: ProvidableCompositionLocal<ProgramArguments> = staticCompositionLocalOf { ProgramArguments() }
 
 object LocalNowPlayingExpansion {
     val current: NowPlayingExpansionState
@@ -121,7 +122,8 @@ object SpMp {
                 CompositionLocalProvider(
                     LocalPlayerState provides player_state,
                     LocalShortcutState provides shortcut_state,
-                    LocalDensity provides Density(LocalDensity.current.density * ui_scale, 1f)
+                    LocalDensity provides Density(LocalDensity.current.density * ui_scale, 1f),
+                    LocalProgramArguments provides arguments
                 ) {
                     var mismatched_server_api_version: Int? by remember { mutableStateOf(null) }
                     val splash_mode: SplashMode? = when (Platform.current) {

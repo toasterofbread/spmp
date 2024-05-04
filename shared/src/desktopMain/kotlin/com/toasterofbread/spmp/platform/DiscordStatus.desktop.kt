@@ -100,27 +100,25 @@ actual class DiscordStatus actual constructor(
         })
 }
 
-actual suspend fun getDiscordAccountInfo(account_token: String?): Result<DiscordMeResponse> {
+actual suspend fun getDiscordAccountInfo(account_token: String?): Result<DiscordMeResponse> = runCatching {
     val ipc: KDiscordIPC = KDiscordIPC(ProjectBuildConfig.DISCORD_APPLICATION_ID)
-    var result: Result<DiscordMeResponse>? = null
+    var result: DiscordMeResponse? = null
 
     ipc.on<ReadyEvent> {
-        result = Result.success(
-            with (data.user) {
-                DiscordMeResponse(
-                    id = id,
-                    username = username,
-                    avatar = avatar,
-                    discriminator = discriminator,
-                    banner_color = null,
-                    bio = null
-                )
-            }
-        )
+        result = with (data.user) {
+            DiscordMeResponse(
+                id = id,
+                username = username,
+                avatar = avatar,
+                discriminator = discriminator,
+                banner_color = null,
+                bio = null
+            )
+        }
 
         ipc.disconnect()
     }
     ipc.connect()
 
-    return result ?: Result.failure(RuntimeException("Result not set"))
+    return@runCatching result ?: throw NullPointerException("Result not set")
 }

@@ -101,7 +101,7 @@ class PlaylistAppPage(
 
     var playlist: Playlist by mutableStateOf(playlist)
         private set
-    var loaded_playlist: RemotePlaylistData? by mutableStateOf(null)
+    var loaded_playlist: PlaylistData? by mutableStateOf(null)
 
     var edited_title: String by mutableStateOf("")
     var edited_image_width: Float? by mutableStateOf(null)
@@ -304,7 +304,7 @@ class PlaylistAppPage(
                 load_error = error
             },
             onLoadSucceeded = { data ->
-                if (data is RemotePlaylistData) {
+                if (data is PlaylistData) {
                     loaded_playlist = data
                 }
             }
@@ -456,7 +456,6 @@ class PlaylistAppPage(
                     )
 
                     item {
-                        println("DATA $playlist_data")
                         PlaylistFooter(
                             sorted_items,
                             getAccentColour(),

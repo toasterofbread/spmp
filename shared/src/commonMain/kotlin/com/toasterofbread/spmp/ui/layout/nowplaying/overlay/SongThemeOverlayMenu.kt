@@ -139,47 +139,47 @@ class SongThemePlayerOverlayMenu(
                             getString("song_theme_menu_wave_opacity")
                         )
 
-                        if (player.form_factor == FormFactor.LANDSCAPE) {
-                            if (isVideoPlaybackSupported()) {
-                                val default_video_position: ThemeSettings.VideoPosition by player.settings.theme.NOWPLAYING_DEFAULT_VIDEO_POSITION.observe()
-                                var song_video_position: ThemeSettings.VideoPosition? by song.VideoPosition.observe(player.database)
+                        if (isVideoPlaybackSupported()) {
+                            val default_video_position: ThemeSettings.VideoPosition by player.settings.theme.NOWPLAYING_DEFAULT_VIDEO_POSITION.observe()
+                            var song_video_position: ThemeSettings.VideoPosition? by song.VideoPosition.observe(player.database)
 
-                                var show_position_selector: Boolean by remember { mutableStateOf(false) }
-                                LargeDropdownMenu(
-                                    show_position_selector,
-                                    { show_position_selector = false },
-                                    ThemeSettings.VideoPosition.entries.size,
-                                    (song_video_position ?: default_video_position).ordinal,
-                                    {
-                                        Text(ThemeSettings.VideoPosition.entries[it].getReadable())
-                                    }
-                                ) {
-                                    song_video_position = ThemeSettings.VideoPosition.entries[it]
-                                    show_position_selector = false
+                            var show_position_selector: Boolean by remember { mutableStateOf(false) }
+                            LargeDropdownMenu(
+                                show_position_selector,
+                                { show_position_selector = false },
+                                ThemeSettings.VideoPosition.entries.size,
+                                (song_video_position ?: default_video_position).ordinal,
+                                {
+                                    Text(ThemeSettings.VideoPosition.entries[it].getReadable())
                                 }
-
-                                FlowRow(
-                                    Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(
-                                        getString("song_theme_menu_video_position"),
-                                        fontSize = 15.sp,
-                                        modifier = Modifier.align(Alignment.CenterVertically)
-                                    )
-
-                                    Button({ show_position_selector = !show_position_selector }) {
-                                        Text((song_video_position ?: default_video_position).getReadable())
-                                    }
-                                }
+                            ) {
+                                song_video_position = ThemeSettings.VideoPosition.entries[it]
+                                show_position_selector = false
                             }
 
-                            ValueSlider(
-                                song.BackgroundImageOpacity.observe(player.database),
-                                player.settings.theme.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.get(),
-                                getString("song_theme_menu_background_image_opacity")
-                            )
+                            FlowRow(
+                                Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    getString("song_theme_menu_video_position"),
+                                    fontSize = 15.sp,
+                                    modifier = Modifier.align(Alignment.CenterVertically)
+                                )
 
+                                Button({ show_position_selector = !show_position_selector }) {
+                                    Text((song_video_position ?: default_video_position).getReadable())
+                                }
+                            }
+                        }
+
+                        ValueSlider(
+                            song.BackgroundImageOpacity.observe(player.database),
+                            player.settings.theme.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.get(),
+                            getString("song_theme_menu_background_image_opacity")
+                        )
+
+                        if (player.form_factor == FormFactor.LANDSCAPE) {
                             ValueSlider(
                                 song.LandscapeQueueOpacity.observe(player.database),
                                 player.settings.theme.NOWPLAYING_DEFAULT_LANDSCAPE_QUEUE_OPACITY.get(),

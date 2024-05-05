@@ -7,6 +7,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.platform.LocalDensity
@@ -22,10 +23,11 @@ import dev.toastbits.composekit.utils.common.getContrasted
 import dev.toastbits.composekit.utils.composable.getTop
 import dev.toastbits.composekit.utils.composable.getBottom
 import com.toasterofbread.spmp.platform.*
+import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.*
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.bottom_padding
-import com.toasterofbread.spmp.ui.layout.nowplaying.container.npAnchorToDp
+import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.*
 import com.toasterofbread.spmp.ui.layout.contentbar.*
@@ -109,28 +111,24 @@ fun NowPlayingContainer(
                 }
             }
             .playerOverscroll(swipe_state, swipe_interaction_source)
-            .playerBackground { page_height }
     ) {
         CompositionLocalProvider(LocalContentColor provides player.getNPOnBackground()) {
             Box {
-                val show_wave: Boolean by player.settings.theme.SHOW_EXPANDED_PLAYER_WAVE.observe()
-                if (show_wave) {
-                    WaveBackground(
-                        page_height,
-                        Modifier
-                            .align(Alignment.TopCenter)
-                            .zIndex(1f)
-                            .thenIf(shouldShowBottomBarInPage(pages.first())) {
-                                offset {
-                                    IntOffset(
-                                        0,
-                                        -getBottomBarHeight().roundToPx()
-                                    )
-                                }
-                            },
-                        getAlpha = { expansion.getAbsolute() }
-                    )
-                }
+                PlayerBackground(
+                    page_height,
+                    Modifier
+                        .zIndex(1f)
+                        .fillMaxWidth()
+                        .requiredHeight(page_height)
+                        .thenIf(shouldShowBottomBarInPage(pages.first())) {
+                            offset {
+                                IntOffset(
+                                    0,
+                                    -getBottomBarHeight().roundToPx()
+                                )
+                            }
+                        }
+                )
 
                 MinimisedProgressBar(2.dp)
 

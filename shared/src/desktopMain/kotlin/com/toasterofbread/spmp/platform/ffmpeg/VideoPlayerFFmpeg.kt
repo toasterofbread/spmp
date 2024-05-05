@@ -31,7 +31,7 @@ fun VideoPlayerFFmpeg(
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     DisposableEffect(url) {
-        coroutine_scope.launchSingle(Dispatchers.IO) {
+        coroutine_scope.launchSingle(Dispatchers.Default) {
             state.open(url)
 
             val stream: KVideoStream = state.streams().first()

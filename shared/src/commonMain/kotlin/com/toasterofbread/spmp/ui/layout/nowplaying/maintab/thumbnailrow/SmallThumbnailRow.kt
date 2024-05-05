@@ -43,7 +43,9 @@ import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitles
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.observeThumbnailRounding
 import com.toasterofbread.spmp.model.mediaitem.artist.formatArtistTitles
+import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.getPixel
+import com.toasterofbread.spmp.platform.SongVideoPlayback
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.EXPANDED_THRESHOLD
@@ -181,14 +183,8 @@ fun SmallThumbnailRow(
                     return@Crossfade
                 }
 
-                song.Thumbnail(
-                    ThumbnailProvider.Quality.HIGH,
-                    getContentColour = { player.getNPOnBackground() },
-                    onLoaded = {
-                        current_thumb_image = it
-                        onThumbnailLoaded(song, it)
-                    },
-                    modifier = Modifier
+                val content_modifier: Modifier =
+                    Modifier
                         .aspectRatio(1f)
                         .onSizeChanged {
                             image_size = it
@@ -204,7 +200,31 @@ fun SmallThumbnailRow(
                                 performPressAction(true)
                             }
                         )
-                )
+
+                val default_video_position: ThemeSettings.VideoPosition by player.settings.theme.NOWPLAYING_DEFAULT_VIDEO_POSITION.observe()
+                val song_video_position: ThemeSettings.VideoPosition? by song.VideoPosition.observe(player.database)
+                var video_showing: Boolean = false
+
+                if ((song_video_position ?: default_video_position) == ThemeSettings.VideoPosition.THUMBNAIL) {
+                    video_showing = SongVideoPlayback(
+                        song.id,
+                        { player.status.getPositionMs() },
+                        content_modifier,
+                        fill = true
+                    )
+                }
+
+                if (!video_showing) {
+                    song.Thumbnail(
+                        ThumbnailProvider.Quality.HIGH,
+                        getContentColour = { player.getNPOnBackground() },
+                        onLoaded = {
+                            current_thumb_image = it
+                            onThumbnailLoaded(song, it)
+                        },
+                        modifier = content_modifier
+                    )
+                }
             }
 
             // Thumbnail overlay menu

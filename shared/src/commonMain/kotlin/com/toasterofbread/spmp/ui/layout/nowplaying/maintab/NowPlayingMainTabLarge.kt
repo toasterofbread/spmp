@@ -50,7 +50,6 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.LargeThumbnailRow
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.songThumbnailShadow
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.QueueTab
-import com.toasterofbread.spmp.ui.layout.nowplaying.container.LandscapePlayerBackground
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 import androidx.compose.runtime.State
@@ -141,8 +140,6 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
             .padding(vertical = v_padding * (1f - absolute_expansion).coerceIn(0f..1f))
             .clipToBounds()
     ) {
-        LandscapePlayerBackground(page_height)
-
         Row(
             Modifier
                 .fillMaxSize()

@@ -39,7 +39,7 @@ class ThemeSettings(val context: AppContext): SettingsGroup("THEME", context.get
     val NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY: PreferencesProperty<Float> by property(
         getName = { getString("s_key_np_default_background_image_video_opacity") },
         getDescription = { null },
-        getDefaultValue = { 0.0f }
+        getDefaultValue = { if (Platform.DESKTOP.isCurrent()) 0.0f else 0.5f }
     )
     val NOWPLAYING_DEFAULT_VIDEO_POSITION: PreferencesProperty<VideoPosition> by enumProperty(
         getName = { getString("s_key_np_default_video_position") },

@@ -762,7 +762,7 @@
         <item>Go to the network tab</item>
         <item>Go to https://music.youtube.com/</item>
         <item>Find any POST request to https://music.youtube.com/youtubei/v1/... such as /browse or /account_menu</item>
-        <item>Right-click the request and select 'Copy' (or 'Copy value') and then 'Copy as cURL' to copy the request headers, then paste them below</item>
+        <item>Right-click the request and select 'Copy' (or 'Copy value') and then 'Copy as cURL (Bash)' to copy the request headers, then paste them below</item>
     </string-array>
     <string name="youtube_manual_login_suffix"></string>
     <string name="youtube_manual_login_field">Headers</string>

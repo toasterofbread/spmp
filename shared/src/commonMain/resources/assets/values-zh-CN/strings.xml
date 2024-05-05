@@ -681,7 +681,7 @@
         <item>打开一个新的浏览器标签页</item>
         <item>打开开发者控制台（在大多数浏览器上是 ctrl+shift+I）</item>
         <item>转到网络页面</item>
-        <item>访问 https://discord.com/app</item>
+        <item>访问 https://music.youtube.com/</item>
         <item>找到一个POST请求，其地址为 https://music.youtube.com/youtubei/v1/...，如 /browse 或 /account_menu</item>
         <item>复制请求头并在下面输入</item>
     </string-array>

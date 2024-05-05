@@ -3,8 +3,8 @@
     <string name="project_url_name">proje bağlantısı</string>
     <string name="info_using_release_$x">$x sürümünü kullanma</string>
     <string name="info_using_non_release_commit_$x">Yayınlanmama taahhüdünü kullanma $x</string>
-    <string name="version_message_release_$appver_$apiver_$split">SpMp sürümü build $appver $splitand API version $apiver</string>
-    <string name="version_message_non_release_$commit_$apiver_$split">$commit $ splitand API sürümü $apiver üzerinde SpMp yayınlanmayan derleme</string>
+    <string name="version_message_release_$appver_$apiver_$split">SpMp sürümü build $appver $split API version $apiver</string>
+    <string name="version_message_non_release_$commit_$apiver_$split">$commit $ split API sürümü $apiver üzerinde SpMp yayınlanmayan derleme</string>
     <string name="help_message">YAPILACAK</string>
     <string name="spms_client_type_spmp_player">SpMp (oynatıcı)</string>
     <string name="spms_client_type_info_spmp_player">Kendi sesini çalan SpMp'nin grafiksel bir örneği</string>

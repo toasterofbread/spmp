@@ -22,11 +22,11 @@
     <string name="version_message_non_release_$commit_$apiver_$split">SpMp 基於未發行的提交建構 $commit $splitand API 版本 $apiver</string>
     <string name="help_message">待完成</string>
 
-    <string name="spms_client_type_spmp_player">SpMp (撥放器)</string>
-    <string name="spms_client_type_info_spmp_player">圖形介面的 SpMp 實體，可以撥放自己的音訊</string>
+    <string name="spms_client_type_spmp_player">SpMp (播放器)</string>
+    <string name="spms_client_type_info_spmp_player">圖形介面的 SpMp 實體，可以播放自己的音訊</string>
     <string name="spms_client_type_spmp_standalone">SpMp (獨立模式)</string>
-    <string name="spms_client_type_info_spmp_standalone">圖形化的 SpMp 實體，依靠外部撥放器撥放音訊</string>
-    <string name="spms_client_type_player">撥放器</string>
+    <string name="spms_client_type_info_spmp_standalone">圖形化的 SpMp 實體，依靠外部播放器播放音訊</string>
+    <string name="spms_client_type_player">播放器</string>
     <string name="spms_client_type_info_player">一個沒有圖形介面的獨立音訊播放器</string>
     <string name="spms_client_type_command_line">指令列</string>
     <string name="spms_client_type_info_command_line">與伺服器通訊的工具或腳本</string>
@@ -86,7 +86,7 @@
     <string name="library_no_liked_artists">沒有收藏的藝術家</string>
     <string name="library_no_liked_albums">沒有按讚的專輯</string>
     <string name="library_no_liked_songs">沒有喜歡的歌曲</string>
-    <string name="library_no_playlists">沒有撥放列表</string>
+    <string name="library_no_playlists">沒有播放列表</string>
     <string name="library_no_items_match_filter">沒有符合篩選條件的項目</string>
 
     <string name="library_$x_songs">$x 首歌曲</string>
@@ -263,7 +263,7 @@
 
     <string name="error_message_generic">發生了一個錯誤</string>
     <string name="error_yt_feed_parse_failed">YouTube 訂閱解析失敗</string>
-    <string name="error_player_service_not_connected">播放器服務未連接&#xA，可能發生了錯誤</string>
+    <string name="error_player_service_not_connected">播放器服務未連接&#xA;可能發生了錯誤</string>
     <string name="error_on_server_command_execution">執行服務器指令時發生錯誤</string>
 
     <string name="desktop_splash_connecting_to_server_at_$x">正在連接到伺服器 $x</string>
@@ -430,7 +430,7 @@
     <string name="s_key_stop_player_on_app_close">關閉應用時停止播放器</string>
     <string name="s_sub_stop_player_on_app_close">如果從最近的程式中清除，音樂播放器將停止</string>
 
-    <string name="s_key_player_expand_swipe_sensitivity">擴大撥放器手勢靈敏度</string>
+    <string name="s_key_player_expand_swipe_sensitivity">擴大播放器手勢靈敏度</string>
 
     <string name="s_key_mini_player_show_prev_button">在迷你播放器中顯示上一首按鈕</string>
     <string name="s_key_mini_player_overscroll_clear_enabled">向下滑動迷你播放器以清除隊列</string>
@@ -500,8 +500,8 @@
     <string name="s_key_np_default_background_image_video_opacity">預設橫向背景圖像及影像透明度</string>
 	<string name="s_key_np_default_video_position">影片位置</string>
     <string name="s_key_np_default_video_position_none">隱藏</string>
-    <string name="s_key_np_default_video_position_background">撥放器背景</string>
-    <string name="s_key_np_default_video_position_thumbnail">撥放器縮圖</string>
+    <string name="s_key_np_default_video_position_background">播放器背景</string>
+    <string name="s_key_np_default_video_position_thumbnail">播放器縮圖</string>
     <string name="s_key_np_default_landscape_queue_opacity">預設橫向對列不透明度</string>
     <string name="s_key_np_default_shadow_radius">預設圖像陰影大小</string>
 	<string name="s_key_np_default_image_corner_rounding">預設圖像圓角處理</string>
@@ -866,17 +866,17 @@
 
     <string name="layout_editor_preview_options">預覽選項</string>
     <string name="layout_editor_preview_option_show_bar_content">顯示列內容</string>
-    <string name="layout_editor_preview_option_hide_player">隱藏撥放器</string>
+    <string name="layout_editor_preview_option_hide_player">隱藏播放器</string>
     <string name="layout_editor_preview_option_portrait_mode">縱向模式</string>
 
     <string name="layout_slot_portrait_upper_top_bar">上部頂列</string>
     <string name="layout_slot_portrait_lower_top_bar">下部頂列</string>
     <string name="layout_slot_portrait_above_player">迷你播放器上方</string>
     <string name="layout_slot_portrait_below_player">迷你播放器下方</string>
-    <string name="layout_slot_portrait_player_top">撥放器頂部</string>
+    <string name="layout_slot_portrait_player_top">播放器頂部</string>
 
     <string name="layout_slot_config_portrait_player_top_show_in_queue">在隊列中顯示</string>
-    <string name="layout_slot_config_below_player_show_in_player">在撥放器中顯示</string>
+    <string name="layout_slot_config_below_player_show_in_player">在播放器中顯示</string>
     <string name="layout_slot_config_below_player_show_in_queue">在隊列中顯示</string>
 
     <string name="layout_slot_landscape_outer_side_left">外部左側邊列</string>
@@ -893,7 +893,7 @@
     <string name="colour_selector_dialog_title">選擇顏色</string>
     <string name="colour_selector_dialog_select_theme">從主題</string>
     <string name="colour_selector_dialog_select_custom">字定</string>
-    <string name="colour_selector_dialog_player_background">撥放器背景</string>
+    <string name="colour_selector_dialog_player_background">播放器背景</string>
     <string name="colour_selector_dialog_transparent">透明度</string>
 
     <string name="theme_colour_background">背景</string>
@@ -922,7 +922,7 @@
 
     <string name="appaction_navigation">導行列</string>
     <string name="appaction_song">歌曲動作</string>
-    <string name="appaction_playback">撥放</string>
+    <string name="appaction_playback">播放</string>
     <string name="appaction_other">其他</string>
     <string name="appaction_modify_setting">設定</string>
 
@@ -957,8 +957,8 @@
     <string name="appaction_song_action_copy_url">複製 URL</string>
 
     <string name="appaction_playback_action_pause">暫停</string>
-    <string name="appaction_playback_action_play">撥放</string>
-    <string name="appaction_playback_action_toggle_play">取消撥放</string>
+    <string name="appaction_playback_action_play">播放</string>
+    <string name="appaction_playback_action_toggle_play">取消播放</string>
     <string name="appaction_playback_action_seek_by_time">以時間搜尋</string>
     <string name="appaction_playback_action_shuffle_queue">洗亂隊列</string>
     <string name="appaction_playback_action_clear_queue">清除隊列</string>

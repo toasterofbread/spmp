@@ -19,7 +19,7 @@
     <string name="info_using_non_release_commit_$x">使用未行的提交 $x</string>
 
     <string name="version_message_release_$appver_$apiver_$split">SpMp 建構 $appver $splitand API 版本 $apiver</string>
-    <string name="version_message_non_release_$commit_$apiver_$split">SpMp 基於未發行的提交建構 $commit $splitand API 版本 $apiver</string>
+    <string name="version_message_non_release_$commit_$apiver_$split">SpMp 基於未發行的提交建構 $commit $split與 API 版本 $apiver</string>
     <string name="help_message">待完成</string>
 
     <string name="spms_client_type_spmp_player">SpMp (播放器)</string>

@@ -288,7 +288,11 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
 
             // Loading
             null -> {
-                Column(Modifier.fillMaxSize()) {
+                Column(
+                    Modifier
+                        .fillMaxSize()
+                        .padding(content_padding.vertical)
+                ) {
                     TopContent()
                     SongFeedPageLoadingView(Modifier.graphicsLayer { alpha = state_alpha.value }.fillMaxSize())
                 }

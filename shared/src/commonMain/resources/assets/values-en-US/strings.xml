@@ -1,5 +1,5 @@
 <resources>
-    <string name="language_name">English(US)</string>
+    <string name="language_name">English (US)</string>
 
     <string name="home_feed_filter_energise">Energize</string>
 	<string name="s_sub_unlocalised_strings">Strings that have not been localized for the current language</string>

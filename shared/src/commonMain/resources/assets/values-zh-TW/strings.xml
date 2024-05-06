@@ -19,7 +19,7 @@
     <string name="info_using_non_release_commit_$x">使用未行的提交 $x</string>
 
     <string name="version_message_release_$appver_$apiver_$split">SpMp 建構 $appver $splitand API 版本 $apiver</string>
-    <string name="version_message_non_release_$commit_$apiver_$split">SpMp 基於未發行的提交建構 $commit $splitand API 版本 $apiver</string>
+    <string name="version_message_non_release_$commit_$apiver_$split">SpMp 基於未發行的提交建構 $commit $split與 API 版本 $apiver</string>
     <string name="help_message">待完成</string>
 
     <string name="spms_client_type_spmp_player">SpMp (播放器)</string>
@@ -464,7 +464,7 @@
     <string name="s_option_wave_border_mode_line">線條邊框</string>
 
     <string name="s_key_np_queue_radio_info_position">隊列電臺資訊位置</string>
-    <string name="s_option_np_queue_radio_info_top_bar">按鈕欄</string>
+    <string name="s_option_np_queue_radio_info_top_bar">按鈕列</string>
     <string name="s_option_np_queue_radio_info_above_items">位於隊列項上方</string>
 
     <string name="s_key_resume_on_bt_connect">當藍牙設備連接時恢復播放</string>
@@ -580,8 +580,8 @@
     <string name="s_confirm_reset_stats">所有記錄的統計將被刪除</string>
 
     <string name="s_key_search_show_suggestions">顯示搜尋建議</string>
-    <string name="s_key_navbar_height_multiplier">導航欄高度倍數</string>
-    <string name="s_sub_navbar_height_multiplier">如果你的系統沒有正確報告導航欄的高度，使用此選項（需要重啟應用）</string>
+    <string name="s_key_navbar_height_multiplier">導航列高度倍數</string>
+    <string name="s_sub_navbar_height_multiplier">如果你的系統沒有正確報告導航列的高度，使用此選項（需要重啟應用）</string>
 
     <string name="s_key_enable_audio_normalisation">啟用音訊標準化</string>
     <string name="s_sub_enable_audio_normalisation">由於響度數據是 YouTube 提供的，因此某些影片中可能無法使用</string>
@@ -804,7 +804,7 @@
     <string name="content_bar_selection_create_new">建立</string>
     <string name="content_bar_selection_warn_no_primary">主要列不可見</string>
     <string name="content_bar_selection_warn_no_secondary">次要列不可見</string>
-    <string name="content_bar_selection_exit_warning_title">未設定重要欄</string>
+    <string name="content_bar_selection_exit_warning_title">未設定重要列</string>
     <string name="content_bar_selection_exit_warning_text">你確定要離開嗎？</string>
 
     <string name="content_bar_empty">空</string>
@@ -833,7 +833,7 @@
     <string name="content_bar_template_song_actions">歌曲動作</string>
     <string name="content_bar_template_desc_song_actions">與播放歌曲互動的動作</string>
     <string name="content_bar_template_default_portrait_top_upper">縱向上頂列</string>
-    <string name="content_bar_template_default_portrait_top_lower">縱向下頂欄</string>
+    <string name="content_bar_template_default_portrait_top_lower">縱向下頂列</string>
 
     <string name="content_bar_element_type_button">按鈕</string>
     <string name="content_bar_element_type_spacer">空白</string>

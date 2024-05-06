@@ -128,7 +128,6 @@ private fun ImageBackground(
             )
 
             if ((song_video_position ?: default_video_position) == ThemeSettings.VideoPosition.BACKGROUND) {
-
                 video_showing = VideoBackground(Modifier.fillMaxSize())
             }
 

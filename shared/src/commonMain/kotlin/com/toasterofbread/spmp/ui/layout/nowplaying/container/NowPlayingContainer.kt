@@ -114,30 +114,27 @@ fun NowPlayingContainer(
     ) {
         CompositionLocalProvider(LocalContentColor provides player.getNPOnBackground()) {
             Box {
+                val page_heights: List<Dp> =
+                    pages.mapIndexed { index, page ->
+                        (
+                            if (shouldShowBottomBarInPage(page)) page_height - getBottomBarHeight()
+                            else page_height
+                        ) - bottom_inset
+                    }
+
                 PlayerBackground(
-                    page_height,
+                    page_heights.first() + 1.dp,
                     Modifier
                         .zIndex(1f)
                         .fillMaxWidth()
                         .requiredHeight(page_height)
-                        .thenIf(shouldShowBottomBarInPage(pages.first())) {
-                            offset {
-                                IntOffset(
-                                    0,
-                                    -getBottomBarHeight().roundToPx()
-                                )
-                            }
-                        }
                 )
 
                 MinimisedProgressBar(2.dp)
 
                 Column(Modifier.zIndex(2f)) {
                     for ((index, page) in pages.withIndex()) {
-                        var this_page_height: Dp = (
-                            if (shouldShowBottomBarInPage(page)) page_height - getBottomBarHeight()
-                            else page_height
-                        ) - bottom_inset
+                        val this_page_height: Dp = page_heights[index]
 
                         page.Page(
                             this_page_height,

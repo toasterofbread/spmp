@@ -18,8 +18,8 @@
     <string name="info_using_release_$x">Using release $x</string>
     <string name="info_using_non_release_commit_$x">Using non-release commit $x</string>
 
-    <string name="version_message_release_$appver_$apiver_$split">SpMp release build $appver $split and API version $apiver</string>
-    <string name="version_message_non_release_$commit_$apiver_$split">SpMp non-release build on $commit $split and API version $apiver</string>
+    <string name="version_message_release_$appver_$apiver_$split">SpMp release build $appver $splitand API version $apiver</string>
+    <string name="version_message_non_release_$commit_$apiver_$split">SpMp non-release build on $commit $splitand API version $apiver</string>
     <string name="help_message">TODO</string>
 
     <string name="spms_client_type_spmp_player">SpMp (player)</string>

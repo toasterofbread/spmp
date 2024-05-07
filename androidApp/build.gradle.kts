@@ -5,6 +5,7 @@ import org.xmlpull.v1.XmlPullParserFactory
 import java.io.FileInputStream
 import java.util.Properties
 import com.android.build.api.dsl.ApplicationVariantDimension
+import plugin.spmp.SpMpDeps
 
 plugins {
     kotlin("multiplatform")
@@ -49,12 +50,12 @@ fun getString(key: String): String {
 kotlin {
     androidTarget()
     sourceSets {
+        val deps: SpMpDeps = SpMpDeps(extra.properties)
+
         val androidMain by getting {
             dependencies {
                 implementation(project(":shared"))
-
-                val composekit_version: String = extra["composekit.version"] as String
-                implementation("dev.toastbits.composekit:library-android:$composekit_version")
+                implementation(deps.get("dev.toastbits.composekit:library-android"))
             }
         }
     }

@@ -14,19 +14,21 @@ pluginManagement {
     }
 
     plugins {
-        val kotlin_version = extra["kotlin.version"] as String
-        val agp_version = extra["agp.version"] as String
-        val compose_version = extra["compose.version"] as String
-
+        val kotlin_version: String = extra["kotlin.version"] as String
         kotlin("jvm").version(kotlin_version)
         kotlin("multiplatform").version(kotlin_version)
         kotlin("plugin.serialization").version(kotlin_version)
         kotlin("android").version(kotlin_version)
 
+        val agp_version: String = extra["agp.version"] as String
         id("com.android.application").version(agp_version)
         id("com.android.library").version(agp_version)
 
+        val compose_version: String = extra["compose.version"] as String
         id("org.jetbrains.compose").version(compose_version)
+
+        val sqldelight_version: String = extra["sqldelight.version"] as String
+        id("app.cash.sqldelight").version(sqldelight_version)
     }
 }
 

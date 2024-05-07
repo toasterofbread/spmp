@@ -703,6 +703,9 @@
     <string name="s_cat_misc">Other</string>
     <string name="s_cat_desc_misc">Cache and other miscellaneous options</string>
 
+    <string name="s_cat_dependencies">Dependencies</string>
+    <string name="s_cat_desc_dependencies">View software libraries used by SpMp</string>
+
     <string name="s_cat_youtube_auth">YouTube credentials</string>
     <string name="s_cat_discord_auth">Discord credentials</string>
 
@@ -972,4 +975,10 @@
     <string name="appaction_other_action_reload_page">Reload page</string>
     <string name="appaction_other_action_increase_ui_scale">Increase UI scale</string>
     <string name="appaction_other_action_decrease_ui_scale">Decrease UI scale</string>
+
+    <string name="dependency_list_title">SpMp is made possible by the following libraries:</string>
+    <string name="dependency_list_dep_using_fork">Using fork</string>
+    <string name="dependency_list_dep_$author">Author: $author</string>
+    <string name="dependency_list_dep_$license">License: $license</string>
+    <string name="dependency_list_dep_view_source">View source</string>
 </resources>

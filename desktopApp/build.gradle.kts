@@ -17,6 +17,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.util.zip.ZipFile
 import plugin.shared.CommandClass
+import plugin.spmp.SpMpDeps
 
 plugins {
     kotlin("multiplatform")
@@ -58,17 +59,18 @@ fun getString(key: String): String {
 kotlin {
     jvm()
     sourceSets {
+        val deps: SpMpDeps = SpMpDeps(extra.properties)
+
         val jvmMain by getting  {
             dependencies {
                 implementation(compose.desktop.currentOs)
                 implementation(project(":shared"))
 
-                val composekit_version: String = extra["composekit.version"] as String
-                implementation("dev.toastbits.composekit:library-desktop:$composekit_version")
+                implementation(deps.get("dev.toastbits.composekit:library-desktop"))
 
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.6.4")
 
-                // LWJGL needed by gdx-nativefilechooser
+                // LWJGL needed by gdx-nativefilechooser in composekit
                 val os_name: String = System.getProperty("os.name")
                 val lwjgl_os: String = when {
                     os_name == "Linux" -> "linux"

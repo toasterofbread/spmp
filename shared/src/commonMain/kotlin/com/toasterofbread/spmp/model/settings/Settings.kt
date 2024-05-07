@@ -24,6 +24,7 @@ class Settings(context: AppContext) {
     val shortcut: ShortcutSettings = ShortcutSettings(context)
     val desktop: DesktopSettings = DesktopSettings(context)
     val misc: MiscSettings = MiscSettings(context)
+    val deps: DependencySettings = DependencySettings(context)
     val ytapi: YTApiSettings = YTApiSettings(context)
 
     val all_groups: Map<String, SettingsGroup> =
@@ -44,6 +45,7 @@ class Settings(context: AppContext) {
             shortcut,
             desktop,
             misc,
+            deps,
 
             ytapi
         ).associateBy { it.group_key }

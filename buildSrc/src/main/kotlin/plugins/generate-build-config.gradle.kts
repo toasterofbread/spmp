@@ -3,7 +3,6 @@ import plugin.shared.Command
 import plugin.spmp.ProjectConfigValues
 import java.util.Properties
 import java.io.FileInputStream
-import java.io.Serializable
 
 plugins {
     id("com.github.gmazzo.buildconfig")

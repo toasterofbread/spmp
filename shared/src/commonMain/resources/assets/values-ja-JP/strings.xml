@@ -683,6 +683,9 @@
     <string name="s_cat_misc">その他</string>
     <string name="s_cat_desc_misc">キャッシュなどの設定</string>
 
+    <string name="s_cat_dependencies">ソフトウェア依存</string>
+    <string name="s_cat_desc_dependencies">SpMpが使用しているソフトライブラリを見る</string>
+
     <string name="s_cat_youtube_auth">YouTubeの認証情報</string>
     <string name="s_cat_discord_auth">Discordの認証情報</string>
 
@@ -953,4 +956,9 @@
     <string name="appaction_other_action_increase_ui_scale">UIスケールを拡大</string>
     <string name="appaction_other_action_decrease_ui_scale">UIスケールを短縮</string>
 
+    <string name="dependency_list_title">SpMpは以下のライブラリによって実現されています：</string>
+    <string name="dependency_list_dep_using_fork">フォークの使用</string>
+    <string name="dependency_list_dep_$author">作者： $author</string>
+    <string name="dependency_list_dep_$license">ライセンス： $license</string>
+    <string name="dependency_list_dep_view_source">ソースを標示</string>
 </resources>

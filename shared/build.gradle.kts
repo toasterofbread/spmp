@@ -1,11 +1,14 @@
+import plugin.spmp.SpMpDeps
+
 plugins {
     id("generate-build-config")
+    id("generate-dependency-list")
 
     kotlin("multiplatform")
     kotlin("plugin.serialization")
     id("com.android.library")
     id("org.jetbrains.compose")
-    id("app.cash.sqldelight") version "2.0.0"
+    id("app.cash.sqldelight")
 }
 
 val buildConfigDir: Provider<Directory> get() = project.layout.buildDirectory.dir("generated/buildconfig")
@@ -16,6 +19,8 @@ kotlin {
     jvm("desktop")
 
     sourceSets {
+        val deps: SpMpDeps = SpMpDeps(extra.properties)
+
         all {
             languageSettings.apply {
                 optIn("org.jetbrains.compose.resources.ExperimentalResourceApi")
@@ -28,11 +33,6 @@ kotlin {
                 enableLanguageFeature("ExpectActualClasses")
             }
         }
-
-        val composekit_version: String = extra["composekit.version"] as String
-        val ytmkt_version: String = extra["ytmkt.version"] as String
-        val mediasessionkt_version: String = extra["mediasessionkt.version"] as String
-        val ktor_version: String = extra["ktor.version"] as String
 
         commonMain {
             kotlin {
@@ -49,24 +49,24 @@ kotlin {
                 implementation(compose.material3)
                 implementation(compose.components.resources)
 
-                implementation("org.apache.commons:commons-text:1.10.0")
-                implementation("com.atilika.kuromoji:kuromoji-ipadic:0.9.0")
-                implementation("org.jsoup:jsoup:1.16.1")
-                implementation("com.github.toasterofbread.ComposeReorderable:reorderable:e9ef693f63")
-                implementation("com.github.SvenWoltmann:color-thief-java:v1.1.2")
-                implementation("com.github.catppuccin:java:v1.0.0")
-                implementation("com.github.paramsen:noise:2.0.0")
-                implementation("org.kobjects.ktxml:core:0.2.3")
-                implementation("org.bitbucket.ijabz:jaudiotagger:v3.0.1")
-                implementation("com.github.teamnewpipe:NewPipeExtractor:v0.22.7")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
-                implementation("org.zeromq:jeromq:0.5.3")
-                implementation("media.kamel:kamel-image:0.9.4")
 
-                implementation("io.ktor:ktor-client-core:$ktor_version")
-                implementation("io.ktor:ktor-client-cio:$ktor_version")
-                implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
-                implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
+                implementation(deps.get("org.apache.commons:commons-text"))
+                implementation(deps.get("com.atilika.kuromoji:kuromoji-ipadic"))
+                implementation(deps.get("org.jsoup:jsoup"))
+                implementation(deps.get("com.github.toasterofbread.ComposeReorderable:reorderable"))
+                implementation(deps.get("com.github.SvenWoltmann:color-thief-java"))
+                implementation(deps.get("com.github.catppuccin:java"))
+                implementation(deps.get("com.github.paramsen:noise"))
+                implementation(deps.get("org.kobjects.ktxml:core"))
+                implementation(deps.get("org.bitbucket.ijabz:jaudiotagger"))
+                implementation(deps.get("com.github.teamnewpipe:NewPipeExtractor"))
+                implementation(deps.get("org.zeromq:jeromq"))
+                implementation(deps.get("media.kamel:kamel-image"))
+                implementation(deps.get("io.ktor:ktor-client-core", "io.ktor"))
+                implementation(deps.get("io.ktor:ktor-client-cio", "io.ktor"))
+                implementation(deps.get("io.ktor:ktor-client-content-negotiation", "io.ktor"))
+                implementation(deps.get("io.ktor:ktor-serialization-kotlinx-json", "io.ktor"))
             }
         }
 
@@ -75,44 +75,41 @@ kotlin {
                 api("androidx.activity:activity-compose:1.8.1")
                 api("androidx.core:core-ktx:1.12.0")
                 api("androidx.appcompat:appcompat:1.6.1")
+
+                implementation(deps.get("dev.toastbits.composekit:library-android"))
+                implementation(deps.get("dev.toastbits.ytmkt:ytmkt-android"))
+
                 implementation("androidx.palette:palette:1.0.0")
                 implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
-
-                val media3_version = "1.2.0"
-                implementation("androidx.media3:media3-exoplayer:$media3_version")
-                implementation("androidx.media3:media3-ui:$media3_version")
-                implementation("androidx.media3:media3-session:$media3_version")
-
-                implementation("com.google.accompanist:accompanist-pager:0.21.2-beta")
-                implementation("com.google.accompanist:accompanist-pager-indicators:0.21.2-beta")
-                implementation("com.google.accompanist:accompanist-systemuicontroller:0.21.2-beta")
-                //noinspection GradleDependency
-                implementation("com.github.andob:android-awt:1.0.0")
-                implementation("com.github.toasterofbread:KizzyRPC:84e79614b4")
-                implementation("app.cash.sqldelight:android-driver:2.0.0")
-                implementation("com.anggrayudi:storage:1.5.5")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.6.0")
-                implementation("io.github.jan-tennert.supabase:functions-kt:1.3.2")
-                implementation("io.ktor:ktor-client-cio:2.3.6")
-                implementation("dev.toastbits.compose-webview-multiplatform:compose-webview-multiplatform-android:2d39439922")
-
-                implementation("dev.toastbits.composekit:library-android:$composekit_version")
-                implementation("dev.toastbits.ytm-kt:ytmkt-android:$ytmkt_version")
+                implementation(deps.get("androidx.media3:media3-exoplayer", "androidx.media3"))
+                implementation(deps.get("androidx.media3:media3-ui", "androidx.media3"))
+                implementation(deps.get("androidx.media3:media3-session", "androidx.media3"))
+                implementation(deps.get("com.google.accompanist:accompanist-pager"))
+                implementation(deps.get("com.google.accompanist:accompanist-pager-indicators"))
+                implementation(deps.get("com.google.accompanist:accompanist-systemuicontroller"))
+                // implementation(deps.get("com.github.andob:android-awt"))
+                implementation(deps.get("com.github.toasterofbread:KizzyRPC"))
+                implementation(deps.get("app.cash.sqldelight:android-driver"))
+                implementation(deps.get("com.anggrayudi:storage"))
+                implementation(deps.get("io.github.jan-tennert.supabase:functions-kt"))
+                implementation(deps.get("io.ktor:ktor-client-cio"))
+                implementation(deps.get("dev.toastbits.compose-webview-multiplatform:compose-webview-multiplatform-android"))
             }
         }
 
         val desktopMain by getting {
             dependencies {
                 implementation(compose.desktop.common)
-                implementation("com.github.ltttttttttttt:load-the-image:1.0.5")
-                implementation("app.cash.sqldelight:sqlite-driver:2.0.0")
-                implementation("com.github.caoimhebyrne:KDiscordIPC:0.2.2")
-                implementation("org.bytedeco:ffmpeg-platform:6.1.1-1.5.10")
-                implementation("dev.toastbits.compose-webview-multiplatform:compose-webview-multiplatform-desktop:2d39439922")
 
-                implementation("dev.toastbits.composekit:library-desktop:$composekit_version")
-                implementation("dev.toastbits.ytm-kt:ytmkt-jvm:$ytmkt_version")
-                implementation("dev.toastbits.mediasession:library-jvm:$mediasessionkt_version")
+                implementation(deps.get("dev.toastbits.composekit:library-desktop"))
+                implementation(deps.get("dev.toastbits.ytmkt:ytmkt-jvm"))
+                implementation(deps.get("dev.toastbits.mediasession:library-jvm"))
+
+                implementation(deps.get("app.cash.sqldelight:sqlite-driver"))
+                implementation(deps.get("com.github.caoimhebyrne:KDiscordIPC"))
+                implementation(deps.get("org.bytedeco:ffmpeg-platform"))
+                implementation(deps.get("dev.toastbits.compose-webview-multiplatform:compose-webview-multiplatform-desktop"))
             }
         }
     }

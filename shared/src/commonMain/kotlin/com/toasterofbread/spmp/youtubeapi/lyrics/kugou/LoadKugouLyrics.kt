@@ -79,7 +79,7 @@ suspend fun loadKugouLyrics(
 }
 
 private fun formatLyricsLine(line: String, lang: String): String {
-    if (!lang.matchesLanguage(UILanguages.ja)) {
+    if (!lang.matchesLanguage(UILanguages.ja_JP)) {
         return line
     }
 

@@ -32,34 +32,39 @@ fun VideoPlayerFFmpeg(
 
     DisposableEffect(url) {
         coroutine_scope.launchSingle(Dispatchers.Default) {
-            state.open(url)
+            try {
+                state.open(url)
 
-            val stream: KVideoStream = state.streams().first()
-            val codec: KAVCodec = state.codec(stream)
+                val stream: KVideoStream = state.streams().first()
+                val codec: KAVCodec = state.codec(stream)
 
-            state.play(
-                stream = stream,
-                hwDecoder = codec.hwDecoder.getBestDecoder(),
-                targetSize = IntSize(stream.width, stream.height)
-            )
+                state.play(
+                    stream = stream,
+                    hwDecoder = codec.hwDecoder.getBestDecoder(),
+                    targetSize = IntSize(stream.width, stream.height)
+                )
 
-            val frame_grabber: KFrameGrabber =
-                requireNotNull(state.frame_grabber) { "Frame grabber not initialized!" }
+                val frame_grabber: KFrameGrabber =
+                    requireNotNull(state.frame_grabber) { "Frame grabber not initialized!" }
 
-            var previous_position: Long = -1L
+                var previous_position: Long = -1L
 
-            while (isActive) {
-                withFrameMillis {
-                    val position: Long = getPositionMs()
-                    if (position != previous_position) {
-                        with (frame_grabber) {
-                            grabNextFrame(getPositionMs())
+                while (isActive) {
+                    withFrameMillis {
+                        val position: Long = getPositionMs()
+                        if (position != previous_position) {
+                            with (frame_grabber) {
+                                grabNextFrame(getPositionMs())
+                            }
+                            current_image = frame_grabber.composeImage
+                            previous_position = position
+                            image_state = !image_state
                         }
-                        current_image = frame_grabber.composeImage
-                        previous_position = position
-                        image_state = !image_state
                     }
                 }
+            }
+            catch (e: Throwable) {
+                RuntimeException("Error during VideoPlayerFFmpeg playback, aborting", e).printStackTrace()
             }
         }
 

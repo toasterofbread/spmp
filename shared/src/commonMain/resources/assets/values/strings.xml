@@ -7,11 +7,14 @@
     <string name="app_name" translatable="false">SpMp</string>
     <string name="app_name_debug" translatable="false">SpMp (debug)</string>
     <string name="project_url" translatable="false">https://github.com/toasterofbread/spmp</string>
+    <string name="project_license" translatable="false">GPL-3.0</string>
+    <string name="project_author" translatable="false">toasterofbread</string>
     <string name="report_issue_url" translatable="false">https://github.com/toasterofbread/spmp/issues/new?labels=Bug&amp;template=bug_report.md&amp;title=%5BBug%5D+</string>
     <string name="server_info_url" translatable="false">https://spmp.toastbits.dev/docs/server/about/</string>
     <string name="documentation_url" translatable="false">https://spmp.toastbits.dev/docs/about</string>
     <string name="server_documentation_url" translatable="false">https://spmp.toastbits.dev/docs/server/about</string>
     <string name="flatpak_documentation_url" translatable="false">https://spmp.toastbits.dev/docs/client/installation-flatpak</string>
+    <string name="donation_url" translatable="false">https://liberapay.com/toasterofbread/</string>
 
     <string name="project_url_name">project URL</string>
 
@@ -981,4 +984,24 @@
     <string name="dependency_list_dep_$author">Author: $author</string>
     <string name="dependency_list_dep_$license">License: $license</string>
     <string name="dependency_list_dep_view_source">View source</string>
+
+    <string name="project_info_dialog_title">Information</string>
+    <string name="project_info_dialog_section_project">Project</string>
+    <string name="project_info_dialog_section_gestures">Gestures</string>
+
+    <string name="project_info_dialog_gesture_player_swipes">Player swipe</string>
+    <string name="project_info_dialog_gesture_player_swipe_player">Swipe mini-player to expand to player</string>
+    <string name="project_info_dialog_gesture_player_swipe_queue">Swipe player to expand to queue</string>
+
+    <string name="project_info_dialog_gesture_item_long_presses">Media item long-press</string>
+    <string name="project_info_dialog_gesture_item_long_press_normal">Long-press to open action menu</string>
+    <string name="project_info_dialog_gesture_item_long_press_long">Extra-long-press to begin multiple selection</string>
+
+    <string name="project_info_dialog_gesture_dislike">Long-press like button to dislike a song</string>
+    
+    <string name="project_info_dialog_project_$license">License: $license</string>
+    <string name="project_info_dialog_project_$author">Author: $author</string>
+    <string name="project_info_dialog_project_source_button">View source code</string>
+    <string name="project_info_dialog_project_donate_button">Buy me a hot chocolate</string>
+    <string name="project_info_dialog_dependencies_button">Show dependencies</string>
 </resources>

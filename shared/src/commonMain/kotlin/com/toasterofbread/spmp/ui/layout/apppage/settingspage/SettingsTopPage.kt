@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.SelectAll
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
@@ -72,6 +73,7 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
+import com.toasterofbread.spmp.ui.layout.ProjectInfoDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -142,6 +144,10 @@ internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, cont
 
                 AnimatedVisibility(!exporting) {
                     ProjectButton(Modifier.padding(start = 20.dp))
+                }
+
+                AnimatedVisibility(!exporting) {
+                    InfoButton(Modifier.padding(start = 20.dp))
                 }
             }
         }
@@ -391,6 +397,23 @@ private fun ProjectButton(modifier: Modifier = Modifier) {
                     player.context.vibrateShort()
                 }
             }
+        )
+    )
+}
+
+@Composable
+private fun InfoButton(modifier: Modifier = Modifier) {
+    var show_info_dialog: Boolean by remember { mutableStateOf(false) }
+
+    if (show_info_dialog) {
+        ProjectInfoDialog { show_info_dialog = false }
+    }
+
+    Icon(
+        Icons.Default.Info,
+        null,
+        modifier.platformClickable(
+            onClick = { show_info_dialog = !show_info_dialog }
         )
     )
 }

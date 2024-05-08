@@ -150,7 +150,7 @@
     <string name="song_theme_menu_gradient_depth">グラデーションの深さ</string>
     <string name="song_theme_menu_background_image_opacity">バックグラウンドコンテンツの不透明度</string>
     <string name="song_theme_menu_video_position">動画の位置</string>
-    <string name="song_theme_menu_queue_opacity">曲キューの不透明度</string>
+    <string name="song_theme_menu_queue_opacity">曲リストの不透明度</string>
     <string name="song_theme_menu_image_shadow_radius">画像シャドウのサイズ</string>
     <string name="song_theme_menu_wave_speed">波の速度</string>
     <string name="song_theme_menu_wave_opacity">波の不透明度</string>
@@ -388,10 +388,10 @@
     <string name="s_key_multiselect_cancel_on_none_selected">なにも選択されていなければ複数選択を解除する</string>
 
     <string name="s_key_start_radio_on_song_press">曲をタップしたらラジオを再生する</string>
-    <string name="s_sub_start_radio_on_song_press">再生するだけではなく、YouTubeのラジオをキューに加える</string>
+    <string name="s_sub_start_radio_on_song_press">再生するだけではなく、YouTubeのラジオをリストに加える</string>
 
-    <string name="s_key_persistent_queue">再生キューを覚える</string>
-    <string name="s_sub_persistent_queue">アプリを閉じても曲キューは保持されます</string>
+    <string name="s_key_persistent_queue">再生リストを覚える</string>
+    <string name="s_sub_persistent_queue">アプリを閉じても曲リストは保持されます</string>
 
     <string name="s_key_add_songs_to_history">聴いた曲をYouTubeの歴史に追加する</string>
     <string name="s_sub_add_songs_to_history">アプリ内で流された曲をYouTubeに通信し、アカウントの歴史に追加されます</string>
@@ -410,15 +410,15 @@
     <string name="s_key_player_expand_swipe_sensitivity">プライヤー拡大ジェスチャーのしやすさ</string>
 
     <string name="s_key_mini_player_show_prev_button">ミニプレイヤーで「前へ」のボタンを表示</string>
-    <string name="s_key_mini_player_overscroll_clear_enabled">ミニプレーヤーを下にスワイプして曲キューをクリア</string>
+    <string name="s_key_mini_player_overscroll_clear_enabled">ミニプレーヤーを下にスワイプして曲リストをクリア</string>
     <string name="s_key_mini_player_overscroll_clear_time">スワイプクリアのホールド時間</string>
     <string name="s_key_mini_player_overscroll_clear_mode">スワイプクリア時に</string>
     <string name="s_option_mini_player_overscroll_clear_mode_always_hide">必ずプレイヤーを隠す</string>
-    <string name="s_option_mini_player_overscroll_clear_mode_hide_if_queue_empty">曲キューが空の場合のみプレイヤーを隠す</string>
-    <string name="s_option_mini_player_overscroll_clear_mode_none_if_queue_empty">曲キューをクリアするのみ</string>
+    <string name="s_option_mini_player_overscroll_clear_mode_hide_if_queue_empty">曲リストが空の場合のみプレイヤーを隠す</string>
+    <string name="s_option_mini_player_overscroll_clear_mode_none_if_queue_empty">曲リストをクリアするのみ</string>
 
     <string name="s_key_player_show_repeat_shuffle_buttons">プレイヤー画面でリプレイとシャッフルボタンを表示</string>
-    <string name="s_sub_player_show_repeat_shuffle_buttons">このオプションに関係なく、キュー画面には表示されます</string>
+    <string name="s_sub_player_show_repeat_shuffle_buttons">このオプションに関係なく、リスト画面には表示されます</string>
 
     <string name="s_key_player_show_progress_bar_gradient">シークバーの中にグラデーションを表示</string>
 
@@ -426,21 +426,21 @@
     <string name="s_sub_player_overlay_menu_custom_action">デフォルトでは、長押しで発生します</string>
     <string name="s_key_player_overlay_menu_swap_long_short_press_actions">オーバーレイ画面の短押しと長押しアクションを交換する</string>
 
-    <string name="s_key_np_queue_item_swipe_sensitivity">キューの曲のスワイプのしやすさ</string>
+    <string name="s_key_np_queue_item_swipe_sensitivity">リストの曲のスワイプのしやすさ</string>
     <string name="s_sub_np_queue_item_swipe_sensitivity">間違えて曲を消してしまうことが多い場合、これを減少してください</string>
 
-    <string name="s_key_np_queue_extra_side_padding">曲キューの両側にパディングを増加</string>
-    <string name="s_sub_np_queue_extra_side_padding">キューを閉じるスワイプの使用が可能なエリアが増えます</string>
+    <string name="s_key_np_queue_extra_side_padding">曲リストの両側にパディングを増加</string>
+    <string name="s_sub_np_queue_extra_side_padding">リストを閉じるスワイプの使用が可能なエリアが増えます</string>
 
-    <string name="s_key_np_queue_wave_border_mode">曲キューの波ボーダーのアニメーションモード</string>
-    <string name="s_sub_np_queue_wave_border_mode">曲キューと操作ボタンの間にある波型ボーダーのアニメーション方法</string>
+    <string name="s_key_np_queue_wave_border_mode">曲リストの波ボーダーのアニメーションモード</string>
+    <string name="s_sub_np_queue_wave_border_mode">曲リストと操作ボタンの間にある波型ボーダーのアニメーション方法</string>
     <string name="s_option_wave_border_mode_time">時の流れ</string>
     <string name="s_option_wave_border_mode_time_sync">時の流れ（再生時のみ）</string>
-    <string name="s_option_wave_border_mode_scroll">曲キューのスクロールと</string>
+    <string name="s_option_wave_border_mode_scroll">曲リストのスクロールと</string>
     <string name="s_option_wave_border_mode_none">アニメーションなし</string>
     <string name="s_option_wave_border_mode_line">線型ボーダー</string>
 
-    <string name="s_key_np_queue_radio_info_position">曲キューラジオ情報の位置</string>
+    <string name="s_key_np_queue_radio_info_position">曲リストラジオ情報の位置</string>
     <string name="s_option_np_queue_radio_info_top_bar">ボタンバー</string>
     <string name="s_option_np_queue_radio_info_above_items">曲の上</string>
 
@@ -482,7 +482,7 @@
     <string name="s_key_np_default_video_position_background">プレイヤーのバックグラウンド</string>
     <string name="s_key_np_default_video_position_thumbnail">プレイヤーのサムネール</string>
 
-    <string name="s_key_np_default_landscape_queue_opacity">ランドスケープ曲キューのデフォルトの不透明度</string>
+    <string name="s_key_np_default_landscape_queue_opacity">ランドスケープ曲リストのデフォルトの不透明度</string>
     <string name="s_key_np_default_shadow_radius">シャドウのデフォルトのサイズ</string>
     <string name="s_key_np_default_image_corner_rounding">イメージ角のデフォルトのラウンヂング</string>
     <string name="s_key_np_default_wave_speed">波のデフォルトの速度</string>
@@ -858,9 +858,9 @@
     <string name="layout_slot_portrait_below_player">ミニプレイヤーの下</string>
     <string name="layout_slot_portrait_player_top">プレイヤーの上部</string>
 
-    <string name="layout_slot_config_portrait_player_top_show_in_queue">曲キューで表示</string>
+    <string name="layout_slot_config_portrait_player_top_show_in_queue">曲リストで表示</string>
     <string name="layout_slot_config_below_player_show_in_player">拡大プレイヤーで表示</string>
-    <string name="layout_slot_config_below_player_show_in_queue">曲キューで表示</string>
+    <string name="layout_slot_config_below_player_show_in_queue">曲リストで表示</string>
 
     <string name="layout_slot_landscape_outer_side_left">左バー（外側）</string>
     <string name="layout_slot_landscape_inner_side_left">左バー（内側）</string>
@@ -934,7 +934,7 @@
     <string name="appaction_song_action_download">ダウンロード</string>
     <string name="appaction_song_action_open_album">アルバムを開く</string>
     <string name="appaction_song_action_open_related">関係コンテンツを開く</string>
-    <string name="appaction_song_action_remove_from_queue">キューから削除</string>
+    <string name="appaction_song_action_remove_from_queue">リストから削除</string>
     <string name="appaction_song_action_share">共有</string>
     <string name="appaction_song_action_open_externally">外部アプリで開く</string>
     <string name="appaction_song_action_copy_url">URLをコピー</string>
@@ -943,8 +943,8 @@
     <string name="appaction_playback_action_play">再生</string>
     <string name="appaction_playback_action_toggle_play">再生をトグル</string>
     <string name="appaction_playback_action_seek_by_time">進む・戻る</string>
-    <string name="appaction_playback_action_shuffle_queue">キューをシャッフル</string>
-    <string name="appaction_playback_action_clear_queue">キューをクリア</string>
+    <string name="appaction_playback_action_shuffle_queue">リストをシャッフル</string>
+    <string name="appaction_playback_action_clear_queue">リストをクリア</string>
     <string name="appaction_playback_action_seek_next">次の曲に進む</string>
     <string name="appaction_playback_action_seek_previous">前の曲に戻る</string>
     <string name="appaction_playback_action_seek_random">ランダムの曲に移動</string>
@@ -961,4 +961,24 @@
     <string name="dependency_list_dep_$author">作者： $author</string>
     <string name="dependency_list_dep_$license">ライセンス： $license</string>
     <string name="dependency_list_dep_view_source">ソースを標示</string>
+
+    <string name="project_info_dialog_title">インフォメーション</string>
+    <string name="project_info_dialog_section_project">プロジェクト</string>
+    <string name="project_info_dialog_section_gestures">ジェスチャー</string>
+
+    <string name="project_info_dialog_gesture_player_swipes">プレイヤースワイプ</string>
+    <string name="project_info_dialog_gesture_player_swipe_player">ミニプレイヤーをスワイプしてフルプレイヤーを開く</string>
+    <string name="project_info_dialog_gesture_player_swipe_queue">フルプレイヤーをスワイプして曲リストを開く</string>
+
+    <string name="project_info_dialog_gesture_item_long_presses">メディアアイテムの長押</string>
+    <string name="project_info_dialog_gesture_item_long_press_normal">長押してアクション画面を開く</string>
+    <string name="project_info_dialog_gesture_item_long_press_long">更に長押しして複数選択を開始する</string>
+
+    <string name="project_info_dialog_gesture_dislike">「いいね」ボタンを長押しして曲を「低く評価」する</string>
+
+    <string name="project_info_dialog_project_$license">ライセンス： $license</string>
+    <string name="project_info_dialog_project_$author">作者： $author</string>
+    <string name="project_info_dialog_project_source_button">ソースコードを見る</string>
+    <string name="project_info_dialog_project_donate_button">ココアを奢る</string>
+    <string name="project_info_dialog_dependencies_button">ソフトウェア依存を標示</string>
 </resources>

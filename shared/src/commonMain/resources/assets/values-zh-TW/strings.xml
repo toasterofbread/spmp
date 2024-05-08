@@ -22,9 +22,9 @@
     <string name="version_message_non_release_$commit_$apiver_$split">SpMp 基於未發行的提交建構 $commit $split與 API 版本 $apiver</string>
     <string name="help_message">待完成</string>
 
-    <string name="spms_client_type_spmp_player">SpMp (播放器)</string>
+    <string name="spms_client_type_spmp_player">SpMp （播放器）</string>
     <string name="spms_client_type_info_spmp_player">圖形介面的 SpMp 實體，可以播放自己的音訊</string>
-    <string name="spms_client_type_spmp_standalone">SpMp (獨立模式)</string>
+    <string name="spms_client_type_spmp_standalone">SpMp （獨立模式）</string>
     <string name="spms_client_type_info_spmp_standalone">圖形化的 SpMp 實體，依靠外部播放器播放音訊</string>
     <string name="spms_client_type_player">播放器</string>
     <string name="spms_client_type_info_player">一個沒有圖形介面的獨立音訊播放器</string>
@@ -39,7 +39,7 @@
     <string name="spms_client_type_info_url_command_line">https://spmp.toastbits.dev/docs/server/cli</string>
     <string name="spms_client_type_info_url_server">https://spmp.toastbits.dev/docs/server/about/</string>
 	
-    <string name="font_option_default_$x">預設 ($x)</string>
+    <string name="font_option_default_$x">預設 （$x）</string>
     <string name="font_option_system">系統字體</string>
     <string name="font_option_hc_maru_gothic">HC Maru Gothic</string>
 
@@ -314,7 +314,7 @@
     <string name="multiselect_begin">開始多選</string>
     <string name="multiselect_end">結束多選</string>
 
-    <string name="topbar_mode_unavailable">(不可用)</string>
+    <string name="topbar_mode_unavailable">（不可用）</string>
 
     <string name="notif_download_finished">下載完成</string>
     <string name="notif_download_already_finished">已經下載</string>
@@ -356,7 +356,7 @@
 
     <string name="settings_string_set_item_empty">沒有項目被添加</string>
     <string name="settings_string_set_item_already_added">項目已添加</string>
-    <string name="settings_value_out_of_$range">超出範圍 ($range)</string>
+    <string name="settings_value_out_of_$range">超出範圍 （$range）</string>
     <string name="settings_value_not_int">不是整數</string>
     <string name="settings_value_not_float">不是浮點數</string>
     <string name="settings_value_not_ipv4">不是有效的 IPv4 地址</string>
@@ -402,7 +402,7 @@
     <string name="s_sub_hidden_feed_rows">也可以通過長按標題來隱藏列</string>
     <string name="s_hidden_feed_rows_dialog_title">通過標題隱藏列</string>
 
-    <string name="s_key_open_np_on_song_played">當點擊歌時打開播放器</string>
+    <string name="s_key_open_np_on_song_played">當點擊歌曲時打開播放器</string>
     <string name="s_sub_open_np_on_song_played">點擊並播放歌曲時，當前播放的選單將自動打開</string>
 
     <string name="s_key_multiselect_cancel_on_action">操作後取消多選</string>
@@ -753,7 +753,7 @@
     <string name="webview_restart_required">請重啟程式來繼續</string>
 
     <string name="warning_spms_api_version_mismatch">SpMs API 版本不匹配</string>
-    <string name="warning_spms_api_version_mismatch_$theirs_$ours">所連接伺服器的 API 版本 ($theirs) 與 SpMp 此建置版本的 API 版本($ours)不符。這可能會導致意外行為或崩潰</string>
+    <string name="warning_spms_api_version_mismatch_$theirs_$ours">所連接伺服器的 API 版本（$theirs）與 SpMp 此建置版本的 API 版本（$ours）不符。這可能會導致意外行為或崩潰</string>
 
     <string name="youtube_manual_login_title">手動登錄 YouTube</string>
     <string-array name="youtube_manual_login_steps">
@@ -762,7 +762,7 @@
         <item>前往網絡頁面</item>
         <item>前往 https://music.youtube.com/</item>
         <item>找到任何一個POST請求，其地址為 https://music.youtube.com/youtubei/v1/...，如 /browse 或 /account_menu</item>
-        <item>在請求上按下右鍵，選擇 「複製」（或「複製值」），然後選擇「複製為cURL (Bash)」，複製請求標頭，然後貼上到下面</item>
+        <item>在請求上按下右鍵，選擇 「複製」（或「複製值」），然後選擇「複製為cURL（Bash）」，複製請求標頭，然後貼上到下面</item>
     </string-array>
     <string name="youtube_manual_login_suffix"></string>
     <string name="youtube_manual_login_field">標頭</string>

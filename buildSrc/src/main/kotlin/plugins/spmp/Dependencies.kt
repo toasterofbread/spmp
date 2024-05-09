@@ -181,7 +181,7 @@ class SpMpDeps(extra: Map<String, Any>) {
             "io.ktor" to DependencyInfo(
                 version = "2.3.9",
                 name = "Ktor",
-                author = "ktor.io",
+                author = "JetBrains",
                 url = "https://github.com/ktorio/ktor",
                 license = "Apache-2.0",
                 license_url = "https://github.com/ktorio/ktor/blob/d5ae8e5641dea582fbe5ebb52577e7bdad2f5ad8/LICENSE"

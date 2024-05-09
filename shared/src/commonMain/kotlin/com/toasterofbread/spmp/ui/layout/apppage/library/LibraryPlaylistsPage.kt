@@ -3,7 +3,6 @@ package com.toasterofbread.spmp.ui.layout.apppage.library
 import LocalPlayerState
 import SpMp.isDebugBuild
 import dev.toastbits.ytmkt.model.ApiAuthenticationState
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.material.icons.Icons
@@ -19,9 +18,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.shrinkHorizontally
 import dev.toastbits.composekit.platform.composable.ScrollBarLazyVerticalGrid
 import dev.toastbits.composekit.utils.composable.LoadActionIconButton
 import dev.toastbits.composekit.utils.composable.spanItem
+import dev.toastbits.composekit.utils.composable.RowOrColumnScope
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
 import com.toasterofbread.spmp.model.mediaitem.layout.getMediaItemPreviewSquareAdditionalHeight
@@ -124,14 +126,18 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
     }
 
     @Composable
-    override fun SideContent(showing_alt_content: Boolean) {
+    override fun RowOrColumnScope.SideContent(showing_alt_content: Boolean) {
         val player: PlayerState = LocalPlayerState.current
         val auth_state: ApiAuthenticationState? = player.context.ytapi.user_auth_state
 
         val load_endpoint: AccountPlaylistsEndpoint? = auth_state?.AccountPlaylists?.implementedOrNull()
         val create_endpoint: CreateAccountPlaylistEndpoint? = auth_state?.CreateAccountPlaylist?.implementedOrNull()
 
-        AnimatedVisibility(showing_alt_content && load_endpoint != null) {
+        AnimatedVisibility(
+            showing_alt_content && load_endpoint != null,
+            enter = expandHorizontally(),
+            exit = shrinkHorizontally()
+        ) {
             LoadActionIconButton(
                 {
                     val result = load_endpoint?.getAccountPlaylists()
@@ -142,7 +148,11 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
             }
         }
 
-        AnimatedVisibility(!showing_alt_content || create_endpoint != null) {
+        AnimatedVisibility(
+            !showing_alt_content || create_endpoint != null,
+            enter = expandHorizontally(),
+            exit = shrinkHorizontally()
+        ) {
             LoadActionIconButton({
                 if (!showing_alt_content) {
                     MediaItemLibrary.createLocalPlaylist(player.context)

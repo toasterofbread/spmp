@@ -128,6 +128,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
         slot: LayoutSlot,
         content_padding: PaddingValues,
         distance_to_page: Dp,
+        lazy: Boolean,
         modifier: Modifier
     ): Boolean {
         val show_suggestions: Boolean by context.settings.behaviour.SEARCH_SHOW_SUGGESTIONS.observe()

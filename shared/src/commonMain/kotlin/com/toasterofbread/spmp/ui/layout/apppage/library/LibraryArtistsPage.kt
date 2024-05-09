@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import dev.toastbits.composekit.platform.composable.ScrollBarLazyColumn
 import dev.toastbits.composekit.utils.composable.EmptyListAndDataCrossfade
 import dev.toastbits.composekit.utils.composable.LoadActionIconButton
+import dev.toastbits.composekit.utils.composable.RowOrColumnScope
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
@@ -231,7 +232,7 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
     }
 
     @Composable
-    override fun SideContent(showing_alt_content: Boolean) {
+    override fun RowOrColumnScope.SideContent(showing_alt_content: Boolean) {
         val player: PlayerState = LocalPlayerState.current
         val auth_state: ApiAuthenticationState? =
             if (showing_alt_content) player.context.ytapi.user_auth_state

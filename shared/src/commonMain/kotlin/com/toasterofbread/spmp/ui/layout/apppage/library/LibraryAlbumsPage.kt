@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.toastbits.composekit.utils.composable.LoadActionIconButton
 import dev.toastbits.composekit.utils.composable.spanItem
+import dev.toastbits.composekit.utils.composable.RowOrColumnScope
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
 import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
@@ -107,7 +108,7 @@ internal class LibraryAlbumsPage(context: AppContext): LibrarySubPage(context) {
     }
 
     @Composable
-    override fun SideContent(showing_alt_content: Boolean) {
+    override fun RowOrColumnScope.SideContent(showing_alt_content: Boolean) {
         val player: PlayerState = LocalPlayerState.current
         val auth_state: ApiAuthenticationState = player.context.ytapi.user_auth_state ?: return
         

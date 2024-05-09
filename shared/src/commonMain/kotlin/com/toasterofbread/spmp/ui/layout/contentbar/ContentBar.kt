@@ -58,9 +58,9 @@ sealed class ContentBar {
                 slot,
                 slot_colour_source.theme_colour,
                 base_content_padding,
-                distance_to_page,
-                true,
-                modifier.background(background_colour).padding(content_padding)
+                distance_to_page = distance_to_page,
+                lazy = true,
+                modifier = modifier.background(background_colour).padding(content_padding)
             )
         }
 

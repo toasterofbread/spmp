@@ -28,6 +28,8 @@ import dev.toastbits.composekit.utils.composable.*
 import dev.toastbits.composekit.utils.modifier.scrollWithoutClip
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.platform.*
+import com.toasterofbread.spmp.platform.getFormFactor
+import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
@@ -62,7 +64,7 @@ abstract class LibrarySubPage(val context: AppContext) {
     )
 
     @Composable
-    open fun SideContent(showing_alt_content: Boolean) {}
+    open fun RowOrColumnScope.SideContent(showing_alt_content: Boolean) {}
 
     @Composable
     fun LibraryPageTitle(title: String, modifier: Modifier = Modifier) {
@@ -167,7 +169,40 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
         lazy: Boolean,
         modifier: Modifier
     ): Boolean {
-        LibraryIconButtonPageSelector(slot, content_padding, lazy, modifier)
+        val form_factor: FormFactor = LocalPlayerState.current.getFormFactor()
+        LibraryIconButtonPageSelector(
+            slot,
+            content_padding,
+            lazy,
+            modifier,
+            show_page_buttons = true,
+            show_contextual_buttons = form_factor == FormFactor.LANDSCAPE,
+            show_source_buttons = form_factor == FormFactor.LANDSCAPE,
+            separate_source_and_contextual = form_factor == FormFactor.LANDSCAPE
+        )
+        return true
+    }
+
+    @Composable
+    override fun shouldShowSecondaryBarContent(): Boolean = LocalPlayerState.current.getFormFactor() != FormFactor.LANDSCAPE
+
+    @Composable
+    override fun SecondaryBarContent(
+        slot: LayoutSlot,
+        content_padding: PaddingValues,
+        distance_to_page: Dp,
+        lazy: Boolean,
+        modifier: Modifier
+    ): Boolean {
+        LibraryIconButtonPageSelector(
+            slot,
+            content_padding,
+            lazy,
+            modifier,
+            show_page_buttons = false,
+            show_contextual_buttons = true,
+            show_source_buttons = true
+        )
         return true
     }
 

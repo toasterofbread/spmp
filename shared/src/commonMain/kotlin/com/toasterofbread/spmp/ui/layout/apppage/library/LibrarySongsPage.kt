@@ -33,6 +33,7 @@ import dev.toastbits.composekit.utils.common.getValue
 import dev.toastbits.composekit.utils.composable.EmptyListCrossfade
 import dev.toastbits.composekit.utils.composable.LoadActionIconButton
 import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.utils.composable.RowOrColumnScope
 import com.toasterofbread.spmp.model.mediaitem.db.rememberLocalLikedSongs
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
@@ -198,7 +199,7 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
 
 
     @Composable
-    override fun SideContent(showing_alt_content: Boolean) {
+    override fun RowOrColumnScope.SideContent(showing_alt_content: Boolean) {
         val player: PlayerState = LocalPlayerState.current
         val auth_state: ApiAuthenticationState? = player.context.ytapi.user_auth_state
 

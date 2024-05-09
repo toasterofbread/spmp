@@ -30,7 +30,7 @@ private class PrimaryInternalContentBar(index: Int): InternalContentBar(index) {
     override fun getIcon(): ImageVector = Icons.Default.LooksOne
 
     @Composable
-    override fun isDisplaying(): Boolean = 
+    override fun isDisplaying(): Boolean =
         LocalPlayerState.current.app_page.shouldShowPrimaryBarContent()
 
     @Composable
@@ -74,7 +74,7 @@ private class SecondaryInternalContentBar(index: Int): InternalContentBar(index)
     ): Boolean {
         val page: AppPage = LocalPlayerState.current.app_page
         if (page.shouldShowSecondaryBarContent()) {
-            if (!page.SecondaryBarContent(slot, content_padding, distance_to_page, modifier)) {
+            if (!page.SecondaryBarContent(slot, content_padding, distance_to_page, lazy, modifier)) {
                 return false
             }
             return true

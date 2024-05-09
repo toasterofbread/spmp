@@ -24,7 +24,7 @@ class SpMpDeps(extra: Map<String, Any>) {
     val dependencies: Map<String, DependencyInfo> =
         mapOf(
             "dev.toastbits.composekit" to DependencyInfo(
-                version = "136f216e65",
+                version = "5878f3b4be",
                 name = "ComposeKit",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/composekit",

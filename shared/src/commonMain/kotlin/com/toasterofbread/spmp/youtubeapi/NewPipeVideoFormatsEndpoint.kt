@@ -15,6 +15,7 @@ import org.schabi.newpipe.extractor.stream.VideoStream
 class NewPipeVideoFormatsEndpoint(override val api: YtmApi): VideoFormatsEndpoint() {
     override suspend fun getVideoFormats(
         id: String,
+        include_non_default: Boolean,
         filter: ((YoutubeVideoFormat) -> Boolean)?
     ): Result<List<YoutubeVideoFormat>> = runCatching {
         val link_handler: LinkHandler = YoutubeStreamLinkHandlerFactory.getInstance().fromId(id)

@@ -64,7 +64,7 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
                     Column(Modifier.fillMaxSize().padding(15.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                         Icon(Icons.Default.Warning, null, tint = Color.Red)
 
-                        LinkifyText(warning_text ?: "", theme.accent, colour = theme.on_background, style = MaterialTheme.typography.bodyMedium)
+                        LinkifyText(warning_text ?: "", theme.accent, style = MaterialTheme.typography.bodyMedium.copy(color = theme.on_background))
 
                         Button(
                             { accepted = true },

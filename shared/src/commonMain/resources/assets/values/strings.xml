@@ -637,6 +637,9 @@
     <string name="s_key_unlocalised_strings">Unlocalised strings</string>
     <string name="s_sub_unlocalised_strings">Strings that have not been localised for the current language</string>
 
+    <string name="s_key_search_search_for_non_music">Search for non-music items</string>
+    <string name="s_sub_search_search_for_non_music">Perform searches using www.youtube.com instead of music.youtube.com</string>
+
     <string name="s_group_discord_status_disable_when">Disable status when</string>
     <string name="s_key_discord_status_disable_when_invisible">Invisible</string>
     <string name="s_key_discord_status_disable_when_dnd">Do-not-disturb</string>
@@ -668,7 +671,7 @@
     <string name="s_key_navigate_song_with_numbers">Seek through song with number keys</string>
 
     <string name="s_cat_general">General</string>
-    <string name="s_cat_desc_general">Language, and other options</string>
+    <string name="s_cat_desc_general">Language, font, and other options</string>
 
     <string name="s_cat_behaviour">Behaviour</string>
     <string name="s_cat_desc_behaviour">Various display and action tweaks</string>
@@ -709,6 +712,7 @@
     <string name="s_cat_dependencies">Dependencies</string>
     <string name="s_cat_desc_dependencies">View software libraries used by SpMp</string>
 
+    <string name="s_cat_search">Search</string>
     <string name="s_cat_youtube_auth">YouTube credentials</string>
     <string name="s_cat_discord_auth">Discord credentials</string>
 
@@ -998,7 +1002,7 @@
     <string name="project_info_dialog_gesture_item_long_press_long">Extra-long-press to begin multiple selection</string>
 
     <string name="project_info_dialog_gesture_dislike">Long-press like button to dislike a song</string>
-    
+
     <string name="project_info_dialog_project_$license">License: $license</string>
     <string name="project_info_dialog_project_$author">Author: $author</string>
     <string name="project_info_dialog_project_source_button">View source code</string>

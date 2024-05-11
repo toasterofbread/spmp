@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -35,8 +36,13 @@ internal fun SearchAppPage.SearchBar(
     apply_padding: Boolean = true,
     onFocusChanged: (Boolean) -> Unit
 ) {
-    val focus_requester: FocusRequester = remember { FocusRequester() }
     val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
+    val focus_requester: FocusRequester = remember { FocusRequester() }
+    var show_settings: Boolean by remember { mutableStateOf(false) }
+
+    if (show_settings) {
+        SearchSettingsDialog { show_settings = false }
+    }
 
     LaunchedEffect(Unit) {
         if (expansion.getPage() == 0 && current_results == null && !search_in_progress) {
@@ -121,6 +127,21 @@ internal fun SearchAppPage.SearchBar(
             shape = SEARCH_BAR_SHAPE
         ) {
             Icon(Icons.Filled.Search, null)
+        }
+
+        ShapedIconButton(
+            { show_settings = true },
+            IconButtonDefaults.iconButtonColors(
+                containerColor = context.theme.vibrant_accent,
+                contentColor = context.theme.vibrant_accent.getContrasted()
+            ),
+            Modifier
+                .aspectRatio(1f)
+                .bounceOnClick()
+                .appHover(true),
+            shape = SEARCH_BAR_SHAPE
+        ) {
+            Icon(Icons.Filled.Settings, null)
         }
     }
 }

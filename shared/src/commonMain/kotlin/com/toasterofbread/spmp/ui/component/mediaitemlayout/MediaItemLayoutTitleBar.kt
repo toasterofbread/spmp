@@ -63,6 +63,7 @@ fun TitleBar(
 
     AnimatedVisibility(
         shouldShowTitleBar(layout_params, scrollable_state),
+        modifier,
         enter = slideInVertically(),
         exit = slideOutVertically()
     ) {

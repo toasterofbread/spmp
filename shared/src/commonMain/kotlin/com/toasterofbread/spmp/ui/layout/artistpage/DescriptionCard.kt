@@ -99,9 +99,10 @@ fun DescriptionCard(description_text: String, expanding: Boolean = true, height:
                         }
                     }
                     .animateContentSize(),
-                colour = player.theme.on_background.copy(alpha = 0.8f),
                 highlight_colour = player.theme.on_background,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = player.theme.on_background.copy(alpha = 0.8f)
+                )
             )
 
             Spacer(Modifier.height(padding))

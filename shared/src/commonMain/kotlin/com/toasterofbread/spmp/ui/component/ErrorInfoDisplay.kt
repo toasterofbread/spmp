@@ -44,6 +44,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -93,6 +94,10 @@ fun ErrorInfoDisplay(
     onRetry: (() -> Unit)? = null,
     onDismiss: (() -> Unit)?
 ) {
+    LaunchedEffect(error) {
+        error?.printStackTrace()
+    }
+
     if (error == null && pair_error == null) {
         return
     }

@@ -54,7 +54,7 @@ internal class SpMpYoutubeiApi(
 
     override var user_auth_state: YoutubeiAuthenticationState? by mutableStateOf(getCurrentUserAuthState())
 
-    private val prefs_listener = 
+    private val prefs_listener =
         PlatformPreferencesListener { _, key ->
             when (key) {
                 context.settings.youtube_auth.YTM_AUTH.key -> user_auth_state = getCurrentUserAuthState()
@@ -122,9 +122,10 @@ internal class SpMpYoutubeiApi(
             playlist_id: String,
             continuation: RadioContinuation?,
             browse_params: String?,
-            playlist_url: String?
+            playlist_url: String?,
+            use_non_music_api: Boolean
         ): Result<YtmPlaylist> = runCatching {
-            val playlist: YtmPlaylist = super.loadPlaylist(playlist_id, continuation, browse_params, playlist_url).getOrThrow()
+            val playlist: YtmPlaylist = super.loadPlaylist(playlist_id, continuation, browse_params, playlist_url, use_non_music_api).getOrThrow()
             playlist.toRemotePlaylistData().also { data ->
                 data.loaded = true
                 data.saveToDatabase(
@@ -141,9 +142,10 @@ internal class SpMpYoutubeiApi(
             continuation: RadioContinuation? = null,
             browse_params: String? = null,
             playlist_url: String? = null,
+            use_non_music_api: Boolean = false,
             save: Boolean = false
         ): Result<RemotePlaylistData> = runCatching {
-            val playlist: RemotePlaylistData = super.loadPlaylist(playlist_id, continuation, browse_params, playlist_url).getOrThrow().toRemotePlaylistData()
+            val playlist: RemotePlaylistData = super.loadPlaylist(playlist_id, continuation, browse_params, playlist_url, use_non_music_api).getOrThrow().toRemotePlaylistData()
             playlist.loaded = true
             if (save) {
                 playlist.saveToDatabase(
@@ -225,11 +227,12 @@ internal class SpMpYoutubeiApi(
 
     // // --- Search ---
     override val Search = object : YTMSearchEndpoint(this) {
-        override suspend fun searchMusic(
+        override suspend fun search(
             query: String,
-            params: String?
+            params: String?,
+            non_music: Boolean
         ): Result<SearchResults> = runCatching {
-            val results: SearchResults = super.searchMusic(query, params).getOrThrow()
+            val results: SearchResults = super.search(query, params, non_music).getOrThrow()
             performTransaction {
                 for (category in results.categories) {
                     for (item in category.first.items) {

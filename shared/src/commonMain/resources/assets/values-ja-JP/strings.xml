@@ -614,6 +614,9 @@
     <string name="s_key_unlocalised_strings">ローカライズされてない文</string>
     <string name="s_sub_unlocalised_strings">現在のアプリ言語に対してまだ書かれていないストリング</string>
 
+    <string name="s_key_search_search_for_non_music">通常検索を使用</string>
+    <string name="s_sub_search_search_for_non_music">「music.youtube.com」で検索を行うかわりに、「www.youtube.com」を使用する</string>
+
     <string name="s_group_discord_status_disable_when">ステータス変更を無効にする状態</string>
     <string name="s_key_discord_status_disable_when_invisible">オンライン状態が隠されている時</string>
     <string name="s_key_discord_status_disable_when_dnd">取り込み中</string>

@@ -290,7 +290,8 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
             multiselect_context?.setActive(false)
 
             coroutine_scope.launchSingle {
-                search_endpoint.searchMusic(query, filter?.params).fold(
+                val non_music: Boolean = context.settings.search.SEARCH_FOR_NON_MUSIC.get()
+                search_endpoint.search(query, filter?.params, non_music = non_music).fold(
                     { results ->
                         for (result in results.categories) {
                             if (result.second != null) {

@@ -13,7 +13,6 @@ import com.toasterofbread.spmp.ui.layout.apppage.searchpage.getIcon
 import dev.toastbits.ytmkt.endpoint.*
 import dev.toastbits.composekit.utils.modifier.horizontal
 import dev.toastbits.composekit.utils.modifier.vertical
-import dev.toastbits.composekit.utils.common.copy
 
 @Composable
 internal fun SearchAppPage.VerticalSearchPrimaryBar(
@@ -39,7 +38,7 @@ internal fun SearchAppPage.VerticalSearchPrimaryBar(
             else current_filter!!.ordinal == index - 1
         },
         modifier = modifier.width(125.dp),
-        content_padding = content_padding.copy(start = 0.dp),
+        content_padding = content_padding,
         onSelected = { index ->
             if (index == 0) {
                 setFilter(null)

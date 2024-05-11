@@ -25,6 +25,7 @@ class Settings(context: AppContext) {
     val desktop: DesktopSettings = DesktopSettings(context)
     val misc: MiscSettings = MiscSettings(context)
     val deps: DependencySettings = DependencySettings(context)
+    val search: SearchSettings = SearchSettings(context)
     val ytapi: YTApiSettings = YTApiSettings(context)
 
     val all_groups: Map<String, SettingsGroup> =

@@ -35,7 +35,7 @@ suspend fun getSongFormats(
     filter: (YoutubeVideoFormat) -> Boolean = { true }
 ): Result<List<YoutubeVideoFormat>> {
     val result: Result<List<YoutubeVideoFormat>> =
-        context.ytapi.VideoFormats.getVideoFormats(song_id, filter)
+        context.ytapi.VideoFormats.getVideoFormats(song_id, filter = filter)
 
     val formats: List<YoutubeVideoFormat> = result.fold(
         { it },

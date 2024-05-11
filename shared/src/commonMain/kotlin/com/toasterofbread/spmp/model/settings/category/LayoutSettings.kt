@@ -82,7 +82,7 @@ class LayoutSettings(val context: AppContext): SettingsGroup("LAYOUT", context.g
             { getString("s_cat_desc_layout") },
             { getLayoutCategoryItems(context) },
             { Icons.Outlined.VerticalSplit },
-            titleBarEndContent = {
+            titleBarEndContent = { modifier ->
                 val player: PlayerState = LocalPlayerState.current
                 val density: Density = LocalDensity.current
                 var show_preview_options: Boolean by remember { mutableStateOf(false) }
@@ -91,7 +91,7 @@ class LayoutSettings(val context: AppContext): SettingsGroup("LAYOUT", context.g
                 var options_height: Int by remember { mutableStateOf(0) }
 
                 Box(
-                    Modifier.thenWith(button_size) {
+                    modifier.thenWith(button_size) {
                         requiredSize(it)
                     }
                 ) {

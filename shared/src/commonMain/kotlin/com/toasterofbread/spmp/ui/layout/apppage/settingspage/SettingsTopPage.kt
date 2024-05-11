@@ -4,6 +4,8 @@ import LocalPlayerState
 import ProgramArguments
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -109,10 +111,11 @@ internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, cont
 
     LazyColumn(
         modifier,
-        contentPadding = PaddingValues(
-            top = top_padding,
-            bottom = content_padding.calculateBottomPadding() + PREFS_PAGE_EXTRA_PADDING_DP.dp
-        )
+        contentPadding =
+            PaddingValues(
+                top = top_padding,
+                bottom = content_padding.calculateBottomPadding() + PREFS_PAGE_EXTRA_PADDING_DP.dp
+            )
     ) {
         item {
             Row(
@@ -158,7 +161,12 @@ internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, cont
                 return@items
             }
 
-            Row(Modifier.padding(bottom = item_spacing), verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                Modifier
+                    .padding(bottom = item_spacing)
+                    .padding(horizontal_padding),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 AnimatedVisibility(exporting) {
                     StyledCheckbox(
                         checked = export_categories.contains(page.group),
@@ -168,7 +176,7 @@ internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, cont
                     )
                 }
 
-                Box(Modifier.fillMaxWidth().padding(horizontal_padding)) {
+                Box(Modifier.fillMaxWidth()) {
                     val density: Density = LocalDensity.current
 
                     // Using IntrinsicHeight breaks some item animations
@@ -470,7 +478,11 @@ private fun ImportExportButtons(
 ) {
     val initial_icon_modifier: Modifier = Modifier.alpha(0.5f)
 
-    AnimatedVisibility(exporting) {
+    AnimatedVisibility(
+        exporting,
+        enter = expandHorizontally(),
+        exit = shrinkHorizontally()
+    ) {
         IconButton({
             if (export_groups.size == group_pages.size) {
                 export_groups.clear()

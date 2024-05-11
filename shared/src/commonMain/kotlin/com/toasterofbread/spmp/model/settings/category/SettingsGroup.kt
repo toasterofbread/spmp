@@ -24,6 +24,7 @@ import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.utils.common.amplifyPercent
 import dev.toastbits.composekit.settings.ui.SettingsInterface
+import LocalPlayerState
 
 sealed class SettingsGroup(
     key: String,
@@ -66,7 +67,7 @@ sealed class SettingsGroup(
         val getDescription: () -> String,
         private val getPageItems: () -> List<SettingsItem>,
         private val getPageIcon: @Composable () -> ImageVector,
-        private val titleBarEndContent: @Composable () -> Unit = {}
+        private val titleBarEndContent: @Composable (Modifier) -> Unit = {}
     ): CategoryPage(this, getTitle) {
         private var items: List<SettingsItem>? = null
 
@@ -78,10 +79,14 @@ sealed class SettingsGroup(
                     getIcon = getPageIcon
                 ) {
                     @Composable
-                    override fun TitleBarEndContent() {
-                        titleBarEndContent()
-                        super.TitleBarEndContent()
+                    override fun TitleBarEndContent(modifier: Modifier) {
+                        titleBarEndContent(modifier)
+                        super.TitleBarEndContent(modifier)
                     }
+
+                    @Composable
+                    override fun canResetKeys(): Boolean =
+                        getItems(LocalPlayerState.current.context).isNotEmpty()
                 }
             )
         }

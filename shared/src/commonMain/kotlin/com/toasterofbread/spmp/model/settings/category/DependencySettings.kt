@@ -49,11 +49,14 @@ class DependencySettings(val context: AppContext): SettingsGroup("DEPENDENCY", c
                 }
             ) },
             { Icons.Outlined.LibraryBooks },
-            titleBarEndContent = {
+            titleBarEndContent = { modifier ->
                 val player: PlayerState = LocalPlayerState.current
 
                 if (player.context.canOpenUrl()) {
-                    IconButton({ player.context.openUrl("https://github.com/toasterofbread/spmp/blob/main/buildSrc/src/main/kotlin/plugins/spmp/Dependencies.kt") }) {
+                    IconButton(
+                        { player.context.openUrl("https://github.com/toasterofbread/spmp/blob/main/buildSrc/src/main/kotlin/plugins/spmp/Dependencies.kt") },
+                        modifier
+                    ) {
                         Icon(Icons.Default.OpenInNew, null)
                     }
                 }

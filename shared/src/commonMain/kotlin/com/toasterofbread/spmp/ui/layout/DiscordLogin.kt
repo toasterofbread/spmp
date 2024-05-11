@@ -27,7 +27,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
-import androidx.compose.runtime.saveable.mapSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -48,6 +47,7 @@ import com.toasterofbread.spmp.platform.getOrNotify
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.encodeToString
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 
@@ -115,25 +115,15 @@ fun DiscordLogin(content_padding: PaddingValues, modifier: Modifier = Modifier, 
     }
 }
 
-private val DiscordMeResponseSaver: Saver<DiscordMeResponse?, Any> = run {
-    mapSaver(
+private val DiscordMeResponseSaver: Saver<DiscordMeResponse?, String> =
+    Saver<DiscordMeResponse?, String>(
         save = { it: DiscordMeResponse? ->
-            if (it == null || it.isEmpty()) emptyMap()
-            else with (it) { mapOf(
-                "id" to id,
-                "username" to username,
-                "avatar" to avatar,
-                "discriminator" to discriminator,
-                "banner_color" to banner_color,
-                "bio" to bio,
-                "token" to token
-            )}
+            it?.let { Json.encodeToString(it) }
         },
-        restore = { map: Map<String, Any?> ->
-            Json.decodeFromJsonElement(Json.encodeToJsonElement(map))
+        restore = { data: String ->
+            Json.decodeFromString(data)
         }
     )
-}
 
 @Composable
 fun DiscordAccountPreview(account_token: String, modifier: Modifier = Modifier) {

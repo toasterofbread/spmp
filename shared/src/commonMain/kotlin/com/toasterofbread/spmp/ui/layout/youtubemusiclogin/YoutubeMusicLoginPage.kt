@@ -213,7 +213,7 @@ class YoutubeMusicLoginPage(val api: YoutubeiApi): LoginPage() {
             title = if (info_only) null else ({ Text(getString("prompt_confirm_action")) }),
             text = {
                 Column {
-                    LinkifyText(getString(if (info_only) "info_ytm_login" else "warning_ytm_login"), player.theme.accent)
+                    LinkifyText(player.context, getString(if (info_only) "info_ytm_login" else "warning_ytm_login"), player.theme.accent)
                     if (!info_only && !manual_only) {
                         FilledTonalButton({ onFinished(true) }, Modifier.fillMaxWidth().padding(top = 5.dp).offset(y = 20.dp)) {
                             Text(getString("action_login_manually"))

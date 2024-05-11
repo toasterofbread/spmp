@@ -56,6 +56,8 @@ private const val DISCORD_API_URL: String = "https://discord.com/api/"
 
 @Composable
 fun DiscordLoginConfirmation(info_only: Boolean = false, onFinished: (manual: Boolean?) -> Unit) {
+    val player: PlayerState = LocalPlayerState.current
+    
     AlertDialog(
         { onFinished(null) },
         confirmButton = {
@@ -71,7 +73,11 @@ fun DiscordLoginConfirmation(info_only: Boolean = false, onFinished: (manual: Bo
         title = if (info_only) null else ({ Text(getString("prompt_confirm_action")) }),
         text = {
             Column {
-                LinkifyText(getString(if (info_only) "info_discord_login" else "warning_discord_login"), LocalPlayerState.current.theme.accent)
+                LinkifyText(
+                    player.context, 
+                    getString(if (info_only) "info_discord_login" else "warning_discord_login"), 
+                    player.theme.accent
+                )
                 if (!info_only) {
                     FilledTonalButton({ onFinished(true) }, Modifier.fillMaxWidth().padding(top = 5.dp).offset(y = 20.dp)) {
                         Text(getString("action_login_manually"))

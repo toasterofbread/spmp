@@ -51,6 +51,7 @@ internal fun getPrefsPageSettingsInterface(
     val discord_auth: PreferencesProperty<String> = context.settings.discord_auth.DISCORD_ACCOUNT_TOKEN
 
     settings_interface = SettingsInterface(
+        context,
         { context.theme },
         PrefsPageScreen.ROOT.ordinal,
         context.getPrefs(),

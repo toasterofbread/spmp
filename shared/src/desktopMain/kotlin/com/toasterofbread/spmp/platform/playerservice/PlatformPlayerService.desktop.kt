@@ -14,6 +14,7 @@ import com.toasterofbread.spmp.platform.unbindPlatformService
 import spms.socketapi.shared.SpMsPlayerRepeatMode
 import spms.socketapi.shared.SpMsPlayerState
 import kotlinx.serialization.json.JsonPrimitive
+import dev.toastbits.mediasession.MediaSession
 
 private class PlayerServiceBinder(val service: PlatformPlayerService): PlatformBinder()
 
@@ -21,6 +22,8 @@ actual class PlatformPlayerService: SpMsPlayerService(), PlayerService {
     actual val load_state: PlayerServiceLoadState get() = socket_load_state
     actual val connection_error: Throwable? get() = socket_connection_error
     actual override val context: AppContext get() = super.context
+
+    private var media_session: MediaSession? = null
 
     override val listeners: List<PlayerListener>
         get() = Companion.listeners
@@ -163,11 +166,12 @@ actual class PlatformPlayerService: SpMsPlayerService(), PlayerService {
 
         super.onCreate()
 
-        createDesktopMediaSession(this)
+        media_session = createDesktopMediaSession(this)
     }
 
     actual override fun onDestroy() {
         super.onDestroy()
+        media_session = null
     }
 
     actual companion object {

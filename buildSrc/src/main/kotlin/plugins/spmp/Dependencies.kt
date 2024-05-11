@@ -24,7 +24,7 @@ class SpMpDeps(extra: Map<String, Any>) {
     val dependencies: Map<String, DependencyInfo> =
         mapOf(
             "dev.toastbits.composekit" to DependencyInfo(
-                version = "272116e80f",
+                version = "058e48e95f",
                 name = "ComposeKit",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/composekit",
@@ -40,7 +40,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/toasterofbread/ytm-kt/blob/bc8ea6cef51d5da69e6ac2d898672db2825602fe/LICENSE"
             ),
             "dev.toastbits.mediasession" to DependencyInfo(
-                version = "0.0.1",
+                version = "0.2.0",
                 name = "mediasession-kt",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/mediasession-kt",

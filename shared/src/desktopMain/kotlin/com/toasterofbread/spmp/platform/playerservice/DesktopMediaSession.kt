@@ -10,19 +10,21 @@ import dev.toastbits.mediasession.MediaSessionMetadata
 import dev.toastbits.mediasession.MediaSessionPlaybackStatus
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 
-internal fun createDesktopMediaSession(service: PlatformPlayerService): Boolean {
-    val session: MediaSession =
+internal fun createDesktopMediaSession(service: PlatformPlayerService): MediaSession? {
+    val session: MediaSession? =
         try {
-            object : MediaSession() {
-                override fun getPositionMs(): Long {
-                    return service.current_position_ms
-                }
-            }
+            MediaSession.create(
+                getPositionMs = { service.current_position_ms }
+            )
         }
         catch (e: Throwable) {
             e.printStackTrace()
-            return false
+            return null
         }
+
+    if (session == null) {
+        return null
+    }
 
     session.setIdentity("spmp")
 
@@ -82,10 +84,10 @@ internal fun createDesktopMediaSession(service: PlatformPlayerService): Boolean 
     }
     catch (e: Throwable) {
         RuntimeException("Ignoring exception when enabling media session", e).printStackTrace()
-        return false
+        return null
     }
 
-    return true
+    return session
 }
 
 private fun MediaSession.onSongChanged(song: Song?, service: PlatformPlayerService) {

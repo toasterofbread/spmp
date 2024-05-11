@@ -64,7 +64,7 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
                     Column(Modifier.fillMaxSize().padding(15.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                         Icon(Icons.Default.Warning, null, tint = Color.Red)
 
-                        LinkifyText(warning_text ?: "", theme.accent, style = MaterialTheme.typography.bodyMedium.copy(color = theme.on_background))
+                        LinkifyText(context, warning_text ?: "", theme.accent, style = MaterialTheme.typography.bodyMedium.copy(color = theme.on_background))
 
                         Button(
                             { accepted = true },
@@ -89,6 +89,7 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
 
             if (program_arguments.is_flatpak) {
                 LinkifyText(
+                    context,
                     getString("info_flatpak_discord_\$url").replace("\$url", getString("flatpak_documentation_url") + " "),
                     player.theme.vibrant_accent
                 )

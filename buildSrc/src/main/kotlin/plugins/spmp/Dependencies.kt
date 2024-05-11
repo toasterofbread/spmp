@@ -262,6 +262,14 @@ class SpMpDeps(extra: Map<String, Any>) {
                 url = "https://github.com/bytedeco/javacpp-presets",
                 license = "Apache-2.0",
                 license_url = "https://github.com/bytedeco/javacpp-presets/blob/34289d4d0c421fa345c9f537bb3afdde4bb4a0c6/LICENSE.txt"
+            ),
+            "io.github.selemba1000:jmtc" to DependencyInfo(
+                version = null,
+                name = "JavaMediaTransportControls",
+                author = "Selemba1000",
+                url = "https://github.com/Selemba1000/JavaMediaTransportControls",
+                license = "MIT",
+                license_url = "https://github.com/toasterofbread/mediasession-kt/blob/ee08de4f82375e90fad0d285dca5add66227b5e5/library/src/nativeInterop/mingw-x86_64/thirdparty/libsmtc/LICENSE"
             )
         )
 }

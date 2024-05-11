@@ -48,6 +48,7 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.skiko.OS
 import org.jetbrains.skiko.hostOs
 import java.io.File
+import java.io.BufferedReader
 
 private const val LOCAL_SERVER_AUTOSTART_DELAY_MS: Long = 100
 
@@ -94,10 +95,10 @@ actual fun SplashExtraLoadingContent(modifier: Modifier, arguments: ProgramArgum
                 player.context,
                 player.settings.desktop.SERVER_PORT.get(),
                 arguments.getServerExecutable(player.context)
-            ) {
+            ) { result, output ->
                 if (local_server_process != null) {
                     local_server_process = null
-                    local_server_error = RuntimeException("Local server failed ($it)")
+                    local_server_error = RuntimeException("Local server failed ($result)\n$output")
                 }
             }
 
@@ -227,7 +228,7 @@ private fun startLocalServer(
     context: AppContext,
     port: Int,
     server_executable: PlatformFile?,
-    onExit: (Int) -> Unit,
+    onExit: (Int, String) -> Unit,
 ): Pair<String, Process>? {
     var command: String = context.settings.desktop.SERVER_LOCAL_COMMAND.get().trim()
     if (command.isEmpty()) {
@@ -257,7 +258,7 @@ private fun startLocalServer(
             }
     }
 
-    val args: String = "--port $port"
+    val args: String = "--port $port --no-media-session"
 
     val args_index: Int = command.indexOf("\$@")
     if (args_index != -1) {
@@ -268,7 +269,7 @@ private fun startLocalServer(
     }
 
     val builder: ProcessBuilder = ProcessBuilder(command.split(' '))
-    builder.inheritIO()
+    // builder.inheritIO()
 
     val process: Process = builder.start()
 
@@ -280,7 +281,16 @@ private fun startLocalServer(
 
     GlobalScope.launch {
         withContext(Dispatchers.IO) {
-            onExit(process.waitFor())
+            val reader: BufferedReader = process.getErrorStream().bufferedReader()
+            val output: StringBuilder = StringBuilder()
+
+            while (true) {
+                val line: String = reader.readLine() ?: break
+                output.appendLine(line)
+            }
+
+            val result: Int = process.waitFor()
+            onExit(result, output.toString())
         }
     }
 

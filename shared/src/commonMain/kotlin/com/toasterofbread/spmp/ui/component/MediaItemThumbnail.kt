@@ -77,6 +77,7 @@ fun MediaItem.Thumbnail(
     getContentColour: (() -> Color)? = null,
     container_modifier: Modifier = Modifier,
     disable_cache: Boolean = false,
+    show: Boolean = true,
     onLoaded: ((ImageBitmap?) -> Unit)? = null
 ) {
     require(this !is LocalPlaylistRef) { "LocalPlaylistRef must be loaded and passed as a LocalPlaylistData" }
@@ -137,24 +138,26 @@ fun MediaItem.Thumbnail(
         }
     }
 
-    Crossfade(image?.first ?: loading, container_modifier) { state ->
-        if (state is ImageBitmap) {
-            Image(
-                state,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = modifier
-            )
-        }
-        else if (state == true) {
-            SubtleLoadingIndicator(modifier.fillMaxSize(), getColour = getContentColour)
-        }
-        else if (this is LocalPlaylist) {
-            LocalPlaylistDefaultThumbnail(modifier)
-        }
-        else if (load_failed_icon != null) {
-            Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Icon(load_failed_icon, null)
+    if (show) {
+        Crossfade(image?.first ?: loading, container_modifier) { state ->
+            if (state is ImageBitmap) {
+                Image(
+                    state,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = modifier
+                )
+            }
+            else if (state == true) {
+                SubtleLoadingIndicator(modifier.fillMaxSize(), getColour = getContentColour)
+            }
+            else if (this is LocalPlaylist) {
+                LocalPlaylistDefaultThumbnail(modifier)
+            }
+            else if (load_failed_icon != null) {
+                Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Icon(load_failed_icon, null)
+                }
             }
         }
     }

@@ -214,17 +214,16 @@ fun SmallThumbnailRow(
                     )
                 }
 
-                if (!video_showing) {
-                    song.Thumbnail(
-                        ThumbnailProvider.Quality.HIGH,
-                        getContentColour = { player.getNPOnBackground() },
-                        onLoaded = {
-                            current_thumb_image = it
-                            onThumbnailLoaded(song, it)
-                        },
-                        modifier = content_modifier
-                    )
-                }
+                song.Thumbnail(
+                    ThumbnailProvider.Quality.HIGH,
+                    getContentColour = { player.getNPOnBackground() },
+                    onLoaded = {
+                        current_thumb_image = it
+                        onThumbnailLoaded(song, it)
+                    },
+                    modifier = content_modifier,
+                    show = !video_showing
+                )
             }
 
             // Thumbnail overlay menu

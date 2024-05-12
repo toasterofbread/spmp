@@ -2,48 +2,29 @@ package com.toasterofbread.spmp.ui.layout.playlistpage
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Reorder
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.SelectAll
-import androidx.compose.material.icons.filled.Sort
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.composable.ResizableOutlinedTextField
-import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.utils.composable.ResizableOutlinedTextField
+import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import kotlinx.coroutines.launch
 
 @Composable
-internal fun PlaylistPage.PlaylistInteractionBar(
-    items: List<Pair<MediaItem, Int>>?,
+internal fun PlaylistAppPage.PlaylistInteractionBar(
+    items: List<MediaItem>?,
     list_state: LazyListState,
     loading: Boolean,
     modifier: Modifier = Modifier
@@ -56,7 +37,7 @@ internal fun PlaylistPage.PlaylistInteractionBar(
     Column(modifier) {
         multiselect_context.InfoDisplay(
             getAllItems = {
-                listOfNotNull(items)
+                listOfNotNull(items?.map { Pair(it, null) })
             },
             altContent = {
                 Row {
@@ -94,27 +75,13 @@ internal fun PlaylistPage.PlaylistInteractionBar(
                                     SubtleLoadingIndicator()
                                 }
 
-                                playlist_editor?.also { editor ->
+                                if (playlist_editor != null) {
                                     // Reorder
-                                    AnimatedVisibility(editor.canMoveItems()) {
-                                        IconButton({
-                                            if (editor.canMoveItems()) {
-                                                setReorderable(!reordering)
-                                            }
-                                        }) {
-                                            Crossfade(reordering) { reordering ->
-                                                Icon(if (reordering) Icons.Default.Done else Icons.Default.Reorder, null)
-                                            }
-                                        }
-                                    }
-
-                                    AnimatedVisibility(editor.canAddItems()) {
-                                        IconButton({
-                                            if (editor.canAddItems()) {
-                                                TODO()
-                                            }
-                                        }) {
-                                            Icon(Icons.Default.Add, null)
+                                    IconButton({
+                                        setReorderable(!reordering)
+                                    }) {
+                                        Crossfade(reordering) { reordering ->
+                                            Icon(if (reordering) Icons.Default.Done else Icons.Default.Reorder, null)
                                         }
                                     }
                                 }
@@ -129,7 +96,7 @@ internal fun PlaylistPage.PlaylistInteractionBar(
                         Row {
                             IconButton({
                                 for (item in items ?: emptyList()) {
-                                    multiselect_context.setItemSelected(item.first, true, item.second)
+                                    multiselect_context.setItemSelected(item, true)
                                 }
                             }) {
                                 Icon(Icons.Default.SelectAll, null)
@@ -173,7 +140,6 @@ internal fun PlaylistPage.PlaylistInteractionBar(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun InteractionBarFilterBox(filter: String?, setFilter: (String?) -> Unit, modifier: Modifier = Modifier) {
     Row(modifier) {

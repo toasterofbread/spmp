@@ -17,18 +17,21 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.common.getContrasted
-import com.toasterofbread.composekit.utils.modifier.background
+import dev.toastbits.composekit.utils.common.getContrasted
+import dev.toastbits.composekit.utils.modifier.background
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.fromUid
 import com.toasterofbread.spmp.model.mediaitem.getMediaItemFromUid
+import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.radio.RadioState
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.ui.layout.radiobuilder.getReadable
+import dev.toastbits.ytmkt.endpoint.RadioBuilderModifier
 
 @Composable
 internal fun CurrentRadioIndicator(
@@ -40,15 +43,14 @@ internal fun CurrentRadioIndicator(
     val player: PlayerState = LocalPlayerState.current
     val horizontal_padding: Dp = 15.dp
 
-    val filters: List<List<RadioBuilderModifier>>? = player.controller?.radio_state?.filters
+    val radio_state: RadioState? = player.controller?.radio_instance?.state
+
+    val filters: List<List<RadioBuilderModifier>>? = radio_state?.filters
     var show_radio_info: Boolean by remember { mutableStateOf(false) }
     val radio_item: MediaItem? =
-        player.controller?.radio_state?.item
+        radio_state?.item_uid?.let { getMediaItemFromUid(it) }
             ?.takeIf { item ->
-                MediaItemType.fromUid(item.first) != MediaItemType.SONG || item.second == null
-            }
-            ?.let { item ->
-                getMediaItemFromUid(item.first)
+                item !is Song || radio_state.item_queue_index == null
             }
 
     LaunchedEffect(radio_item) {
@@ -126,7 +128,6 @@ internal fun CurrentRadioIndicator(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RadioFilterChip(selected: Boolean, getAccentColour: () -> Color, onClick: () -> Unit, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     FilterChip(
@@ -141,7 +142,9 @@ private fun RadioFilterChip(selected: Boolean, getAccentColour: () -> Color, onC
         ),
         border = FilterChipDefaults.filterChipBorder(
             borderColor = LocalContentColor.current.copy(alpha = 0.25f),
-            selectedBorderColor = Color.Transparent
+            selectedBorderColor = Color.Transparent,
+            enabled = true,
+            selected = selected
         )
     )
 }
@@ -159,11 +162,11 @@ private fun FiltersRow(
         horizontalArrangement = Arrangement.spacedBy(15.dp),
         contentPadding = content_padding
     ) {
-        val current_filter = player.controller?.radio_state?.current_filter
+        val current_filter_index: Int? = player.controller?.radio_instance?.state?.current_filter_index
 
         item {
             RadioFilterChip(
-                current_filter == -1,
+                current_filter_index == -1,
                 getAccentColour,
                 onClick = {
                     player.withPlayer {
@@ -180,11 +183,11 @@ private fun FiltersRow(
             val index = if (filter == null) null else i - 1
 
             RadioFilterChip(
-                current_filter == index,
+                current_filter_index == index,
                 getAccentColour,
                 onClick = {
                     player.withPlayer {
-                        if (radio.instance.state.current_filter != index) {
+                        if (radio.instance.state.current_filter_index != index) {
                             radio.setRadioFilter(index)
                         }
                     }

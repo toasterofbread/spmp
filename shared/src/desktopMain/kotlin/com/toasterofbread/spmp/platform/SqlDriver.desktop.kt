@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.platform
 
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
-import com.toasterofbread.db.Database
+import com.toasterofbread.spmp.db.Database
 import java.io.File
 
 actual fun AppContext.getSqlDriver(): SqlDriver {

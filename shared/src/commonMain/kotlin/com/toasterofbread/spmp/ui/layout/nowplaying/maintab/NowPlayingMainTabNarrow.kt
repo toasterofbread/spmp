@@ -26,14 +26,14 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.common.getValue
-import com.toasterofbread.composekit.utils.common.isJP
-import com.toasterofbread.composekit.utils.common.thenIf
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.composekit.utils.common.getValue
+import dev.toastbits.composekit.utils.common.isJP
+import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.ui.component.RowOrColumn
+import dev.toastbits.composekit.utils.composable.RowOrColumn
 import com.toasterofbread.spmp.ui.component.Thumbnail
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.bottom_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.horizontal_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.top_padding
@@ -52,11 +52,11 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabNarrow(page_height: Dp, top_
             .padding(content_padding)
             .padding(horizontal = horizontal_padding)
             .padding(top = top_padding, bottom = bottom_padding)
-    ) { weight ->
+    ) {
         val spacing: Dp = 10.dp
 
         if (vertical) {
-            song?.Thumbnail(MediaItemThumbnailProvider.Quality.LOW, Modifier.aspectRatio(1f)) {
+            song?.Thumbnail(ThumbnailProvider.Quality.LOW, Modifier.aspectRatio(1f)) {
                 onThumbnailLoaded(song, it)
             }
             Spacer(Modifier.height(spacing))
@@ -72,7 +72,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabNarrow(page_height: Dp, top_
             player.NextButton()
             Spacer(Modifier.width(spacing))
 
-            song?.Thumbnail(MediaItemThumbnailProvider.Quality.LOW, Modifier.aspectRatio(1f)) {
+            song?.Thumbnail(ThumbnailProvider.Quality.LOW, Modifier.aspectRatio(1f)) {
                 onThumbnailLoaded(song, it)
             }
             Spacer(Modifier.width(spacing))
@@ -111,7 +111,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabNarrow(page_height: Dp, top_
             }
         }
 
-        Spacer(Modifier.fillMaxSize().then(weight(1f)))
+        Spacer(Modifier.fillMaxSize().weight(1f))
     }
 }
 

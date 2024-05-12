@@ -53,8 +53,7 @@ internal suspend fun Socket.tryConnectToServer(
     }
     while (reply == null)
 
-    val all_data: List<String> = reply.map { it.data.decodeToString() }
-    val joined_reply: List<String> = SpMsSocketApi.decode(all_data)
+    val joined_reply: List<String> = SpMsSocketApi.decode(reply.map { it.data.decodeToString() })
     val server_handshake_data: String = joined_reply.first()
 
     log("Received reply handshake from server with the following content:\n$server_handshake_data")
@@ -64,7 +63,7 @@ internal suspend fun Socket.tryConnectToServer(
         server_handshake = json.decodeFromString(server_handshake_data)
     }
     catch (e: Throwable) {
-        throw RuntimeException("Parsing reply handshake failed '$server_handshake_data'", e)
+        throw RuntimeException("Parsing reply handshake failed. You might be using an outdated server verison. $server_handshake_data", e)
     }
 
     return@withContext server_handshake

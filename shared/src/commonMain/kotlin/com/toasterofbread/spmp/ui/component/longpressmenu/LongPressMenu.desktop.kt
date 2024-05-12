@@ -49,21 +49,22 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.toasterofbread.composekit.platform.composable.BackHandler
-import com.toasterofbread.composekit.utils.common.blendWith
-import com.toasterofbread.composekit.utils.common.contrastAgainst
-import com.toasterofbread.composekit.utils.common.getContrasted
-import com.toasterofbread.composekit.utils.common.launchSingle
-import com.toasterofbread.composekit.utils.common.snapOrAnimateTo
-import com.toasterofbread.composekit.utils.composable.OnChangedEffect
-import com.toasterofbread.composekit.utils.composable.ShapedIconButton
-import com.toasterofbread.composekit.utils.composable.getBottom
-import com.toasterofbread.composekit.utils.composable.getEnd
-import com.toasterofbread.composekit.utils.composable.getStart
+import dev.toastbits.composekit.platform.composable.BackHandler
+import dev.toastbits.composekit.utils.common.blendWith
+import dev.toastbits.composekit.utils.common.contrastAgainst
+import dev.toastbits.composekit.utils.common.getContrasted
+import dev.toastbits.composekit.utils.common.launchSingle
+import dev.toastbits.composekit.utils.common.snapOrAnimateTo
+import dev.toastbits.composekit.utils.composable.OnChangedEffect
+import dev.toastbits.composekit.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.utils.composable.getBottom
+import dev.toastbits.composekit.utils.composable.getEnd
+import dev.toastbits.composekit.utils.composable.getStart
 import com.toasterofbread.spmp.model.mediaitem.db.rememberThemeColour
-import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.CustomColourSource
+import com.toasterofbread.spmp.ui.layout.BarColourState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -92,9 +93,11 @@ internal fun DesktopLongPressMenu(
         var menu_height: Dp by remember { mutableStateOf(0.dp) }
 
         fun Density.getTargetPosition(): Offset {
-            val left: Float = data.layout_offset.x + data.click_offset.x
+            val layout_offset: Offset = data.layout_offset ?: return Offset.Zero
+
+            val left: Float = layout_offset.x + data.click_offset.x
             val right: Float = left + menu_width.toPx()
-            val top: Float = data.layout_offset.y + data.click_offset.y
+            val top: Float = layout_offset.y + data.click_offset.y
             val bottom: Float = top + menu_height.toPx()
 
             val max_width: Float = this@BoxWithConstraints.maxWidth.toPx()
@@ -188,7 +191,7 @@ internal fun DesktopLongPressMenu(
                     Modifier.fillMaxSize(),
                     enable_input = show_background,
                     onScroll = {
-                        if (BehaviourSettings.Key.DESKTOP_LPM_KEEP_ON_BACKGROUND_SCROLL.get()) {
+                        if (player.settings.behaviour.DESKTOP_LPM_KEEP_ON_BACKGROUND_SCROLL.get()) {
                             show_background = false
                             updatePosition()
                         }
@@ -213,9 +216,9 @@ internal fun DesktopLongPressMenu(
                         accent_colour = theme_colour
                     }
 
-                    player.onNavigationBarTargetColourChanged(player.theme.background, true)
+                    player.bar_colour_state.nav_bar.setLevelColour(CustomColourSource(player.theme.background), BarColourState.NavBarLevel.LPM)
                     onDispose {
-                        player.onNavigationBarTargetColourChanged(null, true)
+                        player.bar_colour_state.nav_bar.setLevelColour(null, BarColourState.NavBarLevel.LPM)
                     }
                 }
 
@@ -280,9 +283,9 @@ internal fun DesktopLongPressMenu(
                                 bottom = MENU_CONTENT_PADDING_DP.dp + WindowInsets.systemBars.getBottom()
                             ),
                             { accent_colour },
-                            Modifier.border(2.dp, player.theme.on_background.copy(alpha = 0.1f), shape),
-                            {
-                                if (show_background && BehaviourSettings.Key.LPM_CLOSE_ON_ACTION.get()) {
+                            modifier = Modifier.border(2.dp, player.theme.on_background.copy(alpha = 0.1f), shape),
+                            onAction = {
+                                if (show_background && player.settings.behaviour.LPM_CLOSE_ON_ACTION.get()) {
                                     close()
                                 }
                             }

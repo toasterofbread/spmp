@@ -36,12 +36,12 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.common.blendWith
-import com.toasterofbread.composekit.utils.common.thenIf
-import com.toasterofbread.composekit.utils.composable.LinkifyText
-import com.toasterofbread.composekit.utils.composable.NoRipple
+import dev.toastbits.composekit.utils.common.blendWith
+import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.utils.composable.LinkifyText
+import dev.toastbits.composekit.utils.composable.NoRipple
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
 @Composable
 fun DescriptionCard(description_text: String, expanding: Boolean = true, height: Dp = 200.dp) {
@@ -91,6 +91,7 @@ fun DescriptionCard(description_text: String, expanding: Boolean = true, height:
             }
 
             LinkifyText(
+                player.context,
                 description_text,
                 modifier = Modifier
                     .onSizeChanged { size ->
@@ -99,9 +100,10 @@ fun DescriptionCard(description_text: String, expanding: Boolean = true, height:
                         }
                     }
                     .animateContentSize(),
-                colour = player.theme.on_background.copy(alpha = 0.8f),
                 highlight_colour = player.theme.on_background,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = player.theme.on_background.copy(alpha = 0.8f)
+                )
             )
 
             Spacer(Modifier.height(padding))

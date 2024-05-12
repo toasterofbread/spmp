@@ -3,13 +3,12 @@ package com.toasterofbread.spmp.platform.playerservice
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.toasterofbread.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.settings.category.ServerSettings
+import com.toasterofbread.spmp.model.radio.RadioInstance
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.platform.playerservice.PlatformInternalPlayerService
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
 import kotlinx.coroutines.*
 import org.jetbrains.skiko.OS
 import org.jetbrains.skiko.hostOs
@@ -17,166 +16,171 @@ import spms.socketapi.shared.SpMsPlayerRepeatMode
 import spms.socketapi.shared.SpMsPlayerState
 import java.io.File
 import java.util.concurrent.TimeoutException
+import io.ktor.client.request.get
+import dev.toastbits.composekit.platform.PlatformFile
+import ProgramArguments
 
 private class PlayerServiceBinder(val service: PlatformInternalPlayerService): PlatformBinder()
 
-actual class PlatformInternalPlayerService: SpMsPlayerService(), PlayerService {
-    actual override val load_state: PlayerServiceLoadState get() = socket_load_state
-    actual override val context: AppContext get() = super.context
-    private val coroutine_scope: CoroutineScope = CoroutineScope(Job())
+// actual class PlatformInternalPlayerService: SpMsPlayerService(), PlayerService {
+actual class PlatformInternalPlayerService: ExternalPlayerService() {
+//     actual override val load_state: PlayerServiceLoadState get() = socket_load_state
+//     actual override val connection_error: Throwable? get() = socket_connection_error
+//     actual override val context: AppContext get() = super.context
+//     private val coroutine_scope: CoroutineScope = CoroutineScope(Job())
 
-    private lateinit var _service_player: PlayerServicePlayer
-    actual override val service_player: PlayerServicePlayer
-        get() = _service_player
+//     private lateinit var _service_player: PlayerServicePlayer
+//     actual override val service_player: PlayerServicePlayer
+//         get() = _service_player
 
-    actual override val state: SpMsPlayerState
-        get() = _state
-    actual override val is_playing: Boolean
-        get() = _is_playing
-    actual override val song_count: Int
-        get() = playlist.size
-    actual override val current_song_index: Int
-        get() = _current_song_index
-    actual override val current_position_ms: Long
-        get() {
-            if (current_song_time < 0) {
-                return 0
-            }
-            if (!_is_playing) {
-                return current_song_time
-            }
-            return System.currentTimeMillis() - current_song_time
-        }
-    actual override val duration_ms: Long
-        get() = _duration_ms
-    actual override val has_focus: Boolean
-        get() = true // TODO
-    actual override val radio_state: RadioInstance.RadioState
-        get() = service_player.radio_state
-    actual override var repeat_mode: SpMsPlayerRepeatMode
-        get() = _repeat_mode
-        set(value) {
-            if (value == _repeat_mode) {
-                return
-            }
-            sendRequest("setRepeatMode", value.ordinal)
-        }
-    actual override var volume: Float
-        get() = _volume
-        set(value) {
-            if (value == _volume) {
-                return
-            }
-            sendRequest("setVolume", value)
-        }
+//     actual override val state: SpMsPlayerState
+//         get() = _state
+//     actual override val is_playing: Boolean
+//         get() = _is_playing
+//     actual override val song_count: Int
+//         get() = playlist.size
+//     actual override val current_song_index: Int
+//         get() = _current_song_index
+//     actual override val current_position_ms: Long
+//         get() {
+//             if (current_song_time < 0) {
+//                 return 0
+//             }
+//             if (!_is_playing) {
+//                 return current_song_time
+//             }
+//             return System.currentTimeMillis() - current_song_time
+//         }
+//     actual override val duration_ms: Long
+//         get() = _duration_ms
+//     actual override val has_focus: Boolean
+//         get() = true // TODO
+//     actual override val radio_instance: RadioInstance
+//         get() = service_player.radio_instance
+//     actual override var repeat_mode: SpMsPlayerRepeatMode
+//         get() = _repeat_mode
+//         set(value) {
+//             if (value == _repeat_mode) {
+//                 return
+//             }
+//             sendRequest("setRepeatMode", value.ordinal)
+//         }
+//     actual override var volume: Float
+//         get() = _volume
+//         set(value) {
+//             if (value == _volume) {
+//                 return
+//             }
+//             sendRequest("setVolume", value)
+//         }
 
-    actual override fun isPlayingOverLatentDevice(): Boolean = false // TODO
+//     actual override fun isPlayingOverLatentDevice(): Boolean = false // TODO
 
-    actual override fun play() {
-        sendRequest("play")
-    }
+//     actual override fun play() {
+//         sendRequest("play")
+//     }
 
-    actual override fun pause() {
-        sendRequest("pause")
-    }
+//     actual override fun pause() {
+//         sendRequest("pause")
+//     }
 
-    actual override fun playPause() {
-        sendRequest("playPause")
-    }
+//     actual override fun playPause() {
+//         sendRequest("playPause")
+//     }
 
-    actual override fun seekTo(position_ms: Long) {
-        sendRequest("seekToTime", position_ms)
-    }
+//     actual override fun seekTo(position_ms: Long) {
+//         sendRequest("seekToTime", position_ms)
+//     }
 
-    actual override fun seekToSong(index: Int) {
-        sendRequest("seekToItem", index)
-    }
+//     actual override fun seekToSong(index: Int) {
+//         sendRequest("seekToItem", index)
+//     }
 
-    actual override fun seekToNext() {
-        sendRequest("seekToNext")
-    }
+//     actual override fun seekToNext() {
+//         sendRequest("seekToNext")
+//     }
 
-    actual override fun seekToPrevious() {
-        sendRequest("seekToPrevious")
-    }
+//     actual override fun seekToPrevious() {
+//         sendRequest("seekToPrevious")
+//     }
 
-    actual override fun getSong(): Song? = playlist.getOrNull(_current_song_index)
+//     actual override fun getSong(): Song? = playlist.getOrNull(_current_song_index)
 
-    actual override fun getSong(index: Int): Song? = playlist.getOrNull(index)
+//     actual override fun getSong(index: Int): Song? = playlist.getOrNull(index)
 
-    actual override fun addSong(song: Song, index: Int) {
-        sendRequest("addItem", song.id, index)
-    }
+//     actual override fun addSong(song: Song, index: Int) {
+//         sendRequest("addItem", song.id, index)
+//     }
 
-    actual override fun moveSong(from: Int, to: Int) {
-        sendRequest("moveItem", from, to)
-    }
+//     actual override fun moveSong(from: Int, to: Int) {
+//         sendRequest("moveItem", from, to)
+//     }
 
-    actual override fun removeSong(index: Int) {
-        sendRequest("removeItem", index)
-    }
+//     actual override fun removeSong(index: Int) {
+//         sendRequest("removeItem", index)
+//     }
 
-    @Composable
-    actual override fun Visualiser(colour: Color, modifier: Modifier, opacity: Float) {
-    }
+//     @Composable
+//     actual override fun Visualiser(colour: Color, modifier: Modifier, opacity: Float) {
+//     }
 
-    override fun onBind(): PlatformBinder? {
-        return PlayerServiceBinder(this)
-    }
+//     override fun onBind(): PlatformBinder? {
+//         return PlayerServiceBinder(this)
+//     }
 
-    actual override fun onCreate() {
-        super.onCreate()
+//     actual override fun onCreate() {
+//         super.onCreate()
 
-        check(isAvailable(context))
-        
-        _service_player = object : PlayerServicePlayer(this) {
-            override fun onUndoStateChanged() {
-                for (listener in listeners) {
-                    listener.onUndoStateChanged()
-                }
-            }
-        }
-        
-        coroutine_scope.launch {
-            val spms_port: Int = ServerSettings.Key.SERVER_PORT.get(context)
-            
-            try {
-                try {
-                    connectToServer("127.0.0.1", spms_port, timeout = 1000)
-                    return@launch
-                }
-                catch (_: TimeoutException) {
-                    println("Timed out waiting for connection to local server, starting internal server...")
-                }
-                catch (_: Throwable) {
-                    println("Exception caught while waiting for connection to local server, starting internal server...")
-                }
-                
-                startLocalServer(spms_port, context.launch_arguments.getServerExecutableFile(context)!!) {
-                    throw RuntimeException(getString("error_on_server_command_execution") + " ($it)")
-                }
-                
-                disconnectFromServer()
-                connectToServer("127.0.0.1", spms_port)
-            }
-            catch (e: Throwable) {
-                socket_load_state = PlayerServiceLoadState(
-                    false,
-                    error = RuntimeException(getString("error_while_connecting_to_server_at_\$x").replace("\$x", "127.0.0.1:$spms_port"), e)
-                )
-            }
-        }
-    }
+//         check(isAvailable(context))
 
-    actual override fun onDestroy() {
-        super.onDestroy()
-        coroutine_scope.cancel()
-    }
+//         _service_player = object : PlayerServicePlayer(this) {
+//             override fun onUndoStateChanged() {
+//                 for (listener in listeners) {
+//                     listener.onUndoStateChanged()
+//                 }
+//             }
+//         }
+
+//         coroutine_scope.launch {
+//             val spms_port: Int = context.settings.platform.SERVER_PORT.get()
+
+//             try {
+//                 try {
+//                     connectToServer("127.0.0.1", spms_port, timeout = 1000)
+//                     return@launch
+//                 }
+//                 catch (_: TimeoutException) {
+//                     println("Timed out waiting for connection to local server, starting internal server...")
+//                 }
+//                 catch (_: Throwable) {
+//                     println("Exception caught while waiting for connection to local server, starting internal server...")
+//                 }
+
+//                 startLocalServer(spms_port, context.launch_arguments.getServerExecutableFile(context)!!) {
+//                     throw RuntimeException(getString("error_on_server_command_execution") + " ($it)")
+//                 }
+
+//                 disconnectFromServer()
+//                 connectToServer("127.0.0.1", spms_port)
+//             }
+//             catch (e: Throwable) {
+//                 socket_load_state = PlayerServiceLoadState(
+//                     false,
+//                     error = RuntimeException(getString("error_while_connecting_to_server_at_\$x").replace("\$x", "127.0.0.1:$spms_port"), e)
+//                 )
+//             }
+//         }
+//     }
+
+//     actual override fun onDestroy() {
+//         super.onDestroy()
+//         coroutine_scope.cancel()
+//     }
 
     actual companion object: PlayerServiceCompanion {
-        actual fun isAvailable(context: AppContext): Boolean =
-            context.launch_arguments.getServerExecutableFile(context) != null
-        
+        actual fun isAvailable(context: AppContext, launch_arguments: ProgramArguments): Boolean =
+            launch_arguments.getServerExecutableFile(context) != null
+
         override fun isServiceRunning(context: AppContext): Boolean = true
 
         override fun connect(
@@ -208,6 +212,7 @@ private data class LocalServerProcess(
 
 @Suppress("NewApi")
 private fun startLocalServer(
+    context: AppContext,
     port: Int,
     server_executable: PlatformFile?,
     onExit: (Int) -> Unit,
@@ -253,7 +258,7 @@ private fun startLocalServer(
     val process: Process = builder.start()
 
     Runtime.getRuntime().addShutdownHook(Thread {
-        if (ServerSettings.Key.KILL_CHILD_SERVER_ON_EXIT.get()) {
+        if (context.settings.platform.SERVER_KILL_CHILD_ON_EXIT.get()) {
             process.destroy()
         }
     })

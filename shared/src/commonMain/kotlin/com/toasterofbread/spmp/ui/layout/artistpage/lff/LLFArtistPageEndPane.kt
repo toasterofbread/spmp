@@ -2,9 +2,7 @@ package com.toasterofbread.spmp.ui.layout.artistpage.lff
 
 import LocalPlayerState
 import SpMp.isDebugBuild
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
@@ -15,31 +13,38 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.toasterofbread.composekit.platform.composable.ScrollBarLazyColumn
-import com.toasterofbread.composekit.utils.common.copy
-import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.composekit.utils.modifier.vertical
-import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import dev.toastbits.composekit.platform.composable.ScrollBarLazyColumn
+import dev.toastbits.composekit.utils.common.copy
+import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.utils.modifier.vertical
+import com.toasterofbread.spmp.model.mediaitem.MediaItemRef
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
-import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.Layout
+import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
+import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
-import com.toasterofbread.spmp.resources.uilocalisation.RawLocalisedString
-import com.toasterofbread.spmp.resources.uilocalisation.YoutubeLocalisedString
-import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
+import com.toasterofbread.spmp.model.mediaitem.toMediaItemRef
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.MediaItemLayoutParams
+import com.toasterofbread.spmp.model.MediaItemGridParams
+import com.toasterofbread.spmp.model.MediaItemListParams
+import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
+import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemList
-import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
 import com.toasterofbread.spmp.ui.layout.artistpage.artistPageGetAllItems
-import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsRow
+import dev.toastbits.ytmkt.endpoint.ArtistWithParamsRow
+import dev.toastbits.ytmkt.model.external.ItemLayoutType
+import dev.toastbits.ytmkt.uistrings.RawUiString
+import dev.toastbits.ytmkt.uistrings.YoutubeUILocalisation
+import dev.toastbits.ytmkt.uistrings.YoutubeUiString
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -56,8 +61,9 @@ internal fun ArtistAppPage.LFFArtistEndPane(
     apply_filter: Boolean
 ) {
     val player: PlayerState = LocalPlayerState.current
+    val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
+
     val end_padding: Dp = content_padding.calculateEndPadding(LocalLayoutDirection.current)
-    val single_layout: MediaItemLayout? = item_layouts?.singleOrNull()?.rememberMediaItemLayout(player.database)
 
     Column {
         val multiselect_showing: Boolean =
@@ -106,15 +112,23 @@ internal fun ArtistAppPage.LFFArtistEndPane(
                 val row = browse_params_rows?.firstOrNull()
                 if (row != null) {
                     item {
+                        val items: List<MediaItem> = remember(row) {
+                            row.items.map { it.toMediaItemRef() }
+                        }
+
                         MediaItemList(
-                            row.items,
-                            Modifier.fillMaxHeight(),
-                            content_padding = PaddingValues(end = end_padding),
-                            title = row.title?.let { title ->
-                                RawLocalisedString(title)
-                            },
-                            multiselect_context = multiselect_context,
-                            play_as_list = true
+                            MediaItemLayoutParams(
+                                items = items,
+                                modifier = Modifier.fillMaxHeight(),
+                                content_padding = PaddingValues(end = end_padding),
+                                title = row.title?.let { title ->
+                                    RawUiString(title)
+                                },
+                                multiselect_context = multiselect_context
+                            ),
+                            list_params = MediaItemListParams(
+                                play_as_list = true
+                            )
                         )
                     }
                 }
@@ -126,25 +140,25 @@ internal fun ArtistAppPage.LFFArtistEndPane(
                         verticalArrangement = Arrangement.spacedBy(30.dp)
                     ) {
                         for (item_layout in item_layouts ?: emptyList()) {
-                            val layout: MediaItemLayout = item_layout.rememberMediaItemLayout(player.database)
+                            val layout: AppMediaItemLayout = item_layout.rememberMediaItemLayout(player.database).layout
 
-                            val layout_id: YoutubeUILocalisation.StringID? = (layout.title as? YoutubeLocalisedString)?.getYoutubeStringId()
+                            val layout_id: YoutubeUILocalisation.StringID? = (layout.title as? YoutubeUiString)?.getYoutubeStringId()
                             if (layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_ARTISTS) {
                                 continue
                             }
 
                             val is_singles: Boolean =
-                                BehaviourSettings.Key.TREAT_SINGLES_AS_SONG.get()
-                                        && layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_SINGLES
+                                player.settings.behaviour.TREAT_SINGLES_AS_SONG.get()
+                                    && layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_SINGLES
 
                             val is_artist_row: Boolean =
                                 layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_SINGLES || layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_OTHER
 
-                            CompositionLocalProvider(LocalPlayerState provides remember {
-                                player.copy(
-                                    onClickedOverride = { item, multiselect_key ->
+                            CompositionLocalProvider(
+                                LocalPlayerClickOverrides provides click_overrides.copy(
+                                    onClickOverride = { item, multiselect_key ->
                                         if (is_singles && item is Playlist) {
-                                            onSinglePlaylistClicked(item, player)
+                                            onSinglePlaylistClicked(item, player, click_overrides)
                                         }
                                         else if (item !is Song) {
                                             player.openMediaItem(item, is_artist_row)
@@ -153,28 +167,34 @@ internal fun ArtistAppPage.LFFArtistEndPane(
                                             player.playMediaItem(item)
                                         }
                                     },
-                                    onLongClickedOverride = { item, long_press_data ->
-                                        player.onMediaItemLongClicked(
+                                    onAltClickOverride = { item, long_press_data ->
+                                        click_overrides.onMediaItemLongClicked(
                                             item,
-                                            if (is_singles && item is Playlist)
-                                                long_press_data?.copy(playlist_as_song = true)
-                                                    ?: LongPressMenuData(item, playlist_as_song = true)
-                                            else long_press_data
+                                            player,
+                                            long_press_data =
+                                                if (is_singles && item is Playlist)
+                                                    long_press_data?.copy(playlist_as_song = true)
+                                                        ?: LongPressMenuData(item, playlist_as_song = true)
+                                                else long_press_data
                                         )
                                     }
-                                )
-                            }) {
-                                val type: MediaItemLayout.Type =
-                                    if (layout.type == null) MediaItemLayout.Type.GRID
-                                    else if (layout.type == MediaItemLayout.Type.NUMBERED_LIST) MediaItemLayout.Type.LIST
-                                    else layout.type
+                            )) {
+                                val type: ItemLayoutType = layout.type.let { type ->
+                                    if (type == null) ItemLayoutType.GRID
+                                    else if (type == ItemLayoutType.NUMBERED_LIST) ItemLayoutType.LIST
+                                    else type
+                                }
 
                                 type.Layout(
                                     if (previous_item == null) layout else layout.copy(title = null, subtitle = null),
-                                    multiselect_context = multiselect_context,
-                                    apply_filter = apply_filter,
-                                    content_padding = PaddingValues(end = end_padding),
-                                    grid_rows = Pair(1, 1)
+                                    MediaItemLayoutParams(
+                                        multiselect_context = multiselect_context,
+                                        apply_filter = apply_filter,
+                                        content_padding = PaddingValues(end = end_padding)
+                                    ),
+                                    grid_params = MediaItemGridParams(
+                                        rows = Pair(1, 1)
+                                    )
                                 )
                             }
                         }
@@ -185,14 +205,13 @@ internal fun ArtistAppPage.LFFArtistEndPane(
     }
 }
 
-
 @OptIn(DelicateCoroutinesApi::class)
-private fun onSinglePlaylistClicked(playlist: Playlist, player: PlayerState) {
+private fun onSinglePlaylistClicked(playlist: Playlist, player: PlayerState, click_overrides: PlayerClickOverrides) {
     GlobalScope.launch {
         playlist.loadData(player.context).onSuccess { data ->
             data.items?.firstOrNull()?.also { first_item ->
                 withContext(Dispatchers.Main) {
-                    player.onMediaItemClicked(first_item)
+                    click_overrides.onMediaItemClicked(first_item, player)
                 }
             }
         }

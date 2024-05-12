@@ -29,9 +29,11 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.db.rememberPinnedItems
 import com.toasterofbread.spmp.model.mediaitem.db.setPinned
+import com.toasterofbread.spmp.model.MediaItemGridParams
+import com.toasterofbread.spmp.model.MediaItemLayoutParams
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
 @Composable
 fun PinnedItemsRow(
@@ -61,39 +63,43 @@ fun PinnedItemsRow(
         }
 
         MediaItemGrid(
-            pinned_items,
-            modifier,
-            rows = Pair(1, 1),
-            startContent = {
-                item {
-                    Column(
-                        Modifier.fillMaxHeight(),
-                        verticalArrangement = Arrangement.Top,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Box(Modifier.size(30.dp), contentAlignment = Alignment.Center) {
-                            Icon(Icons.Filled.PushPin, null, Modifier.alpha(0.5f))
-                        }
-
-                        IconButton(
-                            {
-                                player.database.transaction {
-                                    for (item in pinned_items.toList()) {
-                                        item.setPinned(false, player.context)
-                                    }
-                                }
-                            },
-                            Modifier.size(30.dp)
+            MediaItemLayoutParams(
+                items = pinned_items,
+                modifier = modifier,
+                multiselect_context = multiselect_context
+            ),
+            MediaItemGridParams(
+                rows = Pair(1, 1),
+                startContent = {
+                    item {
+                        Column(
+                            Modifier.fillMaxHeight(),
+                            verticalArrangement = Arrangement.Top,
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Icon(Icons.Filled.Delete, null)
+                            Box(Modifier.size(30.dp), contentAlignment = Alignment.Center) {
+                                Icon(Icons.Filled.PushPin, null, Modifier.alpha(0.5f))
+                            }
+
+                            IconButton(
+                                {
+                                    player.database.transaction {
+                                        for (item in pinned_items.toList()) {
+                                            item.setPinned(false, player.context)
+                                        }
+                                    }
+                                },
+                                Modifier.size(30.dp)
+                            ) {
+                                Icon(Icons.Filled.Delete, null)
+                            }
                         }
                     }
+                },
+                itemSizeProvider = {
+                    DpSize(100.dp, 100.dp)
                 }
-            },
-            multiselect_context = multiselect_context,
-            itemSizeProvider = {
-                DpSize(100.dp, 100.dp)
-            }
+            )
         )
     }
 }

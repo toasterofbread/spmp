@@ -13,23 +13,24 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.audio.*
 import androidx.media3.session.*
-import com.toasterofbread.composekit.platform.PlatformPreferences
-import com.toasterofbread.composekit.platform.PlatformPreferencesListener
-import com.toasterofbread.spmp.exovisualiser.ExoVisualizer
-import com.toasterofbread.spmp.exovisualiser.FFTAudioProcessor
+import dev.toastbits.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.platform.PlatformPreferencesListener
+import dev.toastbits.ytmkt.model.external.SongLikedStatus
+import dev.toastbits.ytmkt.model.implementedOrNull
+import dev.toastbits.ytmkt.endpoint.SetSongLikedEndpoint
+import com.toasterofbread.spmp.platform.visualiser.FFTAudioProcessor
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
+import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatusListener
 import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
 import com.toasterofbread.spmp.model.settings.category.StreamingSettings
+import com.toasterofbread.spmp.model.radio.RadioInstance
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.PlayerServiceCommand
 import com.toasterofbread.spmp.platform.playerservice.*
+import com.toasterofbread.spmp.platform.visualiser.MusicVisualiser
 import com.toasterofbread.spmp.shared.R
-import com.toasterofbread.spmp.youtubeapi.endpoint.SetSongLikedEndpoint
-import com.toasterofbread.spmp.youtubeapi.implementedOrNull
-import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
 import kotlinx.coroutines.*
 import spms.socketapi.shared.SpMsPlayerRepeatMode
 import spms.socketapi.shared.SpMsPlayerState
@@ -37,6 +38,7 @@ import spms.socketapi.shared.SpMsPlayerState
 @androidx.annotation.OptIn(UnstableApi::class)
 open class ForegroundPlayerService: MediaSessionService(), PlayerService {
     override val load_state: PlayerServiceLoadState = PlayerServiceLoadState(false)
+    override val connection_error: Throwable? = null
     override val context: AppContext get() = _context
     private lateinit var _context: AppContext
 
@@ -50,7 +52,7 @@ open class ForegroundPlayerService: MediaSessionService(), PlayerService {
     internal var paused_by_device_disconnect: Boolean = false
     internal var device_connection_changed_playing_status: Boolean = false
 
-    private val song_liked_listener: SongLikedStatus.Listener = SongLikedStatus.Listener { song, liked_status ->
+    private val song_liked_listener: SongLikedStatusListener = SongLikedStatusListener { song, liked_status ->
         if (song == current_song) {
             updatePlayerCustomActions(liked_status)
         }
@@ -58,18 +60,17 @@ open class ForegroundPlayerService: MediaSessionService(), PlayerService {
 
     private val audio_device_callback: PlayerAudioDeviceCallback = PlayerAudioDeviceCallback(this)
 
-    private val prefs_listener: PlatformPreferencesListener = object : PlatformPreferencesListener {
-        override fun onChanged(prefs: PlatformPreferences, key: String) {
+    private val prefs_listener: PlatformPreferencesListener =
+        PlatformPreferencesListener { _, key ->
             when (key) {
-                StreamingSettings.Key.ENABLE_AUDIO_NORMALISATION.getName() -> {
+                context.settings.streaming.ENABLE_AUDIO_NORMALISATION.key -> {
                     loudness_enhancer?.update(current_song, context)
                 }
-                StreamingSettings.Key.ENABLE_SILENCE_SKIPPING.getName() -> {
-                    audio_sink.skipSilenceEnabled = StreamingSettings.Key.ENABLE_SILENCE_SKIPPING.get(context)
+                context.settings.streaming.ENABLE_SILENCE_SKIPPING.key -> {
+                    audio_sink.skipSilenceEnabled = context.settings.streaming.ENABLE_SILENCE_SKIPPING.get()
                 }
             }
         }
-    }
 
     private val listeners: MutableList<PlayerListener> = mutableListOf()
 
@@ -106,7 +107,7 @@ open class ForegroundPlayerService: MediaSessionService(), PlayerService {
     override fun onCreate() {
         super.onCreate()
 
-        _context = AppContext(this, coroutine_scope).init()
+        _context = AppContext(this, coroutine_scope)
         _context.getPrefs().addListener(prefs_listener)
 
         initialiseSessionAndPlayer()
@@ -128,7 +129,7 @@ open class ForegroundPlayerService: MediaSessionService(), PlayerService {
             }
         )
 
-        SongLikedStatus.addListener(song_liked_listener)
+        SongLikedStatusListener.addListener(song_liked_listener)
     }
 
     override fun onDestroy() {
@@ -138,7 +139,7 @@ open class ForegroundPlayerService: MediaSessionService(), PlayerService {
         player.release()
         media_session.release()
         loudness_enhancer?.release()
-        SongLikedStatus.removeListener(song_liked_listener)
+        SongLikedStatusListener.removeListener(song_liked_listener)
 
         val audio_manager = getSystemService(AUDIO_SERVICE) as AudioManager?
         audio_manager?.unregisterAudioDeviceCallback(audio_device_callback)
@@ -153,12 +154,12 @@ open class ForegroundPlayerService: MediaSessionService(), PlayerService {
         if (
             (!player.isPlaying && convertState(player.playbackState) != SpMsPlayerState.BUFFERING)
             || (
-               BehaviourSettings.Key.STOP_PLAYER_ON_APP_CLOSE.get(context)
-               && intent?.component?.packageName == packageName
-                    )
-            ) {
+                context.settings.behaviour.STOP_PLAYER_ON_APP_CLOSE.get()
+                && intent?.component?.packageName == packageName
+            )
+        ) {
             stopSelf()
-                onDestroy()
+            onDestroy()
         }
     }
 
@@ -190,7 +191,7 @@ open class ForegroundPlayerService: MediaSessionService(), PlayerService {
     override val current_song_index: Int get() = player.currentMediaItemIndex
     override val current_position_ms: Long get() = player.currentPosition
     override val duration_ms: Long get() = player.duration
-    override val radio_state: RadioInstance.RadioState get() = service_player.radio_state
+    override val radio_instance: RadioInstance get() = service_player.radio_instance
     override var repeat_mode: SpMsPlayerRepeatMode
         get() = SpMsPlayerRepeatMode.entries[player.repeatMode]
         set(value) {
@@ -233,21 +234,55 @@ open class ForegroundPlayerService: MediaSessionService(), PlayerService {
         }
     }
 
+    private val song_seek_undo_stack: MutableList<Pair<Int, Long>> = mutableListOf()
+    private fun getSeekPosition(): Pair<Int, Long> = Pair(current_song_index, current_position_ms)
+
     override fun seekTo(position_ms: Long) {
+        val current: Pair<Int, Long> = getSeekPosition()
         player.seekTo(position_ms)
         listeners.forEach { it.onSeeked(position_ms) }
+
+        if (current != getSeekPosition()) {
+            song_seek_undo_stack.add(current)
+        }
     }
 
     override fun seekToSong(index: Int) {
+        val current: Pair<Int, Long> = getSeekPosition()
         player.seekTo(index, 0)
+
+        if (current != getSeekPosition()) {
+            song_seek_undo_stack.add(current)
+        }
     }
 
     override fun seekToNext() {
+        val current: Pair<Int, Long> = getSeekPosition()
         player.seekToNext()
+
+        if (current != getSeekPosition()) {
+            song_seek_undo_stack.add(current)
+        }
     }
 
     override fun seekToPrevious() {
+        val current: Pair<Int, Long> = getSeekPosition()
         player.seekToPrevious()
+
+        if (current != getSeekPosition()) {
+            song_seek_undo_stack.add(current)
+        }
+    }
+
+    override fun undoSeek() {
+        val (index: Int, position_ms: Long) = song_seek_undo_stack.removeLastOrNull() ?: return
+
+        if (index != current_song_index) {
+            player.seekTo(index, position_ms)
+        }
+        else {
+            player.seekTo(position_ms)
+        }
     }
 
     override fun getSong(): Song? {
@@ -275,16 +310,17 @@ open class ForegroundPlayerService: MediaSessionService(), PlayerService {
     }
 
     override fun removeSong(index: Int) {
+        val song: Song = player.getMediaItemAt(index).getSong()
         player.removeMediaItem(index)
-        listeners.forEach { it.onSongRemoved(index) }
+        listeners.forEach { it.onSongRemoved(index, song) }
     }
 
     @Composable
     override fun Visualiser(colour: Color, modifier: Modifier, opacity: Float) {
-        val visualiser: ExoVisualizer = remember { ExoVisualizer(fft_audio_processor) }
+        val visualiser: MusicVisualiser = remember { MusicVisualiser(fft_audio_processor) }
         visualiser.Visualiser(colour, modifier, opacity)
     }
-    
+
     companion object {
         // If there's a better way to provide information to MediaControllers, I'd like to know
         val fft_audio_processor: FFTAudioProcessor = FFTAudioProcessor()

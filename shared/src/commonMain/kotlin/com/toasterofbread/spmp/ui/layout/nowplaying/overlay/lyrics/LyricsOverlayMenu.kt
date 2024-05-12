@@ -2,69 +2,37 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.overlay.lyrics
 
 import LocalPlayerState
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.*
+import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.HourglassEmpty
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.ripple.rememberRipple
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
-import com.toasterofbread.composekit.platform.composable.BackHandler
-import com.toasterofbread.composekit.utils.common.launchSingle
-import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
+import androidx.compose.ui.unit.*
+import dev.toastbits.composekit.platform.composable.BackHandler
+import dev.toastbits.composekit.utils.common.launchSingle
+import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.settings.category.LyricsSettings
+import com.toasterofbread.spmp.platform.getOrNotify
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.component.AnnotatedReadingTerm
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
+import kotlinx.coroutines.CoroutineScope
 
 private enum class Submenu {
     SEARCH, SYNC
@@ -81,20 +49,20 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
-        val player = LocalPlayerState.current
-        val coroutine_scope = rememberCoroutineScope()
-        val scroll_state = rememberLazyListState()
-        val pill_menu = remember { PillMenu(expand_state = mutableStateOf(false)) }
+        val player: PlayerState = LocalPlayerState.current
+        val coroutine_scope: CoroutineScope = rememberCoroutineScope()
+        val scroll_state: LazyListState = rememberLazyListState()
+        val pill_menu: PillMenu = remember { PillMenu(expand_state = mutableStateOf(false)) }
 
-        val lyrics_state: SongLyricsLoader.ItemState = remember(getSong().id) { SongLyricsLoader.getItemState(getSong(), player.context) }
-        var show_furigana: Boolean by remember { mutableStateOf(LyricsSettings.Key.DEFAULT_FURIGANA.get()) }
+        val lyrics_state: SongLyricsLoader.ItemState = SongLyricsLoader.rememberItemState(getSong(), player.context)
+        var show_furigana: Boolean by remember { mutableStateOf(player.settings.lyrics.DEFAULT_FURIGANA.get()) }
 
         var submenu: Submenu? by remember { mutableStateOf(null) }
-        var lyrics_sync_line_data: Pair<Int, List<AnnotatedReadingTerm>>? by remember { mutableStateOf(null) }
+        var lyrics_sync_line_index: Int? by remember { mutableStateOf(null) }
 
         var special_mode: SpecialMode? by remember { mutableStateOf(null) }
 
-        BackHandler(submenu != null || special_mode != null) {
+        BackHandler(submenu != null || special_mode != null, priority = 3) {
             if (submenu != null) {
                 submenu = null
             }
@@ -115,7 +83,7 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
 
         LaunchedEffect(lyrics_state.lyrics) {
             submenu = null
-            lyrics_sync_line_data = null
+            lyrics_sync_line_index = null
             special_mode = null
         }
 
@@ -224,11 +192,9 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
                         submenu = null
                         if (changed) {
                             coroutine_scope.launchSingle {
-                                val result: Result<SongLyrics>? = SongLyricsLoader.loadBySong(getSong(), player.context)
-                                result?.onFailure { error ->
-                                    // TODO
-                                    player.context.sendToast(error.toString())
-                                }
+                                val result: SongLyrics? =
+                                    SongLyricsLoader.loadBySong(getSong(), player.context)
+                                        ?.getOrNotify(player.context, "LyricsOverlayMenu lyrics search")
                             }
                         }
                         else if (loading == false && lyrics == null) {
@@ -238,12 +204,11 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
                 }
                 else if (current_submenu == Submenu.SYNC) {
                     if (lyrics is SongLyrics) {
-                        lyrics_sync_line_data?.also { line_data ->
+                        lyrics_sync_line_index?.also { line_index ->
                             LyricsSyncMenu(
-                                song, 
-                                lyrics, 
-                                line_data.first, 
-                                line_data.second, 
+                                song,
+                                lyrics,
+                                line_index,
                                 Modifier.fillMaxSize()
                             ) {
                                 submenu = null
@@ -256,7 +221,7 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
                 }
                 else if (lyrics != null) {
                     Box(Modifier.fillMaxSize()) {
-                        val lyrics_follow_enabled: Boolean by LyricsSettings.Key.FOLLOW_ENABLED.rememberMutableState()
+                        val lyrics_follow_enabled: Boolean by player.settings.lyrics.FOLLOW_ENABLED.observe()
 
                         CoreLyricsDisplay(
                             lyrics,
@@ -265,15 +230,15 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
                             getExpansion,
                             show_furigana,
                             Modifier.fillMaxSize(),
-                            enable_autoscroll = lyrics_follow_enabled && special_mode != SpecialMode.SELECT_SYNC_LINE
-                        ) {
-                            if (special_mode == SpecialMode.SELECT_SYNC_LINE) { line_data ->
-                                submenu = Submenu.SYNC
-                                lyrics_sync_line_data = line_data
-                                special_mode = null
-                            }
-                            else null
-                        }
+                            enable_autoscroll = lyrics_follow_enabled && special_mode != SpecialMode.SELECT_SYNC_LINE,
+                            onLineAltClick =
+                                if (special_mode == SpecialMode.SELECT_SYNC_LINE) {{ line_index ->
+                                    submenu = Submenu.SYNC
+                                    lyrics_sync_line_index = line_index
+                                    special_mode = null
+                                }}
+                                else null
+                        )
 
                         AnimatedVisibility(
                             special_mode != null,
@@ -304,7 +269,7 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
 fun getLyricsTextStyle(font_size: TextUnit): TextStyle =
     LocalTextStyle.current.copy(
         fontSize = font_size,
-        lineHeight = (font_size.value * 1.5).sp,
+        lineHeight = font_size,
         letterSpacing = 0.sp,
         textAlign = TextAlign.Start
     )

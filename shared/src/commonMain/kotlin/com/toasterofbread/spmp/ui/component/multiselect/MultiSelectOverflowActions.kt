@@ -2,42 +2,33 @@ package com.toasterofbread.spmp.ui.component.multiselect_context
 
 import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.toasterofbread.composekit.platform.vibrateShort
-import com.toasterofbread.composekit.utils.composable.PlatformClickableButton
-import com.toasterofbread.composekit.utils.composable.ShapedIconButton
-import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
-import com.toasterofbread.spmp.model.mediaitem.db.setPinned
+import dev.toastbits.composekit.platform.vibrateShort
+import dev.toastbits.composekit.utils.composable.PlatformClickableButton
+import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.library.createLocalPlaylist
-import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
+import com.toasterofbread.spmp.model.mediaitem.playlist.InteractivePlaylistEditor
+import com.toasterofbread.spmp.model.mediaitem.playlist.InteractivePlaylistEditor.Companion.getEditorOrNull
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
-import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor
-import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.getEditorOrNull
-import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.isPlaylistEditable
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.rememberSongDownloads
+import com.toasterofbread.spmp.platform.getOrNotify
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 
 @Composable
@@ -122,7 +113,7 @@ private fun AddToPlaylistDialog(multiselect_context: MediaItemMultiSelectContext
         if (selected_playlists.isNotEmpty()) {
             coroutine_scope.launch(NonCancellable) {
                 for (playlist in selected_playlists) {
-                    val editor: PlaylistEditor = playlist.getEditorOrNull(player.context).getOrNull() ?: continue
+                    val editor: InteractivePlaylistEditor = playlist.getEditorOrNull(player.context).getOrNull() ?: continue
                     for (item in items) {
                         editor.addItem(item, null)
                     }
@@ -147,7 +138,8 @@ private fun AddToPlaylistDialog(multiselect_context: MediaItemMultiSelectContext
                 Button(
                     {
                         coroutine_scope.launch {
-                            val playlist: LocalPlaylistData = MediaItemLibrary.createLocalPlaylist(player.context).getOrReport(player.context, "MultiSelectContextCreateLocalPlaylist")
+                            val playlist: LocalPlaylistData =
+                                MediaItemLibrary.createLocalPlaylist(player.context).getOrNotify(player.context, "MultiSelectContextCreateLocalPlaylist")
                                 ?: return@launch
                             selected_playlists.add(playlist)
                         }

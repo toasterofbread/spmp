@@ -2,29 +2,37 @@ package com.toasterofbread.spmp.model.mediaitem.artist
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import com.toasterofbread.db.Database
+import androidx.compose.runtime.remember
+import com.toasterofbread.spmp.db.Database
+import com.toasterofbread.spmp.model.deserialise
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.db.ListPropertyImpl
 import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.db.SingleProperty
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
-import com.toasterofbread.spmp.model.mediaitem.layout.ViewMore
-import com.toasterofbread.spmp.model.mediaitem.layout.ViewMoreType
+import com.toasterofbread.spmp.model.mediaitem.layout.ContinuableMediaItemLayout
+import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.YoutubePageType
+import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
-import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
+import com.toasterofbread.spmp.model.mediaitem.toMediaItemData
+import com.toasterofbread.spmp.model.serialise
+import dev.toastbits.ytmkt.model.external.ItemLayoutType
+import dev.toastbits.ytmkt.model.external.YoutubePage
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmArtistLayout
+import dev.toastbits.ytmkt.uistrings.UiString
 
 data class ArtistLayoutData(
     override var layout_index: Long?,
     override val artist_id: String,
 
     var items: List<MediaItemData>? = null,
-    var title: LocalisedString? = null,
-    var subtitle: LocalisedString? = null,
-    var type: MediaItemLayout.Type? = null,
-    var view_more: ViewMore? = null,
+    var title: UiString? = null,
+    var subtitle: UiString? = null,
+    var type: ItemLayoutType? = null,
+    var view_more: YoutubePage? = null,
     var playlist: RemotePlaylist? = null
 ): ArtistLayout {
     fun saveToDatabase(db: Database, uncertain: Boolean = false, subitems_uncertain: Boolean = uncertain) {
@@ -32,8 +40,8 @@ data class ArtistLayoutData(
             items?.also { items ->
                 Items.clearItems(db, 0)
                 for (item in items) {
-                    if (item is MediaItem.DataWithArtist) {
-                        item.artist = item.artist?.getReference()
+                    if (item is MediaItem.DataWithArtists) {
+                        item.artists = item.artists?.map { it.getReference() }
                     }
                     item.saveToDatabase(db, uncertain = subitems_uncertain)
                     Items.addItem(item, null, db)
@@ -55,25 +63,50 @@ sealed interface ArtistLayout {
     var layout_index: Long?
     val artist_id: String
 
+    fun loadIntoYtmLayout(db: Database): YtmArtistLayout =
+        YtmArtistLayout(
+            items = Items.get(db)?.map {
+                val data: MediaItemData = it.getEmptyData()
+                it.populateData(data, db)
+                return@map data
+            },
+            title = Title.get(db),
+            subtitle = Subtitle.get(db),
+            type = Type.get(db),
+            view_more = ViewMore.get(db),
+            playlist_id = Playlist.get(db)?.id
+        )
+
     @Composable
-    fun rememberMediaItemLayout(db: Database): MediaItemLayout {
+    fun rememberMediaItemLayout(db: Database): ContinuableMediaItemLayout {
         val items: List<MediaItem>? by Items.observe(db)
-        val title: LocalisedString? by Title.observe(db)
-        val subtitle: LocalisedString? by Subtitle.observe(db)
-        val type: MediaItemLayout.Type? by Type.observe(db)
-        val view_more: ViewMore? by ViewMore.observe(db)
+        var item_data: List<MediaItemData>? = remember(items) { items?.map { it.getEmptyData() } }
+
+        val title: UiString? by Title.observe(db)
+        val subtitle: UiString? by Subtitle.observe(db)
+        val type: ItemLayoutType? by Type.observe(db)
+        val view_more: YoutubePage? by ViewMore.observe(db)
         val playlist: RemotePlaylist? by Playlist.observe(db)
 
-        return MediaItemLayout(
-            items ?: emptyList(),
-            title,
-            subtitle,
-            type,
-            view_more,
-            playlist?.id?.let { playlist_id ->
-                MediaItemLayout.Continuation(playlist_id, MediaItemLayout.Continuation.Type.PLAYLIST)
+        val layout: AppMediaItemLayout =
+            remember(item_data, title, subtitle, type, view_more) {
+                AppMediaItemLayout(
+                    item_data ?: emptyList(),
+                    title,
+                    subtitle,
+                    type,
+                    view_more,
+                )
             }
-        )
+
+        return remember(layout, playlist) {
+            ContinuableMediaItemLayout(
+                layout,
+                playlist?.id?.let {
+                    ContinuableMediaItemLayout.Continuation(it)
+                }
+            )
+        }
     }
 
     val Items get() = ListPropertyImpl(
@@ -98,30 +131,30 @@ sealed interface ArtistLayout {
         }
     )
 
-    val Title: Property<LocalisedString?>
+    val Title: Property<UiString?>
         get() = SingleProperty(
         { artistLayoutQueries.titleByIndex(artist_id, layout_index!!) },
-        { title_data?.let { LocalisedString.deserialise(it) } },
+        { title_data?.let { UiString.deserialise(it) } },
         { artistLayoutQueries.updateTitleByIndex(it?.serialise(), artist_id, layout_index!!) }
     )
-    val Subtitle: Property<LocalisedString?>
+    val Subtitle: Property<UiString?>
         get() = SingleProperty(
         { artistLayoutQueries.subtitleByIndex(artist_id, layout_index!!) },
-        { subtitle_data?.let { LocalisedString.deserialise(it) } },
+        { subtitle_data?.let { UiString.deserialise(it) } },
         { artistLayoutQueries.updateSubtitleByIndex(it?.serialise(), artist_id, layout_index!!) }
     )
-    val Type: Property<MediaItemLayout.Type?>
+    val Type: Property<ItemLayoutType?>
         get() = SingleProperty(
         { artistLayoutQueries.typeByIndex(artist_id, layout_index!!) },
-        { type?.let { MediaItemLayout.Type.entries[it.toInt()] } },
+        { type?.let { ItemLayoutType.entries[it.toInt()] } },
         { artistLayoutQueries.updateTypeByIndex(it?.ordinal?.toLong(), artist_id, layout_index!!) }
     )
-    val ViewMore: Property<ViewMore?>
+    val ViewMore: Property<YoutubePage?>
         get() = SingleProperty(
         { artistLayoutQueries.viewMoreByIndex(artist_id, layout_index!!) },
-        { view_more_type?.let { ViewMoreType.entries[it.toInt()].getViewMore(view_more_data!!) } },
+        { view_more_type?.let { YoutubePageType.entries[it.toInt()].getPage(view_more_data!!) } },
         { view_more ->
-            val serialised = view_more?.let { ViewMoreType.fromViewMore(view_more) }
+            val serialised = view_more?.let { YoutubePageType.fromPage(view_more) }
             artistLayoutQueries.updateViewMoreByIndex(serialised?.first, serialised?.second, artist_id, layout_index!!)
         }
     )
@@ -138,3 +171,15 @@ sealed interface ArtistLayout {
         }
     }
 }
+
+fun YtmArtistLayout.toArtistLayoutData(artist_id: String): ArtistLayoutData =
+    ArtistLayoutData(
+        artist_id = artist_id,
+        layout_index = null,
+        items = items?.map { it.toMediaItemData() },
+        title = title,
+        subtitle = subtitle,
+        type = type,
+        view_more = view_more,
+        playlist = playlist_id?.let { RemotePlaylistRef(it) }
+    )

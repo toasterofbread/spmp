@@ -24,15 +24,17 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.common.bitmapResource
-import com.toasterofbread.composekit.utils.common.blockGestures
-import com.toasterofbread.composekit.utils.common.thenIf
-import com.toasterofbread.composekit.utils.common.toFloat
 import com.toasterofbread.spmp.platform.playerservice.PlayerServiceLoadState
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.delay
+import org.jetbrains.compose.resources.*
+import spmp.shared.generated.resources.*
+import dev.toastbits.composekit.utils.common.toFloat
+import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.utils.common.blockGestures
+import dev.toastbits.composekit.utils.composable.NullableValueAnimatedVisibility
 
 private const val MESSAGE_DISPLAY_DELAY: Long = 1000L
 enum class SplashMode {
@@ -58,7 +60,7 @@ fun LoadingSplash(
         when (mode) {
             null -> {}
             SplashMode.SPLASH -> {
-                val image: ImageBitmap = bitmapResource("assets/drawable/ic_splash.png")
+                val image: ImageBitmap = imageResource(Res.drawable.ic_splash)
 
                 Column(
                     Modifier.fillMaxSize().background(player.theme.background).padding(10.dp),
@@ -120,7 +122,7 @@ fun LoadingSplash(
                                 if (load_state?.loading_message != null) {
                                     Text(load_state.loading_message, Modifier.padding(horizontal = 20.dp), color = player.theme.on_background)
                                 }
-                                
+
                                 LinearProgressIndicator(Modifier.fillMaxWidth(), color = player.theme.accent)
                             }
                         }
@@ -134,6 +136,10 @@ fun LoadingSplash(
                             }
                             .graphicsLayer { alpha = extra_content_alpha }
                     )
+
+                    NullableValueAnimatedVisibility(load_state?.error) { error ->
+                        ErrorInfoDisplay(error, isDebugBuild(), onDismiss = null)
+                    }
                 }
             }
             SplashMode.WARNING -> {

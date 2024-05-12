@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.platform
 
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import dev.cbyrne.kdiscordipc.KDiscordIPC
 import dev.cbyrne.kdiscordipc.core.event.impl.ReadyEvent
 import dev.cbyrne.kdiscordipc.data.activity.Activity
@@ -72,49 +72,53 @@ actual class DiscordStatus actual constructor(
         coroutine_scope.launch {
             if (connected) {
                 setActivity()
+                return@launch
             }
-            else {
-                ipc.on<ReadyEvent> {
-                    setActivity()
-                }
 
+            ipc.on<ReadyEvent> {
+                setActivity()
+            }
+
+            try {
                 connected = true
                 ipc.connect()
+            }
+            catch (e: Throwable) {
+                e.printStackTrace()
+                connected = false
             }
         }
     }
 
     actual suspend fun getCustomImages(
         image_items: List<MediaItem>,
-        target_quality: MediaItemThumbnailProvider.Quality
+        target_quality: ThumbnailProvider.Quality
     ): Result<List<String?>> =
         Result.success(image_items.map { item ->
-            val thumbnail_provider: MediaItemThumbnailProvider? = item.ThumbnailProvider.get(context.database)
+            val thumbnail_provider: ThumbnailProvider? = item.ThumbnailProvider.get(context.database)
             thumbnail_provider?.getThumbnailUrl(target_quality)
         })
 }
 
-actual suspend fun getDiscordAccountInfo(account_token: String?): Result<DiscordMeResponse> {
+actual suspend fun getDiscordAccountInfo(account_token: String?): Result<DiscordMeResponse> = runCatching {
     val ipc: KDiscordIPC = KDiscordIPC(ProjectBuildConfig.DISCORD_APPLICATION_ID)
-    var result: Result<DiscordMeResponse>? = null
+    var result: DiscordMeResponse? = null
 
     ipc.on<ReadyEvent> {
-        result = Result.success(
-            with (data.user) {
-                DiscordMeResponse(
-                    id = id,
-                    username = username,
-                    avatar = avatar,
-                    discriminator = discriminator,
-                    banner_color = null,
-                    bio = null
-                )
-            }
-        )
+        result = with (data.user) {
+            DiscordMeResponse(
+                id = id,
+                username = username,
+                avatar = avatar,
+                discriminator = discriminator,
+                banner_color = null,
+                bio = null
+            )
+        }
 
         ipc.disconnect()
     }
     ipc.connect()
 
-    return result ?: Result.failure(RuntimeException("Result not set"))
+    return@runCatching result ?: throw NullPointerException("Result not set")
 }

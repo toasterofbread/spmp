@@ -8,8 +8,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.toasterofbread.composekit.platform.PlatformFile
-import com.toasterofbread.composekit.utils.modifier.background
+import dev.toastbits.composekit.platform.PlatformFile
+import dev.toastbits.composekit.utils.modifier.background
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
@@ -32,7 +32,7 @@ sealed interface LocalPlaylist: Playlist {
 
     override suspend fun setActiveTitle(value: String?, context: AppContext) {
         val data: LocalPlaylistData = loadData(context).getOrNull() ?: return
-        data.title = value
+        data.name = value
 
         val file = MediaItemLibrary.getLocalPlaylistFile(this, context)
         data.saveToFile(file, context)
@@ -71,7 +71,7 @@ suspend fun Playlist.downloadAsLocalPlaylist(context: AppContext, replace: Boole
 @Composable
 fun LocalPlaylist.LocalPlaylistDefaultThumbnail(modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
-    Box(modifier.background(player.theme.accent_provider), contentAlignment = Alignment.Center) {
+    Box(modifier.background({ player.theme.accent }), contentAlignment = Alignment.Center) {
         Icon(Icons.Default.PlaylistPlay, null, tint = player.theme.on_accent)
     }
 }

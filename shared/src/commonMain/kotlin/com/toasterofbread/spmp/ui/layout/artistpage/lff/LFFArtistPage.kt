@@ -17,22 +17,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.common.getThemeColour
-import com.toasterofbread.composekit.utils.common.launchSingle
-import com.toasterofbread.composekit.utils.composable.OnChangedEffect
+import dev.toastbits.composekit.utils.common.getThemeColour
+import dev.toastbits.composekit.utils.common.launchSingle
+import dev.toastbits.composekit.utils.composable.OnChangedEffect
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
-import com.toasterofbread.spmp.model.mediaitem.layout.BrowseParamsData
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.loadDataOnChange
-import com.toasterofbread.spmp.model.settings.category.FilterSettings
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
-import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsRow
+import dev.toastbits.ytmkt.endpoint.ArtistWithParamsEndpoint
+import dev.toastbits.ytmkt.endpoint.ArtistWithParamsRow
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
@@ -44,8 +42,8 @@ internal fun ArtistAppPage.LFFArtistPage(
 ) {
     val player: PlayerState = LocalPlayerState.current
 
-    val own_multiselect_context: MediaItemMultiSelectContext? = remember(multiselect_context) { if (multiselect_context != null) null else MediaItemMultiSelectContext() {} }
-    val apply_filter: Boolean by FilterSettings.Key.APPLY_TO_ARTIST_ITEMS.rememberMutableState()
+    val own_multiselect_context: MediaItemMultiSelectContext? = remember(multiselect_context) { if (multiselect_context != null) null else MediaItemMultiSelectContext(player.context) {} }
+    val apply_filter: Boolean by player.settings.filter.APPLY_TO_ARTIST_ITEMS.observe()
 
     val item_layouts: List<ArtistLayout>? by artist.Layouts.observe(player.database)
     var browse_params_rows: List<ArtistWithParamsRow>? by remember { mutableStateOf(null) }
@@ -73,7 +71,6 @@ internal fun ArtistAppPage.LFFArtistPage(
         load_error = null
 
         val (params, params_endpoint) = browse_params
-        require(params_endpoint.isImplemented())
 
         params_endpoint.loadArtistWithParams(params).fold(
             { browse_params_rows = it },

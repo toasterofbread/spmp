@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import LocalPlayerState
 import SpMp.isDebugBuild
+import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -17,14 +18,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.toasterofbread.composekit.platform.composable.BackHandler
-import com.toasterofbread.composekit.settings.ui.SettingsPage
-import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
+import dev.toastbits.composekit.platform.composable.BackHandler
+import dev.toastbits.composekit.settings.ui.SettingsPage
+import dev.toastbits.composekit.platform.PreferencesProperty
+import com.toasterofbread.spmp.model.settings.packSetData
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
-import com.toasterofbread.spmp.youtubeapi.composable.LoginPage
+import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.LoginPage
 
 internal fun getYoutubeMusicLoginPage(
-    ytm_auth: SettingsValueState<Set<String>>,
+    ytm_auth: PreferencesProperty<Set<String>>,
     confirm_param: Any?
 ): SettingsPage {
     return object : SettingsPage() {
@@ -44,6 +46,9 @@ internal fun getYoutubeMusicLoginPage(
         override val icon: ImageVector?
             @Composable
             get() = login_page.getIcon(confirm_param)
+
+        @Composable
+        override fun hasTitleBar(): Boolean = false
 
         @Composable
         override fun TitleBar(is_root: Boolean, modifier: Modifier, titleFooter: @Composable (() -> Unit)?) {}
@@ -66,7 +71,9 @@ internal fun getYoutubeMusicLoginPage(
                     login_page.LoginPage(Modifier.fillMaxSize(), confirm_param, content_padding) { result ->
                         result?.fold(
                             { auth_info ->
-                                ytm_auth.set(auth_info.getSetData())
+                                ytm_auth.set(
+                                    ApiAuthenticationState.packSetData(auth_info.own_channel_id, auth_info.headers)
+                                )
                                 goBack()
                             },
                             { error ->

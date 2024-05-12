@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.platform.download
 
+import LocalPlayerState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,12 +26,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.composable.WidthShrinkText
+import dev.toastbits.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.settings.category.StreamingSettings
-import com.toasterofbread.spmp.model.settings.getEnum
-import com.toasterofbread.spmp.model.settings.rememberMutableEnumState
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 
 @Composable
@@ -41,16 +40,18 @@ fun DownloadMethodSelectionDialog(
     always_show_options: Boolean = false,
     songs: List<Song>? = null
 ) {
-    var download_method: DownloadMethod by StreamingSettings.Key.DOWNLOAD_METHOD.rememberMutableEnumState()
-    var skip_confirmation: Boolean by StreamingSettings.Key.SKIP_DOWNLOAD_METHOD_CONFIRMATION.rememberMutableState()
+    val player: PlayerState = LocalPlayerState.current
+
+    var download_method: DownloadMethod by player.settings.streaming.DOWNLOAD_METHOD.observe()
+    var skip_confirmation: Boolean by player.settings.streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION.observe()
     var show: Boolean by remember { mutableStateOf(false) }
 
-    val initial_download_method: DownloadMethod = remember { StreamingSettings.Key.DOWNLOAD_METHOD.getEnum() }
-    val initial_skip_confirmation: Boolean = remember { StreamingSettings.Key.SKIP_DOWNLOAD_METHOD_CONFIRMATION.get() }
+    val initial_download_method: DownloadMethod = remember { player.settings.streaming.DOWNLOAD_METHOD.get() }
+    val initial_skip_confirmation: Boolean = remember { player.settings.streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION.get() }
 
     fun cancel() {
-        StreamingSettings.Key.DOWNLOAD_METHOD.set(initial_download_method)
-        StreamingSettings.Key.SKIP_DOWNLOAD_METHOD_CONFIRMATION.set(initial_skip_confirmation)
+        player.settings.streaming.DOWNLOAD_METHOD.set(initial_download_method)
+        player.settings.streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION.set(initial_skip_confirmation)
         onCancelled()
     }
 

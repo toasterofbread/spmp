@@ -5,6 +5,7 @@ import org.xmlpull.v1.XmlPullParserFactory
 import java.io.FileInputStream
 import java.util.Properties
 import com.android.build.api.dsl.ApplicationVariantDimension
+import plugin.spmp.SpMpDeps
 
 plugins {
     kotlin("multiplatform")
@@ -49,18 +50,20 @@ fun getString(key: String): String {
 kotlin {
     androidTarget()
     sourceSets {
+        val deps: SpMpDeps = SpMpDeps(extra.properties)
+
         val androidMain by getting {
             dependencies {
                 implementation(project(":shared"))
-                implementation(project(":ComposeKit:lib"))
+                implementation(deps.get("dev.toastbits.composekit:library-android"))
             }
         }
     }
 }
 
 android {
-    compileSdk = (findProperty("android.compileSdk") as String).toInt()
     namespace = "com.toasterofbread.spmp"
+    compileSdk = (findProperty("android.compileSdk") as String).toInt()
 
     signingConfigs {
         create("main") {
@@ -76,7 +79,7 @@ android {
         versionName = getString("version_string")
 
         applicationId = "com.toasterofbread.spmp"
-        minSdk = (findProperty("android.minSdk") as String).toInt()
+        minSdk = 23
         targetSdk = (findProperty("android.targetSdk") as String).toInt()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -155,15 +158,13 @@ android {
         disable.add("ByteOrderMark")
     }
 
-    sourceSets {
-        getByName("main") {
-            assets.srcDirs("src/main/assets")
-            dependencies {
-                implementation(project(":shared"))
-            }
-            manifest {
-                srcFile("src/main/AndroidManifest.xml")
-            }
+    sourceSets.getByName("main") {
+        assets.srcDirs("src/main/assets")
+        dependencies {
+            implementation(project(":shared"))
+        }
+        manifest {
+            srcFile("src/main/AndroidManifest.xml")
         }
     }
 }

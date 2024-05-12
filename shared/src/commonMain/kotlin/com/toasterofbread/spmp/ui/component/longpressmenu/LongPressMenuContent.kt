@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
@@ -47,26 +48,28 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.platform.composable.platformClickable
-import com.toasterofbread.composekit.platform.vibrateShort
-import com.toasterofbread.composekit.utils.common.copy
-import com.toasterofbread.composekit.utils.common.getContrasted
-import com.toasterofbread.composekit.utils.common.thenIf
-import com.toasterofbread.composekit.utils.composable.AlignableCrossfade
-import com.toasterofbread.composekit.utils.composable.Marquee
-import com.toasterofbread.composekit.utils.composable.NoRipple
-import com.toasterofbread.composekit.utils.composable.PlatformClickableIconButton
-import com.toasterofbread.composekit.utils.modifier.bounceOnClick
+import dev.toastbits.composekit.platform.composable.platformClickable
+import dev.toastbits.composekit.platform.vibrateShort
+import dev.toastbits.composekit.utils.common.copy
+import dev.toastbits.composekit.utils.common.getContrasted
+import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.utils.composable.AlignableCrossfade
+import dev.toastbits.composekit.utils.composable.Marquee
+import dev.toastbits.composekit.utils.composable.NoRipple
+import dev.toastbits.composekit.utils.composable.PlatformClickableIconButton
+import dev.toastbits.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
+import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
@@ -82,10 +85,11 @@ internal fun LongPressMenuContent(
     onAction: () -> Unit
 ) {
     val player: PlayerState = LocalPlayerState.current
-    
+    val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
+
     @Composable
     fun Thumb(modifier: Modifier) {
-        data.item.Thumbnail(MediaItemThumbnailProvider.Quality.LOW, modifier.clip(data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING)))
+        data.item.Thumbnail(ThumbnailProvider.Quality.LOW, modifier.clip(data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING)))
     }
 
     var show_title_edit_dialog: Boolean by remember { mutableStateOf(false) }
@@ -179,20 +183,16 @@ internal fun LongPressMenuContent(
                         }
 
                         // Artist
-                        if (data.item is MediaItem.WithArtist) {
-                            val item_artist: Artist? by data.item.Artist.observe(player.database)
-                            item_artist?.also { artist ->
+                        if (data.item is MediaItem.WithArtists) {
+                            val item_artists: List<Artist>? by data.item.Artists.observe(player.database)
+                            item_artists?.firstOrNull()?.also { artist ->
                                 Marquee {
-                                    CompositionLocalProvider(
-                                        LocalPlayerState provides remember {
-                                            player.copy(
-                                                onClickedOverride = { item, _ ->
-                                                    onAction()
-                                                    player.onMediaItemClicked(item)
-                                                }
-                                            )
+                                    CompositionLocalProvider(LocalPlayerClickOverrides provides click_overrides.copy(
+                                        onClickOverride = { item, _ ->
+                                            onAction()
+                                            click_overrides.onMediaItemClicked(item, player)
                                         }
-                                    ) {
+                                    )) {
                                         MediaItemPreviewLong(artist)
                                     }
                                 }
@@ -307,11 +307,15 @@ internal fun LongPressMenuBackground(
     modifier: Modifier = Modifier,
     onScroll: () -> Unit = {},
     enable_input: Boolean = true,
+    getAlpha: () -> Float = { 1f },
     close: () -> Unit
 ) {
     Box(
         modifier
-            .background(Color.Black.copy(alpha = 0.5f))
+            .graphicsLayer {
+                alpha = getAlpha() * 0.5f
+            }
+            .background(Color.Black)
             .thenIf(enable_input) {
                 pointerInput(Unit) {
                     while (currentCoroutineContext().isActive) {

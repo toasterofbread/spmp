@@ -3,7 +3,6 @@ package com.toasterofbread.spmp.ui.layout.nowplaying.queue
 
 import LocalPlayerState
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
@@ -12,8 +11,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.Undo
-import androidx.compose.material3.*
-import androidx.compose.material3.tokens.FilledButtonTokens
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,24 +21,22 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.platform.composable.platformClickable
-import com.toasterofbread.composekit.platform.vibrateShort
-import com.toasterofbread.composekit.utils.common.getContrasted
-import com.toasterofbread.composekit.utils.composable.PlatformClickableButton
-import com.toasterofbread.composekit.utils.composable.TextOrIconButton
-import com.toasterofbread.composekit.utils.modifier.bounceOnClick
+import dev.toastbits.composekit.platform.composable.platformClickable
+import dev.toastbits.composekit.platform.vibrateShort
+import dev.toastbits.composekit.utils.common.getContrasted
+import dev.toastbits.composekit.utils.composable.TextOrIconButton
+import dev.toastbits.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.theme.appHover
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun QueueButtonsRow(
     getButtonColour: () -> Color,
     multiselect_context: MediaItemMultiSelectContext,
     arrangement: Arrangement.Horizontal = Arrangement.SpaceEvenly,
-    scrollToitem: (Int) -> Unit
+    scrollToItem: (Int) -> Unit
 ) {
     val padding: Dp = 10.dp
     val player: PlayerState = LocalPlayerState.current
@@ -99,7 +97,7 @@ fun QueueButtonsRow(
                         player.controller?.service_player?.undoableAction {
                             if (current_song_index > 0) {
                                 moveSong(current_song_index, 0)
-                                scrollToitem(0)
+                                scrollToItem(0)
                             }
                             shuffleQueue(start = 1)
                         }
@@ -127,13 +125,13 @@ fun QueueButtonsRow(
                     CircleShape
                 )
                 .clip(CircleShape)
-                .combinedClickable(
+                .platformClickable(
                     enabled = player.status.m_undo_count != 0 || player.status.m_redo_count != 0,
                     onClick = {
                         player.controller?.service_player?.undo()
                         player.context.vibrateShort()
                     },
-                    onLongClick = {
+                    onAltClick = {
                         player.controller?.service_player?.redo()
                         player.context.vibrateShort()
                     }

@@ -25,8 +25,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,12 +46,15 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.toasterofbread.composekit.utils.common.addUnique
-import com.toasterofbread.composekit.utils.common.getContrasted
-import com.toasterofbread.composekit.utils.common.thenIf
-import com.toasterofbread.composekit.utils.composable.NoRipple
+import dev.toastbits.composekit.utils.common.addUnique
+import dev.toastbits.composekit.utils.common.getContrasted
+import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.utils.composable.NoRipple
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 import kotlin.math.sign
+import dev.toastbits.composekit.utils.composable.RowOrColumn
 
 class PillMenu(
     private val action_count: Int = 0,
@@ -90,7 +93,7 @@ class PillMenu(
     fun setBackgroundColourOverride(colour: Color?) {
         background_colour_override = colour
     }
-    
+
     fun addAlongsideAction(action: @Composable Action.() -> Unit) {
         extra_alongside_actions.addUnique(action)
     }
@@ -268,18 +271,18 @@ class PillMenu(
                             val (open, close) = remember(top, left, vertical) {
                                 if (vertical) {
                                     if (top) {
-                                        Pair(Icons.Filled.KeyboardArrowDown, Icons.Filled.KeyboardArrowUp)
+                                        Pair(Icons.Default.KeyboardArrowDown, Icons.Default.KeyboardArrowUp)
                                     }
                                     else {
-                                        Pair(Icons.Filled.KeyboardArrowUp, Icons.Filled.KeyboardArrowDown)
+                                        Pair(Icons.Default.KeyboardArrowUp, Icons.Default.KeyboardArrowDown)
                                     }
                                 }
                                 else {
                                     if (left) {
-                                        Pair(Icons.Filled.KeyboardArrowRight, Icons.Filled.KeyboardArrowLeft)
+                                        Pair(Icons.AutoMirrored.Default.KeyboardArrowRight, Icons.AutoMirrored.Default.KeyboardArrowLeft)
                                     }
                                     else {
-                                        Pair(Icons.Filled.KeyboardArrowLeft, Icons.Filled.KeyboardArrowRight)
+                                        Pair(Icons.AutoMirrored.Default.KeyboardArrowLeft, Icons.AutoMirrored.Default.KeyboardArrowRight)
                                     }
                                 }
                             }
@@ -300,7 +303,7 @@ class PillMenu(
             }
 
             if (visible) {
-                val player = LocalPlayerState.current
+                val player: PlayerState = LocalPlayerState.current
                 Box(
                     contentAlignment = alignment,
                     modifier = container_modifier
@@ -315,15 +318,15 @@ class PillMenu(
                         modifier
                             .height(IntrinsicSize.Max)
                             .thenIf(follow_player) {
-                                player.nowPlayingTopOffset(this)
+                                player.nowPlayingTopOffset(this, NowPlayingTopOffsetSection.PILL_MENU)
                             },
                         Arrangement.spacedBy(10.dp)
-                    ) { getWeightModifier ->
-                        val action = remember(background_colour) { Action(background_colour, background_colour.getContrasted(), getWeightModifier(Float.MAX_VALUE)) }
+                    ) {
+                        val action = remember(background_colour) { Action(background_colour, background_colour.getContrasted(), Modifier.weight(Float.MAX_VALUE)) }
 
                         @Composable
                         fun AlongsideContent() {
-                            Row(getWeightModifier(1f).run {
+                            Row(Modifier.weight(1f).run {
                                 if (vertical) fillMaxHeight() else fillMaxWidth()
                             }) {
                                 if (start && alongsideContent != null) {
@@ -399,39 +402,5 @@ class PillMenu(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun RowOrColumn(
-    row: Boolean,
-    modifier: Modifier = Modifier,
-    arrangement: Arrangement.HorizontalOrVertical = Arrangement.SpaceEvenly,
-    alignment: Int = 0,
-    content: @Composable (getWeightModifier: (Float) -> Modifier) -> Unit,
-) {
-    if (row) {
-        Row(
-            modifier,
-            horizontalArrangement = arrangement,
-            verticalAlignment =
-                when (alignment.sign) {
-                    -1 -> Alignment.Top
-                    0 -> Alignment.CenterVertically
-                    else -> Alignment.Bottom
-                }
-        ) { content { Modifier.weight(it) } }
-    }
-    else {
-        Column(
-            modifier,
-            verticalArrangement = arrangement,
-            horizontalAlignment =
-            when (alignment.sign) {
-                -1 -> Alignment.Start
-                0 -> Alignment.CenterHorizontally
-                else -> Alignment.End
-            }
-        ) { content { Modifier.weight(it) } }
     }
 }

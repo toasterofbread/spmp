@@ -1,0 +1,113 @@
+CREATE TABLE Song (
+    id TEXT NOT NULL PRIMARY KEY,
+
+    song_type INTEGER,
+    duration INTEGER,
+    artists TEXT,
+    album TEXT,
+    related_browse_id TEXT,
+    lyrics_browse_id TEXT,
+    loudness_db REAL,
+    explicit INTEGER,
+
+    --
+
+    liked INTEGER, -- null = Unknown, 0 = Disliked, 1 = Neutral, 2 = Liked
+    lyrics_source INTEGER,
+    lyrics_id TEXT,
+    lyrics_sync_offset INTEGER,
+    np_gradient_depth REAL,
+    thumbnail_rounding REAL,
+    notif_image_offset_x INTEGER,
+    notif_image_offset_y INTEGER,
+    background_image_opacity REAL,
+    video_position INTEGER,
+    landscape_queue_opacity REAL,
+    image_shadow_radius REAL,
+    background_wave_speed REAL,
+    background_wave_opacity REAL,
+
+    FOREIGN KEY (album) REFERENCES Playlist(id),
+
+--  TODO
+--  FOREIGN KEY (lyrics_source, lyrics_id) REFERENCES Lyrics(source, id),
+
+    FOREIGN KEY (id) REFERENCES MediaItem(id)
+);
+
+countById: SELECT COUNT(*) FROM Song WHERE id == :id;
+byHidden: SELECT Song.id FROM Song, MediaItem WHERE MediaItem.id == Song.id AND MediaItem.hidden == :hidden;
+byLiked: SELECT Song.id FROM Song WHERE liked == :liked;
+
+insertById {
+    INSERT OR IGNORE INTO MediaItem(id) VALUES(:id);
+    INSERT OR IGNORE INTO Song(id) VALUES(:id);
+}
+removeById {
+    DELETE FROM Song WHERE id == :id;
+    DELETE FROM MediaItem WHERE id == :id;
+}
+
+dereferenceAlbumById: UPDATE Song SET album = NULL WHERE album == :album_id;
+
+songTypeById: SELECT song_type FROM Song WHERE id == :id;
+updateSongTypeById: UPDATE Song SET song_type = :value WHERE id == :id;
+
+durationById: SELECT duration FROM Song WHERE id == :id;
+updateDurationById: UPDATE Song SET duration = :value WHERE id == :id;
+
+artistsById: SELECT artists FROM Song WHERE id == :id;
+updateArtistsById: UPDATE Song SET artists = :value WHERE id == :id;
+
+albumById: SELECT album FROM Song WHERE id == :id;
+updateAlbumById: UPDATE Song SET album = :value WHERE id == :id;
+
+relatedBrowseIdById: SELECT related_browse_id FROM Song WHERE id == :id;
+updateRelatedBrowseIdById: UPDATE Song SET related_browse_id = :related_browse_id WHERE id == :id;
+
+lyricsBrowseIdById: SELECT lyrics_browse_id FROM Song WHERE id == :id;
+updateLyricsBrowseIdById: UPDATE Song SET lyrics_browse_id = :lyrics_browse_id WHERE id == :id;
+
+loudnessDbById: SELECT loudness_db FROM Song WHERE id == :id;
+updateLoudnessDbById: UPDATE Song SET loudness_db = :loudness_db WHERE id == :id;
+
+explicitById: SELECT explicit FROM Song WHERE id == :id;
+updateExplicitDbById: UPDATE Song SET explicit = :explicit WHERE id == :id;
+
+--
+
+likedById: SELECT liked FROM Song WHERE id == :id;
+updatelikedById: UPDATE Song SET liked = :liked WHERE id == :id;
+
+lyricsById: SELECT lyrics_source, lyrics_id FROM Song WHERE id == :id;
+updateLyricsById: UPDATE Song SET lyrics_source = :lyrics_source, lyrics_id = :lyrics_id WHERE id == :id;
+
+lyricsSyncOffsetById: SELECT lyrics_sync_offset FROM Song WHERE id == :id;
+updateLyricsSyncOffsetById: UPDATE Song SET lyrics_sync_offset = :lyrics_sync_offset WHERE id == :id;
+
+npGradientDepthById: SELECT np_gradient_depth FROM Song WHERE id == :id;
+updateNpGradientDepthById: UPDATE Song SET np_gradient_depth = :np_gradient_depth WHERE id == :id;
+
+thumbnailRoundingById: SELECT thumbnail_rounding FROM Song WHERE id == :id;
+updateThumbnailRoundingById: UPDATE Song SET thumbnail_rounding = :thumbnail_rounding WHERE id == :id;
+
+notifImageOffsetById: SELECT notif_image_offset_x, notif_image_offset_y FROM Song WHERE id == :id;
+updateNotifImageOffsetById: UPDATE Song SET notif_image_offset_x = :notif_image_offset_x, notif_image_offset_y = :notif_image_offset_y WHERE id == :id;
+
+backgroundImageOpacityById: SELECT background_image_opacity FROM Song WHERE id == :id;
+updateBackgroundImageOpacityById: UPDATE Song SET background_image_opacity = :background_image_opacity WHERE id == :id;
+
+videoPositionById: SELECT video_position FROM Song WHERE id == :id;
+updateVideoPositionById: UPDATE Song SET video_position = :video_position WHERE id == :id;
+
+landscapeQueueOpacityById: SELECT landscape_queue_opacity FROM Song WHERE id == :id;
+updateLandscapeQueueOpacityById: UPDATE Song SET landscape_queue_opacity = :landscape_queue_opacity WHERE id == :id;
+
+imageShadowRadiusById: SELECT image_shadow_radius FROM Song WHERE id == :id;
+updateImageShadowRadiusById: UPDATE Song SET image_shadow_radius = :image_shadow_radius WHERE id == :id;
+
+backgroundWaveSpeedById: SELECT background_wave_speed FROM Song WHERE id == :id;
+updateBackgroundWaveSpeedById: UPDATE Song SET background_wave_speed = :background_wave_speed WHERE id == :id;
+
+backgroundWaveOpacityById: SELECT background_wave_opacity FROM Song WHERE id == :id;
+updateBackgroundWaveOpacityById: UPDATE Song SET background_wave_opacity = :background_wave_opacity WHERE id == :id;

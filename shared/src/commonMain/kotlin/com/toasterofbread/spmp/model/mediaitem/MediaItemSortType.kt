@@ -1,14 +1,16 @@
 package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.runtime.Composable
-import com.toasterofbread.composekit.utils.composable.LargeDropdownMenu
-import com.toasterofbread.db.Database
+import androidx.compose.material3.Text
+import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
+import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.db.getPlayCount
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.resources.getString
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
 
 enum class MediaItemSortType {
-     NATIVE, ALPHABET, DURATION, ARTIST, PLAY_COUNT;
+    NATIVE, ALPHABET, DURATION, ARTIST, PLAY_COUNT;
 
     fun getReadable(native_string_key: String? = null): String =
         getString(when(this) {
@@ -19,11 +21,11 @@ enum class MediaItemSortType {
             PLAY_COUNT -> "sort_type_playcount"
         })
 
-    fun <T: MediaItem> sortItems(items: List<T>, db: Database, reversed: Boolean = false): List<T> {
+    fun <T: YtmMediaItem> sortItems(items: List<T>, db: Database, reversed: Boolean = false): List<T> {
         return sortItems(items, db, reversed) { it }
     }
 
-    fun <T: MediaItem, V> sortItems(items: List<V>, db: Database, reversed: Boolean = false, mapValue: (V) -> T): List<V> {
+    fun <T: YtmMediaItem, V> sortItems(items: List<V>, db: Database, reversed: Boolean = false, mapValue: (V) -> T): List<V> {
         var reverse: Boolean = reversed
         val selector: (V) -> Comparable<*> = when (this) {
             NATIVE ->
@@ -31,7 +33,7 @@ enum class MediaItemSortType {
                 else items
 
             ALPHABET -> {
-                { mapValue(it).getActiveTitle(db) ?: "" }
+                { mapValue(it).getItemActiveTitle(db) ?: "" }
             }
 
             DURATION -> {
@@ -42,7 +44,7 @@ enum class MediaItemSortType {
             }
 
             ARTIST -> {
-                { (mapValue(it) as? MediaItem.WithArtist)?.Artist?.get(db)?.getActiveTitle(db) ?: "" }
+                { (mapValue(it) as? MediaItem.WithArtists)?.Artists?.get(db)?.firstOrNull()?.getActiveTitle(db) ?: "" }
             }
 
             PLAY_COUNT -> {
@@ -53,13 +55,13 @@ enum class MediaItemSortType {
         return items.sortedWith(if (reverse) compareByDescending(selector) else compareBy(selector))
     }
 
-    fun <T: MediaItem> sortAndFilterItems(items: List<T>, filter: String?, db: Database, reversed: Boolean): List<T> {
+    fun <T: YtmMediaItem> sortAndFilterItems(items: List<T>, filter: String?, db: Database, reversed: Boolean): List<T> {
         val sorted = sortItems(items, db, reversed)
         if (filter == null) {
             return sorted
         }
 
-        return sorted.filter { it.getActiveTitle(db)?.contains(filter, true) == true }
+        return sorted.filter { it.getItemActiveTitle(db)?.contains(filter, true) == true }
     }
 
     companion object {
@@ -78,7 +80,9 @@ enum class MediaItemSortType {
                 onDismissed,
                 entries.size - index_offset,
                 selected_option.ordinal - index_offset,
-                { entries[it + index_offset].getReadable(native_string_key) }
+                { 
+                    Text(entries[it + index_offset].getReadable(native_string_key))
+                }
             ) {
                 onSelected(entries[it + index_offset])
                 onDismissed()

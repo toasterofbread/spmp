@@ -4,7 +4,6 @@ import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -26,13 +25,14 @@ import androidx.compose.ui.graphics.isUnspecified
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.composekit.platform.composable.platformClickable
-import com.toasterofbread.composekit.platform.vibrateShort
-import com.toasterofbread.composekit.utils.common.thenIf
+import dev.toastbits.composekit.platform.composable.platformClickable
+import dev.toastbits.composekit.platform.vibrateShort
+import dev.toastbits.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.playerservice.PlayerService
+import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.theme.appHover
 
 class LongPressMenuActionProvider(
@@ -45,8 +45,7 @@ class LongPressMenuActionProvider(
     fun ActionButton(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit, onAltClick: (() -> Unit)? = null, onAction: () -> Unit = this.onAction, fill_width: Boolean = true) =
         ActionButton(icon, label, getAccentColour, modifier = modifier, onClick = onClick, onAltClick = onAltClick, onAction = onAction, fill_width = fill_width)
 
-    @OptIn(ExperimentalFoundationApi::class)
-    @Composable
+        @Composable
     fun ActiveQueueIndexAction(
         getText: (distance: Int) -> String,
         onClick: (active_queue_index: Int) -> Unit,
@@ -54,7 +53,7 @@ class LongPressMenuActionProvider(
     ) {
         val player: PlayerState = LocalPlayerState.current
         val service: PlayerService = LocalPlayerState.current.controller ?: return
-        
+
         var active_queue_item: Song? by remember { mutableStateOf(null) }
         AnimatedVisibility(service.service_player.active_queue_index < player.status.m_song_count) {
             if (service.service_player.active_queue_index < player.status.m_song_count) {
@@ -87,13 +86,11 @@ class LongPressMenuActionProvider(
                             .align(Alignment.CenterVertically)
 
                         Surface(
-                            button_modifier.combinedClickable(
-                                remember { MutableInteractionSource() },
-                                rememberRipple(),
+                            button_modifier.platformClickable(
                                 onClick = {
                                     service.service_player.updateActiveQueueIndex(-1)
                                 },
-                                onLongClick = {
+                                onAltClick = {
                                     player.context.vibrateShort()
                                     service.service_player.updateActiveQueueIndex(Int.MIN_VALUE)
                                 }
@@ -105,13 +102,11 @@ class LongPressMenuActionProvider(
                         }
 
                         Surface(
-                            button_modifier.combinedClickable(
-                                remember { MutableInteractionSource() },
-                                rememberRipple(),
+                            button_modifier.platformClickable(
                                 onClick = {
                                     service.service_player.updateActiveQueueIndex(1)
                                 },
-                                onLongClick = {
+                                onAltClick = {
                                     player.context.vibrateShort()
                                     service.service_player.updateActiveQueueIndex(Int.MAX_VALUE)
                                 }
@@ -125,7 +120,9 @@ class LongPressMenuActionProvider(
                 }
 
                 CompositionLocalProvider(
-                    LocalPlayerState provides remember { player.copy(onClickedOverride = { item, _ -> player.openMediaItem(item,) }) }
+                    LocalPlayerClickOverrides provides LocalPlayerClickOverrides.current.copy(
+                        onClickOverride = { item, _ -> player.openMediaItem(item) }
+                    )
                 ) {
                     Crossfade(active_queue_item, animationSpec = tween(100)) { active_item ->
                         if (active_item != null) {
@@ -138,7 +135,6 @@ class LongPressMenuActionProvider(
     }
 
     companion object {
-        @OptIn(ExperimentalFoundationApi::class)
         @Composable
         fun ActionButton(
             icon: ImageVector,

@@ -18,78 +18,68 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.common.getValue
-import com.toasterofbread.composekit.utils.common.thenIf
-import com.toasterofbread.composekit.utils.modifier.bounceOnClick
+import androidx.compose.ui.draw.alpha
+import dev.toastbits.composekit.utils.common.getValue
+import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.ui.component.LyricsLineDisplay
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.ui.component.HorizontalLyricsLineDisplay
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.theme.appHover
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LandscapeLayoutSlot
+import com.toasterofbread.spmp.ui.layout.contentbar.DisplayBar
 
 @Composable
 internal fun LargeBottomBar(
+    background_colour: Color,
     modifier: Modifier = Modifier,
     inset_start: Dp = Dp.Unspecified,
     inset_end: Dp = Dp.Unspecified,
-    inset_depth: Dp = 0.dp
+    inset_depth: Dp = 0.dp,
 ) {
     val player: PlayerState = LocalPlayerState.current
-    val current_song: Song? by player.status.song_state
 
-    val button_colour: Color = LocalContentColor.current.copy(alpha = 0.5f)
-
-    CompositionLocalProvider(LocalContentColor provides button_colour) {
-        Row(
-            modifier,
-            verticalAlignment = Alignment.CenterVertically
+    Row(
+        modifier.alpha(0.5f),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            Modifier
+                .thenIf(inset_depth > 0.dp) {
+                    width(inset_end + inset_start)
+                    .align(Alignment.Top)
+                }
         ) {
-            Row(
-                Modifier
+            LandscapeLayoutSlot.PLAYER_BOTTOM_START.DisplayBar(
+                0.dp,
+                container_modifier = Modifier
                     .thenIf(
                         inset_depth > 0.dp,
                         elseAction = {
-                            width(IntrinsicSize.Min)
+                            fillMaxWidth(0.5f)
                         }
                     ) {
-                        align(Alignment.Top)
-                        .offset(x = inset_start, y = inset_depth)
+                        offset(x = inset_start, y = inset_depth)
                         .width(inset_end - inset_start)
                     },
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                NowPlayingMainTabActionButtons.OpenExternalButton(current_song)
-                NowPlayingMainTabActionButtons.LikeDislikeButton(current_song, Modifier.minimumInteractiveComponentSize())
+                getParentBackgroundColour = { background_colour }
+            )
+        }
 
-                Spacer(Modifier.fillMaxWidth().weight(1f))
+        Row(
+            Modifier.fillMaxWidth().weight(1f),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton({}) {}
 
-                NowPlayingMainTabActionButtons.DownloadButton(current_song)
-                NowPlayingMainTabActionButtons.RadioButton(current_song)
-            }
+            LandscapeLayoutSlot.PLAYER_BOTTOM_END.DisplayBar(
+                0.dp,
+                container_modifier = Modifier.fillMaxWidth().weight(1f)
+            )
 
-            Row(
-                Modifier.fillMaxWidth().weight(1f),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                val lyrics_state: SongLyricsLoader.ItemState? = remember(current_song?.id) { current_song?.let { SongLyricsLoader.getItemState(it, player.context) } }
-                val lyrics_sync_offset: Long? by current_song?.getLyricsSyncOffset(player.database, false)
-
-                Crossfade(lyrics_state?.lyrics, Modifier.fillMaxWidth().weight(1f)) { lyrics ->
-                    if (lyrics?.synced != true) {
-                        return@Crossfade
-                    }
-
-                    LyricsLineDisplay(
-                        lyrics = lyrics,
-                        getTime = {
-                            (player.controller?.current_position_ms ?: 0) + (lyrics_sync_offset ?: 0)
-                        }
-                    )
-                }
-
-                IconButton({ player.expansion.close() }, Modifier.bounceOnClick().appHover(true)) {
-                    Icon(Icons.Default.KeyboardArrowDown, null, tint = button_colour)
-                }
+            IconButton({ player.expansion.toggle() }, Modifier.bounceOnClick().appHover(true)) {
+                Icon(Icons.Default.KeyboardArrowDown, null)
             }
         }
     }

@@ -19,35 +19,36 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.draw.alpha
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.playerservice.PlayerService
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.component.AnnotatedReadingTerm
+import com.toasterofbread.spmp.ui.component.HorizontalFuriganaText
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.composekit.utils.common.thenIf
 
-private const val SONG_SEEK_MS = 5000L
-private val SYNC_MENU_LYRICS_SHOW_RANGE = -3 .. 0
+private const val SONG_SEEK_MS: Long = 5000L
+private val SYNC_MENU_LYRICS_SHOW_RANGE: IntRange = -3 .. 0
 
-fun AnnotatedReadingTerm.getLineRange(): LongRange =
-    (text_data.data as SongLyrics.Term).line_range!!
+private fun List<SongLyrics.Term>.getLineRange(): LongRange = first().line_range!!
 
 @Composable
 fun LyricsSyncMenu(
     song: Song,
     lyrics: SongLyrics,
     line_index: Int,
-    lines: List<AnnotatedReadingTerm>,
     modifier: Modifier = Modifier,
     close: () -> Unit
 ) {
     require(lyrics.synced)
 
-    val player = LocalPlayerState.current
-    val service = player.controller
+    val player: PlayerState = LocalPlayerState.current
+    val service: PlayerService? = player.controller
 
     LaunchedEffect(line_index) {
         service?.seekTo(
-            lines[line_index].getLineRange().first - SONG_SEEK_MS
+            lyrics.lines[line_index].getLineRange().first - SONG_SEEK_MS
         )
     }
 
@@ -56,7 +57,7 @@ fun LyricsSyncMenu(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         for (line_offset in SYNC_MENU_LYRICS_SHOW_RANGE) {
-            val line = lines.getOrNull(line_index + line_offset) ?: continue
+            val line: List<SongLyrics.Term> = lyrics.lines.getOrNull(line_index + line_offset) ?: continue
 
             if (line_offset == 0) {
                 Spacer(Modifier.height(15.dp))
@@ -75,23 +76,20 @@ fun LyricsSyncMenu(
                     Text(getString("lyrics_sync_press_button_when_line_begins"))
                 }
 
-                CompositionLocalProvider(
-                    LocalContentColor provides LocalContentColor.current
-                        .copy(alpha = if (line_offset == 0) 0f else 0.1f)
-                ) {
-                    Text(
-                        line.annotated_string,
-                        inlineContent = line.inline_content,
-                        style = getLyricsTextStyle(20.sp)
-                    )
-                }
+                HorizontalFuriganaText(
+                    line,
+                    Modifier.thenIf(line_offset != 0) {
+                        alpha(0.65f)
+                    },
+                    style = getLyricsTextStyle(20.sp)
+                )
 
                 if (line_offset == 0) {
                     PlayerControls(service) {
                         val current_time: Long = service?.current_position_ms ?: return@PlayerControls
                         player.database.songQueries
                             .updateLyricsSyncOffsetById(
-                                lines[line_index].getLineRange().first - current_time,
+                                lyrics.lines[line_index].getLineRange().first - current_time,
                                 song.id
                             )
                         close()

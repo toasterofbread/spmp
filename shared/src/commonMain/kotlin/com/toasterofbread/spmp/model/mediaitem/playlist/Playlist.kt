@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem.playlist
 
-import com.toasterofbread.db.Database
+import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
@@ -9,13 +9,18 @@ import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.db.AltSetterProperty
 import com.toasterofbread.spmp.model.mediaitem.db.ListProperty
 import com.toasterofbread.spmp.model.mediaitem.db.Property
-import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.spmp.model.mediaitem.db.toSQLBoolean
+import com.toasterofbread.spmp.model.mediaitem.db.fromSQLBoolean
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
 
-sealed interface Playlist: MediaItem.WithArtist {
+sealed interface Playlist: MediaItem.WithArtists {
     override fun getEmptyData(): PlaylistData
 
     val Items: ListProperty<Song>
@@ -57,13 +62,21 @@ sealed interface Playlist: MediaItem.WithArtist {
         get() = property_rememberer.rememberSingleQueryProperty(
             "Year", { playlistQueries.yearById(id) }, { year?.toInt() }, { playlistQueries.updateYearById(it?.toLong(), id) }
         )
-    override val Artist: AltSetterProperty<ArtistRef?, Artist?>
+    override val Artists: AltSetterProperty<List<ArtistRef>?, List<Artist>?>
         get() = property_rememberer.rememberAltSetterSingleQueryProperty(
-            "Artist", { playlistQueries.artistById(id) }, { artist?.let { ArtistRef(it) } }, { playlistQueries.updateArtistById(it?.id, id) }, { playlistQueries.updateArtistById(it?.id, id) }
+            "Artists",
+            { playlistQueries.artistsById(id) },
+            { artists?.let { Json.decodeFromString<List<String>>(it).map { ArtistRef(it) } } },
+            { playlistQueries.updateArtistsById(it?.map { it.id }?.let { Json.encodeToString(it) }, id) },
+            { playlistQueries.updateArtistsById(it?.map { it.id }?.let { Json.encodeToString(it) }, id) }
         )
     val Owner: Property<Artist?>
         get() = property_rememberer.rememberSingleQueryProperty(
             "Owner", { playlistQueries.ownerById(id) }, { owner?.let { ArtistRef(it) } }, { playlistQueries.updateOwnerById(it?.id, id) }
+        )
+    val OwnedByUser: Property<Boolean>
+        get() = property_rememberer.rememberSingleQueryProperty(
+            "OwnedByUser", { playlistQueries.ownedByUserById(id) }, { owned_by_user.fromSQLBoolean() }, { playlistQueries.updateOwnedByUserById(it.toSQLBoolean(), id) }, { false }
         )
 
     val CustomImageUrl: Property<String?>
@@ -95,6 +108,7 @@ sealed interface Playlist: MediaItem.WithArtist {
         data.total_duration = TotalDuration.get(db)
         data.year = Year.get(db)
         data.owner = Owner.get(db)
+        data.owned_by_user = OwnedByUser.get(db)
 
         data.custom_image_url = CustomImageUrl.get(db)
         data.image_width = ImageWidth.get(db)

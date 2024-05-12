@@ -2,63 +2,61 @@ package com.toasterofbread.spmp.model.settings
 
 import SpMp
 import androidx.compose.runtime.*
-import com.google.gson.Gson
-import com.toasterofbread.composekit.platform.PlatformPreferences
-import com.toasterofbread.spmp.model.settings.category.SettingsCategory
-import com.toasterofbread.spmp.model.settings.category.YTApiSettings
-import com.toasterofbread.spmp.youtubeapi.fromJson
+import dev.toastbits.composekit.platform.PlatformPreferences
+import com.toasterofbread.spmp.model.settings.category.*
+import com.toasterofbread.spmp.platform.AppContext
+import kotlinx.serialization.json.Json
 import java.util.*
 
-object Settings {
-    val prefs: PlatformPreferences get() = SpMp.prefs
+class Settings(context: AppContext) {
+    val youtube_auth: YoutubeAuthSettings = YoutubeAuthSettings(context)
+    val system: SystemSettings = SystemSettings(context)
+    val behaviour: BehaviourSettings = BehaviourSettings(context)
+    val layout: LayoutSettings = LayoutSettings(context)
+    val player: PlayerSettings = PlayerSettings(context)
+    val feed: FeedSettings = FeedSettings(context)
+    val theme: ThemeSettings = ThemeSettings(context)
+    val lyrics: LyricsSettings = LyricsSettings(context)
+    val discord: DiscordSettings = DiscordSettings(context)
+    val discord_auth: DiscordAuthSettings = DiscordAuthSettings(context)
+    val filter: FilterSettings = FilterSettings(context)
+    val streaming: StreamingSettings = StreamingSettings(context)
+    val shortcut: ShortcutSettings = ShortcutSettings(context)
+    val platform: PlatformSettings = PlatformSettings(context)
+    val misc: MiscSettings = MiscSettings(context)
+    val deps: DependencySettings = DependencySettings(context)
+    val search: SearchSettings = SearchSettings(context)
+    val ytapi: YTApiSettings = YTApiSettings(context)
 
-    fun <T> set(enum_key: SettingsKey, value: T?, preferences: PlatformPreferences = prefs) {
-        preferences.edit {
-            @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
-            when (value) {
-                null -> remove(enum_key.getName())
-                is Boolean -> putBoolean(enum_key.getName(), value)
-                is Float -> putFloat(enum_key.getName(), value)
-                is Int -> putInt(enum_key.getName(), value)
-                is Long -> putLong(enum_key.getName(), value)
-                is String -> putString(enum_key.getName(), value)
-                is Set<*> -> putStringSet(enum_key.getName(), value as Set<String>)
-                is Enum<*> -> putInt(enum_key.getName(), value.ordinal)
-                else -> throw NotImplementedError("$enum_key ${value!!::class.simpleName}")
-            }
-        }
-    }
+    val all_groups: Map<String, SettingsGroup> =
+        listOf(
+            youtube_auth,
 
-    @Suppress("IMPLICIT_CAST_TO_ANY", "UNCHECKED_CAST")
-    fun <T> get(enum_key: SettingsKey, preferences: PlatformPreferences = prefs, default: T? = null): T {
-        val default_value: T = default ?: enum_key.getDefaultValue()
-        return when (default_value) {
-            is Boolean -> preferences.getBoolean(enum_key.getName(), default_value as Boolean)
-            is Float -> preferences.getFloat(enum_key.getName(), default_value as Float)
-            is Int -> preferences.getInt(enum_key.getName(), default_value as Int)
-            is Long -> preferences.getLong(enum_key.getName(), default_value as Long)
-            is String -> preferences.getString(enum_key.getName(), default_value as String)
-            is Set<*> -> preferences.getStringSet(enum_key.getName(), default_value as Set<String>)
-            else -> throw NotImplementedError("$enum_key $default_value ${default_value!!::class.simpleName}")
-        } as T
-    }
+            system,
+            behaviour,
+            layout,
+            player,
+            feed,
+            theme,
+            lyrics,
+            discord,
+            discord_auth,
+            filter,
+            streaming,
+            shortcut,
+            platform,
+            misc,
+            deps,
 
-    inline fun <reified T> getJsonArray(enum_key: SettingsKey, gson: Gson = Gson(), preferences: PlatformPreferences = prefs, default: String? = null): List<T> {
-        return gson.fromJson(get(enum_key, preferences, default))!!
-    }
+            ytapi
+        ).associateBy { it.group_key }
 
-    inline fun <reified T: Enum<T>> getEnum(enum_key: SettingsKey, preferences: PlatformPreferences = prefs, default: T? = null): T {
-        val default_value: Int = default?.ordinal ?: enum_key.getDefaultValue()
-        return enumValues<T>()[preferences.getInt(enum_key.getName(), default_value)!!]
-    }
+    val groups_with_page: List<SettingsGroup> get() =
+        all_groups.values.filter { it.page != null && it !is DependencySettings }
 
-    fun <T> provideDefault(name: String): T {
-        for (category in SettingsCategory.all) {
-            val key = category.getKeyOfName(name)
-            if (key != null) {
-                return key.getDefaultValue()
-            }
-        }
-        throw NotImplementedError(name)
-    }
+    val group_pages: List<SettingsGroup.CategoryPage> get() =
+        all_groups.values.mapNotNull { if (it is DependencySettings) null else it.page }
+
+    fun groupFromKey(key: String): SettingsGroup? =
+        all_groups[key]
 }

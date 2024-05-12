@@ -1,22 +1,20 @@
 package com.toasterofbread.spmp.service.playercontroller
 
 import SpMp
-import com.toasterofbread.composekit.utils.common.launchSingle
-import com.toasterofbread.db.Database
+import dev.toastbits.composekit.utils.common.launchSingle
+import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.ProjectBuildConfig
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.settings.category.DiscordAuthSettings
-import com.toasterofbread.spmp.model.settings.category.DiscordSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrThrowHere
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.serialization.json.Json
 
 internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context: AppContext) {
     private var discord_rpc: DiscordStatus? = null
@@ -33,7 +31,7 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
     fun onDiscordAccountTokenChanged() {
         discord_rpc?.close()
 
-        val account_token: String = DiscordAuthSettings.Key.DISCORD_ACCOUNT_TOKEN.get(context.getPrefs())
+        val account_token: String = context.settings.discord_auth.DISCORD_ACCOUNT_TOKEN.get()
         if (!DiscordStatus.isSupported() || (account_token.isBlank() && DiscordStatus.isAccountTokenRequired())) {
             discord_rpc = null
             return
@@ -49,8 +47,8 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
     }
 
     private fun Database.formatText(text: String, song: Song, title: String): String {
-        val artist_id = songQueries.artistById(song.id).executeAsOne().artist
-        val artist_title = artist_id?.let {
+        val artist_ids: List<String>? = songQueries.artistsById(song.id).executeAsOne().artists?.let { Json.decodeFromString(it) }
+        val artist_title: String? = artist_ids?.firstOrNull()?.let {
             mediaItemQueries.titleById(it).executeAsOne().title
         }
 
@@ -91,10 +89,10 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
                     return@apply
                 }
 
-                val name: String = formatText(DiscordSettings.Key.STATUS_NAME.get(context), status_song, song_title)
-                val text_a: String = formatText(DiscordSettings.Key.STATUS_TEXT_A.get(context), status_song, song_title)
-                val text_b: String = formatText(DiscordSettings.Key.STATUS_TEXT_B.get(context), status_song, song_title)
-                val text_c: String = formatText(DiscordSettings.Key.STATUS_TEXT_C.get(context), status_song, song_title)
+                val name: String = formatText(context.settings.discord.STATUS_NAME.get(), status_song, song_title)
+                val text_a: String = formatText(context.settings.discord.STATUS_TEXT_A.get(), status_song, song_title)
+                val text_b: String = formatText(context.settings.discord.STATUS_TEXT_B.get(), status_song, song_title)
+                val text_c: String = formatText(context.settings.discord.STATUS_TEXT_C.get(), status_song, song_title)
 
                 val large_image: String?
                 val small_image: String?
@@ -102,9 +100,9 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
 //                SpMp.Log.info("Loading Discord status images for $status_song ($song_title)...")
 
                 try {
-                    val artist: ArtistRef? = status_song.Artist.get(context.database)
+                    val artists: List<ArtistRef>? = status_song.Artists.get(context.database)
 
-                    val images: List<String?> = getCustomImages(listOfNotNull(status_song, artist), MediaItemThumbnailProvider.Quality.LOW).getOrThrowHere()
+                    val images: List<String?> = getCustomImages(listOfNotNull(status_song, artists?.firstOrNull()), ThumbnailProvider.Quality.LOW).getOrThrow()
 
                     large_image = images.getOrNull(0)
                     small_image = images.getOrNull(1)
@@ -115,11 +113,11 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
                 }
 
                 val buttons: MutableList<Pair<String, String>> = mutableListOf<Pair<String, String>>().apply {
-                    if (DiscordSettings.Key.SHOW_SONG_BUTTON.get(context)) {
-                        add(DiscordSettings.Key.SONG_BUTTON_TEXT.get<String>() to status_song.getURL(context))
+                    if (context.settings.discord.SHOW_SONG_BUTTON.get()) {
+                        add(context.settings.discord.SONG_BUTTON_TEXT.get() to status_song.getURL(context))
                     }
-                    if (DiscordSettings.Key.SHOW_PROJECT_BUTTON.get(context)) {
-                        add(DiscordSettings.Key.PROJECT_BUTTON_TEXT.get<String>() to getString("project_url"))
+                    if (context.settings.discord.SHOW_PROJECT_BUTTON.get()) {
+                        add(context.settings.discord.PROJECT_BUTTON_TEXT.get() to getString("project_url"))
                     }
                 }
 
@@ -135,7 +133,7 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
                     large_text = text_c.ifEmpty { null },
                     small_image = small_image,
                     small_text =
-                        if (small_image != null) status_song.Artist.get(context.database)?.getActiveTitle(context.database)
+                        if (small_image != null) status_song.Artists.get(context.database)?.firstOrNull()?.getActiveTitle(context.database)
                         else null
                 )
 

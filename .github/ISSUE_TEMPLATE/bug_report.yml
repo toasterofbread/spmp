@@ -8,7 +8,7 @@ body:
       label: Checklist
       description: Please complete all tasks before submitting a report.
       options:
-        - label: I am able to reproduce the bug with the [latest debug version](https://github.com/toasterofbread/spmp/actions/workflows/android.yml).
+        - label: I am able to reproduce the bug with the latest debug version ([Android](https://nightly.link/toasterofbread/spmp/workflows/build-android/main), [Linux](https://nightly.link/toasterofbread/spmp/workflows/build-linux/main), [Windows](https://nightly.link/toasterofbread/spmp/workflows/build-windows/main))
           required: true
         - label: I've checked that there is no open or closed issue about this bug.
           required: true
@@ -58,6 +58,8 @@ body:
       description: |
         Screenshots or recordings showing the issue.
 
+        **DO NOT screenshot stack traces / error messages.** Copy-paste the entire text or upload it to paste.ee and paste the link into the 'Logs' section.
+
         You can upload them directly in the text box.
 
   - type: textarea
@@ -66,6 +68,8 @@ body:
       label: Logs
       description: |
         Please provide any logs or stack traces displayed by the app. If your issue involves a crash but no logs were displayed, then please find the logs using Logcat or a similar tool. 
+
+        **DO NOT screenshot stack traces / error messages.** Copy-paste the entire text or upload it to paste.ee and paste the link.
         
         Without this information, the developer may unable to resolve the issue.
     validations:
@@ -82,14 +86,28 @@ body:
     validations:
       required: true
 
-  - type: input
-    id: android-version
+  - type: dropdown
+    id: app-platform
     attributes:
-      label: Android version
+      label: SpMp platform
+      description: |
+        The platform of the SpMp build you are using. Even if you're running the Android version on a PC or vice-versa, this should be the version of the app itself.
+      options:
+        - Android
+        - Linux
+        - Windows
+      default: 0
+    validations:
+      required: true
+
+  - type: input
+    id: os-version
+    attributes:
+      label: OS version
       description: |
         If using a custom rom, please also include the name and version of the rom.
       placeholder: |
-        Example: "Android 9"
+        Examples: "Android 9", "Ubuntu 20.04"
     validations:
       required: true
 

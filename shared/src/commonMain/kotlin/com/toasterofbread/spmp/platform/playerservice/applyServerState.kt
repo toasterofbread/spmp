@@ -8,15 +8,16 @@ import spms.socketapi.shared.SpMsServerState
 
 internal suspend fun SpMsPlayerService.applyServerState(
     state: SpMsServerState,
+    coroutine_scope: CoroutineScope,
     onProgress: (String?) -> Unit = {}
 ) = withContext(Dispatchers.Default) {
     onProgress(null)
 
     if (playlist.isNotEmpty()) {
         for (i in playlist.size - 1 downTo 0) {
-            playlist.removeAt(i)
+            val song: Song = playlist.removeAt(i)
             listeners.forEach {
-                it.onSongRemoved(i)
+                it.onSongRemoved(i, song)
             }
         }
     }
@@ -36,10 +37,14 @@ internal suspend fun SpMsPlayerService.applyServerState(
             return@mapIndexedNotNull null
         }
 
-        launch(Dispatchers.IO) {
-            song.loadData(context, force = true, save = false).onSuccess { data ->
-                items[i] = data
-            }
+        coroutine_scope.launch(Dispatchers.IO) {
+            song.loadData(context, force = true, save = false).fold(
+                { items[i] = it },
+                { error ->
+                    error.printStackTrace()
+                    items[i] = song
+                }
+            )
             onProgress("${++completed}/${items.size}")
         }
     }.joinAll()
@@ -84,12 +89,6 @@ internal suspend fun SpMsPlayerService.applyServerState(
         val song: Song? = playlist.getOrNull(_current_song_index)
         listeners.forEach {
             it.onSongTransition(song, false)
-        }
-    }
-    if (state.volume != _volume) {
-        _volume = state.volume
-        listeners.forEach {
-            it.onVolumeChanged(_volume)
         }
     }
     if (state.repeat_mode != _repeat_mode) {

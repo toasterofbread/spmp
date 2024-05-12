@@ -12,9 +12,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.platform.Platform
-import com.toasterofbread.composekit.utils.common.copy
-import com.toasterofbread.composekit.utils.modifier.horizontal
+import dev.toastbits.composekit.platform.Platform
+import dev.toastbits.composekit.utils.common.copy
+import dev.toastbits.composekit.utils.modifier.horizontal
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.controlpanelpage.ControlPanelDownloadsPage
@@ -56,8 +56,7 @@ class ControlPanelAppPage(override val state: AppPageState): AppPage() {
             }
     }
     
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
+        @Composable
     override fun ColumnScope.Page(
         multiselect_context: MediaItemMultiSelectContext,
         modifier: Modifier,

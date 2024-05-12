@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
@@ -39,13 +38,14 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.composekit.utils.common.getValue
-import com.toasterofbread.composekit.utils.common.thenIf
+import dev.toastbits.composekit.utils.common.getValue
+import dev.toastbits.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.formatArtistTitles
 import com.toasterofbread.spmp.model.mediaitem.db.observePlayCount
-import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
+import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitles
 import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
 import com.toasterofbread.spmp.model.mediaitem.layout.getMediaItemPreviewSquareAdditionalHeight
 import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction
@@ -62,7 +62,7 @@ import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
 val MEDIA_ITEM_PREVIEW_SQUARE_FONT_SIZE_SP: Float
     @Composable get() = if (LocalPlayerState.current.form_factor.is_large) 15f else 12f
@@ -150,7 +150,7 @@ fun MediaItemPreviewSquare(
     ) {
         Box(Modifier.fillMaxWidth().longPressMenuIcon(long_press_menu_data, enable_long_press_menu), contentAlignment = Alignment.Center) {
             loaded_item.Thumbnail(
-                MediaItemThumbnailProvider.Quality.LOW,
+                ThumbnailProvider.Quality.LOW,
                 Modifier.aspectRatio(1f),
                 getContentColour = contentColour
             )
@@ -258,7 +258,7 @@ fun MediaItemPreviewLong(
     ) {
         Box(Modifier.fillMaxHeight().aspectRatio(1f), contentAlignment = Alignment.Center) {
             loaded_item.Thumbnail(
-                MediaItemThumbnailProvider.Quality.LOW,
+                ThumbnailProvider.Quality.LOW,
                 Modifier
                     .longPressMenuIcon(long_press_menu_data, enable_long_press_menu)
                     .fillMaxSize(),
@@ -286,12 +286,19 @@ fun MediaItemPreviewLong(
                 overflow = TextOverflow.Clip
             )
 
-            val artist_title: String? = if (show_artist) (loaded_item as? MediaItem.WithArtist)?.Artist?.observePropertyActiveTitle()?.value else null
+            val artist_titles: List<String?>? = if (show_artist) (loaded_item as? MediaItem.WithArtists)?.Artists?.observePropertyActiveTitles() else null
             val extra_info: List<String> = getExtraInfo?.invoke() ?: emptyList()
             val download_status: DownloadStatus? by (loaded_item as? Song)?.rememberDownloadStatus()
             val is_explicit: Boolean? by (loaded_item as? Song)?.Explicit?.observe(player.database)
 
-            if ((show_download_indicator && download_status != null) || show_play_count || show_type || extra_info.isNotEmpty() || artist_title != null || is_explicit == true) {
+            if (
+                (show_download_indicator && download_status != null)
+                || show_play_count
+                || show_type
+                || extra_info.isNotEmpty()
+                || artist_titles?.any { it !=  null } == true
+                || is_explicit == true
+            ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -308,7 +315,11 @@ fun MediaItemPreviewLong(
                     var text_displayed = false
 
                     @Composable
-                    fun InfoText(text: String) {
+                    fun InfoText(text: String?) {
+                        if (text == null) {
+                            return
+                        }
+
                         if (text_displayed) {
                             InfoText(INFO_SPLITTER, contentColour)
                         }
@@ -342,8 +353,8 @@ fun MediaItemPreviewLong(
                         InfoText(info)
                     }
 
-                    if (artist_title != null) {
-                        InfoText(artist_title)
+                    if (artist_titles != null) {
+                        InfoText(formatArtistTitles(artist_titles, player.context))
                     }
                 }
             }

@@ -33,11 +33,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.krottv.compose.sliders.DefaultThumb
 import com.github.krottv.compose.sliders.SliderValueHorizontal
-import com.toasterofbread.composekit.utils.common.formatElapsedTime
-import com.toasterofbread.composekit.utils.composable.RecomposeOnInterval
-import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.spmp.model.settings.category.PlayerSettings
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import dev.toastbits.composekit.utils.common.formatElapsedTime
+import dev.toastbits.composekit.utils.composable.RecomposeOnInterval
+import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.POSITION_UPDATE_INTERVAL_MS
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
@@ -79,7 +78,7 @@ fun SeekBar(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    SeekBarTimeText(player.status.getPositionMillis(), getColour(player))
+                    SeekBarTimeText(player.status.getPositionMs(), getColour(player))
                     SeekBarTimeText(player.status.m_duration_ms, getColour(player))
                 }
             }
@@ -108,7 +107,7 @@ fun SeekBar(
 @Composable
 private fun SeekBarTimeText(time: Long, colour: Color, modifier: Modifier = Modifier) {
     if (time < 0) {
-        SubtleLoadingIndicator(modifier)
+        SubtleLoadingIndicator(modifier, getColour = { colour })
     }
     else {
         val seconds = time / 1000f
@@ -132,8 +131,9 @@ private fun SeekTrack(
     progress_colour: Color,
     height: Dp = 4.dp
 ) {
+    val player: PlayerState = LocalPlayerState.current
     val visual_progress by animateFloatAsState(progress, spring(stiffness = Spring.StiffnessLow))
-    val show_gradient: Boolean by PlayerSettings.Key.SHOW_SEEK_BAR_GRADIENT.rememberMutableState()
+    val show_gradient: Boolean by player.settings.player.SHOW_SEEK_BAR_GRADIENT.observe()
 
     Canvas(
         Modifier

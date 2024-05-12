@@ -23,7 +23,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.composable.OnChangedEffect
+import dev.toastbits.composekit.utils.composable.OnChangedEffect
 import com.toasterofbread.spmp.model.mediaitem.MEDIA_ITEM_RELATED_CONTENT_ICON
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.observePlayCount
@@ -33,10 +33,10 @@ import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.ColourpickCallback
-import com.toasterofbread.spmp.youtubeapi.implementedOrNull
+import dev.toastbits.ytmkt.model.implementedOrNull
 import kotlinx.coroutines.delay
 
 class MainPlayerOverlayMenu(
@@ -60,7 +60,7 @@ class MainPlayerOverlayMenu(
         val download_manager = player.context.download_manager
         val song: Song = getSong()
 
-        val song_artist: Artist? by song.Artist.observe(player.database)
+        val song_artists: List<Artist>? by song.Artists.observe(player.database)
 
         val download_progress = remember { Animatable(0f) }
         var download_progress_target: Float by remember { mutableStateOf(0f) }
@@ -120,7 +120,7 @@ class MainPlayerOverlayMenu(
                 .size(button_size)
                 .padding(8.dp)
 
-            song_artist?.also { artist ->
+            song_artists?.firstOrNull()?.also { artist ->
                 MediaItemPreviewLong(artist, contentColour = { Color.White })
             }
 

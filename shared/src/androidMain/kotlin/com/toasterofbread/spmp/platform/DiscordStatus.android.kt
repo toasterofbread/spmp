@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.platform
 
 import android.net.Uri
-import com.google.gson.Gson
 import com.my.kizzyrpc.KizzyRPC
 import com.my.kizzyrpc.model.Activity
 import com.my.kizzyrpc.model.Assets
@@ -9,32 +8,27 @@ import com.my.kizzyrpc.model.Metadata
 import com.my.kizzyrpc.model.Timestamps
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.settings.category.DiscordSettings
+import com.toasterofbread.spmp.model.JsonHttpClient
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.youtubeapi.executeResult
-import com.toasterofbread.spmp.youtubeapi.fromJson
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import io.github.jan.supabase.functions.Functions
 import io.github.jan.supabase.plugins.standaloneSupabaseModule
+import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.request.get
+import io.ktor.client.request.headers
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.isSuccess
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.protobuf.ProtoBuf
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
 import java.io.IOException
-import java.io.Reader
 import java.util.Base64
 
 actual class DiscordStatus actual constructor(
@@ -101,33 +95,28 @@ actual class DiscordStatus actual constructor(
         fun getStatus(): String = status.status.status
     }
 
+    @Serializable
     private data class ProtoSettingsResponse(
         val settings: String
     )
 
-    actual suspend fun shouldUpdateStatus(): Boolean = withContext(Dispatchers.IO) {
+    actual suspend fun shouldUpdateStatus(): Boolean {
         if (account_token == null) {
-            return@withContext true
+            return true
         }
 
-        val request: Request = Request.Builder()
-            .url("https://discord.com/api/v9/users/@me/settings-proto/1")
-            .addHeader("authorization", account_token)
-            .build()
-
-        val response: Response = OkHttpClient().executeResult(request).getOrElse {
-            return@withContext true
-        }
-
-        val result: ProtoSettingsResponse =
-            try {
-                response.use {
-                    Gson().fromJson(it.body!!.charStream())
+        val response: HttpResponse =
+            JsonHttpClient.get("https://discord.com/api/v9/users/@me/settings-proto/1") {
+                headers {
+                    append("authorization", account_token)
                 }
             }
-            catch (e: Throwable) {
-                return@withContext true
-            }
+
+        if (response.status.value !in 200 .. 299) {
+            return true
+        }
+
+        val result: ProtoSettingsResponse = response.body()
 
         val settings: PreloadedUserSettings =
             try {
@@ -135,19 +124,19 @@ actual class DiscordStatus actual constructor(
                 ProtoBuf.decodeFromByteArray(bytes)
             }
             catch (e: Throwable) {
-                return@withContext true
+                return true
             }
 
         val disable: Boolean = when (settings.getStatus()) {
-            "invisible" -> DiscordSettings.Key.STATUS_DISABLE_WHEN_INVISIBLE.get(context)
-            "dnd" -> DiscordSettings.Key.STATUS_DISABLE_WHEN_DND.get(context)
-            "idle" -> DiscordSettings.Key.STATUS_DISABLE_WHEN_IDLE.get(context)
-            "offline" -> DiscordSettings.Key.STATUS_DISABLE_WHEN_OFFLINE.get(context)
-            "online" -> DiscordSettings.Key.STATUS_DISABLE_WHEN_ONLINE.get(context)
+            "invisible" -> context.settings.discord.STATUS_DISABLE_WHEN_INVISIBLE.get()
+            "dnd" -> context.settings.discord.STATUS_DISABLE_WHEN_DND.get()
+            "idle" -> context.settings.discord.STATUS_DISABLE_WHEN_IDLE.get()
+            "offline" -> context.settings.discord.STATUS_DISABLE_WHEN_OFFLINE.get()
+            "online" -> context.settings.discord.STATUS_DISABLE_WHEN_ONLINE.get()
             else -> throw NotImplementedError(settings.getStatus())
         }
 
-        return@withContext !disable
+        return !disable
     }
 
     actual fun setActivity(
@@ -184,7 +173,10 @@ actual class DiscordStatus actual constructor(
         )
     }
 
-    private fun getProxyUrlAttachment(proxy_url: String): String = "mp:" + Uri.parse(proxy_url).path!!.removePrefix("/")
+    private fun getProxyUrlAttachment(proxy_url: String): String {
+        val uri: Uri = Uri.parse(proxy_url)
+        return "mp:" + uri.path!!.removePrefix("/") + "?" + uri.query
+    }
 
     @Serializable
     private data class SupabaseGetImagesResponse(val attachment_urls: List<String?>)
@@ -198,7 +190,7 @@ actual class DiscordStatus actual constructor(
 
     actual suspend fun getCustomImages(
         image_items: List<MediaItem>,
-        target_quality: MediaItemThumbnailProvider.Quality
+        target_quality: ThumbnailProvider.Quality
     ): Result<List<String?>> {
         val supabase_functions: Functions = getSupabaseFunctions()
 
@@ -212,7 +204,7 @@ actual class DiscordStatus actual constructor(
                             buildJsonObject {
                                 put("id", item.id)
 
-                                val thumbnail_provider: MediaItemThumbnailProvider? = item.ThumbnailProvider.get(context.database)
+                                val thumbnail_provider: ThumbnailProvider? = item.ThumbnailProvider.get(context.database)
                                 put("image_url", thumbnail_provider?.getThumbnailUrl(target_quality))
                             }
                         )
@@ -237,30 +229,26 @@ actual class DiscordStatus actual constructor(
     }
 }
 
-actual suspend fun getDiscordAccountInfo(account_token: String?): Result<DiscordMeResponse> = withContext(Dispatchers.IO) {
+actual suspend fun getDiscordAccountInfo(
+    account_token: String?
+): Result<DiscordMeResponse> = runCatching {
     if (account_token == null) {
-        return@withContext Result.failure(NullPointerException("account_token is null"))
+        throw NullPointerException("account_token is null")
     }
 
-    val request: Request = Request.Builder()
-        .url("https://discord.com/api/v9/users/@me")
-        .addHeader("authorization", account_token)
-        .build()
+    val response: HttpResponse =
+        JsonHttpClient.get("https://discord.com/api/v9/users/@me") {
+            headers {
+                append("authorization", account_token)
+            }
+        }
 
-    val result: Result<Response> = OkHttpClient().executeResult(request)
-    val response: Response = result.getOrNull() ?: return@withContext result.cast()
+    if (response.status.value !in 200 .. 299) {
+        throw IOException(response.status.value.toString())
+    }
 
-    val stream: Reader = response.body!!.charStream()
-    val me: DiscordMeResponse = try {
-        Gson().fromJson(stream)
-    }
-    catch (e: Throwable) {
-        return@withContext Result.failure(e)
-    }
-    finally {
-        stream.close()
-    }
+    val me: DiscordMeResponse = response.body()
     me.token = account_token
 
-    return@withContext Result.success(me)
+    return@runCatching me
 }

@@ -9,11 +9,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.playlist.InteractivePlaylistEditor.Companion.rememberEditorOrNull
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
-import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.rememberEditorOrNull
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuActionProvider
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrThrowHere
 import kotlinx.coroutines.launch
 
 @Composable
@@ -57,7 +56,7 @@ fun LongPressMenuActionProvider.PlaylistLongPressMenuActions(playlist: MediaItem
             onClick = {
                 playlist_editor?.also { editor ->
                     coroutine_context.launch {
-                        editor.deletePlaylist().getOrThrowHere()//.getOrReport("deletePlaylist")
+                        editor.performDeletion().getOrThrow()
                     }
                 }
             }

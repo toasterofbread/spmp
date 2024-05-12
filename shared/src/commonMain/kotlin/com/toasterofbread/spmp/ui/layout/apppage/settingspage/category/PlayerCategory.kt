@@ -1,88 +1,78 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
-import com.toasterofbread.composekit.settings.ui.item.GroupSettingsItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsItem
-import com.toasterofbread.composekit.settings.ui.item.MultipleChoiceSettingsItem
-import com.toasterofbread.composekit.settings.ui.item.ToggleSettingsItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
+import dev.toastbits.composekit.settings.ui.item.GroupSettingsItem
+import dev.toastbits.composekit.settings.ui.item.SettingsItem
+import dev.toastbits.composekit.settings.ui.item.MultipleChoiceSettingsItem
+import dev.toastbits.composekit.settings.ui.item.ToggleSettingsItem
+import dev.toastbits.composekit.platform.PreferencesProperty
 import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueRadioInfoPosition
 import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueWaveBorderMode
 import com.toasterofbread.spmp.model.settings.category.OverscrollClearMode
-import com.toasterofbread.spmp.model.settings.category.PlayerSettings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
+import com.toasterofbread.spmp.platform.AppContext
+import kotlin.enums.enumEntries
 import kotlin.math.roundToInt
 
-internal fun getPlayerCategoryItems(): List<SettingsItem> {
+internal fun getPlayerCategoryItems(context: AppContext): List<SettingsItem> {
     return listOf(
-        ToggleSettingsItem(
-            SettingsValueState(PlayerSettings.Key.MINI_SHOW_PREV_BUTTON.getName()),
-            getString("s_key_mini_player_show_prev_button"), null
+        AppSliderItem(
+            context.settings.player.EXPAND_SWIPE_SENSITIVITY,
+            range = 0.1f .. 10f
         ),
 
         ToggleSettingsItem(
-            SettingsValueState(PlayerSettings.Key.MINI_OVERSCROLL_CLEAR_ENABLED.getName()),
-            getString("s_key_mini_player_overscroll_clear_enabled"), null
+            context.settings.player.MINI_SHOW_PREV_BUTTON
+        ),
+
+        ToggleSettingsItem(
+            context.settings.player.MINI_OVERSCROLL_CLEAR_ENABLED
         ),
 
         AppSliderItem(
-            SettingsValueState(PlayerSettings.Key.MINI_OVERSCROLL_CLEAR_TIME.getName()),
-            getString("s_key_mini_player_overscroll_clear_time"), null,
+            context.settings.player.MINI_OVERSCROLL_CLEAR_TIME,
             range = 0f .. 1f
         ),
 
         MultipleChoiceSettingsItem(
-            SettingsValueState(PlayerSettings.Key.MINI_OVERSCROLL_CLEAR_MODE.getName()),
-            getString("s_key_mini_player_overscroll_clear_mode"), null,
-            choice_amount = OverscrollClearMode.entries.size
-        ) { index ->
-            OverscrollClearMode.entries[index].getReadable()
+            context.settings.player.MINI_OVERSCROLL_CLEAR_MODE
+        ) { mode ->
+            mode.getReadable()
         },
 
         GroupSettingsItem(null),
 
         ToggleSettingsItem(
-            SettingsValueState(PlayerSettings.Key.SHOW_REPEAT_SHUFFLE_BUTTONS.getName()),
-            getString("s_key_player_show_repeat_shuffle_buttons"), getString("s_sub_player_show_repeat_shuffle_buttons"),
+            context.settings.player.SHOW_REPEAT_SHUFFLE_BUTTONS,
             title_max_lines = 2
         ),
 
         ToggleSettingsItem(
-            SettingsValueState(PlayerSettings.Key.SHOW_SEEK_BAR_GRADIENT.getName()),
-            getString("s_key_player_show_progress_bar_gradient"), null,
+            context.settings.player.SHOW_SEEK_BAR_GRADIENT,
             title_max_lines = 2
         ),
 
         MultipleChoiceSettingsItem(
-            SettingsValueState(PlayerSettings.Key.OVERLAY_CUSTOM_ACTION.getName()),
-            getString("s_key_player_overlay_menu_custom_action"),
-            getString("s_sub_player_overlay_menu_custom_action"),
-            PlayerOverlayMenuAction.entries.size
-        ) { index ->
-            PlayerOverlayMenuAction.entries[index].getReadable()
+            context.settings.player.OVERLAY_CUSTOM_ACTION,
+        ) { action ->
+            action.getReadable()
         },
 
         ToggleSettingsItem(
-            SettingsValueState(PlayerSettings.Key.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.getName()),
-            getString("s_key_player_overlay_menu_swap_long_short_press_actions"),
-            null,
+            context.settings.player.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS,
             title_max_lines = 2
         ),
 
         GroupSettingsItem(null),
 
         AppSliderItem(
-            SettingsValueState(PlayerSettings.Key.QUEUE_ITEM_SWIPE_SENSITIVITY.getName()),
-            getString("s_key_np_queue_item_swipe_sensitivity"),
-            getString("s_sub_np_queue_item_swipe_sensitivity"),
+            context.settings.player.QUEUE_ITEM_SWIPE_SENSITIVITY,
             range = 0.1f .. 2f
         ),
 
         AppSliderItem(
-            SettingsValueState(PlayerSettings.Key.QUEUE_EXTRA_SIDE_PADDING.getName()),
-            getString("s_key_np_queue_extra_side_padding"),
-            getString("s_sub_np_queue_extra_side_padding"),
+            context.settings.player.QUEUE_EXTRA_SIDE_PADDING,
             range = 0f .. 1f,
             min_label = "0%",
             max_label = "100%",
@@ -92,12 +82,9 @@ internal fun getPlayerCategoryItems(): List<SettingsItem> {
         ),
 
         MultipleChoiceSettingsItem(
-            SettingsValueState(PlayerSettings.Key.QUEUE_WAVE_BORDER_MODE.getName()),
-            getString("s_key_np_queue_wave_border_mode"),
-            getString("s_sub_np_queue_wave_border_mode"),
-            NowPlayingQueueWaveBorderMode.entries.size
-        ) { index ->
-            when (NowPlayingQueueWaveBorderMode.entries[index]) {
+            context.settings.player.QUEUE_WAVE_BORDER_MODE,
+        ) { mode ->
+            when (mode) {
                 NowPlayingQueueWaveBorderMode.TIME -> getString("s_option_wave_border_mode_time")
                 NowPlayingQueueWaveBorderMode.TIME_SYNC -> getString("s_option_wave_border_mode_time_sync")
                 NowPlayingQueueWaveBorderMode.SCROLL -> getString("s_option_wave_border_mode_scroll")
@@ -107,28 +94,22 @@ internal fun getPlayerCategoryItems(): List<SettingsItem> {
         },
 
         MultipleChoiceSettingsItem(
-            SettingsValueState(PlayerSettings.Key.QUEUE_RADIO_INFO_POSITION.getName()),
-            getString("s_key_np_queue_radio_info_position"), null,
-            NowPlayingQueueRadioInfoPosition.entries.size
-        ) { index ->
-            NowPlayingQueueRadioInfoPosition.entries[index].getReadable()
+            context.settings.player.QUEUE_RADIO_INFO_POSITION
+        ) { position ->
+            position.getReadable()
         },
 
         ToggleSettingsItem(
-            SettingsValueState(PlayerSettings.Key.PAUSE_ON_BT_DISCONNECT.getName()),
-            getString("s_key_pause_on_bt_disconnect"), null
+            context.settings.player.PAUSE_ON_BT_DISCONNECT
         ),
         ToggleSettingsItem(
-            SettingsValueState(PlayerSettings.Key.RESUME_ON_BT_CONNECT.getName()),
-            getString("s_key_resume_on_bt_connect"), getString("s_sub_resume_on_bt_connect")
+            context.settings.player.RESUME_ON_BT_CONNECT
         ),
         ToggleSettingsItem(
-            SettingsValueState(PlayerSettings.Key.PAUSE_ON_WIRED_DISCONNECT.getName()),
-            getString("s_key_pause_on_wired_disconnect"), null
+            context.settings.player.PAUSE_ON_WIRED_DISCONNECT
         ),
         ToggleSettingsItem(
-            SettingsValueState(PlayerSettings.Key.RESUME_ON_WIRED_CONNECT.getName()),
-            getString("s_key_resume_on_wired_connect"), getString("s_sub_resume_on_wired_connect")
+            context.settings.player.RESUME_ON_WIRED_CONNECT
         )
     )
 }

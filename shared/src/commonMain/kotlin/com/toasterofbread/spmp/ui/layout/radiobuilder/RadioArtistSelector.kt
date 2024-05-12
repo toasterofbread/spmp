@@ -4,7 +4,6 @@ import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -25,11 +24,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.composekit.utils.common.times
-import com.toasterofbread.composekit.utils.composable.OnChangedEffect
-import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.composekit.utils.composable.crossOut
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.composekit.utils.common.times
+import dev.toastbits.composekit.utils.composable.OnChangedEffect
+import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.utils.composable.crossOut
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
 import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.resources.getString
@@ -38,10 +36,10 @@ import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getArtistThumbShape
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getLongPressMenuData
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.spmp.youtubeapi.RadioBuilderArtist
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.ytmkt.endpoint.RadioBuilderArtist
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider as YtmThumbnailProvider
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun RadioArtistSelector(
     radio_artists: List<RadioBuilderArtist>?,
@@ -108,8 +106,8 @@ internal fun RadioArtistSelector(
                 itemsIndexed(artists) { index, radio_artist ->
                     val artist: ArtistData = remember(radio_artist, index) {
                         ArtistData("RB$index").apply {
-                            title = radio_artist.name
-                            thumbnail_provider = MediaItemThumbnailProvider.fromThumbnails(listOf(radio_artist.thumbnail))
+                            name = radio_artist.name
+                            thumbnail_provider = YtmThumbnailProvider.fromThumbnails(listOf(radio_artist.thumbnail))
                         }
                     }
 
@@ -154,7 +152,7 @@ internal fun RadioArtistSelector(
                                 }
 
                                 artist.Thumbnail(
-                                    MediaItemThumbnailProvider.Quality.LOW,
+                                    YtmThumbnailProvider.Quality.LOW,
                                     Modifier
                                         .longPressMenuIcon(long_press_menu_data)
                                         .size(thumb_size),
@@ -164,7 +162,7 @@ internal fun RadioArtistSelector(
                             }
 
                             Text(
-                                artist.title ?: "",
+                                artist.name ?: "",
                                 fontSize = 12.sp,
                                 color = player.theme.on_background,
                                 maxLines = 1,

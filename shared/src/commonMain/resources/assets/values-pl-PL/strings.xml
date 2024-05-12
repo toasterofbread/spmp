@@ -152,7 +152,6 @@
     <string name="throw_error">Rzut</string>
     <string name="wrap_text_switch_label">Zawijaj tekst</string>
     <string name="upload_to_paste_dot_ee">Prześlij do Paste.ee</string>
-    <string name="error_info_display_show_json_data">Pokaż dane JSON</string>
 
     <string name="lpm_action_radio">Uruchom radio</string>
     <string name="lpm_action_play">Odtwórz</string>
@@ -261,7 +260,6 @@
     <string name="s_key_hp_show_timed_lyrics">Pokaż tekst utworu</string>
     <string name="s_sub_hp_show_timed_lyrics">W określonym czasie pojawi się na górnym pasku tekst utworu, jeśli jest dostępny</string>
 
-    <string name="s_key_feed_show_filter_bar">Pokaż filtry, jeśli są dostępne</string>
     <string name="s_key_feed_initial_rows">Initial feed rows</string>
     <string name="s_key_feed_square_preview_text_lines">Maksymalna liczba wierszy tekstu elementu kwadratowego</string>
     <string name="s_sub_feed_initial_rows">Minimalna liczba wierszy kanału do automatycznego ładowania</string>
@@ -329,9 +327,9 @@
     <string name="s_key_lyrics_default_furigana">Pokaż domyślnie furiganę</string>
 
     <string name="s_key_lyrics_text_alignment">Wyrównanie tekstu</string>
-    <string name="s_option_lyrics_text_alignment_left">W lewo</string>
+    <string name="s_option_lyrics_text_alignment_start">W lewo</string>
     <string name="s_option_lyrics_text_alignment_center">Wyśrodkowany</string>
-    <string name="s_option_lyrics_text_alignment_right">W prawo</string>
+    <string name="s_option_lyrics_text_alignment_end">W prawo</string>
 
     <string name="s_key_lyrics_extra_padding">Dodatkowe wypełnienie</string>
     <string name="s_sub_lyrics_extra_padding">Dodaj dodatkowe wypełnienie nad i pod tekstem, aby zwiększyć zakres przewijania</string>
@@ -340,16 +338,6 @@
     <string name="s_sub_lyrics_enable_word_sync">Jeśli jest dostępna, synchronizacja tekstów będzie wyświetlana dla poszczególnych słów, a nie dla wiersza</string>
 
     <string name="s_key_lyrics_font_size">Rozmiar czcionki</string>
-
-    <string name="s_key_top_bar_lyrics_show_furigana">Pokaż furiganę</string>
-    <string name="s_key_top_bar_lyrics_show_in_library">Pokaż w bibliotece</string>
-    <string name="s_key_top_bar_lyrics_show_in_radiobuilder">Pokaż na ekranie radia</string>
-    <string name="s_key_top_bar_lyrics_show_in_settings">Pokaż w ustawieniach</string>
-    <string name="s_key_top_bar_lyrics_show_in_login">Pokaż na ekranie logowania</string>
-    <string name="s_key_top_bar_lyrics_show_in_playlist">Pokaż w playliście</string>
-    <string name="s_key_top_bar_lyrics_show_in_artist">Pokaż według artysty</string>
-    <string name="s_key_top_bar_lyrics_show_in_viewmore">Pokaż w widoku więcej na ekranie strony głównej</string>
-    <string name="s_key_top_bar_lyrics_show_in_search">Pokaż w oknie wyszukiwania</string>
 
     <string name="s_key_stream_audio_quality">Jakość przesyłanego dźwięku</string>
     <string name="s_sub_stream_audio_quality">Docelowa jakość dźwięku podczas strumieniowego przesyłania muzyki</string>
@@ -410,14 +398,6 @@
     <string name="s_sub_discord_status_show_button_project">Otwiera repozytorium projektu w serwisie GitHub</string>
     <string name="s_key_discord_status_button_project_text">Tekst przycisku strony projektu</string>
 
-    <string name="s_cat_topbar">Górny pasek muzyki</string>
-    <string name="s_key_topbar_lyrics_linger">Tekst utworu</string>
-    <string name="s_sub_topbar_lyrics_linger">Po zakończeniu linii pozostanie ona widoczna do momentu rozpoczęcia następnej linii</string>
-    <string name="s_key_topbar_visualiser_width">Szerokość wizualizera</string>
-    <string name="s_key_topbar_show_lyrics_in_queue">Pokaż tekst w kolejce muzyki</string>
-    <string name="s_key_topbar_show_visualiser_in_queue">Pokaż wizualizator w kolejce muzyki</string>
-    <string name="s_key_topbar_display_over_artist_image">Wyświetlanie nad głównym obrazem na stronie artysty</string>
-
     <string name="s_cat_desc_general">Język, zachowanie i inne opcje</string>
     <string name="s_cat_desc_filter">Ukrywanie utworów i list odtwarzania według słów kluczowych</string>
     <string name="s_cat_desc_feed">Rekomendacje dotyczące utworów</string>
@@ -439,8 +419,8 @@
     <string name="auth_sign_in">Zaloguj się</string>
     <string name="auth_sign_out">Wyloguj się</string>
 
-    <string name="warning_ytm_login">Zostaniesz przekierowany do widoku internetowego w aplikacji, aby zalogować się do YouTube Music.&#xA;&#xA;Po zalogowaniu plik cookie sesji zostanie wyodrębniony, zapisany i wykorzystany wyłącznie do żądań API do YouTube Music, takich jak pobieranie polecanego kanału i subskrybowanie artystów.&#xA;&#xA;Kontynuować?</string>
-    <string name="info_ytm_login">Zostaniesz przekierowany do widoku internetowego w aplikacji, aby zalogować się do YouTube Music.&#xA;&#xA;Po zalogowaniu plik cookie sesji zostanie wyodrębniony, zapisany i wykorzystany wyłącznie do żądań API do YouTube Music, takich jak pobieranie polecanego kanału i subskrybowanie artystów.</string>
+    <string name="warning_ytm_login">Po zalogowaniu plik cookie sesji zostanie wyodrębniony, zapisany i wykorzystany wyłącznie do żądań API do YouTube Music, takich jak pobieranie polecanego kanału i subskrybowanie artystów.&#xA;&#xA;Kontynuować?</string>
+    <string name="info_ytm_login">Po zalogowaniu plik cookie sesji zostanie wyodrębniony, zapisany i wykorzystany wyłącznie do żądań API do YouTube Music, takich jak pobieranie polecanego kanału i subskrybowanie artystów.</string>
     <string name="warning_discord_login">Zostaniesz przekierowany do widoku internetowego w aplikacji, aby zalogować się do Discord.&#xA;&#xA;Po zalogowaniu token konta zostanie wyodrębniony, zapisany i użyty wyłącznie do połączenia z Discord w celu ustawienia bieżącego statusu.&#xA;&#xA;Więcej informacji można znaleźć na stronie https://github.com/dead8309/Kizzy &#xA;&#xA;Kontynuować?</string>
     <string name="info_discord_login">Zostaniesz przekierowany do widoku internetowego w aplikacji, aby zalogować się do Discord.&#xA;&#xA;Po zalogowaniu token konta zostanie wyodrębniony, zapisany i użyty wyłącznie do połączenia z Discord w celu ustawienia bieżącego statusu.&#xA;&#xA;Więcej informacji można znaleźć na stronie https://github.com/dead8309/Kizzy</string>
 
@@ -457,11 +437,6 @@
     <string name="youtube_manual_login_field">Nagłówki</string>
 
     <string name="youtube_login_load_message">Wczytywanie strony logowania</string>
-    <string name="youtube_channel_creation_load_message">Wczytywanie formularza tworzenia kanału</string>
-
-    <string name="youtube_channel_creation_title">Rejestracja profilu YouTube Music</string>
-    <string name="youtube_channel_creation_subtitle">Można to również zrobić na stronie https://music.youtube.com/, logując się i przechodząc do 'Twojego kanału'</string>
-    <string name="youtube_channel_creation_confirm">Utwórz</string>
 
     <string name="manual_login_error_missing_following_headers">Brakuje następujących nagłówków:</string>
     <string name="manual_login_desktop_browser_may_be_needed">Do wykonania tych kroków może być konieczne użycie przeglądarki na komputerze.</string>

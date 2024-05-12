@@ -14,13 +14,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalViewConfiguration
-import com.toasterofbread.composekit.platform.Platform
-import com.toasterofbread.composekit.platform.composable.platformClickable
-import com.toasterofbread.composekit.platform.vibrateShort
-import com.toasterofbread.composekit.utils.composable.OnChangedEffect
+import dev.toastbits.composekit.platform.Platform
+import dev.toastbits.composekit.platform.composable.platformClickableWithOffset
+import dev.toastbits.composekit.platform.vibrateShort
+import dev.toastbits.composekit.utils.composable.OnChangedEffect
+import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
+import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressItem
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.delay
 
 enum class MediaItemPreviewInteractionPressStage {
@@ -63,12 +65,13 @@ enum class MediaItemPreviewInteractionPressStage {
 fun Modifier.mediaItemPreviewInteraction(
     item: MediaItem,
     long_press_menu_data: LongPressMenuData,
+    enabled: Boolean = true,
     onClick: ((item: MediaItem, multiselect_key: Int?) -> Unit)? = null,
     onLongClick: ((item: MediaItem, long_press_menu_data: LongPressMenuData) -> Unit)? = null
 ): Modifier {
     val base: Modifier = when (Platform.current) {
-        Platform.ANDROID -> androidMediaItemPreviewInteraction(item, long_press_menu_data, onClick, onLongClick)
-        Platform.DESKTOP -> desktopMediaItemPreviewInteraction(item, long_press_menu_data, onClick, onLongClick)
+        Platform.ANDROID -> androidMediaItemPreviewInteraction(item, long_press_menu_data, enabled, onClick, onLongClick)
+        Platform.DESKTOP -> desktopMediaItemPreviewInteraction(item, long_press_menu_data, enabled, onClick, onLongClick)
     }
     return base.longPressItem(long_press_menu_data)
 }
@@ -77,17 +80,21 @@ fun Modifier.mediaItemPreviewInteraction(
 private fun Modifier.desktopMediaItemPreviewInteraction(
     item: MediaItem,
     long_press_menu_data: LongPressMenuData,
+    enabled: Boolean = true,
     onClick: ((item: MediaItem, multiselect_key: Int?) -> Unit)? = null,
     onLongClick: ((item: MediaItem, long_press_menu_data: LongPressMenuData) -> Unit)? = null
 ): Modifier {
     val player: PlayerState = LocalPlayerState.current
-    val onItemClick = onClick ?: player::onMediaItemClicked
-    val onItemLongClick = onLongClick ?: player::onMediaItemLongClicked
+    val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
-    return platformClickable(
+    val onItemClick = onClick ?: { item, key -> click_overrides.onMediaItemClicked(item, player, key) }
+    val onItemLongClick = onLongClick ?: { item, data -> click_overrides.onMediaItemLongClicked(item, player, data) }
+
+    return platformClickableWithOffset(
         onClick = { MediaItemPreviewInteractionPressStage.INSTANT.execute(item, long_press_menu_data, it, onItemClick, onItemLongClick) },
         onAltClick = { MediaItemPreviewInteractionPressStage.LONG_1.execute(item, long_press_menu_data, it, onItemClick, onItemLongClick) },
         onAlt2Click = { MediaItemPreviewInteractionPressStage.LONG_2.execute(item, long_press_menu_data, it, onItemClick, onItemLongClick) },
+        enabled = enabled,
         indication = null
     )
 }
@@ -96,13 +103,15 @@ private fun Modifier.desktopMediaItemPreviewInteraction(
 private fun Modifier.androidMediaItemPreviewInteraction(
     item: MediaItem,
     long_press_menu_data: LongPressMenuData,
+    enabled: Boolean = true,
     onClick: ((item: MediaItem, multiselect_key: Int?) -> Unit)? = null,
     onLongClick: ((item: MediaItem, long_press_menu_data: LongPressMenuData) -> Unit)? = null
 ): Modifier {
     val player: PlayerState = LocalPlayerState.current
+    val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
-    val onItemClick = onClick ?: player::onMediaItemClicked
-    val onItemLongClick = onLongClick ?: player::onMediaItemLongClicked
+    val onItemClick = onClick ?: { item, key -> click_overrides.onMediaItemClicked(item, player, key) }
+    val onItemLongClick = onLongClick ?: { item, data -> click_overrides.onMediaItemLongClicked(item, player, data) }
 
     var current_press_stage: MediaItemPreviewInteractionPressStage by remember { mutableStateOf(MediaItemPreviewInteractionPressStage.INSTANT) }
     val long_press_timeout: Long = LocalViewConfiguration.current.longPressTimeoutMillis
@@ -145,7 +154,12 @@ private fun Modifier.androidMediaItemPreviewInteraction(
         }
     }
 
-    return clickable(interaction_source, null, onClick = {
-        current_press_stage.execute(item, long_press_menu_data, Offset.Zero, onItemClick, onItemLongClick)
-    })
+    return clickable(
+        interaction_source,
+        null,
+        onClick = {
+            current_press_stage.execute(item, long_press_menu_data, Offset.Zero, onItemClick, onItemLongClick)
+        },
+        enabled = enabled
+    )
 }

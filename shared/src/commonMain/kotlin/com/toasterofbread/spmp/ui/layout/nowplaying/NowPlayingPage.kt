@@ -8,11 +8,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.composable.getTop
+import dev.toastbits.composekit.utils.composable.getTop
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.platform.getFormFactor
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NowPlayingMainTabPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.NowPlayingQueuePage
 

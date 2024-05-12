@@ -10,6 +10,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, 'noci') }}
 
     steps:
     - uses: actions/checkout@v3

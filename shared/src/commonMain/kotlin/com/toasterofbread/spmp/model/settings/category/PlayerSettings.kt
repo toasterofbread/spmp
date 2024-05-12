@@ -2,62 +2,107 @@ package com.toasterofbread.spmp.model.settings.category
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PlayArrow
-import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getPlayerCategoryItems
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
+import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.platform.PreferencesProperty
 
-data object PlayerSettings: SettingsCategory("player") {
-    override val keys: List<SettingsKey> = Key.entries.toList()
+class PlayerSettings(val context: AppContext): SettingsGroup("PLAYER", context.getPrefs()) {
+    val MINI_SHOW_PREV_BUTTON: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_mini_player_show_prev_button") },
+        getDescription = { null },
+        getDefaultValue = { false }
+    )
+    val MINI_OVERSCROLL_CLEAR_ENABLED: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_mini_player_overscroll_clear_enabled") },
+        getDescription = { null },
+        getDefaultValue = { false }
+    )
+    val MINI_OVERSCROLL_CLEAR_TIME: PreferencesProperty<Float> by property(
+        getName = { getString("s_key_mini_player_overscroll_clear_time") },
+        getDescription = { null },
+        getDefaultValue = { 0.2f }
+    )
+    val MINI_OVERSCROLL_CLEAR_MODE: PreferencesProperty<OverscrollClearMode> by enumProperty(
+        getName = { getString("s_key_mini_player_overscroll_clear_mode") },
+        getDescription = { null },
+        getDefaultValue = { OverscrollClearMode.HIDE_IF_QUEUE_EMPTY }
+    )
+    val SHOW_REPEAT_SHUFFLE_BUTTONS: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_player_show_repeat_shuffle_buttons") },
+        getDescription = { getString("s_sub_player_show_repeat_shuffle_buttons") },
+        getDefaultValue = { false }
+    )
+    val SHOW_SEEK_BAR_GRADIENT: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_player_show_progress_bar_gradient") },
+        getDescription = { null },
+        getDefaultValue = { true }
+    )
+    val OVERLAY_CUSTOM_ACTION: PreferencesProperty<PlayerOverlayMenuAction> by enumProperty(
+        getName = { getString("s_key_player_overlay_menu_custom_action") },
+        getDescription = { getString("s_sub_player_overlay_menu_custom_action") },
+        getDefaultValue = { PlayerOverlayMenuAction.DEFAULT_CUSTOM }
+    )
+    val OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_player_overlay_menu_swap_long_short_press_actions") },
+        getDescription = { null },
+        getDefaultValue = { false }
+    )
+    val QUEUE_ITEM_SWIPE_SENSITIVITY: PreferencesProperty<Float> by property(
+        getName = { getString("s_key_np_queue_item_swipe_sensitivity") },
+        getDescription = { getString("s_sub_np_queue_item_swipe_sensitivity") },
+        getDefaultValue = { 1f }
+    )
+    val QUEUE_EXTRA_SIDE_PADDING: PreferencesProperty<Float> by property(
+        getName = { getString("s_key_np_queue_extra_side_padding") },
+        getDescription = { getString("s_sub_np_queue_extra_side_padding") },
+        getDefaultValue = { 0f }
+    )
+    val QUEUE_WAVE_BORDER_MODE: PreferencesProperty<NowPlayingQueueWaveBorderMode> by enumProperty(
+        getName = { getString("s_key_np_queue_wave_border_mode") },
+        getDescription = { getString("s_sub_np_queue_wave_border_mode") },
+        getDefaultValue = { NowPlayingQueueWaveBorderMode.TIME }
+    )
+    val QUEUE_RADIO_INFO_POSITION: PreferencesProperty<NowPlayingQueueRadioInfoPosition> by enumProperty(
+        getName = { getString("s_key_np_queue_radio_info_position") },
+        getDescription = { null },
+        getDefaultValue = { NowPlayingQueueRadioInfoPosition.TOP_BAR }
+    )
+    val RESUME_ON_BT_CONNECT: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_resume_on_bt_connect") },
+        getDescription = { getString("s_sub_resume_on_bt_connect") },
+        getDefaultValue = { true }
+    )
+    val PAUSE_ON_BT_DISCONNECT: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_pause_on_bt_disconnect") },
+        getDescription = { null },
+        getDefaultValue = { true }
+    )
+    val RESUME_ON_WIRED_CONNECT: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_resume_on_wired_connect") },
+        getDescription = { getString("s_sub_resume_on_wired_connect") },
+        getDefaultValue = { true }
+    )
+    val PAUSE_ON_WIRED_DISCONNECT: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_pause_on_wired_disconnect") },
+        getDescription = { null },
+        getDefaultValue = { true }
+    )
+    val EXPAND_SWIPE_SENSITIVITY: PreferencesProperty<Float> by property(
+        getName = { getString("s_key_player_expand_swipe_sensitivity") },
+        getDescription = { null },
+        getDefaultValue = { 3.5f }
+    )
 
-    override fun getPage(): Page? =
-        Page(
-            getString("s_cat_player"),
-            getString("s_cat_desc_player"),
-            { getPlayerCategoryItems() }
-        ) { Icons.Outlined.PlayArrow }
-
-    enum class Key: SettingsKey {
-        MINI_SHOW_PREV_BUTTON,
-        MINI_OVERSCROLL_CLEAR_ENABLED,
-        MINI_OVERSCROLL_CLEAR_TIME,
-        MINI_OVERSCROLL_CLEAR_MODE,
-        SHOW_REPEAT_SHUFFLE_BUTTONS,
-        SHOW_SEEK_BAR_GRADIENT,
-        OVERLAY_CUSTOM_ACTION,
-        OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS,
-        QUEUE_ITEM_SWIPE_SENSITIVITY,
-        QUEUE_EXTRA_SIDE_PADDING,
-        QUEUE_WAVE_BORDER_MODE,
-        QUEUE_RADIO_INFO_POSITION,
-        RESUME_ON_BT_CONNECT,
-        PAUSE_ON_BT_DISCONNECT,
-        RESUME_ON_WIRED_CONNECT,
-        PAUSE_ON_WIRED_DISCONNECT;
-
-        override val category: SettingsCategory get() = PlayerSettings
-
-        @Suppress("UNCHECKED_CAST")
-        override fun <T> getDefaultValue(): T =
-            when (this) {
-                MINI_SHOW_PREV_BUTTON -> false
-                MINI_OVERSCROLL_CLEAR_ENABLED -> false
-                MINI_OVERSCROLL_CLEAR_TIME -> 0.2f
-                MINI_OVERSCROLL_CLEAR_MODE -> OverscrollClearMode.HIDE_IF_QUEUE_EMPTY.ordinal
-                SHOW_REPEAT_SHUFFLE_BUTTONS -> false
-                SHOW_SEEK_BAR_GRADIENT -> true
-                OVERLAY_CUSTOM_ACTION -> PlayerOverlayMenuAction.DEFAULT_CUSTOM.ordinal
-                OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS -> false
-                QUEUE_ITEM_SWIPE_SENSITIVITY -> 1f
-                QUEUE_EXTRA_SIDE_PADDING -> 0f
-                QUEUE_WAVE_BORDER_MODE -> NowPlayingQueueWaveBorderMode.TIME.ordinal
-                QUEUE_RADIO_INFO_POSITION -> NowPlayingQueueRadioInfoPosition.TOP_BAR.ordinal
-                RESUME_ON_BT_CONNECT -> true
-                PAUSE_ON_BT_DISCONNECT -> true
-                RESUME_ON_WIRED_CONNECT -> true
-                PAUSE_ON_WIRED_DISCONNECT -> true
-            } as T
-    }
+    override val page: CategoryPage =
+        SimplePage(
+            { getString("s_cat_player") },
+            { getString("s_cat_desc_player") },
+            { getPlayerCategoryItems(context) },
+            { Icons.Outlined.PlayArrow }
+        )
 }
 
 enum class NowPlayingQueueRadioInfoPosition {

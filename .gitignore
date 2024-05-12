@@ -11,10 +11,16 @@
 local.properties
 .vscode
 *.log
+/.kotlin
 
 app/debug/
 app/release/
 
+desktopApp/MediaDeviceSalts*
+
+buildSrc/project_debug.properties
 debug_keys.properties
 androidApp/keystore.properties
 androidApp/main.keystore
+shared/src/commonMain/kotlin/test.kt
+ytm-kt

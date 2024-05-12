@@ -1,9 +1,9 @@
 package com.toasterofbread.spmp.platform.playerservice
 
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.radio.RadioInstance
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
-import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import spms.socketapi.shared.SpMsPlayerRepeatMode
@@ -11,16 +11,16 @@ import spms.socketapi.shared.SpMsPlayerState
 
 actual class PlatformExternalPlayerService: ForegroundPlayerService(), PlayerService {
     private val service: ExternalPlayerService = ExternalPlayerService()
-    
+
     private val service_listener = object : PlayerListener() {
         override fun onSongAdded(index: Int, song: Song) = this@PlatformExternalPlayerService.onSongAdded(index, song)
         override fun onPlayingChanged(is_playing: Boolean) = this@PlatformExternalPlayerService.onPlayingChanged(is_playing)
         override fun onSeeked(position_ms: Long) = this@PlatformExternalPlayerService.onSeeked(position_ms)
         override fun onSongMoved(from: Int, to: Int) = this@PlatformExternalPlayerService.onSongMoved(from, to)
-        override fun onSongRemoved(index: Int) = this@PlatformExternalPlayerService.onSongRemoved(index)
+        override fun onSongRemoved(index: Int, song: Song) = this@PlatformExternalPlayerService.onSongRemoved(index)
         override fun onSongTransition(song: Song?, manual: Boolean) = this@PlatformExternalPlayerService.onSongTransition(song, manual)
     }
-    
+
     override fun onCreate() {
         super.onCreate()
 
@@ -34,7 +34,7 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(), PlayerSer
         super.onDestroy()
         service.onDestroy()
     }
-    
+
     private fun onSongAdded(index: Int, song: Song) { coroutine_scope.launch(Dispatchers.Main) {
         super.addSong(song, index)
     }}
@@ -63,7 +63,7 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(), PlayerSer
     override val current_position_ms: Long get() = service.current_position_ms
     override val duration_ms: Long get() = service.duration_ms
     override val has_focus: Boolean get() = service.has_focus
-    override val radio_state: RadioInstance.RadioState get() = service.radio_state
+    override val radio_instance: RadioInstance get() = service.radio_instance
     override var repeat_mode: SpMsPlayerRepeatMode
         get() = service.repeat_mode
         set(value) { service.repeat_mode = value }
@@ -85,7 +85,7 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(), PlayerSer
     override fun removeSong(index: Int) = service.removeSong(index)
     override fun addListener(listener: PlayerListener) = service.addListener(listener)
     override fun removeListener(listener: PlayerListener) = service.removeListener(listener)
-    
+
     actual companion object: InternalPlayerServiceCompanion(PlatformExternalPlayerService::class), PlayerServiceCompanion {
         override fun isServiceRunning(context: AppContext): Boolean = true
     }

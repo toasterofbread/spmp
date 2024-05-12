@@ -1,18 +1,52 @@
 package com.toasterofbread.spmp.platform
 
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
+import dev.datlag.kcef.KCEF
+import java.io.File
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.resources.getString
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.runBlocking
+import kotlin.coroutines.suspendCoroutine
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
-actual fun isWebViewLoginSupported(): Boolean = false
+actual suspend fun initWebViewLogin(
+    context: AppContext,
+    onProgress: (Float, String?) -> Unit
+): Result<Boolean> = runCatching {
+    if (KCEF.newClientOrNull() != null) {
+        return@runCatching false
+    }
 
-@Composable
-actual fun WebViewLogin(
-    initial_url: String,
-    modifier: Modifier,
-    onClosed: () -> Unit,
-    shouldShowPage: (url: String) -> Boolean,
-    loading_message: String?,
-    onRequestIntercepted: suspend (WebViewRequest, openUrl: (String) -> Unit, getCookie: (String) -> String) -> Unit
-) {
-    throw NotImplementedError("Not supported")
+    return@runCatching withContext(Dispatchers.IO) {
+        suspendCoroutine { continuation ->
+            runBlocking {
+                KCEF.init(
+                    builder = {
+                        installDir(context.getFilesDir().resolve("kcef-bundle"))
+                        progress {
+                            onDownloading {
+                                onProgress(it / 100f, getString("webview_runtime_downloading"))
+                            }
+                            onInitialized {
+                                continuation.resume(false)
+                            }
+                        }
+                        settings {
+                            cachePath = context.getCacheDir().resolve("kcef").absolutePath
+                        }
+                    },
+                    onError = { error ->
+                        if (error != null) {
+                            continuation.resumeWithException(error)
+                        }
+                    },
+                    onRestartRequired = {
+                        continuation.resume(true)
+                    }
+                )
+            }
+        }
+    }
 }

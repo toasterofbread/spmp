@@ -4,9 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.radio.RadioInstance
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
-import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
 import spms.socketapi.shared.SpMsPlayerRepeatMode
 import spms.socketapi.shared.SpMsPlayerState
 
@@ -24,6 +24,7 @@ interface PlayerService {
     fun onDestroy()
 
     val load_state: PlayerServiceLoadState
+    val connection_error: Throwable?
     val state: SpMsPlayerState
     val is_playing: Boolean
     val song_count: Int
@@ -32,7 +33,7 @@ interface PlayerService {
     val duration_ms: Long
     val has_focus: Boolean
 
-    val radio_state: RadioInstance.RadioState
+    val radio_instance: RadioInstance
 
     var repeat_mode: SpMsPlayerRepeatMode
     var volume: Float
@@ -47,6 +48,7 @@ interface PlayerService {
     fun seekToSong(index: Int)
     fun seekToNext()
     fun seekToPrevious()
+    fun undoSeek()
 
     fun getSong(): Song?
     fun getSong(index: Int): Song?

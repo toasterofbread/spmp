@@ -1,56 +1,36 @@
 package com.toasterofbread.spmp.ui.layout.apppage.songfeedpage
 
 import LocalPlayerState
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
+import androidx.compose.animation.*
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CloudOff
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.common.anyCauseIs
-import com.toasterofbread.composekit.utils.common.launchSingle
-import com.toasterofbread.spmp.model.FilterChip
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
+import androidx.compose.ui.unit.*
+import dev.toastbits.composekit.utils.common.*
+import dev.toastbits.composekit.utils.composable.RowOrColumn
+import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.artist.Artist
-import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
-import com.toasterofbread.spmp.model.mediaitem.db.SongFeedCache
-import com.toasterofbread.spmp.model.mediaitem.db.SongFeedData
-import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
-import com.toasterofbread.spmp.model.settings.Settings
-import com.toasterofbread.spmp.model.settings.category.FeedSettings
-import com.toasterofbread.spmp.model.settings.mutableSettingsState
-import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.platform.form_factor
+import com.toasterofbread.spmp.model.mediaitem.artist.*
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
+import com.toasterofbread.spmp.model.mediaitem.db.*
+import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
+import com.toasterofbread.spmp.model.settings.*
+import com.toasterofbread.spmp.platform.*
+import com.toasterofbread.spmp.service.playercontroller.*
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.apppage.AppPage
-import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.FeedLoadState
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.HomeFeedLoadResult
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import com.toasterofbread.spmp.ui.layout.apppage.*
+import com.toasterofbread.spmp.ui.layout.contentbar.*
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
+import dev.toastbits.ytmkt.endpoint.*
+import dev.toastbits.ytmkt.model.external.mediaitem.*
+import dev.toastbits.ytmkt.model.external.ItemLayoutType
+import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.withContext
 
 internal const val ARTISTS_ROW_DEFAULT_MIN_OCCURRENCES: Int = 2
 internal const val ARTISTS_ROW_MIN_ARTISTS: Int = 4
@@ -58,7 +38,7 @@ internal const val ARTISTS_ROW_MIN_ARTISTS: Int = 4
 class SongFeedAppPage(override val state: AppPageState): AppPage() {
     internal val scroll_state: LazyListState = LazyListState()
 
-    internal val feed_endpoint: HomeFeedEndpoint = state.context.ytapi.HomeFeed
+    internal val feed_endpoint: SongFeedEndpoint = state.context.ytapi.SongFeed
 
     internal var load_state by mutableStateOf(FeedLoadState.PREINIT)
     internal var load_error: Throwable? by mutableStateOf(null)
@@ -66,9 +46,18 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
     internal val coroutine_scope: CoroutineScope = CoroutineScope(Job())
 
     internal var continuation: String? by mutableStateOf(null)
-    internal var layouts: List<MediaItemLayout>? by mutableStateOf(null)
-    internal var filter_chips: List<FilterChip>? by mutableStateOf(null)
+    internal var layouts: List<AppMediaItemLayout>? by mutableStateOf(null)
+    internal var filter_chips: List<SongFeedFilterChip>? by mutableStateOf(null)
     internal var selected_filter_chip: Int? by mutableStateOf(null)
+
+    internal var artists_layout: AppMediaItemLayout by mutableStateOf(
+        AppMediaItemLayout(
+            emptyList(),
+            null,
+            null,
+            type = ItemLayoutType.GRID
+        )
+    )
 
     var retrying: Boolean = false
 
@@ -77,13 +66,6 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
         filter_chips = null
         selected_filter_chip = null
     }
-
-    @Composable
-    override fun showTopBar(): Boolean =
-        LocalPlayerState.current.form_factor == FormFactor.PORTRAIT
-
-    @Composable
-    override fun showTopBarContent(): Boolean = true
 
     override fun canReload(): Boolean = true
     override fun onReload() {
@@ -103,49 +85,6 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
     }
 
     @Composable
-    fun FeedFiltersRow(modifier: Modifier = Modifier, show_scrollbar: Boolean = true, onSelected: (Int?) -> Unit = {}) {
-        val player: PlayerState = LocalPlayerState.current
-        
-        Crossfade(filter_chips, modifier) { chips ->
-            if (chips.isNullOrEmpty()) {
-                if (load_state != FeedLoadState.LOADING && load_state != FeedLoadState.CONTINUING) {
-                    Box(Modifier.padding(end = 40.dp), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.CloudOff, null)
-                    }
-                }
-            }
-            else {
-                FilterChipsRow(
-                    chips.size,
-                    { it == selected_filter_chip },
-                    {
-                        selectFilterChip(it)
-                        onSelected(selected_filter_chip)
-                    }
-                ) { index ->
-                    Text(chips[index].text.getString(player.context))
-                }
-            }
-        }
-    }
-
-    @Composable
-    override fun TopBarContent(modifier: Modifier, close: () -> Unit) {
-        val player: PlayerState = LocalPlayerState.current
-        val show: Boolean by mutableSettingsState(FeedSettings.Key.SHOW_FILTER_BAR)
-
-        AnimatedVisibility(show) {
-            Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-                IconButton({ player.openAppPage(player.app_page_state.Search) }) {
-                    Icon(Icons.Default.Search, null)
-                }
-
-                FeedFiltersRow()
-            }
-        }
-    }
-
-    @Composable
     override fun ColumnScope.Page(
         multiselect_context: MediaItemMultiSelectContext,
         modifier: Modifier,
@@ -153,9 +92,47 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
         close: () -> Unit
     ) {
         val player: PlayerState = LocalPlayerState.current
+
+        LaunchedEffect(Unit) {
+            if (layouts.isNullOrEmpty()) {
+                coroutine_scope.launchSingle {
+                    loadFeed(allow_cached = !retrying, continue_feed = false)
+                    retrying = false
+                }
+            }
+        }
+
+        LaunchedEffect(layouts) {
+            artists_layout = artists_layout.copy(
+                items = populateArtistsLayout(
+                    layouts,
+                    player.context.ytapi.user_auth_state?.own_channel_id,
+                    player.context
+                )
+            )
+        }
+
         when (player.form_factor) {
             FormFactor.PORTRAIT -> SFFSongFeedAppPage(multiselect_context, modifier, content_padding, close)
             FormFactor.LANDSCAPE -> LFFSongFeedAppPage(multiselect_context, modifier, content_padding, close)
+        }
+    }
+
+    @Composable
+    override fun shouldShowPrimaryBarContent(): Boolean = !filter_chips.isNullOrEmpty()
+
+    @Composable
+    override fun PrimaryBarContent(
+        slot: LayoutSlot,
+        content_padding: PaddingValues,
+        distance_to_page: Dp,
+        lazy: Boolean,
+        modifier: Modifier
+    ): Boolean {
+        val player: PlayerState = LocalPlayerState.current
+        return when (player.form_factor) {
+            FormFactor.PORTRAIT -> SFFSongFeedPagePrimaryBar(slot, modifier, content_padding, lazy)
+            FormFactor.LANDSCAPE -> LFFSongFeedPagePrimaryBar(slot, modifier, content_padding, lazy)
         }
     }
 
@@ -184,7 +161,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
             if (allow_cached && !continue_feed && filter_chip == null) {
                 val cached: SongFeedData? = SongFeedCache.loadFeedLayouts(state.context.database)
                 if (cached?.layouts?.isNotEmpty() == true) {
-                    layouts = cached.layouts
+                    layouts = cached.layouts.map { it.layout }
                     filter_chips = cached.filter_chips
                     continuation = cached.continuation_token
                     return@withContext Result.success(Unit)
@@ -194,24 +171,24 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
             val filter_params: String? = filter_chip?.let { filter_chips!![it].params }
             load_state = if (continue_feed) FeedLoadState.CONTINUING else FeedLoadState.LOADING
 
-            val result: Result<HomeFeedLoadResult> = loadFeedLayouts(
-                if (continue_feed && continuation != null) -1 else Settings.get(FeedSettings.Key.INITIAL_ROWS),
-                allow_cached,
+            val result: Result<SongFeedLoadResult> = loadFeedLayouts(
+                if (continue_feed && continuation != null) -1 else state.context.settings.feed.INITIAL_ROWS.get(),
                 filter_params,
                 if (continue_feed) continuation else null
             )
 
             result.fold(
                 { data ->
+                    val data_layouts: List<AppMediaItemLayout> = data.layouts.map { AppMediaItemLayout(it) }
                     if (continue_feed) {
-                        layouts = (layouts ?: emptyList()) + data.layouts
+                        layouts = (layouts ?: emptyList()) + data_layouts
                     }
                     else {
-                        layouts = data.layouts
+                        layouts = data_layouts
                         filter_chips = data.filter_chips
 
                         if (filter_chip == null) {
-                            SongFeedCache.saveFeedLayouts(data.layouts, data.filter_chips, data.ctoken, state.context.database)
+                            SongFeedCache.saveFeedLayouts(data_layouts, data.filter_chips, data.ctoken, state.context.database)
                         }
                     }
 
@@ -227,7 +204,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
                     if (allow_cached) {
                         val cached = SongFeedCache.loadFeedLayouts(state.context.database)
                         if (cached?.layouts?.isNotEmpty() == true) {
-                            layouts = cached.layouts
+                            layouts = cached.layouts.map { it.layout }
                             filter_chips = cached.filter_chips
                             continuation = cached.continuation_token
                         }
@@ -255,32 +232,27 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
 
     internal suspend fun loadFeedLayouts(
         min_rows: Int,
-        allow_cached: Boolean,
         params: String?,
         continuation: String? = null
-    ): Result<HomeFeedLoadResult> {
-        val result: Result<HomeFeedLoadResult> =
-            feed_endpoint.getHomeFeed(
-                allow_cached = allow_cached,
+    ): Result<SongFeedLoadResult> = runCatching {
+        val load_result: SongFeedLoadResult =
+            feed_endpoint.getSongFeed(
                 min_rows = min_rows,
                 params = params,
                 continuation = continuation
-            )
+            ).getOrThrow()
 
-        val data: HomeFeedLoadResult = result.getOrNull() ?: return result.cast()
-        return Result.success(
-            data.copy(
-                layouts = data.layouts.filter { it.items.isNotEmpty() }
-            )
+        return@runCatching load_result.copy(
+            layouts = load_result.layouts.filter { it.items.isNotEmpty() }
         )
     }
 }
 
 internal fun populateArtistsLayout(
-    layouts: List<MediaItemLayout>?,
-    own_channel: Artist?,
+    layouts: List<AppMediaItemLayout>?,
+    own_channel_id: String?,
     context: AppContext
-): List<MediaItem> {
+): List<MediaItemData> {
     val artists_map: MutableMap<String, Int?> = mutableMapOf()
     for (layout in layouts.orEmpty()) {
         for (item in layout.items) {
@@ -289,23 +261,28 @@ internal fun populateArtistsLayout(
                 continue
             }
 
-            if (item !is MediaItem.WithArtist) {
+            if (item !is MediaItem.WithArtists) {
                 continue
             }
 
-            val artist = item.Artist.get(context.database) ?: continue
-            if (artist.id == own_channel?.id || artist.isForItem()) {
-                continue
-            }
-
-            if (artists_map.containsKey(artist.id)) {
-                val current = artists_map[artist.id]
-                if (current != null) {
-                    artists_map[artist.id] = current + 1
+            for (artist in item.Artists.get(context.database) ?: emptyList()) {
+                if (artist.isForItem()) {
+                    continue
                 }
-            }
-            else {
-                artists_map[artist.id] = 1
+
+                if (artist.id == own_channel_id) {
+                    continue
+                }
+
+                if (artists_map.containsKey(artist.id)) {
+                    val current = artists_map[artist.id]
+                    if (current != null) {
+                        artists_map[artist.id] = current + 1
+                    }
+                }
+                else {
+                    artists_map[artist.id] = 1
+                }
             }
         }
     }
@@ -329,5 +306,5 @@ internal fun populateArtistsLayout(
         else Pair(artist.key, artist.value)
     }.sortedByDescending { it.second }
 
-    return artists.map { ArtistRef(it.first) }
+    return artists.map { ArtistData(it.first) }
 }

@@ -1,20 +1,17 @@
 package com.toasterofbread.spmp.model.mediaitem.playlist
 
+import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import androidx.compose.runtime.Composable
-import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.db.observeAsState
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
-import com.toasterofbread.spmp.youtubeapi.endpoint.CreateAccountPlaylistEndpoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import dev.toastbits.ytmkt.endpoint.CreateAccountPlaylistEndpoint
 
 @Composable
-fun rememberOwnedPlaylists(owner: Artist, context: AppContext): List<RemotePlaylistRef> {
-    return context.database.playlistQueries.byOwner(owner.id)
+fun rememberOwnedPlaylists(owner_id: String?, context: AppContext): List<RemotePlaylistRef> {
+    return context.database.playlistQueries.byOwned(owner_id)
         .observeAsState(
             Unit,
             {
@@ -27,23 +24,27 @@ fun rememberOwnedPlaylists(owner: Artist, context: AppContext): List<RemotePlayl
         .value
 }
 
-suspend fun MediaItemLibrary.createOwnedPlaylist(auth_state: YoutubeApi.UserAuthState, create_endpoint: CreateAccountPlaylistEndpoint): Result<RemotePlaylistData> = withContext(Dispatchers.IO) {
-    if (!create_endpoint.isImplemented()) {
-        return@withContext Result.failure(EndpointNotImplementedException(create_endpoint))
+suspend fun MediaItemLibrary.createOwnedPlaylist(
+    context: AppContext,
+    auth_state: ApiAuthenticationState,
+    create_endpoint: CreateAccountPlaylistEndpoint
+): Result<RemotePlaylistData> = runCatching {
+    val playlist_id: String = create_endpoint.createAccountPlaylist(getString("new_playlist_title"), "").getOrThrow()
+
+    val playlist: RemotePlaylistData = RemotePlaylistData(playlist_id)
+    playlist.name = getString("new_playlist_title")
+
+    val own_channel_id: String? = auth_state.own_channel_id
+    if (own_channel_id != null) {
+        playlist.owner = ArtistRef(own_channel_id)
+    }
+    else {
+        playlist.owned_by_user = true
     }
 
-    val playlist_id: String = create_endpoint.createAccountPlaylist(getString("new_playlist_title"), "")
-        .getOrElse {
-            return@withContext Result.failure(it)
-        }
 
-    val playlist = RemotePlaylistData(playlist_id)
-    playlist.title = getString("new_playlist_title")
-    playlist.owner = auth_state.own_channel
-
-    playlist.saveToDatabase(auth_state.api.database)
-
+    playlist.saveToDatabase(context.database)
     onPlaylistCreated(playlist)
 
-    return@withContext Result.success(playlist)
+    return@runCatching playlist
 }

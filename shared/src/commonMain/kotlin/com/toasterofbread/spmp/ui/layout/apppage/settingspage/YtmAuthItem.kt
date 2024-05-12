@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
+import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -9,32 +10,39 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.toasterofbread.composekit.platform.PlatformPreferences
-import com.toasterofbread.composekit.settings.ui.item.BasicSettingsValueState
-import com.toasterofbread.composekit.settings.ui.item.ComposableSettingsItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsItem
-import com.toasterofbread.composekit.settings.ui.item.LargeToggleSettingsItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
-import com.toasterofbread.composekit.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.settings.ui.item.ComposableSettingsItem
+import dev.toastbits.composekit.settings.ui.item.SettingsItem
+import dev.toastbits.composekit.settings.ui.item.LargeToggleSettingsItem
+import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.settings.Settings
-import com.toasterofbread.spmp.model.settings.category.YoutubeAuthSettings
+import com.toasterofbread.spmp.model.settings.unpackSetData
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getYoutubeAccountCategory
-import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
-import com.toasterofbread.spmp.youtubeapi.composable.LoginPage
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
-import okhttp3.Headers
+import dev.toastbits.ytmkt.impl.youtubei.YoutubeiAuthenticationState
+import com.toasterofbread.spmp.platform.isWebViewLoginSupported
+import com.toasterofbread.spmp.ui.component.NotImplementedMessage
+import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.LoginPage
+import io.ktor.http.Headers
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.JsonPrimitive
 
-fun getYtmAuthItem(context: AppContext, ytm_auth: SettingsValueState<Set<String>>, initialise: Boolean = false): SettingsItem {
+fun getYtmAuthItem(context: AppContext, ytm_auth: PreferencesProperty<Set<String>>): SettingsItem {
     var own_channel: Artist? by mutableStateOf(null)
     val login_page: LoginPage = context.ytapi.LoginPage
 
@@ -45,25 +53,44 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: SettingsValueState<Set<String>
     }
 
     return LargeToggleSettingsItem(
-        object : BasicSettingsValueState<Boolean> {
-            override fun getKeys(): List<String> = ytm_auth.getKeys()
-            override fun get(): Boolean = ytm_auth.get().isNotEmpty()
-            override fun set(value: Boolean) {
+        object : PreferencesProperty<Boolean> {
+            override val key: String = ytm_auth.key
+            override val name: String = ytm_auth.name
+            override val description: String? = ytm_auth.description
+
+            override fun get(): Boolean =
+                ytm_auth.get().isNotEmpty()
+
+            override fun set(value: Boolean, editor: PlatformPreferences.Editor?) {
                 if (!value) {
-                    ytm_auth.set(emptySet())
+                    ytm_auth.set(emptySet(), editor)
                 }
             }
 
-            override fun init(prefs: PlatformPreferences, defaultProvider: (String) -> Any): BasicSettingsValueState<Boolean> = this
-            override fun release(prefs: PlatformPreferences) {}
-            override fun setEnableAutosave(value: Boolean) {}
-            override fun reset() = ytm_auth.reset()
-            override fun PlatformPreferences.Editor.save() = with (ytm_auth) { save() }
-            override fun getDefault(defaultProvider: (String) -> Any): Boolean =
-                defaultProvider(YoutubeAuthSettings.Key.YTM_AUTH.getName()) is YoutubeMusicAuthInfo
+            override fun set(data: JsonElement, editor: PlatformPreferences.Editor?) {
+                set(data.jsonPrimitive.boolean, editor)
+            }
+
+            override fun serialise(value: Any?): JsonElement =
+                JsonPrimitive(value as Boolean?)
+
+            override fun getDefaultValue(): Boolean =
+                ytm_auth.getDefaultValue().isNotEmpty()
 
             @Composable
-            override fun onChanged(key: Any?, action: (Boolean) -> Unit) {}
+            override fun observe(): MutableState<Boolean> {
+                val auth: Set<String> by ytm_auth.observe()
+
+                val state: MutableState<Boolean> = remember { mutableStateOf(auth.isNotEmpty()) }
+                LaunchedEffect(auth.isNotEmpty()) {
+                    state.value = auth.isNotEmpty()
+                }
+
+                return state
+            }
+
+            override fun reset() =
+                ytm_auth.reset()
         },
         enabledContent = { modifier ->
 //            val auth_value: Set<String> = ytm_auth.get()
@@ -75,21 +102,24 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: SettingsValueState<Set<String>
 //                own_channel = data.first
 //            }
 
-            val data: Pair<Artist?, Headers> = YoutubeApi.UserAuthState.unpackSetData(ytm_auth.get(), context)
+            val data: Pair<String?, Headers> = ApiAuthenticationState.unpackSetData(ytm_auth.get(), context)
             if (data.first != null) {
-                own_channel = data.first
+                own_channel = ArtistRef(data.first!!)
             }
 
             own_channel?.also { channel ->
                 MediaItemPreviewLong(channel, modifier, show_type = false)
             }
         },
-        extra_items = getYoutubeAccountCategory(),
+        extra_items = getYoutubeAccountCategory(context),
         disabled_text = getString("auth_not_signed_in"),
         enable_button = getString("auth_sign_in"),
         disable_button = getString("auth_sign_out"),
         warningDialog = { dismiss, openPage ->
-            login_page.LoginConfirmationDialog(false) { param ->
+            login_page.LoginConfirmationDialog(
+                info_only = false,
+                manual_only = !isWebViewLoginSupported()
+            ) { param ->
                 dismiss()
                 if (param != null) {
                     openPage(PrefsPageScreen.YOUTUBE_MUSIC_LOGIN.ordinal, param)
@@ -101,7 +131,7 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: SettingsValueState<Set<String>
             var show_info_dialog: Boolean by remember(enabled) { mutableStateOf(false) }
 
             if (show_info_dialog) {
-                login_page.LoginConfirmationDialog(true) {
+                login_page.LoginConfirmationDialog(info_only = true, manual_only = false) {
                     show_info_dialog = false
                 }
             }
@@ -136,10 +166,6 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: SettingsValueState<Set<String>
         }
         else {
             setEnabled(false)
-        }
-    }.apply {
-        if (initialise) {
-            initialise(Settings.prefs, Settings::provideDefault)
         }
     }
 }

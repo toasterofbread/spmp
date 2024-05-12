@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.platform
 
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
 private const val MIN_PORTRAIT_RATIO: Float = 1f / 2f
 

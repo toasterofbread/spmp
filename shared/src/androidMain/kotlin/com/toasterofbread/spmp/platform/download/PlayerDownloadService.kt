@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.platform.download
 
 import SpMp
 import android.Manifest
-import android.app.ForegroundServiceTypeException
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -13,13 +13,14 @@ import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
 import androidx.core.app.ActivityCompat
+import androidx.core.app.ServiceCompat
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
 import androidx.core.graphics.drawable.IconCompat
-import com.toasterofbread.composekit.platform.PlatformFile
+import dev.toastbits.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlatformBinder
@@ -74,7 +75,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
 
                 notification_builder = getNotificationBuilder()
 
-                startForeground(NOTIFICATION_ID, notification_builder!!.build(), FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+                ServiceCompat.startForeground(this@PlayerDownloadService, NOTIFICATION_ID, notification_builder!!.build(), FOREGROUND_SERVICE_TYPE_DATA_SYNC)
             }
         }
 
@@ -94,6 +95,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
             }
         }
 
+        @SuppressLint("MissingPermission")
         suspend fun updateNotification() = withContext(Dispatchers.IO) {
             synchronized(downloads) {
                 if (downloads.isNotEmpty() && downloads.all { it.silent }) {
@@ -250,7 +252,9 @@ class PlayerDownloadService: PlatformServiceImpl() {
         downloader?.startDownload(
             SongRef(message.data["song_id"] as String),
             silent = message.data["silent"] as Boolean,
-            file_uri = message.data["file_uri"] as String?
+            custom_uri = message.data["custom_uri"] as String?,
+            download_lyrics = (message.data["download_lyrics"] as Boolean?) ?: true,
+            direct = (message.data["direct"] as Boolean?) ?: false,
         ) { download, result ->
             sendMessageOut(
                 PlayerDownloadManager.PlayerDownloadMessage(

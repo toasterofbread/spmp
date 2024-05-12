@@ -3,7 +3,7 @@ package com.toasterofbread.spmp.resources.migrations
 import app.cash.sqldelight.db.SqlDriver
 import com.toasterofbread.spmp.resources.migrations.Migration.performMigration
 
-fun SqlDriver.migrateToVersion2() = performMigration(
+internal fun SqlDriver.migrateToVersion2() = performMigration(
     mapOf(
         "Song" to listOf(
             Migration.AddColumn("loudness_db", "REAL"),

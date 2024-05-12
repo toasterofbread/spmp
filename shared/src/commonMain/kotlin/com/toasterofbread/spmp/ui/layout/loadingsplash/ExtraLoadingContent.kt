@@ -1,11 +1,12 @@
 package com.toasterofbread.spmp.ui.layout.loadingsplash
 
 import LocalPlayerState
-import ProgramArguments
 import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
@@ -13,20 +14,19 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.settings.ui.item.SettingsItem
-import com.toasterofbread.composekit.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.settings.Settings
-import com.toasterofbread.spmp.model.settings.category.ServerSettings
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getServerCategoryItems
+import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getServerGroupItems
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.composekit.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.settings.ui.item.SettingsItem
 
 private const val LOCAL_SERVER_AUTOSTART_DELAY_MS: Long = 100
 
 @Composable
 fun SplashExtraLoadingContent(modifier: Modifier) {
     val player: PlayerState = LocalPlayerState.current
-    val arguments: ProgramArguments = player.context.launch_arguments
 
     val button_colours: ButtonColors = ButtonDefaults.buttonColors(
         containerColor = player.theme.accent,
@@ -38,7 +38,7 @@ fun SplashExtraLoadingContent(modifier: Modifier) {
 //    var local_server_error: Throwable? by remember { mutableStateOf(null) }
 //    var local_server_process: LocalServerProcess? by remember { mutableStateOf(null) }
 
-    val external_server_mode: Boolean by ServerSettings.Key.ENABLE_EXTERNAL_SERVER_MODE.rememberMutableState()
+    val external_server_mode: Boolean by player.settings.platform.ENABLE_EXTERNAL_SERVER_MODE.observe()
 
     Column(modifier.animateContentSize().fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -105,34 +105,11 @@ fun SplashExtraLoadingContent(modifier: Modifier) {
     }
 
     if (show_config_dialog) {
-        val settings_items: List<SettingsItem> = remember { getServerCategoryItems() }
-
-        LaunchedEffect(settings_items) {
-            for (item in settings_items) {
-                item.setEnableAutosave(false)
-            }
-        }
+        val settings_items: List<SettingsItem> = remember { getServerGroupItems(player.context) }
 
         AlertDialog(
             onDismissRequest = { show_config_dialog = false },
             confirmButton = {
-                Button(
-                    {
-                        player.context.getPrefs().edit {
-                            for (item in settings_items) {
-                                with (item) {
-                                    saveItem()
-                                }
-                            }
-                        }
-                        show_config_dialog = false
-                    },
-                    colors = button_colours
-                ) {
-                    Text(getString("action_save"))
-                }
-            },
-            dismissButton = {
                 Button(
                     { show_config_dialog = false },
                     colors = button_colours
@@ -144,9 +121,8 @@ fun SplashExtraLoadingContent(modifier: Modifier) {
                 Text(getString("desktop_splash_title_configure_server_connection"))
             },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                    for (item in settings_items) {
-                        item.initialise(SpMp.prefs, Settings::provideDefault)
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                    items(settings_items) { item ->
                         item.Item(player.app_page_state.Settings.settings_interface, { _, _ -> }, {}, Modifier)
                     }
                 }

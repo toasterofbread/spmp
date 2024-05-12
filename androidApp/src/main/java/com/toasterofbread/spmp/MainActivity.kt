@@ -19,14 +19,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.core.view.WindowCompat
-import com.toasterofbread.composekit.platform.ApplicationContext
+import dev.toastbits.composekit.platform.ApplicationContext
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 
-class MainActivity : ComponentActivity() {
+class MainActivity: ComponentActivity() {
     private val coroutine_scope = CoroutineScope(Job())
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,16 +53,17 @@ class MainActivity : ComponentActivity() {
         }
 
         if (isDebugBuild()) {
-            StrictMode.setVmPolicy(VmPolicy.Builder()
-                .detectLeakedClosableObjects()
-                .penaltyLog()
-                .build()
+            StrictMode.setVmPolicy(
+                VmPolicy.Builder()
+                    .detectLeakedClosableObjects()
+                    .penaltyLog()
+                    .build()
             )
         }
 
-        val context = AppContext(this, coroutine_scope, ApplicationContext(this))
+        val shortcut_state: ShortcutState = ShortcutState()
+        val context: AppContext = AppContext(this, coroutine_scope, ApplicationContext(this))
         SpMp.init(context)
-        context.init()
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
@@ -83,17 +86,19 @@ class MainActivity : ComponentActivity() {
             if (intent.action == Intent.ACTION_VIEW) intent.data
             else null
 
+        val launch_arguments: ProgramArguments = ProgramArguments()
+
         setContent {
-            var launched: Boolean by remember { mutableStateOf(false) }
+            val player_coroutine_scope: CoroutineScope = rememberCoroutineScope()
+            var player_initialised: Boolean by remember { mutableStateOf(false) }
 
             LaunchedEffect(Unit) {
-                context.setStatusBarColour(context.theme.background)
-                context.setNavigationBarColour(context.theme.background)
-                launched = true
+                SpMp.initPlayer(launch_arguments, player_coroutine_scope)
+                player_initialised = true
             }
 
-            if (launched) {
-                SpMp.App(open_uri = open_uri?.toString())
+            if (player_initialised) {
+                SpMp.App(launch_arguments, shortcut_state, open_uri = open_uri?.toString())
             }
         }
     }

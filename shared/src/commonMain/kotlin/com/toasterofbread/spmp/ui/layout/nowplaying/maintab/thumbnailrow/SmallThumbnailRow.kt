@@ -14,6 +14,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.GraphicsLayerScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -29,29 +30,28 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.getValue
-import com.toasterofbread.composekit.platform.composable.BackHandler
-import com.toasterofbread.composekit.platform.composable.platformClickable
-import com.toasterofbread.composekit.utils.common.getInnerSquareSizeOfCircle
-import com.toasterofbread.composekit.utils.common.getValue
-import com.toasterofbread.composekit.utils.common.thenIf
-import com.toasterofbread.composekit.utils.composable.OnChangedEffect
-import com.toasterofbread.composekit.utils.modifier.background
-import com.toasterofbread.composekit.utils.modifier.disableParentScroll
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
+import dev.toastbits.composekit.platform.composable.BackHandler
+import dev.toastbits.composekit.platform.composable.platformClickable
+import dev.toastbits.composekit.utils.common.getInnerSquareSizeOfCircle
+import dev.toastbits.composekit.utils.common.getValue
+import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.utils.composable.OnChangedEffect
+import dev.toastbits.composekit.utils.modifier.background
+import dev.toastbits.composekit.utils.modifier.disableParentScroll
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitles
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.observeThumbnailRounding
-import com.toasterofbread.spmp.model.settings.category.PlayerSettings
+import com.toasterofbread.spmp.model.mediaitem.artist.formatArtistTitles
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
-import com.toasterofbread.spmp.model.settings.getEnum
 import com.toasterofbread.spmp.platform.getPixel
+import com.toasterofbread.spmp.platform.SongVideoPlayback
 import com.toasterofbread.spmp.ui.component.Thumbnail
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.EXPANDED_THRESHOLD
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.OVERLAY_MENU_ANIMATION_DURATION
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.*
-import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
 import kotlin.math.absoluteValue
 import kotlin.math.min
 
@@ -85,17 +85,16 @@ fun SmallThumbnailRow(
     val current_song = player.status.m_song
 
     val song_title: String? by current_song?.observeActiveTitle()
-    val song_artist_title: String? by current_song?.Artist?.observePropertyActiveTitle()
+    val song_artist_titles: List<String?>? = current_song?.Artists?.observePropertyActiveTitles()
 
-    val thumbnail_rounding: Int = current_song.observeThumbnailRounding(DEFAULT_THUMBNAIL_ROUNDING)
+    val thumbnail_rounding: Int = current_song.observeThumbnailRounding()
     val thumbnail_shape: RoundedCornerShape = RoundedCornerShape(thumbnail_rounding)
 
-    val overlay_menu: PlayerOverlayMenu? by player.np_overlay_menu
     var current_thumb_image: ImageBitmap? by remember { mutableStateOf(null) }
     var image_size: IntSize by remember { mutableStateOf(IntSize(1, 1)) }
 
     var colourpick_callback by remember { mutableStateOf<((Color?) -> Unit)?>(null) }
-    LaunchedEffect(overlay_menu) {
+    LaunchedEffect(player.np_overlay_menu) {
         colourpick_callback = null
     }
 
@@ -132,16 +131,16 @@ fun SmallThumbnailRow(
 
         Box(Modifier.aspectRatio(1f)) {
             fun performPressAction(long_press: Boolean) {
-                if (overlay_menu != null || expansion.get() !in 0.9f .. 1.1f) {
+                if (player.np_overlay_menu != null || expansion.get() !in 0.9f .. 1.1f) {
                     return
                 }
 
                 val custom_action: Boolean =
-                    if (PlayerSettings.Key.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.get()) !long_press
+                    if (player.settings.player.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.get()) !long_press
                     else long_press
 
                 val action: PlayerOverlayMenuAction =
-                    if (custom_action) PlayerSettings.Key.OVERLAY_CUSTOM_ACTION.getEnum()
+                    if (custom_action) player.settings.player.OVERLAY_CUSTOM_ACTION.get()
                     else PlayerOverlayMenuAction.DEFAULT
 
                 when (action) {
@@ -169,13 +168,7 @@ fun SmallThumbnailRow(
                         player.openNpOverlayMenu(PlayerOverlayMenu.getLyricsMenu())
                     }
                     PlayerOverlayMenuAction.OPEN_RELATED -> {
-                        val related_endpoint = player.context.ytapi.SongRelatedContent
-                        if (related_endpoint.isImplemented()) {
-                            player.openNpOverlayMenu(RelatedContentPlayerOverlayMenu(related_endpoint))
-                        }
-                        else {
-                            throw EndpointNotImplementedException(related_endpoint)
-                        }
+                        player.openNpOverlayMenu(RelatedContentPlayerOverlayMenu(player.context.ytapi.SongRelatedContent))
                     }
                     PlayerOverlayMenuAction.DOWNLOAD -> {
                         current_song?.also { song ->
@@ -190,14 +183,8 @@ fun SmallThumbnailRow(
                     return@Crossfade
                 }
 
-                song.Thumbnail(
-                    MediaItemThumbnailProvider.Quality.HIGH,
-                    getContentColour = { player.getNPOnBackground() },
-                    onLoaded = {
-                        current_thumb_image = it
-                        onThumbnailLoaded(song, it)
-                    },
-                    modifier = Modifier
+                val content_modifier: Modifier =
+                    Modifier
                         .aspectRatio(1f)
                         .onSizeChanged {
                             image_size = it
@@ -213,12 +200,36 @@ fun SmallThumbnailRow(
                                 performPressAction(true)
                             }
                         )
-                )
+
+                val default_video_position: ThemeSettings.VideoPosition by player.settings.theme.NOWPLAYING_DEFAULT_VIDEO_POSITION.observe()
+                val song_video_position: ThemeSettings.VideoPosition? by song.VideoPosition.observe(player.database)
+                var video_showing: Boolean = false
+
+                if ((song_video_position ?: default_video_position) == ThemeSettings.VideoPosition.THUMBNAIL) {
+                    video_showing = SongVideoPlayback(
+                        song.id,
+                        { player.status.getPositionMs() },
+                        content_modifier,
+                        fill = true
+                    )
+                }
+
+                if (!video_showing) {
+                    song.Thumbnail(
+                        ThumbnailProvider.Quality.HIGH,
+                        getContentColour = { player.getNPOnBackground() },
+                        onLoaded = {
+                            current_thumb_image = it
+                            onThumbnailLoaded(song, it)
+                        },
+                        modifier = content_modifier
+                    )
+                }
             }
 
             // Thumbnail overlay menu
             androidx.compose.animation.AnimatedVisibility(
-                overlay_menu != null || colourpick_callback != null,
+                player.np_overlay_menu != null || colourpick_callback != null,
                 Modifier.fillMaxSize(),
                 enter = fadeIn(tween(OVERLAY_MENU_ANIMATION_DURATION)),
                 exit = fadeOut(tween(OVERLAY_MENU_ANIMATION_DURATION))
@@ -241,7 +252,7 @@ fun SmallThumbnailRow(
                                         }
                                     }
 
-                                    if (expansion.get() in 0.9f .. 1.1f && overlay_menu?.closeOnTap() == true) {
+                                    if (expansion.get() in 0.9f .. 1.1f && player.np_overlay_menu?.closeOnTap() == true) {
                                         player.openNpOverlayMenu(null)
                                     }
                                 }
@@ -265,12 +276,12 @@ fun SmallThumbnailRow(
                             }),
                         contentAlignment = Alignment.Center
                     ) {
-                        BackHandler(overlay_menu != null) {
+                        BackHandler(player.np_overlay_menu != null, priority = 2) {
                             player.navigateNpOverlayMenuBack()
                             colourpick_callback = null
                         }
 
-                        Crossfade(overlay_menu) { menu ->
+                        Crossfade(player.np_overlay_menu) { menu ->
                             CompositionLocalProvider(LocalContentColor provides Color.White) {
                                 menu?.Menu(
                                     { player.status.m_song!! },
@@ -308,7 +319,7 @@ fun SmallThumbnailRow(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    song_artist_title ?: "",
+                    song_artist_titles?.let { formatArtistTitles(it, player.context) } ?: "",
                     maxLines = 1,
                     color = player.getNPOnBackground(),
                     overflow = TextOverflow.Ellipsis,
@@ -316,25 +327,32 @@ fun SmallThumbnailRow(
                 )
             }
 
-            val show_prev_button: Boolean by PlayerSettings.Key.MINI_SHOW_PREV_BUTTON.rememberMutableState()
+            val show_prev_button: Boolean by player.settings.player.MINI_SHOW_PREV_BUTTON.observe()
             ThumbnailRowControlButtons(Modifier.size(40.dp), show_prev_button = show_prev_button)
         }
     }
 }
 
 @Composable
-internal fun Modifier.songThumbnailShadow(song: Song, shape: Shape): Modifier {
+internal fun Modifier.songThumbnailShadow(
+    song: Song?,
+    shape: Shape,
+    apply_expansion_to_colour: Boolean = true,
+    inGraphicsLayer: GraphicsLayerScope.() -> Unit = {}
+): Modifier {
     val player: PlayerState = LocalPlayerState.current
-    val default_shadow_radius: Float by ThemeSettings.Key.NOWPLAYING_DEFAULT_IMAGE_SHADOW_RADIUS.rememberMutableState()
-    val shadow_radius: Float? by song.ImageShadowRadius.observe(player.database)
+    val default_shadow_radius: Float by player.settings.theme.NOWPLAYING_DEFAULT_SHADOW_RADIUS.observe()
+    val shadow_radius: Float? by song?.ShadowRadius?.observe(player.database)
 
     return graphicsLayer {
         shadowElevation = (20.dp * (shadow_radius ?: default_shadow_radius)).toPx()
         this.shape = shape
         clip = true
 
-        val shadow_colour: Color = Color.Black.copy(alpha = player.expansion.get().coerceIn(0f, 1f))
+        val shadow_colour: Color = Color.Black.thenIf(apply_expansion_to_colour) { copy(alpha = player.expansion.get().coerceIn(0f, 1f)) }
         ambientShadowColor = shadow_colour
         spotShadowColor = shadow_colour
+
+        inGraphicsLayer()
     }
 }

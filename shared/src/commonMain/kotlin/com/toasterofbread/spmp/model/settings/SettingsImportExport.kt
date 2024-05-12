@@ -1,88 +1,87 @@
 package com.toasterofbread.spmp.model.settings
 
-import com.google.gson.Gson
-import com.toasterofbread.composekit.platform.PlatformFile
-import com.toasterofbread.composekit.platform.PlatformPreferences
-import com.toasterofbread.composekit.platform.putAny
-import com.toasterofbread.spmp.model.settings.category.SettingsCategory
+import dev.toastbits.composekit.platform.PlatformFile
+import dev.toastbits.composekit.platform.PlatformPreferences
+import com.toasterofbread.spmp.model.settings.category.SettingsGroup
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.youtubeapi.fromJson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.*
+import kotlinx.serialization.json.encodeToJsonElement
 
 object SettingsImportExport {
+    @Serializable
     data class SettingsExportData(
         val included_categories: List<String>?,
-        val values: Map<String, Any>?
+        val values: JsonObject?
     ) {
-        fun getCategories(): List<SettingsCategory>? =
-            included_categories?.mapNotNull { SettingsCategory.fromIdOrNull(it) }
+        fun getGroups(context: AppContext): List<SettingsGroup>? =
+            included_categories?.mapNotNull { context.settings.groupFromKey(it) }
     }
 
-    suspend fun exportSettings(
-        context: AppContext,
-        file: PlatformFile,
-        categories: List<SettingsCategory>
-    ) = withContext(Dispatchers.IO) {
-        val prefs: PlatformPreferences = context.getPrefs()
-        val values: MutableMap<String, Any> = mutableMapOf()
+    fun exportSettingsData(
+        prefs: PlatformPreferences,
+        groups: List<SettingsGroup>
+    ): SettingsExportData {
+        val values: MutableMap<String, JsonElement> = mutableMapOf()
 
-        for (category in categories) {
-            for (key in category.keys) {
-                val value: Any = key.get(prefs)
-                if (value != key.getDefaultValue()) {
-                    values[key.getName()] = value
+        for (category in groups) {
+            for (property in category.getAllProperties()) {
+                val value: Any? = property.get()
+                if (value != property.getDefaultValue()) {
+                    values[property.key] = property.serialise(value)
                 }
             }
         }
 
-        val data: SettingsExportData = SettingsExportData(
-            included_categories = categories.map { it.id },
-            values = values
+        return SettingsExportData(
+            included_categories = groups.map { it.group_key },
+            values = JsonObject(values)
         )
-
-        file.outputStream().writer().use { writer ->
-            writer.write(Gson().toJson(data))
-            writer.flush()
-        }
     }
 
-    suspend fun loadSettingsFile(file: PlatformFile): SettingsExportData = withContext(Dispatchers.IO) {
-        return@withContext file.inputStream().reader().use { reader ->
-            Gson().fromJson(reader.readText())
+    suspend fun loadSettingsFile(file: PlatformFile): SettingsExportData =
+        withContext(Dispatchers.IO) {
+            return@withContext file.inputStream().use { stream ->
+                Json.decodeFromStream(stream)
+            }
         }
-    }
 
     data class ImportResult(
         val directly_imported_count: Int,
         val default_imported_count: Int
     )
 
-    fun importData(context: AppContext, data: SettingsExportData, categories: List<SettingsCategory>?): ImportResult {
+    fun importSettingsData(
+        context: AppContext,
+        data: SettingsExportData,
+        groups: List<SettingsGroup>?
+    ): ImportResult {
         var directly_imported: Int = 0
         var default_imported: Int = 0
 
         if (data.values != null) {
             context.getPrefs().edit {
-                val all_categories: List<SettingsCategory> = SettingsCategory.all
-                val included_categories: List<SettingsCategory>? = data.included_categories?.map { id ->
-                    SettingsCategory.fromId(id)
+                val all_groups: Collection<SettingsGroup> = context.settings.all_groups.values
+                val included_categories: List<SettingsGroup>? = data.included_categories?.mapNotNull { key ->
+                    context.settings.groupFromKey(key)
                 }
 
-                for (category in included_categories ?: all_categories) {
-                    if (categories != null && !categories.contains(category)) {
+                for (category in included_categories ?: all_groups) {
+                    if (groups != null && !groups.contains(category)) {
                         continue
                     }
 
-                    for (key in category.keys) {
-                        val name: String = key.getName()
-                        val value: Any? = data.values[name]
-                        putAny(name, data.values[name], key.getDefaultValue())
-
+                    for (property in category.getAllProperties()) {
+                        val value: JsonElement? = data.values[property.key]
                         if (value != null) {
+                            property.set(value, this)
                             directly_imported++
                         }
                         else {
+                            remove(property.key)
                             default_imported++
                         }
                     }
@@ -96,3 +95,24 @@ object SettingsImportExport {
         )
     }
 }
+
+private fun prefsValueToJsonElement(value: Any?): JsonElement =
+    when (value) {
+        // null -> JsonPrimitive(null)
+        // is String -> JsonPrimitive(value)
+        is Set<*> -> JsonArray((value as Set<String>).map { JsonPrimitive(it) })
+        // is Int -> JsonPrimitive(value)
+        // is Long -> JsonPrimitive(value)
+        // is Float -> JsonPrimitive(value)
+        // is Boolean -> JsonPrimitive(value)
+        else -> Json.encodeToJsonElement(value)
+        // else -> throw NotImplementedError(value::class.toString())
+    }
+
+private fun jsonElementToPrefsValue(element: JsonElement?): Any? =
+    when (element) {
+        null, is JsonNull -> null
+        is JsonArray -> element.jsonArray.map { it.jsonPrimitive.content }.toSet()
+        is JsonPrimitive -> element.booleanOrNull ?: element.intOrNull ?: element.longOrNull ?: element.floatOrNull ?: element.content
+        else -> throw NotImplementedError(element::class.toString())
+    }

@@ -4,7 +4,6 @@ import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -27,12 +26,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.platform.vibrateShort
+import dev.toastbits.composekit.platform.vibrateShort
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun ColumnScope.MultiSelectNextRowActions(multiselect_context: MediaItemMultiSelectContext) {
     val player: PlayerState = LocalPlayerState.current
@@ -46,9 +45,9 @@ internal fun ColumnScope.MultiSelectNextRowActions(multiselect_context: MediaIte
                     else null
                 }
 
-            CompositionLocalProvider(LocalPlayerState provides remember {
-                player.copy(onClickedOverride = { _, _ ->  })
-            }) {
+            CompositionLocalProvider(LocalPlayerClickOverrides provides
+                LocalPlayerClickOverrides.current.copy(onClickOverride = { _, _ ->  })
+            ) {
                 Crossfade(active_queue_item, animationSpec = tween(100), modifier = Modifier.weight(1f)) { song ->
                     if (song != null) {
                         MediaItemPreviewLong(song)

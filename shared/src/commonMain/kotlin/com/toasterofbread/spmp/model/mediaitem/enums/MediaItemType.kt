@@ -7,9 +7,14 @@ import androidx.compose.material.icons.filled.PlaylistPlay
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
+import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
+import com.toasterofbread.spmp.model.mediaitem.song.SongData
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.resources.getString
 
 enum class MediaItemType {
@@ -43,6 +48,13 @@ enum class MediaItemType {
         ARTIST -> ArtistRef(id)
         PLAYLIST_REM -> RemotePlaylistRef(id)
         PLAYLIST_LOC -> LocalPlaylistRef(id)
+    }
+    
+    fun dataFromId(id: String): MediaItemData = when (this) {
+        SONG -> SongData(id)
+        ARTIST -> ArtistData(id)
+        PLAYLIST_REM -> RemotePlaylistData(id)
+        PLAYLIST_LOC -> LocalPlaylistData(id)
     }
 
     override fun toString(): String {

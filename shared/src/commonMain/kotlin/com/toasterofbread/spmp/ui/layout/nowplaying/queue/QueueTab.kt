@@ -17,9 +17,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -36,33 +37,32 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.toasterofbread.composekit.platform.composable.ScrollBarLazyColumn
-import com.toasterofbread.composekit.platform.composable.composeScope
-import com.toasterofbread.composekit.utils.common.*
-import com.toasterofbread.composekit.utils.composable.getTop
-import com.toasterofbread.composekit.utils.modifier.background
+import dev.toastbits.composekit.platform.composable.ScrollBarLazyColumn
+import dev.toastbits.composekit.platform.composable.composeScope
+import dev.toastbits.composekit.utils.common.*
+import dev.toastbits.composekit.utils.composable.getTop
+import dev.toastbits.composekit.utils.modifier.background
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueRadioInfoPosition
 import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueWaveBorderMode
-import com.toasterofbread.spmp.model.settings.category.PlayerSettings
-import com.toasterofbread.spmp.model.settings.rememberMutableEnumState
 import com.toasterofbread.spmp.platform.PlayerListener
+import com.toasterofbread.spmp.platform.playerservice.PlayerService
+import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.ui.component.radio.StatusDisplay
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
-import com.toasterofbread.spmp.ui.layout.nowplaying.rememberTopBarShouldShowInQueue
-import com.toasterofbread.spmp.youtubeapi.radio.StatusDisplay
 import kotlinx.coroutines.delay
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 
-const val QUEUE_CORNER_RADIUS_DP: Float = 25f
+private const val QUEUE_CORNER_RADIUS_DP: Float = 25f
 
 @Composable
 internal fun QueueTab(
@@ -71,7 +71,10 @@ internal fun QueueTab(
     top_bar: NowPlayingTopBar? = null,
     padding_modifier: Modifier = Modifier,
     inline: Boolean = false,
-    shape: Shape = RoundedCornerShape(QUEUE_CORNER_RADIUS_DP.dp),
+    shape: Shape = RoundedCornerShape(
+        topStart = QUEUE_CORNER_RADIUS_DP.dp,
+        topEnd = QUEUE_CORNER_RADIUS_DP.dp
+    ),
     content_padding: PaddingValues = PaddingValues(),
     border_thickness: Dp = 1.5.dp,
     wave_border_mode_override: NowPlayingQueueWaveBorderMode? = null,
@@ -85,8 +88,8 @@ internal fun QueueTab(
     val scroll_coroutine_scope = rememberCoroutineScope()
 
     var key_inc by remember { mutableStateOf(0) }
-    val radio_info_position: NowPlayingQueueRadioInfoPosition by PlayerSettings.Key.QUEUE_RADIO_INFO_POSITION.rememberMutableEnumState()
-    val multiselect_context: MediaItemMultiSelectContext = remember { MediaItemMultiSelectContext() }
+    val radio_info_position: NowPlayingQueueRadioInfoPosition by player.settings.player.QUEUE_RADIO_INFO_POSITION.observe()
+    val multiselect_context: MediaItemMultiSelectContext = remember { MediaItemMultiSelectContext(player.context) }
 
     val song_items: SnapshotStateList<QueueTabItem> = remember { mutableStateListOf<QueueTabItem>().also { list ->
         player.controller?.service_player?.iterateSongs { _, song: Song ->
@@ -99,7 +102,7 @@ internal fun QueueTab(
             override fun onSongAdded(index: Int, song: Song) {
                 song_items.add(index, QueueTabItem(song, key_inc++))
             }
-            override fun onSongRemoved(index: Int) {
+            override fun onSongRemoved(index: Int, song: Song) {
                 try {
                     song_items.removeAt(index)
                 }
@@ -108,22 +111,23 @@ internal fun QueueTab(
                 }
             }
             override fun onSongMoved(from: Int, to: Int) {
-                if (from == to) {
+                val coerced_to: Int = to.coerceIn(0, song_items.size - 1)
+                if (from == coerced_to) {
                     return
                 }
 
-                song_items.add(to, song_items.removeAt(from))
+                song_items.add(coerced_to, song_items.removeAt(from))
 
                 for (item in multiselect_context.getSelectedItems().map { it.second!! }.withIndex()) {
                     if (item.value == from) {
-                        multiselect_context.updateKey(item.index, to)
+                        multiselect_context.updateKey(item.index, coerced_to)
                     }
-                    else if (from > to) {
-                        if (item.value in to until from) {
+                    else if (from > coerced_to) {
+                        if (item.value in coerced_to until from) {
                             multiselect_context.updateKey(item.index, item.value + 1)
                         }
                     }
-                    else if (item.value in (from + 1) .. to) {
+                    else if (item.value in (from + 1) .. coerced_to) {
                         multiselect_context.updateKey(item.index, item.value - 1)
                     }
                 }
@@ -179,9 +183,8 @@ internal fun QueueTab(
         }
     )
 
-    val show_top_bar: Boolean = rememberTopBarShouldShowInQueue(player.expansion.top_bar_mode.value)
     val top_bar_height: Dp by animateDpAsState(
-        if (show_top_bar && top_bar != null) top_bar.height else 0.dp
+        if (top_bar?.shouldShowInQueue() == true) top_bar.height else 0.dp
     )
 
     composeScope {
@@ -200,13 +203,12 @@ internal fun QueueTab(
         Box(
             modifier
                 .thenIf(!inline) {
-                    // Add extra height for overscroll
                     thenWith(page_height) {
-                        requiredHeight(it + 200.dp)
+                        requiredHeightIn(min = it)
                     }
                     .padding(
                         top =
-                            WindowInsets.getTop()
+                            content_padding.calculateTopPadding()
                             + top_bar_height
                             + MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
                     )
@@ -233,24 +235,33 @@ internal fun QueueTab(
                     }
                 }
 
-                val wave_border_mode_state: NowPlayingQueueWaveBorderMode by PlayerSettings.Key.QUEUE_WAVE_BORDER_MODE.rememberMutableEnumState()
-                val wave_border_mode: NowPlayingQueueWaveBorderMode = wave_border_mode_override ?: wave_border_mode_state
-                QueueBorder(
-                    wave_border_mode,
-                    list_padding,
-                    queue_list_state,
-                    border_thickness,
-                    getBackgroundColour = getBackgroundColour,
-                    getBorderColour = getWaveBorderColour
-                )
+                val wave_border_mode: NowPlayingQueueWaveBorderMode?
 
-                CompositionLocalProvider(
-                    LocalPlayerState provides remember { player.copy(onClickedOverride = { song, index: Int? ->
+                val show_border: Boolean by remember { derivedStateOf { getBackgroundColour(player).alpha >= 1f } }
+                if (show_border) {
+                    val wave_border_mode_state: NowPlayingQueueWaveBorderMode by player.settings.player.QUEUE_WAVE_BORDER_MODE.observe()
+                    wave_border_mode = wave_border_mode_override ?: wave_border_mode_state
+
+                    QueueBorder(
+                        wave_border_mode,
+                        list_padding,
+                        queue_list_state,
+                        border_thickness,
+                        getBackgroundColour = getBackgroundColour,
+                        getBorderColour = getWaveBorderColour
+                    )
+                }
+                else {
+                    wave_border_mode = null
+                }
+
+                CompositionLocalProvider(LocalPlayerClickOverrides provides LocalPlayerClickOverrides.current.copy(
+                    onClickOverride = { song, index: Int? ->
                         if (index != player.status.m_index) {
                             player.controller?.seekToSong(index!!)
                         }
-                    }) }
-                ) {
+                    }
+                )) {
                     var list_position by remember { mutableStateOf(0.dp) }
                     val top_padding = (
                         list_padding
@@ -263,12 +274,13 @@ internal fun QueueTab(
                             list_position = with(density) { coords.positionInParent().y.toDp() }
                         }
                     ) {
-                        val side_padding: Dp = maxWidth * PlayerSettings.Key.QUEUE_EXTRA_SIDE_PADDING.get<Float>() * 0.25f
+                        val extra_side_padding: Float by player.settings.player.QUEUE_EXTRA_SIDE_PADDING.observe()
+                        val side_padding: Dp = maxWidth * extra_side_padding * 0.25f
 
                         ScrollBarLazyColumn(
                             state = queue_list_state.listState,
                             contentPadding = PaddingValues(
-                                top = top_padding + content_padding.calculateTopPadding(),
+                                top = top_padding,
                                 bottom = content_padding.calculateBottomPadding(),
                                 start = side_padding + content_padding.calculateStartPadding(LocalLayoutDirection.current),
                                 end = side_padding + content_padding.calculateStartPadding(LocalLayoutDirection.current)
@@ -292,14 +304,14 @@ internal fun QueueTab(
                                 { playing_key },
                                 { playing_key = it },
                                 Modifier.padding(horizontal = list_padding),
-                                getItemColour = getBackgroundColour,
+                                getItemColour = { getBackgroundColour(player).copy(alpha = 0f) },
                                 getCurrentItemColour = getOnBackgroundColour
                             )
 
                             item {
-                                player.controller?.radio_state?.StatusDisplay(
+                                player.controller?.radio_instance?.StatusDisplay(
                                     Modifier
-                                        .heightIn(min = 50.dp)
+                                        .heightIn(min = 50.dp, max = 500.dp)
                                         .padding(top = list_padding, start = list_padding, end = list_padding)
                                         .fillMaxWidth(),
                                     expanded_modifier = Modifier.thenWith(page_height) {
@@ -310,20 +322,22 @@ internal fun QueueTab(
 
                             if (!inline) {
                                 item {
-                                    var bottom_padding: Dp = (
-                                        MINIMISED_NOW_PLAYING_HEIGHT_DP.dp * 2
-                                        + list_position
-                                    )
+                                    // var bottom_padding: Dp = (
+                                    //     MINIMISED_NOW_PLAYING_HEIGHT_DP.dp * 2
+                                    //     + list_position
+                                    // )
 
-                                    if (player.controller?.radio_state?.loading == true && page_height != null) {
-                                        bottom_padding = page_height - bottom_padding
-                                    }
+                                    // if (player.controller?.radio_instance?.is_loading == true && page_height != null) {
+                                    //     bottom_padding = page_height - bottom_padding
+                                    // }
 
-                                    if (player.controller?.radio_state?.load_error != null) {
-                                        bottom_padding += 60.dp
-                                    }
+                                    // if (player.controller?.radio_instance?.load_error != null) {
+                                    //     bottom_padding += 60.dp
+                                    // }
 
-                                    Spacer(Modifier.height(bottom_padding))
+                                    // Spacer(Modifier.height(bottom_padding))
+
+                                    Spacer(Modifier.height(15.dp))
                                 }
                             }
                         }
@@ -354,7 +368,7 @@ private fun QueueBorder(
     val player: PlayerState = LocalPlayerState.current
 
     if (wave_border_mode == NowPlayingQueueWaveBorderMode.LINE) {
-        Divider(Modifier.padding(horizontal = list_padding), border_thickness, getBorderColour(player))
+        HorizontalDivider(Modifier.padding(horizontal = list_padding), border_thickness, getBorderColour(player))
     }
     else {
         var wave_border_offset: Float by remember { mutableStateOf(0f) }
@@ -370,7 +384,7 @@ private fun QueueBorder(
                 }
                 NowPlayingQueueWaveBorderMode.TIME_SYNC -> {
                     while (true) {
-                        wave_border_offset = player.status.getPositionMillis() * WAVE_BORDER_TIME_SPEED
+                        wave_border_offset = player.status.getPositionMs() * WAVE_BORDER_TIME_SPEED
                         delay(update_interval)
                     }
                 }

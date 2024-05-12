@@ -27,7 +27,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
-import androidx.compose.runtime.saveable.mapSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -35,33 +34,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.google.gson.Gson
-import com.toasterofbread.composekit.platform.composable.rememberImagePainter
-import com.toasterofbread.composekit.utils.composable.LinkifyText
-import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.utils.composable.LinkifyText
+import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.platform.DiscordMeResponse
 import com.toasterofbread.spmp.platform.WebViewLogin
 import com.toasterofbread.spmp.platform.getDiscordAccountInfo
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.spmp.youtubeapi.executeResult
-import com.toasterofbread.spmp.youtubeapi.fromJson
-import com.toasterofbread.spmp.youtubeapi.fromMap
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
-import java.io.Reader
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import androidx.compose.foundation.layout.PaddingValues
+import com.toasterofbread.spmp.platform.getOrNotify
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.encodeToString
+import io.kamel.image.KamelImage
+import io.kamel.image.asyncPainterResource
 
-private const val DISCORD_LOGIN_URL = "https://discord.com/login"
-private const val DISCORD_API_URL = "https://discord.com/api/"
+private const val DISCORD_LOGIN_URL: String = "https://discord.com/login"
+private const val DISCORD_API_URL: String = "https://discord.com/api/"
 
 @Composable
 fun DiscordLoginConfirmation(info_only: Boolean = false, onFinished: (manual: Boolean?) -> Unit) {
+    val player: PlayerState = LocalPlayerState.current
+    
     AlertDialog(
         { onFinished(null) },
         confirmButton = {
@@ -77,7 +73,11 @@ fun DiscordLoginConfirmation(info_only: Boolean = false, onFinished: (manual: Bo
         title = if (info_only) null else ({ Text(getString("prompt_confirm_action")) }),
         text = {
             Column {
-                LinkifyText(getString(if (info_only) "info_discord_login" else "warning_discord_login"), LocalPlayerState.current.theme.accent)
+                LinkifyText(
+                    player.context, 
+                    getString(if (info_only) "info_discord_login" else "warning_discord_login"), 
+                    player.theme.accent
+                )
                 if (!info_only) {
                     FilledTonalButton({ onFinished(true) }, Modifier.fillMaxWidth().padding(top = 5.dp).offset(y = 20.dp)) {
                         Text(getString("action_login_manually"))
@@ -89,21 +89,23 @@ fun DiscordLoginConfirmation(info_only: Boolean = false, onFinished: (manual: Bo
 }
 
 @Composable
-fun DiscordLogin(modifier: Modifier = Modifier, manual: Boolean = false, onFinished: (Result<String?>?) -> Unit) {
+fun DiscordLogin(content_padding: PaddingValues, modifier: Modifier = Modifier, manual: Boolean = false, onFinished: (Result<String?>?) -> Unit) {
     val player: PlayerState = LocalPlayerState.current
 
-    if (manual) {
-        DiscordManualLogin(modifier, onFinished)
-    }
-    else if (isWebViewLoginSupported()) {
+    if (!manual && isWebViewLoginSupported()) {
         WebViewLogin(
-            DISCORD_LOGIN_URL,
-            modifier,
+            initial_url = DISCORD_LOGIN_URL,
+            modifier = modifier
+                .padding(
+                    top = content_padding.calculateTopPadding() - 20.dp,
+                    bottom = content_padding.calculateBottomPadding() - 20.dp
+                ),
             onClosed = { onFinished(null) },
-            shouldShowPage = { it.startsWith(DISCORD_LOGIN_URL) }
-        ) { request, openUrl, getCookie ->
+            shouldShowPage = { it.startsWith(DISCORD_LOGIN_URL) },
+            user_agent = "Mozilla/5.0 (X11; Linux x86_64; rv:126.0) Gecko/20100101 Firefox/126.0",
+        ) { request, openUrl, getCookies ->
             if (request.url.startsWith(DISCORD_API_URL)) {
-                val auth = request.requestHeaders["Authorization"]
+                val auth = request.headers["Authorization"]
                 if (auth != null) {
                     onFinished(Result.success(auth))
                 }
@@ -115,29 +117,19 @@ fun DiscordLogin(modifier: Modifier = Modifier, manual: Boolean = false, onFinis
         LaunchedEffect(Unit) {
             player.context.openUrl(DISCORD_LOGIN_URL)
         }
-        DiscordManualLogin(modifier, onFinished)
+        DiscordManualLogin(content_padding, modifier, onFinished)
     }
 }
 
-private val DiscordMeResponseSaver: Saver<DiscordMeResponse?, Any> = run {
-    mapSaver(
+private val DiscordMeResponseSaver: Saver<DiscordMeResponse?, String> =
+    Saver<DiscordMeResponse?, String>(
         save = { it: DiscordMeResponse? ->
-            if (it == null || it.isEmpty()) emptyMap()
-            else with (it) { mapOf(
-                "id" to id,
-                "username" to username,
-                "avatar" to avatar,
-                "discriminator" to discriminator,
-                "banner_color" to banner_color,
-                "bio" to bio,
-                "token" to token
-            )}
+            it?.let { Json.encodeToString(it) }
         },
-        restore = { map: Map<String, Any?> ->
-            Gson().fromMap(map)
+        restore = { data: String ->
+            Json.decodeFromString(data)
         }
     )
-}
 
 @Composable
 fun DiscordAccountPreview(account_token: String, modifier: Modifier = Modifier) {
@@ -152,7 +144,7 @@ fun DiscordAccountPreview(account_token: String, modifier: Modifier = Modifier) 
             account_info = DiscordMeResponse.EMPTY
             loading = true
             started = true
-            account_info = getDiscordAccountInfo(account_token).getOrReport(player.context, "DiscordAccountPreview") ?: DiscordMeResponse.EMPTY
+            account_info = getDiscordAccountInfo(account_token).getOrNotify(player.context, "DiscordAccountPreview") ?: DiscordMeResponse.EMPTY
         }
         loading = false
     }
@@ -169,7 +161,7 @@ fun DiscordAccountPreview(account_token: String, modifier: Modifier = Modifier) 
                     }
                 }
                 is DiscordMeResponse -> {
-                    Image(rememberImagePainter(state.getAvatarUrl()), null, Modifier.fillMaxHeight().aspectRatio(1f).clip(CircleShape))
+                    KamelImage(asyncPainterResource(state.getAvatarUrl()), null, Modifier.fillMaxHeight().aspectRatio(1f).clip(CircleShape))
 
                     Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.SpaceEvenly) {
                         Text(state.username ?: "?", overflow = TextOverflow.Ellipsis, maxLines = 1)

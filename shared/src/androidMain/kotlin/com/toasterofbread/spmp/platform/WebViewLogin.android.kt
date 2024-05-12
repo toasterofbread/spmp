@@ -1,38 +1,12 @@
 package com.toasterofbread.spmp.platform
 
-import LocalPlayerState
-import android.annotation.SuppressLint
-import android.graphics.Bitmap
-import android.os.Build
-import android.view.ViewGroup
-import android.webkit.*
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.layout.Box
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.viewinterop.AndroidView
-import com.toasterofbread.composekit.platform.composable.BackHandler
-import com.toasterofbread.composekit.utils.common.isDark
-import com.toasterofbread.composekit.utils.composable.OnChangedEffect
-import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import kotlinx.coroutines.runBlocking
+import android.webkit.WebStorage
+import android.webkit.CookieManager
+import com.toasterofbread.spmp.platform.AppContext
 
-actual fun isWebViewLoginSupported(): Boolean = true
-
-class WebResourceRequestReader(private val request: WebResourceRequest): WebViewRequest {
-    override val url: String
-        get() = request.url.toString()
-    override val isRedirect: Boolean
-        get() = request.isRedirect
-    override val method: String
-        get() = request.method
-    override val requestHeaders: Map<String, String>
-        get() = request.requestHeaders
+actual suspend fun initWebViewLogin(context: AppContext, onProgress: (Float, String?) -> Unit): Result<Boolean> {
+    clearStorage()
+    return Result.success(false)
 }
 
 private fun clearStorage() {
@@ -43,129 +17,134 @@ private fun clearStorage() {
     }
 }
 
-@SuppressLint("SetJavaScriptEnabled")
-@Composable
-actual fun WebViewLogin(
-    initial_url: String,
-    modifier: Modifier,
-    onClosed: () -> Unit,
-    shouldShowPage: (url: String) -> Boolean,
-    loading_message: String?,
-    onRequestIntercepted: suspend (WebViewRequest, openUrl: (String) -> Unit, getCookie: (String) -> String) -> Unit
-) {
-    val player: PlayerState = LocalPlayerState.current
-    var web_view: WebView? by remember { mutableStateOf(null) }
-    val is_dark: Boolean by remember { derivedStateOf { player.theme.background.isDark() } }
+// private fun WebResourceRequest.toWebViewRequest(): WebViewRequest =
+//     WebViewRequest(
+//         url.toString(),
+//         isRedirect,
+//         method,
+//         requestHeaders
+//     )
 
-    var requested_url: String? by remember { mutableStateOf(null) }
-    OnChangedEffect(requested_url) {
-        requested_url?.also {
-            web_view?.loadUrl(it)
-        }
-    }
+// @SuppressLint("SetJavaScriptEnabled")
+// @Composable
+// fun OldWebViewLogin(
+//     initial_url: String,
+//     modifier: Modifier,
+//     onClosed: () -> Unit,
+//     shouldShowPage: (url: String) -> Boolean,
+//     loading_message: String?,
+//     onRequestIntercepted: suspend (WebViewRequest, openUrl: (String) -> Unit) -> Unit
+// ) {
+//     val player: PlayerState = LocalPlayerState.current
+//     var web_view: WebView? by remember { mutableStateOf(null) }
+//     val is_dark: Boolean by remember { derivedStateOf { player.theme.background.isDark() } }
 
-    OnChangedEffect(web_view, is_dark) {
-        web_view?.apply {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                settings.isAlgorithmicDarkeningAllowed = is_dark
-            }
-            else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                @Suppress("DEPRECATION")
-                settings.forceDark = if (is_dark) WebSettings.FORCE_DARK_ON else WebSettings.FORCE_DARK_OFF
-            }
-        }
-    }
+//     var requested_url: String? by remember { mutableStateOf(null) }
+//     OnChangedEffect(requested_url) {
+//         requested_url?.also {
+//             web_view?.loadUrl(it)
+//         }
+//     }
 
-    DisposableEffect(Unit) {
-        onDispose {
-            clearStorage()
-        }
-    }
+//     OnChangedEffect(web_view, is_dark) {
+//         web_view?.apply {
+//             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+//                 settings.isAlgorithmicDarkeningAllowed = is_dark
+//             }
+//             else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//                 @Suppress("DEPRECATION")
+//                 settings.forceDark = if (is_dark) WebSettings.FORCE_DARK_ON else WebSettings.FORCE_DARK_OFF
+//             }
+//         }
+//     }
 
-    BackHandler(web_view?.canGoBack() == true) {
-        val web: WebView = web_view ?: return@BackHandler
+//     DisposableEffect(Unit) {
+//         onDispose {
+//             clearStorage()
+//         }
+//     }
 
-        val back_forward_list = web.copyBackForwardList()
-        if (back_forward_list.currentIndex > 0) {
-            val previous_url = back_forward_list.getItemAtIndex(back_forward_list.currentIndex - 1).url
-            if (previous_url == initial_url) {
-                onClosed()
-                clearStorage()
-                return@BackHandler
-            }
-        }
+//     BackHandler(web_view?.canGoBack() == true) {
+//         val web: WebView = web_view ?: return@BackHandler
 
-        web.goBack()
-    }
+//         val back_forward_list = web.copyBackForwardList()
+//         if (back_forward_list.currentIndex > 0) {
+//             val previous_url = back_forward_list.getItemAtIndex(back_forward_list.currentIndex - 1).url
+//             if (previous_url == initial_url) {
+//                 onClosed()
+//                 clearStorage()
+//                 return@BackHandler
+//             }
+//         }
 
-    var show_webview by remember { mutableStateOf(false) }
+//         web.goBack()
+//     }
 
-    Box(contentAlignment = Alignment.Center) {
-        AnimatedVisibility(!show_webview, enter = fadeIn(), exit = fadeOut()) {
-            SubtleLoadingIndicator(message = loading_message)
-        }
+//     var show_webview by remember { mutableStateOf(false) }
 
-        AndroidView(
-            modifier = modifier.graphicsLayer {
-                alpha = if (show_webview) 1f else 0f
-            },
-            factory = { context ->
-                WebView(context).apply {
-                    clearStorage()
+//     Box(contentAlignment = Alignment.Center) {
+//         AnimatedVisibility(!show_webview, enter = fadeIn(), exit = fadeOut()) {
+//             SubtleLoadingIndicator(message = loading_message)
+//         }
 
-                    settings.javaScriptEnabled = true
-                    settings.domStorageEnabled = true
+//         AndroidView(
+//             modifier = modifier.graphicsLayer {
+//                 alpha = if (show_webview) 1f else 0f
+//             },
+//             factory = { context ->
+//                 WebView(context).apply {
+//                     clearStorage()
 
-                    layoutParams = ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
-                    )
+//                     settings.javaScriptEnabled = true
+//                     settings.domStorageEnabled = true
 
-                    webChromeClient = object : WebChromeClient() {
-                        override fun onConsoleMessage(msg: ConsoleMessage): Boolean {
-                            return true
-                        }
-                    }
-                    webViewClient = object : WebViewClient() {
-                        override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
-                            super.onPageStarted(view, url, favicon)
+//                     layoutParams = ViewGroup.LayoutParams(
+//                         ViewGroup.LayoutParams.MATCH_PARENT,
+//                         ViewGroup.LayoutParams.MATCH_PARENT
+//                     )
 
-                            if (!shouldShowPage(url)) {
-                                show_webview = false
-                            }
-                        }
+//                     webChromeClient = object : WebChromeClient() {
+//                         override fun onConsoleMessage(msg: ConsoleMessage): Boolean {
+//                             return true
+//                         }
+//                     }
+//                     webViewClient = object : WebViewClient() {
+//                         override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
+//                             super.onPageStarted(view, url, favicon)
 
-                        override fun onPageFinished(view: WebView?, url: String?) {
-                            super.onPageFinished(view, url)
+//                             if (!shouldShowPage(url)) {
+//                                 show_webview = false
+//                             }
+//                         }
 
-                            if (url != null && shouldShowPage(url)) {
-                                show_webview = true
-                            }
-                        }
+//                         override fun onPageFinished(view: WebView?, url: String?) {
+//                             super.onPageFinished(view, url)
 
-                        override fun shouldInterceptRequest(
-                            view: WebView,
-                            request: WebResourceRequest
-                        ): WebResourceResponse? {
-                            runBlocking {
-                                onRequestIntercepted(
-                                    WebResourceRequestReader(request),
-                                    {
-                                        requested_url = it
-                                    },
-                                    { url ->
-                                        CookieManager.getInstance().getCookie(url)
-                                    }
-                                )
-                            }
-                            return null
-                        }
-                    }
+//                             if (url != null && shouldShowPage(url)) {
+//                                 show_webview = true
+//                             }
+//                         }
 
-                    loadUrl(initial_url)
-                    web_view = this
-                }
-            }
-        )
-    }
-}
+//                         override fun shouldInterceptRequest(
+//                             view: WebView,
+//                             request: WebResourceRequest
+//                         ): WebResourceResponse? {
+//                             runBlocking {
+//                                 onRequestIntercepted(
+//                                     request.toWebViewRequest(),
+//                                     {
+//                                         requested_url = it
+//                                     }
+//                                 )
+//                             }
+//                             return null
+//                         }
+//                     }
+
+//                     loadUrl(initial_url)
+//                     web_view = this
+//                 }
+//             }
+//         )
+//     }
+// }

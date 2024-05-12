@@ -11,15 +11,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.toasterofbread.composekit.platform.Platform
-import com.toasterofbread.composekit.platform.PlatformFile
+import dev.toastbits.composekit.platform.Platform
+import dev.toastbits.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.DownloadRequestCallback
+import com.toasterofbread.spmp.service.playercontroller.DownloadRequestCallback
 
 enum class DownloadMethod {
     LIBRARY, CUSTOM;
@@ -57,7 +57,13 @@ enum class DownloadMethod {
                             return@promptUserForFileCreation
                         }
 
-                        context.download_manager.startDownload(songs.single(), file_uri = uri, callback = callback)
+                        context.download_manager.startDownload(
+                            songs.single(),
+                            custom_uri = uri,
+                            download_lyrics = false,
+                            direct = true,
+                            callback = callback
+                        )
                     }
                 }
                 else {
@@ -67,7 +73,7 @@ enum class DownloadMethod {
                             return@promptUserForDirectory
                         }
 
-                        val directory: PlatformFile = context.getUserDirectoryFile(uri)
+                        val directory: PlatformFile = context.getUserDirectoryFile(uri) ?: return@promptUserForDirectory
 
                         Platform.ANDROID.only {
                             directory.mkdirs()
@@ -93,7 +99,7 @@ enum class DownloadMethod {
                                 file.createFile()
                             }
 
-                            context.download_manager.startDownload(song, file_uri = file.uri, callback = callback)
+                            context.download_manager.startDownload(song, custom_uri = file.uri, download_lyrics = false, callback = callback)
                         }
                     }
                 }
@@ -127,7 +133,7 @@ expect class PlayerDownloadManager(context: AppContext) {
 
     fun addDownloadStatusListener(listener: DownloadStatusListener)
     fun removeDownloadStatusListener(listener: DownloadStatusListener)
-    
+
     suspend fun getDownload(song: Song): DownloadStatus?
     suspend fun getDownloads(): List<DownloadStatus>
 
@@ -135,7 +141,9 @@ expect class PlayerDownloadManager(context: AppContext) {
     fun startDownload(
         song: Song,
         silent: Boolean = false,
-        file_uri: String? = null,
+        custom_uri: String? = null,
+        download_lyrics: Boolean = true,
+        direct: Boolean = false,
         callback: DownloadRequestCallback? = null
     )
 

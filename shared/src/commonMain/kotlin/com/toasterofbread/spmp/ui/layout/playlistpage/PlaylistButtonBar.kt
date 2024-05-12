@@ -24,16 +24,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.composable.WidthShrinkText
+import dev.toastbits.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.resources.uilocalisation.durationToString
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.ytmkt.uistrings.durationToString
+import LocalPlayerState
 
 @Composable
-internal fun PlaylistPage.PlaylistButtonBar(modifier: Modifier = Modifier) {
+internal fun PlaylistAppPage.PlaylistButtonBar(modifier: Modifier = Modifier) {
+    val player: PlayerState = LocalPlayerState.current
     var playlist_pinned: Boolean by playlist.observePinnedToHome()
 
     Crossfade(edit_in_progress, modifier) { editing ->
@@ -45,7 +48,7 @@ internal fun PlaylistPage.PlaylistButtonBar(modifier: Modifier = Modifier) {
                 IconButton({ player.playMediaItem(playlist, true) }) {
                     Icon(Icons.Default.Shuffle, null)
                 }
-                
+
                 Crossfade(playlist_pinned) { pinned ->
                     IconButton({ playlist_pinned = !pinned }) {
                         Icon(if (pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null)
@@ -53,11 +56,11 @@ internal fun PlaylistPage.PlaylistButtonBar(modifier: Modifier = Modifier) {
                 }
 
                 if (player.context.canShare()) {
-                    IconButton({ 
+                    IconButton({
                         player.context.shareText(
-                            playlist.getURL(player.context), 
+                            playlist.getURL(player.context),
                             playlist.getActiveTitle(player.database) ?: ""
-                        ) 
+                        )
                     }) {
                         Icon(Icons.Default.Share, null)
                     }
@@ -75,7 +78,8 @@ internal fun PlaylistPage.PlaylistButtonBar(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun PlaylistPage.PlaylistInfoText(items: List<Song>?, modifier: Modifier = Modifier) {
+private fun PlaylistAppPage.PlaylistInfoText(items: List<Song>?, modifier: Modifier = Modifier) {
+    val player: PlayerState = LocalPlayerState.current
     val db = player.database
 
     Row(

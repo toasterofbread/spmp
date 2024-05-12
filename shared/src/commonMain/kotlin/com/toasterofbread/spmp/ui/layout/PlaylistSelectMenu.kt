@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout
 
 import LocalPlayerState
+import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,20 +22,20 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.platform.composable.SwipeRefresh
-import com.toasterofbread.composekit.utils.common.addUnique
-import com.toasterofbread.composekit.utils.common.launchSingle
+import dev.toastbits.composekit.platform.composable.SwipeRefresh
+import dev.toastbits.composekit.utils.common.addUnique
+import dev.toastbits.composekit.utils.common.launchSingle
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.library.rememberLocalPlaylists
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.rememberOwnedPlaylists
+import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 
 @Composable
 fun PlaylistSelectMenu(
     selected: SnapshotStateList<Playlist>,
-    auth_state: YoutubeApi.UserAuthState?,
+    auth_state: ApiAuthenticationState?,
     modifier: Modifier = Modifier
 ) {
     val player = LocalPlayerState.current
@@ -43,8 +44,8 @@ fun PlaylistSelectMenu(
     var loading by remember { mutableStateOf(false) }
 
     val local_playlists: List<Playlist> = MediaItemLibrary.rememberLocalPlaylists(player.context) ?: emptyList()
-    val account_playlists: List<Playlist>? = auth_state?.own_channel?.let { channel ->
-        rememberOwnedPlaylists(channel, player.context)
+    val account_playlists: List<Playlist>? = auth_state?.own_channel_id?.let { channel_id ->
+        rememberOwnedPlaylists(channel_id, player.context)
     }
 
     fun refreshAccountPlaylists() {
@@ -67,19 +68,21 @@ fun PlaylistSelectMenu(
         refreshAccountPlaylists()
     }
 
-    CompositionLocalProvider(LocalPlayerState provides remember {
-        player.copy(onClickedOverride = { item, _ ->
-            check(item is Playlist)
-            
-            val index = selected.indexOf(item)
-            if (index != -1) {
-                selected.removeAt(index)
+    CompositionLocalProvider(
+        LocalPlayerClickOverrides provides LocalPlayerClickOverrides.current.copy(
+            onClickOverride = { item, _ ->
+                check(item is Playlist)
+
+                val index = selected.indexOf(item)
+                if (index != -1) {
+                    selected.removeAt(index)
+                }
+                else {
+                    selected.add(item)
+                }
             }
-            else {
-                selected.add(item)
-            }
-        })
-    }) {
+        )
+    ) {
         SwipeRefresh(
             loading,
             { refreshAccountPlaylists() },

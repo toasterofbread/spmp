@@ -32,18 +32,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.platform.composable.platformClickable
-import com.toasterofbread.composekit.platform.vibrateShort
-import com.toasterofbread.composekit.utils.composable.ShapedIconButton
-import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.platform.composable.platformClickable
+import dev.toastbits.composekit.platform.vibrateShort
+import dev.toastbits.composekit.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
+import com.toasterofbread.spmp.model.mediaitem.playlist.toRemotePlaylistData
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.youtubeapi.RadioBuilderArtist
-import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.InvalidRadioException
+import dev.toastbits.ytmkt.endpoint.RadioBuilderArtist
+import dev.toastbits.ytmkt.endpoint.RadioBuilderModifier
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -55,7 +57,7 @@ fun FilterSelectionPage(
     content_padding: PaddingValues,
     modifier: Modifier = Modifier
 ) {
-    val player = LocalPlayerState.current
+    val player: PlayerState = LocalPlayerState.current
 
     val builder_endpoint = player.context.ytapi.RadioBuilder
     check(builder_endpoint.isImplemented())
@@ -105,25 +107,27 @@ fun FilterSelectionPage(
             }
 
             coroutine_scope.launch {
-                val result = builder_endpoint.getBuiltRadio(radio_token, player.context)
+                val result: Result<YtmPlaylist?> = builder_endpoint.getBuiltRadio(radio_token)
                 result.fold(
-                    { playlist: RemotePlaylistData? ->
+                    { playlist: YtmPlaylist? ->
                         if (playlist == null) {
-                            load_error = InvalidRadioException()
+                            load_error = NullPointerException("Radio playlist is null $radio_token")
                         }
                         else {
+                            val playlist_data: RemotePlaylistData = playlist.toRemotePlaylistData()
+
                             withContext(Dispatchers.IO) {
-                                setRadioMetadata(playlist, artists, selected_artists)
-                                playlist.saveToDatabase(player.database)
+                                setRadioMetadata(playlist_data, artists, selected_artists)
+                                playlist_data.saveToDatabase(player.database)
                             }
 
                             if (preview) {
-                                preview_playlist = playlist
+                                preview_playlist = playlist_data
                             }
                             else {
                                 withContext(Dispatchers.Main) {
                                     player.withPlayer {
-                                        startRadioAtIndex(0, playlist)
+                                        startRadioAtIndex(0, playlist_data)
                                     }
                                 }
                             }
@@ -186,7 +190,7 @@ fun FilterSelectionPage(
                     else {
                         val items = playlist?.items
                         if (items != null) {
-                            val multiselect_context = remember { MediaItemMultiSelectContext() {} }
+                            val multiselect_context = remember { MediaItemMultiSelectContext(player.context) {} }
 
                             DisposableEffect(multiselect_context.is_active) {
                                 action_buttons_visible = !multiselect_context.is_active
@@ -255,5 +259,5 @@ private fun setRadioMetadata(radio_playlist: RemotePlaylistData, artists: List<R
         artists_string += getString("radio_title_overflow")
     }
 
-    radio_playlist.title = getString("radio_title_of_\$artists").replace("\$artists", artists_string)
+    radio_playlist.name = getString("radio_title_of_\$artists").replace("\$artists", artists_string)
 }

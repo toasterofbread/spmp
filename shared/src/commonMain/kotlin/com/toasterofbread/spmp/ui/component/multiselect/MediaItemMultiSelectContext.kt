@@ -17,29 +17,33 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.common.getContrasted
-import com.toasterofbread.composekit.utils.common.lazyAssert
+import dev.toastbits.composekit.utils.common.getContrasted
+import dev.toastbits.composekit.utils.common.lazyAssert
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
-import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
+import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
 
-typealias MultiSelectItem = Pair<MediaItem, Int?>
+typealias MultiSelectItem = Pair<YtmMediaItem, Int?>
 
 open class MediaItemMultiSelectContext {
     val additionalSelectedItemActions: (@Composable ColumnScope.(MediaItemMultiSelectContext) -> Unit)?
+    val context: AppContext
 
-    constructor() {
+    constructor(context: AppContext) {
+        this.context = context
         additionalSelectedItemActions = null
     }
 
-    constructor(additionalSelectedItemActions: (@Composable ColumnScope.(MediaItemMultiSelectContext) -> Unit)?) {
+    constructor(context: AppContext, additionalSelectedItemActions: (@Composable ColumnScope.(MediaItemMultiSelectContext) -> Unit)?) {
+        this.context = context
         this.additionalSelectedItemActions = additionalSelectedItemActions
     }
 
     internal val selected_items: MutableList<MultiSelectItem> = mutableStateListOf()
     var is_active: Boolean by mutableStateOf(false)
         private set
-    
+
     internal val ordered_selectable_items: MutableList<List<MultiSelectItem>> = mutableStateListOf()
 
     @Composable
@@ -53,7 +57,7 @@ open class MediaItemMultiSelectContext {
         is_active = value
     }
 
-    fun isItemSelected(item: MediaItem, key: Int? = null): Boolean {
+    fun isItemSelected(item: YtmMediaItem, key: Int? = null): Boolean {
         if (!is_active) {
             return false
         }
@@ -61,19 +65,19 @@ open class MediaItemMultiSelectContext {
     }
 
     fun onActionPerformed() {
-        if (BehaviourSettings.Key.MULTISELECT_CANCEL_ON_ACTION.get()) {
+        if (context.settings.behaviour.MULTISELECT_CANCEL_ON_ACTION.get()) {
             setActive(false)
         }
     }
 
     private fun onSelectedItemsChanged() {
-        if (selected_items.isEmpty() && BehaviourSettings.Key.MULTISELECT_CANCEL_ON_NONE_SELECTED.get()) {
+        if (selected_items.isEmpty() && context.settings.behaviour.MULTISELECT_CANCEL_ON_NONE_SELECTED.get()) {
             setActive(false)
         }
     }
 
     fun getSelectedItems(): List<MultiSelectItem> = selected_items
-    fun getUniqueSelectedItems(): Set<MediaItem> = selected_items.map { it.first }.distinctBy { it.id }.toSet()
+    fun getUniqueSelectedItems(): Set<YtmMediaItem> = selected_items.map { it.first }.distinctBy { it.id }.toSet()
 
     fun updateKey(index: Int, key: Int?) {
         selected_items[index] = selected_items[index].copy(second = key)
@@ -105,10 +109,10 @@ open class MediaItemMultiSelectContext {
             if (!is_active) {
                 setActive(true)
             }
-            
+
             selected_items.add(item)
             onSelectedItemsChanged()
-            
+
             return true
         }
         else if (selected_items.removeIf { it.first == item.first && it.second == item.second }) {
@@ -120,7 +124,7 @@ open class MediaItemMultiSelectContext {
         }
     }
 
-    fun setItemSelected(item: MediaItem, selected: Boolean, key: Int? = null): Boolean =
+    fun setItemSelected(item: YtmMediaItem, selected: Boolean, key: Int? = null): Boolean =
         setItemSelected(MultiSelectItem(item, key), selected)
 
     @Composable
@@ -139,10 +143,10 @@ open class MediaItemMultiSelectContext {
     protected open fun InfoDisplayContent(
         modifier: Modifier,
         content_modifier: Modifier,
-        getAllItems: (() -> List<List<MultiSelectItem>>)? = null,
+        getAllItems: (() -> List<List<MultiSelectItem>>)?,
         wrapContent: @Composable (@Composable () -> Unit) -> Unit,
         show_alt_content: Boolean,
-        altContent: (@Composable () -> Unit)? = null
+        altContent: (@Composable () -> Unit)?
     ): Boolean =
         MultiSelectInfoDisplay(modifier, content_modifier, getAllItems, wrapContent, show_alt_content, altContent)
 
@@ -182,7 +186,7 @@ open class MediaItemMultiSelectContext {
             exit
         )
     }
-    
+
     @Composable
     fun CollectionToggleButton(
         items: List<MultiSelectItem>,
@@ -195,7 +199,7 @@ open class MediaItemMultiSelectContext {
             if (ordered) {
                 ordered_selectable_items.add(items)
             }
-            
+
             onDispose {
                 ordered_selectable_items.remove(items)
             }
@@ -220,7 +224,7 @@ open class MediaItemMultiSelectContext {
     }
 
     private fun areItemsValid(): Boolean {
-        val keys: MutableMap<MediaItem, MutableList<Int?>> = mutableMapOf()
+        val keys: MutableMap<YtmMediaItem, MutableList<Int?>> = mutableMapOf()
         for (item in selected_items) {
             val item_keys: MutableList<Int?>? = keys[item.first]
             if (item_keys == null) {

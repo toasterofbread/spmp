@@ -54,12 +54,12 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
-import com.toasterofbread.composekit.platform.composable.platformClickable
-import com.toasterofbread.composekit.platform.vibrateShort
-import com.toasterofbread.composekit.utils.common.getContrasted
-import com.toasterofbread.composekit.utils.composable.getStart
+import dev.toastbits.composekit.platform.composable.platformClickable
+import dev.toastbits.composekit.platform.vibrateShort
+import dev.toastbits.composekit.utils.common.getContrasted
+import dev.toastbits.composekit.utils.composable.getStart
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
@@ -67,7 +67,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 private const val PLAYLIST_IMAGE_MIN_HEIGHT_DP: Float = 120f
 
 @Composable
-internal fun PlaylistPage.PlaylistTopInfo(items: List<Pair<MediaItem, Int>>?, modifier: Modifier = Modifier) {
+internal fun PlaylistAppPage.PlaylistTopInfo(items: List<MediaItem>?, modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
     val density = LocalDensity.current
     val db = player.database
@@ -113,12 +113,12 @@ internal fun PlaylistPage.PlaylistTopInfo(items: List<Pair<MediaItem, Int>>?, mo
                 val provider_override =
                     if (edit_in_progress)
                         edited_image_url?.let { image_url ->
-                            MediaItemThumbnailProvider.fromImageUrl(image_url)
+                            ThumbnailProvider.fromImageUrl(image_url)
                         } ?: playlist.ThumbnailProvider.get(player.database)
                     else null
 
                 playlist.Thumbnail(
-                    MediaItemThumbnailProvider.Quality.HIGH,
+                    ThumbnailProvider.Quality.HIGH,
                     Modifier
                         .fillMaxSize()
                         .aspectRatio(1f)

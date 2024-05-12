@@ -24,9 +24,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.composable.NoRipple
+import dev.toastbits.composekit.utils.composable.NoRipple
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.youtubeapi.RadioBuilderModifier
+import dev.toastbits.ytmkt.endpoint.RadioBuilderModifier
 import kotlinx.coroutines.launch
 import kotlin.math.ceil
 
@@ -218,3 +218,26 @@ internal fun MultiSelectRow(
         }
     }
 }
+
+fun RadioBuilderModifier.getReadable(): String =
+    getString(
+        when (this) {
+            RadioBuilderModifier.Variety.LOW -> "radio_builder_modifier_variety_low"
+            RadioBuilderModifier.Variety.MEDIUM -> "radio_builder_modifier_variety_medium"
+            RadioBuilderModifier.Variety.HIGH -> "radio_builder_modifier_variety_high"
+            RadioBuilderModifier.SelectionType.FAMILIAR -> "radio_builder_modifier_selection_type_familiar"
+            RadioBuilderModifier.SelectionType.BLEND -> "radio_builder_modifier_selection_type_blend"
+            RadioBuilderModifier.SelectionType.DISCOVER -> "radio_builder_modifier_selection_type_discover"
+            RadioBuilderModifier.FilterA.POPULAR -> "radio_builder_modifier_filter_a_popular"
+            RadioBuilderModifier.FilterA.HIDDEN -> "radio_builder_modifier_filter_a_hidden"
+            RadioBuilderModifier.FilterA.NEW -> "radio_builder_modifier_filter_a_new"
+            RadioBuilderModifier.FilterB.PUMP_UP -> "radio_builder_modifier_filter_pump_up"
+            RadioBuilderModifier.FilterB.CHILL -> "radio_builder_modifier_filter_chill"
+            RadioBuilderModifier.FilterB.UPBEAT -> "radio_builder_modifier_filter_upbeat"
+            RadioBuilderModifier.FilterB.DOWNBEAT -> "radio_builder_modifier_filter_downbeat"
+            RadioBuilderModifier.FilterB.FOCUS -> "radio_builder_modifier_filter_focus"
+
+            RadioBuilderModifier.Internal.ARTIST -> throw IllegalAccessError(toString())
+        }
+    )
+

@@ -16,9 +16,9 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.layout.SongRelatedPage
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
-import com.toasterofbread.spmp.youtubeapi.SongRelatedContentEndpoint
+import dev.toastbits.ytmkt.endpoint.SongRelatedContentEndpoint
 
 class RelatedContentPlayerOverlayMenu(
     private val related_endpoint: SongRelatedContentEndpoint

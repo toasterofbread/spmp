@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.component.longpressmenu
 
 import LocalPlayerState
+import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -13,7 +14,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
-import com.toasterofbread.composekit.utils.common.getContrasted
+import dev.toastbits.composekit.utils.common.getContrasted
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewInteractionPressStage
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
@@ -26,7 +27,6 @@ import com.toasterofbread.spmp.ui.component.longpressmenu.song.SongLongPressMenu
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistSubscribeButton
 import com.toasterofbread.spmp.ui.theme.appHover
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -40,8 +40,8 @@ data class LongPressMenuData(
     val multiselect_key: Int? = null,
     val playlist_as_song: Boolean = false
 ) {
+    var layout_offset: Offset? = null
     var layout_size: IntSize by Delegates.notNull()
-    var layout_offset: Offset by Delegates.notNull()
     var click_offset: Offset by Delegates.notNull()
 
     var current_interaction_stage: MediaItemPreviewInteractionPressStage? by mutableStateOf(null)
@@ -93,7 +93,7 @@ data class LongPressMenuData(
 
     @Composable
     fun SideButton(modifier: Modifier, background: Color) {
-        val auth_state: YoutubeApi.UserAuthState? = LocalPlayerState.current.context.ytapi.user_auth_state
+        val auth_state: ApiAuthenticationState? = LocalPlayerState.current.context.ytapi.user_auth_state
 
         when (item) {
             is Song -> LikeDislikeButton(item, auth_state, modifier) { background.getContrasted() }

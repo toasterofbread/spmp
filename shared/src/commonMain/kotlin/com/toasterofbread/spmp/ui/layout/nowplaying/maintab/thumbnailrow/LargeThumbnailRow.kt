@@ -25,32 +25,31 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
-import com.toasterofbread.composekit.platform.composable.BackHandler
-import com.toasterofbread.composekit.platform.composable.platformClickable
-import com.toasterofbread.composekit.utils.common.getContrasted
-import com.toasterofbread.composekit.utils.common.getInnerSquareSizeOfCircle
-import com.toasterofbread.composekit.utils.common.getValue
-import com.toasterofbread.composekit.utils.common.thenIf
-import com.toasterofbread.composekit.utils.composable.MeasureUnconstrainedView
-import com.toasterofbread.composekit.utils.composable.OnChangedEffect
-import com.toasterofbread.composekit.utils.modifier.background
-import com.toasterofbread.composekit.utils.modifier.disableParentScroll
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
+import dev.toastbits.composekit.platform.composable.BackHandler
+import dev.toastbits.composekit.platform.composable.platformClickable
+import dev.toastbits.composekit.utils.common.getInnerSquareSizeOfCircle
+import dev.toastbits.composekit.utils.common.getValue
+import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.utils.composable.MeasureUnconstrainedView
+import dev.toastbits.composekit.utils.composable.OnChangedEffect
+import dev.toastbits.composekit.utils.modifier.background
+import dev.toastbits.composekit.utils.modifier.disableParentScroll
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitles
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.observeThumbnailRounding
-import com.toasterofbread.spmp.model.settings.category.PlayerSettings
-import com.toasterofbread.spmp.model.settings.getEnum
-import com.toasterofbread.spmp.ui.component.LyricsLineDisplay
+import com.toasterofbread.spmp.model.mediaitem.artist.formatArtistTitles
+import com.toasterofbread.spmp.model.settings.category.ThemeSettings
+import com.toasterofbread.spmp.ui.component.HorizontalLyricsLineDisplay
 import com.toasterofbread.spmp.ui.component.Thumbnail
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.EXPANDED_THRESHOLD
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.OVERLAY_MENU_ANIMATION_DURATION
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.*
-import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
+import com.toasterofbread.spmp.platform.SongVideoPlayback
 import kotlin.math.absoluteValue
 
 internal typealias ColourpickCallback = (Color?) -> Unit
@@ -72,17 +71,16 @@ fun LargeThumbnailRow(
     val current_song: Song? = player.status.m_song
 
     val song_title: String? by current_song?.observeActiveTitle()
-    val song_artist_title: String? by current_song?.Artist?.observePropertyActiveTitle()
+    val song_artist_titles: List<String?>? = current_song?.Artists?.observePropertyActiveTitles()
 
-    val thumbnail_rounding: Int = current_song.observeThumbnailRounding(DEFAULT_THUMBNAIL_ROUNDING)
+    val thumbnail_rounding: Int = current_song.observeThumbnailRounding()
     val thumbnail_shape: RoundedCornerShape = RoundedCornerShape(thumbnail_rounding)
 
-    val overlay_menu: PlayerOverlayMenu? by player.np_overlay_menu
     var current_thumb_image: ImageBitmap? by remember { mutableStateOf(null) }
     var image_size: IntSize by remember { mutableStateOf(IntSize(1, 1)) }
 
     var colourpick_callback: ColourpickCallback? by remember { mutableStateOf(null) }
-    LaunchedEffect(overlay_menu) {
+    LaunchedEffect(player.np_overlay_menu) {
         colourpick_callback = null
     }
 
@@ -162,14 +160,8 @@ fun LargeThumbnailRow(
                         return@Crossfade
                     }
 
-                    song.Thumbnail(
-                        MediaItemThumbnailProvider.Quality.HIGH,
-                        getContentColour = { player.getNPOnBackground() },
-                        onLoaded = {
-                            current_thumb_image = it
-                            onThumbnailLoaded(song, it)
-                        },
-                        modifier = Modifier
+                    Box(
+                        Modifier
                             .aspectRatio(1f)
                             .onSizeChanged {
                                 image_size = it
@@ -180,7 +172,7 @@ fun LargeThumbnailRow(
                             .thenIf(expanded) {
                                 platformClickable(
                                     onClick = {
-                                        if (overlay_menu != null || expansion.get() !in 0.9f .. 1.1f) {
+                                        if (player.np_overlay_menu != null || expansion.get() !in 0.9f .. 1.1f) {
                                             return@platformClickable
                                         }
 
@@ -193,7 +185,7 @@ fun LargeThumbnailRow(
                                         )
                                     },
                                     onAltClick = {
-                                        if (overlay_menu != null || expansion.get() !in 0.9f .. 1.1f) {
+                                        if (player.np_overlay_menu != null || expansion.get() !in 0.9f .. 1.1f) {
                                             return@platformClickable
                                         }
                                         player.performPressAction(
@@ -206,12 +198,38 @@ fun LargeThumbnailRow(
                                     }
                                 )
                             }
-                    )
+                    ) {
+                        val default_video_position: ThemeSettings.VideoPosition by player.settings.theme.NOWPLAYING_DEFAULT_VIDEO_POSITION.observe()
+                        val song_video_position: ThemeSettings.VideoPosition? by song.VideoPosition.observe(player.database)
+
+                        var video_showing: Boolean = false
+
+                        if ((song_video_position ?: default_video_position) == ThemeSettings.VideoPosition.THUMBNAIL) {
+                            video_showing = SongVideoPlayback(
+                                song.id,
+                                { player.status.getPositionMs() },
+                                Modifier.fillMaxSize(),
+                                fill = true
+                            )
+                        }
+
+                        if (!video_showing) {
+                            song.Thumbnail(
+                                ThumbnailProvider.Quality.HIGH,
+                                Modifier.fillMaxSize(),
+                                getContentColour = { player.getNPOnBackground() },
+                                onLoaded = {
+                                    current_thumb_image = it
+                                    onThumbnailLoaded(song, it)
+                                }
+                            )
+                        }
+                    }
                 }
 
                 // Thumbnail overlay menu
                 androidx.compose.animation.AnimatedVisibility(
-                    overlay_menu != null || colourpick_callback != null,
+                    player.np_overlay_menu != null || colourpick_callback != null,
                     Modifier.fillMaxSize(),
                     enter = fadeIn(tween(OVERLAY_MENU_ANIMATION_DURATION)),
                     exit = fadeOut(tween(OVERLAY_MENU_ANIMATION_DURATION))
@@ -234,7 +252,7 @@ fun LargeThumbnailRow(
                                             }
                                         }
 
-                                        if (expansion.get() in 0.9f .. 1.1f && overlay_menu?.closeOnTap() == true) {
+                                        if (expansion.get() in 0.9f .. 1.1f && player.np_overlay_menu?.closeOnTap() == true) {
                                             player.openNpOverlayMenu(null)
                                         }
                                     }
@@ -261,12 +279,12 @@ fun LargeThumbnailRow(
                                 }),
                             contentAlignment = Alignment.Center
                         ) {
-                            BackHandler(overlay_menu != null) {
+                            BackHandler(player.np_overlay_menu != null, priority = 2) {
                                 player.navigateNpOverlayMenuBack()
                                 colourpick_callback = null
                             }
 
-                            Crossfade(overlay_menu) { menu ->
+                            Crossfade(player.np_overlay_menu) { menu ->
                                 CompositionLocalProvider(LocalContentColor provides Color.White) {
                                     menu?.Menu(
                                         { player.status.m_song!! },
@@ -301,7 +319,7 @@ fun LargeThumbnailRow(
                         style = MaterialTheme.typography.headlineSmall
                     )
                     Text(
-                        song_artist_title ?: "",
+                        song_artist_titles?.let { formatArtistTitles(it, player.context) } ?: "",
                         maxLines = 1,
                         color = player.getNPOnBackground().copy(alpha = 0.5f),
                         overflow = TextOverflow.Ellipsis,
@@ -310,8 +328,8 @@ fun LargeThumbnailRow(
                 }
             }
 
-            val lyrics_state: SongLyricsLoader.ItemState? = remember(current_song?.id) { current_song?.let { SongLyricsLoader.getItemState(it, player.context) } }
-            val lyrics_sync_offset: Long? by current_song?.getLyricsSyncOffset(player.database, false)
+            val lyrics_state: SongLyricsLoader.ItemState? = current_song?.let { SongLyricsLoader.rememberItemState(it, player.context) }
+            val lyrics_sync_offset: Long? by current_song?.getLyricsSyncOffset(player.database, true)
 
             AnimatedVisibility(
                 lyrics_state?.lyrics?.synced == true,
@@ -321,7 +339,7 @@ fun LargeThumbnailRow(
             ) {
                 if (!expanded) {
                     lyrics_state?.lyrics?.also { lyrics ->
-                        LyricsLineDisplay(
+                        HorizontalLyricsLineDisplay(
                             lyrics = lyrics,
                             getTime = {
                                 (player.controller?.current_position_ms ?: 0) + (lyrics_sync_offset ?: 0)
@@ -348,11 +366,11 @@ private fun PlayerState.performPressAction(
     setOverlayMenu: (PlayerOverlayMenu?) -> Unit
 ) {
     val custom_action: Boolean =
-        if (PlayerSettings.Key.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.get()) !long_press
+        if (context.settings.player.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.get()) !long_press
         else long_press
 
     val action: PlayerOverlayMenuAction =
-        if (custom_action) PlayerSettings.Key.OVERLAY_CUSTOM_ACTION.getEnum()
+        if (custom_action) context.settings.player.OVERLAY_CUSTOM_ACTION.get()
         else PlayerOverlayMenuAction.DEFAULT
 
     when (action) {
@@ -380,13 +398,7 @@ private fun PlayerState.performPressAction(
             setOverlayMenu(PlayerOverlayMenu.getLyricsMenu())
         }
         PlayerOverlayMenuAction.OPEN_RELATED -> {
-            val related_endpoint = context.ytapi.SongRelatedContent
-            if (related_endpoint.isImplemented()) {
-                setOverlayMenu(RelatedContentPlayerOverlayMenu(related_endpoint))
-            }
-            else {
-                throw EndpointNotImplementedException(related_endpoint)
-            }
+            setOverlayMenu(RelatedContentPlayerOverlayMenu(context.ytapi.SongRelatedContent))
         }
         PlayerOverlayMenuAction.DOWNLOAD -> {
             status.m_song?.also { song ->

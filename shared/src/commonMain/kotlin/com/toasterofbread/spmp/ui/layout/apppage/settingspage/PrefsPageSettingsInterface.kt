@@ -9,13 +9,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.toasterofbread.composekit.platform.vibrateShort
-import com.toasterofbread.composekit.settings.ui.SettingsInterface
-import com.toasterofbread.composekit.settings.ui.SettingsPageWithItems
-import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
+import dev.toastbits.composekit.platform.vibrateShort
+import dev.toastbits.composekit.settings.ui.SettingsInterface
+import dev.toastbits.composekit.settings.ui.SettingsPageWithItems
+import dev.toastbits.composekit.platform.PreferencesProperty
 import com.toasterofbread.spmp.model.settings.Settings
-import com.toasterofbread.spmp.model.settings.category.DiscordAuthSettings
-import com.toasterofbread.spmp.model.settings.category.YoutubeAuthSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
@@ -23,8 +21,8 @@ import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 internal fun getPrefsPageSettingsInterface(
     page_state: AppPageState,
     pill_menu: PillMenu,
-    ytm_auth: SettingsValueState<Set<String>>,
-    footer_modifier: Modifier
+    ytm_auth: PreferencesProperty<Set<String>>,
+    getFooterModifier: @Composable () -> Modifier
 ): SettingsInterface {
     lateinit var settings_interface: SettingsInterface
     val context: AppContext = page_state.context
@@ -50,15 +48,13 @@ internal fun getPrefsPageSettingsInterface(
         }
     }
 
-    val discord_auth: SettingsValueState<String> =
-        SettingsValueState<String>(DiscordAuthSettings.Key.DISCORD_ACCOUNT_TOKEN.getName())
-            .init(Settings.prefs, Settings::provideDefault)
+    val discord_auth: PreferencesProperty<String> = context.settings.discord_auth.DISCORD_ACCOUNT_TOKEN
 
     settings_interface = SettingsInterface(
+        context,
         { context.theme },
         PrefsPageScreen.ROOT.ordinal,
-        Settings.prefs,
-        Settings::provideDefault,
+        context.getPrefs(),
         { context.vibrateShort() },
         { index, param ->
             when (PrefsPageScreen.entries[index]) {
@@ -80,7 +76,7 @@ internal fun getPrefsPageSettingsInterface(
             }
         },
         { },
-        footer_modifier
+        getFooterModifier
     )
 
     return settings_interface

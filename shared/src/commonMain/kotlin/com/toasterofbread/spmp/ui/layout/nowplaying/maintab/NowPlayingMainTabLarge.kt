@@ -12,7 +12,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.scale
@@ -22,26 +21,24 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
-import com.github.krottv.compose.sliders.lerp
-import com.toasterofbread.composekit.platform.composable.composeScope
-import com.toasterofbread.composekit.utils.common.*
-import com.toasterofbread.composekit.utils.composable.getTop
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.composekit.platform.composable.composeScope
+import dev.toastbits.composekit.utils.common.*
+import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.utils.composable.getTop
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.observeThumbnailRounding
 import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueWaveBorderMode
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.bottom_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.horizontal_padding
@@ -51,10 +48,18 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.LargeThumbnailRow
-import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
+import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.songThumbnailShadow
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.QueueTab
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
+import androidx.compose.runtime.State
+
+val NOW_PLAYING_LARGE_BOTTOM_BAR_HEIGHT: Dp
+    @Composable get() = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
+
+private const val STROKE_WIDTH_DP: Float = 1f
+private const val INNER_PADDING_DP: Float = 25f
+private const val CONTROLS_IMAGE_SEPARATION_DP: Float = 20f
 
 @Composable
 private fun MainTabControls(
@@ -77,7 +82,7 @@ private fun MainTabControls(
         },
         modifier.padding(top = 30.dp),
         enabled = enabled,
-        vertical_arrangement = Arrangement.spacedBy(10.dp),
+        vertical_arrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
         title_text_max_lines = 2,
         title_font_size = 25.sp,
         artist_font_size = 18.sp,
@@ -96,7 +101,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
     val layout_direction: LayoutDirection = LocalLayoutDirection.current
     val density: Density = LocalDensity.current
 
-    val proportion: Float = WindowInsets.getTop() / player.screen_size.height
+    val proportion: Float = WindowInsets.getTop() / page_height
     val proportion_exp: Float by remember { derivedStateOf {
         (expansion.get().coerceIn(0f, 1f) * (1f - proportion)).coerceAtLeast(0f)
     } }
@@ -106,29 +111,34 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
     } }
     val expanded: Boolean by remember { derivedStateOf { absolute_expansion >= 1f } }
 
-    val min_height: Dp = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp - (MINIMISED_NOW_PLAYING_V_PADDING_DP.dp * 2)
+    val v_padding: Dp = MINIMISED_NOW_PLAYING_V_PADDING_DP.dp
+    val min_height: Dp = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp// - (MINIMISED_NOW_PLAYING_V_PADDING_DP.dp * 2)
     val height: Dp = ((absolute_expansion * (page_height - min_height)) + min_height).coerceAtLeast(min_height)
+
+    val inner_padding: Dp = lerp(0.dp, INNER_PADDING_DP.dp, absolute_expansion)
 
     val current_horizontal_padding: Dp = lerp(horizontal_padding_minimised, horizontal_padding, absolute_expansion)
 
-    val inner_padding: Dp = lerp(0.dp, 25.dp, absolute_expansion)
+    val target_start_padding: Dp = maxOf(inner_padding, content_padding.calculateStartPadding(layout_direction) + horizontal_padding)
+    val target_end_padding: Dp = maxOf(inner_padding, content_padding.calculateEndPadding(layout_direction) + horizontal_padding)
+
     val start_padding: Dp = maxOf(inner_padding, content_padding.calculateStartPadding(layout_direction) + current_horizontal_padding)
     val end_padding: Dp = maxOf(inner_padding, content_padding.calculateEndPadding(layout_direction) + current_horizontal_padding)
 
-    val top_padding: Dp = top_padding
-    val bottom_padding: Dp = bottom_padding
+    val top_padding: Dp = top_padding + content_padding.calculateTopPadding()
+    val bottom_padding: Dp = bottom_padding + content_padding.calculateBottomPadding()
 
-    val bottom_bar_height: Dp = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
+    val bottom_bar_height: Dp = NOW_PLAYING_LARGE_BOTTOM_BAR_HEIGHT
     val inner_bottom_padding: Dp = horizontal_padding
 
-    var thumbnail_y_position: Float by remember { mutableStateOf(0f) }
-
     val bar_background_colour: Color = player.theme.card
-    val stroke_width: Dp = 1.dp
     val stroke_colour: Color = bar_background_colour.amplify(255f)
 
     BoxWithConstraints(
-        modifier = modifier.height(height)
+        modifier = modifier
+            .height(height)
+            .padding(vertical = v_padding * (1f - absolute_expansion).coerceIn(0f..1f))
+            .clipToBounds()
     ) {
         Row(
             Modifier
@@ -144,33 +154,29 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             val parent_max_width: Dp = this@BoxWithConstraints.maxWidth
-            val thumb_size: Dp = minOf(height, parent_max_width * 0.5f) - (inner_padding)
 
             var actual_thumb_size: DpSize by remember { mutableStateOf(DpSize.Zero) }
             var actual_thumb_position: DpOffset by remember { mutableStateOf(DpOffset.Zero) }
 
             val controls_target_height: Dp = 200.dp
-            var controls_height: Dp by remember { mutableStateOf(0.dp) }
 
-            val column_min_width: Dp = 300.dp
-            val column_width: Dp =
-                lerp(
-                    parent_max_width,
-                    maxOf(
-                        column_min_width,
-                        minOf(
-                            this@BoxWithConstraints.maxHeight - controls_height,
-                            thumb_size
-                        )
-                    ),
-                    absolute_expansion
+            val main_column_target_width: Dp by remember(parent_max_width) { derivedStateOf {
+                maxOf(
+                    300.dp,
+                    minOf(
+                        page_height - controls_target_height,
+                        minOf(page_height, parent_max_width * 0.5f) - (20.dp)
+                    )
                 )
+            }}
 
-            val current_thumb_size: Dp = this@BoxWithConstraints.maxHeight - controls_height
-            val compact_mode: Boolean = absolute_expansion > 0.9f && (
-                 (current_thumb_size / column_width) < 0.75f
-            )
+            val thumb_space_v: Dp = page_height - top_padding - controls_target_height - inner_bottom_padding - bottom_padding
+            val thumb_space_h: Dp = main_column_target_width - 5.dp
+            val thumb_size: Dp = minOf(thumb_space_h, thumb_space_v)
 
+            val compact_mode: Boolean = thumb_size < 250.dp
+
+            // Bottom bar
             Box(Modifier.requiredSize(0.dp).zIndex(1f)) {
                 Box(
                     Modifier
@@ -183,7 +189,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                         }
                         .pointerInput(Unit) {
                             detectTapGestures {
-                                player.expansion.close()
+                                player.expansion.toggle()
                             }
                         }
                 ) {
@@ -192,7 +198,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                             stroke_colour,
                             start = Offset.Zero,
                             end = Offset(size.width, 0f),
-                            strokeWidth = (stroke_width + 2.dp).toPx()
+                            strokeWidth = (STROKE_WIDTH_DP.dp + 2.dp).toPx()
                         )
 
                         drawRect(bar_background_colour)
@@ -200,9 +206,12 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
 
                     CompositionLocalProvider(LocalContentColor provides bar_background_colour.getContrasted()) {
                         var bottom_bar_position: DpOffset by remember { mutableStateOf(DpOffset.Zero) }
-                        val inset_depth: Dp = (actual_thumb_position.y + actual_thumb_size.height - bottom_bar_position.y).coerceAtLeast(0.dp)
+
+                        val thumb_pos: Dp = page_height - top_padding - controls_target_height - thumb_size - CONTROLS_IMAGE_SEPARATION_DP.dp
+                        val inset_depth: Dp = if (bottom_bar_height - thumb_pos > 4.dp) 4.dp else 0.dp
 
                         LargeBottomBar(
+                            bar_background_colour,
                             Modifier
                                 .align(Alignment.CenterEnd)
                                 .fillMaxWidth()
@@ -221,6 +230,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                 }
             }
 
+            // Controls / image
             composeScope {
                 Column(
                     Modifier.fillMaxHeight().zIndex(2f),
@@ -230,11 +240,16 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                         Modifier.fillMaxHeight().weight(1f)
                     ) {
                         Column(
-                            Modifier.width(column_width),
+                            Modifier.width(
+                                lerp(
+                                    parent_max_width,
+                                    main_column_target_width,
+                                    absolute_expansion
+                                )
+                            ),
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-
                             Spacer(Modifier.requiredHeight(inner_bottom_padding).weight(1f, false))
 
                             Spacer(Modifier.fillMaxHeight().weight(1f))
@@ -245,25 +260,21 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                                 button_size = 50.dp,
                                 seek_bar_next_to_buttons = !compact_mode,
                                 modifier = Modifier
-                                    .thenIf(!compact_mode) {
-                                        requiredHeight(controls_target_height * ((absolute_expansion - 0.5f) * 2f))
-                                    }
+                                    .requiredHeight((if (compact_mode) controls_target_height + 200.dp else controls_target_height) * ((absolute_expansion - 0.5f) * 2f))
                                     .scale(1f, absolute_expansion)
-                                    .padding(bottom = 20.dp)
-                                    .onSizeChanged {
-                                        controls_height = with (density) {
-                                            it.height.toDp()
-                                        }
+                                    .padding(bottom = CONTROLS_IMAGE_SEPARATION_DP.dp)
+                                    .graphicsLayer {
+                                        alpha = if (compact_mode) (absolute_expansion - 0.5f).coerceAtLeast(0f) * 2f else 1f
                                     },
                                 textRowStartContent = {
                                     if (compact_mode) {
                                         val song: Song? by player.status.song_state
 
-                                        val thumbnail_rounding: Int = song.observeThumbnailRounding(DEFAULT_THUMBNAIL_ROUNDING)
+                                        val thumbnail_rounding: Int = song.observeThumbnailRounding()
                                         val thumbnail_shape: RoundedCornerShape = RoundedCornerShape(thumbnail_rounding)
 
                                         song?.Thumbnail(
-                                            MediaItemThumbnailProvider.Quality.HIGH,
+                                            ThumbnailProvider.Quality.HIGH,
                                             Modifier
                                                 .padding(end = 10.dp)
                                                 .size(controls_target_height - 100.dp)
@@ -276,29 +287,24 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                                 }
                             )
 
-                            val thumbnail_row_height: Dp =
+                            val max_thumbnail_row_height: Dp =
                                 if (compact_mode) (1f - absolute_expansion) * thumb_size
                                 else thumb_size
-                            
+
+                            val thumbnail_row_height: Dp = (min_height + ((max_thumbnail_row_height - min_height) * absolute_expansion)).coerceAtLeast(min_height)
+
                             if (!compact_mode || absolute_expansion < 1f) {
                                 LargeThumbnailRow(
                                     Modifier
                                         .height(thumbnail_row_height)
                                         .graphicsLayer {
-                                            alpha = if (compact_mode) 1f - absolute_expansion else 1f
+                                            alpha = if (compact_mode) ((0.5f - absolute_expansion) * 2f).coerceAtLeast(0f) else 1f
                                         }
                                         .offset {
                                             IntOffset(
-                                                (((column_width - actual_thumb_size.width).toPx() / 2) * absolute_expansion).roundToInt(),
+                                                (((main_column_target_width - actual_thumb_size.width).toPx() / 2) * absolute_expansion).roundToInt(),
                                                 0
                                             )
-                                        }
-                                        .onGloballyPositioned {
-                                            thumbnail_y_position = with (density) {(
-                                                it.positionInParent().y
-                                                + lerp(-controls_target_height.toPx() / 2f, 0f, 1f - absolute_expansion)
-                                                - 50.dp.toPx()
-                                            )}
                                         },
                                     onThumbnailLoaded = { song, image ->
                                         onThumbnailLoaded(song, image)
@@ -308,13 +314,14 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                                     },
                                     getSeekState = { seek_state },
                                     disable_parent_scroll_while_menu_open = false,
-                                    thumbnail_modifier = Modifier.onGloballyPositioned {
-                                        with (density) {
-                                            val position: Offset = it.positionInRoot()
-                                            actual_thumb_position = DpOffset(position.x.toDp(), position.y.toDp())
-                                            actual_thumb_size = DpSize(it.size.width.toDp(), it.size.height.toDp())
+                                    thumbnail_modifier = Modifier
+                                        .onGloballyPositioned {
+                                            with (density) {
+                                                val position: Offset = it.positionInRoot()
+                                                actual_thumb_position = DpOffset(position.x.toDp(), position.y.toDp())
+                                                actual_thumb_size = DpSize(it.size.width.toDp(), it.size.height.toDp())
+                                            }
                                         }
-                                    }
                                 )
                             }
 
@@ -328,80 +335,96 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                 }
             }
 
-            val current_controls_height: Dp = page_height - top_padding - bottom_padding - inner_bottom_padding
-
-            Box(
-                Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(start = inner_padding)
-            ) {
-                composeScope(
-                    top_bar,
-                    page_height
-                ) { top_bar, page_height ->
-                    val player: PlayerState = LocalPlayerState.current
-
-                    Column(
-                        Modifier
-                            .fillMaxSize()
-                            .offset {
-                                IntOffset(
-                                    ((1f - player.expansion.getBounded()) * page_height).roundToPx() / 2,
-                                    (current_controls_height * (1f - player.expansion.getBounded())).roundToPx()
-                                )
-                            }
-                            .graphicsLayer {
-                                alpha = 1f - (1f - player.expansion.getBounded()).absoluteValue
-                            },
-                        verticalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        Column(
-                            Modifier
-                                .weight(1f)
-                                .fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            val queue_shape: Shape = RoundedCornerShape(10.dp)
-
-                            QueueTab(
-                                null,
-                                Modifier
-                                    .fillMaxHeight()
-                                    .weight(1f)
-                                    .thenIf(player.np_theme_mode != ThemeMode.BACKGROUND) {
-                                        border(
-                                            stroke_width,
-                                            stroke_colour,
-                                            queue_shape
-                                        )
-                                    },
-                                inline = true,
-                                border_thickness = stroke_width + 1.dp,
-                                wave_border_mode_override = NowPlayingQueueWaveBorderMode.SCROLL,
-                                shape = queue_shape,
-                                button_row_arrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally),
-                                content_padding = PaddingValues(
-                                    bottom = inner_bottom_padding.coerceAtLeast(0.dp) + 35.dp
-                                ),
-                                getBackgroundColour = {
-                                    getNPAltBackground()
-//                                    if (player.np_theme_mode == ThemeMode.BACKGROUND) getNPAltOnBackground()
-//                                    else theme.background
-                                },
-                                getOnBackgroundColour = {
-                                    when (player.np_theme_mode) {
-                                        ThemeMode.BACKGROUND -> theme.vibrant_accent
-                                        ThemeMode.ELEMENTS -> theme.accent
-                                        ThemeMode.NONE -> theme.on_background
-                                    }
-                                },
-//                                getWaveBorderColour = { stroke_colour }
-                            )
+            PlayerQueueTab(
+                width_state = remember(parent_max_width) { derivedStateOf {
+                    parent_max_width - main_column_target_width - 5.dp - target_start_padding - target_end_padding - INNER_PADDING_DP.dp
+                } },
+                getHeight = remember(page_height) {{ page_height - top_padding - bottom_padding }},
+                getCurrentControlsHeight = remember {{ page_height - top_padding - bottom_padding - inner_bottom_padding }},
+                inner_bottom_padding = inner_bottom_padding,
+                stroke_colour = stroke_colour,
+                page_height = page_height,
+                modifier =
+                    Modifier
+                        .padding(start = INNER_PADDING_DP.dp)
+                        .graphicsLayer {
+                            alpha = absolute_expansion
                         }
-                    }
+            )
+        }
+    }
+}
+
+@Composable
+private fun PlayerQueueTab(
+    width_state: State<Dp>,
+    getHeight: () -> Dp,
+    getCurrentControlsHeight: () -> Dp,
+    inner_bottom_padding: Dp,
+    stroke_colour: Color,
+    page_height: Dp,
+    modifier: Modifier = Modifier
+) {
+    val player: PlayerState = LocalPlayerState.current
+    val queue_shape: Shape = RoundedCornerShape(10.dp)
+    val width: Dp by width_state
+
+    val default_background_opacity: Float by player.settings.theme.NOWPLAYING_DEFAULT_LANDSCAPE_QUEUE_OPACITY.observe()
+    val song_background_opacity: Float? by player.status.m_song?.LandscapeQueueOpacity?.observe(player.database)
+
+    val background_opacity: Float by remember(player.status.m_song) { derivedStateOf { song_background_opacity ?: default_background_opacity } }
+    val show_shadow: Boolean by remember(player.status.m_song) { derivedStateOf { background_opacity >= 1f } }
+
+    Box(
+        modifier
+            .requiredSize(width, getHeight())
+            .offset {
+                IntOffset(
+                    0,//-((1f - player.expansion.getBounded()) * (page_height - INNER_PADDING_DP.dp) / 2f).roundToPx(),
+                    (getCurrentControlsHeight() * (1f - player.expansion.getBounded())).roundToPx()
+                )
+            }
+            .thenIf(show_shadow) {
+                songThumbnailShadow(
+                    player.status.m_song,
+                    queue_shape,
+                    apply_expansion_to_colour = false
+                ) {
+                    alpha = 1f - (1f - player.expansion.getBounded()).absoluteValue
                 }
             }
-        }
+    ) {
+        QueueTab(
+            null,
+            Modifier
+                .fillMaxSize()
+                .thenIf(player.np_theme_mode != ThemeMode.BACKGROUND) {
+                    border(
+                        STROKE_WIDTH_DP.dp,
+                        stroke_colour,
+                        queue_shape
+                    )
+                },
+            inline = true,
+            border_thickness = STROKE_WIDTH_DP.dp + 1.dp,
+            wave_border_mode_override = NowPlayingQueueWaveBorderMode.SCROLL,
+            shape = queue_shape,
+            button_row_arrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally),
+            content_padding = PaddingValues(
+                bottom = inner_bottom_padding.coerceAtLeast(0.dp) + 35.dp
+            ),
+            getBackgroundColour = {
+                getNPAltBackground().copy(alpha = background_opacity)
+                // if (player.np_theme_mode == ThemeMode.BACKGROUND) getNPAltOnBackground()
+                // else theme.background
+            },
+            getOnBackgroundColour = {
+                when (player.np_theme_mode) {
+                    ThemeMode.BACKGROUND -> theme.vibrant_accent
+                    ThemeMode.ELEMENTS -> theme.accent
+                    ThemeMode.NONE -> theme.on_background
+                }
+            }
+        )
     }
 }

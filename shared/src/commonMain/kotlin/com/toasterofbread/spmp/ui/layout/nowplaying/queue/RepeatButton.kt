@@ -17,12 +17,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.common.getContrasted
-import com.toasterofbread.composekit.utils.common.getInnerSquareSizeOfCircle
-import com.toasterofbread.composekit.utils.composable.crossOut
-import com.toasterofbread.composekit.utils.modifier.background
+import dev.toastbits.composekit.utils.common.getContrasted
+import dev.toastbits.composekit.utils.common.getInnerSquareSizeOfCircle
+import dev.toastbits.composekit.utils.composable.crossOut
+import dev.toastbits.composekit.utils.modifier.background
 import spms.socketapi.shared.SpMsPlayerRepeatMode
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlin.math.roundToInt
 
 @Composable

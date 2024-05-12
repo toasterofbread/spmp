@@ -25,9 +25,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.composekit.platform.composable.BackHandler
-import com.toasterofbread.composekit.utils.common.getContrasted
-import com.toasterofbread.composekit.utils.composable.Marquee
+import dev.toastbits.composekit.platform.composable.BackHandler
+import dev.toastbits.composekit.utils.common.getContrasted
+import dev.toastbits.composekit.utils.composable.Marquee
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO

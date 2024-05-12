@@ -1,0 +1,82 @@
+CREATE TABLE Playlist (
+    id TEXT NOT NULL PRIMARY KEY,
+
+    playlist_type INTEGER,
+    item_count INTEGER,
+    total_duration INTEGER,
+    year INTEGER,
+    artists TEXT,
+    owner TEXT,
+    owned_by_user INTEGER,
+    continuation_token TEXT,
+    continuation_type INTEGER,
+    playlist_url TEXT,
+
+    custom_image_url TEXT,
+    image_width REAL,
+    sort_type INTEGER,
+
+    FOREIGN KEY (owner) REFERENCES Artist(id),
+
+    FOREIGN KEY (id) REFERENCES MediaItem(id)
+);
+
+byType: SELECT id FROM Playlist WHERE playlist_type = :playlist_type;
+byOwned: SELECT id FROM Playlist WHERE ((:owner_id IS NOT NULL AND owner = :owner_id) OR owned_by_user IS NOT NULL);
+byHidden: SELECT Playlist.id, playlist_type FROM Playlist, MediaItem WHERE MediaItem.id == Playlist.id AND MediaItem.hidden == :hidden;
+
+insertById {
+    INSERT OR IGNORE INTO MediaItem(id) VALUES(:id);
+    INSERT OR IGNORE INTO Playlist(id, playlist_type) VALUES(:id, :type);
+}
+removeById {
+    DELETE FROM Playlist WHERE id == :id;
+    DELETE FROM MediaItem WHERE id == :id;
+}
+
+clearOwners: UPDATE Playlist SET owner = NULL;
+
+countById: SELECT COUNT(*) FROM Playlist WHERE id == :id;
+
+getLargestIdByType:
+SELECT MAX(id)
+FROM Playlist
+WHERE playlist_type = :playlist_type;
+
+playlistTypeById: SELECT playlist_type FROM Playlist WHERE id == :id;
+updatePlaylistTypeById: UPDATE Playlist SET playlist_type = :playlist_type WHERE id == :id;
+
+itemCountById: SELECT item_count FROM Playlist WHERE id == :id;
+updateItemCountById: UPDATE Playlist SET item_count = :item_count WHERE id == :id;
+
+totalDurationById: SELECT total_duration FROM Playlist WHERE id == :id;
+updateTotalDurationById: UPDATE Playlist SET total_duration = :total_duration WHERE id == :id;
+
+yearById: SELECT year FROM Playlist WHERE id == :id;
+updateYearById: UPDATE Playlist SET year = :year WHERE id == :id;
+
+artistsById: SELECT artists FROM Playlist WHERE id == :id;
+updateArtistsById: UPDATE Playlist SET artists = :artists WHERE id == :id;
+
+ownerById: SELECT owner FROM Playlist WHERE id == :id;
+updateOwnerById: UPDATE Playlist SET owner = :owner WHERE id == :id;
+
+ownedByUserById: SELECT owned_by_user FROM Playlist WHERE id == :id;
+updateOwnedByUserById: UPDATE Playlist SET owned_by_user = :owned_by_user WHERE id == :id;
+
+continuationById: SELECT continuation_token, continuation_type FROM Playlist WHERE id == :id;
+updateContinuationById: UPDATE Playlist SET continuation_token = :continuation_token, continuation_type = :continuation_type WHERE id == :id;
+
+playlistUrlById: SELECT playlist_url FROM Playlist WHERE id == :id;
+updatePlaylistUrlById: UPDATE Playlist SET playlist_url = :playlist_url WHERE id == :id;
+
+--
+
+customImageUrlById: SELECT custom_image_url FROM Playlist WHERE id == :id;
+updateCustomImageUrlById: UPDATE Playlist SET custom_image_url = :image_url WHERE id == :id;
+
+imageWidthById: SELECT image_width FROM Playlist WHERE id == :id;
+updateImageWidthById: UPDATE Playlist SET image_width = :image_width WHERE id == :id;
+
+sortTypeById: SELECT sort_type FROM Playlist WHERE id == :id;
+updateSortTypeById: UPDATE Playlist SET sort_type = :sort_type WHERE id == :id;

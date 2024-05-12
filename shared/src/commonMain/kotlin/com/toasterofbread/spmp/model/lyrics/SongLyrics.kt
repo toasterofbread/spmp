@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.model.lyrics
 
-import com.toasterofbread.composekit.utils.common.lazyAssert
-import com.toasterofbread.composekit.utils.common.toHiragana
+import dev.toastbits.composekit.utils.common.lazyAssert
+import dev.toastbits.composekit.utils.common.toHiragana
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 
@@ -53,7 +53,7 @@ data class SongLyrics(
 
         data class Text(val text: String, var reading: String? = null) {
             init {
-                require(text.isNotEmpty())
+                // require(text.isNotEmpty())
 
                 if (reading != null) {
                     if (reading == "*") {

@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Version=1.0
-Name=SpMp
-Exec=bin/SpMp
-Icon=SpMp
-Terminal=false
-Categories=Audio;AudioVideo;

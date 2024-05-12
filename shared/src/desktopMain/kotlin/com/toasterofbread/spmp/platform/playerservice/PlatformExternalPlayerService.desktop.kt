@@ -15,12 +15,12 @@ actual class PlatformExternalPlayerService: ExternalPlayerService(), PlayerServi
             instance: PlayerService?,
             onConnected: (PlayerService) -> Unit,
             onDisconnected: () -> Unit,
-            ): Any {
+        ): Any {
             require(instance is ExternalPlayerService?)
             val service: ExternalPlayerService =
-                if (instance != null) instance.also { it._context = context }
+                if (instance != null) instance.also { it.setContext(context) }
                 else PlatformExternalPlayerService().also {
-                    it._context = context
+                    it.setContext(context)
                     it.onCreate()
                 }
             onConnected(service)

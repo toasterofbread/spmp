@@ -26,9 +26,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.platform.composable.BackHandler
-import com.toasterofbread.composekit.utils.composable.WidthShrinkText
-import com.toasterofbread.composekit.utils.modifier.background
+import dev.toastbits.composekit.platform.composable.BackHandler
+import dev.toastbits.composekit.utils.composable.WidthShrinkText
+import dev.toastbits.composekit.utils.modifier.background
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.resources.getString
 
@@ -45,7 +45,7 @@ internal fun SpecialModeMenu(special_mode: SpecialMode?, song: Song, setMode: (S
         Modifier
             .fillMaxWidth()
             .padding(15.dp)
-            .background(RoundedCornerShape(16.dp), player.theme.accent_provider)
+            .background(RoundedCornerShape(16.dp)) { player.theme.accent }
             .padding(horizontal = 10.dp)
     ) { mode ->
         val button_width = 40.dp

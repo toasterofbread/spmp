@@ -29,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
@@ -37,24 +36,23 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.toasterofbread.composekit.platform.composable.SwipeRefresh
-import com.toasterofbread.composekit.settings.ui.Theme
-import com.toasterofbread.composekit.utils.common.getThemeColour
-import com.toasterofbread.composekit.utils.composable.getTop
-import com.toasterofbread.composekit.utils.modifier.background
-import com.toasterofbread.composekit.utils.modifier.brushBackground
-import com.toasterofbread.composekit.utils.modifier.drawScopeBackground
-import com.toasterofbread.composekit.utils.modifier.horizontal
+import dev.toastbits.composekit.platform.composable.SwipeRefresh
+import dev.toastbits.composekit.settings.ui.Theme
+import dev.toastbits.composekit.utils.common.getThemeColour
+import dev.toastbits.composekit.utils.composable.getTop
+import dev.toastbits.composekit.utils.modifier.background
+import dev.toastbits.composekit.utils.modifier.brushBackground
+import dev.toastbits.composekit.utils.modifier.drawScopeBackground
+import dev.toastbits.composekit.utils.modifier.horizontal
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
-import com.toasterofbread.spmp.model.settings.category.TopBarSettings
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
 private const val ARTIST_IMAGE_SCROLL_MODIFIER = 0.25f
 
@@ -65,7 +63,6 @@ fun ArtistLayout(
     previous_item: MediaItem? = null,
     content_padding: PaddingValues = PaddingValues(),
     multiselect_context: MediaItemMultiSelectContext? = null,
-    show_top_bar: Boolean = true,
     loading: Boolean = false,
     onReload: (() -> Unit)? = null,
     getAllSelectableItems: (() -> List<List<MultiSelectItem>>)? = null,
@@ -74,14 +71,14 @@ fun ArtistLayout(
     val player: PlayerState = LocalPlayerState.current
     val density: Density = LocalDensity.current
 
-    val thumbnail_provider: MediaItemThumbnailProvider? by artist.ThumbnailProvider.observe(player.database)
+    val thumbnail_provider: ThumbnailProvider? by artist.ThumbnailProvider.observe(player.database)
 
     LaunchedEffect(thumbnail_provider) {
         thumbnail_provider?.also { provider ->
             MediaItemThumbnailLoader.loadItemThumbnail(
                 artist,
                 provider,
-                MediaItemThumbnailProvider.Quality.HIGH,
+                ThumbnailProvider.Quality.HIGH,
                 player.context
             )
         }
@@ -89,73 +86,26 @@ fun ArtistLayout(
 
     // TODO display previous_item
 
-    val screen_width: Dp = player.screen_size.width
-
     val main_column_state: LazyListState = rememberLazyListState()
 
-    val background_modifier: Modifier = Modifier.background(player.theme.background_provider)
+    val background_modifier: Modifier = Modifier.background({ player.theme.background })
     val gradient_size = 0.35f
     var accent_colour: Color? by remember { mutableStateOf(null) }
 
-    val top_bar_over_image: Boolean by TopBarSettings.Key.DISPLAY_OVER_ARTIST_IMAGE.rememberMutableState()
-    var music_top_bar_showing: Boolean by remember { mutableStateOf(false) }
-    val top_bar_alpha: Float by animateFloatAsState(if (!top_bar_over_image || music_top_bar_showing || multiselect_context?.is_active == true) 1f else 0f)
-
-    fun getBackgroundAlpha(): Float = with (density) {
-        if (!top_bar_over_image || main_column_state.firstVisibleItemIndex > 0) top_bar_alpha
-        else (0.5f + ((main_column_state.firstVisibleItemScrollOffset / screen_width.toPx()) * 0.5f)) * top_bar_alpha
-    }
-
-    fun Theme.getBackgroundColour(): Color = background.copy(alpha = getBackgroundAlpha())
-
-    @Composable
-    fun TopBar() {
-        Column(
-            Modifier
-                .drawScopeBackground {
-                    player.theme.getBackgroundColour()
-                }
-                .pointerInput(Unit) {}
-                .zIndex(1f)
-        ) {
-            val showing = music_top_bar_showing || multiselect_context?.is_active == true
-            AnimatedVisibility(showing) {
-                Spacer(Modifier.height(WindowInsets.getTop()))
-            }
-
-            music_top_bar_showing = player.top_bar.MusicTopBar(
-                TopBarSettings.Key.SHOW_IN_ARTIST,
-                Modifier.fillMaxWidth().zIndex(1f),
-                padding = content_padding.horizontal
-            ).showing
-
-            multiselect_context?.InfoDisplay(
-                Modifier.padding(top = 10.dp).padding(content_padding.horizontal),
-                getAllItems = getAllSelectableItems
-            )
-
-            AnimatedVisibility(showing) {
-                WaveBorder(
-                    Modifier.fillMaxWidth(),
-                    getColour = { background },
-                    getAlpha = { getBackgroundAlpha() }
-                )
-            }
-        }
-    }
+    val top_padding: Dp = content_padding.calculateTopPadding()
 
     Column(modifier) {
-        if (show_top_bar && !top_bar_over_image) {
-            TopBar()
-        }
+        Spacer(
+            Modifier
+                .height(top_padding)
+                .fillMaxWidth()
+                .then(background_modifier)
+                .zIndex(1f)
+        )
 
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-            if (show_top_bar && top_bar_over_image) {
-                TopBar()
-            }
-
+        Box(Modifier.fillMaxSize().weight(1f), contentAlignment = Alignment.TopCenter) {
             artist.Thumbnail(
-                MediaItemThumbnailProvider.Quality.HIGH,
+                ThumbnailProvider.Quality.HIGH,
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f)
@@ -212,7 +162,7 @@ fun ArtistLayout(
                                 },
                             contentAlignment = Alignment.BottomCenter
                         ) {
-                            TitleBar(
+                            ArtistPageTitleBar(
                                 artist,
                                 Modifier
                                     .offset {

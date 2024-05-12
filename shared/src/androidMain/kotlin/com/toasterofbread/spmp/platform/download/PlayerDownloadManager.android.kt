@@ -1,13 +1,13 @@
 package com.toasterofbread.spmp.platform.download
 
 import android.os.Build
-import com.toasterofbread.composekit.platform.PlatformFile
+import dev.toastbits.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.startPlatformService
 import com.toasterofbread.spmp.platform.unbindPlatformService
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.DownloadRequestCallback
+import com.toasterofbread.spmp.service.playercontroller.DownloadRequestCallback
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -124,26 +124,42 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
         service?.downloader?.getAllDownloadsStatus() ?: emptyList()
 
     @Synchronized
-    actual fun startDownload(song: Song, silent: Boolean, file_uri: String?, callback: DownloadRequestCallback?) {
+    actual fun startDownload(
+        song: Song,
+        silent: Boolean,
+        custom_uri: String?,
+        download_lyrics: Boolean,
+        direct: Boolean,
+        callback: DownloadRequestCallback?
+    ) {
         if (!silent && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.application_context?.requestNotficationPermission() { granted ->
+            context.application_context?.requestNotficationPermission { granted ->
                 if (granted) {
-                    performDownload(song, silent, file_uri, callback)
+                    performDownload(song, silent, custom_uri, download_lyrics, direct, callback)
                 }
             }
         }
         else {
-            performDownload(song, silent, file_uri, callback)
+            performDownload(song, silent, custom_uri, download_lyrics, direct, callback)
         }
     }
 
-    private fun performDownload(song: Song, silent: Boolean, file_uri: String?, onCompleted: DownloadRequestCallback?) {
+    private fun performDownload(
+        song: Song,
+        silent: Boolean,
+        custom_uri: String?,
+        download_lyrics: Boolean,
+        direct: Boolean,
+        onCompleted: DownloadRequestCallback?
+    ) {
         onService {
             val instance: Int = result_callback_id++
             addResultCallback(PlayerDownloadService.IntentAction.START_DOWNLOAD, song.id, instance) { data ->
                 val status: DownloadStatus = data["status"] as DownloadStatus
                 context.coroutine_scope.launch {
-                    MediaItemLibrary.onSongFileAdded(status)
+                    if (custom_uri == null) {
+                        MediaItemLibrary.onSongFileAdded(status)
+                    }
                     onCompleted?.invoke(status)
                 }
             }
@@ -154,7 +170,9 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
                     mapOf(
                         "song_id" to song.id,
                         "silent" to silent,
-                        "file_uri" to file_uri
+                        "custom_uri" to custom_uri,
+                        "download_lyrics" to download_lyrics,
+                        "direct" to direct
                     ),
                     instance
                 )

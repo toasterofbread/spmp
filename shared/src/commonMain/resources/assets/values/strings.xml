@@ -1,18 +1,29 @@
 <resources>
-    <string name="language_name">English</string>
+    <string name="language_name">English (GB)</string>
 
-    <string name="version_string" translatable="false">0.2.4</string>
-    <string name="version_code" translatable="false">10</string>
+    <string name="version_string" translatable="false">0.3.1</string>
+    <string name="version_code" translatable="false">12</string>
 
     <string name="app_name" translatable="false">SpMp</string>
     <string name="app_name_debug" translatable="false">SpMp (debug)</string>
     <string name="project_url" translatable="false">https://github.com/toasterofbread/spmp</string>
+    <string name="project_license" translatable="false">GPL-3.0</string>
+    <string name="project_author" translatable="false">toasterofbread</string>
     <string name="report_issue_url" translatable="false">https://github.com/toasterofbread/spmp/issues/new?labels=Bug&amp;template=bug_report.md&amp;title=%5BBug%5D+</string>
     <string name="server_info_url" translatable="false">https://spmp.toastbits.dev/docs/server/about/</string>
     <string name="documentation_url" translatable="false">https://spmp.toastbits.dev/docs/about</string>
     <string name="server_documentation_url" translatable="false">https://spmp.toastbits.dev/docs/server/about</string>
+    <string name="flatpak_documentation_url" translatable="false">https://spmp.toastbits.dev/docs/client/installation-flatpak</string>
+    <string name="donation_url" translatable="false">https://liberapay.com/toasterofbread/</string>
 
     <string name="project_url_name">project URL</string>
+
+    <string name="info_using_release_$x">Using release $x</string>
+    <string name="info_using_non_release_commit_$x">Using non-release commit $x</string>
+
+    <string name="version_message_release_$appver_$apiver_$split">SpMp release build $appver $splitand API version $apiver</string> <!--Pay attention to the word ‘and’. -->
+    <string name="version_message_non_release_$commit_$apiver_$split">SpMp non-release build on $commit $splitand API version $apiver</string>
+    <string name="help_message">TODO</string>
 
     <string name="spms_client_type_spmp_player">SpMp (player)</string>
     <string name="spms_client_type_info_spmp_player">A graphical instance of SpMp that plays its own audio</string>
@@ -34,6 +45,14 @@
     <string name="font_option_default_$x">Default ($x)</string>
     <string name="font_option_system">System font</string>
     <string name="font_option_hc_maru_gothic">HC Maru Gothic</string>
+
+    <string name="app_page_song_feed">Song feed</string>
+    <string name="app_page_library">Library</string>
+    <string name="app_page_search">Search</string>
+    <string name="app_page_radio_builder">Radio builder</string>
+    <string name="app_page_control_panel">Control panel</string>
+    <string name="app_page_settings">Settings</string>
+    <string name="app_page_profile">Profile</string>
 
     <string name="home_feed_listen_again">Listen again</string>
     <string name="home_feed_mixed_for_you">Mixed for you</string>
@@ -126,6 +145,7 @@
     <string name="action_close">Close</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_share">Share</string>
+    <string name="action_select">Select</string>
     <string name="action_confirm_action">Yes</string>
     <string name="action_deny_action">No</string>
     <string name="action_warning_accept">Accept</string>
@@ -150,8 +170,12 @@
 
     <string name="song_theme_menu_corner_radius">Corner radius</string>
     <string name="song_theme_menu_gradient_depth">Gradient depth</string>
-    <string name="song_theme_menu_background_image_opacity">Background image opacity</string>
+    <string name="song_theme_menu_background_image_opacity">Background content opacity</string>
+    <string name="song_theme_menu_video_position">Video position</string>
+    <string name="song_theme_menu_queue_opacity">Queue opacity</string>
     <string name="song_theme_menu_image_shadow_radius">Shadow radius</string>
+    <string name="song_theme_menu_wave_speed">Wave speed</string>
+    <string name="song_theme_menu_wave_opacity">Wave opacity</string>
 
     <string name="song_notif_image_menu_open">Adjust notification image</string>
     <string name="song_notif_image_menu_adjust_offset">Change image offset</string>
@@ -259,7 +283,6 @@
     <string name="report_error">Report</string>
     <string name="wrap_text_switch_label">Wrap text</string>
     <string name="upload_to_paste_dot_ee">Upload to Paste.ee</string>
-    <string name="error_info_display_show_json_data">Show JSON data</string>
 
     <string name="lpm_action_radio">Start radio</string>
     <string name="lpm_action_play">Play</string>
@@ -340,7 +363,7 @@
     <string name="settings_value_out_of_$range">Out of range ($range)</string>
     <string name="settings_value_not_int">Not an integer</string>
     <string name="settings_value_not_float">Not a float</string>
-    <string name="settings_value_not_ipv4">Not a valid IPv4 addrefss</string>
+    <string name="settings_value_not_ipv4">Not a valid IPv4 address</string>
     <string name="settings_value_not_port">Not a valid port</string>
 
     <string name="s_page_preferences">Settings</string>
@@ -369,9 +392,8 @@
     <string name="s_key_hp_show_timed_lyrics">Show timed lyrics</string>
     <string name="s_sub_hp_show_timed_lyrics">Timed lyrics will appear on the top bar if available</string>
 
-    <string name="s_key_feed_show_filter_bar">Show filter bar</string>
-    <string name="s_sub_feed_show_filter_bar">If hidden, the search page still can be accessed by long-pressing the library search button</string>
     <string name="s_key_feed_show_song_download_indicators">Show song download indicators</string>
+    <string name="s_key_feed_show_artists_row">Show artists row</string>
     <string name="s_key_feed_initial_rows">Initial feed rows</string>
     <string name="s_key_feed_square_preview_text_lines">Square item max text rows</string>
     <string name="s_key_feed_grid_row_count">Default grid row count</string>
@@ -412,6 +434,8 @@
     <string name="s_key_stop_player_on_app_close">Stop player on app close</string>
     <string name="s_sub_stop_player_on_app_close">Music player will be stopped if the app is cleared from recents</string>
 
+    <string name="s_key_player_expand_swipe_sensitivity">Player expand swipe gesture sensitivity</string>
+
     <string name="s_key_mini_player_show_prev_button">Show previous button in mini-player</string>
     <string name="s_key_mini_player_overscroll_clear_enabled">Swipe mini-player down to clear queue</string>
     <string name="s_key_mini_player_overscroll_clear_time">Swipe clear hold time</string>
@@ -442,7 +466,7 @@
     <string name="s_option_wave_border_mode_scroll">Animate on queue scroll</string>
     <string name="s_option_wave_border_mode_none">No animation</string>
     <string name="s_option_wave_border_mode_line">Line border</string>
-    
+
     <string name="s_key_np_queue_radio_info_position">Queue radio info position</string>
     <string name="s_option_np_queue_radio_info_top_bar">Button bar</string>
     <string name="s_option_np_queue_radio_info_above_items">Above queue items</string>
@@ -477,8 +501,25 @@
     <string name="s_option_np_accent_none">Don\'t use accent colour</string>
 
     <string name="s_key_np_default_gradient_depth">Default gradient depth</string>
-    <string name="s_key_np_default_background_image_opacity">Default landscape background image opacity</string>
-    <string name="s_key_np_default_image_shadow_radius">Default image shadow size</string>
+    <string name="s_key_np_default_background_image_video_opacity">Default landscape background image/video opacity</string>
+    <string name="s_key_np_default_video_position">Video position</string>
+    <string name="s_key_np_default_video_position_none">Hidden</string>
+    <string name="s_key_np_default_video_position_background">Player background</string>
+    <string name="s_key_np_default_video_position_thumbnail">Player thumbnail</string>
+    <string name="s_key_np_default_landscape_queue_opacity">Default landscape queue opacity</string>
+    <string name="s_key_np_default_shadow_radius">Default shadow size</string>
+    <string name="s_key_np_default_image_corner_rounding">Default image corner rounding</string>
+    <string name="s_key_np_default_wave_speed">Default wave speed</string>
+    <string name="s_key_np_default_wave_opacity">Default wave opacity</string>
+
+    <string name="s_key_show_expanded_player_wave">Show wave in expanded player</string>
+
+    <string name="s_group_theming_desktop">Desktop-only options</string>
+
+    <string name="s_key_enable_window_transparency">Enable window transparency</string>
+    <string name="s_sub_enable_window_transparency">Requires restart for change to apply</string>
+    <string name="s_key_window_background_opacity">Window background opacity</string>
+    <string name="s_sub_window_background_opacity">Window transparency must be enabled for this to take effect</string>
 
     <string name="s_key_lyrics_default_source">Default lyrics source</string>
 
@@ -493,37 +534,24 @@
     <string name="s_key_lyrics_default_furigana">Show furigana by default</string>
 
     <string name="s_key_lyrics_text_alignment">Text alignment</string>
-    <string name="s_option_lyrics_text_alignment_left">Left</string>
+    <string name="s_option_lyrics_text_alignment_start">Start</string>
     <string name="s_option_lyrics_text_alignment_center">Center</string>
-    <string name="s_option_lyrics_text_alignment_right">Right</string>
+    <string name="s_option_lyrics_text_alignment_end">End</string>
 
     <string name="s_key_lyrics_extra_padding">Extra padding</string>
     <string name="s_sub_lyrics_extra_padding">Add extra padding above and below lyrics for increased scrolling range</string>
-    
+
     <string name="s_key_lyrics_enable_word_sync">Enable word sync</string>
     <string name="s_sub_lyrics_enable_word_sync">When available, lyrics sync will be displayed per-word instead of per-line</string>
 
     <string name="s_key_lyrics_font_size">Font size</string>
 
-    <string name="s_key_lyrics_top_bar_enable">Enable top bar lyrics</string>
-    <string name="s_key_lyrics_top_bar_max_lines">Max lines</string>
-    <string name="s_key_lyrics_top_bar_preapply_max_lines">Pre-allocate the space needed to display max lines</string>
     <string name="s_key_lyrics_sync_delay">Lyrics sync delay</string>
     <string name="s_sub_lyrics_sync_delay">A delay in seconds applied to lyrics sync</string>
     <string name="s_key_lyrics_sync_delay_topbar">Top bar lyrics sync delay</string>
     <string name="s_sub_lyrics_sync_delay_topbar">An additional delay applied only to lyrics in the top bar</string>
     <string name="s_key_lyrics_sync_delay_bluetooth">Bluetooth lyrics sync delay</string>
     <string name="s_sub_lyrics_sync_delay_bluetooth">An additional delay applied only while listening with Bluetooth audio</string>
-
-    <string name="s_key_top_bar_lyrics_show_furigana">Show furigana</string>
-    <string name="s_key_top_bar_lyrics_show_in_library">Show in library</string>
-    <string name="s_key_top_bar_lyrics_show_in_radiobuilder">Show in the radio builder</string>
-    <string name="s_key_top_bar_lyrics_show_in_settings">Show in settings</string>
-    <string name="s_key_top_bar_lyrics_show_in_login">Show in login pages</string>
-    <string name="s_key_top_bar_lyrics_show_in_playlist">Show in playlist pages</string>
-    <string name="s_key_top_bar_lyrics_show_in_artist">Show in artist pages</string>
-    <string name="s_key_top_bar_lyrics_show_in_viewmore">Show in home feed view more pages</string>
-    <string name="s_key_top_bar_lyrics_show_in_search">Show in search page</string>
 
     <string name="s_key_stream_audio_quality">Stream audio quality</string>
     <string name="s_sub_stream_audio_quality">Target audio quality when streaming music</string>
@@ -586,6 +614,10 @@
     <string name="s_key_startup_command">Startup command</string>
     <string name="s_sub_startup_command">Command to be executed at program start</string>
 
+    <string name="s_key_force_software_renderer">Force software renderer</string>
+    <string name="s_sub_force_software_renderer">Requires restart for change to apply</string>
+
+    <string name="s_group_server">Server</string>
     <string name="s_info_server">The SpMp server component (SpMs) must be running at the specified port IP address and port. https://github.com/toasterofbread/spmp-server</string>
 
     <string name="s_key_enable_external_server_mode">Enable external server mode</string>
@@ -593,9 +625,13 @@
 
     <string name="s_sub_always_enabled_because_spms_not_packaged">This option always enabled because this build of SpMp was not packaged with SpMs</string>
 
-    <string name="s_key_external_server_ip">External server IP address</string>
+    <string name="s_key_server_ip">External server IP address</string>
     <string name="s_key_server_port">Server port</string>
-    <string name="s_key_kill_child_server_on_exit">Stop child server on exit</string>
+    <string name="s_key_local_server_command">Server command</string>
+    <string name="s_sub_local_server_command">Command to be run when manually starting the server from within SpMp&#xA;The first occurence of '$@' will be replaced with the server arguments, otherwise they will be appended to the command</string>
+    <string name="s_key_server_local_start_automatically">Start local server automatically</string>
+    <string name="s_sub_server_local_start_automatically">On startup, if a server is not found immediately, a server will be started automatically using the specified command</string>
+    <string name="s_key_server_kill_child_on_exit">Stop child server on exit</string>
 
     <string name="s_cat_development">Development</string>
 
@@ -604,6 +640,9 @@
     <string name="s_group_localisation">Localisation</string>
     <string name="s_key_unlocalised_strings">Unlocalised strings</string>
     <string name="s_sub_unlocalised_strings">Strings that have not been localised for the current language</string>
+
+    <string name="s_key_search_search_for_non_music">Search for non-music items</string>
+    <string name="s_sub_search_search_for_non_music">Perform searches using www.youtube.com instead of music.youtube.com</string>
 
     <string name="s_group_discord_status_disable_when">Disable status when</string>
     <string name="s_key_discord_status_disable_when_invisible">Invisible</string>
@@ -632,18 +671,17 @@
     <string name="s_sub_discord_status_show_button_project">Opens the project repository on GitHub</string>
     <string name="s_key_discord_status_button_project_text">Project page button text</string>
 
-    <string name="s_key_topbar_lyrics_linger">Lyrics linger</string>
-    <string name="s_sub_topbar_lyrics_linger">When a line ends, it will remain visible until the next line begins</string>
-    <string name="s_key_topbar_visualiser_width">Visualiser width</string>
-    <string name="s_key_topbar_show_lyrics_in_queue">Show lyrics in music queue</string>
-    <string name="s_key_topbar_show_visualiser_in_queue">Show visualiser in music queue</string>
-    <string name="s_key_topbar_display_over_artist_image">Display over main image on artist page</string>
+    <string name="s_key_configured_shortcuts">Configured shortcuts</string>
+    <string name="s_key_navigate_song_with_numbers">Seek through song with number keys</string>
 
     <string name="s_cat_general">General</string>
-    <string name="s_cat_desc_general">Language, and other options</string>
+    <string name="s_cat_desc_general">Language, font, and other options</string>
 
     <string name="s_cat_behaviour">Behaviour</string>
     <string name="s_cat_desc_behaviour">Various display and action tweaks</string>
+
+    <string name="s_cat_layout">Layout</string>
+    <string name="s_cat_desc_layout">Customise layout arrangement and content</string>
 
     <string name="s_cat_player">Player</string>
     <string name="s_cat_desc_player">Adjust music player view</string>
@@ -657,9 +695,6 @@
     <string name="s_cat_lyrics">Lyrics</string>
     <string name="s_cat_desc_lyrics">Lyrics appearance and behaviour</string>
 
-    <string name="s_cat_topbar">Music top bar</string>
-    <string name="s_cat_desc_topbar">Show, hide, and customise the top bar</string>
-
     <string name="s_cat_discord_status">Discord status</string>
     <string name="s_cat_desc_discord_status">Manage Discord account and customise status appearance</string>
 
@@ -669,12 +704,22 @@
     <string name="s_cat_streaming">Playback</string>
     <string name="s_cat_desc_streaming">Audio quality and playback settings</string>
 
-    <string name="s_cat_server">Server</string>
-    <string name="s_cat_desc_server">Configure connections to spmp-server</string>
+    <string name="s_cat_shortcut">Shortcuts</string>
+    <string name="s_cat_desc_shortcut">Bind keys or mouse buttons to in-app actions</string>
+
+    <string name="s_cat_android">Android</string>
+    <string name="s_cat_desc_android">Platform-specific configuration</string>
+
+    <string name="s_cat_desktop">Desktop</string>
+    <string name="s_cat_desc_desktop">Platform-specific configuration</string>
 
     <string name="s_cat_misc">Other</string>
     <string name="s_cat_desc_misc">Cache and other miscellaneous options</string>
 
+    <string name="s_cat_dependencies">Dependencies</string>
+    <string name="s_cat_desc_dependencies">View software libraries used by SpMp</string>
+
+    <string name="s_cat_search">Search</string>
     <string name="s_cat_youtube_auth">YouTube credentials</string>
     <string name="s_cat_discord_auth">Discord credentials</string>
 
@@ -701,7 +746,7 @@
     <string name="control_panel_server_port_$x">Port: $x</string>
     <string name="control_panel_server_name_$x">Name: $x</string>
     <string name="control_panel_server_device_name_$x">Host device: $x</string>
-    <string name="control_panel_server_spms_git_commit_hash_$x">SpMs commit hash: $x</string>
+    <string name="control_panel_server_spms_api_version_$x">SpMs API version: $x</string>
     <string name="control_panel_server_connected_clients">Other connected clients</string>
     <string name="control_panel_server_connected_clients_loading">Loading</string>
     <string name="control_panel_server_this_client">This client</string>
@@ -714,14 +759,18 @@
     <string name="auth_sign_in">Sign in</string>
     <string name="auth_sign_out">Sign out</string>
 
-    <string name="info_using_release_$x">Using release $x</string>
-    <string name="info_using_non_release_commit_$x">Using non-release commit $x</string>
-
-    <string name="warning_ytm_login">You will be directed to an in-app webview in order to log into YouTube Music.&#xA;&#xA;Once logged in, your session cookie will be extracted, stored, and used only for API requests to YouTube Music such as getting your recommended feed and subscribing to artists.&#xA;&#xA;Continue?</string>
-    <string name="info_ytm_login">You will be directed to an in-app webview in order to log into YouTube Music.&#xA;&#xA;Once logged in, your session cookie will be extracted, stored, and used only for API requests to YouTube Music such as getting your recommended feed and subscribing to artists.</string>
+    <string name="warning_ytm_login">Once logged in, your session cookie will be extracted, stored, and used only for API requests to YouTube Music such as getting your recommended feed and subscribing to artists.&#xA;&#xA;Continue?</string>
+    <string name="info_ytm_login">Once logged in, your session cookie will be extracted, stored, and used only for API requests to YouTube Music such as getting your recommended feed and subscribing to artists.</string>
     <string name="warning_discord_login">You will be directed to an in-app webview in order to log into Discord.&#xA;&#xA;Once logged in, your account token will be extracted, stored, and used only for gateway connections to Discord for setting your current status.&#xA;&#xA;See https://github.com/dead8309/Kizzy for more information.&#xA;&#xA;Continue?</string>
     <string name="info_discord_login">You will be directed to an in-app webview in order to log into Discord.&#xA;&#xA;Once logged in, your account token will be extracted, stored, and used only for gateway connections to Discord for setting your current status.&#xA;&#xA;See https://github.com/dead8309/Kizzy for more information.</string>
     <string name="warning_discord_kizzy">SpMp uses the KizzyRPC library to set your Discord account's status. This involves using the Discord Gateway connection, which may be considered a violation of Discord's TOS. However, there are no known cases of user accounts being suspended for this reason. Use at your own risk.&#xA;&#xA;See https://github.com/dead8309/Kizzy for more information.</string>
+    <string name="info_flatpak_discord_$url">The Flatpak version of SpMp may require additional setup to use Discord status. See $url if you have issues.</string>
+
+    <string name="webview_runtime_downloading">Downloading runtime...</string>
+    <string name="webview_restart_required">Please restart the application to continue</string>
+
+    <string name="warning_spms_api_version_mismatch">SpMs API version mismatch</string>
+    <string name="warning_spms_api_version_mismatch_$theirs_$ours">The connected server's API version ($theirs) doesn't match the API version that this build of SpMp was designed for ($ours). This may cause unexpected behaviour or crashes.</string>
 
     <string name="youtube_manual_login_title">YouTube manual log-in</string>
     <string-array name="youtube_manual_login_steps">
@@ -730,18 +779,13 @@
         <item>Go to the network tab</item>
         <item>Go to https://music.youtube.com/</item>
         <item>Find any POST request to https://music.youtube.com/youtubei/v1/... such as /browse or /account_menu</item>
-        <item>Copy the request headers and enter them below</item>
+        <item>Right-click the request and select 'Copy' (or 'Copy value') and then 'Copy as cURL (Bash)' to copy the request headers, then paste them below</item>
     </string-array>
-    <string name="youtube_manual_login_suffix">On Firefox, this can be done by right-clicking the request and selecting 'Copy value' and then 'Copy Request Headers'.&#xA;&#xA;In other browsers, click on the request and go to the 'Headers' tab, scroll down to 'Request headers', and copy all of the headers in that section starting from 'Accept: */*'.</string>
+    <string name="youtube_manual_login_suffix"></string>
     <string name="youtube_manual_login_field">Headers</string>
 
     <string name="youtube_login_load_message">Loading login page</string>
     <string name="youtube_account_selection_title">Select account</string>
-    <string name="youtube_channel_creation_load_message">Loading channel creation form</string>
-
-    <string name="youtube_channel_creation_title">Register YouTube Music profile</string>
-    <string name="youtube_channel_creation_subtitle">This can also be done on https://music.youtube.com/ by logging in and going to 'Your channel'</string>
-    <string name="youtube_channel_creation_confirm">Create</string>
 
     <string name="manual_login_error_missing_following_headers">Missing the following headers:</string>
     <string name="manual_login_desktop_browser_may_be_needed">You may need to use a desktop browser to complete these steps</string>
@@ -771,4 +815,204 @@
     <string name="settings_import_result_$x_from_file">$x value(s) imported from file</string>
     <string name="settings_import_result_$x_from_default">$x value(s) restored from defaults</string>
 
+    <string name="content_bar_selection">Select content bar</string>
+    <string name="content_bar_selection_list_built_in">Built-in</string>
+    <string name="content_bar_selection_list_custom">Custom</string>
+    <string name="content_bar_selection_create_new">Create</string>
+    <string name="content_bar_selection_warn_no_primary">Primary bar not visible</string>
+    <string name="content_bar_selection_warn_no_secondary">Secondary bar not visible</string>
+    <string name="content_bar_selection_exit_warning_title">Important bars not set</string>
+    <string name="content_bar_selection_exit_warning_text">Are you sure you want to exit?</string>
+
+    <string name="content_bar_empty">Empty</string>
+    <string name="content_bar_primary">Primary</string>
+    <string name="content_bar_desc_primary">Primary page-specific content</string>
+    <string name="content_bar_secondary">Secondary</string>
+    <string name="content_bar_desc_secondary">Secondary page-specific content</string>
+
+    <string name="content_bar_custom_no_$x">Custom bar #$x</string>
+    <string name="content_bar_custom_invalid">Invalid custom bar</string>
+
+    <string name="content_bar_editor_bar_name">Bar name</string>
+    <string name="content_bar_editor_bar_size">Bar size</string>
+    <string name="content_bar_editor_add_element">Add element</string>
+    <string name="content_bar_editor_move_element">Move element</string>
+    <string name="content_bar_editor_configure_element_$x">Configure element</string>
+    <string name="content_bar_editor_no_elements_added">No elements added</string>
+    <string name="content_bar_editor_pick_template">Pick template</string>
+
+    <string name="content_bar_editor_template_dialog_title">Pick template</string>
+
+    <string name="content_bar_template_navigation">Navigation</string>
+    <string name="content_bar_template_desc_navigation">Controls for navigating between app pages</string>
+    <string name="content_bar_template_lyrics">Lyrics</string>
+    <string name="content_bar_template_desc_lyrics">Synchronised lyrics for the current song</string>
+    <string name="content_bar_template_song_actions">Song actions</string>
+    <string name="content_bar_template_desc_song_actions">Actions for interacting with the playing song</string>
+    <string name="content_bar_template_default_portrait_top_upper">Portrait upper top bar</string>
+    <string name="content_bar_template_default_portrait_top_lower">Portrait lower top bar</string>
+
+    <string name="content_bar_element_type_button">Button</string>
+    <string name="content_bar_element_type_spacer">Spacer</string>
+    <string name="content_bar_element_type_lyrics">Lyrics</string>
+    <string name="content_bar_element_type_visualiser">Visualiser</string>
+    <string name="content_bar_element_type_pinned_items">Pinned items</string>
+    <string name="content_bar_element_type_content_bar">Content bar</string>
+
+    <string name="content_bar_element_builtin_config_size_mode">Size mode</string>
+    <string name="content_bar_element_builtin_config_size_mode_fill">Fill</string>
+    <string name="content_bar_element_builtin_config_size_mode_static">Static</string>
+    <string name="content_bar_element_builtin_config_size_mode_percentage">Percentage</string>
+    <string name="content_bar_element_builtin_config_size">Size</string>
+    <string name="content_bar_element_builtin_config_hide_bar_when_empty">Hide bar when empty</string>
+
+    <string name="content_bar_element_button_config_type">Action type</string>
+    <string name="content_bar_element_button_config_become_close_while_target_open">Show close button while page open</string>
+
+    <string name="content_bar_element_lyrics_config_alignment">Alignment</string>
+    <string name="content_bar_element_lyrics_config_linger">Linger</string>
+    <string name="content_bar_element_lyrics_config_show_furigana">Show furigana</string>
+    <string name="content_bar_element_lyrics_config_max_lines">Max lines</string>
+    <string name="content_bar_element_lyrics_config_preallocate_max_space">Preallocate space for max lines</string>
+
+    <string name="content_bar_element_content_bar_config_bar">Bar</string>
+
+    <string name="content_bar_element_builtin_lyrics">Lyrics</string>
+    <string name="content_bar_element_builtin_visualiser">Music visualiser</string>
+    <string name="content_bar_element_builtin_unsupported_on_platform_suffix"> (Unsupported on this platform)</string>
+
+    <string name="layout_editor_preview_options">Preview options</string>
+    <string name="layout_editor_preview_option_show_bar_content">Show bar content</string>
+    <string name="layout_editor_preview_option_hide_player">Hide player</string>
+    <string name="layout_editor_preview_option_portrait_mode">Portrait mode</string>
+
+    <string name="layout_slot_portrait_upper_top_bar">Upper top bar</string>
+    <string name="layout_slot_portrait_lower_top_bar">Lower top bar</string>
+    <string name="layout_slot_portrait_above_player">Above mini player</string>
+    <string name="layout_slot_portrait_below_player">Below mini player</string>
+    <string name="layout_slot_portrait_player_top">Player top</string>
+
+    <string name="layout_slot_config_portrait_player_top_show_in_queue">Show in queue</string>
+    <string name="layout_slot_config_below_player_show_in_player">Show in player</string>
+    <string name="layout_slot_config_below_player_show_in_queue">Show in queue</string>
+
+    <string name="layout_slot_landscape_outer_side_left">Outer left sidebar</string>
+    <string name="layout_slot_landscape_inner_side_left">Inner left sidebar</string>
+    <string name="layout_slot_landscape_outer_side_right">Outer right sidebar</string>
+    <string name="layout_slot_landscape_inner_side_right">Inner right sidebar</string>
+    <string name="layout_slot_landscape_upper_top_bar">Upper top bar</string>
+    <string name="layout_slot_landscape_lower_top_bar">Lower top bar</string>
+    <string name="layout_slot_landscape_above_player">Above player</string>
+    <string name="layout_slot_landscape_below_player">Below player</string>
+    <string name="layout_slot_landscape_player_bottom_start">Bottom bar start</string>
+    <string name="layout_slot_landscape_player_bottom_end">Bottom bar end</string>
+
+    <string name="colour_selector_dialog_title">Select colour</string>
+    <string name="colour_selector_dialog_select_theme">From theme</string>
+    <string name="colour_selector_dialog_select_custom">Custom</string>
+    <string name="colour_selector_dialog_player_background">Player background</string>
+    <string name="colour_selector_dialog_transparent">Transparent</string>
+
+    <string name="theme_colour_background">Background</string>
+    <string name="theme_colour_accent">Accent</string>
+    <string name="theme_colour_vibrant_accent">Vibrant accent</string>
+    <string name="theme_colour_card">Card</string>
+
+    <string name="shortcut_trigger_none">None</string>
+    <string name="shortcut_trigger_keyboard">Keyboard</string>
+    <string name="shortcut_trigger_mouse_button">Mouse button</string>
+
+    <string name="shortcut_key_config_selected_key">Selected key</string>
+    <string name="shortcut_key_config_none_selected">None</string>
+    <string name="shortcut_key_config_detecting_key">Detecing key...</string>
+    <string name="shortcut_key_modifier_ctrl">Ctrl modifier</string>
+    <string name="shortcut_key_modifier_alt">Alt modifier</string>
+    <string name="shortcut_key_modifier_shift">Shift modifier</string>
+
+    <string name="shortcut_button_config_selected_button">Button</string>
+    <string name="shortcut_button_config_detecting_button">Detecting button...</string>
+    <string name="shortcut_button_config_none_selected">None</string>
+
+    <string name="shortcut_editor_trigger_label">Trigger:</string>
+    <string name="shortcut_editor_trigger">Trigger</string>
+    <string name="shortcut_editor_empty_trigger">Unset</string>
+
+    <string name="appaction_navigation">Navigation</string>
+    <string name="appaction_song">Song action</string>
+    <string name="appaction_playback">Playback</string>
+    <string name="appaction_other">Other</string>
+    <string name="appaction_modify_setting">Setting</string>
+
+    <string name="appaction_config_navigation_action">Action</string>
+    <string name="appaction_config_navigation_settings_group">Settings category</string>
+    <string name="appaction_config_navigation_settings_group_none">None</string>
+    <string name="appaction_config_song_action">Action</string>
+    <string name="appaction_config_other_action">Action</string>
+    <string name="appaction_config_playback_action_type">Action type</string>
+    <string name="appaction_config_playback_seek_to_time_seek_ms">Seek amount (ms)</string>
+
+    <string name="appaction_navigation_toggle_player">Toggle player</string>
+    <string name="appaction_navigation_jump_to_lyrics">Jump to lyrics</string>
+    <string name="appaction_navigation_open_page_feed">Open feed</string>
+    <string name="appaction_navigation_open_page_library">Open library</string>
+    <string name="appaction_navigation_open_page_search">Open search</string>
+    <string name="appaction_navigation_open_page_radiobuilder">Open radio builder</string>
+    <string name="appaction_navigation_open_page_control">Open control</string>
+    <string name="appaction_navigation_open_page_settings">Open settings</string>
+    <string name="appaction_navigation_open_page_profile">Open profile</string>
+
+    <string name="appaction_song_action_toggle_like">Toggle like</string>
+    <string name="appaction_song_action_toggle_pin">Toggle pin</string>
+    <string name="appaction_song_action_hide">Hide</string>
+    <string name="appaction_song_action_start_radio">Start radio</string>
+    <string name="appaction_song_action_download">Download</string>
+    <string name="appaction_song_action_open_album">Open album</string>
+    <string name="appaction_song_action_open_related">Open related</string>
+    <string name="appaction_song_action_remove_from_queue">Remove from queue</string>
+    <string name="appaction_song_action_share">Share</string>
+    <string name="appaction_song_action_open_externally">Open externally</string>
+    <string name="appaction_song_action_copy_url">Copy URL</string>
+
+    <string name="appaction_playback_action_pause">Pause</string>
+    <string name="appaction_playback_action_play">Play</string>
+    <string name="appaction_playback_action_toggle_play">Toggle play</string>
+    <string name="appaction_playback_action_seek_by_time">Seek by time</string>
+    <string name="appaction_playback_action_shuffle_queue">Shuffle queue</string>
+    <string name="appaction_playback_action_clear_queue">Clear queue</string>
+    <string name="appaction_playback_action_seek_next">Seek to next</string>
+    <string name="appaction_playback_action_seek_previous">Seek to previous</string>
+    <string name="appaction_playback_action_seek_random">Seek to random</string>
+    <string name="appaction_playback_action_undo_seek">Undo song seek</string>
+
+    <string name="appaction_other_action_navigate_back">Navigate back</string>
+    <string name="appaction_other_action_toggle_fullscreen">Toggle fullscreen</string>
+    <string name="appaction_other_action_reload_page">Reload page</string>
+    <string name="appaction_other_action_increase_ui_scale">Increase UI scale</string>
+    <string name="appaction_other_action_decrease_ui_scale">Decrease UI scale</string>
+
+    <string name="dependency_list_title">SpMp is made possible by the following libraries:</string>
+    <string name="dependency_list_dep_using_fork">Using fork</string>
+    <string name="dependency_list_dep_$author">Author: $author</string>
+    <string name="dependency_list_dep_$license">License: $license</string>
+    <string name="dependency_list_dep_view_source">View source</string>
+
+    <string name="project_info_dialog_title">Information</string>
+    <string name="project_info_dialog_section_project">Project</string>
+    <string name="project_info_dialog_section_gestures">Gestures</string>
+
+    <string name="project_info_dialog_gesture_player_swipes">Player swipe</string>
+    <string name="project_info_dialog_gesture_player_swipe_player">Swipe mini-player to expand to player</string>
+    <string name="project_info_dialog_gesture_player_swipe_queue">Swipe player to expand to queue</string>
+
+    <string name="project_info_dialog_gesture_item_long_presses">Media item long-press</string>
+    <string name="project_info_dialog_gesture_item_long_press_normal">Long-press to open action menu</string>
+    <string name="project_info_dialog_gesture_item_long_press_long">Extra-long-press to begin multiple selection</string>
+
+    <string name="project_info_dialog_gesture_dislike">Long-press like button to dislike a song</string>
+
+    <string name="project_info_dialog_project_$license">License: $license</string>
+    <string name="project_info_dialog_project_$author">Author: $author</string>
+    <string name="project_info_dialog_project_source_button">View source code</string>
+    <string name="project_info_dialog_project_donate_button">Buy me a hot chocolate</string>
+    <string name="project_info_dialog_dependencies_button">Show dependencies</string>
 </resources>

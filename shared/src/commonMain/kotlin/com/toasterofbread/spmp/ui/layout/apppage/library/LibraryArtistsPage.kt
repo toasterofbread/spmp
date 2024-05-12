@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.apppage.library
 
 import LocalPlayerState
+import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
@@ -20,24 +21,28 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.composekit.platform.composable.ScrollBarLazyColumn
-import com.toasterofbread.composekit.utils.composable.EmptyListAndDataCrossfade
-import com.toasterofbread.composekit.utils.composable.LoadActionIconButton
+import dev.toastbits.composekit.platform.composable.ScrollBarLazyColumn
+import dev.toastbits.composekit.utils.composable.EmptyListAndDataCrossfade
+import dev.toastbits.composekit.utils.composable.LoadActionIconButton
+import dev.toastbits.composekit.utils.composable.RowOrColumnScope
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
+import com.toasterofbread.spmp.model.mediaitem.artist.toArtistData
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.rememberSongDownloads
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
+import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageWithItem
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.artistpage.LocalArtistPage
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
 
 class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =
@@ -59,6 +64,7 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
         modifier: Modifier,
     ) {
         val player: PlayerState = LocalPlayerState.current
+        val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
         val downloads: List<DownloadStatus> by rememberSongDownloads()
         var sorted_artists: List<Pair<ArtistRef, Int>> by remember { mutableStateOf(emptyList()) }
@@ -83,7 +89,7 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
                         continue
                     }
 
-                    val artist: ArtistRef = download.song.Artist.get(player.database) ?: continue
+                    val artist: ArtistRef = download.song.Artists.get(player.database)?.firstOrNull() ?: continue
                     val artist_index: Int = artists.indexOfFirst { it.first == artist }
 
                     if (artist_index == -1) {
@@ -116,36 +122,43 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
             }
         }
 
-        CompositionLocalProvider(LocalPlayerState provides remember { player.copy(onClickedOverride = { item, index ->
-            player.openAppPage(
-                object : AppPageWithItem() {
-                    override val item: MediaItemHolder = item
-                    override val state: AppPageState = player.app_page_state
-
-                    private var previous_item: MediaItemHolder? by mutableStateOf(null)
-
-                    override fun onOpened(from_item: MediaItemHolder?) {
-                        super.onOpened(from_item)
-                        previous_item = from_item
-                    }
-
-                    @Composable
-                    override fun ColumnScope.Page(
-                        multiselect_context: MediaItemMultiSelectContext,
-                        modifier: Modifier,
-                        content_padding: PaddingValues,
-                        close: () -> Unit,
-                    ) {
-                        LocalArtistPage(
-                            item.item as Artist, 
-                            previous_item = previous_item?.item, 
-                            content_padding = content_padding,
-                            multiselect_context = multiselect_context
-                        )
-                    }
+        CompositionLocalProvider(LocalPlayerClickOverrides provides click_overrides.copy(
+            onClickOverride = { item, index ->
+                if (showing_alt_content) {
+                    click_overrides.onMediaItemClicked(item, player)
+                    return@copy
                 }
-            )
-        }) }) {
+
+                player.openAppPage(
+                    object : AppPageWithItem() {
+                        override val item: MediaItemHolder = item
+                        override val state: AppPageState = player.app_page_state
+
+                        private var previous_item: MediaItemHolder? by mutableStateOf(null)
+
+                        override fun onOpened(from_item: MediaItemHolder?) {
+                            super.onOpened(from_item)
+                            previous_item = from_item
+                        }
+
+                        @Composable
+                        override fun ColumnScope.Page(
+                            multiselect_context: MediaItemMultiSelectContext,
+                            modifier: Modifier,
+                            content_padding: PaddingValues,
+                            close: () -> Unit,
+                            ) {
+                            LocalArtistPage(
+                                item.item as Artist,
+                                previous_item = previous_item?.item,
+                                content_padding = content_padding,
+                                multiselect_context = multiselect_context
+                            )
+                        }
+                    }
+                )
+            }
+        )) {
             EmptyListAndDataCrossfade(
                 if (showing_alt_content) sorted_liked_artists?.map { Pair(it, 0) } ?: emptyList() else sorted_artists,
                 loaded
@@ -165,18 +178,31 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
                     }
 
                     if (artists == null) {
-                        val text: String? =
-                            if (library_page.search_filter != null) getString("library_no_items_match_filter")
-                            else if (showing_alt_content) if (loaded) getString("library_no_liked_artists") else null
-                            else getString("library_no_local_artists")
-
-                        if (text != null) {
+                        val error: Throwable? = load_error
+                        if (error != null) {
                             item {
-                                Text(
-                                    text,
-                                    Modifier.fillMaxWidth(),
-                                    textAlign = TextAlign.Center
+                                ErrorInfoDisplay(
+                                    error,
+                                    onDismiss = {
+                                        load_error = null
+                                    }
                                 )
+                            }
+                        }
+                        else {
+                            val text: String? =
+                                if (library_page.search_filter != null) getString("library_no_items_match_filter")
+                                else if (showing_alt_content) if (loaded) getString("library_no_liked_artists") else null
+                                else getString("library_no_local_artists")
+
+                            if (text != null) {
+                                item {
+                                    Text(
+                                        text,
+                                        Modifier.fillMaxWidth(),
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
                             }
                         }
                     }
@@ -188,7 +214,6 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
                                 artist,
                                 Modifier.height(75.dp).fillMaxWidth(),
                                 multiselect_context = multiselect_context,
-                                multiselect_key = index,
                                 show_type = false,
                                 show_play_count = true,
                                 font_size = 18.sp,
@@ -207,9 +232,9 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
     }
 
     @Composable
-    override fun SideContent(showing_alt_content: Boolean) {
+    override fun RowOrColumnScope.SideContent(showing_alt_content: Boolean) {
         val player: PlayerState = LocalPlayerState.current
-        val auth_state: YoutubeApi.UserAuthState? =
+        val auth_state: ApiAuthenticationState? =
             if (showing_alt_content) player.context.ytapi.user_auth_state
             else null
 
@@ -218,7 +243,7 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
             LoadActionIconButton(
                 {
                     liked_artists_endpoint.getLikedArtists().fold(
-                        { liked_artists = it },
+                        { liked_artists = it.map { it.toArtistData() } },
                         { load_error = it }
                     )
                     loaded = true

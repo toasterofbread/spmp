@@ -40,8 +40,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.common.launchSingle
-import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.utils.common.launchSingle
+import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.playerservice.getMediaNotificationImageMaxOffset
 import com.toasterofbread.spmp.platform.playerservice.getMediaNotificationImageSize

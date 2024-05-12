@@ -1,25 +1,25 @@
 package com.toasterofbread.spmp.model.mediaitem.playlist
 
-import com.toasterofbread.db.Database
+import dev.toastbits.ytmkt.model.ApiAuthenticationState
+import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.youtubeapi.EndpointNotImplementedException
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
+import dev.toastbits.ytmkt.radio.RadioContinuation
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider as YtmThumbnailProvider
 
 sealed interface RemotePlaylist: Playlist {
-    val Continuation: Property<MediaItemLayout.Continuation?>
+    val Continuation: Property<RadioContinuation?>
         get() = property_rememberer.rememberSingleQueryProperty(
             "Continuation",
             { playlistQueries.continuationById(id) },
             { continuation_token?.let {
-                MediaItemLayout.Continuation(
+                RadioContinuation(
                     it,
-                    MediaItemLayout.Continuation.Type.entries[continuation_type!!.toInt()]
+                    RadioContinuation.Type.entries[continuation_type!!.toInt()]
                 )
             }},
             { playlistQueries.updateContinuationById(it?.token, it?.type?.ordinal?.toLong(), id) }
@@ -60,52 +60,38 @@ sealed interface RemotePlaylist: Playlist {
     }
 }
 
-suspend fun Playlist.uploadAsAccountPlaylist(auth_state: YoutubeApi.UserAuthState, replace: Boolean = false): Result<RemotePlaylistData> {
-    val create_endpoint = auth_state.CreateAccountPlaylist
-    if (!create_endpoint.isImplemented()) {
-        return Result.failure(EndpointNotImplementedException(create_endpoint))
-    }
+suspend fun Playlist.uploadAsAccountPlaylist(
+    context: AppContext,
+    auth_state: ApiAuthenticationState,
+    replace: Boolean = false
+): Result<RemotePlaylistData> = runCatching {
+    val db: Database = context.database
 
-    val add_endpoint = auth_state.AccountPlaylistAddSongs
-    if (!add_endpoint.isImplemented()) {
-        return Result.failure(EndpointNotImplementedException(add_endpoint))
-    }
-
-    val db = auth_state.api.context.database
-
-    val create_result = create_endpoint.createAccountPlaylist(
+    val create_result: String = auth_state.CreateAccountPlaylist.createAccountPlaylist(
         getActiveTitle(db).orEmpty(),
         Description.get(db).orEmpty()
-    )
+    ).getOrThrow()
 
-    val created_playlist_id = create_result.fold(
-        {
-            if (!it.startsWith("VL")) "VL$it"
-            else it
-        },
-        {
-            return Result.failure(it)
-        }
-    )
+    val created_playlist_id: String = 
+        if (!create_result.startsWith("VL")) "VL$create_result"
+        else create_result
 
     val account_playlist = RemotePlaylistData(created_playlist_id)
 
     val items = Items.get(db)
     if (!items.isNullOrEmpty()) {
-        add_endpoint.addSongs(
-            account_playlist,
+        auth_state.AccountPlaylistAddSongs.addSongs(
+            account_playlist.id,
             items.map { it.id }
-        ).onFailure {
-            return Result.failure(it)
-        }
+        ).getOrThrow()
     }
 
     populateData(account_playlist, db)
 
-    account_playlist.owner = auth_state.own_channel
+    account_playlist.owner = auth_state.own_channel_id?.let { ArtistRef(it) }
 
     if (account_playlist.custom_image_url == null) {
-        account_playlist.custom_image_url = ThumbnailProvider.get(db)?.getThumbnailUrl(MediaItemThumbnailProvider.Quality.HIGH)
+        account_playlist.custom_image_url = ThumbnailProvider.get(db)?.getThumbnailUrl(YtmThumbnailProvider.Quality.HIGH)
     }
 
     account_playlist.saveToDatabase(db, account_playlist)
@@ -114,5 +100,5 @@ suspend fun Playlist.uploadAsAccountPlaylist(auth_state: YoutubeApi.UserAuthStat
         PlaylistHolder.onPlaylistReplaced(this, account_playlist)
     }
 
-    return Result.success(account_playlist)
+    return@runCatching account_playlist
 }

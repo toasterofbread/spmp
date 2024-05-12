@@ -1,16 +1,14 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
-import com.toasterofbread.composekit.settings.ui.item.SettingsItem
-import com.toasterofbread.composekit.settings.ui.item.ToggleSettingsItem
-import com.toasterofbread.composekit.settings.ui.item.SettingsValueState
-import com.toasterofbread.spmp.model.settings.category.SystemSettings
+import dev.toastbits.composekit.settings.ui.item.SettingsItem
+import dev.toastbits.composekit.settings.ui.item.ToggleSettingsItem
+import dev.toastbits.composekit.platform.PreferencesProperty
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.platform.AppContext
 
-internal fun getYoutubeAccountCategory(): List<SettingsItem> =
+internal fun getYoutubeAccountCategory(context: AppContext): List<SettingsItem> =
     listOf(
         ToggleSettingsItem(
-            SettingsValueState(SystemSettings.Key.ADD_SONGS_TO_HISTORY.getName()),
-            getString("s_key_add_songs_to_history"),
-            getString("s_sub_add_songs_to_history")
+            context.settings.system.ADD_SONGS_TO_HISTORY
         )
     )

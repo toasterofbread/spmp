@@ -8,13 +8,11 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.toasterofbread.composekit.utils.common.launchSingle
+import dev.toastbits.composekit.utils.common.launchSingle
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
-import com.toasterofbread.spmp.model.mediaitem.layout.BrowseParamsData
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.loadDataOnChange
 import com.toasterofbread.spmp.platform.getFormFactor
@@ -22,7 +20,8 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageWithItem
 import com.toasterofbread.spmp.ui.layout.artistpage.lff.LFFArtistPage
-import com.toasterofbread.spmp.youtubeapi.endpoint.ArtistWithParamsEndpoint
+import dev.toastbits.ytmkt.endpoint.ArtistWithParamsEndpoint
+import dev.toastbits.ytmkt.model.external.YoutubePage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -30,8 +29,7 @@ import kotlinx.coroutines.cancel
 class ArtistAppPage(
     override val state: AppPageState,
     override val item: Artist,
-    internal val browse_params: Pair<BrowseParamsData, ArtistWithParamsEndpoint>? = null,
-    internal val show_top_bar: Boolean = true
+    internal val browse_params: Pair<YoutubePage.BrowseParamsData, ArtistWithParamsEndpoint>? = null
 ): AppPageWithItem() {
     internal var load_error: Throwable? by mutableStateOf(null)
     internal val coroutine_scope: CoroutineScope = CoroutineScope(Job())
@@ -77,7 +75,9 @@ class ArtistAppPage(
         load_error = null
         refreshed = true
         coroutine_scope.launchSingle {
-            MediaItemLoader.loadArtist(item.getEmptyData(), state.context)
+            MediaItemLoader.loadArtist(item.getEmptyData(), state.context).onFailure {
+                load_error = it
+            }
         }
     }
 

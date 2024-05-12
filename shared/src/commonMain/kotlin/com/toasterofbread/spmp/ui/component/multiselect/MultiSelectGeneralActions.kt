@@ -21,18 +21,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.model.mediaitem.db.setPinned
+import com.toasterofbread.spmp.model.mediaitem.playlist.InteractivePlaylistEditor
+import com.toasterofbread.spmp.model.mediaitem.playlist.InteractivePlaylistEditor.Companion.getEditorOrNull
+import com.toasterofbread.spmp.model.mediaitem.playlist.InteractivePlaylistEditor.Companion.isPlaylistEditable
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
-import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor
-import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.getEditorOrNull
-import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.isPlaylistEditable
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.rememberSongDownloads
+import com.toasterofbread.spmp.platform.getOrNotify
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -100,8 +100,8 @@ internal fun RowScope.MultiSelectGeneralActions(multiselect_context: MediaItemMu
                 multiselect_context.getUniqueSelectedItems().mapNotNull { item ->
                     if (item is Playlist) {
                         launch {
-                            val editor: PlaylistEditor? = item.getEditorOrNull(player.context).getOrNull()
-                            editor?.deletePlaylist()?.getOrReport(player.context, "deletePlaylist")
+                            val editor: InteractivePlaylistEditor? = item.getEditorOrNull(player.context).getOrNull()
+                            editor?.deletePlaylist()?.getOrNotify(player.context, "deletePlaylist")
                         }
                     }
                     else if (item is Song) {

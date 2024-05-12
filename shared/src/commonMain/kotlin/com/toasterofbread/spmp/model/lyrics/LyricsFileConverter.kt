@@ -1,16 +1,15 @@
 package com.toasterofbread.spmp.model.lyrics
 
 import SpMp
-import com.atilika.kuromoji.ipadic.Tokenizer
-import com.toasterofbread.composekit.platform.PlatformFile
-import com.toasterofbread.composekit.utils.common.indexOfOrNull
+import dev.toastbits.composekit.platform.PlatformFile
+import dev.toastbits.composekit.utils.common.indexOfOrNull
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsFuriganaTokeniser
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.createFuriganaTokeniser
-import com.toasterofbread.spmp.youtubeapi.lyrics.mergeAndFuriganiseTerms
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.OutputStreamWriter
@@ -240,7 +239,7 @@ object LyricsFileConverter {
             }
         }
 
-        val tokeniser: Tokenizer = createFuriganaTokeniser()
+        val tokeniser: LyricsFuriganaTokeniser = createFuriganaTokeniser()
 
         return@withContext Pair(
             song,
@@ -248,7 +247,7 @@ object LyricsFileConverter {
                 LyricsReference(lyrics_source!!, lyrics_id!!, file),
                 SongLyrics.SyncType.WORD_SYNC,
                 lines.map { terms ->
-                    mergeAndFuriganiseTerms(tokeniser, terms)
+                    tokeniser.mergeAndFuriganiseTerms(terms)
                 }
             )
         )

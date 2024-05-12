@@ -2,38 +2,44 @@ package com.toasterofbread.spmp.model.settings.category
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FilterAlt
-import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getFilterCategoryItems
+import dev.toastbits.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.platform.PreferencesProperty
 
-data object FilterSettings: SettingsCategory("filter") {
-    override val keys: List<SettingsKey> = Key.entries.toList()
+class FilterSettings(val context: AppContext): SettingsGroup("FILTER", context.getPrefs()) {
+    val ENABLE: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_filter_enable") },
+        getDescription = { null },
+        getDefaultValue = { true }
+    )
+    val APPLY_TO_PLAYLIST_ITEMS: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_filter_apply_to_playlist_items") },
+        getDescription = { null },
+        getDefaultValue = { false }
+    )
+    val APPLY_TO_ARTISTS: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_filter_apply_to_artists") },
+        getDescription = { null },
+        getDefaultValue = { false }
+    )
+    val APPLY_TO_ARTIST_ITEMS: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_filter_apply_to_artist_items") },
+        getDescription = { null },
+        getDefaultValue = { false }
+    )
+    val TITLE_KEYWORDS: PreferencesProperty<Set<String>> by property(
+        getName = { getString("s_key_filter_title_keywords") },
+        getDescription = { getString("s_sub_filter_title_keywords") },
+        getDefaultValue = { emptySet() }
+    )
 
-    override fun getPage(): Page? =
-        Page(
-            getString("s_cat_filter"),
-            getString("s_cat_desc_filter"),
-            { getFilterCategoryItems() }
-        ) { Icons.Outlined.FilterAlt }
-
-    enum class Key: SettingsKey {
-        ENABLE,
-        APPLY_TO_PLAYLIST_ITEMS,
-        APPLY_TO_ARTISTS,
-        APPLY_TO_ARTIST_ITEMS,
-        TITLE_KEYWORDS;
-
-        override val category: SettingsCategory get() = FilterSettings
-
-        @Suppress("UNCHECKED_CAST", "IMPLICIT_CAST_TO_ANY")
-        override fun <T> getDefaultValue(): T =
-            when (this) {
-                ENABLE -> true
-                APPLY_TO_PLAYLIST_ITEMS -> false
-                APPLY_TO_ARTISTS -> false
-                APPLY_TO_ARTIST_ITEMS -> false
-                TITLE_KEYWORDS -> emptySet<String>()
-            } as T
-    }
+    override val page: CategoryPage? =
+        SimplePage(
+            { getString("s_cat_filter") },
+            { getString("s_cat_desc_filter") },
+            { getFilterCategoryItems(context) },
+            { Icons.Outlined.FilterAlt }
+        )
 }

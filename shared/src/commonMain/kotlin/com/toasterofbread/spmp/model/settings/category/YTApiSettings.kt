@@ -1,24 +1,21 @@
 package com.toasterofbread.spmp.model.settings.category
 
-import com.toasterofbread.spmp.model.settings.SettingsKey
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
+import com.toasterofbread.spmp.youtubeapi.YtmApiType
+import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.platform.PreferencesProperty
 
-data object YTApiSettings: SettingsCategory("ytapi") {
-    override val keys: List<SettingsKey> = Key.entries.toList()
+class YTApiSettings(val context: AppContext): SettingsGroup("YTAPI", context.getPrefs()) {
+    override val page: CategoryPage? = null // TODO
 
-    override fun getPage(): Page? = null // TODO
-
-    enum class Key: SettingsKey {
-        API_TYPE,
-        API_URL;
-
-        override val category: SettingsCategory get() = YTApiSettings
-
-        @Suppress("UNCHECKED_CAST")
-        override fun <T> getDefaultValue(): T =
-            when (this) {
-                API_TYPE -> YoutubeApi.Type.DEFAULT.ordinal
-                API_URL -> YoutubeApi.Type.DEFAULT.getDefaultUrl()
-            } as T
-    }
+    val API_TYPE: PreferencesProperty<YtmApiType> by enumProperty(
+        getName = { "" },
+        getDescription = { null },
+        getDefaultValue = { YtmApiType.DEFAULT }
+    )
+    val API_URL: PreferencesProperty<String> by property(
+        getName = { "" },
+        getDescription = { null },
+        getDefaultValue = { YtmApiType.DEFAULT.getDefaultUrl() }
+    )
 }

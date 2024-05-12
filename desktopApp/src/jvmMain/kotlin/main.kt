@@ -1,35 +1,52 @@
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
-import androidx.compose.ui.input.key.*
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.*
-import com.toasterofbread.composekit.platform.composable.onWindowBackPressed
-import com.toasterofbread.spmp.model.settings.category.SystemSettings
+import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
+import androidx.compose.ui.window.WindowPlacement
+import dev.toastbits.composekit.platform.composable.onWindowBackPressed
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.ui.component.shortcut.trigger.KeyboardShortcutTrigger
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.getTextFieldFocusState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.isTextFieldFocused
+import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.*
 import org.jetbrains.skiko.OS
 import org.jetbrains.skiko.hostOs
 import java.awt.Toolkit
+import java.awt.Frame
 import java.lang.reflect.Field
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main(args: Array<String>) {
-    val arguments: ProgramArguments = ProgramArguments.parse(args) ?: return
+    Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
+        error.printStackTrace()
+        val dialog = ExceptionDialog(Frame(), error)
+        dialog.isVisible = true
+    }
+
     val coroutine_scope: CoroutineScope = CoroutineScope(Job())
-    val context: AppContext = AppContext(SpMp.app_name, arguments, coroutine_scope)
+    val context: AppContext = AppContext(SpMp.app_name, coroutine_scope)
 
     SpMp.init(context)
-    coroutine_scope.launch {
-        context.init()
+
+    val force_software_renderer: Boolean = context.settings.platform.FORCE_SOFTWARE_RENDERER.get()
+    if (force_software_renderer) {
+        System.setProperty("skiko.renderApi", "SOFTWARE")
     }
+
+    val arguments: ProgramArguments = ProgramArguments.parse(args) ?: return
 
     SpMp.onStart()
 
@@ -45,6 +62,10 @@ fun main(args: Array<String>) {
     }
 
     lateinit var window: ComposeWindow
+    val enable_window_transparency: Boolean = context.settings.theme.ENABLE_WINDOW_TRANSPARENCY.get()
+
+    val shortcut_state: ShortcutState = ShortcutState()
+    var player: PlayerState? = null
 
     application {
         val text_field_focus_state: Any = getTextFieldFocusState()
@@ -53,48 +74,47 @@ fun main(args: Array<String>) {
             title = SpMp.app_name,
             onCloseRequest = ::exitApplication,
             onKeyEvent = { event ->
-                if (event.type == KeyEventType.KeyDown) {
-                    when (event.key) {
-                        Key.Escape -> return@Window onWindowBackPressed()
-                        Key.F11 -> {
-                            if (window.placement == WindowPlacement.Fullscreen) {
-                                window.placement = WindowPlacement.Floating
-                            }
-                            else {
-                                window.placement = WindowPlacement.Fullscreen
-                            }
-                            return@Window true
-                        }
-                        Key.Spacebar -> {
-                            if (!isTextFieldFocused(text_field_focus_state)) {
-                                SpMp.player_state.withPlayer {
-                                    playPause()
-                                }
-                            }
-                        }
-                        Key.Equals -> {
-                            if (event.isCtrlPressed) {
-                                SystemSettings.Key.UI_SCALE.set(SystemSettings.Key.UI_SCALE.get<Float>() + 0.1f)
-                            }
-                        }
-                        Key.Minus -> {
-                            if (event.isCtrlPressed) {
-                                SystemSettings.Key.UI_SCALE.set((SystemSettings.Key.UI_SCALE.get<Float>() - 0.1f).coerceAtLeast(0.1f))
-                            }
-                        }
+                val shortcut_modifier = KeyboardShortcutTrigger.KeyboardModifier.ofKey(event.key)
+                if (shortcut_modifier != null) {
+                    if (event.type == KeyEventType.KeyDown) {
+                        shortcut_state.onModifierDown(shortcut_modifier)
                     }
+                    else {
+                        shortcut_state.onModifierUp(shortcut_modifier)
+                    }
+                    return@Window false
                 }
+
+                if (event.type != KeyEventType.KeyUp) {
+                    return@Window false
+                }
+
+                player?.also {
+                    return@Window shortcut_state.onKeyPress(event, isTextFieldFocused(text_field_focus_state), it)
+                }
+
                 return@Window false
             },
             state = rememberWindowState(
-                size = DpSize(1280.dp, 720.dp),
-                position = WindowPosition(Alignment.Center)
-            )
+                size = DpSize(1280.dp, 720.dp)
+            ),
+            undecorated = enable_window_transparency,
+            transparent = enable_window_transparency
         ) {
+            val player_coroutine_scope: CoroutineScope = rememberCoroutineScope()
+            var player_initialised: Boolean by remember { mutableStateOf(false) }
+
             LaunchedEffect(Unit) {
+                player = SpMp.initPlayer(arguments, player_coroutine_scope)
+                player_initialised = true
+
                 window = this@Window.window
 
-                val startup_command: String = SystemSettings.Key.STARTUP_COMMAND.get()
+                if (enable_window_transparency) {
+                    window.background = java.awt.Color(0, 0, 0, 0)
+                }
+
+                val startup_command: String = context.settings.platform.STARTUP_COMMAND.get()
                 if (startup_command.isBlank()) {
                     return@LaunchedEffect
                 }
@@ -116,11 +136,25 @@ fun main(args: Array<String>) {
                 }
             }
 
+            if (!player_initialised) {
+                return@Window
+            }
+
             SpMp.App(
+                arguments,
+                shortcut_state,
                 Modifier.onPointerEvent(PointerEventType.Press) { event ->
-                    // Mouse back click
-                    if (event.button?.index == 5) {
-                        onWindowBackPressed()
+                    val index: Int = event.button?.index ?: return@onPointerEvent
+                    player?.also {
+                        shortcut_state.onButtonPress(index, it)
+                    }
+                },
+                window_fullscreen_toggler = {
+                    if (window.placement == WindowPlacement.Fullscreen) {
+                        window.placement = WindowPlacement.Floating
+                    }
+                    else {
+                        window.placement = WindowPlacement.Fullscreen
                     }
                 }
             )

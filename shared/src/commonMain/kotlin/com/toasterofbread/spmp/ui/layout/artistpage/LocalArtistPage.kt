@@ -14,14 +14,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.common.thenIf
-import com.toasterofbread.composekit.utils.modifier.horizontal
+import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.utils.modifier.horizontal
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.db.isMediaItemHidden
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.download.rememberSongDownloads
+import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
+import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MEDIAITEM_LIST_DEFAULT_SPACING_DP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -44,12 +46,12 @@ fun LocalArtistPage(
                 return@mapNotNull null
             }
 
-            val song_artist: ArtistRef? = download.song.Artist.get(player.database)
-            if (song_artist?.id != artist.id) {
+            val song_artists: List<ArtistRef>? = download.song.Artists.get(player.database)
+            if (song_artists?.any { it.id == artist.id } != true) {
                 return@mapNotNull null
             }
 
-            if (isMediaItemHidden(download.song, player.database)) {
+            if (isMediaItemHidden(download.song, player.context)) {
                 return@mapNotNull null
             }
 
@@ -58,13 +60,14 @@ fun LocalArtistPage(
     }
 
     multiselect_context?.CollectionToggleButton(
-        songs.mapIndexed { index, item -> Pair(item, index) },
+        songs.map { Pair(it, null) },
         show = false
     )
 
-    CompositionLocalProvider(LocalPlayerState provides remember {
-        player.copy(
-            onClickedOverride = { item, multiselect_key ->
+    val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
+    CompositionLocalProvider(LocalPlayerClickOverrides provides
+        LocalPlayerClickOverrides.current.copy(
+            onClickOverride = { item, multiselect_key ->
                 if (multiselect_key != null) {
                     player.withPlayer {
                         addMultipleToQueue(songs, clear = true)
@@ -73,11 +76,11 @@ fun LocalArtistPage(
                     }
                 }
                 else {
-                    player.onMediaItemClicked(item)
+                    click_overrides.onMediaItemClicked(item, player)
                 }
             }
         )
-    }) {
+    ) {
         ArtistLayout(artist, modifier, previous_item, content_padding, multiselect_context) { accent_colour, content_modifier ->
             itemsIndexed(songs) { index, song ->
                 MediaItemPreviewLong(
@@ -86,8 +89,7 @@ fun LocalArtistPage(
                         .fillMaxWidth()
                         .padding(content_padding.horizontal)
                         .thenIf(index != 0) { padding(top = MEDIAITEM_LIST_DEFAULT_SPACING_DP.dp) },
-                    multiselect_context = multiselect_context,
-                    multiselect_key = index
+                    multiselect_context = multiselect_context
                 )
             }
         }

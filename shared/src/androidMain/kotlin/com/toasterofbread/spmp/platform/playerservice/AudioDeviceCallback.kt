@@ -19,9 +19,11 @@ internal class PlayerAudioDeviceCallback(
         if (!device.isSink) {
             return false
         }
-        return device.type == AudioDeviceInfo.TYPE_WIRED_HEADSET ||
-               device.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
-               (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && device.type == AudioDeviceInfo.TYPE_USB_HEADSET)
+        return (
+            device.type == AudioDeviceInfo.TYPE_WIRED_HEADSET ||
+            device.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
+            (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && device.type == AudioDeviceInfo.TYPE_USB_HEADSET)
+        )
     }
 
     override fun onAudioDevicesAdded(addedDevices: Array<AudioDeviceInfo>) {
@@ -29,8 +31,8 @@ internal class PlayerAudioDeviceCallback(
             return
         }
 
-        val resume_on_bt: Boolean = PlayerSettings.Key.RESUME_ON_BT_CONNECT.get(service.context)
-        val resume_on_wired: Boolean = PlayerSettings.Key.RESUME_ON_WIRED_CONNECT.get(service.context)
+        val resume_on_bt: Boolean = service.context.settings.player.RESUME_ON_BT_CONNECT.get()
+        val resume_on_wired: Boolean = service.context.settings.player.RESUME_ON_WIRED_CONNECT.get()
 
         for (device in addedDevices) {
             if ((resume_on_bt && isBluetoothAudio(device)) || (resume_on_wired && isWiredAudio(device))) {
@@ -45,8 +47,8 @@ internal class PlayerAudioDeviceCallback(
             return
         }
 
-        val pause_on_bt: Boolean = PlayerSettings.Key.PAUSE_ON_BT_DISCONNECT.get(service.context)
-        val pause_on_wired: Boolean = PlayerSettings.Key.PAUSE_ON_WIRED_DISCONNECT.get(service.context)
+        val pause_on_bt: Boolean = service.context.settings.player.PAUSE_ON_BT_DISCONNECT.get()
+        val pause_on_wired: Boolean = service.context.settings.player.PAUSE_ON_WIRED_DISCONNECT.get()
 
         for (device in removedDevices) {
             if ((pause_on_bt && isBluetoothAudio(device)) || (pause_on_wired && isWiredAudio(device))) {

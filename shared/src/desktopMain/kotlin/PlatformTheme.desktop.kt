@@ -3,7 +3,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.settings.ui.Theme
+import dev.toastbits.composekit.settings.ui.Theme
 
 @Composable
 internal actual fun PlatformTheme(theme: Theme, content: @Composable () -> Unit) {

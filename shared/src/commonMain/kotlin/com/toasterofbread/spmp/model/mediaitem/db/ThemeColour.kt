@@ -6,10 +6,10 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
-import com.toasterofbread.composekit.utils.common.getThemeColour
+import dev.toastbits.composekit.utils.common.getThemeColour
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider as YtmThumbnailProvider
 
 @Composable
 fun MediaItem.rememberThemeColour(): Color? {
@@ -22,7 +22,7 @@ fun MediaItem.rememberThemeColour(): Color? {
             return@derivedStateOf item_colour
         }
 
-        for (quality in MediaItemThumbnailProvider.Quality.entries) {
+        for (quality in YtmThumbnailProvider.Quality.entries) {
             val image = thumbnail_state.loaded_images[quality]?.get() ?: continue
             return@derivedStateOf image.getThemeColour()
         }

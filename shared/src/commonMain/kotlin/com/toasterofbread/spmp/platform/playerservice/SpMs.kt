@@ -10,7 +10,8 @@ fun SpMsClientType.getName(): String =
         SpMsClientType.SPMP_PLAYER -> getString("spms_client_type_spmp_player")
         SpMsClientType.SPMP_STANDALONE -> getString("spms_client_type_spmp_standalone")
         SpMsClientType.PLAYER -> getString("spms_client_type_player")
-        SpMsClientType.COMMAND_LINE -> getString("spms_client_type_command_line")
+        SpMsClientType.COMMAND_LINE,
+        SpMsClientType.COMMAND_LINE_ACTION -> getString("spms_client_type_command_line")
         SpMsClientType.SERVER -> getString("spms_client_type_server")
     }
 
@@ -19,7 +20,7 @@ fun SpMsClientType.getInfoText(): String =
         SpMsClientType.SPMP_PLAYER -> getString("spms_client_type_info_spmp_player")
         SpMsClientType.SPMP_STANDALONE -> getString("spms_client_type_info_spmp_standalone")
         SpMsClientType.PLAYER -> getString("spms_client_type_info_player")
-        SpMsClientType.COMMAND_LINE -> getString("spms_client_type_info_command_line")
+        SpMsClientType.COMMAND_LINE, SpMsClientType.COMMAND_LINE_ACTION -> getString("spms_client_type_info_command_line")
         SpMsClientType.SERVER -> getString("spms_client_type_info_server")
     }
 
@@ -28,7 +29,8 @@ fun SpMsClientType.getInfoUrl(): String =
         SpMsClientType.SPMP_PLAYER -> getString("spms_client_type_info_url_spmp_player")
         SpMsClientType.SPMP_STANDALONE -> getString("spms_client_type_info_url_spmp_standalone")
         SpMsClientType.PLAYER -> getString("spms_client_type_info_url_player")
-        SpMsClientType.COMMAND_LINE -> getString("spms_client_type_info_url_command_line")
+        SpMsClientType.COMMAND_LINE,
+        SpMsClientType.COMMAND_LINE_ACTION -> getString("spms_client_type_info_url_command_line")
         SpMsClientType.SERVER -> getString("spms_client_type_info_url_server")
     }
 

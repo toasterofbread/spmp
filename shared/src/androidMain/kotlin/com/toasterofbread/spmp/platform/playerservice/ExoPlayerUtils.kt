@@ -3,13 +3,14 @@ package com.toasterofbread.spmp.platform.playerservice
 import android.media.audiofx.LoudnessEnhancer
 import androidx.core.net.toUri
 import androidx.media3.common.MediaMetadata
-import com.toasterofbread.db.Database
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.settings.category.StreamingSettings
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.db.Database
 import spms.socketapi.shared.SpMsPlayerState
 import androidx.media3.common.MediaItem as ExoMediaItem
+import androidx.compose.material.icons.filled.Album
 
 internal fun Song.buildExoMediaItem(context: AppContext): ExoMediaItem =
     ExoMediaItem.Builder()
@@ -23,11 +24,11 @@ internal fun Song.buildExoMediaItem(context: AppContext): ExoMediaItem =
 
                     setArtworkUri(id.toUri())
                     setTitle(getActiveTitle(db))
-                    setArtist(Artist.get(db)?.getActiveTitle(db))
+                    setArtist(Artists.get(db)?.firstOrNull()?.getActiveTitle(db))
 
                     val album = Album.get(db)
                     setAlbumTitle(album?.getActiveTitle(db))
-                    setAlbumArtist(album?.Artist?.get(db)?.getActiveTitle(db))
+                    setAlbumArtist(album?.Artists?.get(db)?.firstOrNull()?.getActiveTitle(db))
                 }
                 .build()
         )
@@ -40,7 +41,7 @@ fun ExoMediaItem.getSong(): Song =
     SongRef(mediaMetadata.artworkUri.toString())
 
 internal fun LoudnessEnhancer.update(song: Song?, context: AppContext) {
-    if (song == null || !StreamingSettings.Key.ENABLE_AUDIO_NORMALISATION.get<Boolean>(context)) {
+    if (song == null || !context.settings.streaming.ENABLE_AUDIO_NORMALISATION.get()) {
         enabled = false
         return
     }

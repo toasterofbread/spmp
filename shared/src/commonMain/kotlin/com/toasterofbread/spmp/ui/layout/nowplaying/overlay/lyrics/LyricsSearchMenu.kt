@@ -39,6 +39,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -46,41 +47,41 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.common.getValue
-import com.toasterofbread.composekit.utils.composable.LargeDropdownMenu
-import com.toasterofbread.composekit.utils.composable.OnChangedEffect
-import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitle
+import dev.toastbits.composekit.utils.common.getValue
+import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
+import dev.toastbits.composekit.utils.composable.OnChangedEffect
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.settings.category.LyricsSettings
+import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.db.Database
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
 
 private const val LYRICS_SEARCH_RETRY_COUNT = 3
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun LyricsSearchMenu(
     song: Song,
     modifier: Modifier = Modifier,
     close: (changed: Boolean) -> Unit,
 ) {
-    val player = LocalPlayerState.current
-    val db = player.context.database
+    val player: PlayerState = LocalPlayerState.current
+    val db: Database = player.context.database
 
     val song_title: String? by song.observeActiveTitle()
-    val song_artist_title: String? by song.Artist.observePropertyActiveTitle()
+    val song_artists: List<Artist>? by song.Artists.observe(db)
+    val song_artist_title: String? by song_artists?.firstOrNull()?.observeActiveTitle()
 
     val on_accent = player.theme.on_accent
     val accent = player.theme.accent
@@ -88,19 +89,20 @@ fun LyricsSearchMenu(
     val load_lock = remember { Object() }
     var loading by remember { mutableStateOf(false) }
 
-    val text_field_colours = TextFieldDefaults.colors(
-        focusedContainerColor = accent.copy(alpha = 0.75f),
-        unfocusedContainerColor = accent.copy(alpha = 0.75f),
-        focusedTextColor = on_accent,
-        unfocusedTextColor = on_accent,
-        focusedLabelColor = on_accent,
-        unfocusedLabelColor = on_accent,
-        focusedTrailingIconColor = on_accent,
-        unfocusedTrailingIconColor = on_accent,
-        cursorColor = on_accent,
-        focusedIndicatorColor = accent,
-        unfocusedIndicatorColor = accent.copy(alpha = 0.5f)
-    )
+    val text_field_colours: TextFieldColors =
+        TextFieldDefaults.colors(
+            focusedContainerColor = accent.copy(alpha = 0.75f),
+            unfocusedContainerColor = accent.copy(alpha = 0.75f),
+            focusedTextColor = on_accent,
+            unfocusedTextColor = on_accent,
+            focusedLabelColor = on_accent,
+            unfocusedLabelColor = on_accent,
+            focusedTrailingIconColor = on_accent,
+            unfocusedTrailingIconColor = on_accent,
+            cursorColor = on_accent,
+            focusedIndicatorColor = accent,
+            unfocusedIndicatorColor = accent.copy(alpha = 0.5f)
+        )
 
     val focus = LocalFocusManager.current
     val keyboard_controller = LocalSoftwareKeyboardController.current
@@ -111,7 +113,7 @@ fun LyricsSearchMenu(
 
     var selected_source: LyricsSource by remember {
         mutableStateOf(
-            LyricsSource.fromIdx(LyricsSettings.Key.DEFAULT_SOURCE.get())
+            LyricsSource.fromIdx(player.settings.lyrics.DEFAULT_SOURCE.get())
         )
     }
 
@@ -221,9 +223,11 @@ fun LyricsSearchMenu(
                                 LyricsSource.SOURCE_AMOUNT,
                                 selected_source.source_index,
                                 { source_idx ->
-                                    remember(source_idx) {
-                                        LyricsSource.fromIdx(source_idx).getReadable()
-                                    }
+                                    Text(
+                                        remember(source_idx) {
+                                            LyricsSource.fromIdx(source_idx).getReadable()
+                                        }
+                                    )
                                 },
                                 selected_border_colour = player.theme.vibrant_accent
                             ) { source_idx ->

@@ -1,32 +1,28 @@
+@file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 package com.toasterofbread.spmp.ui.layout.apppage.mainpage
 
 import LocalPlayerState
-import androidx.compose.foundation.focusable
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.input.key.*
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.DpSize
-import com.toasterofbread.composekit.utils.common.addUnique
-import com.toasterofbread.composekit.utils.modifier.background
+import dev.toastbits.composekit.utils.common.addUnique
+import dev.toastbits.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.platform.form_factor
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.getMinimisedPlayerHeight
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.getMinimisedPlayerVPadding
-import androidx.compose.runtime.ProvidableCompositionLocal
-import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.DisposableEffect
-import kotlinx.coroutines.delay
+import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlaying
 
 val MINIMISED_NOW_PLAYING_HEIGHT_DP: Float
     @Composable get() = LocalPlayerState.current.form_factor.getMinimisedPlayerHeight().value
@@ -36,7 +32,7 @@ val MINIMISED_NOW_PLAYING_V_PADDING_DP: Float
 private val LocalFocusedTextFieldOwners: ProvidableCompositionLocal<MutableList<Any>> = staticCompositionLocalOf { mutableStateListOf() }
 
 @Composable
-fun RootView(player: PlayerStateImpl) {
+fun RootView(player: PlayerState) {
     val density: Density = LocalDensity.current
     Box(
         Modifier
@@ -51,13 +47,19 @@ fun RootView(player: PlayerStateImpl) {
             }
     )
 
-    Column(
-        Modifier
-            .fillMaxSize()
-            .background(player.theme.background_provider)
-    ) {
+    val window_transparency_enabled: Boolean = remember { player.settings.theme.ENABLE_WINDOW_TRANSPARENCY.get() }
+    val background_opacity: Float by player.settings.theme.WINDOW_BACKGROUND_OPACITY.observe()
+
+    Canvas(Modifier.fillMaxSize()) {
+        drawRect(
+            player.theme.background.thenIf(window_transparency_enabled) { copy(alpha = background_opacity) },
+            blendMode = BlendMode.SrcIn
+        )
+    }
+
+    Box(Modifier.fillMaxSize()) {
         player.HomePage()
-        player.NowPlaying()
+        NowPlaying(Modifier.fillMaxSize())
     }
 
     player.PersistentContent()

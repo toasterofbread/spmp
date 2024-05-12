@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.component
 
 import LocalPlayerState
+import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.size
@@ -10,6 +11,7 @@ import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -18,29 +20,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.platform.vibrateShort
-import com.toasterofbread.composekit.utils.common.launchSingle
-import com.toasterofbread.composekit.utils.composable.PlatformClickableIconButton
-import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.composekit.utils.modifier.bounceOnClick
+import dev.toastbits.composekit.platform.vibrateShort
+import dev.toastbits.composekit.utils.common.launchSingle
+import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.utils.composable.PlatformClickableIconButton
+import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLikedLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatus
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.theme.appHover
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
-import com.toasterofbread.spmp.youtubeapi.endpoint.SetSongLikedEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.SongLikedEndpoint
+import dev.toastbits.ytmkt.endpoint.SetSongLikedEndpoint
+import dev.toastbits.ytmkt.endpoint.SongLikedEndpoint
+import dev.toastbits.ytmkt.model.external.SongLikedStatus
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
 fun LikeDislikeButton(
     song: Song,
-    auth_state: YoutubeApi.UserAuthState?,
+    auth_state: ApiAuthenticationState?,
     modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
     getEnabled: (() -> Boolean)? = null,
-    getColour: () -> Color
+    getColour: (() -> Color)? = null
 ) {
     val get_liked_endpoint: SongLikedEndpoint? = auth_state?.SongLiked
     val set_liked_endpoint: SetSongLikedEndpoint? = auth_state?.SetSongLiked
@@ -53,11 +56,20 @@ fun LikeDislikeButton(
     val rotation: Float by animateFloatAsState(if (liked_status == SongLikedStatus.DISLIKED) 180f else 0f)
 
     LaunchedEffect(song.id) {
-        SongLikedLoader.loadSongLiked(song.id, player.context, get_liked_endpoint)
+        SongLikedLoader.loadSongLiked(song.id, player.context, get_liked_endpoint).onFailure {
+            it.printStackTrace()
+        }
     }
+
+    val enabled: Boolean = getEnabled?.invoke() != false
 
     PlatformClickableIconButton(
         onClick = {
+            if (onClick != null) {
+                onClick()
+                return@PlatformClickableIconButton
+            }
+
             coroutine_scope.launchSingle {
                 song.updateLiked(
                     when (liked_status) {
@@ -70,7 +82,7 @@ fun LikeDislikeButton(
             }
         },
         onAltClick = {
-            if (set_liked_endpoint == null) {
+            if (onClick != null || set_liked_endpoint == null) {
                 return@PlatformClickableIconButton
             }
 
@@ -86,9 +98,12 @@ fun LikeDislikeButton(
                 )
             }
         },
-        modifier = modifier.bounceOnClick().appHover(true),
-        enabled = getEnabled?.invoke() != false,
-        apply_minimum_size = false
+        modifier = modifier.thenIf(enabled) {
+            bounceOnClick().appHover(true)
+        },
+        enabled = enabled,
+        apply_minimum_size = false,
+        indication = null
     ) {
         Crossfade(
             if (auth_state == null) liked_status ?: SongLikedStatus.NEUTRAL else liked_status
@@ -112,7 +127,7 @@ fun LikeDislikeButton(
 private fun LikedStatusIcon(
     status: SongLikedStatus,
     modifier: Modifier = Modifier,
-    getColour: () -> Color,
+    getColour: (() -> Color)?,
     alt_shape: Boolean = false
 ) {
     Icon(
@@ -122,6 +137,6 @@ private fun LikedStatusIcon(
             if (status != SongLikedStatus.NEUTRAL) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
         null,
         modifier,
-        tint = getColour()
+        tint = getColour?.invoke() ?: LocalContentColor.current
     )
 }

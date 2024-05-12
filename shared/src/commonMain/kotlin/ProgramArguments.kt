@@ -1,11 +1,15 @@
-import com.toasterofbread.composekit.platform.PlatformContext
-import com.toasterofbread.composekit.platform.PlatformFile
+import com.toasterofbread.spmp.ProjectBuildConfig
+import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.platform.playerservice.getServerExecutableFilename
+import spms.socketapi.shared.SPMS_API_VERSION
+import dev.toastbits.composekit.platform.PlatformContext
+import dev.toastbits.composekit.platform.PlatformFile
 import java.io.File
 
 data class ProgramArguments(
     val bin_dir: String? = null,
-    val no_auto_server: Boolean = false
+    val no_auto_server: Boolean = false,
+    val is_flatpak: Boolean = false
 ) {
     fun getServerExecutableFile(context: PlatformContext): PlatformFile? {
         val server_executable_filename: String? = getServerExecutableFilename()
@@ -24,16 +28,24 @@ data class ProgramArguments(
             fun onIllegalArgument(msg: String) {
                 throw IllegalArgumentException("$msg Received arguments: ${args.toList()}")
             }
-            
+
             var arguments: ProgramArguments = ProgramArguments()
-            
+
             val iterator: Iterator<String> = args.iterator()
             while (iterator.hasNext()) {
                 val split: List<String> = iterator.next().split('=', limit = 2)
                 val name: String = split.first()
                 val value: String? = split.getOrNull(1)
-                
+
                 when (name) {
+                    "--help", "-h" -> {
+                        println(getHelpMessage())
+                        return null
+                    }
+                    "--version", "-v" -> {
+                        println(getVersionMessage())
+                        return null
+                    }
                     "--bin-dir" -> {
                         if (value == null && !iterator.hasNext()) {
                             onIllegalArgument("No value passed for argument '$name'.")
@@ -43,19 +55,38 @@ data class ProgramArguments(
                     "--disable-auto-server", "-ds" -> {
                         arguments = arguments.copy(no_auto_server = true)
                     }
-                    "--help", "-h" -> {
-                        outputHelpMessage()
-                        return null
+                    "--flatpak" -> {
+                        arguments = arguments.copy(is_flatpak = true)
                     }
                     else -> onIllegalArgument("Unknown argument '$name'.")
                 }
             }
-            
+
             return arguments
         }
-        
-        fun outputHelpMessage() {
-            println("TODO")
+
+        fun getHelpMessage(): String {
+            return getString("help_message") + "\n" + getVersionMessage()
+        }
+
+        fun getVersionMessage(split_lines: Boolean = false): String {
+            val version_string: String = "v${getString("version_string")}"
+            val api_version_string: String = SPMS_API_VERSION.toString()
+            val split_string: String = if (split_lines) "\n" else ""
+
+            val on_release_commit: Boolean = ProjectBuildConfig.GIT_TAG == version_string
+            if (on_release_commit) {
+                return getString("version_message_release_\$appver_\$apiver_\$split")
+                    .replace("\$appver", version_string)
+                    .replace("\$apiver", api_version_string)
+                    .replace("\$split", split_string)
+            }
+            else {
+                return getString("version_message_non_release_\$commit_\$apiver_\$split")
+                    .replace("\$commit", ProjectBuildConfig.GIT_COMMIT_HASH?.take(7).toString())
+                    .replace("\$apiver", api_version_string)
+                    .replace("\$split", split_string)
+            }
         }
     }
 }

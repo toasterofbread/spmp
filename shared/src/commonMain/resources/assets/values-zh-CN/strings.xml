@@ -1,0 +1,722 @@
+<resources>
+    <string name="language_name">简体中文</string>
+
+    <string name="project_url_name">项目 URL</string>
+
+    <string name="spms_client_type_spmp_player">SpMp (播放器)</string>
+    <string name="spms_client_type_info_spmp_player">一个图形化的SpMp实例，可以播放自己的音频</string>
+    <string name="spms_client_type_spmp_standalone">SpMp (独立模式)</string>
+    <string name="spms_client_type_info_spmp_standalone">一个图形化的SpMp实例，依赖外部播放器播放音频</string>
+    <string name="spms_client_type_player">播放器</string>
+    <string name="spms_client_type_info_player">一个没有图形用户界面的独立音频播放器</string>
+    <string name="spms_client_type_command_line">命令行</string>
+    <string name="spms_client_type_info_command_line">一个与服务器通信的工具或脚本</string>
+    <string name="spms_client_type_server">服务器</string>
+    <string name="spms_client_type_info_server">此客户端连接的服务器</string>
+
+    <string name="font_option_default_$x">默认 ($x)</string>
+    <string name="font_option_system">系统字体</string>
+    <string name="font_option_hc_maru_gothic">HC Maru Gothic</string>
+
+    <string name="home_feed_listen_again">重复聆听</string>
+    <string name="home_feed_mixed_for_you">专属于你</string>
+    <string name="home_feed_new_releases">新发布</string>
+    <string name="home_feed_moods_and_genres">推荐歌单</string>
+    <string name="home_feed_charts">排行榜</string>
+
+    <string name="home_feed_rec_general">推荐</string>
+    <string name="home_feed_rec_songs">推荐歌曲</string>
+    <string name="home_feed_rec_artists">推荐歌手</string>
+    <string name="home_feed_rec_albums">推荐专辑</string>
+    <string name="home_feed_rec_playlists">推荐歌单</string>
+    <string name="home_feed_rec_music_videos">推荐 MV</string>
+    <string name="home_feed_rec_albums_playlists">歌手和专辑</string>
+    <string name="home_feed_similar_to">类似于</string>
+    <string name="home_feed_more_from">更多来自</string>
+
+    <string name="home_feed_filter_energise">充电</string>
+    <string name="home_feed_filter_relax">放松</string>
+    <string name="home_feed_filter_workout">健身</string>
+    <string name="home_feed_filter_commute">通勤</string>
+    <string name="home_feed_filter_focus">专注</string>
+
+    <string name="library_local">本地</string>
+    <string name="library_account">账号</string>
+
+    <string name="library_songs_downloaded">已下载</string>
+    <string name="library_songs_downloaded_title">已下载歌曲</string>
+    <string name="library_songs_liked">点赞</string>
+    <string name="library_songs_liked_title">点赞的歌曲</string>
+
+    <string name="library_no_local_songs">没有本地歌曲</string>
+    <string name="library_no_local_artists">没有本地艺术家</string>
+    <string name="library_no_liked_artists">没有收藏的艺术家</string>
+    <string name="library_no_liked_albums">没有收藏的专辑</string>
+    <string name="library_no_liked_songs">没有喜欢的歌曲</string>
+    <string name="library_no_playlists">没有播放列表</string>
+    <string name="library_no_items_match_filter">没有符合筛选条件的项目</string>
+
+    <string name="library_$x_songs">$x 首歌曲</string>
+    <string name="library_$x_playlists">$x 个播放列表</string>
+    <string name="artist_$x_songs">$x 首歌曲</string>
+
+    <string name="library_recent_songs_all">全部</string>
+    <string name="library_recent_songs_year">年</string>
+    <string name="library_recent_songs_month">月</string>
+    <string name="library_recent_songs_week">周</string>
+    <string name="library_recent_songs_day">天</string>
+
+    <string name="mediaitem_play_count_$x_short">$x 次播放</string>
+    <string name="song_name">歌曲名称</string>
+    <string name="videos">视频</string>
+
+    <string name="songs">歌曲</string>
+    <string name="song">歌曲</string>
+
+    <string name="artists">歌手</string>
+    <string name="artist">歌手</string>
+
+    <string name="playlists">播放列表</string>
+    <string name="playlist">播放列表</string>
+    <string name="albums">专辑</string>
+    <string name="album">专辑</string>
+    <string name="audiobook">有声书</string>
+    <string name="audiobooks">有声书</string>
+    <string name="podcast">播客</string>
+    <string name="podcasts">播客</string>
+    <string name="radio">广播</string>
+    <string name="radios">广播</string>
+
+    <string name="system_language">系统语言</string>
+
+    <string name="edit_$x_title_dialog_title">编辑 $x 的标题</string>
+
+    <string name="new_playlist_title">新建播放列表</string>
+    <string name="playlist_empty">播放列表为空</string>
+    <string name="song_add_to_playlist">添加到播放列表</string>
+    <string name="song_remove_from_playlist">从播放列表中移除</string>
+    <string name="playlist_create">创建播放列表</string>
+    <string name="playlist_delete">删除播放列表</string>
+    <string name="toast_playlist_added">已添加到播放列表</string>
+    <string name="playlist_select_image">选择播放列表图片</string>
+    <string name="playlist_image_url_field_label">图片URL</string>
+    <string name="playlist_info_local">本地播放列表</string>
+    <string name="playlist_info_account">账户播放列表</string>
+
+    <string name="feed_row_artists">推荐歌手</string>
+    <string name="feed_row_playlists">播放列表</string>
+
+    <string name="action_close">关闭</string>
+    <string name="action_cancel">取消</string>
+    <string name="action_share">分享</string>
+    <string name="action_confirm_action">是</string>
+    <string name="action_deny_action">否</string>
+    <string name="action_warning_accept">接受</string>
+    <string name="action_load_retry">重试</string>
+    <string name="action_save">保存</string>
+    <string name="action_open_documentation">打开文档</string>
+    <string name="prompt_confirm_action">请确认</string>
+    <string name="prompt_confirm_settings_page_reset">重置此页面上的所有值？</string>
+    <string name="prompt_hide_feed_rows_with_$title">隐藏标题为 '$title' 的信息流？</string>
+
+    <string name="action_download_start">下载</string>
+    <string name="action_download_pause">暂停</string>
+    <string name="action_download_resume">恢复</string>
+
+    <string name="player_overlay_menu_action_open_main_menu">打开主覆盖菜单</string>
+    <string name="player_overlay_menu_action_open_theming">打开主题设置</string>
+    <string name="player_overlay_menu_action_pick_theme_colour">从图片中选择主题色</string>
+    <string name="player_overlay_menu_action_adjust_notification_image_offset">调整通知图片偏移</string>
+    <string name="player_overlay_menu_action_open_lyrics">打开歌词</string>
+    <string name="player_overlay_menu_action_open_related">打开相关内容</string>
+    <string name="player_overlay_menu_action_download">下载</string>
+
+    <string name="song_theme_menu_corner_radius">角落半径</string>
+    <string name="song_theme_menu_gradient_depth">渐变深度</string>
+    <string name="song_theme_menu_image_shadow_radius">阴影半径</string>
+
+    <string name="song_notif_image_menu_open">调整通知图片</string>
+    <string name="song_notif_image_menu_adjust_offset">更改图片偏移</string>
+    <string name="song_notif_image_menu_adjust_offset_desc">更改将在歌曲更换后应用</string>
+
+    <string name="theme_title_default">默认主题</string>
+    <string name="theme_title_new">新主题</string>
+    <string name="theme_title_system">系统主题</string>
+
+    <string name="queue_shuffle">随机播放</string>
+    <string name="queue_clear">清空</string>
+
+    <string name="playlist_upload_to_account">上传到账户</string>
+
+    <string name="sort_type_playlist">播放列表顺序</string>
+    <string name="sort_type_alphabet">名称</string>
+    <string name="sort_type_duration">时长</string>
+    <string name="sort_type_playcount">播放次数</string>
+    <string name="sort_type_artist">艺术家</string>
+
+    <string name="playlist_chip_play">播放</string>
+    <string name="playlist_chip_shuffle">随机播放</string>
+    <string name="playlist_chip_radio">电台</string>
+    <string name="playlist_chip_details">详情</string>
+    <string name="playlist_chip_open">打开</string>
+    <string name="playlist_x_songs">$x 首歌曲</string>
+
+    <string name="artist_chip_play">播放</string>
+    <string name="artist_chip_shuffle">随机播放</string>
+    <string name="artist_chip_radio">电台</string>
+    <string name="artist_chip_details">详情</string>
+    <string name="artist_chip_open">打开</string>
+    <string name="artist_info_label">艺术家信息</string>
+
+    <string name="artist_x_subscribers">$x 订阅者</string>
+
+    <string name="loading_feed">音符跳动中</string>
+
+    <string name="media_pause">暂停</string>
+    <string name="media_play">播放</string>
+
+    <string name="player_service_name">播放器服务</string>
+    <string name="download_service_name">下载服务</string>
+    <string name="download_service_error_name">下载服务错误</string>
+
+    <string name="downloading_song_$title">正在下载 $title</string>
+    <string name="downloading_$x_songs">正在下载 $x 首歌曲</string>
+    <string name="download_just_started">刚刚开始</string>
+    <string name="download_started_$x_minutes_ago">开始于 $x 分钟前</string>
+
+    <string name="download_method_select_title">选择下载方式</string>
+    <string name="download_method_title_library">库</string>
+    <string name="download_method_desc_library">下载到 SpMp 的库文件夹</string>
+    <string name="download_method_title_custom">自定义</string>
+    <string name="download_method_desc_custom">下载到用户指定的位置</string>
+
+    <string name="search_filter_all">全部</string>
+    <string name="search_filter_videos">视频</string>
+    <string name="search_entry_field_hint">搜索</string>
+    <string name="search_results_loading">加载中</string>
+    <string name="search_suggested_correction_$x">您是不是要找 $x？</string>
+
+    <string name="lyrics_none_found">未找到歌词</string>
+    <string name="lyrics_no_more_results">没有更多结果</string>
+    <string name="lyrics_search_on_$source">在 $source 上搜索歌词</string>
+    <string name="lyrics_loading">加载歌词中</string>
+    <string name="lyrics_source_cannot_search">源不支持搜索</string>
+    <string name="lyrics_sync_long_press_line">长按行以同步</string>
+    <string name="lyrics_sync_press_button_when_line_begins">当这行开始时按下按钮</string>
+    <string name="lyrics_no_lyrics_set_confirmation_title">为这首歌禁用歌词？</string>
+    <string name="lyrics_no_lyrics_set_for_song">已手动为这首歌禁用歌词</string>
+
+    <string name="lyrics_info_key_source">源</string>
+    <string name="lyrics_info_key_id">ID</string>
+    <string name="lyrics_info_key_sync_type">同步类型</string>
+    <string name="lyrics_info_key_local_file">本地文件</string>
+    <string name="lyrics_source_petit">PetitLyrics</string>
+    <string name="lyrics_source_kugou">酷狗</string>
+    <string name="lyrics_source_ytm">YouTube Music</string>
+
+    <string name="lyrics_sync_none">无同步</string>
+    <string name="lyrics_sync_line">行同步</string>
+    <string name="lyrics_sync_word">词同步</string>
+
+    <string name="video_format_endpoint_piped">Piped API</string>
+    <string name="video_format_endpoint_youtubei">Youtubei</string>
+    <string name="video_format_endpoint_newpipe">NewPipe</string>
+
+    <string name="error_message_generic">发生了一个错误</string>
+    <string name="error_yt_feed_parse_failed">YouTube 订阅解析失败</string>
+    <string name="error_player_service_not_connected">播放器服务未连接&#xA;可能发生了一个错误</string>
+    <string name="error_on_server_command_execution">执行服务器命令时发生错误</string>
+
+    <string name="desktop_splash_connecting_to_server_at_$x">正在连接到服务器 $x</string>
+    <string name="desktop_splash_setting_initial_state">设置初始状态</string>
+    <string name="desktop_splash_button_configure_connection">配置连接</string>
+    <string name="desktop_splash_title_configure_server_connection">配置服务器连接</string>
+    <string name="desktop_splash_button_start_server">启动本地服务器</string>
+    <string name="desktop_splash_button_stop_process">停止进程</string>
+    <string name="desktop_splash_process_running_with_command_$x">进程正在运行此命令:&#xA;$x</string>
+    <string name="desktop_splash_local_server_command_not_set">未设置本地服务器命令</string>
+
+    <string name="throw_error">抛出</string>
+    <string name="report_error">报告</string>
+    <string name="wrap_text_switch_label">换行</string>
+    <string name="upload_to_paste_dot_ee">上传到 Paste.ee</string>
+
+    <string name="lpm_action_radio">开始电台</string>
+    <string name="lpm_action_play">播放</string>
+    <string name="lpm_action_shuffle_playlist">随机播放</string>
+    <string name="lpm_action_play_after_1_song">在下一首歌后播放</string>
+    <string name="lpm_action_play_after_x_songs">在 $x 首歌后播放</string>
+    <string name="lpm_action_download">下载</string>
+    <string name="lpm_action_delete_local_song_file">删除本地文件</string>
+    <string name="lpm_action_go_to_artist">前往艺术家</string>
+    <string name="lpm_action_go_to_album">打开专辑</string>
+    <string name="lpm_action_song_related">显示相关内容</string>
+    <string name="lpm_action_print_info">打印信息</string>
+    <string name="lpm_action_share">分享</string>
+    <string name="lpm_action_open_artist">打开</string>
+    <string name="lpm_action_open_playlist">打开</string>
+    <string name="lpm_action_open_external">在外部打开</string>
+    <string name="lpm_action_hide">隐藏</string>
+
+    <string name="lpm_long_press_actions">长按操作</string>
+    <string name="lpm_action_radio_at_song_pos">在队列中的歌曲位置开始电台</string>
+    <string name="lpm_action_radio_after_x_songs">在 X 首歌后开始电台</string>
+    <string name="lpm_action_play_shuffled_after_x_songs">在 X 首歌后随机播放</string>
+    <string name="lpm_song_now_playing">正在播放</string>
+    <string name="lpm_song_played_$x_ago">$x 前播放</string>
+    <string name="lpm_song_playing_in_$x">在 $x 中播放</string>
+
+    <string name="lpm_info_queue_index">队列索引：$index</string>
+    <string name="lpm_info_id">ID：$id</string>
+
+    <string name="song_related_group_other">其他</string>
+
+    <string name="multiselect_x_items_selected">已选择 $x 项</string>
+    <string name="multiselect_begin">开始多选</string>
+    <string name="multiselect_end">结束多选</string>
+
+    <string name="topbar_mode_unavailable">(不可用)</string>
+
+    <string name="notif_download_finished">下载完成</string>
+    <string name="notif_download_already_finished">已经下载</string>
+    <string name="notif_download_cancelled">下载已取消</string>
+    <string name="notif_download_already_downloading">已经在下载</string>
+    <string name="notif_copied_to_clipboard">已复制到剪贴板</string>
+    <string name="notif_copied_x_to_clipboard">已复制 $x 到剪贴板</string>
+
+    <string name="radio_builder_title">创建电台</string>
+    <string name="radio_builder_no_songs_match_criteria">没有歌曲符合条件</string>
+    <string name="radio_builder_next_button">下一步</string>
+    <string name="radio_builder_play_last_button">播放最后一个电台</string>
+    <string name="radio_builder_recent_button">最近的电台</string>
+    <string name="radio_builder_artists_title">选择艺术家</string>
+    <string name="radio_builder_modifiers_title">选择偏好</string>
+    <string name="radio_builder_modifier_selection_type">歌曲选择类型</string>
+    <string name="radio_builder_modifier_selection_type_familiar">熟悉的</string>
+    <string name="radio_builder_modifier_selection_type_blend">混合</string>
+    <string name="radio_builder_modifier_selection_type_discover">推荐</string>
+    <string name="radio_builder_modifier_variety">艺术家多样性</string>
+    <string name="radio_builder_modifier_variety_low">低</string>
+    <string name="radio_builder_modifier_variety_medium">中</string>
+    <string name="radio_builder_modifier_variety_high">高</string>
+    <string name="radio_builder_modifier_filter_a">过滤器</string>
+    <string name="radio_builder_modifier_filter_a_popular">流行</string>
+    <string name="radio_builder_modifier_filter_a_hidden">隐藏</string>
+    <string name="radio_builder_modifier_filter_a_new">新的</string>
+    <string name="radio_builder_modifier_filter_b">流派</string>
+    <string name="radio_builder_modifier_filter_pump_up">劲爆</string>
+    <string name="radio_builder_modifier_filter_chill">轻松</string>
+    <string name="radio_builder_modifier_filter_upbeat">欢快</string>
+    <string name="radio_builder_modifier_filter_downbeat">低沉</string>
+    <string name="radio_builder_modifier_filter_focus">专注</string>
+    <string name="radio_filter_all">全部</string>
+
+    <string name="radio_title_of_$artists">$artists 的电台</string>
+    <string name="radio_title_artists_splitter">，</string>
+    <string name="radio_title_overflow">…</string>
+
+    <string name="settings_string_set_item_empty">没有添加项目</string>
+    <string name="settings_string_set_item_already_added">项目已添加</string>
+    <string name="settings_value_out_of_$range">超出范围 ($range)</string>
+    <string name="settings_value_not_int">不是整数</string>
+    <string name="settings_value_not_float">不是浮点数</string>
+    <string name="settings_value_not_ipv4">不是有效的 IPv4 地址</string>
+    <string name="settings_value_not_port">不是有效的端口</string>
+
+    <string name="s_page_preferences">设置</string>
+
+    <string name="s_key_interface_lang">界面语言</string>
+    <string name="s_sub_interface_lang">用于界面文本的语言</string>
+    <string name="s_key_data_lang">数据语言</string>
+    <string name="s_sub_data_lang">用于歌曲和艺术家标题等的语言</string>
+    <string name="language_change_restart_notice">需要重启应用程序才能使语言和字体更改生效</string>
+    <string name="s_group_long_press_menu">长按菜单</string>
+    <string name="s_key_lpm_close_on_action">操作后关闭菜单</string>
+    <string name="s_key_lpm_increment_play_after">使用后增加 '播放后' 操作</string>
+    <string name="s_key_desktop_lpm_keep_on_background_scroll">滚动时保持菜单</string>
+    <string name="s_sub_desktop_lpm_keep_on_background_scroll">当滚动菜单后面的视图时，菜单将被移动到角落而不是被隐藏</string>
+
+    <string name="s_key_filter_enable">启用项目过滤器</string>
+    <string name="s_key_filter_title_keywords">标题过滤关键词</string>
+    <string name="s_sub_filter_title_keywords">如果项目的标题包含这些关键词中的任何一个，它将被隐藏</string>
+    <string name="s_key_filter_apply_to_playlist_items">将过滤器应用于播放列表项目</string>
+    <string name="s_key_filter_apply_to_artists">将过滤器应用于艺术家</string>
+    <string name="s_key_filter_apply_to_artist_items">将过滤器应用于艺术家项目</string>
+    <string name="s_filter_title_keywords_dialog_title">添加关键词</string>
+
+    <string name="s_key_hp_show_visualiser">显示音乐可视化</string>
+    <string name="s_sub_hp_show_visualiser">在播放过程中在顶部栏显示</string>
+    <string name="s_key_hp_show_timed_lyrics">显示定时歌词</string>
+    <string name="s_sub_hp_show_timed_lyrics">如果有定时歌词，将在顶部栏显示</string>
+
+    <string name="s_key_feed_show_song_download_indicators">显示歌曲下载指示器</string>
+    <string name="s_key_feed_initial_rows">初始 feed 行</string>
+    <string name="s_key_feed_square_preview_text_lines">方形项目最大文本行</string>
+    <string name="s_key_feed_grid_row_count">默认网格行数</string>
+    <string name="s_key_feed_grid_row_count_expanded">扩展网格行数</string>
+    <string name="s_key_feed_alt_grid_row_count">默认 alt 网格行数</string>
+    <string name="s_key_feed_alt_grid_row_count_expanded">扩展 alt 网格行数</string>
+    <string name="s_sub_feed_initial_rows">自动加载的 feed 行的最小数量</string>
+    <string name="s_key_feed_show_radios">在 feed 中显示电台项目</string>
+    <string name="s_key_hidden_feed_rows">隐藏的行</string>
+    <string name="s_sub_hidden_feed_rows">也可以通过长按标题来隐藏行</string>
+    <string name="s_hidden_feed_rows_dialog_title">通过标题隐藏行</string>
+
+    <string name="s_key_open_np_on_song_played">点击歌曲并播放时打开播放器</string>
+    <string name="s_sub_open_np_on_song_played">点击并播放歌曲时，现在播放的菜单将自动打开</string>
+
+    <string name="s_key_multiselect_cancel_on_action">操作后取消多选</string>
+    <string name="s_sub_multiselect_cancel_on_action">一旦执行操作，就禁用媒体项目的多选状态</string>
+
+    <string name="s_key_multiselect_cancel_on_none_selected">一旦没有选择任何内容，就取消多选</string>
+
+    <string name="s_key_start_radio_on_song_press">按下歌曲时开始电台</string>
+    <string name="s_sub_start_radio_on_song_press">而不是只播放歌曲，它的 YouTube 电台将被添加到队列中</string>
+
+    <string name="s_key_persistent_queue">持久的歌曲队列</string>
+    <string name="s_sub_persistent_queue">即使关闭应用程序，歌曲队列也会保持</string>
+
+    <string name="s_key_add_songs_to_history">将歌曲添加到 YT 历史记录</string>
+    <string name="s_sub_add_songs_to_history">听过的歌曲将被发送到 YouTube 并添加到账户历史记录</string>
+
+    <string name="s_key_treat_singles_as_song">将单曲视为一首歌</string>
+    <string name="s_sub_treat_singles_as_song">在艺术家页面的 'Singles' 标签中包含的播放列表将被视为包含的歌曲，如果只有一首</string>
+
+    <string name="s_key_treat_any_single_item_playlist_as_single">将所有单项播放列表视为单曲</string>
+
+    <string name="s_key_font">字体</string>
+    <string name="s_key_ui_scale">UI 缩放</string>
+
+    <string name="s_key_stop_player_on_app_close">关闭应用时停止播放器</string>
+    <string name="s_sub_stop_player_on_app_close">如果从最近的应用中清除应用，音乐播放器将停止</string>
+
+    <string name="s_key_mini_player_show_prev_button">在迷你播放器中显示上一首按钮</string>
+    <string name="s_key_mini_player_overscroll_clear_enabled">向下滑动迷你播放器以清除队列</string>
+    <string name="s_key_mini_player_overscroll_clear_time">滑动清除保持时间</string>
+    <string name="s_key_mini_player_overscroll_clear_mode">清除时</string>
+    <string name="s_option_mini_player_overscroll_clear_mode_always_hide">始终隐藏播放器</string>
+    <string name="s_option_mini_player_overscroll_clear_mode_hide_if_queue_empty">如果队列为空则隐藏播放器</string>
+    <string name="s_option_mini_player_overscroll_clear_mode_none_if_queue_empty">只清除队列</string>
+
+    <string name="s_key_player_show_repeat_shuffle_buttons">在播放器中显示重复和随机按钮</string>
+    <string name="s_sub_player_show_repeat_shuffle_buttons">无论此选项如何，它们都会在队列中显示</string>
+
+    <string name="s_key_player_show_progress_bar_gradient">在进度条中显示渐变</string>
+
+    <string name="s_key_player_overlay_menu_custom_action">覆盖菜单自定义操作</string>
+    <string name="s_sub_player_overlay_menu_custom_action">默认情况下，长按触发</string>
+    <string name="s_key_player_overlay_menu_swap_long_short_press_actions">交换覆盖菜单长按和短按操作</string>
+
+    <string name="s_key_np_queue_item_swipe_sensitivity">队列项滑动灵敏度</string>
+    <string name="s_sub_np_queue_item_swipe_sensitivity">如果队列项容易被意外移除，请降低灵敏度</string>
+
+    <string name="s_key_np_queue_extra_side_padding">增加队列侧面的填充</string>
+    <string name="s_sub_np_queue_extra_side_padding">用于增加轻扫关闭区域</string>
+
+    <string name="s_key_np_queue_wave_border_mode">队列波浪边框模式</string>
+    <string name="s_sub_np_queue_wave_border_mode">队列歌曲和选项按钮之间波浪边框的动画模式</string>
+    <string name="s_option_wave_border_mode_time">随时间动画</string>
+    <string name="s_option_wave_border_mode_time_sync">播放时随时间动画</string>
+    <string name="s_option_wave_border_mode_scroll">队列滚动时动画</string>
+    <string name="s_option_wave_border_mode_none">无动画</string>
+    <string name="s_option_wave_border_mode_line">线条边框</string>
+
+    <string name="s_key_np_queue_radio_info_position">队列电台信息位置</string>
+    <string name="s_option_np_queue_radio_info_top_bar">按钮栏</string>
+    <string name="s_option_np_queue_radio_info_above_items">位于队列项上方</string>
+
+    <string name="s_key_resume_on_bt_connect">蓝牙设备连接时恢复播放</string>
+    <string name="s_sub_resume_on_bt_connect">如果播放因设备断开而暂停，当蓝牙音频设备连接时，播放将恢复</string>
+    <string name="s_key_pause_on_bt_disconnect">蓝牙设备断开时暂停播放</string>
+    <string name="s_key_resume_on_wired_connect">有线设备连接时恢复播放</string>
+    <string name="s_sub_resume_on_wired_connect">如果播放因设备断开而暂停，当有线音频设备连接时，播放将恢复</string>
+    <string name="s_key_pause_on_wired_disconnect">有线设备断开时暂停播放</string>
+
+    <string name="s_key_library_path">库存储路径</string>
+    <string name="s_sub_library_path">用于存储本地播放列表和歌曲的位置</string>
+    <string name="s_key_show_likes_playlist">显示喜欢的播放列表</string>
+
+    <string name="s_key_current_theme">当前主题</string>
+    <string name="s_theme_editor_title">编辑主题</string>
+    <string name="s_theme_editor_field_name">名称</string>
+    <string name="s_theme_editor_field_background">背景</string>
+    <string name="s_theme_editor_field_on_background">在背景上</string>
+    <string name="s_theme_editor_field_card">卡片</string>
+    <string name="s_theme_editor_field_accent">强调色</string>
+    <string name="s_theme_editor_button_preview">预览</string>
+
+    <string name="s_key_accent_source">强调色</string>
+    <string name="s_option_accent_theme">来自主题</string>
+    <string name="s_option_accent_thumbnail">来自缩略图</string>
+
+    <string name="s_key_np_theme_mode">正在播放的主题模式</string>
+    <string name="s_option_np_accent_background">用强调色彩色背景</string>
+    <string name="s_option_np_accent_elements">用强调色彩色元素</string>
+    <string name="s_option_np_accent_none">不使用强调色</string>
+
+    <string name="s_key_np_default_gradient_depth">默认渐变深度</string>
+    <string name="s_key_np_default_background_image_video_opacity">默认横向背景图像透明度</string>
+    <string name="s_key_np_default_shadow_radius">默认图像阴影大小</string>
+
+    <string name="s_key_lyrics_default_source">默认歌词来源</string>
+
+    <string name="s_key_lyrics_follow_enabled">跟随当前行</string>
+    <string name="s_sub_lyrics_follow_enabled">在显示定时歌词时，自动滚动到当前行</string>
+
+    <string name="s_key_lyrics_follow_offset">跟随行位置</string>
+    <string name="s_sub_lyrics_follow_offset">滚动到当前行时，将行放置在视图内的位置</string>
+    <string name="s_option_lyrics_follow_offset_top">顶部</string>
+    <string name="s_option_lyrics_follow_offset_bottom">底部</string>
+
+    <string name="s_key_lyrics_default_furigana">默认显示振假名</string>
+
+    <string name="s_key_lyrics_text_alignment">文本对齐</string>
+    <string name="s_option_lyrics_text_alignment_start">左对齐</string>
+    <string name="s_option_lyrics_text_alignment_center">居中对齐</string>
+    <string name="s_option_lyrics_text_alignment_end">右对齐</string>
+
+    <string name="s_key_lyrics_extra_padding">额外的填充</string>
+    <string name="s_sub_lyrics_extra_padding">在歌词上下添加额外的填充以增加滚动范围</string>
+
+    <string name="s_key_lyrics_enable_word_sync">启用单词同步</string>
+    <string name="s_sub_lyrics_enable_word_sync">如果可用，歌词同步将按单词显示，而不是按行显示</string>
+
+    <string name="s_key_lyrics_font_size">字体大小</string>
+
+    <string name="s_key_lyrics_sync_delay">歌词同步延迟</string>
+    <string name="s_sub_lyrics_sync_delay">应用于歌词同步的秒数延迟</string>
+    <string name="s_key_lyrics_sync_delay_topbar">顶部栏歌词同步延迟</string>
+    <string name="s_sub_lyrics_sync_delay_topbar">仅应用于顶部栏中的歌词的额外延迟</string>
+    <string name="s_key_lyrics_sync_delay_bluetooth">蓝牙歌词同步延迟</string>
+    <string name="s_sub_lyrics_sync_delay_bluetooth">仅在使用蓝牙音频听歌时应用的额外延迟</string>
+
+    <string name="s_key_stream_audio_quality">流媒体音频质量</string>
+    <string name="s_sub_stream_audio_quality">流媒体音乐的目标音频质量</string>
+    <string name="s_key_download_audio_quality">下载音频质量</string>
+    <string name="s_sub_download_audio_quality">下载音乐的默认音频质量</string>
+
+    <string name="s_option_audio_quality_high">高</string>
+    <string name="s_option_audio_quality_medium">中</string>
+    <string name="s_option_audio_quality_low">低</string>
+
+    <string name="s_key_video_formats_endpoint">歌曲流/下载方法</string>
+
+    <string name="s_key_auto_download_enabled">启用歌曲自动下载</string>
+    <string name="s_key_auto_download_threshold">自动下载阈值</string>
+    <string name="s_sub_auto_download_threshold">设定收听多少次后歌曲被自动下载</string>
+    <string name="s_key_auto_download_quality">自动下载质量</string>
+    <string name="s_sub_auto_download_quality">自动下载歌曲的音频质量</string>
+    <string name="s_key_auto_download_on_metered">在计费连接上自动下载</string>
+
+    <string name="s_cat_stats">听歌统计</string>
+
+    <string name="s_key_enable_stats">启用听歌统计</string>
+    <string name="s_sub_enable_stats">如果禁用，将不会记录听歌统计</string>
+    <string name="s_key_listen_count_threshold">计数的最小听歌时间</string>
+    <string name="s_sub_listen_count_threshold">只有当听歌时间至少这么长时，歌曲的听歌次数才会增加</string>
+    <string name="s_key_listen_count_type">最小听歌时间类型</string>
+    <string name="s_option_listen_count_threshold_type_absolute">绝对</string>
+    <string name="s_option_listen_count_threshold_type_percent">百分比</string>
+    <string name="s_button_reset_stats">重置听歌统计</string>
+    <string name="s_confirm_reset_stats">所有记录的统计将被删除</string>
+
+    <string name="s_key_search_show_suggestions">显示搜索建议</string>
+    <string name="s_key_navbar_height_multiplier">导航栏高度倍数</string>
+    <string name="s_sub_navbar_height_multiplier">如果你的系统没有正确报告导航栏的高度，使用此选项（需要重启应用）</string>
+
+    <string name="s_key_enable_audio_normalisation">启用音频标准化</string>
+    <string name="s_sub_enable_audio_normalisation">由于响度数据是 YouTube 提供的，因此某些视频中可用性受限</string>
+
+    <string name="s_key_enable_silence_skipping">启用静音跳过</string>
+
+    <string name="s_key_download_method">下载方法</string>
+    <string name="s_sub_download_method">手动下载歌曲时使用的方法</string>
+    <string name="s_key_skip_download_method_confirmation">跳过下载方法确认</string>
+    <string name="s_sub_skip_download_method_confirmation">开启后，开始下载时将立即使用默认的下载方法</string>
+
+    <string name="s_key_status_webhook_url">状态 webhook URL</string>
+    <string name="s_sub_status_webhook_url">当播放歌曲改变时，将以以下格式向此 URL 发送一个 JSON post 请求：`{"youtube_video_id": "&lt;Video ID&gt;"}`</string>
+
+    <string name="s_key_status_webhook_payload">状态 webhook 负载</string>
+    <string name="s_sub_status_webhook_payload">发送到状态 webhook 的额外 JSON 数据</string>
+
+    <string name="s_group_caching">缓存</string>
+    <string name="s_key_enable_thumbnail_cache">启用缩略图缓存</string>
+
+    <string name="s_discord_status_enabled">Discord 状态已启用</string>
+    <string name="s_discord_status_disabled">Discord 状态已禁用</string>
+    <string name="s_discord_status_enable">启用</string>
+    <string name="s_discord_status_disable">禁用</string>
+
+    <string name="s_group_desktop_system">系统</string>
+
+    <string name="s_key_startup_command">启动命令</string>
+    <string name="s_sub_startup_command">程序启动时执行的命令</string>
+
+    <string name="s_group_server">服务器</string>
+    <string name="s_info_server">SpMp 服务器组件（SpMs）必须在指定的 IP 地址和端口上运行。https://github.com/toasterofbread/spmp-server</string>
+
+    <string name="s_key_server_ip">服务器 IP 地址</string>
+    <string name="s_key_server_port">服务器端口</string>
+    <string name="s_key_local_server_command">服务器命令</string>
+    <string name="s_sub_local_server_command">从 SpMp 内部手动启动服务器时运行的命令&#xA;第一次出现'$@'将被替换为服务器参数，否则它们将被附加到命令</string>
+    <string name="s_key_server_local_start_automatically">自动启动本地服务器</string>
+    <string name="s_sub_server_local_start_automatically">在启动时，如果立即找不到服务器，将使用指定的命令自动启动服务器</string>
+    <string name="s_key_server_kill_child_on_exit">退出时停止子服务器</string>
+
+    <string name="s_cat_development">开发</string>
+
+    <string name="s_subpage_ui_debug_info">UI 调试信息</string>
+
+    <string name="s_group_localisation">本地化</string>
+    <string name="s_key_unlocalised_strings">未本地化的字符串</string>
+    <string name="s_sub_unlocalised_strings">当前语言未本地化的字符串</string>
+
+    <string name="s_group_discord_status_disable_when">当...时禁用状态</string>
+    <string name="s_key_discord_status_disable_when_invisible">隐身</string>
+    <string name="s_key_discord_status_disable_when_dnd">请勿打扰</string>
+    <string name="s_key_discord_status_disable_when_idle">空闲</string>
+    <string name="s_key_discord_status_disable_when_offline">离线</string>
+    <string name="s_key_discord_status_disable_when_online">在线</string>
+
+    <string name="s_group_discord_status_content">状态内容</string>
+    <string name="s_discord_status_text_info">要显示关于当前歌曲的信息，请使用以下字符串：&#xA;- $song&#xA;- $artist</string>
+
+    <string name="s_key_discord_status_name">状态标题</string>
+    <string name="s_sub_discord_status_name">显示在'正在听'后的文本</string>
+    <string name="s_key_discord_status_text_a">主要状态文本</string>
+    <string name="s_sub_discord_status_text_a"></string>
+    <string name="s_key_discord_status_text_b">次要状态文本</string>
+    <string name="s_sub_discord_status_text_b"></string>
+    <string name="s_key_discord_status_text_c">第三状态文本</string>
+    <string name="s_sub_discord_status_text_c">也用于图片悬停文本</string>
+
+    <string name="s_key_discord_status_show_button_song">显示打开歌曲按钮</string>
+    <string name="s_sub_discord_status_show_button_song">在 YouTube Music 上打开当前歌曲</string>
+    <string name="s_key_discord_status_button_song_text">打开歌曲按钮文本</string>
+
+    <string name="s_key_discord_status_show_button_project">显示项目页面按钮</string>
+    <string name="s_sub_discord_status_show_button_project">在 GitHub 上打开项目仓库</string>
+    <string name="s_key_discord_status_button_project_text">项目页面按钮文本</string>
+
+    <string name="s_cat_general">通用</string>
+    <string name="s_cat_desc_general">语言和其他选项</string>
+
+    <string name="s_cat_behaviour">行为</string>
+    <string name="s_cat_desc_behaviour">各种显示和动作调整</string>
+
+    <string name="s_cat_player">播放器</string>
+    <string name="s_cat_desc_player">调整音乐播放器视图</string>
+
+    <string name="s_cat_feed">歌曲推荐</string>
+    <string name="s_cat_desc_feed">精选歌曲推荐</string>
+
+    <string name="s_cat_theme">主题</string>
+    <string name="s_cat_desc_theme">自定义应用颜色和更改强调色源</string>
+
+    <string name="s_cat_lyrics">歌词</string>
+    <string name="s_cat_desc_lyrics">歌词外观和行为</string>
+
+    <string name="s_cat_discord_status">Discord 状态</string>
+    <string name="s_cat_desc_discord_status">管理 Discord 账户和自定义状态外观</string>
+
+    <string name="s_cat_filter">过滤器</string>
+    <string name="s_cat_desc_filter">通过关键词隐藏歌曲和播放列表</string>
+
+    <string name="s_cat_streaming">播放</string>
+    <string name="s_cat_desc_streaming">音频质量和播放设置</string>
+
+    <string name="s_cat_desktop">桌面</string>
+    <string name="s_cat_desc_desktop">平台特定配置</string>
+
+    <string name="s_cat_misc">其他</string>
+    <string name="s_cat_desc_misc">缓存和其他杂项选项</string>
+
+    <string name="s_cat_youtube_auth">YouTube 凭证</string>
+    <string name="s_cat_discord_auth">Discord 凭证</string>
+
+    <string name="song_related_page_no_content">歌曲没有相关内容</string>
+    <string name="song_related_page_empty_row">无内容</string>
+
+    <string name="discord_status_default_name">$artist</string>
+    <string name="discord_status_default_text_a">$song</string>
+    <string name="discord_status_default_text_b">$artist</string>
+    <string name="discord_status_default_text_c">正在 SpMp 上听</string>
+    <string name="discord_status_default_button_song">在 YouTube 上打开歌曲</string>
+    <string name="discord_status_default_button_project">访问项目页面</string>
+    <string name="discord_status_unknown_artist_replacement">未知</string>
+
+    <string name="control_panel_downloads_label">下载</string>
+    <string name="control_panel_downloads_title">当前下载</string>
+    <string name="control_panel_downloads_in_progress">进行中</string>
+    <string name="control_panel_downloads_completed">已完成</string>
+
+    <string name="control_panel_server_label">服务器</string>
+    <string name="control_panel_server_title">服务器状态</string>
+    <string name="control_panel_server_connected_to_server">已连接到服务器</string>
+    <string name="control_panel_server_ip_address_$x">IP地址：$x</string>
+    <string name="control_panel_server_port_$x">端口：$x</string>
+    <string name="control_panel_server_name_$x">名称：$x</string>
+    <string name="control_panel_server_device_name_$x">主机设备：$x</string>
+    <string name="control_panel_server_connected_clients">其他已连接的客户端</string>
+    <string name="control_panel_server_connected_clients_loading">加载中</string>
+    <string name="control_panel_server_this_client">此客户端</string>
+    <string name="control_panel_server_client_more_info">更多信息</string>
+    <string name="control_panel_server_client_player_port_$x">播放器端口：$x</string>
+    <string name="control_panel_server_same_machine">同一设备</string>
+
+    <string name="action_login_manually">手动登录</string>
+    <string name="auth_not_signed_in">未登录</string>
+    <string name="auth_sign_in">登录</string>
+    <string name="auth_sign_out">登出</string>
+
+    <string name="warning_ytm_login">一旦登录，您的会话 cookie 将被提取、存储，并仅用于向 YouTube Music 发送 API 请求，如获取推荐 feed 和订阅艺术家。&#xA;&#xA;继续吗？</string>
+    <string name="info_ytm_login">一旦登录，您的会话 cookie 将被提取、存储，并仅用于向 YouTube Music 发送 API 请求，如获取推荐 feed 和订阅艺术家。</string>
+    <string name="warning_discord_login">您将被引导至应用内的 webview 以登录 Discord。&#xA;&#xA;一旦登录，您的账户令牌将被提取、存储，并仅用于与 Discord 的网关连接，以设置您当前的状态。&#xA;&#xA;请查看 https://github.com/dead8309/Kizzy 以获取更多信息。&#xA;&#xA;继续吗？</string>
+    <string name="info_discord_login">您将被引导至应用内的 webview 以登录 Discord。&#xA;&#xA;一旦登录，您的账户令牌将被提取、存储，并仅用于与 Discord 的网关连接，以设置您当前的状态。&#xA;&#xA;请查看 https://github.com/dead8309/Kizzy 以获取更多信息。</string>
+    <string name="warning_discord_kizzy">SpMp 使用 KizzyRPC 库来设置您的 Discord 账户的状态。这涉及使用 Discord Gateway 连接，这可能被视为违反 Discord 的 TOS。然而，目前没有已知的因此原因被暂停的用户账户。请自行承担风险。&#xA;&#xA;请查看 https://github.com/dead8309/Kizzy 以获取更多信息。</string>
+
+    <string name="youtube_manual_login_title">手动登录 YouTube</string>
+    <string-array name="youtube_manual_login_steps">
+        <item>打开一个新的浏览器标签页</item>
+        <item>打开开发者控制台（在大多数浏览器上是 ctrl+shift+I）</item>
+        <item>转到网络页面</item>
+        <item>访问 https://music.youtube.com/</item>
+        <item>找到一个POST请求，其地址为 https://music.youtube.com/youtubei/v1/...，如 /browse 或 /account_menu</item>
+        <item>复制请求头并在下面输入</item>
+    </string-array>
+    <string name="youtube_manual_login_suffix">在 Firefox 中，可以通过右键点击请求并选择'复制值'然后'复制请求头'来完成此操作。&#xA;&#xA;在其他浏览器中，点击请求并转到'Headers'标签，向下滚动到'Request headers'，并从'Accept: */*'开始复制该部分中的所有头信息。</string>
+    <string name="youtube_manual_login_field">头信息</string>
+
+    <string name="youtube_login_load_message">正在加载登录页面</string>
+    <string name="youtube_account_selection_title">选择账户</string>
+
+    <string name="manual_login_error_missing_following_headers">缺少以下头信息：</string>
+    <string name="manual_login_desktop_browser_may_be_needed">您可能需要使用桌面浏览器来完成这些步骤</string>
+
+    <string name="discord_manual_login_title">手动登录 Discord</string>
+    <string-array name="discord_manual_login_steps">
+        <item>打开一个新的浏览器标签页</item>
+        <item>打开开发者控制台（在大多数浏览器上是 ctrl+shift+I）</item>
+        <item>转到网络标签页</item>
+        <item>访问 https://discord.com/app</item>
+        <item>找到一个POST请求，其地址为 https://discord.com/api/v9/...，如 /survey 或 /player</item>
+        <item>从请求头部分复制'Authorization'头，并在下面输入</item>
+    </string-array>
+    <string name="discord_manual_login_suffix"></string>
+    <string name="discord_manual_login_field">授权</string>
+
+    <string name="err_root_not_granted">无法获取 root 权限</string>
+    <string name="err_secure_settings_grant_failed">授予安全设置权限失败</string>
+
+    <string name="settings_export_filename_$date">SpMp_settings_$date</string>
+
+    <string name="settings_import_prep_title">正在导入设置</string>
+    <string name="settings_import_category_selection_subtitle">选择要导入的类别</string>
+    <string name="settings_import_button_import">导入</string>
+    <string name="settings_import_error_title">导入失败</string>
+    <string name="settings_import_result_title">导入成功</string>
+    <string name="settings_import_result_$x_from_file">从文件导入了$x个值</string>
+    <string name="settings_import_result_$x_from_default">从默认设置恢复了$x个值</string>
+
+</resources>

@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.ui.layout.apppage.library
 
 import LocalPlayerState
 import SpMp.isDebugBuild
-import androidx.compose.animation.AnimatedVisibility
+import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.material.icons.Icons
@@ -18,10 +18,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.composekit.platform.composable.ScrollBarLazyVerticalGrid
-import com.toasterofbread.composekit.utils.composable.LoadActionIconButton
-import com.toasterofbread.composekit.utils.composable.spanItem
-import com.toasterofbread.composekit.utils.modifier.vertical
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.shrinkHorizontally
+import dev.toastbits.composekit.platform.composable.ScrollBarLazyVerticalGrid
+import dev.toastbits.composekit.utils.composable.LoadActionIconButton
+import dev.toastbits.composekit.utils.composable.spanItem
+import dev.toastbits.composekit.utils.composable.RowOrColumnScope
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
 import com.toasterofbread.spmp.model.mediaitem.layout.getMediaItemPreviewSquareAdditionalHeight
@@ -29,18 +31,17 @@ import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.library.createLocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.library.rememberLocalPlaylists
 import com.toasterofbread.spmp.model.mediaitem.playlist.*
-import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
-import com.toasterofbread.spmp.youtubeapi.endpoint.AccountPlaylistsEndpoint
-import com.toasterofbread.spmp.youtubeapi.endpoint.CreateAccountPlaylistEndpoint
-import com.toasterofbread.spmp.youtubeapi.implementedOrNull
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.ytmkt.model.YtmApi
+import dev.toastbits.ytmkt.endpoint.AccountPlaylistsEndpoint
+import dev.toastbits.ytmkt.endpoint.CreateAccountPlaylistEndpoint
+import dev.toastbits.ytmkt.model.implementedOrNull
 
 internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =
@@ -59,14 +60,12 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
         modifier: Modifier
     ) {
         val player: PlayerState = LocalPlayerState.current
-        val api: YoutubeApi = player.context.ytapi
+        val api: YtmApi = player.context.ytapi
 
-        val show_likes_playlist: Boolean by BehaviourSettings.Key.SHOW_LIKES_PLAYLIST.rememberMutableState()
+        val show_likes_playlist: Boolean by player.settings.behaviour.SHOW_LIKES_PLAYLIST.observe()
 
         val local_playlists: List<LocalPlaylistData> = MediaItemLibrary.rememberLocalPlaylists(player.context) ?: emptyList()
-        val account_playlists: List<RemotePlaylistRef>? = api.user_auth_state?.own_channel?.let { own_channel ->
-            rememberOwnedPlaylists(own_channel, player.context)
-        }
+        val account_playlists: List<RemotePlaylistRef> = rememberOwnedPlaylists(api.user_auth_state?.own_channel_id, player.context)
 
         val sorted_local_playlists = library_page.sort_type.sortAndFilterItems(local_playlists, library_page.search_filter, player.database, library_page.reverse_sort)
         val sorted_account_playlists = account_playlists?.let { playlists ->
@@ -82,7 +81,7 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
 
         LaunchedEffect(showing_alt_content) {
             if (showing_alt_content && account_playlists.isNullOrEmpty()) {
-                val auth_state: YoutubeApi.UserAuthState = player.context.ytapi.user_auth_state ?: return@LaunchedEffect
+                val auth_state: ApiAuthenticationState = player.context.ytapi.user_auth_state ?: return@LaunchedEffect
 
                 val load_endpoint: AccountPlaylistsEndpoint = auth_state.AccountPlaylists
                 if (load_endpoint.isImplemented()) {
@@ -95,7 +94,7 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
         ScrollBarLazyVerticalGrid(
             GridCells.Adaptive(100.dp),
             modifier = modifier,
-            contentPadding = content_padding.vertical,
+            contentPadding = content_padding,
             verticalArrangement = Arrangement.spacedBy(item_spacing),
             horizontalArrangement = Arrangement.spacedBy(item_spacing)
         ) {
@@ -127,14 +126,18 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
     }
 
     @Composable
-    override fun SideContent(showing_alt_content: Boolean) {
+    override fun RowOrColumnScope.SideContent(showing_alt_content: Boolean) {
         val player: PlayerState = LocalPlayerState.current
-        val auth_state: YoutubeApi.UserAuthState? = player.context.ytapi.user_auth_state
+        val auth_state: ApiAuthenticationState? = player.context.ytapi.user_auth_state
 
         val load_endpoint: AccountPlaylistsEndpoint? = auth_state?.AccountPlaylists?.implementedOrNull()
         val create_endpoint: CreateAccountPlaylistEndpoint? = auth_state?.CreateAccountPlaylist?.implementedOrNull()
 
-        AnimatedVisibility(showing_alt_content && load_endpoint != null) {
+        AnimatedVisibility(
+            showing_alt_content && load_endpoint != null,
+            enter = expandHorizontally(),
+            exit = shrinkHorizontally()
+        ) {
             LoadActionIconButton(
                 {
                     val result = load_endpoint?.getAccountPlaylists()
@@ -145,7 +148,11 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
             }
         }
 
-        AnimatedVisibility(!showing_alt_content || create_endpoint != null) {
+        AnimatedVisibility(
+            !showing_alt_content || create_endpoint != null,
+            enter = expandHorizontally(),
+            exit = shrinkHorizontally()
+        ) {
             LoadActionIconButton({
                 if (!showing_alt_content) {
                     MediaItemLibrary.createLocalPlaylist(player.context)
@@ -154,7 +161,7 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
                         }
                 }
                 else if (create_endpoint != null) {
-                    MediaItemLibrary.createOwnedPlaylist(auth_state, create_endpoint)
+                    MediaItemLibrary.createOwnedPlaylist(context, auth_state, create_endpoint)
                         .onFailure {
                             load_error = it
                         }

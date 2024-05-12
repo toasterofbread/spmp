@@ -5,23 +5,22 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import com.toasterofbread.composekit.utils.common.indexOfOrNull
+import dev.toastbits.composekit.utils.common.indexOfOrNull
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringArray
 import com.toasterofbread.spmp.ui.layout.ManualLoginPage
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.spmp.youtubeapi.YoutubeApi
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.YoutubeMusicAuthInfo
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.ytmkt.impl.youtubei.YoutubeiAuthenticationState
+import io.ktor.http.Headers
+import io.ktor.http.HeadersBuilder
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import okhttp3.Headers
 
 @Composable
-fun YoutubeMusicManualLogin(
+internal fun YoutubeMusicManualLogin(
     login_url: String,
     content_padding: PaddingValues,
     modifier: Modifier = Modifier,
-    onFinished: (Result<YoutubeApi.UserAuthState>?) -> Unit
+    onFinished: (Result<Headers>?) -> Unit
 ) {
     val player: PlayerState = LocalPlayerState.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
@@ -41,26 +40,24 @@ fun YoutubeMusicManualLogin(
 
         getHeadersFromManualEntry(entry).fold(
             { headers ->
-                coroutine_scope.launch {
-                    onFinished(
-                        player.context.ytapi.UpdateUserAuthState.byHeaders(headers)
-                    )
-                }
-                null
+                onFinished(Result.success(headers))
+                return@fold null
             },
             { error ->
                 if (error is MissingHeadersException) {
                     error.keys.joinToString("\n") { header ->
                         header.replaceFirstChar { it.uppercase() }
                     }
-                    Pair(
+                    return@fold Pair(
                         getString("manual_login_error_missing_following_headers"),
                         error.keys.joinToString("\n") { header ->
                             header.replaceFirstChar { it.uppercase() }
                         }
                     )
                 }
-                else Pair(error.javaClass.simpleName, error.message ?: "")
+                else {
+                    return@fold Pair(error.javaClass.simpleName, error.message ?: "")
+                }
             }
         )
     }
@@ -68,9 +65,14 @@ fun YoutubeMusicManualLogin(
 
 private class MissingHeadersException(val keys: List<String>): RuntimeException()
 
-private fun getHeadersFromManualEntry(headers_text: String): Result<Headers> {
-    val headers_builder: Headers.Builder = Headers.Builder()
-    val required_keys: MutableList<String> = YoutubeMusicAuthInfo.REQUIRED_HEADERS.toMutableList()
+private fun getHeadersFromManualEntry(text: String): Result<Headers> {
+    val headers_text: String = text.trim()
+    if (headers_text.startsWith("curl ")) {
+        return getHeadersFromCurlCommand(headers_text)
+    }
+
+    val headers_builder: HeadersBuilder = HeadersBuilder()
+    val required_keys: MutableList<String> = YoutubeiAuthenticationState.REQUIRED_HEADERS.toMutableList()
 
     for (line in headers_text.lines()) {
         val colon = line.indexOfOrNull(':') ?: continue
@@ -85,7 +87,40 @@ private fun getHeadersFromManualEntry(headers_text: String): Result<Headers> {
             continue
         }
 
-        headers_builder.add(key, line.substring(colon + 1).trim())
+        headers_builder.append(key, line.substring(colon + 1).trim())
+        required_keys.remove(key)
+    }
+
+    if (required_keys.isNotEmpty()) {
+        return Result.failure(MissingHeadersException(required_keys))
+    }
+
+    return Result.success(headers_builder.build())
+}
+
+private fun getHeadersFromCurlCommand(command: String): Result<Headers> {
+    val headers_builder: HeadersBuilder = HeadersBuilder()
+    val required_keys: MutableList<String> = YoutubeiAuthenticationState.REQUIRED_HEADERS.toMutableList()
+
+    var header_end: Int = -1
+    while (true) {
+        val header_start: Int = command.indexOf("-H '", header_end + 1) + 4
+        if (header_start == 3) {
+            break
+        }
+
+        header_end = command.indexOf("'", header_start + 4)
+        if (header_end == -1) {
+            break
+        }
+
+        val split_header: List<String> = command.substring(header_start, header_end).split(":", limit = 2)
+        if (split_header.size != 2) {
+            return Result.failure(RuntimeException("Found partial header at $header_start in $command"))
+        }
+
+        val key: String = split_header[0].trim().lowercase()
+        headers_builder.append(key, split_header[1].trim())
         required_keys.remove(key)
     }
 

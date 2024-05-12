@@ -40,25 +40,25 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.platform.composable.BackHandler
-import com.toasterofbread.composekit.platform.vibrateShort
-import com.toasterofbread.composekit.utils.common.getValue
-import com.toasterofbread.composekit.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.platform.composable.BackHandler
+import dev.toastbits.composekit.platform.vibrateShort
+import dev.toastbits.composekit.utils.common.getValue
+import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.mediaitem.MEDIA_ITEM_RELATED_CONTENT_ICON
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.library.createLocalPlaylist
+import com.toasterofbread.spmp.model.mediaitem.playlist.InteractivePlaylistEditor
+import com.toasterofbread.spmp.model.mediaitem.playlist.InteractivePlaylistEditor.Companion.getEditorOrNull
+import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
-import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.getEditorOrNull
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.rememberDownloadStatus
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuActionProvider
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.getOrReport
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 
@@ -84,7 +84,7 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
             ) {
                 LPMActions(item, withSong, queue_index) { adding_to_playlist = true }
             }
-        } 
+        }
         else {
             BackHandler {
                 adding_to_playlist = false
@@ -112,7 +112,7 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
                 )
 
                 Row(
-                    verticalAlignment = Alignment.CenterVertically, 
+                    verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     ShapedIconButton({ adding_to_playlist = false }, colours = button_colours) {
@@ -124,9 +124,8 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
                     Button(
                         {
                             coroutine_scope.launch {
-                                val playlist =
-                                    MediaItemLibrary.createLocalPlaylist(player.context).getOrReport(player.context, "SongLongPressMenuActionsCreateLocalPlaylist")
-                                        ?: return@launch
+                                val playlist: LocalPlaylistData = MediaItemLibrary.createLocalPlaylist(player.context).getOrNull()
+                                    ?: return@launch
                                 selected_playlists.add(playlist)
                             }
                         },
@@ -144,7 +143,8 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
                                 withSong { song ->
                                     coroutine_scope.launch(NonCancellable) {
                                         for (playlist in selected_playlists) {
-                                            val editor = playlist.getEditorOrNull(player.context).getOrNull() ?: continue
+                                            val editor: InteractivePlaylistEditor =
+                                                playlist.getEditorOrNull(player.context).getOrNull() ?: continue
                                             editor.addItem(song, null)
                                             editor.applyChanges()
                                         }
@@ -207,7 +207,7 @@ private fun LongPressMenuActionProvider.LPMActions(
                     addToQueue(
                         it,
                         active_queue_index + 1,
-                        is_active_queue = BehaviourSettings.Key.LPM_INCREMENT_PLAY_AFTER.get(),
+                        is_active_queue = player.settings.behaviour.LPM_INCREMENT_PLAY_AFTER.get(),
                         start_radio = false
                     )
                 }
@@ -219,7 +219,7 @@ private fun LongPressMenuActionProvider.LPMActions(
                     addToQueue(
                         it,
                         active_queue_index + 1,
-                        is_active_queue = BehaviourSettings.Key.LPM_INCREMENT_PLAY_AFTER.get(),
+                        is_active_queue = player.settings.behaviour.LPM_INCREMENT_PLAY_AFTER.get(),
                         start_radio = true
                     )
                 }
@@ -273,9 +273,9 @@ private fun LongPressMenuActionProvider.LPMActions(
         )
     }
 
-    if (item is MediaItem.WithArtist) {
-        val item_artist: Artist? by item.Artist.observe(player.database)
-        item_artist?.also { artist ->
+    if (item is MediaItem.WithArtists) {
+        val item_artists: List<Artist>? by item.Artists.observe(player.database)
+        item_artists?.firstOrNull()?.also { artist ->
             ActionButton(Icons.Default.Person, getString("lpm_action_go_to_artist"), onClick = {
                 player.openMediaItem(artist)
             })

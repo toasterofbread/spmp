@@ -9,10 +9,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
-import com.toasterofbread.db.Database
+import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer
 import com.toasterofbread.spmp.model.mediaitem.UnsupportedPropertyRememberer
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
@@ -20,11 +20,12 @@ import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.db.AltSetterProperty
 import com.toasterofbread.spmp.model.mediaitem.db.ListProperty
 import com.toasterofbread.spmp.model.mediaitem.db.Property
-import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter.saveToFile
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
 
 class LocalPlaylistData(id: String): PlaylistData(id), LocalPlaylist {
     var play_count: Int = 0
@@ -38,7 +39,7 @@ class LocalPlaylistData(id: String): PlaylistData(id), LocalPlaylist {
         }
 
     override fun getActiveTitle(db: Database): String? {
-        return title
+        return name
     }
 
     @Composable
@@ -60,7 +61,7 @@ class LocalPlaylistData(id: String): PlaylistData(id), LocalPlaylist {
     }
 
     override fun setDataActiveTitle(value: String) {
-        title = value
+        name = value
     }
 
     override fun createDbEntry(db: Database) {
@@ -85,17 +86,17 @@ class LocalPlaylistData(id: String): PlaylistData(id), LocalPlaylist {
         )
     override val Title: Property<String?>
         get() = property_rememberer.rememberLocalSingleProperty(
-            "Title", { title }, { title = it }
+            "Title", { name }, { name = it }
         )
     override val CustomTitle: Property<String?>
         get() = property_rememberer.rememberLocalSingleProperty(
-            "CustomTitle", { custom_title }, { custom_title = it }
+            "CustomTitle", { custom_name }, { custom_name = it }
         )
     override val Description: Property<String?>
         get() = property_rememberer.rememberLocalSingleProperty(
             "Description", { description }, { description = it }
         )
-    override val ThumbnailProvider: Property<MediaItemThumbnailProvider?>
+    override val ThumbnailProvider: Property<ThumbnailProvider?>
         get() = property_rememberer.rememberLocalSingleProperty(
             "ThumbnailProvider", { thumbnail_provider }, { thumbnail_provider = it }
         )
@@ -129,9 +130,9 @@ class LocalPlaylistData(id: String): PlaylistData(id), LocalPlaylist {
         get() = property_rememberer.rememberLocalSingleProperty(
             "Year", { year }, { year = it }
         )
-    override val Artist: AltSetterProperty<ArtistRef?, Artist?>
+    override val Artists: AltSetterProperty<List<ArtistRef>?, List<Artist>?>
         get() = property_rememberer.rememberAltSetterLocalSingleProperty(
-            "Artist", { artist?.let { ArtistRef(it.id) } }, { artist = it }, { artist = it }
+            "Artists", { artists?.map { ArtistRef(it.id) } }, { artists = it }, { artists = it }
         )
     override val Owner: Property<Artist?>
         get() = property_rememberer.rememberLocalSingleProperty(

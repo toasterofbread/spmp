@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.ui.layout.nowplaying.maintab
 import LocalPlayerState
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -13,11 +14,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.platform.Platform
-import com.toasterofbread.composekit.utils.common.getThemeColour
+import dev.toastbits.composekit.platform.Platform
+import dev.toastbits.composekit.utils.common.getThemeColour
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 import kotlinx.coroutines.delay
@@ -42,7 +43,6 @@ fun FormFactor.getMinimisedPlayerVPadding(): Dp =
     }
 
 class NowPlayingMainTabPage: NowPlayingPage() {
-
     private var theme_colour by mutableStateOf<Color?>(null)
     private var colour_song: Song? by mutableStateOf(null)
     var seek_state by mutableStateOf(-1f)
@@ -128,8 +128,8 @@ class NowPlayingMainTabPage: NowPlayingPage() {
             }
             else {
                 when (getFormFactor(player)) {
-                    FormFactor.PORTRAIT -> NowPlayingMainTabPortrait(page_height, top_bar, content_padding)
-                    FormFactor.LANDSCAPE -> NowPlayingMainTabLarge(page_height, top_bar, content_padding)
+                    FormFactor.PORTRAIT -> NowPlayingMainTabPortrait(page_height, top_bar, content_padding, Modifier.fillMaxWidth())
+                    FormFactor.LANDSCAPE -> NowPlayingMainTabLarge(page_height, top_bar, content_padding, Modifier.fillMaxWidth())
                 }
             }
         }

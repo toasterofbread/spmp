@@ -2,48 +2,70 @@ package com.toasterofbread.spmp.model.settings.category
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FormatListBulleted
-import com.toasterofbread.composekit.platform.Platform
-import com.toasterofbread.spmp.model.settings.SettingsKey
+import dev.toastbits.composekit.platform.Platform
+import dev.toastbits.composekit.platform.PreferencesProperty
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getFeedCategoryItems
+import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.composekit.platform.PlatformPreferences
 
-data object FeedSettings: SettingsCategory("feed") {
-    override val keys: List<SettingsKey> = Key.entries.toList()
+class FeedSettings(val context: AppContext): SettingsGroup("FEED", context.getPrefs()) {
+    val SHOW_ARTISTS_ROW: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_feed_show_artists_row") },
+        getDescription = { null },
+        getDefaultValue = { true }
+    )
+    val SHOW_SONG_DOWNLOAD_INDICATORS: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_feed_show_song_download_indicators") },
+        getDescription = { null },
+        getDefaultValue = { false }
+    )
+    val INITIAL_ROWS: PreferencesProperty<Int> by property(
+        getName = { getString("s_key_feed_initial_rows") },
+        getDescription = { getString("s_sub_feed_initial_rows") },
+        getDefaultValue = { 4 }
+    )
+    val SQUARE_PREVIEW_TEXT_LINES: PreferencesProperty<Int> by property(
+        getName = { getString("s_key_feed_square_preview_text_lines") },
+        getDescription = { null },
+        getDefaultValue = { if (Platform.DESKTOP.isCurrent()) 2 else 2 }
+    )
+    val GRID_ROW_COUNT: PreferencesProperty<Int> by property(
+        getName = { getString("s_key_feed_grid_row_count") },
+        getDescription = { null },
+        getDefaultValue = { if (Platform.DESKTOP.isCurrent()) 1 else 2 }
+    )
+    val GRID_ROW_COUNT_EXPANDED: PreferencesProperty<Int> by property(
+        getName = { getString("s_key_feed_grid_row_count_expanded") },
+        getDescription = { null },
+        getDefaultValue = { if (Platform.DESKTOP.isCurrent()) 1 else 2 }
+    )
+    val LANDSCAPE_GRID_ROW_COUNT: PreferencesProperty<Int> by property(
+        getName = { getString("s_key_feed_alt_grid_row_count") },
+        getDescription = { null },
+        getDefaultValue = { if (Platform.DESKTOP.isCurrent()) 1 else 1 }
+    )
+    val LANDSCAPE_GRID_ROW_COUNT_EXPANDED: PreferencesProperty<Int> by property(
+        getName = { getString("s_key_feed_alt_grid_row_count_expanded") },
+        getDescription = { null },
+        getDefaultValue = { if (Platform.DESKTOP.isCurrent()) 1 else 1 }
+    )
+    val SHOW_RADIOS: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_feed_show_radios") },
+        getDescription = { null },
+        getDefaultValue = { false }
+    )
+    val HIDDEN_ROWS: PreferencesProperty<Set<String>> by property(
+        getName = { getString("s_key_hidden_feed_rows") },
+        getDescription = { getString("s_hidden_feed_rows_dialog_title") },
+        getDefaultValue = { emptySet<String>() }
+    )
 
-    override fun getPage(): Page? =
-        Page(
-            getString("s_cat_feed"),
-            getString("s_cat_desc_feed"),
-            { getFeedCategoryItems() }
-        ) { Icons.Outlined.FormatListBulleted }
-
-    enum class Key: SettingsKey {
-        SHOW_FILTER_BAR,
-        SHOW_SONG_DOWNLOAD_INDICATORS,
-        INITIAL_ROWS,
-        SQUARE_PREVIEW_TEXT_LINES,
-        GRID_ROW_COUNT,
-        GRID_ROW_COUNT_EXPANDED,
-        LANDSCAPE_GRID_ROW_COUNT,
-        LANDSCAPE_GRID_ROW_COUNT_EXPANDED,
-        SHOW_RADIOS,
-        HIDDEN_ROWS;
-
-        override val category: SettingsCategory get() = FeedSettings
-
-        @Suppress("UNCHECKED_CAST", "IMPLICIT_CAST_TO_ANY")
-        override fun <T> getDefaultValue(): T =
-            when (this) {
-                SHOW_FILTER_BAR -> true
-                SHOW_SONG_DOWNLOAD_INDICATORS -> false
-                INITIAL_ROWS -> 4
-                SQUARE_PREVIEW_TEXT_LINES -> if (Platform.DESKTOP.isCurrent()) 2 else 2
-                GRID_ROW_COUNT -> if (Platform.DESKTOP.isCurrent()) 1 else 2
-                GRID_ROW_COUNT_EXPANDED -> if (Platform.DESKTOP.isCurrent()) 1 else 2
-                LANDSCAPE_GRID_ROW_COUNT -> if (Platform.DESKTOP.isCurrent()) 1 else 1
-                LANDSCAPE_GRID_ROW_COUNT_EXPANDED -> if (Platform.DESKTOP.isCurrent()) 1 else 1
-                SHOW_RADIOS -> false
-                HIDDEN_ROWS -> emptySet<String>()
-            } as T
-    }
+    override val page: CategoryPage? =
+        SimplePage(
+            { getString("s_cat_feed") },
+            { getString("s_cat_desc_feed") },
+            { getFeedCategoryItems(context) },
+            { Icons.Outlined.FormatListBulleted }
+        )
 }

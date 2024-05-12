@@ -35,12 +35,13 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.composekit.utils.composable.Marquee
-import com.toasterofbread.composekit.utils.composable.WidthShrinkText
-import com.toasterofbread.composekit.utils.modifier.horizontal
+import dev.toastbits.composekit.utils.composable.Marquee
+import dev.toastbits.composekit.utils.composable.WidthShrinkText
+import dev.toastbits.composekit.utils.modifier.horizontal
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
+import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 
 @Composable
 fun ManualLoginPage(
@@ -90,7 +91,7 @@ fun ManualLoginPage(
 
             @Composable
             fun step(text: String, index: Int, modifier: Modifier = Modifier, shrink: Boolean = false) {
-                Row(modifier.alpha(0.85f), horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.Bottom) {
+                Row(modifier.alpha(0.85f), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         (index + 1).toString(),
                         style = MaterialTheme.typography.bodySmall
@@ -106,20 +107,16 @@ fun ManualLoginPage(
                         Text(
                             text,
                             style = MaterialTheme.typography.bodyLarge,
-                            overflow = TextOverflow.Ellipsis,
-                            softWrap = false
                         )
                     }
                 }
             }
 
-            Marquee {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    for (i in 0 until if (suffix.isBlank()) steps.size else steps.size - 1) {
-                        step(steps[i], i)
-                    }
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                for (i in 0 until if (suffix.isBlank()) steps.size else steps.size - 1) {
+                    step(steps[i], i)
                 }
             }
 
@@ -155,7 +152,8 @@ fun ManualLoginPage(
                 Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 20.dp)
+                    .padding(bottom = 20.dp),
+                NowPlayingTopOffsetSection.PAGE_BAR
             )
             .onGloballyPositioned {
                 info_entry_position = with (density) {
@@ -170,7 +168,7 @@ fun ManualLoginPage(
 @Composable
 private fun InfoEntry(label: String, modifier: Modifier = Modifier, onFinished: (String?) -> Pair<String, String>?) {
     var headers_value by remember { mutableStateOf("") }
-    
+
     var parse_error: Pair<String, String>? by remember { mutableStateOf(null) }
     parse_error?.also { error ->
         ErrorDialog(error) { parse_error = null }
@@ -183,7 +181,7 @@ private fun InfoEntry(label: String, modifier: Modifier = Modifier, onFinished: 
         IconButton({ parse_error = onFinished(null) }) {
             Icon(Icons.Default.Close, null)
         }
-        
+
         TextField(
             headers_value,
             { headers_value = it },

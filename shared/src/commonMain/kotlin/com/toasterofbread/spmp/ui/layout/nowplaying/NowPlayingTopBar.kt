@@ -1,122 +1,81 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying
 
-import LocalNowPlayingExpansion
-import LocalPlayerState
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeight
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Density
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.PortraitLayoutSlot
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
+import com.toasterofbread.spmp.ui.layout.contentbar.DisplayBar
+import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import androidx.compose.runtime.*
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.utils.common.thenIf
-import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
-import com.toasterofbread.spmp.model.settings.category.InternalSettings
-import com.toasterofbread.spmp.model.settings.category.LyricsSettings
-import com.toasterofbread.spmp.model.settings.category.MusicTopBarMode
-import com.toasterofbread.spmp.model.settings.category.TopBarSettings
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-
-@Composable
-fun rememberTopBarShouldShowInQueue(mode: MusicTopBarMode): Boolean {
-    val player: PlayerState = LocalPlayerState.current
-    val top_bar_lyrics_enabled: Boolean by TopBarSettings.Key.LYRICS_ENABLE.rememberMutableState()
-    val show_lyrics_in_queue: Boolean by TopBarSettings.Key.SHOW_LYRICS_IN_QUEUE.rememberMutableState()
-    val show_visualiser_in_queue: Boolean by TopBarSettings.Key.SHOW_VISUALISER_IN_QUEUE.rememberMutableState()
-
-    val lyrics_state = remember(player.status.m_song?.id) {
-        player.status.m_song?.let { song ->
-            SongLyricsLoader.getItemState(song, player.context)
-        }
-    }
-    
-    return when (mode) {
-        MusicTopBarMode.VISUALISER -> show_visualiser_in_queue
-        MusicTopBarMode.LYRICS -> top_bar_lyrics_enabled && show_lyrics_in_queue && lyrics_state?.lyrics?.synced == true
-    }
-}
-
-@Composable
-private fun getMaxHeight(show_in_queue: Boolean): State<Dp> {
-    val expansion = LocalNowPlayingExpansion.current
-    return animateDpAsState(
-        if (!show_in_queue) 40.dp * (2f - expansion.get().coerceIn(1f, 2f))
-        else 40.dp
-    )
-}
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.foundation.layout.offset
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlin.math.roundToInt
+import LocalPlayerState
 
 class NowPlayingTopBar {
-    var height: Dp by mutableStateOf(40.dp)
+    private val slot: LayoutSlot = PortraitLayoutSlot.PLAYER_TOP
+    private var config: PortraitLayoutSlot.PlayerTopConfig = PortraitLayoutSlot.PlayerTopConfig()
+
+    private var _height: Dp by mutableStateOf(0.dp)
+
+    var displaying: Boolean by mutableStateOf(true)
         private set
 
+    val height: Dp
+        get() =
+            if (slot.mustShow() || displaying) _height
+            else 0.dp
+
+    fun shouldShowInQueue(): Boolean =
+        config?.show_in_queue == true || slot.mustShow()
+
     @Composable
-    fun NowPlayingTopBar(modifier: Modifier = Modifier, expansion: ExpansionState = LocalNowPlayingExpansion.current) {
+    fun DisplayTopBar(
+        expansion: NowPlayingExpansionState,
+        distance_to_page: Dp,
+        modifier: Modifier = Modifier,
+        container_modifier: Modifier = Modifier
+    ) {
         val player: PlayerState = LocalPlayerState.current
         val density: Density = LocalDensity.current
 
-        val show_in_queue: Boolean = rememberTopBarShouldShowInQueue(expansion.top_bar_mode.value)
-        var lyrics_showing: Boolean by remember { mutableStateOf(false) }
-
-        val top_bar_height by remember(show_in_queue) { derivedStateOf {
-            if (!show_in_queue || expansion.getBounded() < 1f) expansion.getAppearing() else 1f
+        val scale: Float by remember { derivedStateOf {
+            if (!shouldShowInQueue() || expansion.getBounded() < 1f) expansion.getAbsolute().coerceAtMost(1f)
+            else 1f
         } }
 
-        val max_height: Dp by getMaxHeight(show_in_queue)
-        val alpha: Float by remember(show_in_queue) { derivedStateOf {
-            if (!show_in_queue || expansion.getBounded() < 1f) 1f - expansion.getDisappearing() else 1f }
-        }
-        val hide_content: Boolean by remember(show_in_queue) {
-            derivedStateOf { alpha <= 0f }
-        }
-
-        Crossfade(
-            player.status.m_song,
-            modifier
-                .fillMaxWidth()
-                .heightIn(max = if (lyrics_showing) Dp.Infinity else minOf(40.dp * top_bar_height, max_height))
-                .thenIf(hide_content) {
-                    requiredHeight(height * top_bar_height)
-                }
-                .height(IntrinsicSize.Min)
-                .padding(horizontal = NOW_PLAYING_MAIN_PADDING_DP.dp)
-                .graphicsLayer { this@graphicsLayer.alpha = alpha }
-        ) { song ->
-            if (hide_content || song == null) {
-                return@Crossfade
-            }
-
-            Row(
-                Modifier.fillMaxSize().heightIn(40.dp).onSizeChanged {
-                    height = with(density) { it.height.toDp() }
-                },
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                lyrics_showing = player.top_bar.MusicTopBarWithVisualiser(
-                    InternalSettings.Key.TOPBAR_MODE_NOWPLAYING,
-                    Modifier.fillMaxSize().weight(1f),
-                    song = song
-                ).showing
-            }
-        }
+        displaying = slot.DisplayBar(
+            distance_to_page = distance_to_page,
+            modifier = modifier,
+            container_modifier =
+                container_modifier
+                    .onSizeChanged {
+                        with (density) {
+                            _height = it.height.toDp()
+                        }
+                    }
+                    .offset {
+                        IntOffset(
+                            0,
+                            (-_height.toPx() * (1f - scale)).roundToInt()
+                        )
+                    }
+                    .graphicsLayer {
+                        alpha = scale
+                    },
+            onConfigDataChanged = { config_data ->
+                config = config_data?.let { Json.decodeFromJsonElement(it) } ?: PortraitLayoutSlot.PlayerTopConfig()
+            },
+            getParentBackgroundColour = { player.getNPBackground() }
+        )
     }
 }

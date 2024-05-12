@@ -6,15 +6,17 @@ import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
-import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
+import com.toasterofbread.spmp.model.radio.RadioInstance
+import com.toasterofbread.spmp.model.radio.RadioState
 import spms.socketapi.shared.SpMsPlayerRepeatMode
 import spms.socketapi.shared.SpMsPlayerState
+import ProgramArguments
 
 internal const val AUTO_DOWNLOAD_SOFT_TIMEOUT = 1500 // ms
 
 expect class PlatformInternalPlayerService: PlayerService {
     companion object: PlayerServiceCompanion {
-        fun isAvailable(context: AppContext): Boolean
+        fun isAvailable(context: AppContext, launch_arguments: ProgramArguments): Boolean
     }
 
     override val load_state: PlayerServiceLoadState
@@ -32,7 +34,7 @@ expect class PlatformInternalPlayerService: PlayerService {
     override val duration_ms: Long
     override val has_focus: Boolean
 
-    override val radio_state: RadioInstance.RadioState
+    override val radio_instance: RadioInstance
 
     override var repeat_mode: SpMsPlayerRepeatMode
     override var volume: Float
@@ -47,6 +49,7 @@ expect class PlatformInternalPlayerService: PlayerService {
     override fun seekToSong(index: Int)
     override fun seekToNext()
     override fun seekToPrevious()
+    override fun undoSeek()
 
     override fun getSong(): Song?
     override fun getSong(index: Int): Song?

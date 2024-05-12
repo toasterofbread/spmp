@@ -15,28 +15,36 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.composekit.platform.composable.BackHandler
-import com.toasterofbread.composekit.platform.composable.SwipeRefresh
-import com.toasterofbread.composekit.platform.composable.platformClickable
-import com.toasterofbread.composekit.utils.common.launchSingle
-import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.composekit.utils.modifier.horizontal
-import com.toasterofbread.composekit.utils.modifier.vertical
+import dev.toastbits.composekit.platform.composable.BackHandler
+import dev.toastbits.composekit.platform.composable.SwipeRefresh
+import dev.toastbits.composekit.platform.composable.platformClickable
+import dev.toastbits.composekit.utils.common.launchSingle
+import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.utils.modifier.horizontal
+import dev.toastbits.composekit.utils.modifier.vertical
+import com.toasterofbread.spmp.model.deserialise
+import com.toasterofbread.spmp.model.getString
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.layout.MediaItemLayout
-import com.toasterofbread.spmp.model.settings.category.FeedSettings
+import com.toasterofbread.spmp.model.mediaitem.layout.Layout
+import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
+import com.toasterofbread.spmp.model.serialise
+import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
+import com.toasterofbread.spmp.model.MediaItemLayoutParams
+import com.toasterofbread.spmp.model.MediaItemGridParams
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.resources.uilocalisation.LocalisedString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.PinnedItemsRow
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.FeedLoadState
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.spmp.youtubeapi.NotImplementedMessage
+import com.toasterofbread.spmp.service.playercontroller.FeedLoadState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.ui.component.NotImplementedMessage
+import dev.toastbits.ytmkt.model.external.ItemLayoutType
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
+import dev.toastbits.ytmkt.uistrings.UiString
 
 @Composable
-fun SongFeedAppPage.SFFSongFeedAppPage(
+internal fun SongFeedAppPage.SFFSongFeedAppPage(
     multiselect_context: MediaItemMultiSelectContext,
     modifier: Modifier,
     content_padding: PaddingValues,
@@ -53,29 +61,35 @@ fun SongFeedAppPage.SFFSongFeedAppPage(
     }
 
     val player: PlayerState = LocalPlayerState.current
-    val artists_layout: MediaItemLayout = remember {
-        MediaItemLayout(
+    val artists_layout: AppMediaItemLayout = remember {
+        AppMediaItemLayout(
             mutableStateListOf(),
             null,
             null,
-            type = MediaItemLayout.Type.ROW
+            type = ItemLayoutType.ROW
         )
     }
-    val hidden_rows: Set<String> by FeedSettings.Key.HIDDEN_ROWS.rememberMutableState()
 
-    val square_item_max_text_rows: Int by FeedSettings.Key.SQUARE_PREVIEW_TEXT_LINES.rememberMutableState()
-    val show_download_indicators: Boolean by FeedSettings.Key.SHOW_SONG_DOWNLOAD_INDICATORS.rememberMutableState()
+    val hidden_rows: Set<String> by player.settings.feed.HIDDEN_ROWS.observe()
+    val hidden_row_titles: List<String> = remember(hidden_rows) {
+        hidden_rows.map { row_title ->
+            UiString.deserialise(row_title).getString(player.context)
+        }
+    }
+
+    val square_item_max_text_rows: Int by player.settings.feed.SQUARE_PREVIEW_TEXT_LINES.observe()
+    val show_download_indicators: Boolean by player.settings.feed.SHOW_SONG_DOWNLOAD_INDICATORS.observe()
 
     val grid_rows: Int by
         when (player.form_factor) {
-            FormFactor.PORTRAIT -> FeedSettings.Key.GRID_ROW_COUNT
-            FormFactor.LANDSCAPE -> FeedSettings.Key.LANDSCAPE_GRID_ROW_COUNT
-        }.rememberMutableState()
+            FormFactor.PORTRAIT -> player.settings.feed.GRID_ROW_COUNT
+            FormFactor.LANDSCAPE -> player.settings.feed.LANDSCAPE_GRID_ROW_COUNT
+        }.observe()
     val grid_rows_expanded: Int by
         when (player.form_factor) {
-            FormFactor.PORTRAIT -> FeedSettings.Key.GRID_ROW_COUNT_EXPANDED
-            FormFactor.LANDSCAPE -> FeedSettings.Key.LANDSCAPE_GRID_ROW_COUNT_EXPANDED
-        }.rememberMutableState()
+            FormFactor.PORTRAIT -> player.settings.feed.GRID_ROW_COUNT_EXPANDED
+            FormFactor.LANDSCAPE -> player.settings.feed.LANDSCAPE_GRID_ROW_COUNT_EXPANDED
+        }.observe()
 
     LaunchedEffect(Unit) {
         if (layouts.isNullOrEmpty()) {
@@ -87,12 +101,12 @@ fun SongFeedAppPage.SFFSongFeedAppPage(
     }
 
     LaunchedEffect(layouts) {
-        val items = artists_layout.items as MutableList<MediaItem>
+        val items = artists_layout.items as MutableList<YtmMediaItem>
         items.clear()
         items.addAll(
             populateArtistsLayout(
                 layouts,
-                player.context.ytapi.user_auth_state?.own_channel,
+                player.context.ytapi.user_auth_state?.own_channel_id,
                 player.context
             )
         )
@@ -104,6 +118,7 @@ fun SongFeedAppPage.SFFSongFeedAppPage(
         onRefresh = { loadFeed(false) },
         swipe_enabled = load_state == FeedLoadState.NONE,
         indicator = false,
+        indicator_padding = PaddingValues(top = content_padding.calculateTopPadding()),
         modifier = Modifier.fillMaxSize()
     ) {
         val target_state: Any? = if (load_state == FeedLoadState.LOADING || load_state == FeedLoadState.PREINIT) null else layouts ?: false
@@ -132,18 +147,17 @@ fun SongFeedAppPage.SFFSongFeedAppPage(
             PinnedItemsRow(modifier, multiselect_context = multiselect_context)
         }
 
-        var hiding_layout: MediaItemLayout? by remember { mutableStateOf(null) }
+        var hiding_layout: AppMediaItemLayout? by remember { mutableStateOf(null) }
 
         hiding_layout?.also { layout ->
-            check(layout.title != null)
+            val title: UiString = layout.title ?: return@also
 
             AlertDialog(
                 onDismissRequest = { hiding_layout = null },
                 confirmButton = {
                     Button({
-                        val hidden_rows: Set<String> = FeedSettings.Key.HIDDEN_ROWS.get()
-                        FeedSettings.Key.HIDDEN_ROWS.set(
-                            hidden_rows.plus(layout.title.serialise())
+                        player.settings.feed.HIDDEN_ROWS.set(
+                            hidden_rows.plus(title.serialise())
                         )
 
                         hiding_layout = null
@@ -162,7 +176,10 @@ fun SongFeedAppPage.SFFSongFeedAppPage(
                     Text(getString("prompt_confirm_action"))
                 },
                 text = {
-                    Text(getString("prompt_hide_feed_rows_with_\$title").replace("\$title", layout.title.getString(player.context)))
+                    Text(
+                        getString("prompt_hide_feed_rows_with_\$title")
+                            .replace("\$title", title.getString(player.context))
+                    )
                 }
             )
         }
@@ -177,6 +194,7 @@ fun SongFeedAppPage.SFFSongFeedAppPage(
                     else null
                 val loading_continuation: Boolean = load_state != FeedLoadState.NONE
                 val horizontal_padding: PaddingValues = content_padding.horizontal
+                val show_artists_row: Boolean by player.settings.feed.SHOW_ARTISTS_ROW.observe()
 
                 LazyColumn(
                     Modifier.graphicsLayer { alpha = state_alpha.value },
@@ -188,49 +206,62 @@ fun SongFeedAppPage.SFFSongFeedAppPage(
                         TopContent(Modifier.padding(horizontal_padding))
                     }
 
-                    item {
-                        if (artists_layout.items.isNotEmpty()) {
-                            artists_layout.Layout(multiselect_context = multiselect_context, apply_filter = true, content_padding = horizontal_padding)
+                    if (show_artists_row) {
+                        item {
+                            if (artists_layout.items.isNotEmpty()) {
+                                artists_layout.Layout(
+                                    MediaItemLayoutParams(
+                                        multiselect_context = multiselect_context,
+                                        apply_filter = true,
+                                        content_padding = horizontal_padding
+                                    )
+                                )
+                            }
                         }
                     }
 
-                    items((state as List<MediaItemLayout>)) { layout ->
+                    items((state as List<AppMediaItemLayout>)) { layout ->
                         if (layout.items.isEmpty()) {
                             return@items
                         }
 
-                        if (layout.title != null) {
-                            val title: String = layout.title.getString(player.context)
-                            if (
-                                hidden_rows.any { row_title ->
-                                    LocalisedString.deserialise(row_title).getString(player.context) == title
-                                }
-                            ) {
-                                return@items
-                            }
+                        val is_hidden: Boolean = remember(layout.title, hidden_row_titles) {
+                            layout.title?.let { layout_title ->
+                                val title: String = layout_title.getString(player.context)
+                                hidden_row_titles.any { it == title }
+                            } ?: false
                         }
 
-                        val type: MediaItemLayout.Type = layout.type ?: MediaItemLayout.Type.GRID
+                        if (is_hidden) {
+                            return@items
+                        }
 
-                        val rows: Int = if (type == MediaItemLayout.Type.GRID_ALT) grid_rows * 2 else grid_rows
-                        val expanded_rows: Int = if (type == MediaItemLayout.Type.GRID_ALT) grid_rows_expanded * 2 else grid_rows_expanded
+                        val type: ItemLayoutType = layout.type ?: ItemLayoutType.GRID
+
+                        val rows: Int = if (type == ItemLayoutType.GRID_ALT) grid_rows * 2 else grid_rows
+                        val expanded_rows: Int = if (type == ItemLayoutType.GRID_ALT) grid_rows_expanded * 2 else grid_rows_expanded
 
                         type.Layout(
                             layout,
-                            Modifier.padding(top = 20.dp),
-                            title_modifier = Modifier.platformClickable(
-                                onAltClick = {
-                                    if (layout.title != null) {
-                                        hiding_layout = layout
+                            MediaItemLayoutParams(
+                                is_song_feed = true,
+                                modifier = Modifier.padding(top = 20.dp),
+                                title_modifier = Modifier.platformClickable(
+                                    onAltClick = {
+                                        if (layout.title != null) {
+                                            hiding_layout = layout
+                                        }
                                     }
-                                }
+                                ),
+                                multiselect_context = multiselect_context,
+                                apply_filter = true,
+                                show_download_indicators = show_download_indicators,
+                                content_padding = horizontal_padding
                             ),
-                            multiselect_context = multiselect_context,
-                            apply_filter = true,
-                            square_item_max_text_rows = square_item_max_text_rows,
-                            show_download_indicators = show_download_indicators,
-                            grid_rows = Pair(rows, expanded_rows),
-                            content_padding = horizontal_padding
+                            grid_params = MediaItemGridParams(
+                                square_item_max_text_rows = square_item_max_text_rows,
+                                rows = Pair(rows, expanded_rows)
+                            )
                         )
                     }
 
@@ -257,7 +288,11 @@ fun SongFeedAppPage.SFFSongFeedAppPage(
 
             // Loading
             null -> {
-                Column(Modifier.fillMaxSize()) {
+                Column(
+                    Modifier
+                        .fillMaxSize()
+                        .padding(content_padding.vertical)
+                ) {
                     TopContent()
                     SongFeedPageLoadingView(Modifier.graphicsLayer { alpha = state_alpha.value }.fillMaxSize())
                 }

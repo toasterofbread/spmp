@@ -5,28 +5,30 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.IntOffset
 import app.cash.sqldelight.Query
-import com.toasterofbread.db.Database
-import com.toasterofbread.db.mediaitem.song.ArtistById
+import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.db.*
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
-import com.toasterofbread.spmp.model.settings.category.LyricsSettings
+import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.crop
 import com.toasterofbread.spmp.platform.playerservice.PlayerService
 import com.toasterofbread.spmp.platform.toImageBitmap
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.toLyricsReference
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.ytmkt.model.external.SongLikedStatus
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmSong
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
 import java.io.InputStream
 import java.net.URL
 import java.net.URLConnection
@@ -34,7 +36,7 @@ import kotlin.math.roundToInt
 
 private const val STATIC_LYRICS_SYNC_OFFSET: Long = 1000
 
-interface Song: MediaItem.WithArtist {
+interface Song: MediaItem.WithArtists {
     override fun getType(): MediaItemType = MediaItemType.SONG
     override fun getURL(context: AppContext): String = "https://music.youtube.com/watch?v=$id"
     override fun getReference(): SongRef
@@ -62,14 +64,7 @@ interface Song: MediaItem.WithArtist {
 
     override suspend fun downloadThumbnailData(url: String): Result<ImageBitmap> = withContext(Dispatchers.IO) {
         return@withContext kotlin.runCatching {
-            val connection: URLConnection = URL(url).openConnection()
-            connection.connectTimeout = com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DEFAULT_CONNECT_TIMEOUT
-
-            val stream: InputStream = connection.getInputStream()
-            val bytes: ByteArray = stream.readBytes()
-            stream.close()
-
-            val image: ImageBitmap = bytes.toImageBitmap()
+            val image: ImageBitmap = super.downloadThumbnailData(url).getOrThrow()
             if (image.width == image.height) {
                 return@runCatching image
             }
@@ -80,39 +75,39 @@ interface Song: MediaItem.WithArtist {
         }
     }
 
-    val TypeOfSong: Property<SongType?>
+    val TypeOfSong: Property<YtmSong.Type?>
         get() = property_rememberer.rememberSingleQueryProperty(
-        "TypeOfSong",
-        { songQueries.songTypeById(id) },
-        { song_type?.let { SongType.entries[it.toInt()] } },
-        { songQueries.updateSongTypeById(it?.ordinal?.toLong(), id) }
-    )
+            "TypeOfSong",
+            { songQueries.songTypeById(id) },
+            { song_type?.let { YtmSong.Type.entries[it.toInt()] } },
+            { songQueries.updateSongTypeById(it?.ordinal?.toLong(), id) }
+        )
     val Duration: Property<Long?>
         get() = property_rememberer.rememberSingleQueryProperty(
-        "Duration", { songQueries.durationById(id) }, { duration }, { songQueries.updateDurationById(it, id) }
-    )
+            "Duration", { songQueries.durationById(id) }, { duration }, { songQueries.updateDurationById(it, id) }
+        )
 
-    override val Artist: AltSetterProperty<ArtistRef?, Artist?>
-        get() = object : PropertyImpl<ArtistRef?, Query<ArtistById>>(
-            { songQueries.artistById(id) }, { executeAsOneOrNull()?.artist?.let { ArtistRef(it) } }, { songQueries.updateArtistById(it?.id, id) }
-        ), AltSetterProperty<ArtistRef?, Artist?> {
-            override fun setAlt(value: Artist?, db: Database) {
-                db.songQueries.updateArtistById(value?.id, id)
-            }
-        }
+    override val Artists: AltSetterProperty<List<ArtistRef>?, List<Artist>?>
+        get() = property_rememberer.rememberAltSetterSingleQueryProperty(
+            "Artists",
+            { songQueries.artistsById(id) },
+            { artists?.let { Json.decodeFromString<List<String>>(it).map { ArtistRef(it) } } },
+            { songQueries.updateArtistsById(it?.map { it.id }?.let { Json.encodeToString(it) }, id) },
+            { songQueries.updateArtistsById(it?.map { it.id }?.let { Json.encodeToString(it) }, id) }
+        )
 
     val Album: Property<RemotePlaylist?>
         get() = property_rememberer.rememberSingleQueryProperty(
-        "Album", { songQueries.albumById(id) }, { album?.let { RemotePlaylistRef(it) } }, { songQueries.updateAlbumById(it?.id, id) }
-    )
+            "Album", { songQueries.albumById(id) }, { album?.let { RemotePlaylistRef(it) } }, { songQueries.updateAlbumById(it?.id, id) }
+        )
     val RelatedBrowseId: Property<String?>
         get() = property_rememberer.rememberSingleQueryProperty(
-        "RelatedBrowseId", { songQueries.relatedBrowseIdById(id) }, { related_browse_id }, { songQueries.updateRelatedBrowseIdById(it, id) }
-    )
+            "RelatedBrowseId", { songQueries.relatedBrowseIdById(id) }, { related_browse_id }, { songQueries.updateRelatedBrowseIdById(it, id) }
+        )
     val LyricsBrowseId: Property<String?>
         get() = property_rememberer.rememberSingleQueryProperty(
-        "LyricsBrowseId", { songQueries.lyricsBrowseIdById(id) }, { lyrics_browse_id }, { songQueries.updateLyricsBrowseIdById(it, id) }
-    )
+            "LyricsBrowseId", { songQueries.lyricsBrowseIdById(id) }, { lyrics_browse_id }, { songQueries.updateLyricsBrowseIdById(it, id) }
+        )
     val LoudnessDb: Property<Float?>
         get() = property_rememberer.rememberSingleQueryProperty(
             "LoudnessDbById", { songQueries.loudnessDbById(id) }, { loudness_db?.toFloat() }, { songQueries.updateLoudnessDbById(it?.toDouble(), id) }
@@ -124,20 +119,20 @@ interface Song: MediaItem.WithArtist {
 
     val Lyrics: Property<LyricsReference?>
         get() = property_rememberer.rememberSingleQueryProperty(
-        "Lyrics", { songQueries.lyricsById(id) }, { this.toLyricsReference() }, { songQueries.updateLyricsById(it?.source_index?.toLong(), it?.id, id) }
-    )
+            "Lyrics", { songQueries.lyricsById(id) }, { this.toLyricsReference() }, { songQueries.updateLyricsById(it?.source_index?.toLong(), it?.id, id) }
+        )
     val LyricsSyncOffset: Property<Long?>
         get() = property_rememberer.rememberSingleQueryProperty(
-        "LyricsSyncOffset", { songQueries.lyricsSyncOffsetById(id) }, { lyrics_sync_offset }, { songQueries.updateLyricsSyncOffsetById(it, id) }
-    )
+            "LyricsSyncOffset", { songQueries.lyricsSyncOffsetById(id) }, { lyrics_sync_offset }, { songQueries.updateLyricsSyncOffsetById(it, id) }
+        )
     val PlayerGradientDepth: Property<Float?>
         get() = property_rememberer.rememberSingleQueryProperty(
-        "PlayerGradientDepth", { songQueries.npGradientDepthById(id) }, { np_gradient_depth?.toFloat() }, { songQueries.updateNpGradientDepthById(it?.toDouble(), id) }
-    )
+            "PlayerGradientDepth", { songQueries.npGradientDepthById(id) }, { np_gradient_depth?.toFloat() }, { songQueries.updateNpGradientDepthById(it?.toDouble(), id) }
+        )
     val ThumbnailRounding: Property<Float?>
         get() = property_rememberer.rememberSingleQueryProperty(
-        "ThumbnailRounding", { songQueries.thumbnailRoundingById(id) }, { thumbnail_rounding?.toFloat() }, { songQueries.updateThumbnailRoundingById(it?.toDouble(), id) }
-    )
+            "ThumbnailRounding", { songQueries.thumbnailRoundingById(id) }, { thumbnail_rounding?.toFloat() }, { songQueries.updateThumbnailRoundingById(it?.toDouble(), id) }
+        )
     val NotificationImageOffset: Property<IntOffset?>
         get() = property_rememberer.rememberSingleQueryProperty(
         "NotificationImageOffset",
@@ -156,25 +151,42 @@ interface Song: MediaItem.WithArtist {
         get() = property_rememberer.rememberSingleQueryProperty(
             "BackgroundImageOpacity", { songQueries.backgroundImageOpacityById(id) }, { background_image_opacity?.toFloat() }, { songQueries.updateBackgroundImageOpacityById(it?.toDouble(), id) }
         )
-    val ImageShadowRadius: Property<Float?>
+    val VideoPosition: Property<ThemeSettings.VideoPosition?>
+        get() = property_rememberer.rememberSingleQueryProperty(
+            "VideoPosition", { songQueries.videoPositionById(id) }, { video_position?.let { ThemeSettings.VideoPosition.entries[it.toInt()] } }, { songQueries.updateVideoPositionById(it?.ordinal?.toLong(), id) }
+        )
+    val LandscapeQueueOpacity: Property<Float?>
+        get() = property_rememberer.rememberSingleQueryProperty(
+            "LandscapeQueueOpacity", { songQueries.landscapeQueueOpacityById(id) }, { landscape_queue_opacity?.toFloat() }, { songQueries.updateLandscapeQueueOpacityById(it?.toDouble(), id) }
+        )
+    val ShadowRadius: Property<Float?>
         get() = property_rememberer.rememberSingleQueryProperty(
             "ImageShadowRadius", { songQueries.imageShadowRadiusById(id) }, { image_shadow_radius?.toFloat() }, { songQueries.updateImageShadowRadiusById(it?.toDouble(), id) }
         )
+    val BackgroundWaveSpeed: Property<Float?>
+        get() = property_rememberer.rememberSingleQueryProperty(
+            "BackgroundWaveSpeed", { songQueries.backgroundWaveSpeedById(id) }, { background_wave_speed?.toFloat() }, { songQueries.updateBackgroundWaveSpeedById(it?.toDouble(), id) }
+        )
+    val BackgroundWaveOpacity: Property<Float?>
+        get() = property_rememberer.rememberSingleQueryProperty(
+            "BackgroundWaveOpacity", { songQueries.backgroundWaveOpacityById(id) }, { background_wave_opacity?.toFloat() }, { songQueries.updateBackgroundWaveOpacityById(it?.toDouble(), id) }
+        )
     val Liked: Property<SongLikedStatus?>
         get() = property_rememberer.rememberSingleQueryProperty(
-        "Liked", { songQueries.likedById(id) }, { liked.toSongLikedStatus() }, { songQueries.updatelikedById(it.toLong(), id) }
-    )
+            "Liked", { songQueries.likedById(id) }, { liked.toSongLikedStatus() }, { songQueries.updatelikedById(it.toLong(), id) }
+        )
 
     @Composable
     fun getLyricsSyncOffset(database: Database, is_topbar: Boolean): State<Long> {
-        val player: PlayerService = LocalPlayerState.current.controller ?: return mutableStateOf(0)
+        val player: PlayerState = LocalPlayerState.current
+        val controller: PlayerService = player.controller ?: return mutableStateOf(0)
 
         val internal_offset: Long? by LyricsSyncOffset.observe(database)
-        val settings_delay: Float by LyricsSettings.Key.SYNC_DELAY.rememberMutableState()
-        val settings_delay_topbar: Float by LyricsSettings.Key.SYNC_DELAY_TOPBAR.rememberMutableState()
-        val settings_delay_bt: Float by LyricsSettings.Key.SYNC_DELAY_BLUETOOTH.rememberMutableState()
+        val settings_delay: Float by player.settings.lyrics.SYNC_DELAY.observe()
+        val settings_delay_topbar: Float by player.settings.lyrics.SYNC_DELAY_TOPBAR.observe()
+        val settings_delay_bt: Float by player.settings.lyrics.SYNC_DELAY_BLUETOOTH.observe()
 
-        return remember(player, is_topbar) { derivedStateOf {
+        return remember(controller, is_topbar) { derivedStateOf {
             var delay: Float = settings_delay
 
             if (is_topbar) {
@@ -185,7 +197,7 @@ interface Song: MediaItem.WithArtist {
             @Suppress("UNUSED_EXPRESSION")
             settings_delay_bt
 
-            if (player.isPlayingOverLatentDevice()) {
+            if (controller.isPlayingOverLatentDevice()) {
                 delay += settings_delay_bt
             }
 
@@ -193,15 +205,15 @@ interface Song: MediaItem.WithArtist {
         } }
     }
 
-    override val ThumbnailProvider: Property<MediaItemThumbnailProvider?>
-        get() = object : Property<MediaItemThumbnailProvider?> {
+    override val ThumbnailProvider: Property<ThumbnailProvider?>
+        get() = object : Property<ThumbnailProvider?> {
             private val provider = SongThumbnailProvider(id)
-            override fun get(db: Database): MediaItemThumbnailProvider = provider
+            override fun get(db: Database): ThumbnailProvider = provider
 
-            override fun set(value: MediaItemThumbnailProvider?, db: Database) {}
+            override fun set(value: ThumbnailProvider?, db: Database) {}
 
             @Composable
-            override fun observe(db: Database): MutableState<MediaItemThumbnailProvider?> =
+            override fun observe(db: Database): MutableState<ThumbnailProvider?> =
                 remember(this) { mutableStateOf(get(db)) }
         }
 
@@ -212,16 +224,18 @@ interface Song: MediaItem.WithArtist {
     }
 }
 
-private data class SongThumbnailProvider(val id: String): MediaItemThumbnailProvider {
-    override fun getThumbnailUrl(quality: MediaItemThumbnailProvider.Quality): String? =
+private data class SongThumbnailProvider(val id: String): ThumbnailProvider {
+    override fun getThumbnailUrl(quality: ThumbnailProvider.Quality): String? =
         when (quality) {
-            MediaItemThumbnailProvider.Quality.LOW -> "https://img.youtube.com/vi/$id/0.jpg"
-            MediaItemThumbnailProvider.Quality.HIGH -> "https://img.youtube.com/vi/$id/maxresdefault.jpg"
+            ThumbnailProvider.Quality.LOW -> "https://img.youtube.com/vi/$id/mqdefault.jpg"
+            ThumbnailProvider.Quality.HIGH -> "https://img.youtube.com/vi/$id/maxresdefault.jpg"
         }
 }
 
 @Composable
-fun Song?.observeThumbnailRounding(default: Float): Int {
+fun Song?.observeThumbnailRounding(): Int {
     val player: PlayerState = LocalPlayerState.current
-    return ((this?.ThumbnailRounding?.observe(player.database)?.value?.div(2) ?: default) * 100).roundToInt()
+    val default: Float by player.settings.theme.NOWPLAYING_DEFAULT_IMAGE_CORNER_ROUNDING.observe()
+    val corner_rounding: Float? = this?.ThumbnailRounding?.observe(player.database)?.value
+    return ((corner_rounding ?: default) * 50f).roundToInt()
 }

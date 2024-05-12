@@ -8,14 +8,13 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.ImageBitmap
-import com.toasterofbread.composekit.utils.common.addUnique
+import dev.toastbits.composekit.utils.common.addUnique
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.settings.category.MiscSettings
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.toByteArray
 import com.toasterofbread.spmp.platform.toImageBitmap
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -23,15 +22,15 @@ import java.lang.ref.WeakReference
 import kotlin.concurrent.withLock
 
 internal data class MediaItemThumbnailLoaderKey(
-    val provider: MediaItemThumbnailProvider,
-    val quality: MediaItemThumbnailProvider.Quality,
+    val provider: ThumbnailProvider,
+    val quality: ThumbnailProvider.Quality,
     val item_id: String
 )
 
 internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoaderKey, ImageBitmap>() {
     private var loaded_images: MutableMap<MediaItemThumbnailLoaderKey, WeakReference<ImageBitmap>> = mutableMapOf()
 
-    fun getLoadedItemThumbnail(item: MediaItem, quality: MediaItemThumbnailProvider.Quality, thumbnail_provider: MediaItemThumbnailProvider): ImageBitmap? {
+    fun getLoadedItemThumbnail(item: MediaItem, quality: ThumbnailProvider.Quality, thumbnail_provider: ThumbnailProvider): ImageBitmap? {
         val key = MediaItemThumbnailLoaderKey(thumbnail_provider, quality, item.id)
         synchronized(loaded_images) {
             return loaded_images[key]?.get()
@@ -40,7 +39,7 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
 
     suspend fun loadItemThumbnail(
         item: MediaItem,
-        quality: MediaItemThumbnailProvider.Quality,
+        quality: ThumbnailProvider.Quality,
         context: AppContext
     ): Result<ImageBitmap> {
         val thumbnail_provider = item.ThumbnailProvider.get(context.database)
@@ -52,8 +51,8 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
 
     suspend fun loadItemThumbnail(
         item: MediaItem,
-        thumbnail_provider: MediaItemThumbnailProvider,
-        quality: MediaItemThumbnailProvider.Quality,
+        thumbnail_provider: ThumbnailProvider,
+        quality: ThumbnailProvider.Quality,
         context: AppContext,
         disable_cache_read: Boolean = false,
         disable_cache_write: Boolean = false
@@ -91,7 +90,7 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
     }
 
     suspend fun invalidateCache(item: MediaItem, context: AppContext) = withContext(Dispatchers.IO) {
-        for (quality in MediaItemThumbnailProvider.Quality.entries) {
+        for (quality in ThumbnailProvider.Quality.entries) {
             val file = getCacheFile(item, quality, context)
             file.delete()
         }
@@ -103,12 +102,12 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
         }
     }
 
-    private fun getCacheFile(item: MediaItem, quality: MediaItemThumbnailProvider.Quality, context: AppContext): File =
+    private fun getCacheFile(item: MediaItem, quality: ThumbnailProvider.Quality, context: AppContext): File =
         context.getCacheDir().resolve("thumbnails/${item.id}.${quality.ordinal}.png")
 
     private suspend fun performLoad(
         item: MediaItem,
-        quality: MediaItemThumbnailProvider.Quality,
+        quality: ThumbnailProvider.Quality,
         thumbnail_url: String,
         context: AppContext,
         disable_cache_read: Boolean = false,
@@ -123,7 +122,7 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
 
         val result: Result<ImageBitmap> = item.downloadThumbnailData(thumbnail_url)
         result.onSuccess { image ->
-            if (!disable_cache_write && MiscSettings.Key.THUMB_CACHE_ENABLED.get()) {
+            if (!disable_cache_write && context.settings.misc.THUMB_CACHE_ENABLED.get()) {
                 try {
                     cache_file.parentFile.mkdirs()
                     cache_file.writeBytes(image.toByteArray())
@@ -136,8 +135,8 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
     }
 
     interface ItemState {
-        val loaded_images: Map<MediaItemThumbnailProvider.Quality, WeakReference<ImageBitmap>>
-        val loading_images: List<MediaItemThumbnailProvider.Quality>
+        val loaded_images: Map<ThumbnailProvider.Quality, WeakReference<ImageBitmap>>
+        val loading_images: List<ThumbnailProvider.Quality>
 
         fun getHighestQuality(): ImageBitmap? =
             loaded_images.maxByOrNull { it.key.ordinal }?.value?.get()
@@ -148,8 +147,8 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
         val player: PlayerState = LocalPlayerState.current
         val state = remember(item) {
             object : ItemState {
-                override val loaded_images: MutableMap<MediaItemThumbnailProvider.Quality, WeakReference<ImageBitmap>> = mutableStateMapOf()
-                override val loading_images: MutableList<MediaItemThumbnailProvider.Quality> = mutableStateListOf()
+                override val loaded_images: MutableMap<ThumbnailProvider.Quality, WeakReference<ImageBitmap>> = mutableStateMapOf()
+                override val loading_images: MutableList<ThumbnailProvider.Quality> = mutableStateListOf()
             }
         }
 
@@ -158,7 +157,7 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
                 MediaItemThumbnailLoader.lock.withLock {
                     val provider = item.ThumbnailProvider.get(player.database) ?: return@withContext
 
-                    for (quality in MediaItemThumbnailProvider.Quality.entries) {
+                    for (quality in ThumbnailProvider.Quality.entries) {
                         val key = MediaItemThumbnailLoaderKey(provider, quality, item.id)
 
                         val loaded = loaded_images[key]

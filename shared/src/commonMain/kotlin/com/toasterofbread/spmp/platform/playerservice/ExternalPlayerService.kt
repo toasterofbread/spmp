@@ -3,26 +3,32 @@ package com.toasterofbread.spmp.platform.playerservice
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.toasterofbread.composekit.platform.PlatformPreferences
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.settings.category.ServerSettings
+import com.toasterofbread.spmp.model.radio.RadioInstance
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.youtubeapi.radio.RadioInstance
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonPrimitive
 import spms.socketapi.shared.SpMsPlayerRepeatMode
 import spms.socketapi.shared.SpMsPlayerState
-import com.toasterofbread.composekit.platform.PlatformPreferencesListener
+import dev.toastbits.composekit.platform.PlatformPreferencesListener
+import dev.toastbits.composekit.platform.PlatformPreferences
+import io.ktor.client.request.get
 
 open class ExternalPlayerService: SpMsPlayerService(), PlayerService {
     override val load_state: PlayerServiceLoadState get() = socket_load_state
+    override val connection_error: Throwable? get() = socket_connection_error
     private val coroutine_scope: CoroutineScope = CoroutineScope(Job())
 
     internal lateinit var _context: AppContext
     override val context: AppContext get() = _context
-    
+
+    internal fun setContext(context: AppContext) {
+        _context = context
+    }
+
     private lateinit var _service_player: PlayerServicePlayer
     override val service_player: PlayerServicePlayer
         get() = _service_player
@@ -49,15 +55,15 @@ open class ExternalPlayerService: SpMsPlayerService(), PlayerService {
         get() = _duration_ms
     override val has_focus: Boolean
         get() = true // TODO
-    override val radio_state: RadioInstance.RadioState
-        get() = service_player.radio_state
+    override val radio_instance: RadioInstance
+        get() = service_player.radio_instance
     override var repeat_mode: SpMsPlayerRepeatMode
         get() = _repeat_mode
         set(value) {
             if (value == _repeat_mode) {
                 return
             }
-            sendRequest("setRepeatMode", value.ordinal)
+            sendRequest("setRepeatMode", JsonPrimitive(value.ordinal))
         }
     override var volume: Float
         get() = _volume
@@ -65,7 +71,7 @@ open class ExternalPlayerService: SpMsPlayerService(), PlayerService {
             if (value == _volume) {
                 return
             }
-            sendRequest("setVolume", value)
+            sendRequest("setVolume", JsonPrimitive(value))
         }
 
     override fun isPlayingOverLatentDevice(): Boolean = false // TODO
@@ -82,20 +88,42 @@ open class ExternalPlayerService: SpMsPlayerService(), PlayerService {
         sendRequest("playPause")
     }
 
+    private val song_seek_undo_stack: MutableList<Pair<Int, Long>> = mutableListOf()
+    private fun getSeekPosition(): Pair<Int, Long> = Pair(current_song_index, current_position_ms)
+
     override fun seekTo(position_ms: Long) {
-        sendRequest("seekToTime", position_ms)
+        val current: Pair<Int, Long> = getSeekPosition()
+        sendRequest("seekToTime", JsonPrimitive(position_ms))
+        song_seek_undo_stack.add(current)
     }
 
     override fun seekToSong(index: Int) {
-        sendRequest("seekToItem", index)
+        val current: Pair<Int, Long> = getSeekPosition()
+        sendRequest("seekToItem", JsonPrimitive(index))
+        song_seek_undo_stack.add(current)
     }
 
     override fun seekToNext() {
+        val current: Pair<Int, Long> = getSeekPosition()
         sendRequest("seekToNext")
+        song_seek_undo_stack.add(current)
     }
 
     override fun seekToPrevious() {
+        val current: Pair<Int, Long> = getSeekPosition()
         sendRequest("seekToPrevious")
+        song_seek_undo_stack.add(current)
+    }
+
+    override fun undoSeek() {
+        val (index: Int, position_ms: Long) = song_seek_undo_stack.removeLastOrNull() ?: return
+
+        if (index != current_song_index) {
+            sendRequest("seekToItem", JsonPrimitive(index), JsonPrimitive(position_ms))
+        }
+        else {
+            sendRequest("seekToTime", JsonPrimitive(position_ms))
+        }
     }
 
     override fun getSong(): Song? = playlist.getOrNull(_current_song_index)
@@ -103,15 +131,15 @@ open class ExternalPlayerService: SpMsPlayerService(), PlayerService {
     override fun getSong(index: Int): Song? = playlist.getOrNull(index)
 
     override fun addSong(song: Song, index: Int) {
-        sendRequest("addItem", song.id, index)
+        sendRequest("addItem", JsonPrimitive(song.id), JsonPrimitive(index))
     }
 
     override fun moveSong(from: Int, to: Int) {
-        sendRequest("moveItem", from, to)
+        sendRequest("moveItem", JsonPrimitive(from), JsonPrimitive(to))
     }
 
     override fun removeSong(index: Int) {
-        sendRequest("removeItem", index)
+        sendRequest("removeItem", JsonPrimitive(index))
     }
 
     @Composable
@@ -120,7 +148,7 @@ open class ExternalPlayerService: SpMsPlayerService(), PlayerService {
 
     override fun onCreate() {
         super.onCreate()
-        
+
         _service_player = object : PlayerServicePlayer(this) {
             override fun onUndoStateChanged() {
                 for (listener in listeners) {
@@ -128,25 +156,23 @@ open class ExternalPlayerService: SpMsPlayerService(), PlayerService {
                 }
             }
         }
-        
+
         coroutine_scope.launch {
             val prefs_listener: PlatformPreferencesListener =
-                object : PlatformPreferencesListener {
-                    override fun onChanged(prefs: PlatformPreferences, key: String) {
-                        if (key != ServerSettings.Key.EXTERNAL_SERVER_IP_ADDRESS.getName() && key != ServerSettings.Key.SERVER_PORT.getName()) {
-                            return
-                        }
-                        
-                        cancel_connection = true
-                        restart_connection = true
+                PlatformPreferencesListener { _, key ->
+                    if (key != context.settings.platform.SERVER_IP_ADDRESS.key && key != context.settings.platform.SERVER_PORT.key) {
+                        return@PlatformPreferencesListener
                     }
+
+                    cancel_connection = true
+                    restart_connection = true
                 }
             context.getPrefs().addListener(prefs_listener)
-            
+
             try {
                 connectToServer(
-                    getIp = { ServerSettings.Key.EXTERNAL_SERVER_IP_ADDRESS.get(context) },
-                    getPort = { ServerSettings.Key.SERVER_PORT.get(context) }
+                    getIp = { context.settings.platform.SERVER_IP_ADDRESS.get() },
+                    getPort = { context.settings.platform.SERVER_PORT.get() }
                 )
             }
             finally {

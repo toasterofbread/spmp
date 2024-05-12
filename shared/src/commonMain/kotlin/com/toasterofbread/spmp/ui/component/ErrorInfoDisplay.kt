@@ -44,6 +44,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,34 +52,36 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.google.gson.Gson
-import com.toasterofbread.composekit.utils.common.thenIf
-import com.toasterofbread.composekit.utils.composable.ShapedIconButton
-import com.toasterofbread.composekit.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.composekit.utils.composable.WidthShrinkText
-import com.toasterofbread.composekit.utils.modifier.background
-import com.toasterofbread.composekit.utils.modifier.disableParentScroll
+import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.utils.composable.WidthShrinkText
+import dev.toastbits.composekit.utils.modifier.background
+import dev.toastbits.composekit.utils.modifier.disableParentScroll
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
-import com.toasterofbread.spmp.youtubeapi.fromJson
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.DataParseException
-import com.toasterofbread.spmp.youtubeapi.impl.youtubemusic.cast
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.job
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.JsonHttpClient
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.request.headers
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.Serializable
+import SpMp.isDebugBuild
 
 const val ERROR_INFO_DISPLAY_DEFAULT_EXPANDED_HEIGHT_DP: Float = 500f
 
 @Composable
 fun ErrorInfoDisplay(
     error: Throwable?,
-    show_throw_button: Boolean,
+    show_throw_button: Boolean = isDebugBuild(),
     modifier: Modifier = Modifier,
     message: String? = null,
     pair_error: Pair<String, String>? = null,
@@ -91,6 +94,14 @@ fun ErrorInfoDisplay(
     onRetry: (() -> Unit)? = null,
     onDismiss: (() -> Unit)?
 ) {
+    LaunchedEffect(error) {
+        error?.printStackTrace()
+    }
+
+    if (error == null && pair_error == null) {
+        return
+    }
+
     val player: PlayerState = LocalPlayerState.current
     var expanded: Boolean by remember { mutableStateOf(start_expanded) }
     val shape: Shape = RoundedCornerShape(20.dp)
@@ -242,7 +253,7 @@ private fun ExpandedContent(
             .fillMaxWidth()
             .clip(shape)
             .padding(bottom = 10.dp)
-            .background(player.theme.background_provider)
+            .background({ player.theme.background })
             .padding(10.dp)
     ) {
         CompositionLocalProvider(LocalContentColor provides player.theme.on_background) {
@@ -267,11 +278,10 @@ private fun ExpandedContent(
                                     (current_error?.stackTraceToString() ?: pair_error?.second).toString(),
                                     ProjectBuildConfig.PASTE_EE_TOKEN,
                                     error = current_error
+                                ).fold(
+                                    { text_to_show = it },
+                                    { current_error = it }
                                 )
-                                    .fold(
-                                        { text_to_show = it },
-                                        { current_error = it }
-                                    )
                             }
                         },
                         colors = button_colours,
@@ -293,58 +303,6 @@ private fun ExpandedContent(
             }
 
             Row(Modifier.align(Alignment.BottomStart), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                val extra_button_text =
-                    if (text_to_show != null) getString("action_cancel")
-                    else when (current_error) {
-                        is DataParseException -> getString("error_info_display_show_json_data")
-                        else -> null
-                    }
-
-                var cause_data_loading by remember { mutableStateOf(false) }
-
-                if (extra_button_text != null) {
-                    Button(
-                        {
-                            if (cause_data_loading) {
-                                return@Button
-                            }
-
-                            if (text_to_show != null) {
-                                text_to_show = null
-                            }
-                            else {
-                                when (val error = current_error) {
-                                    is DataParseException -> {
-                                        coroutine_scope.launch {
-                                            coroutineContext.job.invokeOnCompletion {
-                                                cause_data_loading = false
-                                            }
-
-                                            cause_data_loading = true
-
-                                            error.getCauseResponseData().fold(
-                                                { text_to_show = it },
-                                                { current_error = it }
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        shape = shape,
-                        colors = button_colours
-                    ) {
-                        Crossfade(cause_data_loading) { loading ->
-                            if (loading) {
-                                SubtleLoadingIndicator()
-                            }
-                            else {
-                                Text(extra_button_text, softWrap = false)
-                            }
-                        }
-                    }
-                }
-
                 if (show_throw_button && current_error != null) {
                     Button(
                         { current_error?.also { throw it } },
@@ -364,28 +322,12 @@ suspend fun uploadErrorToPasteEe(
     token: String,
     error: Throwable? = null,
     logs: String? = null,
-): Result<String> = withContext(Dispatchers.IO) {
+): Result<String> = runCatching {
     val sections = mutableListOf(
         mapOf("name" to "VERSION", "contents" to "Commit: '${ProjectBuildConfig.GIT_COMMIT_HASH}' | Tag: '${ProjectBuildConfig.GIT_TAG}'"),
         mapOf("name" to "MESSAGE", "contents" to message),
         mapOf("name" to "STACKTRACE", "contents" to stack_trace)
     )
-
-    if (error is DataParseException) {
-        sections.add(mapOf("name" to "REQUEST_URL", "contents" to error.getCauseRequestUrl().toString()))
-        sections.add(mapOf("name" to "REQUEST_DATA", "contents" to error.getCauseRequestData().toString()))
-        sections.add(mapOf("name" to "REQUEST_HEADERS", "contents" to error.getCauseRequestHeaders().toString()))
-
-        val cause_data_result = error.getCauseResponseData()
-        val cause_data = cause_data_result.getOrNull() ?: return@withContext cause_data_result.cast()
-
-        sections.add(
-            mapOf(
-                "name" to "RESPONSE_DATA",
-                "contents" to cause_data.ifBlank { null.toString() }
-            )
-        )
-    }
 
     if (logs != null) {
         sections.add(
@@ -396,30 +338,18 @@ suspend fun uploadErrorToPasteEe(
         )
     }
 
-    val request = Request.Builder()
-        .url("https://api.paste.ee/v1/pastes")
-        .header("X-Auth-Token", token)
-        .post(
-            Gson().toJson(mapOf("sections" to sections))
-                .toRequestBody("application/json".toMediaType())
-        )
-        .build()
-
-    try {
-        val result = OkHttpClient().newCall(request).execute()
-
-        val gson = Gson()
-        val response: Map<String, Any?> = result.use {
-            gson.fromJson(it.body!!.charStream())
+    val response: HttpResponse =
+        JsonHttpClient.post("https://api.paste.ee/v1/pastes") {
+            headers {
+                append("X-Auth-Token", token)
+            }
+            contentType(ContentType.Application.Json)
+            setBody(Json.encodeToString(mapOf("sections" to sections)))
         }
 
-        if (response["success"] != true || response["link"] == null) {
-            return@withContext Result.failure(RuntimeException(gson.toJson(response)))
-        }
-
-        return@withContext Result.success(response["link"] as String)
-    }
-    catch (e: Throwable) {
-        return@withContext Result.failure(e)
-    }
+    val data: NewPasteResponse = response.body()
+    return@runCatching data.link
 }
+
+@Serializable
+data class NewPasteResponse(val link: String)

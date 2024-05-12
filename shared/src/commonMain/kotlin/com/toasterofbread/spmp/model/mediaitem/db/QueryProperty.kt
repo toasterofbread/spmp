@@ -8,9 +8,9 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import app.cash.sqldelight.Query
-import com.toasterofbread.db.Database
+import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
 @Composable
 fun <T: MediaItem?> Property<T>.observePropertyActiveTitle(): State<String?>? {
@@ -19,10 +19,17 @@ fun <T: MediaItem?> Property<T>.observePropertyActiveTitle(): State<String?>? {
     return item?.observeActiveTitle()
 }
 
+@Composable
+fun <T: MediaItem> Property<List<T>?>.observePropertyActiveTitles(): List<String?>? {
+    val player: PlayerState = LocalPlayerState.current
+    val items: List<T>? by observe(player.database)
+    return items?.map { it.observeActiveTitle().value }
+}
+
 interface Property<T> {
     fun get(db: Database): T
     fun set(value: T, db: Database)
-    
+
     @Composable
     fun observe(db: Database): MutableState<T>
 
@@ -139,7 +146,10 @@ interface ListProperty<T> {
     fun get(db: Database): List<T>?
 
     @Composable
-    fun observe(db: Database): State<List<T>?>
+    fun observe(db: Database, key: Any): State<List<T>?>
+
+    @Composable
+    fun observe(db: Database): State<List<T>?> = observe(db, Unit)
 
     fun overwriteItems(items: List<T>, db: Database)
 
@@ -166,9 +176,9 @@ open class ListPropertyImpl<T, Q: Any>(
     }
 
     @Composable
-    override fun observe(db: Database): State<List<T>?> {
+    override fun observe(db: Database, key: Any): State<List<T>?> {
         val value_state = getQuery(db).observeAsState(
-            Unit,
+            key,
             { getValue(it.executeAsList()) },
             null
         )

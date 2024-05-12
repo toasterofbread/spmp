@@ -29,12 +29,12 @@ import androidx.media3.session.*
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.settings.category.StreamingSettings
 import com.toasterofbread.spmp.platform.PlayerServiceCommand
-import com.toasterofbread.spmp.youtubeapi.formats.VideoFormatsEndpoint
+import dev.toastbits.ytmkt.formats.VideoFormatsEndpoint
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.Executors
 
@@ -49,7 +49,7 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer() {
         )
         .build()
 
-    audio_sink.skipSilenceEnabled = StreamingSettings.Key.ENABLE_SILENCE_SKIPPING.get(context)
+    audio_sink.skipSilenceEnabled = context.settings.streaming.ENABLE_SILENCE_SKIPPING.get()
 
     val renderers_factory: RenderersFactory =
         RenderersFactory { handler: Handler?, _, audioListener: AudioRendererEventListener?, _, _ ->
@@ -107,7 +107,7 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer() {
 
     val player_listener: InternalPlayerServicePlayerListener = InternalPlayerServicePlayerListener(this)
     player.addListener(player_listener)
-    
+
     player.playWhenReady = true
     player.prepare()
 
@@ -136,7 +136,7 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer() {
                         val song = SongRef(uri.toString())
                         var fail_error: Throwable? = null
 
-                        for (quality in MediaItemThumbnailProvider.Quality.byQuality()) {
+                        for (quality in ThumbnailProvider.Quality.byQuality()) {
                             val load_result = MediaItemThumbnailLoader.loadItemThumbnail(song, quality, context)
                             load_result.fold(
                                 { image ->

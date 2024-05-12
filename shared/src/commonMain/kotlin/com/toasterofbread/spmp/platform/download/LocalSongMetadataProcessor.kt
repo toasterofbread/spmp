@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.platform.download
 
-import com.toasterofbread.composekit.platform.PlatformFile
+import dev.toastbits.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
@@ -24,7 +24,6 @@ import org.jaudiotagger.tag.FieldKey
 import org.jaudiotagger.tag.Tag
 import org.jaudiotagger.tag.mp4.Mp4Tag
 import java.io.File
-import java.net.URI
 import java.util.logging.Level
 
 expect val LocalSongMetadataProcessor: MetadataProcessor
@@ -42,7 +41,7 @@ internal fun <T: MediaItemData> MediaItem.getItemWithOrForTitle(item_id: String?
         return null
     }
 
-    item.title = item_title
+    item.name = item_title
     return item
 }
 
@@ -56,7 +55,12 @@ object JAudioTaggerMetadataProcessor: MetadataProcessor {
 
     @Serializable
     data class CustomMetadata(
-        val song_id: String?, val artist_id: String?, val album_id: String?
+        val song_id: String? = null,
+        val artist_ids: List<String>? = null,
+        val album_id: String? = null,
+
+        // For backwards-compatibility
+        val artist_id: String? = null
     )
 
     init {
@@ -79,20 +83,20 @@ object JAudioTaggerMetadataProcessor: MetadataProcessor {
                 }
             }
 
-            val artist: ArtistRef? = song.Artist.get(context.database)
+            val artists: List<ArtistRef>? = song.Artists.get(context.database)
             val album: RemotePlaylist? = song.Album.get(context.database)
 
             set(FieldKey.TITLE, song.getActiveTitle(context.database))
-            set(FieldKey.ARTIST, artist?.getActiveTitle(context.database))
+            set(FieldKey.ARTIST, artists?.firstOrNull()?.getActiveTitle(context.database))
             set(FieldKey.ALBUM, album?.getActiveTitle(context.database))
             set(FieldKey.URL_OFFICIAL_ARTIST_SITE, song.Album.get(context.database)?.getURL(context))
             set(FieldKey.URL_LYRICS_SITE, song.Lyrics.get(context.database)?.getUrl())
 
             val custom_metadata: CustomMetadata =
                 CustomMetadata(
-                    song.id,
-                    artist?.id,
-                    album?.id
+                    song_id = song.id,
+                    artist_ids = artists?.map { it.id },
+                    album_id = album?.id
                 )
             set(CUSTOM_METADATA_KEY, Json.encodeToString(custom_metadata))
         }
@@ -120,7 +124,7 @@ object JAudioTaggerMetadataProcessor: MetadataProcessor {
                     AudioFileIO.read(File(file.absolute_path)).tag
                 }
                 catch (e: Throwable) {
-                    RuntimeException(file.absolute_path, e).printStackTrace()
+                    RuntimeException("Ignoring exception while reading ${file.absolute_path}", e).printStackTrace()
                     return@withContext null
                 }
 
@@ -134,13 +138,17 @@ object JAudioTaggerMetadataProcessor: MetadataProcessor {
                 return@withContext null
             }
 
-            return@withContext SongData(custom_metadata.song_id).apply {
-                if (!load_data) {
-                    return@apply
-                }
-                title = tag.getFirst(FieldKey.TITLE)
-                artist = getItemWithOrForTitle(custom_metadata.artist_id, tag.getFirst(FieldKey.ARTIST)) { ArtistData(it) }
-                album = getItemWithOrForTitle(custom_metadata.album_id, tag.getFirst(FieldKey.ALBUM)) { RemotePlaylistData(it) }
+
+            val song: SongData = SongData(custom_metadata.song_id)
+            if (load_data) {
+                song.name = tag.getFirst(FieldKey.TITLE)
+
+                val artist_ids: List<String>? = custom_metadata.artist_ids ?: custom_metadata.artist_id?.let { listOf(it) }
+                song.artists = artist_ids?.map { ArtistData(it) } ?: song.getItemWithOrForTitle(null, tag.getFirst(FieldKey.ARTIST)) { ArtistData(it) }?.let { listOf(it) }
+
+                song.album = song.getItemWithOrForTitle(custom_metadata.album_id, tag.getFirst(FieldKey.ALBUM)) { RemotePlaylistData(it) }
             }
+
+            return@withContext song
         }
 }

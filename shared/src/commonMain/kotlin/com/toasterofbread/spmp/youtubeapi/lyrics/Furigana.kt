@@ -1,18 +1,57 @@
 package com.toasterofbread.spmp.youtubeapi.lyrics
 
+
+import com.atilika.kuromoji.ipadic.Token
 import com.atilika.kuromoji.ipadic.Tokenizer
-import com.toasterofbread.composekit.utils.common.hasKanjiAndHiraganaOrKatakana
-import com.toasterofbread.composekit.utils.common.isHiragana
-import com.toasterofbread.composekit.utils.common.isJP
-import com.toasterofbread.composekit.utils.common.isKanji
-import com.toasterofbread.composekit.utils.common.isKatakana
-import com.toasterofbread.composekit.utils.common.toHiragana
+import dev.toastbits.composekit.utils.common.hasKanjiAndHiraganaOrKatakana
+import dev.toastbits.composekit.utils.common.isHiragana
+import dev.toastbits.composekit.utils.common.isJP
+import dev.toastbits.composekit.utils.common.isKanji
+import dev.toastbits.composekit.utils.common.isKatakana
+import dev.toastbits.composekit.utils.common.toHiragana
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import java.nio.channels.ClosedByInterruptException
 
-fun createFuriganaTokeniser(): Tokenizer {
+fun interface LyricsFuriganaTokeniser {
+    fun mergeAndFuriganiseTerms(terms: List<SongLyrics.Term>): List<SongLyrics.Term>
+}
+
+private class LyricsFuriganaTokeniserImpl(val tokeniser: Tokenizer): LyricsFuriganaTokeniser {
+    override fun mergeAndFuriganiseTerms(terms: List<SongLyrics.Term>): List<SongLyrics.Term> {
+        if (terms.isEmpty()) {
+            return emptyList()
+        }
+
+        val ret: MutableList<SongLyrics.Term> = mutableListOf()
+        val terms_to_process: MutableList<SongLyrics.Term> = mutableListOf()
+
+        for (term in terms) {
+            val text = term.subterms.single().text
+            if (text.any { it.isJP() }) {
+                terms_to_process.add(term)
+            }
+            else {
+                ret.addAll(tokeniser._mergeAndFuriganiseTerms(terms_to_process))
+                ret.add(term)
+                terms_to_process.clear()
+            }
+        }
+
+        ret.addAll(tokeniser._mergeAndFuriganiseTerms(terms_to_process))
+
+        return ret
+    }
+}
+
+private var tokeniser_impl: LyricsFuriganaTokeniserImpl? = null
+
+@Synchronized
+fun createFuriganaTokeniser(): LyricsFuriganaTokeniser {
     try {
-        return Tokenizer()
+        if (tokeniser_impl == null) {
+            tokeniser_impl = LyricsFuriganaTokeniserImpl(Tokenizer())
+        }
+        return tokeniser_impl!!
     }
     catch (e: RuntimeException) {
         if (e.cause is ClosedByInterruptException) {
@@ -24,32 +63,7 @@ fun createFuriganaTokeniser(): Tokenizer {
     }
 }
 
-fun mergeAndFuriganiseTerms(tokeniser: Tokenizer, terms: List<SongLyrics.Term>): List<SongLyrics.Term> {
-    if (terms.isEmpty()) {
-        return emptyList()
-    }
-
-    val ret: MutableList<SongLyrics.Term> = mutableListOf()
-    val terms_to_process: MutableList<SongLyrics.Term> = mutableListOf()
-
-    for (term in terms) {
-        val text = term.subterms.single().text
-        if (text.any { it.isJP() }) {
-            terms_to_process.add(term)
-        }
-        else {
-            ret.addAll(_mergeAndFuriganiseTerms(tokeniser, terms_to_process))
-            ret.add(term)
-            terms_to_process.clear()
-        }
-    }
-
-    ret.addAll(_mergeAndFuriganiseTerms(tokeniser, terms_to_process))
-
-    return ret
-}
-
-private fun _mergeAndFuriganiseTerms(tokeniser: Tokenizer, terms: List<SongLyrics.Term>): List<SongLyrics.Term> {
+private fun Tokenizer._mergeAndFuriganiseTerms(terms: List<SongLyrics.Term>): List<SongLyrics.Term> {
     if (terms.isEmpty()) {
         return emptyList()
     }
@@ -63,7 +77,7 @@ private fun _mergeAndFuriganiseTerms(tokeniser: Tokenizer, terms: List<SongLyric
         terms_text += term.subterms.single().text
     }
 
-    val tokens = tokeniser.tokenize(terms_text)
+    val tokens: MutableList<Token> = tokenize(terms_text)
 
     var current_term: Int = 0
     var term_head: Int = 0

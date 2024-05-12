@@ -2,50 +2,74 @@ package com.toasterofbread.spmp.model.settings.category
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MusicNote
-import com.toasterofbread.spmp.model.settings.SettingsKey
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getLyricsCategoryItems
+import dev.toastbits.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.platform.PreferencesProperty
 
-data object LyricsSettings: SettingsCategory("lyrics") {
-    override val keys: List<SettingsKey> = Key.entries.toList()
+class LyricsSettings(val context: AppContext): SettingsGroup("LYRICS", context.getPrefs()) {
+    val FOLLOW_ENABLED: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_lyrics_follow_enabled") },
+        getDescription = { getString("s_sub_lyrics_follow_enabled") },
+        getDefaultValue = { true }
+    )
+    val FOLLOW_OFFSET: PreferencesProperty<Float> by property(
+        getName = { getString("s_key_lyrics_follow_offset") },
+        getDescription = { getString("s_sub_lyrics_follow_offset") },
+        getDefaultValue = { 0.25f }
+    )
+    val DEFAULT_FURIGANA: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_lyrics_default_furigana") },
+        getDescription = { null },
+        getDefaultValue = { true }
+    )
+    val TEXT_ALIGNMENT: PreferencesProperty<Int> by property(
+        getName = { getString("s_key_lyrics_text_alignment") },
+        getDescription = { null },
+        getDefaultValue = { 0 } // Left, center, right
+    )
+    val EXTRA_PADDING: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_lyrics_extra_padding") },
+        getDescription = { getString("s_sub_lyrics_extra_padding") },
+        getDefaultValue = { true }
+    )
+    val ENABLE_WORD_SYNC: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_lyrics_enable_word_sync") },
+        getDescription = { getString("s_sub_lyrics_enable_word_sync") },
+        getDefaultValue = { false }
+    )
+    val FONT_SIZE: PreferencesProperty<Float> by property(
+        getName = { getString("s_key_lyrics_font_size") },
+        getDescription = { null },
+        getDefaultValue = { 0.5f }
+    )
+    val DEFAULT_SOURCE: PreferencesProperty<Int> by property(
+        getName = { getString("s_key_lyrics_default_source") },
+        getDescription = { null },
+        getDefaultValue = { 0 }
+    )
+    val SYNC_DELAY: PreferencesProperty<Float> by property(
+        getName = { getString("s_key_lyrics_sync_delay") },
+        getDescription = { getString("s_sub_lyrics_sync_delay") },
+        getDefaultValue = { 0f }
+    )
+    val SYNC_DELAY_TOPBAR: PreferencesProperty<Float> by property(
+        getName = { getString("s_key_lyrics_sync_delay_topbar") },
+        getDescription = { getString("s_sub_lyrics_sync_delay_topbar") },
+        getDefaultValue = { -0.5f }
+    )
+    val SYNC_DELAY_BLUETOOTH: PreferencesProperty<Float> by property(
+        getName = { getString("s_key_lyrics_sync_delay_bluetooth") },
+        getDescription = { getString("s_sub_lyrics_sync_delay_bluetooth") },
+        getDefaultValue = { 0.3f }
+    )
 
-    override fun getPage(): Page? =
-        Page(
-            getString("s_cat_lyrics"),
-            getString("s_cat_desc_lyrics"),
-            { getLyricsCategoryItems() }
-        ) { Icons.Outlined.MusicNote }
-
-    enum class Key: SettingsKey {
-        DEFAULT_SOURCE,
-        FOLLOW_ENABLED,
-        FOLLOW_OFFSET,
-        DEFAULT_FURIGANA,
-        TEXT_ALIGNMENT,
-        EXTRA_PADDING,
-        ENABLE_WORD_SYNC,
-        FONT_SIZE,
-        SYNC_DELAY,
-        SYNC_DELAY_TOPBAR,
-        SYNC_DELAY_BLUETOOTH;
-
-        override val category: SettingsCategory get() = LyricsSettings
-
-        @Suppress("UNCHECKED_CAST")
-        override fun <T> getDefaultValue(): T =
-            when (this) {
-                FOLLOW_ENABLED -> true
-                FOLLOW_OFFSET -> 0.25f
-                DEFAULT_FURIGANA -> true
-                TEXT_ALIGNMENT -> 0 // Left, center, right
-                EXTRA_PADDING -> true
-                ENABLE_WORD_SYNC -> false
-                FONT_SIZE -> 0.5f
-                DEFAULT_SOURCE -> 0
-                SYNC_DELAY -> 0f
-                SYNC_DELAY_TOPBAR -> -0.5f
-                SYNC_DELAY_BLUETOOTH -> 0.3f
-            } as T
-    }
+    override val page: CategoryPage? =
+        SimplePage(
+            { getString("s_cat_lyrics") },
+            { getString("s_cat_desc_lyrics") },
+            { getLyricsCategoryItems(context) },
+            { Icons.Outlined.MusicNote }
+        )
 }

@@ -4,8 +4,8 @@ import SpMp
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.toasterofbread.composekit.platform.PlatformFile
-import com.toasterofbread.composekit.utils.common.addUnique
+import dev.toastbits.composekit.platform.PlatformFile
+import dev.toastbits.composekit.utils.common.addUnique
 import com.toasterofbread.spmp.model.lyrics.LyricsFileConverter
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
@@ -13,7 +13,6 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
-import com.toasterofbread.spmp.model.settings.category.SystemSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.LocalSongMetadataProcessor
@@ -27,12 +26,16 @@ import kotlinx.coroutines.sync.withLock
 object MediaItemLibrary {
     fun getLibraryDir(
         context: AppContext,
-        custom_location_uri: String = SystemSettings.Key.LIBRARY_PATH.get(context),
+        custom_location_uri: String = context.settings.system.LIBRARY_PATH.get(),
     ): PlatformFile {
-        if (custom_location_uri.isBlank()) {
-            return getDefaultLibraryDir(context)
+        if (custom_location_uri.isNotBlank()) {
+            val custom_dir: PlatformFile? = context.getUserDirectoryFile(custom_location_uri)
+            if (custom_dir != null) {
+                return custom_dir
+            }
         }
-        return context.getUserDirectoryFile(custom_location_uri)
+
+        return getDefaultLibraryDir(context)
     }
 
     fun getDefaultLibraryDir(context: AppContext): PlatformFile =
@@ -145,10 +148,15 @@ private suspend fun getAllLocalSongFiles(context: AppContext, allow_partial: Boo
                 return@launch
             }
 
-            val song: Song =
+            var song: Song? =
                 file_info.id?.let { SongRef(it) }
-                        ?: LocalSongMetadataProcessor.readLocalSongMetadata(file, context, load_data = true)?.apply { saveToDatabase(context.database) }
-                        ?: return@launch
+                    ?: LocalSongMetadataProcessor.readLocalSongMetadata(file, context, load_data = true)?.apply { saveToDatabase(context.database) }
+
+            if (song == null) {
+                song = SongRef('!' + file.absolute_path.hashCode().toString())
+                song.createDbEntry(context.database)
+                song.Title.set(file.name.split('.', limit = 2).firstOrNull() ?: "???", context.database)
+            }
 
             val result: DownloadStatus =
                 DownloadStatus(

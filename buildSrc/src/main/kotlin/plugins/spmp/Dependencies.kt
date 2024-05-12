@@ -24,7 +24,7 @@ class SpMpDeps(extra: Map<String, Any>) {
     val dependencies: Map<String, DependencyInfo> =
         mapOf(
             "dev.toastbits.composekit" to DependencyInfo(
-                version = "058e48e95f",
+                version = "39f3909dc2",
                 name = "ComposeKit",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/composekit",
@@ -155,7 +155,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 fork_url = "https://github.com/marcoc1712/jaudiotagger"
             ),
             "com.github.teamnewpipe:NewPipeExtractor" to DependencyInfo(
-                version = "v0.22.7",
+                version = "v0.24.0",
                 name = "NewPipe Extractor",
                 author = "Team NewPipe",
                 url = "https://github.com/TeamNewPipe/NewPipeExtractor",

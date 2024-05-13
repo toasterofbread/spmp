@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.radio.RadioInstance
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.service.playercontroller.RadioHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -17,7 +18,7 @@ import dev.toastbits.composekit.platform.PlatformPreferencesListener
 import dev.toastbits.composekit.platform.PlatformPreferences
 import io.ktor.client.request.get
 
-open class ExternalPlayerService: SpMsPlayerService(), PlayerService {
+open class ExternalPlayerService(plays_audio: Boolean, private val create_player: Boolean = true): SpMsPlayerService(plays_audio = plays_audio), PlayerService {
     override val load_state: PlayerServiceLoadState get() = socket_load_state
     override val connection_error: Throwable? get() = socket_connection_error
     private val coroutine_scope: CoroutineScope = CoroutineScope(Job())
@@ -28,6 +29,43 @@ open class ExternalPlayerService: SpMsPlayerService(), PlayerService {
     internal fun setContext(context: AppContext) {
         _context = context
     }
+
+    internal fun notifyReadyToPlay() {
+        val song: Song = getSong() ?: return
+        sendRequest("readyToPlay", JsonPrimitive(current_song_index), JsonPrimitive(song.id), JsonPrimitive(duration_ms))
+    }
+
+    private var cancelling_radio: Boolean = false
+
+    override fun onRadioCancelRequested() {
+        cancelling_radio = true
+        radio_instance.cancelRadio()
+        cancelling_radio = false
+    }
+
+    internal fun onRadioCancelled() {
+        if (cancelling_radio) {
+            return
+        }
+        sendRequest("cancelRadio")
+    }
+
+    protected open fun createServicePlayer(): PlayerServicePlayer =
+        object : PlayerServicePlayer(this) {
+            override fun onUndoStateChanged() {
+                for (listener in listeners) {
+                    listener.onUndoStateChanged()
+                }
+            }
+
+            override val radio: RadioHandler =
+                object : RadioHandler(this, context) {
+                    override fun onRadioCancelled() {
+                        super.onRadioCancelled()
+                        this@ExternalPlayerService.onRadioCancelled()
+                    }
+                }
+        }
 
     private lateinit var _service_player: PlayerServicePlayer
     override val service_player: PlayerServicePlayer
@@ -149,13 +187,7 @@ open class ExternalPlayerService: SpMsPlayerService(), PlayerService {
     override fun onCreate() {
         super.onCreate()
 
-        _service_player = object : PlayerServicePlayer(this) {
-            override fun onUndoStateChanged() {
-                for (listener in listeners) {
-                    listener.onUndoStateChanged()
-                }
-            }
-        }
+        _service_player = createServicePlayer()
 
         coroutine_scope.launch {
             val prefs_listener: PlatformPreferencesListener =

@@ -12,12 +12,20 @@ import com.toasterofbread.spmp.platform.playerservice.PlayerService
 // Radio continuation will be added if the amount of remaining songs (including current) falls below this
 private const val RADIO_MIN_LENGTH: Int = 10
 
-class RadioHandler(val player: PlayerServicePlayer, val context: AppContext) {
-    val instance: RadioInstance = object : RadioInstance(context) {
-        override suspend fun onLoadCompleted(result: RadioInstance.LoadResult, is_continuation: Boolean) {
-            onRadioLoadCompleted(result, is_continuation)
+open class RadioHandler(val player: PlayerServicePlayer, val context: AppContext) {
+    val instance: RadioInstance =
+        object : RadioInstance(context) {
+            override suspend fun onLoadCompleted(result: RadioInstance.LoadResult, is_continuation: Boolean) {
+                onRadioLoadCompleted(result, is_continuation)
+            }
+
+            override fun cancelRadio() {
+                super.cancelRadio()
+                onRadioCancelled()
+            }
         }
-    }
+
+    open fun onRadioCancelled() {}
 
     fun setUndoableRadioState(
         new_radio_state: RadioState,

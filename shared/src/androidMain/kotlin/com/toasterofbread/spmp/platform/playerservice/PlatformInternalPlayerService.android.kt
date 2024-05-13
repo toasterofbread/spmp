@@ -6,7 +6,7 @@ import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.platform.AppContext
 import ProgramArguments
 
-actual class PlatformInternalPlayerService: ForegroundPlayerService(), PlayerService {
+actual class PlatformInternalPlayerService: ForegroundPlayerService(play_when_ready = true), PlayerService {
     actual companion object: InternalPlayerServiceCompanion(PlatformInternalPlayerService::class), PlayerServiceCompanion {
         actual fun isAvailable(context: AppContext, launch_arguments: ProgramArguments): Boolean = true
     }

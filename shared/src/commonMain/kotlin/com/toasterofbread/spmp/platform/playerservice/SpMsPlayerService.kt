@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.composekit.platform.PlatformPreferencesListener
+import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.utils.common.launchSingle
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.unpackSetData
@@ -33,9 +34,9 @@ import java.net.InetAddress
 import spms.socketapi.shared.*
 
 private const val POLL_STATE_INTERVAL: Long = 100
-private const val POLL_TIMEOUT_MS: Long = 10000
+private const val POLL_TIMEOUT_MS: Long = 3000
 
-abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerService {
+abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(), ClientServerPlayerService {
     override var connected_server: ClientServerPlayerService.ServerInfo? by mutableStateOf(null)
 
     private val clients_result_channel: Channel<SpMsActionReply> = Channel()
@@ -45,13 +46,14 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
     var socket_connection_error: Throwable? by mutableStateOf(null)
         private set
 
+    internal abstract fun onRadioCancelRequested()
+
     private fun getServerPort(): Int = context.settings.platform.SERVER_PORT.get()
     private fun getServerIp(): String = context.settings.platform.SERVER_IP_ADDRESS.get()
 
     private fun getClientName(): String {
-        val host: String = InetAddress.getLocalHost().hostName
-        val os: String = System.getProperty("os.name")
-
+        val os: String = Platform.getOSName()
+        var host: String = Platform.getHostName()
         return getString("app_name") + " [$os, $host]"
     }
 
@@ -182,7 +184,7 @@ abstract class SpMsPlayerService: PlatformServiceImpl(), ClientServerPlayerServi
             val handshake: SpMsClientHandshake =
                 SpMsClientHandshake(
                     name = getClientName(),
-                    type = SpMsClientType.SPMP_STANDALONE,
+                    type = if (plays_audio) SpMsClientType.SPMP_PLAYER else SpMsClientType.SPMP_STANDALONE,
                     machine_id = getSpMsMachineId(context),
                     language = context.getUiLanguage()
                 )

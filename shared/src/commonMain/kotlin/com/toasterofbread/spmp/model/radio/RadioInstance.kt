@@ -54,7 +54,7 @@ abstract class RadioInstance(val context: AppContext) {
         state = state.copy(current_filter_index = filter_index)
     }
 
-    fun cancelRadio() {
+    open fun cancelRadio() {
         cancelCurrentJob()
         state = RadioState()
     }
@@ -191,5 +191,8 @@ abstract class RadioInstance(val context: AppContext) {
 
         return filtered
     }
+
+    override fun toString(): String =
+        "RadioInstance(state=$state, is_loading=$is_loading, load_error=$load_error)"
 }
 

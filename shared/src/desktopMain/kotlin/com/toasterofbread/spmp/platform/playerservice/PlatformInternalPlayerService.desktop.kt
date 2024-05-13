@@ -23,7 +23,7 @@ import ProgramArguments
 private class PlayerServiceBinder(val service: PlatformInternalPlayerService): PlatformBinder()
 
 // actual class PlatformInternalPlayerService: SpMsPlayerService(), PlayerService {
-actual class PlatformInternalPlayerService: ExternalPlayerService() {
+actual class PlatformInternalPlayerService: DesktopExternalPlayerService() {
 //     actual override val load_state: PlayerServiceLoadState get() = socket_load_state
 //     actual override val connection_error: Throwable? get() = socket_connection_error
 //     actual override val context: AppContext get() = super.context

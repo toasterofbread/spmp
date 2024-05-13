@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.platform.playerservice
 
 import com.toasterofbread.spmp.platform.AppContext
 
-actual class PlatformExternalPlayerService: ExternalPlayerService(), PlayerService {
+actual class PlatformExternalPlayerService: DesktopExternalPlayerService(), PlayerService {
     actual companion object: PlayerServiceCompanion {
         override fun isServiceRunning(context: AppContext): Boolean = true
 

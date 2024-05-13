@@ -52,11 +52,11 @@ private const val UPDATE_INTERVAL: Long = 30000 // ms
 private const val SONG_MARK_WATCHED_POSITION = 1000 // ms
 
 @Suppress("LeakingThis")
-abstract class PlayerServicePlayer(private val service: PlayerService) {
+abstract class PlayerServicePlayer(internal val service: PlayerService) {
     private val context: AppContext get() = service.context
     private val coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
 
-    internal val radio: RadioHandler = RadioHandler(this, context)
+    internal open val radio: RadioHandler = RadioHandler(this, context)
     private val persistent_queue: PersistentQueueHandler = PersistentQueueHandler(this, context)
     private val discord_status: DiscordStatusHandler = DiscordStatusHandler(this, context)
     private val undo_handler: UndoHandler = UndoHandler(this, service)
@@ -79,7 +79,7 @@ abstract class PlayerServicePlayer(private val service: PlayerService) {
 
     abstract fun onUndoStateChanged()
 
-    private val prefs_listener = 
+    private val prefs_listener =
         PlatformPreferencesListener { _, key ->
             when (key) {
                 context.settings.discord_auth.DISCORD_ACCOUNT_TOKEN.key -> {

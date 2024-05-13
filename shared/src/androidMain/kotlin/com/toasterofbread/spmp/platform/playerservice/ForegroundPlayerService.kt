@@ -31,12 +31,13 @@ import com.toasterofbread.spmp.platform.PlayerServiceCommand
 import com.toasterofbread.spmp.platform.playerservice.*
 import com.toasterofbread.spmp.platform.visualiser.MusicVisualiser
 import com.toasterofbread.spmp.shared.R
+import com.toasterofbread.spmp.service.playercontroller.RadioHandler
 import kotlinx.coroutines.*
 import spms.socketapi.shared.SpMsPlayerRepeatMode
 import spms.socketapi.shared.SpMsPlayerState
 
 @androidx.annotation.OptIn(UnstableApi::class)
-open class ForegroundPlayerService: MediaSessionService(), PlayerService {
+open class ForegroundPlayerService(private val play_when_ready: Boolean): MediaSessionService(), PlayerService {
     override val load_state: PlayerServiceLoadState = PlayerServiceLoadState(false)
     override val connection_error: Throwable? = null
     override val context: AppContext get() = _context
@@ -83,6 +84,8 @@ open class ForegroundPlayerService: MediaSessionService(), PlayerService {
         listener.removeFromPlayer(player)
     }
 
+    protected open fun onRadioCancelled() {}
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         return START_NOT_STICKY
@@ -110,7 +113,7 @@ open class ForegroundPlayerService: MediaSessionService(), PlayerService {
         _context = AppContext(this, coroutine_scope)
         _context.getPrefs().addListener(prefs_listener)
 
-        initialiseSessionAndPlayer()
+        initialiseSessionAndPlayer(play_when_ready)
 
         _service_player = object : PlayerServicePlayer(this) {
             override fun onUndoStateChanged() {
@@ -118,6 +121,14 @@ open class ForegroundPlayerService: MediaSessionService(), PlayerService {
                     listener.onUndoStateChanged()
                 }
             }
+
+            override val radio: RadioHandler =
+                object : RadioHandler(this, context) {
+                    override fun onRadioCancelled() {
+                        super.onRadioCancelled()
+                        this@ForegroundPlayerService.onRadioCancelled()
+                    }
+                }
         }
 
         val audio_manager = getSystemService(AUDIO_SERVICE) as AudioManager?

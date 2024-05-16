@@ -54,7 +54,9 @@ actual fun VideoPlayback(
         remember {
             ExoPlayer.Builder(context)
                 .setUsePlatformDiagnostics(false)
-                .build()
+                .build().apply {
+                    volume = 0f
+                }
         }
 
     val player_view: PlayerView =

@@ -21,7 +21,7 @@ actual class PlatformInternalPlayerService: ExternalPlayerService(plays_audio = 
     }
 
     actual companion object: PlayerServiceCompanion {
-        actual fun isAvailable(context: AppContext, launch_arguments: ProgramArguments): Boolean =
+        override fun isAvailable(context: AppContext, launch_arguments: ProgramArguments): Boolean =
             LocalServer.getServerExecutableFile(launch_arguments) != null
 
         override fun isServiceRunning(context: AppContext): Boolean = true

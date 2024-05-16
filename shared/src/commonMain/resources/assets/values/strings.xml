@@ -611,6 +611,8 @@
     <string name="s_discord_status_enable">Enable</string>
     <string name="s_discord_status_disable">Disable</string>
 
+    <string name="s_group_desktop_system">System</string>
+
     <string name="s_key_startup_command">Startup command</string>
     <string name="s_sub_startup_command">Command to be executed at program start</string>
 
@@ -623,7 +625,7 @@
     <string name="s_key_enable_external_server_mode">Enable external server mode</string>
     <string name="s_sub_enable_external_server_mode">Instead of running its own internal server, SpMp will connect to the server defined below</string>
 
-    <string name="s_sub_always_enabled_because_spms_not_packaged">This option always enabled because this build of SpMp was not packaged with SpMs</string>
+    <string name="s_sub_always_enabled_because_spms_not_packaged">This option is always enabled because this build of SpMp was not packaged with SpMs</string>
 
     <string name="s_key_server_ip">External server IP address</string>
     <string name="s_key_server_port">Server port</string>

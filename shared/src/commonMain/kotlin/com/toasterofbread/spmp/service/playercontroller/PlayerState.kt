@@ -91,12 +91,17 @@ import androidx.compose.foundation.layout.requiredWidth
 import kotlin.math.roundToInt
 import kotlin.math.absoluteValue
 import ProgramArguments
+import LocalProgramArguments
 
 typealias DownloadRequestCallback = (DownloadStatus?) -> Unit
 
 enum class FeedLoadState { PREINIT, NONE, LOADING, CONTINUING }
 
-class PlayerState(val context: AppContext, internal val coroutine_scope: CoroutineScope) {
+class PlayerState(
+    val context: AppContext,
+    val launch_arguments: ProgramArguments,
+    internal val coroutine_scope: CoroutineScope
+) {
     val database: Database get() = context.database
     val settings: Settings get() = context.settings
     val theme: Theme get() = context.theme
@@ -214,7 +219,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         }
     }
 
-    fun onStart(launch_arguments: ProgramArguments) {
+    fun onStart() {
         SpMp.addLowMemoryListener(low_memory_listener)
         context.getPrefs().addListener(prefs_listener)
 
@@ -677,6 +682,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
             service_connecting = true
             service_connection = service_companion.connect(
                 context,
+                launch_arguments,
                 _player,
                 { service ->
                     synchronized(service_connected_listeners) {

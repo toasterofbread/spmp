@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.platform.playerservice
 
+import ProgramArguments
 import android.app.ActivityManager
 import android.content.ComponentName
 import android.content.Context
@@ -17,9 +18,10 @@ abstract class InternalPlayerServiceCompanion(
 ): PlayerServiceCompanion {
     private fun AppContext.getAndroidContext(): Context =
         ctx.applicationContext
-    
+
     override fun connect(
         context: AppContext,
+        launch_arguments: ProgramArguments,
         instance: PlayerService?,
         onConnected: (PlayerService) -> Unit,
         onDisconnected: () -> Unit
@@ -36,7 +38,7 @@ abstract class InternalPlayerServiceCompanion(
                     onDisconnected()
                 }
             }
-        
+
         println("spmp internal connect $service_class $this")
 
         ctx.startService(Intent(ctx, service_class.java))

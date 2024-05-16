@@ -85,7 +85,7 @@ fun getServerGroupItems(context: AppContext): List<SettingsItem> {
                     null
                 }
             }
-        ).takeIf { Platform.ANDROID.isCurrent() },
+        ),
 
         TextFieldSettingsItem(
             context.settings.platform.SERVER_IP_ADDRESS,

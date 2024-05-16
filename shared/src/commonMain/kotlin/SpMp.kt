@@ -1,6 +1,8 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
@@ -11,6 +13,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.composekit.utils.common.thenIf
@@ -72,8 +75,8 @@ object SpMp {
         launch_arguments: ProgramArguments,
         composable_coroutine_scope: CoroutineScope
     ): PlayerState {
-        val player: PlayerState = PlayerState(context, composable_coroutine_scope)
-        player.onStart(launch_arguments)
+        val player: PlayerState = PlayerState(context, launch_arguments, composable_coroutine_scope)
+        player.onStart()
         _player_state = player
         return player
     }
@@ -144,6 +147,8 @@ object SpMp {
                         player_state.service_load_state,
                         Modifier
                             .fillMaxSize()
+                            .background(player_state.theme.background)
+                            .padding(30.dp)
                             .thenIf(splash_mode != null) {
                                 pointerInput(Unit) {}
                             }

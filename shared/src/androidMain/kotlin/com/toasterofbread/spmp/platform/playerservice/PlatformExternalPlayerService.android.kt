@@ -10,19 +10,34 @@ import spms.socketapi.shared.SpMsPlayerRepeatMode
 import spms.socketapi.shared.SpMsPlayerState
 import androidx.media3.common.Player
 import androidx.media3.common.MediaItem as ExoMediaItem
+import androidx.compose.material3.Text
+import androidx.compose.material3.Button
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 
 actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_ready = true), PlayerService {
-    // private var cancelling_radio: Boolean = false
+    @Composable
+    override fun LoadScreenExtraContent(modifier: Modifier) {
+        Button({
+            service = this
+            server?.onDestroy()
+            server = null
+        }) {
+            Text("LOCAL")
+        }
+    }
 
     override fun onRadioCancelled() {
         super.onRadioCancelled()
-        server.onRadioCancelled()
+        server?.onRadioCancelled()
     }
 
-    private val server: ExternalPlayerService =
+    private var server: ExternalPlayerService? =
         object : ExternalPlayerService(plays_audio = true) {
             override fun createServicePlayer(): PlayerServicePlayer = this@PlatformExternalPlayerService.service_player
         }
+
+    private var service: PlayerService = server!!
 
     private val server_listener: PlayerListener =
         object : PlayerListener() {
@@ -32,11 +47,6 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
             override fun onSongMoved(from: Int, to: Int) = this@PlatformExternalPlayerService.onSongMoved(from, to)
             override fun onSongRemoved(index: Int, song: Song) = this@PlatformExternalPlayerService.onSongRemoved(index)
             override fun onSongTransition(song: Song?, manual: Boolean) = this@PlatformExternalPlayerService.onSongTransition(current_song_index)
-            // override fun onRadioCancelRequested() {
-            //     cancelling_radio = true
-            //     this@PlatformExternalPlayerService.service_player.radio_instance.cancelRadio()
-            //     cancelling_radio = false
-            // }
         }
 
     private val player_listener: Player.Listener =
@@ -45,7 +55,7 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
 
             override fun onMediaItemTransition(mediaItem: ExoMediaItem?, reason: Int) {
                 if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK && player.currentMediaItemIndex != current_song_index) {
-                    server.seekToSong(player.currentMediaItemIndex)
+                    service.seekToSong(player.currentMediaItemIndex)
                 }
             }
 
@@ -55,10 +65,10 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
                 }
 
                 if (isPlaying) {
-                    server.play()
+                    service.play()
                 }
                 else {
-                    server.pause()
+                    service.pause()
                 }
             }
 
@@ -70,17 +80,17 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
                 if (reason == Player.DISCONTINUITY_REASON_SEEK && newPosition.positionMs != last_seek_position) {
                     last_seek_position = newPosition.positionMs
                     pause()
-                    server.seekTo(newPosition.positionMs)
+                    service.seekTo(newPosition.positionMs)
 
                     if (player.playbackState == Player.STATE_READY) {
-                        server.notifyReadyToPlay()
+                        server?.notifyReadyToPlay()
                     }
                 }
             }
 
             override fun onPlaybackStateChanged(playbackState: Int) {
                 if (playbackState == Player.STATE_READY) {
-                    server.notifyReadyToPlay()
+                    server?.notifyReadyToPlay()
                 }
             }
         }
@@ -91,17 +101,18 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
     override fun onCreate() {
         super.onCreate()
 
-        server._context = context
-        server.addListener(server_listener)
-
         player.addListener(player_listener)
 
-        server.onCreate()
+        server?.apply {
+            _context = context
+            addListener(server_listener)
+            onCreate()
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        server.onDestroy()
+        server?.onDestroy()
     }
 
     private fun onSongAdded(index: Int, song: Song) { coroutine_scope.launch(Dispatchers.Main) {
@@ -134,36 +145,36 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
         }
     }}
 
-    override val load_state: PlayerServiceLoadState get() = server.load_state
-    override val state: SpMsPlayerState get() = server.state
-    override val is_playing: Boolean get() = server.is_playing
-    override val song_count: Int get() = server.song_count
-    override val current_song_index: Int get() = server.current_song_index
-    override val current_position_ms: Long get() = server.current_position_ms
-    override val duration_ms: Long get() = server.duration_ms
-    override val has_focus: Boolean get() = server.has_focus
-    override val radio_instance: RadioInstance get() = server.radio_instance
+    override val load_state: PlayerServiceLoadState get() = service.load_state
+    override val state: SpMsPlayerState get() = service.state
+    override val is_playing: Boolean get() = service.is_playing
+    override val song_count: Int get() = service.song_count
+    override val current_song_index: Int get() = service.current_song_index
+    override val current_position_ms: Long get() = service.current_position_ms
+    override val duration_ms: Long get() = service.duration_ms
+    override val has_focus: Boolean get() = service.has_focus
+    override val radio_instance: RadioInstance get() = service.radio_instance
     override var repeat_mode: SpMsPlayerRepeatMode
-        get() = server.repeat_mode
-        set(value) { server.repeat_mode = value }
+        get() = service.repeat_mode
+        set(value) { service.repeat_mode = value }
     override var volume: Float
-        get() = server.volume
-        set(value) { server.volume = value }
+        get() = service.volume
+        set(value) { service.volume = value }
 
-    override fun play() = server.play()
-    override fun pause() = server.pause()
-    override fun playPause() = server.playPause()
-    override fun seekTo(position_ms: Long) = server.seekTo(position_ms)
-    override fun seekToSong(index: Int) = server.seekToSong(index)
-    override fun seekToNext() = server.seekToNext()
-    override fun seekToPrevious() = server.seekToPrevious()
-    override fun getSong(): Song? = server.getSong()
-    override fun getSong(index: Int): Song? = server.getSong(index)
-    override fun addSong(song: Song, index: Int) = server.addSong(song, index)
-    override fun moveSong(from: Int, to: Int) = server.moveSong(from, to)
-    override fun removeSong(index: Int) = server.removeSong(index)
-    override fun addListener(listener: PlayerListener) = server.addListener(listener)
-    override fun removeListener(listener: PlayerListener) = server.removeListener(listener)
+    override fun play() = service.play()
+    override fun pause() = service.pause()
+    override fun playPause() = service.playPause()
+    override fun seekTo(position_ms: Long) = service.seekTo(position_ms)
+    override fun seekToSong(index: Int) = service.seekToSong(index)
+    override fun seekToNext() = service.seekToNext()
+    override fun seekToPrevious() = service.seekToPrevious()
+    override fun getSong(): Song? = service.getSong()
+    override fun getSong(index: Int): Song? = service.getSong(index)
+    override fun addSong(song: Song, index: Int) = service.addSong(song, index)
+    override fun moveSong(from: Int, to: Int) = service.moveSong(from, to)
+    override fun removeSong(index: Int) = service.removeSong(index)
+    override fun addListener(listener: PlayerListener) = service.addListener(listener)
+    override fun removeListener(listener: PlayerListener) = service.removeListener(listener)
 
     actual companion object: InternalPlayerServiceCompanion(PlatformExternalPlayerService::class), PlayerServiceCompanion {
         override fun isServiceRunning(context: AppContext): Boolean = true

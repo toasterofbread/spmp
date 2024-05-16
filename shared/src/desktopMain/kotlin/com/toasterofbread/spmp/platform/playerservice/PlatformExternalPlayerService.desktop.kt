@@ -1,8 +1,9 @@
 package com.toasterofbread.spmp.platform.playerservice
 
+import ProgramArguments
 import com.toasterofbread.spmp.platform.AppContext
 
-actual class PlatformExternalPlayerService: DesktopExternalPlayerService(), PlayerService {
+actual class PlatformExternalPlayerService: ExternalPlayerService(plays_audio = false), PlayerService {
     actual companion object: PlayerServiceCompanion {
         override fun isServiceRunning(context: AppContext): Boolean = true
 
@@ -12,6 +13,7 @@ actual class PlatformExternalPlayerService: DesktopExternalPlayerService(), Play
 
         override fun connect(
             context: AppContext,
+            launch_arguments: ProgramArguments,
             instance: PlayerService?,
             onConnected: (PlayerService) -> Unit,
             onDisconnected: () -> Unit,

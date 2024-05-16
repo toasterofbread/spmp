@@ -21,7 +21,6 @@ actual abstract class PlayerListener {
     actual open fun onSongAdded(index: Int, song: Song) {}
     actual open fun onSongRemoved(index: Int, song: Song) {}
     actual open fun onSongMoved(from: Int, to: Int) {}
-    actual open fun onRadioCancelRequested() {}
 
     actual open fun onEvents() {}
 

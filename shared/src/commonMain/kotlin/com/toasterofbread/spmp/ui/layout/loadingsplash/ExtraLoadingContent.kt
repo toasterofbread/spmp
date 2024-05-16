@@ -18,45 +18,88 @@ import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getServerGroupItems
+import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.platform.playerservice.LocalServerProcess
+import com.toasterofbread.spmp.platform.playerservice.LocalServer
 import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import dev.toastbits.composekit.settings.ui.item.SettingsItem
+import LocalProgramArguments
+import ProgramArguments
 
 private const val LOCAL_SERVER_AUTOSTART_DELAY_MS: Long = 100
 
 @Composable
 fun SplashExtraLoadingContent(modifier: Modifier) {
     val player: PlayerState = LocalPlayerState.current
+    val launch_arguments: ProgramArguments = LocalProgramArguments.current
 
-    val button_colours: ButtonColors = ButtonDefaults.buttonColors(
-        containerColor = player.theme.accent,
-        contentColor = player.theme.on_accent
-    )
+    val button_colours: ButtonColors = 
+        ButtonDefaults.buttonColors(
+            containerColor = player.theme.accent,
+            contentColor = player.theme.on_accent
+        )
 
     var show: Boolean by remember { mutableStateOf(false) }
     var show_config_dialog: Boolean by remember { mutableStateOf(false) }
-//    var local_server_error: Throwable? by remember { mutableStateOf(null) }
-//    var local_server_process: LocalServerProcess? by remember { mutableStateOf(null) }
+    var local_server_error: Throwable? by remember { mutableStateOf(null) }
+    var local_server_process: LocalServerProcess? by remember { mutableStateOf(null) }
 
     val external_server_mode: Boolean by player.settings.platform.ENABLE_EXTERNAL_SERVER_MODE.observe()
 
+    fun startServer(stop_if_running: Boolean, automatic: Boolean) {
+        if (automatic && launch_arguments.no_auto_server) {
+            return
+        }
+
+        local_server_process?.also { process ->
+            if (stop_if_running) {
+                local_server_process = null
+                process.process.destroy()
+            }
+            return
+        }
+
+        try {
+            local_server_process =
+                LocalServer.startLocalServer(
+                    player.context,
+                    launch_arguments,
+                    player.settings.platform.SERVER_PORT.get()
+                ) { result, output ->
+                    if (local_server_process != null) {
+                        local_server_process = null
+                        local_server_error = RuntimeException("Local server failed ($result)\n$output")
+                    }
+                }
+
+            if (!automatic && local_server_process == null) {
+                local_server_error = RuntimeException(getString("desktop_splash_local_server_command_not_set"))
+            }
+        }
+        catch (e: Throwable) {
+            local_server_process = null
+            local_server_error = e
+        }
+    }
+
     Column(modifier.animateContentSize().fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-//            if (local_server_process != null || LocalServer.isAvailable()) {
-//                Button(
-//                    { startServer(stop_if_running = true, automatic = false) },
-//                    colors = button_colours
-//                ) {
-//                    Crossfade(local_server_process) { process ->
-//                        if (process == null) {
-//                            Text(getString("desktop_splash_button_start_server"))
-//                        }
-//                        else {
-//                            Text(getString("desktop_splash_button_stop_process"))
-//                        }
-//                    }
-//                }
-//            }
+            if (local_server_process != null || LocalServer.canStartLocalServer()) {
+                Button(
+                    { startServer(stop_if_running = true, automatic = false) },
+                    colors = button_colours
+                ) {
+                    Crossfade(local_server_process) { process ->
+                        if (process == null) {
+                            Text(getString("desktop_splash_button_start_server"))
+                        }
+                        else {
+                            Text(getString("desktop_splash_button_stop_process"))
+                        }
+                    }
+                }
+            }
 
             Button(
                 { show_config_dialog = true },
@@ -80,28 +123,28 @@ fun SplashExtraLoadingContent(modifier: Modifier) {
             }
         }
 
-//        Crossfade(local_server_error ?: local_server_process as Any?) { state ->
-//            if (state != null) {
-//                Column(
-//                    Modifier.padding(top = 20.dp),
-//                    horizontalAlignment = Alignment.CenterHorizontally,
-//                    verticalArrangement = Arrangement.spacedBy(10.dp)
-//                ) {
-//                    if (state is Throwable) {
-//                        Text(getString("error_on_server_command_execution"))
-//                        ErrorInfoDisplay(
-//                            state,
-//                            show_throw_button = true,
-//                            onDismiss = { local_server_error = null },
-//                            modifier = Modifier.fillMaxWidth()
-//                        )
-//                    }
-//                    else if (state is LocalServerProcess) {
-//                        Text(getString("desktop_splash_process_running_with_command_\$x").replace("\$x", state.launch_command))
-//                    }
-//                }
-//            }
-//        }
+        Crossfade(local_server_error ?: local_server_process as Any?) { state ->
+            if (state != null) {
+                Column(
+                    Modifier.padding(top = 20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    if (state is Throwable) {
+                        Text(getString("error_on_server_command_execution"))
+                        ErrorInfoDisplay(
+                            state,
+                            show_throw_button = true,
+                            onDismiss = { local_server_error = null },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                    else if (state is LocalServerProcess) {
+                        Text(getString("desktop_splash_process_running_with_command_\$x").replace("\$x", state.launch_command))
+                    }
+                }
+            }
+        }
     }
 
     if (show_config_dialog) {

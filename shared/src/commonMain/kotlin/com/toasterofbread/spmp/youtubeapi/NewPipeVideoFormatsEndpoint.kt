@@ -21,30 +21,34 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.takeFrom
 import io.ktor.http.HttpStatusCode
 import io.ktor.util.toMap
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 class NewPipeVideoFormatsEndpoint(override val api: YtmApi): VideoFormatsEndpoint() {
     override suspend fun getVideoFormats(
         id: String,
         include_non_default: Boolean,
         filter: ((YoutubeVideoFormat) -> Boolean)?
-    ): Result<List<YoutubeVideoFormat>> = runCatching {
-        init(api)
+    ): Result<List<YoutubeVideoFormat>> = withContext(Dispatchers.IO) {
+        runCatching {
+            init(api)
 
-        val link_handler: LinkHandler = YoutubeStreamLinkHandlerFactory.getInstance().fromId(id)
-        val youtube_stream_extractor: StreamExtractor = NewPipe.getService(ServiceList.YouTube.serviceId).getStreamExtractor(link_handler)
+            val link_handler: LinkHandler = YoutubeStreamLinkHandlerFactory.getInstance().fromId(id)
+            val youtube_stream_extractor: StreamExtractor = NewPipe.getService(ServiceList.YouTube.serviceId).getStreamExtractor(link_handler)
 
-        val stream_info: StreamInfo = StreamInfo.getInfo(youtube_stream_extractor)
+            val stream_info: StreamInfo = StreamInfo.getInfo(youtube_stream_extractor)
 
-        val audio_streams: List<YoutubeVideoFormat> = stream_info.audioStreams
-            .map { it.toYoutubeVideoFormat() }
-            .filter { filter?.invoke(it) ?: true }
+            val audio_streams: List<YoutubeVideoFormat> = stream_info.audioStreams
+                .map { it.toYoutubeVideoFormat() }
+                .filter { filter?.invoke(it) ?: true }
 
-        val video_streams: List<YoutubeVideoFormat> = stream_info.videoStreams
-            .map { it.toYoutubeVideoFormat() }
-            .filter { filter?.invoke(it) ?: true }
+            val video_streams: List<YoutubeVideoFormat> = stream_info.videoStreams
+                .map { it.toYoutubeVideoFormat() }
+                .filter { filter?.invoke(it) ?: true }
 
-        return@runCatching audio_streams + video_streams
+            return@runCatching audio_streams + video_streams
+        }
     }
 
     companion object {

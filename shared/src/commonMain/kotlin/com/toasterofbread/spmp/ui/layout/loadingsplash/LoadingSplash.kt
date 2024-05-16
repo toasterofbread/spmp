@@ -8,7 +8,6 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
@@ -63,7 +62,7 @@ fun LoadingSplash(
                 val image: ImageBitmap = imageResource(Res.drawable.ic_splash)
 
                 Column(
-                    Modifier.fillMaxSize().background(player.theme.background).padding(10.dp),
+                    Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically)
                 ) {
@@ -76,11 +75,7 @@ fun LoadingSplash(
 
                     Box(
                         Modifier
-                            .size(
-                                with(LocalDensity.current) {
-                                    minOf(image.width.toDp(), image.height.toDp(), 200.dp)
-                                }
-                            )
+                            .size(250.dp)
                             .weight(1f, false)
                             .alpha(image_alpha)
                             .drawWithContent {
@@ -107,7 +102,7 @@ fun LoadingSplash(
                     AnimatedVisibility(show_message) {
                         Column(
                             Modifier.width(500.dp).animateContentSize(),
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                            verticalArrangement = Arrangement.spacedBy(20.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             if (load_state?.error != null) {
@@ -120,7 +115,7 @@ fun LoadingSplash(
                             }
                             else {
                                 if (load_state?.loading_message != null) {
-                                    Text(load_state.loading_message, Modifier.padding(horizontal = 20.dp), color = player.theme.on_background)
+                                    Text(load_state.loading_message, color = player.theme.on_background)
                                 }
 
                                 LinearProgressIndicator(Modifier.fillMaxWidth(), color = player.theme.accent)
@@ -129,13 +124,20 @@ fun LoadingSplash(
                     }
 
                     val extra_content_alpha: Float by animateFloatAsState(show_message.toFloat())
-                    SplashExtraLoadingContent(
-                        Modifier
-                            .thenIf(!show_message) {
-                                blockGestures()
-                            }
-                            .graphicsLayer { alpha = extra_content_alpha }
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        player.controller?.LoadScreenExtraContent(Modifier)
+
+                        SplashExtraLoadingContent(
+                            Modifier
+                                .thenIf(!show_message) {
+                                    blockGestures()
+                                }
+                                .graphicsLayer { alpha = extra_content_alpha }
+                        )
+                    }
 
                     NullableValueAnimatedVisibility(load_state?.error) { error ->
                         ErrorInfoDisplay(error, isDebugBuild(), onDismiss = null)
@@ -144,7 +146,7 @@ fun LoadingSplash(
             }
             SplashMode.WARNING -> {
                 Column(
-                    Modifier.fillMaxSize().background(player.theme.background),
+                    Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically)
                 ) {

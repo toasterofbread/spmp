@@ -127,9 +127,6 @@ private fun SpMsPlayerService.applyEvent(event: SpMsPlayerEvent) {
         }
         SpMsPlayerEvent.Type.CANCEL_RADIO -> {
             onRadioCancelRequested()
-            // listeners.forEach {
-            //     it.onRadioCancelRequested()
-            // }
         }
         SpMsPlayerEvent.Type.PROPERTY_CHANGED -> {
             val key: String = event.properties["key"]!!.content

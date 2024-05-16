@@ -244,14 +244,15 @@
     <string name="error_while_connecting_to_server_at_$x">$xのサーバーに接続中にエラーが発生しました</string>
     <string name="error_on_server_command_execution">サーバーコマンドの実行中にエラーが発生しました</string>
 
-    <string name="desktop_splash_connecting_to_server_at_$x">$x のサーバーに接続中</string>
-    <string name="desktop_splash_setting_initial_state">初期状態の準備中</string>
-    <string name="desktop_splash_button_configure_connection">接続設定</string>
-    <string name="desktop_splash_title_configure_server_connection">サーバーの接続設定</string>
-    <string name="desktop_splash_button_start_server">ローカルサーバーを実行</string>
-    <string name="desktop_splash_button_stop_process">プロセスを停止</string>
-    <string name="desktop_splash_process_running_with_command_$x">このコマンドでプロセスが実行しています:&#xA;$x</string>
-    <string name="desktop_splash_local_server_command_not_set">ローカルサーバーの実行コマンドが設定されていません</string>
+    <string name="loading_splash_connecting_to_server_at_$x">$x のサーバーに接続中</string>
+    <string name="loading_splash_setting_initial_state">初期状態の準備中</string>
+    <string name="loading_splash_button_configure_connection">接続設定</string>
+    <string name="loading_splash_title_configure_server_connection">サーバーの接続設定</string>
+    <string name="loading_splash_button_start_server">ローカルサーバーを実行</string>
+    <string name="loading_splash_button_stop_process">プロセスを停止</string>
+    <string name="loading_splash_process_running_with_command_$x">このコマンドでプロセスが実行しています:&#xA;$x</string>
+    <string name="loading_splash_local_server_command_not_set">ローカルサーバーの実行コマンドが設定されていません</string>
+    <string name="loading_splash_button_launch_without_server">このセッションはサーバー無しで実行</string>
 
     <string name="throw_error">スロー</string>
     <string name="report_error">報告する</string>

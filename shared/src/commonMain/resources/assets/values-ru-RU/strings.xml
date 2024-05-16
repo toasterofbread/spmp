@@ -242,14 +242,14 @@
     <string name="error_player_service_not_connected">Служба плеера не подключается. Возможно, произошла ошибка.</string>
     <string name="error_on_server_command_execution">Произошла ошибка при вызове команды сервера</string>
 
-    <string name="desktop_splash_connecting_to_server_at_$x">Подключение к серверу ($x)</string>
-    <string name="desktop_splash_setting_initial_state">Установка исходного состояния</string>
-    <string name="desktop_splash_button_configure_connection">Настроить подключение</string>
-    <string name="desktop_splash_title_configure_server_connection">Настроить подключение к серверу</string>
-    <string name="desktop_splash_button_start_server">Запустить локальный сервер</string>
-    <string name="desktop_splash_button_stop_process">Остановить</string>
-    <string name="desktop_splash_process_running_with_command_$x">Процесс, запущенный с помощью команды:&#xA;$x</string>
-    <string name="desktop_splash_local_server_command_not_set">Команда для локального сервера не задана</string>
+    <string name="loading_splash_connecting_to_server_at_$x">Подключение к серверу ($x)</string>
+    <string name="loading_splash_setting_initial_state">Установка исходного состояния</string>
+    <string name="loading_splash_button_configure_connection">Настроить подключение</string>
+    <string name="loading_splash_title_configure_server_connection">Настроить подключение к серверу</string>
+    <string name="loading_splash_button_start_server">Запустить локальный сервер</string>
+    <string name="loading_splash_button_stop_process">Остановить</string>
+    <string name="loading_splash_process_running_with_command_$x">Процесс, запущенный с помощью команды:&#xA;$x</string>
+    <string name="loading_splash_local_server_command_not_set">Команда для локального сервера не задана</string>
 
     <string name="throw_error">Отправить</string>
     <string name="report_error">Сообщить</string>

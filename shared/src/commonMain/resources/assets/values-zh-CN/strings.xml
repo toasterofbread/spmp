@@ -227,14 +227,14 @@
     <string name="error_player_service_not_connected">播放器服务未连接&#xA;可能发生了一个错误</string>
     <string name="error_on_server_command_execution">执行服务器命令时发生错误</string>
 
-    <string name="desktop_splash_connecting_to_server_at_$x">正在连接到服务器 $x</string>
-    <string name="desktop_splash_setting_initial_state">设置初始状态</string>
-    <string name="desktop_splash_button_configure_connection">配置连接</string>
-    <string name="desktop_splash_title_configure_server_connection">配置服务器连接</string>
-    <string name="desktop_splash_button_start_server">启动本地服务器</string>
-    <string name="desktop_splash_button_stop_process">停止进程</string>
-    <string name="desktop_splash_process_running_with_command_$x">进程正在运行此命令:&#xA;$x</string>
-    <string name="desktop_splash_local_server_command_not_set">未设置本地服务器命令</string>
+    <string name="loading_splash_connecting_to_server_at_$x">正在连接到服务器 $x</string>
+    <string name="loading_splash_setting_initial_state">设置初始状态</string>
+    <string name="loading_splash_button_configure_connection">配置连接</string>
+    <string name="loading_splash_title_configure_server_connection">配置服务器连接</string>
+    <string name="loading_splash_button_start_server">启动本地服务器</string>
+    <string name="loading_splash_button_stop_process">停止进程</string>
+    <string name="loading_splash_process_running_with_command_$x">进程正在运行此命令:&#xA;$x</string>
+    <string name="loading_splash_local_server_command_not_set">未设置本地服务器命令</string>
 
     <string name="throw_error">抛出</string>
     <string name="report_error">报告</string>

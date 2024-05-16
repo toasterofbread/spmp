@@ -15,9 +15,7 @@ import ProgramArguments
 internal const val AUTO_DOWNLOAD_SOFT_TIMEOUT = 1500 // ms
 
 expect class PlatformInternalPlayerService: PlayerService {
-    companion object: PlayerServiceCompanion {
-        fun isAvailable(context: AppContext, launch_arguments: ProgramArguments): Boolean
-    }
+    companion object: PlayerServiceCompanion
 
     override val load_state: PlayerServiceLoadState
     override val context: AppContext

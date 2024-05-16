@@ -240,14 +240,14 @@
     <string name="error_player_service_not_connected">Le service de lecture ne se connecte pas&#xA;Un bug s'est peut-être produit</string>
     <string name="error_on_server_command_execution">Une erreur s'est produite lors de l'appel de la commande du serveur</string>
 
-    <string name="desktop_splash_connecting_to_server_at_$x">Connexion au serveur à $x</string>
-    <string name="desktop_splash_setting_initial_state">Configuration de l'état initial</string>
-    <string name="desktop_splash_button_configure_connection">Configurer la connexion</string>
-    <string name="desktop_splash_title_configure_server_connection">Configurer la connexion au serveur</string>
-    <string name="desktop_splash_button_start_server">Démarrer le serveur local</string>
-    <string name="desktop_splash_button_stop_process">Arrêter le processus</string>
-    <string name="desktop_splash_process_running_with_command_$x">Processus en cours d'exécution avec cette commande :&#xA;$x</string>
-    <string name="desktop_splash_local_server_command_not_set">Commande du serveur local non définie</string>
+    <string name="loading_splash_connecting_to_server_at_$x">Connexion au serveur à $x</string>
+    <string name="loading_splash_setting_initial_state">Configuration de l'état initial</string>
+    <string name="loading_splash_button_configure_connection">Configurer la connexion</string>
+    <string name="loading_splash_title_configure_server_connection">Configurer la connexion au serveur</string>
+    <string name="loading_splash_button_start_server">Démarrer le serveur local</string>
+    <string name="loading_splash_button_stop_process">Arrêter le processus</string>
+    <string name="loading_splash_process_running_with_command_$x">Processus en cours d'exécution avec cette commande :&#xA;$x</string>
+    <string name="loading_splash_local_server_command_not_set">Commande du serveur local non définie</string>
 
     <string name="throw_error">Lancer</string>
     <string name="report_error">Signaler</string>

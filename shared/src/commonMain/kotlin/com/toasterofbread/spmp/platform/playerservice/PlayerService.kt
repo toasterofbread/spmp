@@ -65,10 +65,11 @@ interface PlayerService {
     fun Visualiser(colour: Color, modifier: Modifier, opacity: Float)
 
     @Composable
-    fun LoadScreenExtraContent(modifier: Modifier) {}
+    fun LoadScreenExtraContent(modifier: Modifier, requestServiceChange: (PlayerServiceCompanion) -> Unit) {}
 }
 
 interface PlayerServiceCompanion {
+    fun isAvailable(context: AppContext, launch_arguments: ProgramArguments): Boolean = true
     fun isServiceRunning(context: AppContext): Boolean
 
     fun connect(

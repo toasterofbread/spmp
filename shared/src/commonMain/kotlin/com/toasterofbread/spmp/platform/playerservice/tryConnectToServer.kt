@@ -32,7 +32,7 @@ internal suspend fun Socket.tryConnectToServer(
         setLoadState(
             PlayerServiceLoadState(
                 true,
-                getString("desktop_splash_connecting_to_server_at_\$x").replace("\$x", server_url.split("://", limit = 2).last())
+                getString("loading_splash_connecting_to_server_at_\$x").replace("\$x", server_url.split("://", limit = 2).last())
             )
         )
     }

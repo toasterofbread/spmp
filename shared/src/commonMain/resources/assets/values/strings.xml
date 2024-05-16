@@ -270,14 +270,15 @@
     <string name="error_while_connecting_to_server_at_$x">An error occurred while connecting to server at $x</string>
     <string name="error_on_server_command_execution">An error occurred while calling server command</string>
 
-    <string name="desktop_splash_connecting_to_server_at_$x">Connecting to server at $x</string>
-    <string name="desktop_splash_setting_initial_state">Setting initial state</string>
-    <string name="desktop_splash_button_configure_connection">Configure connection</string>
-    <string name="desktop_splash_title_configure_server_connection">Configure server connection</string>
-    <string name="desktop_splash_button_start_server">Start local server</string>
-    <string name="desktop_splash_button_stop_process">Stop process</string>
-    <string name="desktop_splash_process_running_with_command_$x">Process running with this command:&#xA;$x</string>
-    <string name="desktop_splash_local_server_command_not_set">Local server command not set</string>
+    <string name="loading_splash_connecting_to_server_at_$x">Connecting to server at $x</string>
+    <string name="loading_splash_setting_initial_state">Setting initial state</string>
+    <string name="loading_splash_button_configure_connection">Configure connection</string>
+    <string name="loading_splash_title_configure_server_connection">Configure server connection</string>
+    <string name="loading_splash_button_start_server">Start local server</string>
+    <string name="loading_splash_button_stop_process">Stop process</string>
+    <string name="loading_splash_process_running_with_command_$x">Process running with this command:&#xA;$x</string>
+    <string name="loading_splash_local_server_command_not_set">Local server command not set</string>
+    <string name="loading_splash_button_launch_without_server">Begin session without server</string>
 
     <string name="throw_error">Throw</string>
     <string name="report_error">Report</string>

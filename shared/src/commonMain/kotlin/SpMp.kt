@@ -2,12 +2,14 @@
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.background
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
@@ -37,6 +39,7 @@ import com.toasterofbread.spmp.ui.theme.ApplicationTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import spms.socketapi.shared.SPMS_API_VERSION
 import java.util.logging.Logger
 import org.jetbrains.compose.resources.FontResource
@@ -107,6 +110,8 @@ object SpMp {
         context.theme.Update()
         shortcut_state.ObserveState()
 
+        val coroutine_scope: CoroutineScope = rememberCoroutineScope()
+
         DisposableEffect(window_fullscreen_toggler) {
             SpMp.window_fullscreen_toggler = window_fullscreen_toggler
             onDispose {
@@ -145,13 +150,21 @@ object SpMp {
                     LoadingSplash(
                         splash_mode,
                         player_state.service_load_state,
-                        Modifier
+                        requestServiceChange = { service_companion ->
+                            if (!service_companion.isAvailable(player_state.context, arguments)) {
+                                return@LoadingSplash
+                            }
+
+                            coroutine_scope.launch {
+                                player_state.requestServiceChange(service_companion)
+                            }
+                        },
+                        modifier = Modifier
                             .fillMaxSize()
-                            .background(player_state.theme.background)
-                            .padding(30.dp)
                             .thenIf(splash_mode != null) {
                                 pointerInput(Unit) {}
-                            }
+                            },
+                        content_padding = PaddingValues(30.dp),
                     )
 
                     LaunchedEffect(splash_mode) {

@@ -39,8 +39,6 @@ abstract class InternalPlayerServiceCompanion(
                 }
             }
 
-        println("spmp internal connect $service_class $this")
-
         ctx.startService(Intent(ctx, service_class.java))
         ctx.bindService(Intent(ctx, service_class.java), service_connection, Context.BIND_AUTO_CREATE)
 

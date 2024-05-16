@@ -76,6 +76,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.delay
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.*
 import com.toasterofbread.spmp.ui.layout.contentbar.*
 import com.toasterofbread.spmp.ui.layout.BarColourState
@@ -643,7 +644,10 @@ class PlayerState(
 
     @Composable
     fun withPlayerComposable(action: @Composable PlayerServicePlayer.() -> Unit) {
-        connectService(onConnected = null)
+        LaunchedEffect(Unit) {
+            connectService(onConnected = null)
+        }
+
         _player?.service_player?.also {
             action(it)
         }
@@ -659,9 +663,7 @@ class PlayerState(
     private var service_connection_companion: PlayerServiceCompanion? = null
 
     private fun connectService(
-        service_companion: PlayerServiceCompanion =
-            if (context.settings.platform.ENABLE_EXTERNAL_SERVER_MODE.get()) PlatformExternalPlayerService
-            else PlatformInternalPlayerService,
+        service_companion: PlayerServiceCompanion = service_connection_companion!!,
         onConnected: ((PlayerService) -> Unit)?
     ) {
         synchronized(service_connected_listeners) {
@@ -701,6 +703,26 @@ class PlayerState(
                     service_connecting = false
                 }
             )
+        }
+    }
+
+    suspend fun requestServiceChange(service_companion: PlayerServiceCompanion) = withContext(Dispatchers.Default) {
+        synchronized(service_connected_listeners) {
+            service_connection?.also { connection ->
+                service_connection_companion!!.disconnect(context, connection)
+                service_connection_companion = null
+                service_connection = null
+
+                _player?.also {
+                    launch(Dispatchers.Main) {
+                        it.onDestroy()
+                    }
+                    _player = null
+                }
+            }
+
+            service_connecting = false
+            connectService(service_companion, onConnected = null)
         }
     }
 

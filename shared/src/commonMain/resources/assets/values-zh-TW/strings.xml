@@ -266,14 +266,14 @@
     <string name="error_player_service_not_connected">播放器服務未連接&#xA;可能發生了錯誤</string>
     <string name="error_on_server_command_execution">執行服務器指令時發生錯誤</string>
 
-    <string name="desktop_splash_connecting_to_server_at_$x">正在連接到伺服器 $x</string>
-    <string name="desktop_splash_setting_initial_state">設定初始狀態</string>
-    <string name="desktop_splash_button_configure_connection">配置連接</string>
-    <string name="desktop_splash_title_configure_server_connection">配置伺服器連接</string>
-    <string name="desktop_splash_button_start_server">啟動本地伺服器</string>
-    <string name="desktop_splash_button_stop_process">停止行程</string>
-    <string name="desktop_splash_process_running_with_command_$x">行程正在運行此指令:&#xA;$x</string>
-    <string name="desktop_splash_local_server_command_not_set">未設定本地伺服器指令</string>
+    <string name="loading_splash_connecting_to_server_at_$x">正在連接到伺服器 $x</string>
+    <string name="loading_splash_setting_initial_state">設定初始狀態</string>
+    <string name="loading_splash_button_configure_connection">配置連接</string>
+    <string name="loading_splash_title_configure_server_connection">配置伺服器連接</string>
+    <string name="loading_splash_button_start_server">啟動本地伺服器</string>
+    <string name="loading_splash_button_stop_process">停止行程</string>
+    <string name="loading_splash_process_running_with_command_$x">行程正在運行此指令:&#xA;$x</string>
+    <string name="loading_splash_local_server_command_not_set">未設定本地伺服器指令</string>
 
     <string name="throw_error">拋出</string>
     <string name="report_error">報告</string>

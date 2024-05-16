@@ -144,6 +144,8 @@ open class ForegroundPlayerService(private val play_when_ready: Boolean): MediaS
     }
 
     override fun onDestroy() {
+        stopSelf()
+
         _context.getPrefs().removeListener(prefs_listener)
         coroutine_scope.cancel()
         service_player.release()

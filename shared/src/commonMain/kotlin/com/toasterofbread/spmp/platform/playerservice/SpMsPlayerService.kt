@@ -257,7 +257,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
                 socket_load_state =
                     PlayerServiceLoadState(
                         true,
-                        getString("desktop_splash_setting_initial_state") + status?.let { " ($it)" }.orEmpty()
+                        getString("loading_splash_setting_initial_state") + status?.let { " ($it)" }.orEmpty()
                     )
             }
 

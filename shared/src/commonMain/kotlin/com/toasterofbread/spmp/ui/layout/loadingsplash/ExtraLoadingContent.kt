@@ -5,6 +5,7 @@ import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -34,7 +35,7 @@ fun SplashExtraLoadingContent(modifier: Modifier) {
     val player: PlayerState = LocalPlayerState.current
     val launch_arguments: ProgramArguments = LocalProgramArguments.current
 
-    val button_colours: ButtonColors = 
+    val button_colours: ButtonColors =
         ButtonDefaults.buttonColors(
             containerColor = player.theme.accent,
             contentColor = player.theme.on_accent
@@ -74,7 +75,7 @@ fun SplashExtraLoadingContent(modifier: Modifier) {
                 }
 
             if (!automatic && local_server_process == null) {
-                local_server_error = RuntimeException(getString("desktop_splash_local_server_command_not_set"))
+                local_server_error = RuntimeException(getString("loading_splash_local_server_command_not_set"))
             }
         }
         catch (e: Throwable) {
@@ -83,19 +84,20 @@ fun SplashExtraLoadingContent(modifier: Modifier) {
         }
     }
 
-    Column(modifier.animateContentSize().fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(modifier.animateContentSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             if (local_server_process != null || LocalServer.canStartLocalServer()) {
                 Button(
                     { startServer(stop_if_running = true, automatic = false) },
-                    colors = button_colours
+                    colors = button_colours,
+                    modifier = Modifier.align(Alignment.CenterVertically)
                 ) {
                     Crossfade(local_server_process) { process ->
                         if (process == null) {
-                            Text(getString("desktop_splash_button_start_server"))
+                            Text(getString("loading_splash_button_start_server"))
                         }
                         else {
-                            Text(getString("desktop_splash_button_stop_process"))
+                            Text(getString("loading_splash_button_stop_process"))
                         }
                     }
                 }
@@ -103,9 +105,10 @@ fun SplashExtraLoadingContent(modifier: Modifier) {
 
             Button(
                 { show_config_dialog = true },
-                colors = button_colours
+                colors = button_colours,
+                modifier = Modifier.align(Alignment.CenterVertically)
             ) {
-                Text(getString("desktop_splash_button_configure_connection"))
+                Text(getString("loading_splash_button_configure_connection"))
             }
 
             if (player.context.canOpenUrl()) {
@@ -116,7 +119,8 @@ fun SplashExtraLoadingContent(modifier: Modifier) {
                     colours = IconButtonDefaults.iconButtonColors(
                         containerColor = player.theme.accent,
                         contentColor = player.theme.on_accent
-                    )
+                    ),
+                    modifier = Modifier.align(Alignment.CenterVertically)
                 ) {
                     Icon(Icons.Default.Info, null)
                 }
@@ -135,12 +139,11 @@ fun SplashExtraLoadingContent(modifier: Modifier) {
                         ErrorInfoDisplay(
                             state,
                             show_throw_button = true,
-                            onDismiss = { local_server_error = null },
-                            modifier = Modifier.fillMaxWidth()
+                            onDismiss = { local_server_error = null }
                         )
                     }
                     else if (state is LocalServerProcess) {
-                        Text(getString("desktop_splash_process_running_with_command_\$x").replace("\$x", state.launch_command))
+                        Text(getString("loading_splash_process_running_with_command_\$x").replace("\$x", state.launch_command))
                     }
                 }
             }
@@ -161,7 +164,7 @@ fun SplashExtraLoadingContent(modifier: Modifier) {
                 }
             },
             title = {
-                Text(getString("desktop_splash_title_configure_server_connection"))
+                Text(getString("loading_splash_title_configure_server_connection"))
             },
             text = {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(20.dp)) {

@@ -15,10 +15,11 @@ import dev.toastbits.composekit.platform.composable.platformClickable
 @Composable
 fun LayoutSlotEditorPreviewOptions(modifier: Modifier = Modifier) {
     val player: PlayerState = LocalPlayerState.current
+    val form_factor: FormFactor by FormFactor.observe()
 
     DisposableEffect(Unit) {
         onDispose {
-            FormFactor.form_factor_override = null
+            FormFactor.setOverride(null)
         }
     }
 
@@ -44,11 +45,12 @@ fun LayoutSlotEditorPreviewOptions(modifier: Modifier = Modifier) {
         }
 
         SwitchButton(
-            checked = player.form_factor == FormFactor.PORTRAIT,
+            checked = form_factor == FormFactor.PORTRAIT,
             onCheckedChange = { checked ->
-                FormFactor.form_factor_override =
+                FormFactor.setOverride(
                     if (checked) FormFactor.PORTRAIT
                     else FormFactor.LANDSCAPE
+                )
             },
             modifier = Modifier.fillMaxWidth()
         ) {

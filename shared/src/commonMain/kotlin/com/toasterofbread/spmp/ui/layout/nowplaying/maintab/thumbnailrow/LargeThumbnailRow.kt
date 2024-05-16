@@ -45,7 +45,7 @@ import com.toasterofbread.spmp.ui.component.HorizontalLyricsLineDisplay
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.EXPANDED_THRESHOLD
-import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
+import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.OVERLAY_MENU_ANIMATION_DURATION
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.*
@@ -66,7 +66,7 @@ fun LargeThumbnailRow(
     overlayContent: (@Composable () -> Unit)? = null,
 ) {
     val player: PlayerState = LocalPlayerState.current
-    val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
+    val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
     val density: Density = LocalDensity.current
     val current_song: Song? = player.status.m_song
 

@@ -55,7 +55,7 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
+import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.bottom_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.horizontal_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.top_padding
@@ -89,7 +89,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(
     val player: PlayerState = LocalPlayerState.current
     val density: Density = LocalDensity.current
     val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
-    val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
+    val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
 
     val current_song: Song? by player.status.song_state
 

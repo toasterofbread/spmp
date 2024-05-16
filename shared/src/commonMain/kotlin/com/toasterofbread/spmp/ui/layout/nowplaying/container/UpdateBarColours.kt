@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
+import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.BarColourState
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.CustomColourSource
@@ -17,7 +17,7 @@ import LocalNowPlayingExpansion
 @Composable
 internal fun UpdateBarColours(page_height: Dp) {
     val player: PlayerState = LocalPlayerState.current
-    val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
+    val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
     val background_colour: Color = player.getNPBackground()
     val status_bar_height: Dp = WindowInsets.statusBars.getTop()
 

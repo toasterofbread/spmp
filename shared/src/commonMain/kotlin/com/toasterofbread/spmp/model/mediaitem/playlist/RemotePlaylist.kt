@@ -35,7 +35,7 @@ sealed interface RemotePlaylist: Playlist {
     override fun getType(): MediaItemType = MediaItemType.PLAYLIST_REM
 
     override fun getHolder(): PlaylistHolder = PlaylistHolder(this)
-    override fun getURL(context: AppContext): String = "https://music.youtube.com/playlist?list=$id"
+    override fun getURL(context: AppContext): String = "https://music.youtube.com/playlist?list=${id.removePrefix("VL")}"
     override fun getEmptyData(): RemotePlaylistData
 
     override fun populateData(data: MediaItemData, db: Database) {
@@ -72,7 +72,7 @@ suspend fun Playlist.uploadAsAccountPlaylist(
         Description.get(db).orEmpty()
     ).getOrThrow()
 
-    val created_playlist_id: String = 
+    val created_playlist_id: String =
         if (!create_result.startsWith("VL")) "VL$create_result"
         else create_result
 

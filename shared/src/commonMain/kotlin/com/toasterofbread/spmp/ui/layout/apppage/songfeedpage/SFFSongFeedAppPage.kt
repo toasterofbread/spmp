@@ -32,7 +32,6 @@ import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.MediaItemLayoutParams
 import com.toasterofbread.spmp.model.MediaItemGridParams
 import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.PinnedItemsRow
@@ -61,6 +60,8 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
     }
 
     val player: PlayerState = LocalPlayerState.current
+    val form_factor: FormFactor by FormFactor.observe()
+
     val artists_layout: AppMediaItemLayout = remember {
         AppMediaItemLayout(
             mutableStateListOf(),
@@ -81,12 +82,12 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
     val show_download_indicators: Boolean by player.settings.feed.SHOW_SONG_DOWNLOAD_INDICATORS.observe()
 
     val grid_rows: Int by
-        when (player.form_factor) {
+        when (form_factor) {
             FormFactor.PORTRAIT -> player.settings.feed.GRID_ROW_COUNT
             FormFactor.LANDSCAPE -> player.settings.feed.LANDSCAPE_GRID_ROW_COUNT
         }.observe()
     val grid_rows_expanded: Int by
-        when (player.form_factor) {
+        when (form_factor) {
             FormFactor.PORTRAIT -> player.settings.feed.GRID_ROW_COUNT_EXPANDED
             FormFactor.LANDSCAPE -> player.settings.feed.LANDSCAPE_GRID_ROW_COUNT_EXPANDED
         }.observe()

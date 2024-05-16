@@ -17,12 +17,11 @@ import androidx.compose.ui.unit.*
 import dev.toastbits.composekit.utils.common.getContrasted
 import dev.toastbits.composekit.utils.composable.*
 import dev.toastbits.composekit.utils.modifier.bounceOnClick
-import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
-import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
+import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.theme.appHover
 import dev.toastbits.ytmkt.endpoint.SearchSuggestion
 

@@ -18,16 +18,16 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.DpSize
 import dev.toastbits.composekit.utils.common.addUnique
 import dev.toastbits.composekit.utils.common.thenIf
-import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.getMinimisedPlayerHeight
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.getMinimisedPlayerVPadding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlaying
+import com.toasterofbread.spmp.platform.FormFactor
 
 val MINIMISED_NOW_PLAYING_HEIGHT_DP: Float
-    @Composable get() = LocalPlayerState.current.form_factor.getMinimisedPlayerHeight().value
+    @Composable get() = FormFactor.observe().value.getMinimisedPlayerHeight().value
 val MINIMISED_NOW_PLAYING_V_PADDING_DP: Float
-    @Composable get() = LocalPlayerState.current.form_factor.getMinimisedPlayerVPadding().value
+    @Composable get() = FormFactor.observe().value.getMinimisedPlayerVPadding().value
 
 private val LocalFocusedTextFieldOwners: ProvidableCompositionLocal<MutableList<Any>> = staticCompositionLocalOf { mutableStateListOf() }
 

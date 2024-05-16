@@ -44,7 +44,6 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.download.DownloadMethodSelectionDialog
 import com.toasterofbread.spmp.platform.download.DownloadStatus
-import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.platform.playerservice.PlayerService
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
 import com.toasterofbread.spmp.platform.playerservice.PlayerServiceLoadState
@@ -64,7 +63,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.SongAppPage
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MainPageDisplay
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
-import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
+import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
@@ -98,6 +97,7 @@ typealias DownloadRequestCallback = (DownloadStatus?) -> Unit
 
 enum class FeedLoadState { PREINIT, NONE, LOADING, CONTINUING }
 
+// This is an atrocity
 class PlayerState(
     val context: AppContext,
     val launch_arguments: ProgramArguments,
@@ -152,6 +152,8 @@ class PlayerState(
             else _np_bottom_bar_height
         set(value) { _np_bottom_bar_height = value }
 
+    val form_factor: FormFactor by derivedStateOf { FormFactor.getCurrent(this) }
+
     private var download_request_songs: List<Song>? by mutableStateOf(null)
     private var download_request_always_show_options: Boolean by mutableStateOf(false)
     private var download_request_callback: DownloadRequestCallback? by mutableStateOf(null)
@@ -169,8 +171,8 @@ class PlayerState(
             }
         }
 
-    val expansion: NowPlayingExpansionState =
-        object : NowPlayingExpansionState(this, coroutine_scope) {
+    val expansion: PlayerExpansionState =
+        object : PlayerExpansionState(this, coroutine_scope) {
             override val swipe_state: AnchoredDraggableState<Int>
                 get() = np_swipe_state
         }
@@ -558,6 +560,8 @@ class PlayerState(
 
     @Composable
     fun PersistentContent() {
+        val form_factor: FormFactor by FormFactor.observe()
+
         bar_colour_state.Update()
 
         long_press_menu_data?.also { data ->
@@ -619,6 +623,8 @@ class PlayerState(
         BackHandler(app_page_undo_stack.isNotEmpty()) {
             navigateBack()
         }
+
+        val form_factor: FormFactor by FormFactor.observe()
 
         CompositionLocalProvider(LocalContentColor provides context.theme.on_background) {
             val bottom_padding: Dp by animateDpAsState(

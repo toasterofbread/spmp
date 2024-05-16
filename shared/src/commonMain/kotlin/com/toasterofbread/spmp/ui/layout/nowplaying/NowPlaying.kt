@@ -18,12 +18,13 @@ import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.utils.common.*
 import dev.toastbits.composekit.utils.composable.getBottom
 import com.toasterofbread.spmp.platform.*
+import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.BarColourState
 import com.toasterofbread.spmp.ui.layout.contentbar.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.*
 import com.toasterofbread.spmp.ui.layout.nowplaying.container.NowPlayingContainer
-import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
+import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NowPlayingMainTabPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.NowPlayingQueuePage
 import kotlin.math.*
@@ -35,10 +36,10 @@ const val POSITION_UPDATE_INTERVAL_MS: Long = 100
 @Composable
 fun NowPlaying(modifier: Modifier = Modifier) {
     val player: PlayerState = LocalPlayerState.current
-    val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
+    val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
     val density: Density = LocalDensity.current
-    val form_factor: FormFactor = NowPlayingPage.getFormFactor(player)
-    val pages: List<NowPlayingPage> = NowPlayingPage.ALL.filter { it.shouldShow(player) }
+    val form_factor: FormFactor by NowPlayingPage.observeFormFactor()
+    val pages: List<NowPlayingPage> = remember(form_factor) { NowPlayingPage.ALL.filter { it.shouldShow(player, form_factor) } }
 
     val bottom_layout_slot: LayoutSlot =
         when (form_factor) {
@@ -155,7 +156,8 @@ enum class ThemeMode {
 }
 
 private fun PlayerState.getBackgroundColourOverride(): Color {
-    val pages: List<NowPlayingPage> = NowPlayingPage.ALL.filter { it.shouldShow(this) }
+    val form_factor: FormFactor = FormFactor.getCurrent(this)
+    val pages: List<NowPlayingPage> = NowPlayingPage.ALL.filter { it.shouldShow(this, form_factor) }
 
     var current: Color? = pages.getOrNull(expansion.swipe_state.currentValue - 1)?.getPlayerBackgroundColourOverride(this)
     var target: Color? = pages.getOrNull(expansion.swipe_state.targetValue - 1)?.getPlayerBackgroundColourOverride(this)

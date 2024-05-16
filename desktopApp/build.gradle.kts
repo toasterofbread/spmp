@@ -160,7 +160,7 @@ abstract class PackageTask: DefaultTask() {
 
     fun configure(package_server: Boolean, spms_os: OS, spms_arch: String, is_release: Boolean) {
         val server_project = project.rootProject.project("spmp-server")
-        server_project.ext.set("linkStatic", 1)
+        server_project.ext.set("LINK_STATIC", 1)
 
         val target_name: String =
             spms_os.name.lowercase() + '-' + spms_arch

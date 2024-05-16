@@ -56,7 +56,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.rememberDownloadStatus
-import com.toasterofbread.spmp.platform.form_factor
+import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
@@ -65,9 +65,9 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
 val MEDIA_ITEM_PREVIEW_SQUARE_FONT_SIZE_SP: Float
-    @Composable get() = if (LocalPlayerState.current.form_factor.is_large) 15f else 12f
+    @Composable get() = if (FormFactor.observe().value.is_large) 15f else 12f
 val MEDIA_ITEM_PREVIEW_SQUARE_DEFAULT_MAX_LINES: Int
-    @Composable get() = if (LocalPlayerState.current.form_factor.is_large) 2 else 1
+    @Composable get() = if (FormFactor.observe().value.is_large) 2 else 1
 
 const val MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP: Float = 20f
 private const val INFO_SPLITTER: String = "\u2022"
@@ -200,7 +200,7 @@ fun MediaItemPreviewSquare(
                 maxLines = max_lines,
                 softWrap = max_lines > 1,
                 overflow = TextOverflow.Clip,
-                textAlign = if (player.form_factor.is_large && item !is Artist) TextAlign.Start else TextAlign.Center
+                textAlign = if (FormFactor.observe().value.is_large && item !is Artist) TextAlign.Start else TextAlign.Center
             )
 
             val download_status: DownloadStatus? by (loaded_item as? Song)?.rememberDownloadStatus()
@@ -229,7 +229,7 @@ fun MediaItemPreviewLong(
     show_artist: Boolean = true,
     show_download_indicator: Boolean = true,
     title_lines: Int = 1,
-    font_size: TextUnit = if (LocalPlayerState.current.form_factor.is_large) 20.sp else 15.sp,
+    font_size: TextUnit = if (FormFactor.observe().value.is_large) 20.sp else 15.sp,
     getExtraInfo: (@Composable () -> List<String>)? = null,
     multiselect_context: MediaItemMultiSelectContext? = null,
     multiselect_key: Int? = null,

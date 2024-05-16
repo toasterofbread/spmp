@@ -22,7 +22,7 @@ import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import dev.toastbits.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
-import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
+import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.theme.appHover
 
 internal val SEARCH_BAR_SHAPE: Shape = RoundedCornerShape(20.dp)
@@ -36,7 +36,7 @@ internal fun SearchAppPage.SearchBar(
     apply_padding: Boolean = true,
     onFocusChanged: (Boolean) -> Unit
 ) {
-    val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
+    val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
     val focus_requester: FocusRequester = remember { FocusRequester() }
     var show_settings: Boolean by remember { mutableStateOf(false) }
 

@@ -20,7 +20,7 @@ internal fun MinimisedProgressBar(
     modifier: Modifier = Modifier
 ) {
     val player: PlayerState = LocalPlayerState.current
-    val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
+    val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
 
     RecomposeOnInterval(POSITION_UPDATE_INTERVAL_MS) { state ->
         state

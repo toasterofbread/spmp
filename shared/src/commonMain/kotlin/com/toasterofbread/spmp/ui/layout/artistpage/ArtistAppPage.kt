@@ -15,11 +15,11 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.loadDataOnChange
-import com.toasterofbread.spmp.platform.getFormFactor
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageWithItem
 import com.toasterofbread.spmp.ui.layout.artistpage.lff.LFFArtistPage
+import com.toasterofbread.spmp.platform.FormFactor
 import dev.toastbits.ytmkt.endpoint.ArtistWithParamsEndpoint
 import dev.toastbits.ytmkt.model.external.YoutubePage
 import kotlinx.coroutines.CoroutineScope
@@ -53,6 +53,7 @@ class ArtistAppPage(
         content_padding: PaddingValues,
         close: () -> Unit
     ) {
+        val form_factor: FormFactor by FormFactor.observe()
         item_load_state = item.loadDataOnChange(state.context)
 
         DisposableEffect(Unit) {
@@ -62,7 +63,7 @@ class ArtistAppPage(
             }
         }
 
-        if (LocalPlayerState.current.getFormFactor(0.75f).is_large) {
+        if (form_factor.is_large) {
             LFFArtistPage(item, modifier, content_padding, multiselect_context)
         }
         else {

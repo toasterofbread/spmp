@@ -4,14 +4,13 @@ import LocalPlayerState
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.utils.composable.getTop
 import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.platform.form_factor
-import com.toasterofbread.spmp.platform.getFormFactor
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NowPlayingMainTabPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.NowPlayingQueuePage
@@ -22,16 +21,17 @@ const val NOW_PLAYING_MAIN_PADDING_LARGE_DP = 30f
 abstract class NowPlayingPage {
     @Composable
     abstract fun Page(page_height: Dp, top_bar: NowPlayingTopBar, content_padding: PaddingValues, swipe_modifier: Modifier, modifier: Modifier)
-    abstract fun shouldShow(player: PlayerState): Boolean
+    open fun shouldShow(player: PlayerState, form_factor: FormFactor): Boolean = true
 
     open fun getPlayerBackgroundColourOverride(player: PlayerState): Color? = null
 
     companion object {
-        internal fun getFormFactor(player: PlayerState): FormFactor = player.getFormFactor(0.75f)
+        @Composable
+        internal fun observeFormFactor(): State<FormFactor> = FormFactor.observe()
 
         @Composable
         private fun getMainPadding(): Dp =
-            if (LocalPlayerState.current.form_factor.is_large) NOW_PLAYING_MAIN_PADDING_LARGE_DP.dp
+            if (observeFormFactor().value.is_large) NOW_PLAYING_MAIN_PADDING_LARGE_DP.dp
             else NOW_PLAYING_MAIN_PADDING_DP.dp
 
         val top_padding: Dp

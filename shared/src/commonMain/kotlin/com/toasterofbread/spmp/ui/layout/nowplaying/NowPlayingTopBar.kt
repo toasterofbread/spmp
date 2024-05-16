@@ -3,7 +3,7 @@ package com.toasterofbread.spmp.ui.layout.nowplaying
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.PortraitLayoutSlot
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.contentbar.DisplayBar
-import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
+import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import androidx.compose.runtime.*
 import androidx.compose.ui.unit.Dp
@@ -40,7 +40,7 @@ class NowPlayingTopBar {
 
     @Composable
     fun DisplayTopBar(
-        expansion: NowPlayingExpansionState,
+        expansion: PlayerExpansionState,
         distance_to_page: Dp,
         modifier: Modifier = Modifier,
         container_modifier: Modifier = Modifier

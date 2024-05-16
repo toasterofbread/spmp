@@ -44,7 +44,7 @@ fun NowPlayingContainer(
     modifier: Modifier = Modifier,
 ) {
     val player: PlayerState = LocalPlayerState.current
-    val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
+    val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     val swipe_state: AnchoredDraggableState<Int> = expansion.swipe_state

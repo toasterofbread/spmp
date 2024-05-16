@@ -87,10 +87,10 @@ internal class ThemeImpl(private val context: AppContext): Theme(getString("them
 
 @Composable
 fun PlayerState.getDefaultHorizontalPadding(): Dp =
-    if (Platform.DESKTOP.isCurrent() && form_factor == FormFactor.LANDSCAPE) 30.dp else 10.dp
+    if (Platform.DESKTOP.isCurrent() && FormFactor.observe().value == FormFactor.LANDSCAPE) 30.dp else 10.dp
 @Composable
 fun PlayerState.getDefaultVerticalPadding(): Dp =
-    if (Platform.DESKTOP.isCurrent() && form_factor == FormFactor.LANDSCAPE) 30.dp else 10.dp
+    if (Platform.DESKTOP.isCurrent() && FormFactor.observe().value == FormFactor.LANDSCAPE) 30.dp else 10.dp
 
 @Composable
 fun PlayerState.getDefaultPaddingValues(): PaddingValues = PaddingValues(horizontal = getDefaultHorizontalPadding(), vertical = getDefaultVerticalPadding())

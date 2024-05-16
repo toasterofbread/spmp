@@ -28,7 +28,6 @@ import dev.toastbits.composekit.utils.composable.*
 import dev.toastbits.composekit.utils.modifier.scrollWithoutClip
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.platform.*
-import com.toasterofbread.spmp.platform.getFormFactor
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
@@ -68,7 +67,7 @@ abstract class LibrarySubPage(val context: AppContext) {
 
     @Composable
     fun LibraryPageTitle(title: String, modifier: Modifier = Modifier) {
-        if (LocalPlayerState.current.form_factor != FormFactor.LANDSCAPE) {
+        if (FormFactor.observe().value != FormFactor.LANDSCAPE) {
             return
         }
 
@@ -169,7 +168,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
         lazy: Boolean,
         modifier: Modifier
     ): Boolean {
-        val form_factor: FormFactor = LocalPlayerState.current.getFormFactor()
+        val form_factor: FormFactor by FormFactor.observe()
         LibraryIconButtonPageSelector(
             slot,
             content_padding,
@@ -184,7 +183,8 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
     }
 
     @Composable
-    override fun shouldShowSecondaryBarContent(): Boolean = LocalPlayerState.current.getFormFactor() != FormFactor.LANDSCAPE
+    override fun shouldShowSecondaryBarContent(): Boolean = 
+        FormFactor.observe().value != FormFactor.LANDSCAPE
 
     @Composable
     override fun SecondaryBarContent(

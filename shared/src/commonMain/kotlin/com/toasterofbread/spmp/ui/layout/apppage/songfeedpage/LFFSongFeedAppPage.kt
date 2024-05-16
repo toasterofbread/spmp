@@ -57,6 +57,8 @@ internal fun SongFeedAppPage.LFFSongFeedAppPage(
     }
 
     val player: PlayerState = LocalPlayerState.current
+    val form_factor: FormFactor by FormFactor.observe()
+
     val hidden_rows: Set<String> by player.settings.feed.HIDDEN_ROWS.observe()
     val hidden_row_titles: List<String> = remember(hidden_rows) {
         hidden_rows.map { row_title ->
@@ -68,12 +70,12 @@ internal fun SongFeedAppPage.LFFSongFeedAppPage(
     val show_download_indicators: Boolean by player.settings.feed.SHOW_SONG_DOWNLOAD_INDICATORS.observe()
 
     val grid_rows: Int by
-        when (player.form_factor) {
+        when (form_factor) {
             FormFactor.PORTRAIT -> player.settings.feed.GRID_ROW_COUNT
             FormFactor.LANDSCAPE -> player.settings.feed.LANDSCAPE_GRID_ROW_COUNT
         }.observe()
     val grid_rows_expanded: Int by
-        when (player.form_factor) {
+        when (form_factor) {
             FormFactor.PORTRAIT -> player.settings.feed.GRID_ROW_COUNT_EXPANDED
             FormFactor.LANDSCAPE -> player.settings.feed.LANDSCAPE_GRID_ROW_COUNT_EXPANDED
         }.observe()

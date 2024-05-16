@@ -30,9 +30,9 @@ internal fun PlayerBackground(
     modifier: Modifier = Modifier
 ) {
     val player: PlayerState = LocalPlayerState.current
-    val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
+    val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
 
-    val form_factor: FormFactor = NowPlayingPage.getFormFactor(player)
+    val form_factor: FormFactor by NowPlayingPage.observeFormFactor()
     val current_song: Song? by player.status.song_state
 
     val wave_layers: List<WaveLayer> = remember {
@@ -75,7 +75,7 @@ internal fun PlayerBackground(
             }
     ) {
         ImageBackground(
-            NowPlayingPage.getFormFactor(player) == FormFactor.LANDSCAPE,
+            form_factor == FormFactor.LANDSCAPE,
             Modifier.requiredSize(player.screen_size.width, page_height - bottom_spacing)
         )
 
@@ -106,7 +106,7 @@ private fun ImageBackground(
     modifier: Modifier = Modifier
 ) {
     val player: PlayerState = LocalPlayerState.current
-    val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
+    val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
 
     val default_background_opacity: Float by player.settings.theme.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.observe()
     val song_background_opacity: Float? by player.status.m_song?.BackgroundImageOpacity?.observe(player.database)
@@ -149,7 +149,7 @@ private fun ImageBackground(
 
 private fun Modifier.playerBackground(getPageHeight: () -> Dp): Modifier = composed {
     val player: PlayerState = LocalPlayerState.current
-    val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
+    val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
     val density: Density = LocalDensity.current
 
     val default_gradient_depth: Float by player.settings.theme.NOWPLAYING_DEFAULT_GRADIENT_DEPTH.observe()

@@ -32,7 +32,6 @@ import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.platform.generatePalette
 import com.toasterofbread.spmp.platform.isVideoPlaybackSupported
 import com.toasterofbread.spmp.resources.getString
@@ -47,7 +46,7 @@ import kotlin.math.roundToInt
 
 val DEFAULT_THUMBNAIL_ROUNDING: Float
     @Composable get() =
-        if (NowPlayingPage.getFormFactor(LocalPlayerState.current).is_large) 0f
+        if (NowPlayingPage.observeFormFactor().value.is_large) 0f
         else 0.05f
 
 class SongThemePlayerOverlayMenu(

@@ -394,7 +394,7 @@ private fun ElementSelector(
     modifier: Modifier = Modifier,
     onSelected: (ContentBarElement.Type) -> Unit
 ) {
-    val show_element_buttons: Boolean = LocalPlayerState.current.form_factor == FormFactor.LANDSCAPE
+    val show_element_buttons: Boolean = FormFactor.observe().value == FormFactor.LANDSCAPE
     var show_element_selector: Boolean by remember(show_element_buttons) { mutableStateOf(false) }
 
     val available_elements: List<ContentBarElement.Type> = ContentBarElement.Type.entries.filter { it.isAvailable() }

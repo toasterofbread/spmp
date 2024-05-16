@@ -12,7 +12,7 @@ import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.Thumbnail
-import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
+import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 
 @Composable
 fun ThumbnailBackground(
@@ -20,7 +20,7 @@ fun ThumbnailBackground(
     getAlpha: () -> Float = { 1f }
 ) {
     val player: PlayerState = LocalPlayerState.current
-    val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
+    val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
 
     val default_background_image_opacity: Float by player.settings.theme.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.observe()
     val current_song: Song? by player.status.song_state

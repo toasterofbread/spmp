@@ -29,7 +29,6 @@ import dev.toastbits.composekit.utils.composable.OnChangedEffect
 import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import dev.toastbits.composekit.utils.composable.crossOut
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
-import com.toasterofbread.spmp.platform.form_factor
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.Thumbnail
@@ -37,6 +36,7 @@ import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getArtistThumbShape
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getLongPressMenuData
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.platform.FormFactor
 import dev.toastbits.ytmkt.endpoint.RadioBuilderArtist
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider as YtmThumbnailProvider
 
@@ -48,6 +48,7 @@ internal fun RadioArtistSelector(
     onFinished: (List<Int>?) -> Unit
 ) {
     val player: PlayerState = LocalPlayerState.current
+    val form_factor: FormFactor by FormFactor.observe()
     val selected_artists: MutableList<Int> = remember { mutableStateListOf() }
 
     DisposableEffect(Unit) {
@@ -90,11 +91,11 @@ internal fun RadioArtistSelector(
             Box(modifier, contentAlignment = Alignment.Center) {
                 SubtleLoadingIndicator(getColour = { player.theme.on_background })
             }
-        } 
+        }
         else {
             val selected_border_size: Dp = 10.dp
-            val thumb_size: Dp = if (player.form_factor.is_large) 120.dp else 80.dp
-            val artist_padding: Dp = if (player.form_factor.is_large) 30.dp else 10.dp
+            val thumb_size: Dp = if (form_factor.is_large) 120.dp else 80.dp
+            val artist_padding: Dp = if (form_factor.is_large) 30.dp else 10.dp
 
             LazyVerticalGrid(
                 with (LocalDensity.current) {

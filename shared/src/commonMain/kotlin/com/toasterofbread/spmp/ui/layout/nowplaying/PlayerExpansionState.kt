@@ -41,14 +41,14 @@ interface ExpansionState {
     }
 }
 
-abstract class NowPlayingExpansionState(
+abstract class PlayerExpansionState(
     val player: PlayerState,
     private val coroutine_scope: CoroutineScope
 ): ExpansionState {
     abstract val swipe_state: AnchoredDraggableState<Int>
 
     override fun getPageRange(): IntRange =
-        0 .. NowPlayingPage.ALL.count { it.shouldShow(player) }
+        0 .. NowPlayingPage.ALL.count { it.shouldShow(player, player.form_factor) }
 
     fun scroll(pages: Int) {
         scrollTo((swipe_state.targetValue + pages).coerceIn(getPageRange()))

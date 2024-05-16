@@ -5,6 +5,7 @@ import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
@@ -19,7 +20,7 @@ import com.toasterofbread.spmp.model.MediaItemLayoutParams
 import com.toasterofbread.spmp.model.MediaItemGridParams
 import com.toasterofbread.spmp.model.MediaItemListParams
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.form_factor
+import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemList
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -53,27 +54,32 @@ data class ContinuableMediaItemLayout(
 }
 
 @Composable
-fun getDefaultMediaItemPreviewSize(long: Boolean): DpSize =
-    when (Platform.current) {
+fun getDefaultMediaItemPreviewSize(long: Boolean): DpSize {
+    val form_factor: FormFactor by FormFactor.observe()
+    return when (Platform.current) {
         Platform.ANDROID -> {
-            if (long) DpSize(
-                if (LocalPlayerState.current.form_factor.is_large) 450.dp
-                else 300.dp,
-                50.dp
-            )
+            if (long)
+                DpSize(
+                    (
+                        if (form_factor.is_large) 450.dp
+                        else 300.dp
+                    ),
+                    50.dp
+                )
             else DpSize(100.dp, 100.dp)
         }
         Platform.DESKTOP -> {
             if (long) {
-                if (LocalPlayerState.current.form_factor.is_large) DpSize(400.dp, 75.dp)
+                if (form_factor.is_large) DpSize(400.dp, 75.dp)
                 else DpSize(200.dp, 50.dp)
             }
             else {
-                if (LocalPlayerState.current.form_factor.is_large) DpSize(150.dp, 150.dp)
+                if (form_factor.is_large) DpSize(150.dp, 150.dp)
                 else DpSize(100.dp, 100.dp)
             }
         }
     }
+}
 
 @Composable
 fun getMediaItemPreviewSquareAdditionalHeight(text_rows: Int?, line_height: TextUnit): Dp =

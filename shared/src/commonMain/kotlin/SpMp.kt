@@ -27,7 +27,7 @@ import com.toasterofbread.spmp.service.playercontroller.openUri
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.LoadingSplashView
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.RootView
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.SplashMode
-import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
+import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.model.appaction.shortcut.LocalShortcutState
 import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
 import com.toasterofbread.spmp.ui.theme.ApplicationTheme
@@ -43,7 +43,7 @@ val LocalPlayerState: ProvidableCompositionLocal<PlayerState> = staticCompositio
 val LocalProgramArguments: ProvidableCompositionLocal<ProgramArguments> = staticCompositionLocalOf { ProgramArguments() }
 
 object LocalNowPlayingExpansion {
-    val current: NowPlayingExpansionState
+    val current: PlayerExpansionState
         @Composable get() = LocalPlayerState.current.expansion
 }
 

@@ -29,6 +29,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
     val player: PlayerState = LocalPlayerState.current
     val density: Density = LocalDensity.current
+    val form_factor: FormFactor by FormFactor.observe()
     val horizontal_padding: Dp by animateDpAsState(player.getDefaultHorizontalPadding())
 
     val side_bar_modifier: Modifier = Modifier.zIndex(1f)
@@ -36,7 +37,7 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
     Row {
         val top_padding: Dp = WindowInsets.getTop()
 
-        if (player.form_factor == FormFactor.LANDSCAPE) {
+        if (form_factor == FormFactor.LANDSCAPE) {
             LandscapeSideBars(true, side_bar_modifier)
         }
 
@@ -44,7 +45,7 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
             Box {
                 val upper_bar_slot: LayoutSlot
                 val lower_bar_slot: LayoutSlot
-                when (player.form_factor) {
+                when (form_factor) {
                     FormFactor.LANDSCAPE -> {
                         upper_bar_slot = LandscapeLayoutSlot.UPPER_TOP_BAR
                         lower_bar_slot = LandscapeLayoutSlot.LOWER_TOP_BAR
@@ -146,7 +147,7 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
                     }
 
                     val above_player_slot: LayoutSlot =
-                        when (player.form_factor) {
+                        when (form_factor) {
                             FormFactor.LANDSCAPE -> LandscapeLayoutSlot.ABOVE_PLAYER
                             FormFactor.PORTRAIT -> PortraitLayoutSlot.ABOVE_PLAYER
                         }
@@ -163,7 +164,7 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
             }
         }
 
-        if (player.form_factor == FormFactor.LANDSCAPE) {
+        if (form_factor == FormFactor.LANDSCAPE) {
             LandscapeSideBars(false, side_bar_modifier)
         }
     }

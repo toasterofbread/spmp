@@ -83,8 +83,6 @@ class NowPlayingMainTabPage: NowPlayingPage() {
         }
     }
 
-    override fun shouldShow(player: PlayerState): Boolean = true
-
     override fun getPlayerBackgroundColourOverride(player: PlayerState): Color? {
 //        if (Platform.DESKTOP.isCurrent()) {
 //            return player.theme.accent.blendWith(player.theme.background, 0.05f)
@@ -127,7 +125,7 @@ class NowPlayingMainTabPage: NowPlayingPage() {
                 NowPlayingMainTabNarrow(page_height, top_bar, content_padding, false)
             }
             else {
-                when (getFormFactor(player)) {
+                when (player.form_factor) {
                     FormFactor.PORTRAIT -> NowPlayingMainTabPortrait(page_height, top_bar, content_padding, Modifier.fillMaxWidth())
                     FormFactor.LANDSCAPE -> NowPlayingMainTabLarge(page_height, top_bar, content_padding, Modifier.fillMaxWidth())
                 }

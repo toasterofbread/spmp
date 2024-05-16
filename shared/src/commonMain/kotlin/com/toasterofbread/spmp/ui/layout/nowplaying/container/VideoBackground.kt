@@ -5,7 +5,7 @@ import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.platform.isVideoPlaybackSupported
 import com.toasterofbread.spmp.platform.SongVideoPlayback
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
+import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import LocalPlayerState
 import LocalNowPlayingExpansion
@@ -20,7 +20,7 @@ internal fun VideoBackground(
     }
 
     val player: PlayerState = LocalPlayerState.current
-    val expansion: NowPlayingExpansionState = LocalNowPlayingExpansion.current
+    val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
     val current_song: Song? by player.status.song_state
 
     current_song?.id?.also { song_id ->

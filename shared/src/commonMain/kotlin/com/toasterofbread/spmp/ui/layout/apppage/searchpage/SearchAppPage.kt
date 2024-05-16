@@ -41,7 +41,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.contentbar.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
-import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
+import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.theme.appHover
 import com.toasterofbread.spmp.ui.component.NotImplementedMessage
 import dev.toastbits.ytmkt.endpoint.*

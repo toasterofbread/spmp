@@ -92,6 +92,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
         close: () -> Unit
     ) {
         val player: PlayerState = LocalPlayerState.current
+        val form_factor: FormFactor by FormFactor.observe()
 
         LaunchedEffect(Unit) {
             if (layouts.isNullOrEmpty()) {
@@ -112,7 +113,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
             )
         }
 
-        when (player.form_factor) {
+        when (form_factor) {
             FormFactor.PORTRAIT -> SFFSongFeedAppPage(multiselect_context, modifier, content_padding, close)
             FormFactor.LANDSCAPE -> LFFSongFeedAppPage(multiselect_context, modifier, content_padding, close)
         }
@@ -129,8 +130,8 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
         lazy: Boolean,
         modifier: Modifier
     ): Boolean {
-        val player: PlayerState = LocalPlayerState.current
-        return when (player.form_factor) {
+        val form_factor: FormFactor by FormFactor.observe()
+        return when (form_factor) {
             FormFactor.PORTRAIT -> SFFSongFeedPagePrimaryBar(slot, modifier, content_padding, lazy)
             FormFactor.LANDSCAPE -> LFFSongFeedPagePrimaryBar(slot, modifier, content_padding, lazy)
         }

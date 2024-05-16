@@ -58,18 +58,19 @@ fun LayoutSlotEditor(
     onClose: () -> Unit
 ) {
     val player: PlayerState = LocalPlayerState.current
+    val form_factor: FormFactor by FormFactor.observe()
 
     var custom_bars: List<CustomContentBar> by player.settings.layout.CUSTOM_BARS.observe()
     var slot_colours: Map<String, ColourSource> by player.settings.layout.SLOT_COLOURS.observe()
     var slot_config: Map<String, JsonElement> by player.settings.layout.SLOT_CONFIGS.observe()
 
     val slots_property: PreferencesProperty<Map<String, ContentBarReference?>> =
-        when (player.form_factor) {
+        when (form_factor) {
             FormFactor.PORTRAIT -> player.settings.layout.PORTRAIT_SLOTS
             FormFactor.LANDSCAPE -> player.settings.layout.LANDSCAPE_SLOTS
         }
     val available_slots: List<LayoutSlot> =
-        when (player.form_factor) {
+        when (form_factor) {
             FormFactor.PORTRAIT -> PortraitLayoutSlot.entries
             FormFactor.LANDSCAPE -> LandscapeLayoutSlot.entries
         }

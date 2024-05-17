@@ -38,7 +38,7 @@ import dev.toastbits.ytmkt.formats.VideoFormatsEndpoint
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.Executors
 
-internal fun ForegroundPlayerService.initialiseSessionAndPlayer(play_when_ready: Boolean) {
+internal fun ForegroundPlayerService.initialiseSessionAndPlayer(play_when_ready: Boolean, playlist_auto_progress: Boolean) {
     audio_sink = DefaultAudioSink.Builder(context.ctx)
         .setAudioProcessorChain(
             DefaultAudioProcessorChain(
@@ -109,6 +109,7 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(play_when_ready:
     player.addListener(player_listener)
 
     player.playWhenReady = play_when_ready
+    player.pauseAtEndOfMediaItems = playlist_auto_progress
     player.prepare()
 
     val controller_future: ListenableFuture<MediaController> =

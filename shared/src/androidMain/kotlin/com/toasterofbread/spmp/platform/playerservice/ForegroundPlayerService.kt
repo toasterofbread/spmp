@@ -37,7 +37,10 @@ import spms.socketapi.shared.SpMsPlayerRepeatMode
 import spms.socketapi.shared.SpMsPlayerState
 
 @androidx.annotation.OptIn(UnstableApi::class)
-open class ForegroundPlayerService(private val play_when_ready: Boolean): MediaSessionService(), PlayerService {
+open class ForegroundPlayerService(
+    private val play_when_ready: Boolean,
+    private val playlist_auto_progress: Boolean = true
+): MediaSessionService(), PlayerService {
     override val load_state: PlayerServiceLoadState = PlayerServiceLoadState(false)
     override val connection_error: Throwable? = null
     override val context: AppContext get() = _context
@@ -113,7 +116,7 @@ open class ForegroundPlayerService(private val play_when_ready: Boolean): MediaS
         _context = AppContext(this, coroutine_scope)
         _context.getPrefs().addListener(prefs_listener)
 
-        initialiseSessionAndPlayer(play_when_ready)
+        initialiseSessionAndPlayer(play_when_ready, playlist_auto_progress)
 
         _service_player = object : PlayerServicePlayer(this) {
             override fun onUndoStateChanged() {

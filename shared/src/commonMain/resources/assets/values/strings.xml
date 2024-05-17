@@ -10,10 +10,10 @@
     <string name="project_license" translatable="false">GPL-3.0</string>
     <string name="project_author" translatable="false">toasterofbread</string>
     <string name="report_issue_url" translatable="false">https://github.com/toasterofbread/spmp/issues/new?labels=Bug&amp;template=bug_report.md&amp;title=%5BBug%5D+</string>
-    <string name="server_info_url" translatable="false">https://spmp.toastbits.dev/docs/server/about/</string>
-    <string name="documentation_url" translatable="false">https://spmp.toastbits.dev/docs/about</string>
-    <string name="server_documentation_url" translatable="false">https://spmp.toastbits.dev/docs/server/about</string>
-    <string name="flatpak_documentation_url" translatable="false">https://spmp.toastbits.dev/docs/client/installation-flatpak</string>
+    <string name="server_info_url" translatable="false">https://spmp.toastbits.dev/docs/latest/server/about/</string>
+    <string name="documentation_url" translatable="false">https://spmp.toastbits.dev/docs/latest/about</string>
+    <string name="server_documentation_url" translatable="false">https://spmp.toastbits.dev/docs/latest/server/about</string>
+    <string name="flatpak_documentation_url" translatable="false">https://spmp.toastbits.dev/docs/latest/client/installation-flatpak</string>
     <string name="donation_url" translatable="false">https://liberapay.com/toasterofbread/</string>
 
     <string name="project_url_name">project URL</string>
@@ -36,11 +36,11 @@
     <string name="spms_client_type_server">Server</string>
     <string name="spms_client_type_info_server">The server that this client is connected to</string>
 
-    <string name="spms_client_type_info_url_spmp_player">https://spmp.toastbits.dev/docs/client/about</string>
-    <string name="spms_client_type_info_url_spmp_standalone">https://spmp.toastbits.dev/docs/client/about</string>
-    <string name="spms_client_type_info_url_player">https://spmp.toastbits.dev/docs/player/about</string>
-    <string name="spms_client_type_info_url_command_line">https://spmp.toastbits.dev/docs/server/cli</string>
-    <string name="spms_client_type_info_url_server">https://spmp.toastbits.dev/docs/server/about/</string>
+    <string name="spms_client_type_info_url_spmp_player">https://spmp.toastbits.dev/docs/latest/client/about</string>
+    <string name="spms_client_type_info_url_spmp_standalone">https://spmp.toastbits.dev/docs/latest/client/about</string>
+    <string name="spms_client_type_info_url_player">https://spmp.toastbits.dev/docs/latest/player/about</string>
+    <string name="spms_client_type_info_url_command_line">https://spmp.toastbits.dev/docs/latest/server/cli</string>
+    <string name="spms_client_type_info_url_server">https://spmp.toastbits.dev/docs/latest/server/about/</string>
 
     <string name="font_option_default_$x">Default ($x)</string>
     <string name="font_option_system">System font</string>

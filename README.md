@@ -69,7 +69,7 @@ Downloads for all platforms can be found on the repository's [releases page](htt
 #### Additional requirements on desktop
 
 - Java must be installed for all desktop platforms
-- [Several system packages](https://spmp.toastbits.dev/docs/client/installation/#dependencies) are required to use the Linux version
+- [Several system packages](https://spmp.toastbits.dev/docs/latest/client/installation/#dependencies) are required to use the Linux version
 
 The Android version is also available on F-Droid. There is no difference between APKs available on GitHub and those on F-Droid.
 

@@ -68,7 +68,7 @@ UIの色と曲のメタデータのカスタマイズに特化した YouTube Mus
 #### デスクトップ版の追加要件
 
 - Java をインストールする（すべてのプラットフォーム）
-- Linux バージョンには[いくつかのシステム パッケージ](https://spmp.toastbits.dev/docs/client/installation/#dependency)が必要です
+- Linux バージョンには[いくつかのシステム パッケージ](https://spmp.toastbits.dev/docs/latest/client/installation/#dependency)が必要です
 
 Android版は F-Droid からもダウンロードできます。GitHubで入手可能の APK と F-Droid で入手可能の APK に違いはありません。
 
@@ -76,7 +76,7 @@ Android版は F-Droid からもダウンロードできます。GitHubで入手�
 
 ## ドキュメンテーション（現在英語のみ）
 
-SpMp の高度な使用法（コンパイル手順など）に関するドキュメンテーションは、https://spmp.toastbits.dev/docs/ にあります。
+SpMp の高度な使用法（コンパイル手順など）に関するドキュメンテーションは、https://spmp.toastbits.dev/docs/latest/ にあります。
 
 ## このプロジェクトについて
 YouTube公式のミュージックアプリをしばらく使っていましたが、言語やメタデータの設定機能の無さを感じて別のアプリをいくつか使ってみました。ましな物はあったけど、どれにも重大な問題を一つは感じました。

@@ -156,16 +156,13 @@ fun NowPlayingContainer(
                                             else 0
                                         )
                                     }
-                                    else {
-                                        var offset: Dp = 0.dp//bottom_inset
-                                        if (shouldShowBottomBarInPage(pages.first())) {
-                                            offset += getBottomBarHeight()
-                                        }
+                                    else if (shouldShowBottomBarInPage(pages.first())) {
                                         IntOffset(
                                             0,
-                                            offset.roundToPx()
+                                            getBottomBarHeight().roundToPx()
                                         )
                                     }
+                                    else IntOffset.Zero
                                 }
                         )
                     }

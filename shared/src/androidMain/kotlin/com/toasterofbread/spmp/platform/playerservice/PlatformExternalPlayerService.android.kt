@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import ProgramArguments
 import LocalProgramArguments
 
-actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_ready = true), PlayerService {
+actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_ready = false), PlayerService {
     @Composable
     override fun LoadScreenExtraContent(modifier: Modifier, requestServiceChange: (PlayerServiceCompanion) -> Unit) {
         val launch_arguments: ProgramArguments = LocalProgramArguments.current
@@ -88,14 +88,14 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
                     server.seekTo(newPosition.positionMs)
 
                     if (player.playbackState == Player.STATE_READY) {
-                        server.notifyReadyToPlay()
+                        onPlaybackReady()
                     }
                 }
             }
 
             override fun onPlaybackStateChanged(playbackState: Int) {
                 if (playbackState == Player.STATE_READY) {
-                    server.notifyReadyToPlay()
+                    onPlaybackReady()
                 }
             }
         }
@@ -114,6 +114,7 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
     }
 
     override fun onDestroy() {
+        duration_wait_coroutine_scope.cancel()
         super.onDestroy()
         server.onDestroy()
     }
@@ -147,6 +148,10 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
             throw RuntimeException("seekToSong($index) failed", e)
         }
     }}
+
+    private fun onPlaybackReady() {
+        server.notifyReadyToPlay(super.duration_ms)
+    }
 
     override val load_state: PlayerServiceLoadState get() = server.load_state
     override val state: SpMsPlayerState get() = server.state

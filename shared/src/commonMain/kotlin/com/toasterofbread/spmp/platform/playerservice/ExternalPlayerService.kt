@@ -30,9 +30,11 @@ open class ExternalPlayerService(plays_audio: Boolean, private val create_player
         _context = context
     }
 
-    internal fun notifyReadyToPlay() {
+    internal fun notifyReadyToPlay(song_duration_ms: Long) {
+        require(song_duration_ms > 0) { song_duration_ms }
+
         val song: Song = getSong() ?: return
-        sendRequest("readyToPlay", JsonPrimitive(current_song_index), JsonPrimitive(song.id), JsonPrimitive(duration_ms))
+        sendRequest("readyToPlay", JsonPrimitive(current_song_index), JsonPrimitive(song.id), JsonPrimitive(song_duration_ms))
     }
 
     private var cancelling_radio: Boolean = false

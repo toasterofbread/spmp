@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -283,7 +284,7 @@ internal fun QueueTab(
                                 top = top_padding,
                                 bottom = content_padding.calculateBottomPadding(),
                                 start = side_padding + content_padding.calculateStartPadding(LocalLayoutDirection.current),
-                                end = side_padding + content_padding.calculateStartPadding(LocalLayoutDirection.current)
+                                end = side_padding + content_padding.calculateEndPadding(LocalLayoutDirection.current)
                             ),
                             modifier = Modifier.reorderable(queue_list_state),
                             horizontalAlignment = Alignment.CenterHorizontally

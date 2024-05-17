@@ -8,10 +8,10 @@
     <string name="app_name_debug" translatable="false">SpMp (debug)</string>
     <string name="project_url" translatable="false">https://github.com/toasterofbread/spmp</string>
     <string name="report_issue_url" translatable="false">https://github.com/toasterofbread/spmp/issues/new?labels=Bug&amp;template=bug_report.md&amp;title=%5BBug%5D+</string>
-    <string name="server_info_url" translatable="false">https://spmp.toastbits.dev/docs/server/about/</string>
-    <string name="documentation_url" translatable="false">https://spmp.toastbits.dev/docs/about</string>
-    <string name="server_documentation_url" translatable="false">https://spmp.toastbits.dev/docs/server/about</string>
-    <string name="flatpak_documentation_url" translatable="false">https://spmp.toastbits.dev/docs/client/installation-flatpak</string>	
+    <string name="server_info_url" translatable="false">https://spmp.toastbits.dev/docs/latest/server/about/</string>
+    <string name="documentation_url" translatable="false">https://spmp.toastbits.dev/docs/latest/about</string>
+    <string name="server_documentation_url" translatable="false">https://spmp.toastbits.dev/docs/latest/server/about</string>
+    <string name="flatpak_documentation_url" translatable="false">https://spmp.toastbits.dev/docs/latest/client/installation-flatpak</string>	
 	-->
     <string name="project_url_name">專案 URL</string>
 	
@@ -33,11 +33,11 @@
     <string name="spms_client_type_server">伺服器</string>
     <string name="spms_client_type_info_server">該客戶端連接到的伺服器器</string>
 
-    <string name="spms_client_type_info_url_spmp_player">https://spmp.toastbits.dev/docs/client/about</string>
-    <string name="spms_client_type_info_url_spmp_standalone">https://spmp.toastbits.dev/docs/client/about</string>
-    <string name="spms_client_type_info_url_player">https://spmp.toastbits.dev/docs/player/about</string>
-    <string name="spms_client_type_info_url_command_line">https://spmp.toastbits.dev/docs/server/cli</string>
-    <string name="spms_client_type_info_url_server">https://spmp.toastbits.dev/docs/server/about/</string>
+    <string name="spms_client_type_info_url_spmp_player">https://spmp.toastbits.dev/docs/latest/client/about</string>
+    <string name="spms_client_type_info_url_spmp_standalone">https://spmp.toastbits.dev/docs/latest/client/about</string>
+    <string name="spms_client_type_info_url_player">https://spmp.toastbits.dev/docs/latest/player/about</string>
+    <string name="spms_client_type_info_url_command_line">https://spmp.toastbits.dev/docs/latest/server/cli</string>
+    <string name="spms_client_type_info_url_server">https://spmp.toastbits.dev/docs/latest/server/about/</string>
 	
     <string name="font_option_default_$x">預設 （$x）</string>
     <string name="font_option_system">系統字體</string>

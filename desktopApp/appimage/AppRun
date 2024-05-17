@@ -2,7 +2,7 @@
 
 # Check if Java is installed
 if ! command -v java > /dev/null; then
-    echo "Java does not appear to be installed on this system. See https://spmp.toastbits.dev/docs/client/installation/ for more information."
+    echo "Java does not appear to be installed on this system. See https://spmp.toastbits.dev/docs/latest/client/installation/ for more information."
     exit 1
 fi
 

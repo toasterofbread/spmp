@@ -16,11 +16,11 @@
     <string name="spms_client_type_info_command_line">Sunucu ile iletişim kuran bir araç veya komut dosyası</string>
     <string name="spms_client_type_server">Sunucu</string>
     <string name="spms_client_type_info_server">Bu istemcinin bağlı olduğu sunucu</string>
-    <string name="spms_client_type_info_url_spmp_player">https://spmp.toastbits.dev/docs/client/about</string>
-    <string name="spms_client_type_info_url_spmp_standalone">https://spmp.toastbits.dev/docs/client/about</string>
-    <string name="spms_client_type_info_url_player">https://spmp.toastbits.dev/docs/player/about</string>
-    <string name="spms_client_type_info_url_command_line">https://spmp.toastbits.dev/docs/server/cli</string>
-    <string name="spms_client_type_info_url_server">https://spmp.toastbits.dev/docs/server/about/</string>
+    <string name="spms_client_type_info_url_spmp_player">https://spmp.toastbits.dev/docs/latest/client/about</string>
+    <string name="spms_client_type_info_url_spmp_standalone">https://spmp.toastbits.dev/docs/latest/client/about</string>
+    <string name="spms_client_type_info_url_player">https://spmp.toastbits.dev/docs/latest/player/about</string>
+    <string name="spms_client_type_info_url_command_line">https://spmp.toastbits.dev/docs/latest/server/cli</string>
+    <string name="spms_client_type_info_url_server">https://spmp.toastbits.dev/docs/latest/server/about/</string>
     <string name="font_option_default_$x">Varsayılan ($x)</string>
     <string name="font_option_system">Sistem yazı tipi</string>
     <string name="font_option_hc_maru_gothic">HC Maru Gothic</string>

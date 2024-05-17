@@ -114,7 +114,6 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
     }
 
     override fun onDestroy() {
-        duration_wait_coroutine_scope.cancel()
         super.onDestroy()
         server.onDestroy()
     }

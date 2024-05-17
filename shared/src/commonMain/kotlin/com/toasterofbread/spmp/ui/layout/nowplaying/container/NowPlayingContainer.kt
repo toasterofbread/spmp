@@ -119,7 +119,7 @@ fun NowPlayingContainer(
                         (
                             if (shouldShowBottomBarInPage(page)) page_height - getBottomBarHeight()
                             else page_height
-                        ) - bottom_inset
+                        )// - bottom_inset
                     }
 
                 PlayerBackground(
@@ -141,7 +141,7 @@ fun NowPlayingContainer(
                             top_bar,
                             PaddingValues(
                                 top = WindowInsets.getTop(),
-                                // bottom = bottom_inset
+                                bottom = bottom_inset
                             ),
                             swipe_modifier,
                             Modifier
@@ -152,12 +152,12 @@ fun NowPlayingContainer(
                                         val bounded: Float = expansion.getBounded()
                                         IntOffset(
                                             0,
-                                            if (bounded > 1f) (-(page_height) * ((pages.size / 2f) - bounded)).roundToPx()
+                                            if (bounded > 1f) (-page_height * ((pages.size / 2f) - bounded)).roundToPx()
                                             else 0
                                         )
                                     }
                                     else {
-                                        var offset: Dp = bottom_inset
+                                        var offset: Dp = 0.dp//bottom_inset
                                         if (shouldShowBottomBarInPage(pages.first())) {
                                             offset += getBottomBarHeight()
                                         }

@@ -38,7 +38,6 @@
     <string name="spms_client_type_info_url_player">https://spmp.toastbits.dev/docs/latest/player/about</string>
     <string name="spms_client_type_info_url_command_line">https://spmp.toastbits.dev/docs/latest/server/cli</string>
     <string name="spms_client_type_info_url_server">https://spmp.toastbits.dev/docs/latest/server/about/</string>
-
     <string name="font_option_default_$x">預設 （$x）</string>
     <string name="font_option_system">系統字體</string>
     <string name="font_option_hc_maru_gothic">HC Maru Gothic</string>

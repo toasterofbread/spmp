@@ -163,7 +163,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/TeamNewPipe/NewPipeExtractor/blob/ec3e8378c627c682964f104fc2fb06ea5513b6b7/LICENSE"
             ),
             "org.zeromq:jeromq" to DependencyInfo(
-                version = "0.5.3",
+                version = "0.6.0",
                 name = "JeroMQ",
                 author = "zeromq",
                 url = "https://github.com/zeromq/jeromq",

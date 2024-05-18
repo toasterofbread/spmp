@@ -42,7 +42,6 @@ open class ForegroundPlayerService(
     private val playlist_auto_progress: Boolean = true
 ): MediaSessionService(), PlayerService {
     override val load_state: PlayerServiceLoadState = PlayerServiceLoadState(false)
-    override val connection_error: Throwable? = null
     override val context: AppContext get() = _context
     private lateinit var _context: AppContext
 

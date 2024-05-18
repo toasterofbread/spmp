@@ -364,7 +364,7 @@
     <string name="settings_value_out_of_$range">Out of range ($range)</string>
     <string name="settings_value_not_int">Not an integer</string>
     <string name="settings_value_not_float">Not a float</string>
-    <string name="settings_value_not_ipv4">Not a valid IPv4 address</string>
+    <string name="settings_value_not_ipv4_or_domain">Not a valid IPv4 address or domain</string>
     <string name="settings_value_not_port">Not a valid port</string>
 
     <string name="s_page_preferences">Settings</string>

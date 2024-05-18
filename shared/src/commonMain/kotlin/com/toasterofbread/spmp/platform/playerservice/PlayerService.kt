@@ -25,7 +25,6 @@ interface PlayerService {
     fun onDestroy()
 
     val load_state: PlayerServiceLoadState
-    val connection_error: Throwable?
     val state: SpMsPlayerState
     val is_playing: Boolean
     val song_count: Int
@@ -65,7 +64,7 @@ interface PlayerService {
     fun Visualiser(colour: Color, modifier: Modifier, opacity: Float)
 
     @Composable
-    fun LoadScreenExtraContent(modifier: Modifier, requestServiceChange: (PlayerServiceCompanion) -> Unit) {}
+    fun LoadScreenExtraContent(item_modifier: Modifier, requestServiceChange: (PlayerServiceCompanion) -> Unit) {}
 }
 
 interface PlayerServiceCompanion {

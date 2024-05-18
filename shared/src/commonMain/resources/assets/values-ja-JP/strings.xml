@@ -338,7 +338,7 @@
     <string name="settings_value_out_of_$range">範囲外です （$range）</string>
     <string name="settings_value_not_int">整数ではありません</string>
     <string name="settings_value_not_float">数ではありません</string>
-    <string name="settings_value_not_ipv4">正確なIPv4アドレスではありません</string>
+    <string name="settings_value_not_ipv4_or_domain">正確なIPv4アドレスまたはドメイン名ではありません</string>
     <string name="settings_value_not_port">正確なポートではありません</string>
 
     <string name="s_page_preferences">設定</string>

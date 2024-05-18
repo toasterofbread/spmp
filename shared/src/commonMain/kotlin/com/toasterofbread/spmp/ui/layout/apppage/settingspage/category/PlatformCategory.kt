@@ -53,11 +53,22 @@ fun getServerGroupItems(context: AppContext): List<SettingsItem> {
     // (I will never learn regex)
     // https://stackoverflow.com/a/36760050
     val ip_regex: Regex = "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}\$".toRegex()
+    // https://regexr.com/3au3g
+    val domain_regex: Regex = "(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]".toRegex()
     // https://stackoverflow.com/a/12968117
     val port_regex: Regex = "^([1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])\$".toRegex()
 
     check(ip_regex.matches("127.0.0.1"))
+    check(!ip_regex.matches("0.0"))
+    check(!ip_regex.matches("a.b.c.d"))
+
+    check(domain_regex.matches("domain.name"))
+    check(!domain_regex.matches("http://domain.name"))
+    check(!domain_regex.matches("domain.name:port"))
+    check(!domain_regex.matches("domain.name/path"))
+
     check(port_regex.matches("1111"))
+    check(!port_regex.matches("a"))
 
     return listOfNotNull(
         InfoTextSettingsItem(
@@ -90,8 +101,8 @@ fun getServerGroupItems(context: AppContext): List<SettingsItem> {
         TextFieldSettingsItem(
             context.settings.platform.SERVER_IP_ADDRESS,
             getStringError = { input ->
-                if (!ip_regex.matches(input)) {
-                    return@TextFieldSettingsItem getString("settings_value_not_ipv4")
+                if (!ip_regex.matches(input) && !domain_regex.matches(input)) {
+                    return@TextFieldSettingsItem getString("settings_value_not_ipv4_or_domain")
                 }
                 return@TextFieldSettingsItem null
             },

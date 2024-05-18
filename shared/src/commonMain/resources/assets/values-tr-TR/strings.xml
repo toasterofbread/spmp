@@ -278,7 +278,6 @@
     <string name="settings_value_out_of_$range">Aralık dışı ($range)</string>
     <string name="settings_value_not_int">Tam sayı değil</string>
     <string name="settings_value_not_float">Şamandıra değil</string>
-    <string name="settings_value_not_ipv4">Geçerli bir IPv4 addrefss değil</string>
     <string name="settings_value_not_port">Geçerli bir bağlantı noktası değil</string>
     <string name="s_page_preferences">Ayarlar</string>
     <string name="s_key_interface_lang">Arayüz dili</string>

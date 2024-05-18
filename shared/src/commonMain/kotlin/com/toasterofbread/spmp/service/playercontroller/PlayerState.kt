@@ -659,9 +659,8 @@ class PlayerState(
         }
     }
 
-    val service_connected: Boolean get() = _player?.load_state?.loading == false
+    val service_connected: Boolean get() = _player?.load_state?.let { !it.loading && it.error == null } ?: false
     val service_load_state: PlayerServiceLoadState? get() = _player?.load_state
-    val service_connection_error: Throwable? get() = _player?.connection_error
 
     private var service_connecting: Boolean = false
     private var service_connected_listeners: MutableList<(PlayerService) -> Unit> = mutableListOf()

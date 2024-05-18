@@ -20,11 +20,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -52,6 +54,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import dev.toastbits.composekit.utils.composable.WidthShrinkText
@@ -103,15 +109,21 @@ fun ErrorInfoDisplay(
     }
 
     val player: PlayerState = LocalPlayerState.current
+    val density: Density = LocalDensity.current
     var expanded: Boolean by remember { mutableStateOf(start_expanded) }
     val shape: Shape = RoundedCornerShape(20.dp)
 
     CompositionLocalProvider(LocalContentColor provides player.theme.background) {
+        var width: Dp by remember { mutableStateOf(0.dp) }
+
         Column(
             modifier
                 .animateContentSize()
                 .background(getAccentColour(player), shape)
-                .padding(horizontal = 10.dp),
+                .padding(horizontal = 10.dp)
+                .onSizeChanged {
+                    width = with (density) { it.width.toDp() }
+                },
             verticalArrangement = Arrangement.Center
         ) {
             Row(
@@ -183,6 +195,7 @@ fun ErrorInfoDisplay(
 
             AnimatedVisibility(
                 expanded,
+                Modifier.requiredWidth(width),
                 enter = expandVertically(),
                 exit = shrinkVertically()
             ) {
@@ -194,36 +207,18 @@ fun ErrorInfoDisplay(
 
 @Composable
 private fun LongTextDisplay(text: String, wrap_text: Boolean, modifier: Modifier = Modifier) {
-    val player = LocalPlayerState.current
-    val split_text = remember(text) {
-        text.chunked(10000)
-    }
+    val player: PlayerState = LocalPlayerState.current
+    val limited_text: String = remember(text) { text.take(10000) }
 
-    LazyColumn(modifier) {
-        items(split_text) { segment ->
-            SelectionContainer {
-                Text(
-                    segment,
-                    color = player.theme.on_background,
-                    softWrap = wrap_text
-                )
-            }
-        }
-
-
-        if (text.none { it == '\n' }) {
-            item {
-                Row {
-                    player.context.CopyShareButtons() {
-                        text
-                    }
-                }
-            }
-        }
-
-        item {
-            Spacer(Modifier.height(50.dp))
-        }
+    SelectionContainer {
+        Text(
+            limited_text,
+            modifier
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 50.dp),
+            color = player.theme.on_background,
+            softWrap = wrap_text
+        )
     }
 }
 
@@ -287,7 +282,7 @@ private fun ExpandedContent(
                         colors = button_colours,
                         contentPadding = PaddingValues(0.dp),
                     ) {
-                        WidthShrinkText(getString("upload_to_paste_dot_ee"), alignment = TextAlign.Center, style = LocalTextStyle.current.copy(color = player.theme.on_accent))
+                        Text(getString("upload_to_paste_dot_ee"), textAlign = TextAlign.Center, style = LocalTextStyle.current.copy(color = player.theme.on_accent), softWrap = false)
                     }
                 }
 

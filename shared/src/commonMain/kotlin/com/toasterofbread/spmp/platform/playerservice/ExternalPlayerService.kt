@@ -1,27 +1,56 @@
 package com.toasterofbread.spmp.platform.playerservice
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.Alignment
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonColors
+import androidx.compose.animation.Crossfade
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.radio.RadioInstance
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.JsonPrimitive
 import spms.socketapi.shared.SpMsPlayerRepeatMode
 import spms.socketapi.shared.SpMsPlayerState
 import dev.toastbits.composekit.platform.PlatformPreferencesListener
 import dev.toastbits.composekit.platform.PlatformPreferences
 import io.ktor.client.request.get
+import LocalPlayerState
+import LocalProgramArguments
 
 open class ExternalPlayerService(plays_audio: Boolean, private val create_player: Boolean = true): SpMsPlayerService(plays_audio = plays_audio), PlayerService {
-    override val load_state: PlayerServiceLoadState get() = socket_load_state
-    override val connection_error: Throwable? get() = socket_connection_error
-    private val coroutine_scope: CoroutineScope = CoroutineScope(Job())
+    override val load_state: PlayerServiceLoadState get() =
+        (local_server_error ?: connect_error)?.let {
+            socket_load_state.copy(error = it)
+        } ?: socket_load_state
+
+    private var connect_error: Throwable? by mutableStateOf(null)
+    private var local_server_error: Throwable? by mutableStateOf(null)
+    private var local_server_process: LocalServerProcess? by mutableStateOf(null)
+
+    override fun getIpAddress(): String =
+        if (local_server_process != null) "127.0.0.1" else context.settings.platform.SERVER_IP_ADDRESS.get()
+    override fun getPort(): Int =
+        context.settings.platform.SERVER_PORT.get()
 
     internal lateinit var _context: AppContext
     override val context: AppContext get() = _context
@@ -187,36 +216,101 @@ open class ExternalPlayerService(plays_audio: Boolean, private val create_player
     }
 
     override fun onCreate() {
-        super.onCreate()
-
         _service_player = createServicePlayer()
-
-        coroutine_scope.launch {
-            val prefs_listener: PlatformPreferencesListener =
-                PlatformPreferencesListener { _, key ->
-                    if (key != context.settings.platform.SERVER_IP_ADDRESS.key && key != context.settings.platform.SERVER_PORT.key) {
-                        return@PlatformPreferencesListener
-                    }
-
-                    cancel_connection = true
-                    restart_connection = true
-                }
-            context.getPrefs().addListener(prefs_listener)
-
-            try {
-                connectToServer(
-                    getIp = { context.settings.platform.SERVER_IP_ADDRESS.get() },
-                    getPort = { context.settings.platform.SERVER_PORT.get() }
-                )
-            }
-            finally {
-                context.getPrefs().removeListener(prefs_listener)
-            }
-        }
+        super.onCreate()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        coroutine_scope.cancel()
+    @Composable
+    override fun LoadScreenExtraContent(item_modifier: Modifier, requestServiceChange: (PlayerServiceCompanion) -> Unit) {
+        val player: PlayerState = LocalPlayerState.current
+        val launch_arguments: ProgramArguments = LocalProgramArguments.current
+
+        LaunchedEffect(Unit) {
+            local_server_error = null
+            local_server_process = null
+        }
+
+        val external_server_mode: Boolean by player.settings.platform.ENABLE_EXTERNAL_SERVER_MODE.observe()
+
+        val button_colours: ButtonColors =
+            ButtonDefaults.buttonColors(
+                containerColor = player.theme.accent,
+                contentColor = player.theme.on_accent
+            )
+
+        fun startServer(stop_if_running: Boolean, automatic: Boolean) {
+            if (automatic && launch_arguments.no_auto_server) {
+                return
+            }
+
+            local_server_process?.also { process ->
+                if (stop_if_running) {
+                    local_server_process = null
+                    process.process.destroy()
+                }
+                return
+            }
+
+            try {
+                local_server_process =
+                    LocalServer.startLocalServer(
+                        player.context,
+                        launch_arguments,
+                        player.settings.platform.SERVER_PORT.get()
+                    ) { result, output ->
+                        if (local_server_process != null) {
+                            local_server_process = null
+                            local_server_error = RuntimeException("Local server failed ($result)\n$output")
+                        }
+                    }
+
+                if (!automatic && local_server_process == null) {
+                    local_server_error = RuntimeException(getString("loading_splash_local_server_command_not_set"))
+                }
+            }
+            catch (e: Throwable) {
+                local_server_process = null
+                local_server_error = e
+            }
+        }
+
+        if (local_server_process != null || LocalServer.canStartLocalServer()) {
+            Button(
+                { startServer(stop_if_running = true, automatic = false) },
+                colors = button_colours,
+                modifier = item_modifier
+            ) {
+                Crossfade(local_server_process) { process ->
+                    if (process == null) {
+                        Text(getString("loading_splash_button_start_server"))
+                    }
+                    else {
+                        Text(getString("loading_splash_button_stop_process"))
+                    }
+                }
+            }
+        }
+
+        // Crossfade(local_server_error ?: local_server_process as Any?) { state ->
+        //     if (state != null) {
+        //         Column(
+        //             Modifier.padding(top = 20.dp),
+        //             horizontalAlignment = Alignment.CenterHorizontally,
+        //             verticalArrangement = Arrangement.spacedBy(10.dp)
+        //         ) {
+        //             if (state is Throwable) {
+        //                 Text(getString("error_on_server_command_execution"))
+        //                 ErrorInfoDisplay(
+        //                     state,
+        //                     show_throw_button = true,
+        //                     onDismiss = { local_server_error = null }
+        //                 )
+        //             }
+        //             else if (state is LocalServerProcess) {
+        //                 Text(getString("loading_splash_process_running_with_command_\$x").replace("\$x", state.launch_command))
+        //             }
+        //         }
+        //     }
+        // }
     }
 }

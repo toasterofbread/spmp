@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.background
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
@@ -48,10 +50,10 @@ import spmp.shared.generated.resources.*
 import dev.toastbits.composekit.utils.common.toFloat
 import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.composekit.utils.common.blockGestures
-import dev.toastbits.composekit.utils.composable.NullableValueAnimatedVisibility
 import dev.toastbits.composekit.utils.composable.wave.OverlappingWaves
 import dev.toastbits.composekit.utils.composable.wave.getDefaultOverlappingWavesLayers
 import dev.toastbits.composekit.utils.composable.wave.WaveLayer
+import dev.toastbits.composekit.utils.composable.NullableValueAnimatedVisibility
 
 private const val MESSAGE_DISPLAY_DELAY: Long = 1000L
 enum class SplashMode {
@@ -100,7 +102,9 @@ fun LoadingSplash(
                     val image: ImageBitmap = imageResource(Res.drawable.ic_splash)
 
                     FlowRow(
-                        Modifier.fillMaxSize(),
+                        Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState()),
                         horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally),
                         verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically)
                     ) {
@@ -148,36 +152,23 @@ fun LoadingSplash(
                                 verticalArrangement = Arrangement.spacedBy(20.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Column(
-                                    Modifier.animateContentSize(),
-                                    verticalArrangement = Arrangement.spacedBy(20.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    if (load_state?.error != null) {
-                                        ErrorInfoDisplay(
-                                            load_state.error,
-                                            isDebugBuild(),
-                                            onDismiss = null,
-                                            expanded_content_modifier = Modifier.height(300.dp)
-                                        )
-                                    }
-                                    else {
-                                        if (load_state?.loading_message != null) {
-                                            Text(
-                                                load_state.loading_message,
-                                                color = player.theme.on_background,
-                                                modifier = Modifier.wrapContentWidth()
-                                            )
-                                        }
-
-                                        LinearProgressIndicator(
-                                            Modifier.fillMaxWidth().height(2.dp),
-                                            color = player.theme.accent
+                                NullableValueAnimatedVisibility(load_state?.loading_message) { message ->
+                                    if (message != null) {
+                                        Text(
+                                            message,
+                                            color = player.theme.on_background,
+                                            modifier = Modifier.wrapContentWidth()
                                         )
                                     }
                                 }
 
-                                val extra_content_alpha: Float by animateFloatAsState(show_message.toFloat())
+                                AnimatedVisibility(load_state?.loading == true) {
+                                    LinearProgressIndicator(
+                                        Modifier.fillMaxWidth().height(2.dp),
+                                        color = player.theme.accent
+                                    )
+                                }
+
                                 FlowRow(
                                     horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally)
                                 ) {
@@ -186,18 +177,17 @@ fun LoadingSplash(
                                         requestServiceChange = requestServiceChange
                                     )
 
-                                    SplashExtraLoadingContent(
-                                        Modifier
-                                            .align(Alignment.CenterVertically)
-                                            .thenIf(!show_message) {
-                                                blockGestures()
-                                            }
-                                            .graphicsLayer { alpha = extra_content_alpha }
-                                    )
+                                    SplashExtraLoadingContent(Modifier.align(Alignment.CenterVertically))
                                 }
 
                                 NullableValueAnimatedVisibility(load_state?.error) { error ->
-                                    ErrorInfoDisplay(error, isDebugBuild(), onDismiss = null)
+                                    ErrorInfoDisplay(
+                                        error,
+                                        isDebugBuild(),
+                                        Modifier.fillMaxWidth(),
+                                        onDismiss = null,
+                                        expanded_content_modifier = Modifier.height(300.dp).fillMaxWidth()
+                                    )
                                 }
                             }
                         }

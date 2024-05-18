@@ -21,14 +21,17 @@ import LocalProgramArguments
 
 actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_ready = false), PlayerService {
     @Composable
-    override fun LoadScreenExtraContent(modifier: Modifier, requestServiceChange: (PlayerServiceCompanion) -> Unit) {
+    override fun LoadScreenExtraContent(item_modifier: Modifier, requestServiceChange: (PlayerServiceCompanion) -> Unit) {
         val launch_arguments: ProgramArguments = LocalProgramArguments.current
         val internal_service_available: Boolean = remember(launch_arguments) { PlatformInternalPlayerService.Companion.isAvailable(context, launch_arguments) }
 
         if (internal_service_available) {
-            Button({
-                requestServiceChange(PlatformInternalPlayerService.Companion)
-            }) {
+            Button(
+                {
+                    requestServiceChange(PlatformInternalPlayerService.Companion)
+                },
+                item_modifier
+            ) {
                 Text(getString("loading_splash_button_launch_without_server"))
             }
         }

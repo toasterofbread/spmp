@@ -14,6 +14,7 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.playerservice.PlatformInternalPlayerService
+import com.toasterofbread.spmp.platform.playerservice.PlatformExternalPlayerService
 import LocalProgramArguments
 
 internal fun getPlatformCategoryItems(context: AppContext): List<SettingsItem> {
@@ -97,6 +98,8 @@ fun getServerGroupItems(context: AppContext): List<SettingsItem> {
                 }
             }
         ),
+
+        ToggleSettingsItem(context.settings.platform.EXTERNAL_SERVER_MODE_UI_ONLY).takeIf { PlatformExternalPlayerService.playsAudio() },
 
         TextFieldSettingsItem(
             context.settings.platform.SERVER_IP_ADDRESS,

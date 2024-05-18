@@ -8,6 +8,8 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -77,23 +79,31 @@ fun LoadingSplash(
         show_message = true
     }
 
+    player.controller?.PersistentContent(requestServiceChange = requestServiceChange)
+
     BoxWithConstraints(modifier.background(player.theme.background)) {
         val wave_layers: List<WaveLayer> = remember {
             getDefaultOverlappingWavesLayers(7, 0.35f)
         }
         val waves_height: Dp = (maxHeight * 0.3f).coerceAtLeast(100.dp)
 
-        OverlappingWaves(
-            { player.theme.accent.copy(alpha = 0.2f) },
-            BlendMode.Screen,
-            modifier
-                .fillMaxWidth(1f)
-                .requiredHeight(waves_height)
-                .offset(y = (maxHeight - waves_height) / 2)
-                .align(Alignment.BottomCenter),
-            layers = wave_layers,
-            speed = 0.3f
-        )
+        AnimatedVisibility(
+            show_message || splash_mode != SplashMode.SPLASH,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            OverlappingWaves(
+                { player.theme.accent.copy(alpha = 0.2f) },
+                BlendMode.Screen,
+                modifier
+                    .fillMaxWidth(1f)
+                    .requiredHeight(waves_height)
+                    .offset(y = (maxHeight - waves_height) / 2)
+                    .align(Alignment.BottomCenter),
+                layers = wave_layers,
+                speed = 0.3f
+            )
+        }
 
         Crossfade(splash_mode, Modifier.padding(content_padding)) { mode ->
             when (mode) {

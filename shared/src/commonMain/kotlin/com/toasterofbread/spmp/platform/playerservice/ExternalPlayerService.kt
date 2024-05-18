@@ -37,7 +37,7 @@ import io.ktor.client.request.get
 import LocalPlayerState
 import LocalProgramArguments
 
-open class ExternalPlayerService(plays_audio: Boolean, private val create_player: Boolean = true): SpMsPlayerService(plays_audio = plays_audio), PlayerService {
+open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_audio = plays_audio), PlayerService {
     override val load_state: PlayerServiceLoadState get() =
         (local_server_error ?: connect_error)?.let {
             socket_load_state.copy(error = it)

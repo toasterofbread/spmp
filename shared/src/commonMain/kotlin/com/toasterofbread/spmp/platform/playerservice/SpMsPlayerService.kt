@@ -33,10 +33,11 @@ import kotlinx.serialization.json.encodeToJsonElement
 import org.zeromq.*
 import java.net.InetAddress
 import spms.socketapi.shared.*
-import kotlin.time.Duration
+import kotlin.time.*
 
 private val POLL_STATE_INTERVAL: Duration = with (Duration) { 100.milliseconds }
 private val POLL_TIMEOUT: Duration = with (Duration) { 3.seconds }
+private val POLL_ATTEMPTS: Int = 5
 
 abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(), ClientServerPlayerService {
     abstract fun getIpAddress(): String
@@ -66,8 +67,8 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
             }
         }
 
-    private val zmq: ZContext = ZContext()
-    private lateinit var socket: ZMQ.Socket
+    private val zmq: ZContext = ZContext().apply { setLinger(0) }
+    private var socket: ZMQ.Socket? = null
     private val json: Json = Json { ignoreUnknownKeys = true }
     private val queued_messages: MutableList<Pair<String, List<JsonElement?>>> = mutableListOf()
 
@@ -89,6 +90,8 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
     internal var current_song_time: Long = -1
 
     protected fun sendRequest(action: String, vararg params: JsonElement?) {
+        println("sendRequest $action ${params.toList()} ${connected_server == null}")
+
         if (connected_server == null) {
             return
         }
@@ -120,18 +123,18 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
 
     override fun onCreate() {
         context.getPrefs().addListener(prefs_listener)
-        socket = zmq.createSocket(SocketType.DEALER)
         connectToServer()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         disconnectFromServer()
+        socket?.close()
         context.getPrefs().removeListener(prefs_listener)
     }
 
-    private fun onSocketConnectionLost(expired_timeout: Duration) {
-        println("Connection to server timed out after $expired_timeout, reconnecting...")
+    private fun onSocketConnectionLost(attempts: Int, expired_timeout: Duration) {
+        println("Connection to server timed out after $attempts poll attempts, reconnecting...")
 
         connected_server?.run {
             connected_server = null
@@ -143,12 +146,15 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
         check(connected_server == null)
         connect_coroutine_scope.launchSingle {
             while (true) {
+                val socket: ZMQ.Socket = zmq.createSocket(SocketType.DEALER)
+                this@SpMsPlayerService.socket = socket
+
                 try {
-                    withTimeout(1000) {
-                        socket.connectSocketToServer()
-                    }
+                    socket.connectSocketToServer(with (Duration) { 5.seconds })
                 }
-                catch (_: Throwable) {
+                catch (e: Throwable) {
+                    e.printStackTrace()
+                    socket.close()
                     continue
                 }
 
@@ -164,7 +170,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
         connected_server = null
     }
 
-    private suspend fun ZMQ.Socket.connectSocketToServer() = withContext(Dispatchers.Default) {
+    private suspend fun ZMQ.Socket.connectSocketToServer(timeout: Duration) = withContext(Dispatchers.Default) {
         connected_server = null
 
         val ip: String = getIpAddress()
@@ -181,12 +187,14 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
             )
 
         val server_handshake: SpMsServerHandshake =
-            tryConnectToServer(
-                server_url = server_url,
-                handshake = handshake,
-                json = json,
-                setLoadState = { socket_load_state = it }
-            )
+            withTimeout(timeout) {
+                tryConnectToServer(
+                    server_url = server_url,
+                    handshake = handshake,
+                    json = json,
+                    setLoadState = { socket_load_state = it }
+                )
+            }
 
         connected_server =
             ClientServerPlayerService.ServerInfo(
@@ -204,7 +212,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
         poll_coroutine_scope.launchSingle {
             val context: ZMQ.Context = ZMQ.context(1)
             val poller: ZMQ.Poller = context.poller()
-            poller.register(socket, ZMQ.Poller.POLLIN)
+            poller.register(this@connectSocketToServer, ZMQ.Poller.POLLIN)
 
             var queued_events: MutableList<SpMsPlayerEvent>? = mutableListOf()
 
@@ -214,18 +222,27 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
                     queued_events = null
                 }
 
-                val poll_successful: Boolean =
-                    pollServerState(poller, POLL_TIMEOUT) { events ->
-                        queued_events?.also {
-                            it.addAll(events)
-                            return@also
-                        }
+                var attempts: Int = POLL_ATTEMPTS
+                var poll_successful: Boolean = false
 
-                        applyPlayerEvents(events)
+                while (attempts-- > 0) {
+                    if (
+                        pollServerState(poller, POLL_TIMEOUT) { events ->
+                            queued_events?.also {
+                                it.addAll(events)
+                                return@also
+                            }
+
+                            applyPlayerEvents(events)
+                        }
+                    ) {
+                        poll_successful = true
+                        break
                     }
+                }
 
                 if (!poll_successful) {
-                    onSocketConnectionLost(POLL_TIMEOUT)
+                    onSocketConnectionLost(POLL_ATTEMPTS, POLL_TIMEOUT)
                     break
                 }
 
@@ -255,13 +272,22 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
         timeout: Duration? = null,
         onEvents: suspend (List<SpMsPlayerEvent>) -> Unit
     ): Boolean = withContext(Dispatchers.IO) {
-        val timeout_ms: Long = timeout?.inWholeMilliseconds ?: -1
-
-        val events: ZMsg
-        if (poller.poll(timeout_ms) > 0) {
-            events = ZMsg.recvMsg(this@pollServerState)
+        var events: ZMsg? = null
+        try {
+            val wait_start: TimeMark = TimeSource.Monotonic.markNow()
+            while (timeout == null || wait_start.elapsedNow() < timeout) {
+                if (poller.poll(timeout?.let { (it - wait_start.elapsedNow()).inWholeMilliseconds } ?: -1) > 0) {
+                    events = ZMsg.recvMsg(this@pollServerState)
+                    break
+                }
+            }
         }
-        else {
+        catch (_: Throwable) {
+            println("Polling server failed prematurely")
+            return@withContext false
+        }
+
+        if (events == null) {
             println("Polling server timed out after $timeout")
             return@withContext false
         }
@@ -301,11 +327,17 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
                 return@withContext reply_result
             }
 
-            val results: ZMsg
-            if (poller.poll(timeout_ms) > 0) {
-                results = ZMsg.recvMsg(this@pollServerState)
+            var results: ZMsg? = null
+            val wait_start: TimeMark = TimeSource.Monotonic.markNow()
+
+            while (timeout == null || wait_start.elapsedNow() < timeout) {
+                if (poller.poll(timeout?.let { (it - wait_start.elapsedNow()).inWholeMilliseconds } ?: -1) > 0) {
+                    results = ZMsg.recvMsg(this@pollServerState)
+                    break
+                }
             }
-            else {
+
+            if (results == null) {
                 println("Getting results timed out after $timeout")
                 return@withContext false
             }

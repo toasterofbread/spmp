@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.platform.playerservice
 
-import ProgramArguments
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -64,20 +63,7 @@ interface PlayerService {
     fun Visualiser(colour: Color, modifier: Modifier, opacity: Float)
 
     @Composable
+    fun PersistentContent(requestServiceChange: (PlayerServiceCompanion) -> Unit) {}
+    @Composable
     fun LoadScreenExtraContent(item_modifier: Modifier, requestServiceChange: (PlayerServiceCompanion) -> Unit) {}
-}
-
-interface PlayerServiceCompanion {
-    fun isAvailable(context: AppContext, launch_arguments: ProgramArguments): Boolean = true
-    fun isServiceRunning(context: AppContext): Boolean
-
-    fun connect(
-        context: AppContext,
-        launch_arguments: ProgramArguments,
-        instance: PlayerService? = null,
-        onConnected: (PlayerService) -> Unit,
-        onDisconnected: () -> Unit
-    ): Any
-
-    fun disconnect(context: AppContext, connection: Any)
 }

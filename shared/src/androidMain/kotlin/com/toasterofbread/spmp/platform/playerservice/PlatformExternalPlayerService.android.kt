@@ -5,6 +5,7 @@ import com.toasterofbread.spmp.model.radio.RadioInstance
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import spms.socketapi.shared.SpMsPlayerRepeatMode
@@ -15,11 +16,29 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import ProgramArguments
 import LocalProgramArguments
+import LocalPlayerState
 
 actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_ready = false), PlayerService {
+    private var target_playing: Boolean = false
+    private var target_seek: Long? = null
+
+    @Composable
+    override fun PersistentContent(requestServiceChange: (PlayerServiceCompanion) -> Unit) {
+        val player: PlayerState = LocalPlayerState.current
+        val launch_arguments: ProgramArguments = LocalProgramArguments.current
+        val ui_only: Boolean by player.settings.platform.EXTERNAL_SERVER_MODE_UI_ONLY.observe()
+        LaunchedEffect(ui_only) {
+            if (ui_only && PlatformExternalPlayerService.isAvailable(player.context, launch_arguments)) {
+                requestServiceChange(PlatformExternalPlayerService.Companion)
+            }
+        }
+    }
+
     @Composable
     override fun LoadScreenExtraContent(item_modifier: Modifier, requestServiceChange: (PlayerServiceCompanion) -> Unit) {
         val launch_arguments: ProgramArguments = LocalProgramArguments.current
@@ -103,9 +122,6 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
             }
         }
 
-    private var target_playing: Boolean = false
-    private var target_seek: Long? = null
-
     override fun onCreate() {
         super.onCreate()
 
@@ -188,5 +204,38 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
 
     actual companion object: InternalPlayerServiceCompanion(PlatformExternalPlayerService::class), PlayerServiceCompanion {
         override fun isServiceRunning(context: AppContext): Boolean = true
+        override fun playsAudio(): Boolean = true
+
+        override fun connect(
+            context: AppContext,
+            launch_arguments: ProgramArguments,
+            instance: PlayerService?,
+            onConnected: (PlayerService) -> Unit,
+            onDisconnected: () -> Unit
+        ): Any {
+            if (context.settings.platform.EXTERNAL_SERVER_MODE_UI_ONLY.get()) {
+                require(instance is ExternalPlayerService?)
+                val service: ExternalPlayerService =
+                    if (instance != null) instance.also { it.setContext(context) }
+                    else HeadlessExternalPlayerService().also {
+                        it.setContext(context)
+                        it.onCreate()
+                    }
+                onConnected(service)
+                return service
+            }
+            else {
+                return super.connect(context, launch_arguments, instance, onConnected, onDisconnected)
+            }
+        }
+
+        override fun disconnect(context: AppContext, connection: Any) {
+            if (connection is ExternalPlayerService) {
+                connection.onDestroy()
+            }
+            else {
+                super.disconnect(context, connection)
+            }
+        }
     }
 }

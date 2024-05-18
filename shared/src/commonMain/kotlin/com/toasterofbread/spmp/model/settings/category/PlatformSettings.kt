@@ -52,6 +52,11 @@ class PlatformSettings(val context: AppContext): SettingsGroup("DESKTOP", contex
         getDescription = { getString("s_sub_enable_external_server_mode") },
         getDefaultValue = { false }
     )
+    val EXTERNAL_SERVER_MODE_UI_ONLY: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_external_server_mode_ui_only") },
+        getDescription = { getString("s_sub_external_server_mode_ui_only") },
+        getDefaultValue = { false }
+    )
 
     override val page: CategoryPage? =
         SimplePage(

@@ -57,7 +57,7 @@ internal suspend fun Socket.tryConnectToServer(
     val joined_reply: List<String> = SpMsSocketApi.decode(reply.map { it.data.decodeToString() })
     val server_handshake_data: String = joined_reply.first()
 
-    log("Received reply handshake from server with the following content:\n$server_handshake_data")
+    log("Received reply handshake from server with the following content:\n$joined_reply")
 
     val server_handshake: SpMsServerHandshake
     try {

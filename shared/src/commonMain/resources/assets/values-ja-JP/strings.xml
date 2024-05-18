@@ -603,6 +603,9 @@
     <string name="s_key_enable_external_server_mode">外部サーバーモード</string>
     <string name="s_sub_enable_external_server_mode">このアプリ専用のサーバーを内部で実行せず、以下に設定さている外部サーバーに接続する</string>
 
+    <string name="s_key_external_server_mode_ui_only">外部サーバー使用時、UIのみ実行</string>
+    <string name="s_sub_external_server_mode_ui_only">有効の場合、外部サーバーに接続中ならこのアプリはオーディオを出力しません</string>
+
     <string name="s_sub_always_enabled_because_spms_not_packaged">このSpMpビルドはSpMsとパッケージされていないため、このオプションは常にオンになっています</string>
 
     <string name="s_key_server_ip">サーバーのIPアドレス</string>

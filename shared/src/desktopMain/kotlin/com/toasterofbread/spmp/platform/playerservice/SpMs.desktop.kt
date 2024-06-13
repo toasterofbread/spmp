@@ -16,10 +16,3 @@ actual fun getSpMsMachineId(context: AppContext): String {
 
     return getSpMsMachineIdFromFile(id_file)
 }
-
-actual fun getServerExecutableFilename(): String? =
-    when (hostOs) {
-        OS.Linux -> "spms.kexe"
-        OS.Windows -> "spms.exe"
-        else -> null
-    }

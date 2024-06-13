@@ -8,8 +8,8 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import spms.socketapi.shared.SpMsPlayerRepeatMode
-import spms.socketapi.shared.SpMsPlayerState
+import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
+import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
 import androidx.media3.common.Player
 import androidx.media3.common.MediaItem as ExoMediaItem
 import androidx.compose.material3.Text

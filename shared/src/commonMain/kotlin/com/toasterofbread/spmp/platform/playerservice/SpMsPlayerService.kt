@@ -32,7 +32,7 @@ import kotlinx.serialization.json.put
 import kotlinx.serialization.json.encodeToJsonElement
 import org.zeromq.*
 import java.net.InetAddress
-import spms.socketapi.shared.*
+import dev.toastbits.spms.socketapi.shared.*
 import kotlin.time.*
 
 private val POLL_STATE_INTERVAL: Duration = with (Duration) { 100.milliseconds }
@@ -379,11 +379,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
             throw RuntimeException(result.error, result.error_cause?.let { RuntimeException(it) })
         }
 
-        if (result.result == null) {
-            throw NullPointerException("Result is null")
-        }
-
-        return Json.decodeFromJsonElement(result.result)
+        return Json.decodeFromJsonElement(result.result ?: throw NullPointerException("Result is null"))
     }
 
     override fun onSongFilesAdded(songs: List<DownloadStatus>) {

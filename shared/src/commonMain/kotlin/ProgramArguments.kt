@@ -1,13 +1,11 @@
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.platform.playerservice.getServerExecutableFilename
-import spms.socketapi.shared.SPMS_API_VERSION
+import dev.toastbits.spms.socketapi.shared.SPMS_API_VERSION
 import dev.toastbits.composekit.platform.PlatformContext
 import dev.toastbits.composekit.platform.PlatformFile
 import java.io.File
 
 data class ProgramArguments(
-    val bin_dir: String? = null,
     val no_auto_server: Boolean = false,
     val is_flatpak: Boolean = false
 ) {
@@ -33,12 +31,6 @@ data class ProgramArguments(
                     "--version", "-v" -> {
                         println(getVersionMessage())
                         return null
-                    }
-                    "--bin-dir" -> {
-                        if (value == null && !iterator.hasNext()) {
-                            onIllegalArgument("No value passed for argument '$name'.")
-                        }
-                        arguments = arguments.copy(bin_dir = value ?: iterator.next())
                     }
                     "--disable-auto-server", "-ds" -> {
                         arguments = arguments.copy(no_auto_server = true)

@@ -42,11 +42,6 @@ class PlatformSettings(val context: AppContext): SettingsGroup("DESKTOP", contex
         getDescription = { getString("s_sub_server_local_start_automatically") },
         getDefaultValue = { true }
     )
-    val SERVER_KILL_CHILD_ON_EXIT: PreferencesProperty<Boolean> by property(
-        getName = { getString("s_key_server_kill_child_on_exit") },
-        getDescription = { null },
-        getDefaultValue = { true }
-    )
     val ENABLE_EXTERNAL_SERVER_MODE: PreferencesProperty<Boolean> by property(
         getName = { getString("s_key_enable_external_server_mode") },
         getDescription = { getString("s_sub_enable_external_server_mode") },

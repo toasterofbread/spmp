@@ -21,7 +21,7 @@ import dev.toastbits.composekit.utils.common.getContrasted
 import dev.toastbits.composekit.utils.common.getInnerSquareSizeOfCircle
 import dev.toastbits.composekit.utils.composable.crossOut
 import dev.toastbits.composekit.utils.modifier.background
-import spms.socketapi.shared.SpMsPlayerRepeatMode
+import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlin.math.roundToInt
 

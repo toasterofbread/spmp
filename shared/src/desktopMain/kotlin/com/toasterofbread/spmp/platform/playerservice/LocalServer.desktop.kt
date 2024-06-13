@@ -1,87 +1,53 @@
 package com.toasterofbread.spmp.platform.playerservice
 
 import com.toasterofbread.spmp.platform.AppContext
-import dev.toastbits.composekit.platform.PlatformFile
-import dev.toastbits.composekit.platform.Platform
-import java.io.BufferedReader
-import java.io.File
+import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
-import org.jetbrains.skiko.OS
-import org.jetbrains.skiko.hostOs
-import ProgramArguments
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import dev.toastbits.spms.server.SpMs
+
+private const val POLL_INTERVAL: Long = 100
+private const val CLIENT_REPLY_ATTEMPTS: Int = 10
 
 actual object LocalServer {
-    actual fun canStartLocalServer(): Boolean =
-        Platform.DESKTOP.isCurrent()
+    private fun createServer(): SpMs = SpMs(headless = false, enable_gui = false)
+
+    actual fun getLocalServerUnavailabilityReason(): String? {
+        val server: SpMs =
+            try {
+                createServer()
+            }
+            catch (e: NoClassDefFoundError) {
+                val split_message: List<String> = e.cause?.message?.split(" ") ?: emptyList()
+                val missing_files: List<String> = split_message.filter { it.endsWith(".so") || it.endsWith(".dll") }
+
+                return getString("warning_server_unavailable") + missing_files.joinToString(getString("server_missing_files_splitter"))
+            }
+
+        server.release()
+        return null
+    }
 
     actual fun startLocalServer(
         context: AppContext,
-        launch_arguments: ProgramArguments?,
-        port: Int,
-        onExit: (Int, String) -> Unit
-    ): LocalServerProcess? {
-        var command: String = context.settings.platform.SERVER_LOCAL_COMMAND.get()
-        if (command.isBlank()) {
-            val executable_path: String = getServerExecutableFile(launch_arguments)?.absolutePath ?: return null
-            command =
-                when (hostOs) {
-                    OS.Windows -> "\"" + executable_path + "\""
-                    else -> executable_path.replace(" ", "\\ ")
-                }
-        }
+        port: Int
+    ): Job {
+        val server: SpMs = SpMs(headless = false, enable_gui = false)
 
-        val args: String = "--port $port --no-media-session"
+        server.bind(port)
 
-        val args_index: Int = command.indexOf("\$@")
-        if (args_index != -1) {
-            command = command.substring(0, args_index) + args + command.substring(args_index + 2)
-        }
-        else {
-            command += ' ' + args
-        }
-
-        val builder: ProcessBuilder = ProcessBuilder(command.split(' '))
-        builder.inheritIO()
-
-        val process: Process = builder.start()
-
-        Runtime.getRuntime().addShutdownHook(Thread {
-            if (context.settings.platform.SERVER_KILL_CHILD_ON_EXIT.get()) {
-                process.destroy()
-            }
-        })
-
-        GlobalScope.launch {
-            withContext(Dispatchers.IO) {
-                val reader: BufferedReader = process.getErrorStream().bufferedReader()
-                val output: StringBuilder = StringBuilder()
-
+        return context.coroutine_scope.launch(Dispatchers.IO) {
+            try {
                 while (true) {
-                    val line: String = reader.readLine() ?: break
-                    output.appendLine(line)
+                    server.poll(CLIENT_REPLY_ATTEMPTS)
+                    delay(POLL_INTERVAL)
                 }
-
-                val result: Int = process.waitFor()
-                onExit(result, output.toString())
+            }
+            finally {
+                server.release()
             }
         }
-
-        return LocalServerProcess(command, process)
-    }
-
-    fun getServerExecutableFile(launch_arguments: ProgramArguments?): File? {
-        val filename: String = getServerExecutableFilename() ?: return null
-
-        for (directory in listOfNotNull(launch_arguments?.bin_dir, System.getProperty("compose.application.resources.dir"))) {
-            val file: File = File(directory).resolve(filename)
-            if (file.isFile) {
-                return file
-            }
-        }
-
-        return null
     }
 }

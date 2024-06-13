@@ -4,7 +4,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import kotlinx.coroutines.*
-import spms.socketapi.shared.SpMsServerState
+import dev.toastbits.spms.socketapi.shared.SpMsServerState
 
 internal suspend fun SpMsPlayerService.applyServerState(
     state: SpMsServerState,

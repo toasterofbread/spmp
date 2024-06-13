@@ -36,7 +36,6 @@ kotlin {
 
         commonMain {
             kotlin {
-                srcDir(rootProject.file("spmp-server/src/commonMain/kotlin/spms/socketapi/shared/"))
                 srcDir(buildConfigDir)
             }
 
@@ -49,8 +48,9 @@ kotlin {
                 implementation(compose.material3)
                 implementation(compose.components.resources)
 
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+                implementation(deps.get("dev.toastbits:spms"))
 
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
                 implementation(deps.get("org.apache.commons:commons-text"))
                 implementation(deps.get("com.atilika.kuromoji:kuromoji-ipadic"))
                 implementation(deps.get("org.jsoup:jsoup"))

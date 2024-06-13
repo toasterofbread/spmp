@@ -9,11 +9,21 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.AlertDialog
 import androidx.compose.animation.Crossfade
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.BorderStroke
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.radio.RadioInstance
 import com.toasterofbread.spmp.platform.AppContext
@@ -28,9 +38,10 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.Job
 import kotlinx.serialization.json.JsonPrimitive
-import spms.socketapi.shared.SpMsPlayerRepeatMode
-import spms.socketapi.shared.SpMsPlayerState
+import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
+import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
 import dev.toastbits.composekit.platform.PlatformPreferencesListener
 import dev.toastbits.composekit.platform.PlatformPreferences
 import io.ktor.client.request.get
@@ -45,7 +56,7 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
 
     private var connect_error: Throwable? by mutableStateOf(null)
     private var local_server_error: Throwable? by mutableStateOf(null)
-    private var local_server_process: LocalServerProcess? by mutableStateOf(null)
+    private var local_server_process: Job? by mutableStateOf(null)
 
     override fun getIpAddress(): String =
         if (local_server_process != null) "127.0.0.1" else context.settings.platform.SERVER_IP_ADDRESS.get()
@@ -232,12 +243,6 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
 
         val external_server_mode: Boolean by player.settings.platform.ENABLE_EXTERNAL_SERVER_MODE.observe()
 
-        val button_colours: ButtonColors =
-            ButtonDefaults.buttonColors(
-                containerColor = player.theme.accent,
-                contentColor = player.theme.on_accent
-            )
-
         fun startServer(stop_if_running: Boolean, automatic: Boolean) {
             if (automatic && launch_arguments.no_auto_server) {
                 return
@@ -246,7 +251,7 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
             local_server_process?.also { process ->
                 if (stop_if_running) {
                     local_server_process = null
-                    process.process.destroy()
+                    process.cancel()
                 }
                 return
             }
@@ -255,14 +260,8 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
                 local_server_process =
                     LocalServer.startLocalServer(
                         player.context,
-                        launch_arguments,
                         player.settings.platform.SERVER_PORT.get()
-                    ) { result, output ->
-                        if (local_server_process != null) {
-                            local_server_process = null
-                            local_server_error = RuntimeException("Local server failed ($result)\n$output")
-                        }
-                    }
+                    )
 
                 if (!automatic && local_server_process == null) {
                     local_server_error = RuntimeException(getString("loading_splash_local_server_command_not_set"))
@@ -274,19 +273,58 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
             }
         }
 
-        if (local_server_process != null || LocalServer.canStartLocalServer()) {
+        val server_unavailability_reason: String? = remember { LocalServer.getLocalServerUnavailabilityReason() }
+        var show_unavailability_dialog: Boolean by remember { mutableStateOf(false) }
+
+        if (show_unavailability_dialog) {
+            AlertDialog(
+                onDismissRequest = { show_unavailability_dialog },
+                confirmButton = {
+                    Button({ show_unavailability_dialog = false }) {
+                        Text(getString("action_close"))
+                    }
+                },
+                title = {
+                    Text(getString("warning_server_unavailable_title"))
+                },
+                text = {
+                    Text(server_unavailability_reason ?: "")
+                }
+            )
+        }
+
+        if (server_unavailability_reason == null || local_server_process != null) {
             Button(
                 { startServer(stop_if_running = true, automatic = false) },
-                colors = button_colours,
+                colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = player.theme.accent,
+                        contentColor = player.theme.on_accent
+                    ),
                 modifier = item_modifier
             ) {
                 Crossfade(local_server_process) { process ->
                     if (process == null) {
-                        Text(getString("loading_splash_button_start_server"))
+                        Text(getString("loading_splash_button_start_local_server"))
                     }
                     else {
-                        Text(getString("loading_splash_button_stop_process"))
+                        Text(getString("loading_splash_button_stop_local_server"))
                     }
+                }
+            }
+        }
+        else if (server_unavailability_reason != null) {
+            OutlinedButton(
+                { show_unavailability_dialog = !show_unavailability_dialog },
+                border = BorderStroke(Dp.Hairline, player.theme.accent),
+                modifier = item_modifier
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Icon(Icons.Default.Info, null)
+                    Text(getString("loading_splash_button_local_server_unavailable"))
                 }
             }
         }

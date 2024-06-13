@@ -200,8 +200,8 @@
     <string name="loading_splash_setting_initial_state">Başlangıç durumunu ayarlama</string>
     <string name="loading_splash_button_configure_connection">Bağlantıyı yapılandır</string>
     <string name="loading_splash_title_configure_server_connection">Sunucu bağlantısını yapılandır</string>
-    <string name="loading_splash_button_start_server">Yerel sunucuyu başlat</string>
-    <string name="loading_splash_button_stop_process">İşlemi durdur</string>
+    <string name="loading_splash_button_start_local_server">Yerel sunucuyu başlat</string>
+    <string name="loading_splash_button_stop_local_server">İşlemi durdur</string>
     <string name="loading_splash_process_running_with_command_$x">Bu komutla çalışan işlem: $x</string>
     <string name="loading_splash_local_server_command_not_set">Yerel sunucu komutu ayarlanmadı</string>
     <string name="throw_error">Gönder</string>
@@ -472,7 +472,6 @@
     <string name="s_sub_local_server_command">Sunucuyu SpMp içinden manuel olarak başlatırken çalıştırılacak komut '$@' öğesinin ilk oluşumu sunucu bağımsız değişkenleriyle değiştirilecektir, aksi takdirde komuta ekleneceklerdir</string>
     <string name="s_key_server_local_start_automatically">Yerel sunucuyu otomatik olarak başlat</string>
     <string name="s_sub_server_local_start_automatically">Başlangıçta, bir sunucu hemen bulunamazsa, belirtilen komut kullanılarak bir sunucu otomatik olarak başlatılır</string>
-    <string name="s_key_server_kill_child_on_exit">Çıkışta alt sunucuyu durdur</string>
     <string name="s_cat_development">Geliştirme</string>
     <string name="s_subpage_ui_debug_info">UI hata ayıklama bilgisi</string>
     <string name="s_group_localisation">Yerelleştirme</string>

@@ -33,8 +33,8 @@ import com.toasterofbread.spmp.platform.visualiser.MusicVisualiser
 import com.toasterofbread.spmp.shared.R
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
 import kotlinx.coroutines.*
-import spms.socketapi.shared.SpMsPlayerRepeatMode
-import spms.socketapi.shared.SpMsPlayerState
+import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
+import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
 
 @androidx.annotation.OptIn(UnstableApi::class)
 open class ForegroundPlayerService(

@@ -8,7 +8,6 @@ import ProgramArguments
 
 actual class PlatformInternalPlayerService: ForegroundPlayerService(play_when_ready = true), PlayerService {
     actual companion object: InternalPlayerServiceCompanion(PlatformInternalPlayerService::class), PlayerServiceCompanion {
-        override fun isAvailable(context: AppContext, launch_arguments: ProgramArguments): Boolean = true
         override fun playsAudio(): Boolean = true
     }
 

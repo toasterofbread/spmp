@@ -4,25 +4,23 @@ import ProgramArguments
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlatformBinder
 import dev.toastbits.composekit.platform.PlatformFile
+import dev.toastbits.spms.server.SpMs
 
 private class PlayerServiceBinder(val service: PlatformInternalPlayerService): PlatformBinder()
 
 actual class PlatformInternalPlayerService: ExternalPlayerService(plays_audio = false) {
-    private fun launchLocalServer(launch_arguments: ProgramArguments) {
+    private fun launchLocalServer() {
         LocalServer.startLocalServer(
             context,
-            launch_arguments,
             context.settings.platform.SERVER_PORT.get()
-        ) { result, stderr ->
-            if (result != 0) {
-                throw RuntimeException("Local server exited ($result): $stderr")
-            }
-        }
+        )
     }
 
     actual companion object: PlayerServiceCompanion {
         override fun isAvailable(context: AppContext, launch_arguments: ProgramArguments): Boolean =
-            LocalServer.getServerExecutableFile(launch_arguments) != null
+            SpMs.isAvailable(headless = false)
+
+        override fun getUnavailabilityReason(context: AppContext, launch_arguments: ProgramArguments): String? = LocalServer.getLocalServerUnavailabilityReason()
 
         override fun isServiceRunning(context: AppContext): Boolean = true
 
@@ -38,12 +36,12 @@ actual class PlatformInternalPlayerService: ExternalPlayerService(plays_audio = 
                 if (instance != null)
                     instance.also {
                         it.setContext(context)
-                        it.launchLocalServer(launch_arguments)
+                        it.launchLocalServer()
                     }
                 else
                     PlatformInternalPlayerService().also {
                         it.setContext(context)
-                        it.launchLocalServer(launch_arguments)
+                        it.launchLocalServer()
                         it.onCreate()
                     }
             onConnected(service)

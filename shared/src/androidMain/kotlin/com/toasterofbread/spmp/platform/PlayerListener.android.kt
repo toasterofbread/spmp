@@ -3,8 +3,8 @@ package com.toasterofbread.spmp.platform
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import spms.socketapi.shared.SpMsPlayerRepeatMode
-import spms.socketapi.shared.SpMsPlayerState
+import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
+import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
 import com.toasterofbread.spmp.platform.playerservice.convertState
 import com.toasterofbread.spmp.platform.playerservice.getSong
 

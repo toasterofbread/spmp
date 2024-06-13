@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.platform.playerservice
 
 import com.toasterofbread.spmp.resources.getString
-import spms.socketapi.shared.SpMsClientType
+import dev.toastbits.spms.socketapi.shared.SpMsClientType
 import com.toasterofbread.spmp.platform.AppContext
 import java.io.File
 
@@ -54,5 +54,3 @@ internal fun getSpMsMachineIdFromFile(id_file: File): String {
 
     return new_id
 }
-
-expect fun getServerExecutableFilename(): String?

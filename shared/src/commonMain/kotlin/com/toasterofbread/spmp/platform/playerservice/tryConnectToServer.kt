@@ -9,9 +9,9 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.zeromq.ZMQ.Socket
 import org.zeromq.ZMsg
-import spms.socketapi.shared.SpMsClientHandshake
-import spms.socketapi.shared.SpMsSocketApi
-import spms.socketapi.shared.SpMsServerHandshake
+import dev.toastbits.spms.socketapi.shared.SpMsClientHandshake
+import dev.toastbits.spms.socketapi.shared.SpMsSocketApi
+import dev.toastbits.spms.socketapi.shared.SpMsServerHandshake
 import java.util.concurrent.TimeoutException
 import kotlin.time.Duration
 

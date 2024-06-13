@@ -8,8 +8,8 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.model.radio.RadioInstance
 import com.toasterofbread.spmp.model.radio.RadioState
-import spms.socketapi.shared.SpMsPlayerRepeatMode
-import spms.socketapi.shared.SpMsPlayerState
+import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
+import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
 import ProgramArguments
 
 internal const val AUTO_DOWNLOAD_SOFT_TIMEOUT = 1500 // ms

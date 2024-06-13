@@ -27,8 +27,8 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import spms.socketapi.shared.SpMsClientInfo
-import spms.socketapi.shared.SpMsClientType
+import dev.toastbits.spms.socketapi.shared.SpMsClientInfo
+import dev.toastbits.spms.socketapi.shared.SpMsClientType
 
 @Composable
 fun ControlPanelServerPage(

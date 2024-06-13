@@ -2,14 +2,13 @@ package com.toasterofbread.spmp.platform.playerservice
 
 import ProgramArguments
 import com.toasterofbread.spmp.platform.AppContext
+import kotlinx.coroutines.Job
 
 actual object LocalServer {
-    actual fun canStartLocalServer(): Boolean = false
+    actual fun getLocalServerUnavailabilityReason(): String? = null
 
     actual fun startLocalServer(
         context: AppContext,
-        launch_arguments: ProgramArguments?,
         port: Int,
-        onExit: (Int, String) -> Unit
-    ): LocalServerProcess? = null
+    ): Job = throw IllegalAccessError()
 }

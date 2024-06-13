@@ -5,6 +5,3 @@ import com.toasterofbread.spmp.platform.AppContext
 actual fun getSpMsMachineId(context: AppContext): String {
     return getSpMsMachineIdFromFile(context.getFilesDir().resolve("spmp_machine_id.txt"))
 }
-
-actual fun getServerExecutableFilename(): String? =
-    null

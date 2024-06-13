@@ -244,8 +244,8 @@
     <string name="loading_splash_setting_initial_state">Configuration de l'état initial</string>
     <string name="loading_splash_button_configure_connection">Configurer la connexion</string>
     <string name="loading_splash_title_configure_server_connection">Configurer la connexion au serveur</string>
-    <string name="loading_splash_button_start_server">Démarrer le serveur local</string>
-    <string name="loading_splash_button_stop_process">Arrêter le processus</string>
+    <string name="loading_splash_button_start_local_server">Démarrer le serveur local</string>
+    <string name="loading_splash_button_stop_local_server">Arrêter le processus</string>
     <string name="loading_splash_process_running_with_command_$x">Processus en cours d'exécution avec cette commande :&#xA;$x</string>
     <string name="loading_splash_local_server_command_not_set">Commande du serveur local non définie</string>
 
@@ -584,7 +584,6 @@
     <string name="s_sub_local_server_command">Commande à exécuter lors du démarrage manuel du serveur depuis SpMp&#xA;. La première occurrence de '$@' sera remplacée par les arguments du serveur, sinon ils seront ajoutés à la commande</string>
     <string name="s_key_server_local_start_automatically">Démarrer automatiquement le serveur local</string>
     <string name="s_sub_server_local_start_automatically">Au démarrage, si aucun serveur n'est trouvé immédiatement, un serveur sera démarré automatiquement en utilisant la commande spécifiée</string>
-    <string name="s_key_server_kill_child_on_exit">Arrêter le serveur enfant à la sortie</string>
 
     <string name="s_cat_development">Développement</string>
 

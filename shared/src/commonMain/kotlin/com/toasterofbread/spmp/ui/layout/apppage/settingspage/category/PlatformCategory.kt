@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
 import LocalPlayerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import dev.toastbits.composekit.settings.ui.item.GroupSettingsItem
 import dev.toastbits.composekit.settings.ui.item.InfoTextSettingsItem
@@ -15,7 +16,9 @@ import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.playerservice.PlatformInternalPlayerService
 import com.toasterofbread.spmp.platform.playerservice.PlatformExternalPlayerService
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import LocalProgramArguments
+import ProgramArguments
 
 internal fun getPlatformCategoryItems(context: AppContext): List<SettingsItem> {
     val platform_items: List<SettingsItem> =
@@ -79,10 +82,10 @@ fun getServerGroupItems(context: AppContext): List<SettingsItem> {
         ToggleSettingsItem(
             context.settings.platform.ENABLE_EXTERNAL_SERVER_MODE,
             getEnabled = {
-                isInternalServerAvailable()
+                getLocalServerUnavailabilityReason() == null
             },
             getValueOverride = {
-                if (!isInternalServerAvailable()) {
+                if (getLocalServerUnavailabilityReason() != null) {
                     true
                 }
                 else {
@@ -90,12 +93,7 @@ fun getServerGroupItems(context: AppContext): List<SettingsItem> {
                 }
             },
             getSubtitleOverride = {
-                if (!isInternalServerAvailable()) {
-                    getString("s_sub_always_enabled_because_spms_not_packaged")
-                }
-                else {
-                    null
-                }
+                getLocalServerUnavailabilityReason()
             }
         ),
 
@@ -133,14 +131,13 @@ fun getServerGroupItems(context: AppContext): List<SettingsItem> {
 
         ToggleSettingsItem(
             context.settings.platform.SERVER_LOCAL_START_AUTOMATICALLY
-        ).takeIf { Platform.DESKTOP.isCurrent() },
-
-        ToggleSettingsItem(
-            context.settings.platform.SERVER_KILL_CHILD_ON_EXIT
         ).takeIf { Platform.DESKTOP.isCurrent() }
     )
 }
 
 @Composable
-private fun isInternalServerAvailable(): Boolean =
-    PlatformInternalPlayerService.isAvailable(LocalPlayerState.current.context, LocalProgramArguments.current)
+private fun getLocalServerUnavailabilityReason(): String? {
+    val player: PlayerState = LocalPlayerState.current
+    val launch_arguments: ProgramArguments = LocalProgramArguments.current
+    return remember { PlatformInternalPlayerService.getUnavailabilityReason(player.context, launch_arguments) }
+}

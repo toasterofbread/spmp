@@ -231,8 +231,8 @@
     <string name="loading_splash_setting_initial_state">设置初始状态</string>
     <string name="loading_splash_button_configure_connection">配置连接</string>
     <string name="loading_splash_title_configure_server_connection">配置服务器连接</string>
-    <string name="loading_splash_button_start_server">启动本地服务器</string>
-    <string name="loading_splash_button_stop_process">停止进程</string>
+    <string name="loading_splash_button_start_local_server">启动本地服务器</string>
+    <string name="loading_splash_button_stop_local_server">停止进程</string>
     <string name="loading_splash_process_running_with_command_$x">进程正在运行此命令:&#xA;$x</string>
     <string name="loading_splash_local_server_command_not_set">未设置本地服务器命令</string>
 
@@ -561,7 +561,6 @@
     <string name="s_sub_local_server_command">从 SpMp 内部手动启动服务器时运行的命令&#xA;第一次出现'$@'将被替换为服务器参数，否则它们将被附加到命令</string>
     <string name="s_key_server_local_start_automatically">自动启动本地服务器</string>
     <string name="s_sub_server_local_start_automatically">在启动时，如果立即找不到服务器，将使用指定的命令自动启动服务器</string>
-    <string name="s_key_server_kill_child_on_exit">退出时停止子服务器</string>
 
     <string name="s_cat_development">开发</string>
 

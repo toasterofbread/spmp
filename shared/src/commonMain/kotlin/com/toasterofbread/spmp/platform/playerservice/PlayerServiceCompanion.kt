@@ -4,7 +4,9 @@ import ProgramArguments
 import com.toasterofbread.spmp.platform.AppContext
 
 interface PlayerServiceCompanion {
-    fun isAvailable(context: AppContext, launch_arguments: ProgramArguments): Boolean = true
+    fun getUnavailabilityReason(context: AppContext, launch_arguments: ProgramArguments): String? = null
+    fun isAvailable(context: AppContext, launch_arguments: ProgramArguments): Boolean = getUnavailabilityReason(context, launch_arguments) == null
+
     fun isServiceRunning(context: AppContext): Boolean
     fun playsAudio(): Boolean = false
 

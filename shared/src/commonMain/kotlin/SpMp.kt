@@ -40,7 +40,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import spms.socketapi.shared.SPMS_API_VERSION
+import dev.toastbits.spms.socketapi.shared.SPMS_API_VERSION
 import java.util.logging.Logger
 import org.jetbrains.compose.resources.FontResource
 import org.jetbrains.compose.resources.Font

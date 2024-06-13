@@ -4,7 +4,7 @@ import androidx.compose.runtime.*
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.playerservice.PlayerService
-import spms.socketapi.shared.SpMsPlayerRepeatMode
+import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 
 class PlayerStatus internal constructor() {
     private var player: PlayerService? = null

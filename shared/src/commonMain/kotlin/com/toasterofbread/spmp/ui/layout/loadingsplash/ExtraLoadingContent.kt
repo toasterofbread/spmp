@@ -21,7 +21,6 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getServerGroupItems
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.platform.playerservice.LocalServerProcess
 import com.toasterofbread.spmp.platform.playerservice.LocalServer
 import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import dev.toastbits.composekit.settings.ui.item.SettingsItem

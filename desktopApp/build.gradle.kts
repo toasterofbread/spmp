@@ -239,7 +239,10 @@ fun configureRunTask() {
     tasks.getByName<JavaExec>("run") {
         val local_properties: Properties = Properties().apply {
             try {
-                load(FileInputStream(rootProject.file(local_properties_path)))
+                val file: File = rootProject.file(local_properties_path)
+                if (file.isFile) {
+                    load(FileInputStream(file))
+                }
             }
             catch (e: Throwable) {
                 RuntimeException("Ignoring exception while loading '$local_properties_path' in configureRunTask()", e).printStackTrace()

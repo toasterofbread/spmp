@@ -79,7 +79,7 @@ android {
         versionName = getString("version_string")
 
         applicationId = "com.toasterofbread.spmp"
-        minSdk = 23
+        minSdk = (findProperty("android.minSdk") as String).toInt()
         targetSdk = (findProperty("android.targetSdk") as String).toInt()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -122,8 +122,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_22
+        targetCompatibility = JavaVersion.VERSION_22
         isCoreLibraryDesugaringEnabled = true
     }
 

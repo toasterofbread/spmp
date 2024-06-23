@@ -120,8 +120,8 @@ android {
     namespace = "com.toasterofbread.spmp.shared"
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_22
+        targetCompatibility = JavaVersion.VERSION_22
     }
 
     sourceSets.getByName("main") {
@@ -129,7 +129,7 @@ android {
         resources.srcDirs("src/commonMain/resources")
     }
     defaultConfig {
-        minSdk = 23
+        minSdk = (findProperty("android.minSdk") as String).toInt()
     }
 }
 

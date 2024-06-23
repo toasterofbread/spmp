@@ -1,6 +1,5 @@
 rootProject.name = "spmp"
 
-include(":spmp-server")
 include(":shared")
 include(":androidApp")
 include(":desktopApp")

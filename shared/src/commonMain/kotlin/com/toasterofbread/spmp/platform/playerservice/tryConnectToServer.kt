@@ -31,8 +31,8 @@ internal suspend fun Socket.tryConnectToServer(
         try {
             connect(server_url)
         }
-        catch (_: Throwable) {
-            delay(100)
+        catch (e: Throwable) {
+            delay(1000)
             continue
         }
 

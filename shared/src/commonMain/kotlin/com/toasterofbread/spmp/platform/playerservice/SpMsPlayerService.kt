@@ -33,11 +33,11 @@ import kotlinx.serialization.json.encodeToJsonElement
 import org.zeromq.*
 import java.net.InetAddress
 import dev.toastbits.spms.socketapi.shared.*
+import dev.toastbits.spms.server.CLIENT_HEARTBEAT_TARGET_PERIOD
+import dev.toastbits.spms.server.CLIENT_HEARTBEAT_MAX_PERIOD
 import kotlin.time.*
 
-private val POLL_STATE_INTERVAL: Duration = with (Duration) { 100.milliseconds }
-private val POLL_TIMEOUT: Duration = with (Duration) { 3.seconds }
-private val POLL_ATTEMPTS: Int = 5
+private val SERVER_REPLY_TIMEOUT: Duration = with (Duration) { 1.seconds }
 
 abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(), ClientServerPlayerService {
     abstract fun getIpAddress(): String
@@ -134,7 +134,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
     }
 
     private fun onSocketConnectionLost(attempts: Int, expired_timeout: Duration) {
-        println("Connection to server timed out after $attempts poll attempts, reconnecting...")
+        println("Connection to server timed out after $attempts attempts and $expired_timeout, reconnecting...")
 
         connected_server?.run {
             connected_server = null
@@ -215,6 +215,8 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
             poller.register(this@connectSocketToServer, ZMQ.Poller.POLLIN)
 
             var queued_events: MutableList<SpMsPlayerEvent>? = mutableListOf()
+            var last_heartbeat: TimeMark = TimeSource.Monotonic.markNow()
+            var last_server_heartbeat: TimeMark = TimeSource.Monotonic.markNow()
 
             while (true) {
                 if (server_state_applied && queued_events != null) {
@@ -222,31 +224,94 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
                     queued_events = null
                 }
 
-                var attempts: Int = POLL_ATTEMPTS
-                var poll_successful: Boolean = false
-
-                while (attempts-- > 0) {
-                    if (
-                        pollServerState(poller, POLL_TIMEOUT) { events ->
-                            queued_events?.also {
-                                it.addAll(events)
-                                return@also
-                            }
-
-                            applyPlayerEvents(events)
+                val poll_result: Boolean =
+                    pollServerState(poller, with (Duration) { 100.milliseconds }) { events ->
+                        queued_events?.also {
+                            it.addAll(events)
+                            return@pollServerState
                         }
-                    ) {
-                        poll_successful = true
-                        break
-                    }
-                }
 
-                if (!poll_successful) {
-                    onSocketConnectionLost(POLL_ATTEMPTS, POLL_TIMEOUT)
+                        applyPlayerEvents(events)
+                    }
+
+                if (poll_result) {
+                    last_server_heartbeat = TimeSource.Monotonic.markNow()
+                }
+                else if (last_server_heartbeat.elapsedNow() > CLIENT_HEARTBEAT_MAX_PERIOD) {
+                    onSocketConnectionLost(1, CLIENT_HEARTBEAT_MAX_PERIOD)
                     break
                 }
 
-                delay(POLL_STATE_INTERVAL)
+                synchronized(queued_messages) {
+                    val message: ZMsg = ZMsg()
+                    if (queued_messages.isNotEmpty()) {
+                        for (queued in queued_messages) {
+                            message.addSafe(queued.first)
+                            message.addSafe(Json.encodeToString(queued.second))
+                        }
+                    }
+                    else if (last_heartbeat.elapsedNow() > CLIENT_HEARTBEAT_TARGET_PERIOD) {
+                        message.add(byteArrayOf())
+                    }
+                    else {
+                        return@synchronized
+                    }
+
+                    val actions_expecting_result: List<Pair<String, List<Any?>>> =
+                        queued_messages.filter { it.first.firstOrNull() == SPMS_EXPECT_REPLY_CHAR }
+
+                    queued_messages.clear()
+                    last_heartbeat = TimeSource.Monotonic.markNow()
+
+                    println("SENDING $message")
+                    val send_result: Boolean = message.send(this@connectSocketToServer)
+                    check(send_result) { "Sending message to server failed" }
+
+                    println("EXPECTING REP $actions_expecting_result")
+                    if (actions_expecting_result.isEmpty()) {
+                        return@synchronized
+                    }
+
+                    var results: ZMsg? = null
+                    val wait_start: TimeMark = TimeSource.Monotonic.markNow()
+
+                    while (wait_start.elapsedNow() < SERVER_REPLY_TIMEOUT) {
+                        if (poller.poll((SERVER_REPLY_TIMEOUT - wait_start.elapsedNow()).inWholeMilliseconds) > 0) {
+                            results = ZMsg.recvMsg(this@connectSocketToServer)
+                            break
+                        }
+                    }
+
+                    if (results == null) {
+                        println("NO RESULTS")
+                        onSocketConnectionLost(1, SERVER_REPLY_TIMEOUT)
+                        return@launchSingle
+                    }
+
+                    last_server_heartbeat = TimeSource.Monotonic.markNow()
+
+                    val result_str: String = SpMsSocketApi.decode(results.map { it.data.decodeToString() }).first()
+                    println("RESULT STR $result_str")
+                    if (result_str.isEmpty()) {
+                        throw RuntimeException("Result string is empty")
+                    }
+
+                    val parsed_results: List<SpMsActionReply>?
+                    try {
+                        parsed_results = json.decodeFromString(result_str)
+                    }
+                    catch (e: Throwable) {
+                        throw RuntimeException("Parsing result failed '$result_str'", e)
+                    }
+
+                    for ((i, result) in parsed_results.orEmpty().withIndex()) {
+                        val action: Pair<String, List<Any?>> = actions_expecting_result[i]
+                        when (action.first.drop(1)) {
+                            "clients" -> clients_result_channel.trySend(result)
+                            else -> throw NotImplementedError("Action: '$action' Result: '$result'")
+                        }
+                    }
+                }
             }
         }
 
@@ -282,89 +347,32 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
                 }
             }
         }
-        catch (_: Throwable) {
-            println("Polling server failed prematurely")
+        catch (e: Throwable) {
+            RuntimeException("Warning: Polling server failed prematurely", e).printStackTrace()
             return@withContext false
         }
 
         if (events == null) {
-            println("Polling server timed out after $timeout")
             return@withContext false
         }
 
+        val decoded_event_strings: List<String> = SpMsSocketApi.decode(events.map { it.data.decodeToString() })
+        if (decoded_event_strings.size == 1 && decoded_event_strings.first().contains("REPLY TO ")) {
+            return@withContext true
+        }
+
         val decoded_events: List<SpMsPlayerEvent> =
-            SpMsSocketApi.decode(events.map { it.data.decodeToString() })
-            .mapNotNull { event: String ->
+            decoded_event_strings.mapNotNull { event: String ->
                 try {
                     json.decodeFromString(event)
                 }
                 catch (e: Throwable) {
-                    throw RuntimeException("Parsing event failed '$event'", e)
+                    throw RuntimeException("Parsing event failed '$event' (in $decoded_event_strings)", e)
                 }
             }
 
         onEvents(decoded_events)
-
-        val reply: ZMsg = ZMsg()
-        synchronized(queued_messages) {
-            if (queued_messages.isEmpty()) {
-                reply.add(byteArrayOf())
-            }
-            else {
-                for (message in queued_messages) {
-                    reply.addSafe(message.first)
-                    reply.addSafe(Json.encodeToString(message.second))
-                }
-            }
-
-            val actions_expecting_result: List<Pair<String, List<Any?>>> =
-                queued_messages.filter { it.first.firstOrNull() == SPMS_EXPECT_REPLY_CHAR }
-
-            queued_messages.clear()
-
-            val reply_result: Boolean = reply.send(this@pollServerState)
-            if (!reply_result || actions_expecting_result.isEmpty()) {
-                return@withContext reply_result
-            }
-
-            var results: ZMsg? = null
-            val wait_start: TimeMark = TimeSource.Monotonic.markNow()
-
-            while (timeout == null || wait_start.elapsedNow() < timeout) {
-                if (poller.poll(timeout?.let { (it - wait_start.elapsedNow()).inWholeMilliseconds } ?: -1) > 0) {
-                    results = ZMsg.recvMsg(this@pollServerState)
-                    break
-                }
-            }
-
-            if (results == null) {
-                println("Getting results timed out after $timeout")
-                return@withContext false
-            }
-
-            val result_str: String = SpMsSocketApi.decode(results.map { it.data.decodeToString() }).first()
-            if (result_str.isEmpty()) {
-                throw RuntimeException("Result string is empty")
-            }
-
-            val parsed_results: List<SpMsActionReply>?
-            try {
-                parsed_results = json.decodeFromString(result_str)
-            }
-            catch (e: Throwable) {
-                throw RuntimeException("Parsing result failed '$result_str'", e)
-            }
-
-            for ((i, result) in parsed_results.orEmpty().withIndex()) {
-                val action: Pair<String, List<Any?>> = actions_expecting_result[i]
-                when (action.first.drop(1)) {
-                    "clients" -> clients_result_channel.trySend(result)
-                    else -> throw NotImplementedError("Action: '$action' Result: '$result'")
-                }
-            }
-
-            return@withContext true
-        }
+        return@withContext true
     }
 
     override suspend fun getPeers(): Result<List<SpMsClientInfo>> = runCatching {

@@ -21,8 +21,10 @@ jobs:
     - name: Set up JDK 22
       uses: actions/setup-java@v3
       with:
-        java-version: '22'
         distribution: 'temurin'
+        java-version: |
+          22
+          21
 
     - name: Set up Gradle
       uses: gradle/gradle-build-action@v3

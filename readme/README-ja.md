@@ -94,7 +94,7 @@ Pull requestと機能の提案は歓迎です！これは僕の初めてのCompo
 - [ExoVisualizer](https://github.com/dzolnai/ExoVisualizer): 音楽ビジュアライザの実装の参考にさせてもらいました
 - [ViMusic](https://github.com/vfsfitvnm/ViMusic): このプロジェクトへの大きなインスピレーションでした
 
-#### ライブラリ（すべてのライブラリを[shared/build.gradle.kts](/shared/build.gradle.kts)確認できます）
+#### ライブラリ（すべてのライブラリを[Dependencies.kt](/buildSrc/src/main/kotlin/plugins/spmp/Dependencies.kt)確認できます）
 - [Piped](https://github.com/TeamPiped/Piped): 曲再生用のストリームURLを提供
 - [SQLDelight](https://github.com/cashapp/sqldelight): メディアのメタデータ用データベース
 - [Kuromoji](https://github.com/atilika/kuromoji): 日本語歌詞のふりがなを生成

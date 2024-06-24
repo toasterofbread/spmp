@@ -13,6 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.pull_request.draft == false && (github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, 'noci')) }}
 
+    env:
+      JAVA_HOME: /usr/lib/jvm/java-22-openjdk/
+
     steps:
     - uses: actions/checkout@v3
       with:

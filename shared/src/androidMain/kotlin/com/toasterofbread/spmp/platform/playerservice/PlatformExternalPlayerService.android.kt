@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
 import androidx.media3.common.Player
+import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem as ExoMediaItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.Button
@@ -60,6 +61,38 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
         super.onRadioCancelled()
         server.onRadioCancelled()
     }
+
+    override fun getNotificationPlayer(player: Player): Player =
+        object : ForwardingPlayer(player) {
+            override fun play() {
+                server.play()
+            }
+
+            override fun pause() {
+                server.pause()
+            }
+
+            override fun seekToNext() {
+                server.seekToNext()
+            }
+
+            override fun seekToNextMediaItem() {
+                server.seekToNext()
+            }
+
+            override fun seekToPrevious() {
+                server.seekToPrevious()
+            }
+
+            override fun seekToPreviousMediaItem() {
+                server.seekToPrevious()
+            }
+
+            override fun seekTo(index: Int, position_ms: Long) {
+                server.seekToSong(index)
+                server.seekTo(position_ms)
+            }
+        }
 
     private val server: ExternalPlayerService =
         object : ExternalPlayerService(plays_audio = true) {

@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.media3.common.*
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.audio.*
 import androidx.media3.session.*
@@ -88,6 +89,8 @@ open class ForegroundPlayerService(
 
     protected open fun onRadioCancelled() {}
 
+    protected open fun getNotificationPlayer(player: Player): Player = player
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         return START_NOT_STICKY
@@ -115,7 +118,11 @@ open class ForegroundPlayerService(
         _context = AppContext(this, coroutine_scope)
         _context.getPrefs().addListener(prefs_listener)
 
-        initialiseSessionAndPlayer(play_when_ready, playlist_auto_progress)
+        initialiseSessionAndPlayer(
+            play_when_ready,
+            playlist_auto_progress,
+            getNotificationPlayer = { getNotificationPlayer(it) }
+        )
 
         _service_player = object : PlayerServicePlayer(this) {
             override fun onUndoStateChanged() {

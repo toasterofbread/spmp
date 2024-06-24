@@ -13,6 +13,7 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.audio.SonicAudioProcessor
 import androidx.media3.common.util.BitmapLoader
+import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.RenderersFactory
 import androidx.media3.exoplayer.audio.AudioRendererEventListener
@@ -38,7 +39,11 @@ import dev.toastbits.ytmkt.formats.VideoFormatsEndpoint
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.Executors
 
-internal fun ForegroundPlayerService.initialiseSessionAndPlayer(play_when_ready: Boolean, playlist_auto_progress: Boolean) {
+internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
+    play_when_ready: Boolean,
+    playlist_auto_progress: Boolean,
+    getNotificationPlayer: (ExoPlayer) -> Player = { it }
+) {
     audio_sink = DefaultAudioSink.Builder(context.ctx)
         .setAudioProcessorChain(
             DefaultAudioProcessorChain(
@@ -123,7 +128,7 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(play_when_ready:
         MoreExecutors.directExecutor()
     )
 
-    media_session = MediaSession.Builder(this, player)
+    media_session = MediaSession.Builder(this, getNotificationPlayer(player))
         .setBitmapLoader(object : BitmapLoader {
             val executor = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor())
 
@@ -181,6 +186,10 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(play_when_ready:
                         .build()
                 }
                 return Futures.immediateFuture(updated_media_items)
+            }
+
+            override fun onPlayerCommandRequest(session: MediaSession, controller: MediaSession.ControllerInfo, playerCommand: Int): Int {
+                return super.onPlayerCommandRequest(session, controller, playerCommand)
             }
 
             override fun onConnect(session: MediaSession, controller: MediaSession.ControllerInfo): MediaSession.ConnectionResult {

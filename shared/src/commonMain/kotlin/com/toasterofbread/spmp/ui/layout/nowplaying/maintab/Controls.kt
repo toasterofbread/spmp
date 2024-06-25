@@ -193,6 +193,7 @@ internal fun Controls(
                         overflow = TextOverflow.Clip,
                         modifier = Modifier
                             .fillMaxWidth()
+                            .weight(1f)
                             .platformClickable(
                                 enabled = enabled,
                                 onClick = {

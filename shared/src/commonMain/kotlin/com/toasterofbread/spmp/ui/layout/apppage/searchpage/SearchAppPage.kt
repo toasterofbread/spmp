@@ -311,7 +311,9 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
                         }
                     },
                     {
-                        error = it
+                        if (it !is CancellationException) {
+                            error = it
+                        }
                         synchronized(search_lock) {
                             search_in_progress = false
                         }

@@ -218,110 +218,118 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
             var last_heartbeat: TimeMark = TimeSource.Monotonic.markNow()
             var last_server_heartbeat: TimeMark = TimeSource.Monotonic.markNow()
 
-            while (true) {
-                println("LOOP 1")
-                if (server_state_applied && queued_events != null) {
-                    applyPlayerEvents(queued_events)
-                    queued_events = null
-                }
+            try {
+                while (true) {
+                    println("LOOP 1")
+                    if (server_state_applied && queued_events != null) {
+                        println("LOOP 1.1")
+                        applyPlayerEvents(queued_events)
+                        queued_events = null
+                    }
+                    println("LOOP 1.2")
 
-                val poll_result: Boolean =
-                    pollServerState(poller, with (Duration) { 100.milliseconds }) { events ->
-                        queued_events?.also {
-                            it.addAll(events)
-                            return@pollServerState
+                    val poll_result: Boolean =
+                        pollServerState(poller, with (Duration) { 100.milliseconds }) { events ->
+                            queued_events?.also {
+                                it.addAll(events)
+                                return@pollServerState
+                            }
+
+                            applyPlayerEvents(events)
                         }
 
-                        applyPlayerEvents(events)
+                    if (poll_result) {
+                        println("LOOP 2")
+                        last_server_heartbeat = TimeSource.Monotonic.markNow()
                     }
-
-                if (poll_result) {
-                    println("LOOP 2")
-                    last_server_heartbeat = TimeSource.Monotonic.markNow()
-                }
-                else if (last_server_heartbeat.elapsedNow() > CLIENT_HEARTBEAT_MAX_PERIOD) {
-                    println("LOOP 3")
-                    onSocketConnectionLost(1, CLIENT_HEARTBEAT_MAX_PERIOD)
-                    break
-                }
-                else {
-                    println("LOOP 4")
-                }
-
-                synchronized(queued_messages) {
-                    println("LOOP 4")
-                    val message: ZMsg = ZMsg()
-                    if (queued_messages.isNotEmpty()) {
-                        for (queued in queued_messages) {
-                            message.addSafe(queued.first)
-                            message.addSafe(Json.encodeToString(queued.second))
-                        }
-                        println("LOOP 5")
-                    }
-                    else if (last_heartbeat.elapsedNow() > CLIENT_HEARTBEAT_TARGET_PERIOD) {
-                        message.add(byteArrayOf())
-                        println("LOOP 6")
+                    else if (last_server_heartbeat.elapsedNow() > CLIENT_HEARTBEAT_MAX_PERIOD) {
+                        println("LOOP 3")
+                        onSocketConnectionLost(1, CLIENT_HEARTBEAT_MAX_PERIOD)
+                        break
                     }
                     else {
-                        println("LOOP 7")
-                        return@synchronized
+                        println("LOOP 4")
                     }
 
-                    val actions_expecting_result: List<Pair<String, List<Any?>>> =
-                        queued_messages.filter { it.first.firstOrNull() == SPMS_EXPECT_REPLY_CHAR }
-
-                    queued_messages.clear()
-                    last_heartbeat = TimeSource.Monotonic.markNow()
-
-                    println("SENDING $message")
-                    val send_result: Boolean = message.send(this@connectSocketToServer)
-                    check(send_result) { "Sending message to server failed" }
-
-                    println("EXPECTING REP $actions_expecting_result")
-                    if (actions_expecting_result.isEmpty()) {
-                        return@synchronized
-                    }
-
-                    var results: ZMsg? = null
-                    val wait_start: TimeMark = TimeSource.Monotonic.markNow()
-
-                    while (wait_start.elapsedNow() < SERVER_REPLY_TIMEOUT) {
-                        if (poller.poll((SERVER_REPLY_TIMEOUT - wait_start.elapsedNow()).inWholeMilliseconds) > 0) {
-                            results = ZMsg.recvMsg(this@connectSocketToServer)
-                            break
+                    synchronized(queued_messages) {
+                        println("LOOP 4")
+                        val message: ZMsg = ZMsg()
+                        if (queued_messages.isNotEmpty()) {
+                            for (queued in queued_messages) {
+                                message.addSafe(queued.first)
+                                message.addSafe(Json.encodeToString(queued.second))
+                            }
+                            println("LOOP 5")
                         }
-                    }
+                        else if (last_heartbeat.elapsedNow() > CLIENT_HEARTBEAT_TARGET_PERIOD) {
+                            message.add(byteArrayOf())
+                            println("LOOP 6")
+                        }
+                        else {
+                            println("LOOP 7")
+                            return@synchronized
+                        }
 
-                    if (results == null) {
-                        println("NO RESULTS")
-                        onSocketConnectionLost(1, SERVER_REPLY_TIMEOUT)
-                        return@launchSingle
-                    }
+                        val actions_expecting_result: List<Pair<String, List<Any?>>> =
+                            queued_messages.filter { it.first.firstOrNull() == SPMS_EXPECT_REPLY_CHAR }
 
-                    last_server_heartbeat = TimeSource.Monotonic.markNow()
+                        queued_messages.clear()
+                        last_heartbeat = TimeSource.Monotonic.markNow()
 
-                    val result_str: String = SpMsSocketApi.decode(results.map { it.data.decodeToString() }).first()
-                    println("RESULT STR $result_str")
-                    if (result_str.isEmpty()) {
-                        throw RuntimeException("Result string is empty")
-                    }
+                        println("SENDING $message")
+                        val send_result: Boolean = message.send(this@connectSocketToServer)
+                        check(send_result) { "Sending message to server failed" }
 
-                    val parsed_results: List<SpMsActionReply>?
-                    try {
-                        parsed_results = json.decodeFromString(result_str)
-                    }
-                    catch (e: Throwable) {
-                        throw RuntimeException("Parsing result failed '$result_str'", e)
-                    }
+                        println("EXPECTING REP $actions_expecting_result")
+                        if (actions_expecting_result.isEmpty()) {
+                            return@synchronized
+                        }
 
-                    for ((i, result) in parsed_results.orEmpty().withIndex()) {
-                        val action: Pair<String, List<Any?>> = actions_expecting_result[i]
-                        when (action.first.drop(1)) {
-                            "clients" -> clients_result_channel.trySend(result)
-                            else -> throw NotImplementedError("Action: '$action' Result: '$result'")
+                        var results: ZMsg? = null
+                        val wait_start: TimeMark = TimeSource.Monotonic.markNow()
+
+                        while (wait_start.elapsedNow() < SERVER_REPLY_TIMEOUT) {
+                            if (poller.poll((SERVER_REPLY_TIMEOUT - wait_start.elapsedNow()).inWholeMilliseconds) > 0) {
+                                results = ZMsg.recvMsg(this@connectSocketToServer)
+                                break
+                            }
+                        }
+
+                        if (results == null) {
+                            println("NO RESULTS")
+                            onSocketConnectionLost(1, SERVER_REPLY_TIMEOUT)
+                            return@launchSingle
+                        }
+
+                        last_server_heartbeat = TimeSource.Monotonic.markNow()
+
+                        val result_str: String = SpMsSocketApi.decode(results.map { it.data.decodeToString() }).first()
+                        println("RESULT STR $result_str")
+                        if (result_str.isEmpty()) {
+                            throw RuntimeException("Result string is empty")
+                        }
+
+                        val parsed_results: List<SpMsActionReply>?
+                        try {
+                            parsed_results = json.decodeFromString(result_str)
+                        }
+                        catch (e: Throwable) {
+                            throw RuntimeException("Parsing result failed '$result_str'", e)
+                        }
+
+                        for ((i, result) in parsed_results.orEmpty().withIndex()) {
+                            val action: Pair<String, List<Any?>> = actions_expecting_result[i]
+                            when (action.first.drop(1)) {
+                                "clients" -> clients_result_channel.trySend(result)
+                                else -> throw NotImplementedError("Action: '$action' Result: '$result'")
+                            }
                         }
                     }
                 }
+            }
+            catch (e: Throwable) {
+                RuntimeException("Exception during poll loop", e).printStackTrace()
+                throw e
             }
         }
 
@@ -350,8 +358,21 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
         var events: ZMsg? = null
         try {
             val wait_start: TimeMark = TimeSource.Monotonic.markNow()
-            while (timeout == null || wait_start.elapsedNow() < timeout) {
-                if (poller.poll(timeout?.let { (it - wait_start.elapsedNow()).inWholeMilliseconds } ?: -1) > 0) {
+            while (true) {
+                val remaining: Long
+                if (timeout == null) {
+                    remaining = -1
+                }
+                else {
+                    val elapsed: Duration = wait_start.elapsedNow()
+                    if (elapsed >= timeout) {
+                        break
+                    }
+
+                    remaining = (timeout - elapsed).inWholeMilliseconds
+                }
+
+                if (poller.poll(remaining) > 0) {
                     events = ZMsg.recvMsg(this@pollServerState)
                     break
                 }

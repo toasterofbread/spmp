@@ -188,10 +188,6 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
                 return Futures.immediateFuture(updated_media_items)
             }
 
-            override fun onPlayerCommandRequest(session: MediaSession, controller: MediaSession.ControllerInfo, playerCommand: Int): Int {
-                return super.onPlayerCommandRequest(session, controller, playerCommand)
-            }
-
             override fun onConnect(session: MediaSession, controller: MediaSession.ControllerInfo): MediaSession.ConnectionResult {
                 val result = super.onConnect(session, controller)
                 val session_commands = result.availableSessionCommands
